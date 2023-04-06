@@ -11,10 +11,7 @@ router.post('/', function (req, res, next) {
     const uuid = crypto.randomUUID()//ID作成
     const fileName = req.body.fileName.split('.', 1);
 
-    //const text = fs.readFileSync("TEXT/" + req.body.fileName, "utf-8");//デバッグ用
-
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
-
     const path = require('path');
     const directoryPath = path.relative('.', '../mizarDirectory');
     let directoryName = directoryPath + '/' + fileName
@@ -24,7 +21,7 @@ router.post('/', function (req, res, next) {
         makeDir(directoryName),
         makeDir(directoryName + '/TEXT').then(path => {
             fs.writeFileSync(path + '/' + req.body.fileName,
-                req.body.fileContent/*text*/); //mizarファイルを作成
+                req.body.fileContent); //mizarファイルを作成
         }),
         makeDir(directoryName + '/DICT'),
         makeDir(directoryName + '/prel'),
