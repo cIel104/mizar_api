@@ -65,19 +65,6 @@ router.get('/:ID', function (req, res, next) {
 
 })
 
-//以下をDBに格納
-//ID(ハッシュ名)
-//mizarファイル名(key=fileName)
-//mizarファイルがあるファイルパス(key=filePath)
-//進捗フェーズkey=progressPhase)
-//進捗率(key=progressPercent)
-//エラー数(key=numOfErrors)
-//makeenvの文章(key=makeenvText)
-//makeenvが終わったかどうか(key=isMakeenvFinish)
-//makeenvが成功したかどうか(key=isMakeenvSuccess)
-//verifier終わったかどうか)(key=isVerifierFinish)
-//verifierが成功したがどうか(key=isVerifierSuccess)
-
 const redis = require('redis');
 async function initializeDB(ID, fileName, filePath) {
     const client = await redis.createClient();
