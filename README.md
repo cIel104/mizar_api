@@ -21,7 +21,7 @@
 * API for obtaining verification results.
   * request  
   Please input the ID in the path parameter.  
-    http://localhost:3000/api/v1/verifier/{ID}
+    http://localhost:3000/api/v0.1/verifier/{ID}
   * response
  
     |Parameter|Content|
