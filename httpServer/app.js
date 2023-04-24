@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: false, limit: '1000mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api/v1/verifier', verifierRouter);
+app.use('/api/v0.1/verifier', verifierRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
