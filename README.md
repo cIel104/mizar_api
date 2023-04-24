@@ -8,6 +8,7 @@
 * API for executing a verification program.
   * request  
   Please specify a JSON-formatted string in the request body.
+    http://localhost:3000/api/v0.1/verifier
   
     |Parameter|Content|
     |:---:|:---:|
