@@ -7,7 +7,8 @@
 # Features
 * API for executing a verification program.
   * request  
-  Please specify a JSON-formatted string in the request body.
+  Please specify a JSON-formatted string in the request body.  
+    http://localhost:3000/api/v0.1/verifier
   
     |Parameter|Content|
     |:---:|:---:|
@@ -21,7 +22,7 @@
 * API for obtaining verification results.
   * request  
   Please input the ID in the path parameter.  
-    http://localhost:3000/api/v1/verifier/{ID}
+    http://localhost:3000/api/v0.1/verifier/{ID}
   * response
  
     |Parameter|Content|
