@@ -3,6 +3,7 @@ const { resolve } = require('path');
 const { route } = require('../app');
 const router = express.Router();
 const fs = require('fs');
+const makeJson = require('../verifierKicker/makeErrorList')
 
 //verifierを実行させるapi(POST形式)
 router.post('/', function (req, res, next) {
@@ -44,25 +45,26 @@ router.get('/:ID', function (req, res, next) {
     const insert = new Promise(async function (resolve, reject) {
         const client = await redis.createClient();
         client.hgetall(req.params.ID, function (error, result) {
-            resolve(result)
+            makeJson(client, req.params.ID, result.filePath)
+            resolve()
         })
     })
-    insert.then(function (result) {
-
-        res.json({
-            'progressPhase': result.progressPhase,
-            'progressPercent': Number(result.progressPercent),
-            'isMakeenvFinish': (result.isMakeenvFinish == 'true') ? true : false,
-            'isMakeenvSuccess': (result.isMakeenvSuccess == 'true') ? true : false,
-            'isVerifierFinish': (result.isVerifierFinish == 'true') ? true : false,
-            'isVerifierSuccess': (result.isVerifierSuccess == 'true') ? true : false,
-            'numOfErrors': Number(result.numOfErrors),
-            'errorFile': fs.readFileSync(result.filePath.replace('.miz', '.err'), 'utf-8'),
-            'makeenvText': result.makeenvText,
-
-        });
+    insert.then(async function () {
+        const client = await redis.createClient();
+        client.hgetall(req.params.ID, function (error, result) {
+            res.json({
+                'progressPhase': result.progressPhase,
+                'progressPercent': Number(result.progressPercent),
+                'isMakeenvFinish': (result.isMakeenvFinish == 'true') ? true : false,
+                'isMakeenvSuccess': (result.isMakeenvSuccess == 'true') ? true : false,
+                'isVerifierFinish': (result.isVerifierFinish == 'true') ? true : false,
+                'isVerifierSuccess': (result.isVerifierSuccess == 'true') ? true : false,
+                'numOfErrors': Number(result.numOfErrors),
+                'errorList': JSON.parse(result.errorList),//fs.readFileSync(result.filePath.replace('.miz', '.json'), 'utf-8'),
+                'makeenvText': result.makeenvText,
+            });
+        })
     })
-
 })
 
 const redis = require('redis');
@@ -88,6 +90,7 @@ async function initializeDB(ID, fileName, filePath) {
     client.hset(String(ID), 'isMakeenvFinish', String('false'));
     client.hset(String(ID), 'isMakeenvSuccess', String('true'));
     client.hset(String(ID), 'isVerifierSuccess', String('true'));
+    client.hset(String(ID), 'errorList', JSON.stringify([]))
 }
 
 function runCommand(command) {
