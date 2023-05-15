@@ -11,26 +11,38 @@ router.post('/', function (req, res, next) {
     const crypto = require("crypto");
     const uuid = crypto.randomUUID()//ID作成
     const fileName = req.body.fileName.split('.', 1);
+    const githubName = req.body.url.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
 
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
     const path = require('path');
     const directoryPath = path.relative('.', '../mizarDirectory');
-    let directoryName = directoryPath + '/' + fileName
+    let directoryName = directoryPath + '/' + githubName;
     directoryName = directoryName.replace('\\', '/');
-
-    Promise.all([
-        makeDir(directoryName).then(path => {
-            const clonecommand = 'git clone -b ' + req.body.branch + ' --depth=1 ' + req.body.url + ' ' + path
-            runCloneCommand(clonecommand)
-        }),
-    ]).then(function () {
-        const filePath = 'C:/mizar_api/mizarDirectory/' + fileName + '/text/' + req.body.fileName
-        console.log('filePath', filePath)
+    let gitCommand;
+    console.log(directoryName)
+    if (fs.existsSync(directoryName)) {
+        gitCommand = 'git -C ' + directoryName + ' pull'
+        runGitCommand(gitCommand)
+        const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName
         initializeDB(uuid, fileName, filePath);//DBの初期化
 
         const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid;
         runCommand(command);
-    });
+    } else {
+        Promise.all([
+            makeDir(directoryName).then(path => {
+                console.log(path)
+                gitCommand = 'git clone -b ' + req.body.branch + ' --depth=1 ' + req.body.url + ' ' + path
+                runGitCommand(gitCommand)
+            }),
+        ]).then(function () {
+            const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName
+            initializeDB(uuid, fileName, filePath);//DBの初期化
+
+            const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid;
+            runCommand(command);
+        })
+    }
 
     res.json({
         'ID': uuid,
@@ -104,7 +116,7 @@ function runCommand(command) {
     child.unref();
 }
 
-function runCloneCommand(command) {
+function runGitCommand(command) {
     const { spawnSync } = require('node:child_process');
     const parts = command.split(' ');
     const cmd = parts[0]
