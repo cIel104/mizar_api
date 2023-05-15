@@ -19,15 +19,12 @@ router.post('/', function (req, res, next) {
     directoryName = directoryName.replace('\\', '/');
 
     Promise.all([
-        makeDir(directoryName),
-        makeDir(directoryName + '/TEXT').then(path => {
-            fs.writeFileSync(path + '/' + req.body.fileName,
-                req.body.fileContent); //mizarファイルを作成
+        makeDir(directoryName).then(path => {
+            const clonecommand = 'git clone -b ' + req.body.branch + ' --depth=1 ' + req.body.url + ' ' + path
+            runCloneCommand(clonecommand)
         }),
-        makeDir(directoryName + '/DICT'),
-        makeDir(directoryName + '/prel'),
     ]).then(function () {
-        const filePath = 'C:/mizar_api/mizarDirectory/' + fileName + '/TEXT/' + req.body.fileName
+        const filePath = 'C:/mizar_api/mizarDirectory/' + fileName + '/text/' + req.body.fileName
         console.log('filePath', filePath)
         initializeDB(uuid, fileName, filePath);//DBの初期化
 
@@ -105,6 +102,19 @@ function runCommand(command) {
         maxVuffer: 1000 * 1024 * 1024,
     });
     child.unref();
+}
+
+function runCloneCommand(command) {
+    const { spawnSync } = require('node:child_process');
+    const parts = command.split(' ');
+    const cmd = parts[0]
+    const args = parts.splice(1);
+    const child = spawnSync(cmd, args, {
+        stdio: 'ignore',
+        detached: false,
+        env: process.env,
+        maxVuffer: 1000 * 1024 * 1024,
+    });
 }
 
 module.exports = router;
