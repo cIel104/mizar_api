@@ -13,7 +13,8 @@
     |Parameter|Content|
     |:---:|:---:|
     |fileName|Mizar File Name|
-    |fileContent|Mizar file contents|
+    |url|The URL of the GitHub repository containing the Mizar file|
+    |branch|The current branch|
   * response
   
     |Parameter|Content|
@@ -34,6 +35,6 @@
     |isVerifierFinish|Verifier exit judgment|
     |isVerifierSuccess|Success determination of verifier|
     |numOfErrors|Number of errors|
-    |errorFile|Error File Contents|
+    |errorList|An array containing the line number, column number, error type, and error message|
     |makeenvText|String with mizar version, etc.|
     
