@@ -13,40 +13,44 @@ function getMizarMsg() {
 }
 
 function makeJson(client, ID, filePath) {
-    const MizarMessageList = getMizarMsg();
-    const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
-    const reader = readline.createInterface({ input: stream });
-    let isReadingErrorMsg = false;
-    const errorList = [];
-    reader.on('line', (line) => {
-        console.log(line)
-        const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
-        let errorMessage = ''
+    return new Promise((resolve) => {
+        const MizarMessageList = getMizarMsg();
+        const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
+        const reader = readline.createInterface({ input: stream });
+        let isReadingErrorMsg = false;
+        const errorList = [];
+        reader.on('line', (line) => {
+            console.log(line)
+            const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
+            let errorMessage = ''
 
-        for (const l of MizarMessageList) {
-            const match = l.match(/# (\d+)/);
-            if (match) {
-                // 「# 数字」の次の行はエラーメッセージであるため、trueを設定
+            for (const l of MizarMessageList) {
+                const match = l.match(/# (\d+)/);
+                if (match) {
+                    // 「# 数字」の次の行はエラーメッセージであるため、trueを設定
 
-                if (match[1] === errorNumber.toString()) {
-                    console.log(match[1])
-                    isReadingErrorMsg = true;
+                    if (match[1] === errorNumber.toString()) {
+                        console.log(match[1])
+                        isReadingErrorMsg = true;
+                    }
+                } else if (isReadingErrorMsg) {
+                    errorMessage = l
+                    isReadingErrorMsg = false;
                 }
-            } else if (isReadingErrorMsg) {
-                errorMessage = l
-                isReadingErrorMsg = false;
             }
-        }
-        errorList.push({ errLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
+            errorList.push({ errLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
 
-    }).on('close', () => {
-        try {
-            console.log(errorList)
-            client.hset(String(ID), 'errorList', JSON.stringify(errorList))
-        } catch (e) {
-            console.log(e)
-        }
+        }).on('close', () => {
+            try {
+                console.log(errorList)
+                client.hset(String(ID), 'errorList', JSON.stringify(errorList))
+            } catch (e) {
+                console.log(e)
+            }
+            resolve()
+        })
     })
+
 }
 
 // const hoge = process.argv[2]

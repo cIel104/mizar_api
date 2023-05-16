@@ -51,28 +51,19 @@ router.post('/', function (req, res, next) {
 });
 
 router.get('/:ID', function (req, res, next) {
-    const insert = new Promise(async function (resolve, reject) {
-        const client = await redis.createClient();
-        client.hgetall(req.params.ID, function (error, result) {
-            makeJson(client, req.params.ID, result.filePath)
-            resolve()
-        })
-    })
-    insert.then(async function () {
-        const client = await redis.createClient();
-        client.hgetall(req.params.ID, function (error, result) {
-            res.json({
-                'progressPhase': result.progressPhase,
-                'progressPercent': Number(result.progressPercent),
-                'isMakeenvFinish': (result.isMakeenvFinish == 'true') ? true : false,
-                'isMakeenvSuccess': (result.isMakeenvSuccess == 'true') ? true : false,
-                'isVerifierFinish': (result.isVerifierFinish == 'true') ? true : false,
-                'isVerifierSuccess': (result.isVerifierSuccess == 'true') ? true : false,
-                'numOfErrors': Number(result.numOfErrors),
-                'errorList': JSON.parse(result.errorList),//fs.readFileSync(result.filePath.replace('.miz', '.json'), 'utf-8'),
-                'makeenvText': result.makeenvText,
-            });
-        })
+    const client = redis.createClient();
+    client.hgetall(req.params.ID, function (error, result) {
+        res.json({
+            'progressPhase': result.progressPhase,
+            'progressPercent': Number(result.progressPercent),
+            'isMakeenvFinish': (result.isMakeenvFinish == 'true') ? true : false,
+            'isMakeenvSuccess': (result.isMakeenvSuccess == 'true') ? true : false,
+            'isVerifierFinish': (result.isVerifierFinish == 'true') ? true : false,
+            'isVerifierSuccess': (result.isVerifierSuccess == 'true') ? true : false,
+            'numOfErrors': Number(result.numOfErrors),
+            'errorList': JSON.parse(result.errorList),
+            'makeenvText': result.makeenvText,
+        });
     })
 })
 

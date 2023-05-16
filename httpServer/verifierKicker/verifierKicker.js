@@ -8,6 +8,7 @@ const countLines = require('./countLines');
 const path = require('path');
 const redis = require('redis');
 const { resolve } = require('node:path');
+const makeErrorList = require('./makeErrorList')
 
 let isVerifierSuccess = true;
 let isMakeenvSuccess = true;
@@ -78,6 +79,7 @@ redisCreateClient.then(function (result) {
             console.log('c')
             //isVerifierFinishをtrueにprogressPercentを100にする
             try {
+                await makeErrorList(result[0], ID, result[1]);
                 await updateDb(result[0], ID, 'true', 'Checker', '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
             } catch (e) {
                 console.log(e)
