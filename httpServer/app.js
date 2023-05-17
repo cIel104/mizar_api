@@ -3,11 +3,15 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const cors = require('cors')
 
 var verifierRouter = require('./routes/api');
 var githubTestRouter = require('./routes/githubTest');//githubのテスト用
 
 var app = express();
+
+// CORSを無視する
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

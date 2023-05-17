@@ -47,7 +47,6 @@ router.post('/', function (req, res, next) {
     res.json({
         'ID': uuid,
     })
-
 });
 
 router.get('/:ID', function (req, res, next) {
