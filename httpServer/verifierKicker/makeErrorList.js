@@ -38,7 +38,7 @@ function makeJson(client, ID, filePath) {
                     isReadingErrorMsg = false;
                 }
             }
-            errorList.push({ errLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
+            errorList.push({ errorLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
 
         }).on('close', () => {
             try {
