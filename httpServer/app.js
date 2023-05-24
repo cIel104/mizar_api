@@ -6,6 +6,7 @@ var logger = require('morgan');
 const cors = require('cors')
 
 var verifierRouter = require('./routes/api');
+var formatterRouter = require('./routes/formatter');
 var githubTestRouter = require('./routes/githubTest');//githubのテスト用
 
 var app = express();
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v0.1/verifier', verifierRouter);
+app.use('/api/v0.1/formatter', formatterRouter);
 app.use('/api/v0.1/githubTest', githubTestRouter);//githubのテスト用
 
 // catch 404 and forward to error handler
@@ -39,7 +41,8 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  // res.render('error');
+  console.log('error')
 });
 
 module.exports = app;

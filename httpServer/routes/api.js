@@ -14,12 +14,13 @@ router.post('/', function (req, res, next) {
     const githubName = req.body.url.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
 
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
+    //filePathなどはpath.join()で書いたほうがよいかも
     const path = require('path');
     const directoryPath = path.relative('.', '../mizarDirectory');
     let directoryName = directoryPath + '/' + githubName;
     directoryName = directoryName.replace('\\', '/');
     let gitCommand;
-    console.log(directoryName)
+    console.log(directoryName);//デバック用
     if (fs.existsSync(directoryName)) {
         gitCommand = 'git -C ' + directoryName + ' pull'
         runGitCommand(gitCommand)
