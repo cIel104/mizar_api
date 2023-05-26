@@ -38,3 +38,18 @@
     |errorList|An array containing the line number, column number, error type, and error message|
     |makeenvText|String with mizar version, etc.|
     
+* API for auto indent.
+  * request
+  Please specify a JSON-formatted string in the request body.  
+    http://localhost:3000/api/v0.1/formatter
+  
+    |Parameter|Content|
+    |:---:|:---:|
+    |fileName|Mizar File Name|
+    |url|The URL of the GitHub repository containing the Mizar file|
+    |branch|The current branch|
+  * response
+    
+    |Parameter|Content|
+    |:---:|:---:|
+    |fileContent|Indented Mizar file content|
