@@ -2,7 +2,7 @@
 * A remote verification environment for Mizar via Web API.
 # memo
 * This API is currently under development.
-* Please clone the repository directly under the C drive.
+* Please clone the repository directly under the C drive.(To be revised)
 * The response data is only in JSON.
 # Features
 * API for executing a verification program.
