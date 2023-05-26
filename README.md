@@ -1,3 +1,4 @@
+[README日本語版](https://github.com/cIel104/mizar_api/blob/main/README-ja.md)
 # mizar_api
 * A remote verification environment for Mizar via Web API.
 # memo
