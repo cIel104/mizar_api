@@ -53,8 +53,5 @@ function makeJson(client, ID, filePath) {
 
 }
 
-// const hoge = process.argv[2]
-// console.log(hoge)
-// makeJson(hoge)
 
 module.exports = makeJson;
