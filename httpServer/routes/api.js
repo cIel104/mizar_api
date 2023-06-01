@@ -88,8 +88,8 @@ async function initializeDB(ID, fileName, filePath) {
     client.hset(String(ID), 'numOfErrors', String(0));
     client.hset(String(ID), 'makeenvText', String(''));
     client.hset(String(ID), 'isMakeenvFinish', String('false'));
-    client.hset(String(ID), 'isMakeenvSuccess', String('true'));
-    client.hset(String(ID), 'isVerifierSuccess', String('true'));
+    client.hset(String(ID), 'isMakeenvSuccess', String('false'));
+    client.hset(String(ID), 'isVerifierSuccess', String('false'));
     client.hset(String(ID), 'errorList', JSON.stringify([]))
 }
 

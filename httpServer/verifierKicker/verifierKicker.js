@@ -32,15 +32,16 @@ redisCreateClient.then(function (result) {
     const makeenvProcess = spawn(makeenvCmd, [result[1]], { shell: true });
     //makeenv実行
     carrier.carry(makeenvProcess.stdout, line => {
-        if (!/^-/.test(line) || line.indexOf('*') !== -1) {
-            if (line !== '') {
+        if (line.indexOf('*') === -1) {
+            if (line !== '' && !/^-/.test(line)) {
                 if (makeenvText !== '') {
                     makeenvText += "\r\n";
                 }
                 makeenvText += line;
             }
         }
-        if (line.indexOf('*') !== -1) {
+        else {
+            numOfErrors = parseInt(line.match(/\d+/));
             isMakeenvSuccess = false;
         }
     }, null, /\r\n/);
@@ -49,6 +50,14 @@ redisCreateClient.then(function (result) {
     makeenvProcess.on('close', async () => {
         const verifierProcess = spawn(verifierCmd, [result[1]], { shell: true });
         isMakeenvFinish = true;
+        //makeenvが失敗していた場合はverifierを行わず終了
+        if (isMakeenvSuccess !== true) {
+            await makeErrorList(result[0], ID, result[1]);
+            await updateDb(result[0], ID, 'false', 'Parser', 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
+            process.exit(1);
+        }
+
+        console.log('start verifier')
         try {
             await updateDb(result[0], ID, 'false', 'Parser', 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
         } catch (e) {
@@ -60,6 +69,7 @@ redisCreateClient.then(function (result) {
             }
             const cmdOutput = line.match(/^(\w+) +\[ *(\d+) *\**(\d*)\].*$/);
             if (cmdOutput === null) {
+                console.log('return')
                 return;
             }
             const phase = cmdOutput[1];
