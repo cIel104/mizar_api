@@ -1,21 +1,20 @@
 const express = require('express');
-const { resolve } = require('path');
-const { route } = require('../app');
 const router = express.Router();
 const fs = require('fs');
-const makeJson = require('../verifierKicker/makeErrorList')
+const makeDir = require("make-dir");
+const crypto = require("crypto");
+const path = require('path');
+const redis = require('redis');
+const { spawn, spawnSync } = require('node:child_process');
 
 //verifierを実行させるapi(POST形式)
 router.post('/', function (req, res, next) {
-    const makeDir = require("make-dir");
-    const crypto = require("crypto");
     const uuid = crypto.randomUUID()//ID作成
     const fileName = req.body.fileName.split('.', 1);
     const githubName = req.body.url.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
 
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
     //filePathなどはpath.join()で書いたほうがよいかも
-    const path = require('path');
     const directoryPath = path.relative('.', '../mizarDirectory');
     let directoryName = directoryPath + '/' + githubName;
     directoryName = directoryName.replace('\\', '/');
@@ -67,7 +66,6 @@ router.get('/:ID', function (req, res, next) {
     })
 })
 
-const redis = require('redis');
 async function initializeDB(ID, fileName, filePath) {
     const client = await redis.createClient();
 
@@ -94,7 +92,6 @@ async function initializeDB(ID, fileName, filePath) {
 }
 
 function runCommand(command) {
-    const { spawn } = require('node:child_process');
     const parts = command.split(' ');
     const cmd = parts[0]
     const args = parts.splice(1);
@@ -108,7 +105,6 @@ function runCommand(command) {
 }
 
 function runGitCommand(command) {
-    const { spawnSync } = require('node:child_process');
     const parts = command.split(' ');
     const cmd = parts[0]
     const args = parts.splice(1);

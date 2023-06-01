@@ -7,8 +7,7 @@ const { spawn } = require('node:child_process');
 const countLines = require('./countLines');
 const path = require('path');
 const redis = require('redis');
-const { resolve } = require('node:path');
-const makeErrorList = require('./makeErrorList')
+const makeErrorList = require('./makeErrorList');
 
 let isVerifierSuccess = true;
 let isMakeenvSuccess = true;
@@ -16,7 +15,7 @@ let isMakeenvFinish = false;
 let makeenvText = '';
 let numOfErrors = 0;
 const MIZFILES = process.env.MIZFILES;
-const ID = process.argv[2]
+const ID = process.argv[2];
 console.log(path.join(String(MIZFILES), 'verifier'));//デバッグ用
 //コマンド作成
 const makeenvCmd = path.join(String(MIZFILES), 'makeenv');
@@ -46,7 +45,6 @@ redisCreateClient.then(function (result) {
         }
     }, null, /\r\n/);
 
-    //verifier実行
     makeenvProcess.on('close', async () => {
         const verifierProcess = spawn(verifierCmd, [result[1]], { shell: true });
         isMakeenvFinish = true;
@@ -63,6 +61,7 @@ redisCreateClient.then(function (result) {
         } catch (e) {
             console.log(e)
         }
+        //verifier実行
         carrier.carry(verifierProcess.stdout, (async (line) => {
             if (line.indexOf('*') !== -1) {
                 isVerifierSuccess = false;

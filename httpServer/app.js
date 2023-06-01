@@ -4,7 +4,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors')
-
 var verifierRouter = require('./routes/api');
 var formatterRouter = require('./routes/formatter');
 var githubTestRouter = require('./routes/githubTest');//githubのテスト用
