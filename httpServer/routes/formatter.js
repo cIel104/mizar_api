@@ -18,7 +18,7 @@ router.post('/', async function (req, res, next) {
     }
     execFileSync(formatterCommand, [path.join(directoryName, 'text', req.body.fileName)])
     const fileContent = fs.readFileSync(path.join(directoryName, 'text', req.body.fileName), 'utf-8');
-    //console.log(fileContent)
+    console.log(fileContent)
     res.json({
         'fileContent': fileContent,
     })

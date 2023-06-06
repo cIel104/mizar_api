@@ -16,10 +16,11 @@ let makeenvText = '';
 let numOfErrors = 0;
 const MIZFILES = process.env.MIZFILES;
 const ID = process.argv[2];
-console.log(path.join(String(MIZFILES), 'verifier'));//デバッグ用
+const command = process.argv[3];
+console.log(path.join(String(MIZFILES), command));//デバッグ用
 //コマンド作成
 const makeenvCmd = path.join(String(MIZFILES), 'makeenv');
-const verifierCmd = path.join(String(MIZFILES), 'verifier');
+const verifierCmd = path.join(String(MIZFILES), command);
 
 const redisCreateClient = new Promise(async function (resolve) {
     const client = await redis.createClient();
@@ -62,6 +63,7 @@ redisCreateClient.then(function (result) {
             console.log(e)
         }
         //verifier実行
+        let phase = ''
         carrier.carry(verifierProcess.stdout, (async (line) => {
             if (line.indexOf('*') !== -1) {
                 isVerifierSuccess = false;
@@ -71,7 +73,7 @@ redisCreateClient.then(function (result) {
                 console.log('return')
                 return;
             }
-            const phase = cmdOutput[1];
+            phase = cmdOutput[1];
             const numOfParsedLines = Number(cmdOutput[2]);
             numOfErrors = Number(cmdOutput[3]);
             const [numOfEnvironmentalLines, numOfArficleLines] = countLines(result[1])
@@ -89,7 +91,7 @@ redisCreateClient.then(function (result) {
             //isVerifierFinishをtrueにprogressPercentを100にする
             try {
                 await makeErrorList(result[0], ID, result[1]);
-                await updateDb(result[0], ID, 'true', 'Checker', '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
+                await updateDb(result[0], ID, 'true', phase, '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
             } catch (e) {
                 console.log(e)
             }

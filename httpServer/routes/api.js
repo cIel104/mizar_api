@@ -23,10 +23,10 @@ router.post('/', function (req, res, next) {
     if (fs.existsSync(directoryName)) {
         gitCommand = 'git -C ' + directoryName + ' pull'
         runGitCommand(gitCommand)
-        const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName
+        const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
         initializeDB(uuid, fileName, filePath);//DBの初期化
 
-        const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid;
+        const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
         runCommand(command);
     } else {
         Promise.all([
@@ -39,7 +39,7 @@ router.post('/', function (req, res, next) {
             const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName
             initializeDB(uuid, fileName, filePath);//DBの初期化
 
-            const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid;
+            const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
             runCommand(command);
         })
     }
