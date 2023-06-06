@@ -21,8 +21,10 @@ router.post('/', function (req, res, next) {
     let gitCommand;
     console.log(directoryName);//デバック用
     if (fs.existsSync(directoryName)) {
-        gitCommand = 'git -C ' + directoryName + ' pull'
-        runGitCommand(gitCommand)
+        gitCommand = 'git checkout -- .';
+        runGitCommand(gitCommand);
+        gitCommand = 'git -C ' + directoryName + ' pull';
+        runGitCommand(gitCommand);
         const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
         initializeDB(uuid, fileName, filePath);//DBの初期化
 

@@ -10,6 +10,8 @@ function gitCommand(repositoryUrl, branch) {
         const directoryName = path.join(directoryPath, gitHubName[0])
         let command
         if (fs.existsSync(directoryName)) {
+            command = 'git checkout -- .';
+            runGitCommand(command)
             command = 'git -C ' + directoryName + ' pull'
             runGitCommand(command)
             resolve(directoryName)
