@@ -9,7 +9,7 @@ const router = express.Router();
 const runGitCommand = require('../verifierKicker/runGitCommand')
 
 router.post('/', async function (req, res, next) {
-    const directoryName = await runGitCommand(req.body.url, req.body.branch)
+    const directoryName = await runGitCommand(req.body.repositoryUrl, req.body.branch)
 
     if (process.platform === 'win32') {
         formatterCommand = path.join(path.dirname(__dirname), 'mizarFormatter', 'mizarformat.exe');

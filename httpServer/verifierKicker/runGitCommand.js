@@ -3,9 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const makeDir = require("make-dir");
 
-function gitCommand(url, branch) {
+function gitCommand(repositoryUrl, branch) {
     return new Promise((resolve) => {
-        const gitHubName = url.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
+        const gitHubName = repositoryUrl.replace("https://github.com/", "").split('/', 1) //repositoryUrlからユーザー名を取得
         const directoryPath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory'))
         const directoryName = path.join(directoryPath, gitHubName[0])
         let command
@@ -15,7 +15,7 @@ function gitCommand(url, branch) {
             resolve(directoryName)
         } else {
             makeDir(directoryName).then(path => {
-                command = 'git clone -b ' + branch + ' --depth=1 ' + url + ' ' + path
+                command = 'git clone -b ' + branch + ' --depth=1 ' + repositoryUrl + ' ' + path
                 runGitCommand(command)
                 resolve(directoryName)
             })

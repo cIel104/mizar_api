@@ -11,7 +11,7 @@ const { spawn, spawnSync } = require('node:child_process');
 router.post('/', function (req, res, next) {
     const uuid = crypto.randomUUID()//ID作成
     const fileName = req.body.fileName.split('.', 1);
-    const githubName = req.body.url.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
+    const githubName = req.body.repositoryUrl.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
 
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
     //filePathなどはpath.join()で書いたほうがよいかも
@@ -32,7 +32,7 @@ router.post('/', function (req, res, next) {
         Promise.all([
             makeDir(directoryName).then(path => {
                 console.log(path)
-                gitCommand = 'git clone -b ' + req.body.branch + ' --depth=1 ' + req.body.url + ' ' + path
+                gitCommand = 'git clone -b ' + req.body.branch + ' --depth=1 ' + req.body.repositoryUrl + ' ' + path
                 runGitCommand(gitCommand)
             }),
         ]).then(function () {
