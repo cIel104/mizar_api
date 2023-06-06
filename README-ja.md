@@ -16,6 +16,7 @@
     |fileName|Mizarファイル名|
     |url|MizarファイルのあるGitHubリポジトリのURL|
     |branch|現在のブランチ|
+    |command|コマンド名|
   * レスポンス
   
     |パラメータ|内容|
