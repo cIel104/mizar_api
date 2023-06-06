@@ -16,6 +16,7 @@
     |fileName|Mizar File Name|
     |url|The URL of the GitHub repository containing the Mizar file|
     |branch|The current branch|
+    |command|Command to verify|
   * response
   
     |Parameter|Content|
