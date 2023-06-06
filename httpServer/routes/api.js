@@ -21,7 +21,7 @@ router.post('/', function (req, res, next) {
     let gitCommand;
     console.log(directoryName);//デバック用
     if (fs.existsSync(directoryName)) {
-        gitCommand = 'git checkout -- .';
+        gitCommand = 'git -C ' + directoryName + ' checkout -- .';
         runGitCommand(gitCommand);
         gitCommand = 'git -C ' + directoryName + ' pull';
         runGitCommand(gitCommand);
