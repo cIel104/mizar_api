@@ -15,7 +15,6 @@
     |:---:|:---:|
     |fileName|Mizarファイル名|
     |repositoryUrl|MizarファイルのあるGitHubリポジトリのURL|
-    |branch|現在のブランチ|
     |command|実行するコマンド|
   * レスポンス
   
@@ -51,7 +50,6 @@
     |:---:|:---:|
     |fileName|Mizarファイル名|
     |url|MizarファイルのあるGitHubリポジトリのURL|
-    |branch|現在のブランチ|
     
   * レスポンス
 
