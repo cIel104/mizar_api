@@ -34,7 +34,7 @@ router.post('/', function (req, res, next) {
         Promise.all([
             makeDir(directoryName).then(path => {
                 console.log(path)
-                gitCommand = 'git clone -b ' + req.body.branch + ' --depth=1 ' + req.body.repositoryUrl + ' ' + path
+                gitCommand = 'git clone -b verifier --depth=1 ' + req.body.repositoryUrl + ' ' + path
                 runGitCommand(gitCommand)
             }),
         ]).then(function () {
