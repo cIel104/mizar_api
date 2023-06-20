@@ -50,6 +50,7 @@
     |:---:|:---:|
     |fileName|Mizarファイル名|
     |url|MizarファイルのあるGitHubリポジトリのURL|
+    |settings|フォーマットに関するユーザー設定|
     
   * レスポンス
 
