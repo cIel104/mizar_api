@@ -49,7 +49,7 @@
     |パラメータ|内容|
     |:---:|:---:|
     |fileName|Mizarファイル名|
-    |url|MizarファイルのあるGitHubリポジトリのURL|
+    |repositoryUrl|MizarファイルのあるGitHubリポジトリのURL|
     |settings|フォーマットに関するユーザー設定|
     
   * レスポンス
