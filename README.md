@@ -1,5 +1,7 @@
 [README日本語版](https://github.com/cIel104/mizar_api/blob/main/README-ja.md)
 # mizar_api
+
+
 * A remote verification environment for Mizar via Web API.
 # memo
 * This API is currently under development.
@@ -15,7 +17,6 @@
     |:---:|:---:|
     |fileName|Mizar File Name|
     |repositoryUrl|The URL of the GitHub repository containing the Mizar file|
-    |branch|The current branch|
     |command|Command to verify|
   * response
   
@@ -48,8 +49,8 @@
     |Parameter|Content|
     |:---:|:---:|
     |fileName|Mizar File Name|
-    |url|The URL of the GitHub repository containing the Mizar file|
-    |branch|The current branch|
+    |repositoryUrl|The URL of the GitHub repository containing the Mizar file|
+    |settings|User settings regarding the format|
   * response
     
     |Parameter|Content|
