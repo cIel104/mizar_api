@@ -49,7 +49,7 @@
     |Parameter|Content|
     |:---:|:---:|
     |fileName|Mizar File Name|
-    |url|The URL of the GitHub repository containing the Mizar file|
+    |repositoryUrl|The URL of the GitHub repository containing the Mizar file|
     |settings|User settings regarding the format|
   * response
     
