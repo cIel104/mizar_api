@@ -7,6 +7,7 @@ const { spawn } = require('node:child_process');
 const countLines = require('./countLines');
 const path = require('path');
 const redis = require('redis');
+const os = require('os');
 const makeErrorList = require('./makeErrorList');
 
 let isVerifierSuccess = true;
@@ -17,10 +18,13 @@ let numOfErrors = 0;
 const MIZFILES = process.env.MIZFILES;
 const ID = process.argv[2];
 const command = process.argv[3];
-console.log(path.join(String(MIZFILES), command));//デバッグ用
 //コマンド作成
-const makeenvCmd = path.join(String(MIZFILES), 'makeenv');
-const verifierCmd = path.join(String(MIZFILES), command);
+let makeenvCmd = 'makeenv';
+let verifierCmd = command;
+if (process.platform === 'win32') {
+    makeenvCmd = path.join(String(MIZFILES), makeenvCmd);
+    verifierCmd = path.join(String(MIZFILES), verifierCmd);
+}
 
 const redisCreateClient = new Promise(async function (resolve) {
     const client = await redis.createClient();
@@ -31,11 +35,16 @@ const redisCreateClient = new Promise(async function (resolve) {
 redisCreateClient.then(function (result) {
     const makeenvProcess = spawn(makeenvCmd, [result[1]], { shell: true });
     //makeenv実行
+    console.log(__dirname)
+    console.log('start makeenv')//デバック
+    console.log(makeenvCmd, result[1])
     carrier.carry(makeenvProcess.stdout, line => {
+        console.log('in makeenv')
+        console.log(line)
         if (line.indexOf('*') === -1) {
             if (line !== '' && !/^-/.test(line)) {
                 if (makeenvText !== '') {
-                    makeenvText += "\r\n";
+                    makeenvText += os.EOL;
                 }
                 makeenvText += line;
             }
@@ -44,12 +53,13 @@ redisCreateClient.then(function (result) {
             numOfErrors = parseInt(line.match(/\d+/));
             isMakeenvSuccess = false;
         }
-    }, null, /\r\n/);
+    }, null, /\r?\n/);
 
     makeenvProcess.on('close', async () => {
         const verifierProcess = spawn(verifierCmd, [result[1]], { shell: true });
         isMakeenvFinish = true;
         //makeenvが失敗していた場合はverifierを行わず終了
+        console.log(isMakeenvSuccess)
         if (isMakeenvSuccess !== true) {
             await makeErrorList(result[0], ID, result[1]);
             await updateDb(result[0], ID, 'false', 'Parser', 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
@@ -85,7 +95,7 @@ redisCreateClient.then(function (result) {
             } catch (e) {
                 console.log(e)
             }
-        }), null, /\r/);
+        }), null, /\r?\n/);
         verifierProcess.on('close', async () => {
             console.log('c')
             //isVerifierFinishをtrueにprogressPercentを100にする

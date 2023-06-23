@@ -17,10 +17,13 @@ router.post('/', async function (req, res, next) {
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
     //filePathなどはpath.join()で書いたほうがよいかも
     await runGitCommand(req.body.repositoryUrl)
-    const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
+    // const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
+    console.log(githubName)
+    const filePath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
+    console.log(filePath)
     initializeDB(uuid, fileName, filePath);//DBの初期化
     const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
-    runCommand(command);
+    // runCommand(command);
 
     res.json({
         'ID': uuid,
