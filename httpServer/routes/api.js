@@ -6,45 +6,21 @@ const crypto = require("crypto");
 const path = require('path');
 const redis = require('redis');
 const { spawn, spawnSync } = require('node:child_process');
+const runGitCommand = require('../verifierKicker/runGitCommand')
 
 //verifierを実行させるapi(POST形式)
-router.post('/', function (req, res, next) {
+router.post('/', async function (req, res, next) {
     const uuid = crypto.randomUUID()//ID作成
-    const fileName = req.body.fileName.split('.', 1);
+    const fileName = req.body.fileName.split('.', 1);//残す
     const githubName = req.body.repositoryUrl.replace("https://github.com/", "").split('/', 1) //urlからユーザー名を取得
 
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
     //filePathなどはpath.join()で書いたほうがよいかも
-    const directoryPath = path.relative('.', '../mizarDirectory');
-    let directoryName = directoryPath + '/' + githubName;
-    directoryName = directoryName.replace('\\', '/');
-    let gitCommand;
-    console.log(directoryName);//デバック用
-    if (fs.existsSync(directoryName)) {
-        gitCommand = 'git -C ' + directoryName + ' checkout -- .';
-        runGitCommand(gitCommand);
-        gitCommand = 'git -C ' + directoryName + ' pull';
-        runGitCommand(gitCommand);
-        const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
-        initializeDB(uuid, fileName, filePath);//DBの初期化
-
-        const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
-        runCommand(command);
-    } else {
-        Promise.all([
-            makeDir(directoryName).then(path => {
-                console.log(path)
-                gitCommand = 'git clone -b verifier --depth=1 ' + req.body.repositoryUrl + ' ' + path
-                runGitCommand(gitCommand)
-            }),
-        ]).then(function () {
-            const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName
-            initializeDB(uuid, fileName, filePath);//DBの初期化
-
-            const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
-            runCommand(command);
-        })
-    }
+    await runGitCommand(req.body.repositoryUrl)
+    const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
+    initializeDB(uuid, fileName, filePath);//DBの初期化
+    const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
+    runCommand(command);
 
     res.json({
         'ID': uuid,
@@ -106,16 +82,5 @@ function runCommand(command) {
     child.unref();
 }
 
-function runGitCommand(command) {
-    const parts = command.split(' ');
-    const cmd = parts[0]
-    const args = parts.splice(1);
-    const child = spawnSync(cmd, args, {
-        stdio: 'ignore',
-        detached: false,
-        env: process.env,
-        maxVuffer: 1000 * 1024 * 1024,
-    });
-}
 
 module.exports = router;
