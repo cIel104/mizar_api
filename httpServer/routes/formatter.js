@@ -10,13 +10,16 @@ const runGitCommand = require('../verifierKicker/runGitCommand')
 
 router.post('/', async function (req, res, next) {
     const directoryName = await runGitCommand(req.body.repositoryUrl)
-
+    let formatterCommand = '';
     if (process.platform === 'win32') {
-        formatterCommand = path.join(path.dirname(__dirname), 'mizarFormatter', 'mizarformat.exe');
+        formatterCommand = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarFormatter', 'mizarformat.exe'));
     } else {
-        formatterCommand = path.join(path.dirname(__dirname), 'mizarFormatter', 'mizarformat.py');
+        formatterCommand = 'python ' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mizarformat.py'));
     }
-    execFileSync(formatterCommand, [path.join(directoryName, 'text', req.body.fileName)])
+    console.log(__dirname)
+    formatterCommand = formatterCommand + ' ' + path.join(directoryName, 'text', req.body.fileName)
+    console.log(fs.existsSync(path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mizarformat.py'))))
+    runFormatterCommand(formatterCommand)
     const fileContent = fs.readFileSync(path.join(directoryName, 'text', req.body.fileName), 'utf-8');
     console.log(fileContent)
     res.json({
@@ -24,5 +27,11 @@ router.post('/', async function (req, res, next) {
     })
 })
 
+function runFormatterCommand(command) {
+    const parts = command.split(' ');
+    cmd = parts[0];
+    const args = parts.splice(1);
+    execFileSync(cmd, args)
+}
 
 module.exports = router;
