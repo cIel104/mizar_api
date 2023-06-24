@@ -7,6 +7,7 @@ const path = require('path');
 const redis = require('redis');
 const { spawn, spawnSync } = require('node:child_process');
 const runGitCommand = require('../verifierKicker/runGitCommand')
+const verifier = require('../verifierKicker/verifierKicker')
 
 //verifierを実行させるapi(POST形式)
 router.post('/', async function (req, res, next) {
@@ -16,13 +17,18 @@ router.post('/', async function (req, res, next) {
 
     //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
     //filePathなどはpath.join()で書いたほうがよいかも
-    await runGitCommand(req.body.repositoryUrl)
+    const hoge = await runGitCommand(req.body.repositoryUrl)
+    console.log(hoge)
     // const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
     console.log(githubName)
-    const filePath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
-    console.log(filePath)
+    const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
+    console.log(fs.existsSync(filePath))
     initializeDB(uuid, fileName, filePath);//DBの初期化
-    const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
+    // const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
+    const command = 'node verifierKicker.js ' + uuid + ' ' + req.body.command;
+    console.log(command);
+    console.log(__dirname);
+    verifier(uuid, req.body.command)
     // runCommand(command);
 
     res.json({
@@ -78,6 +84,7 @@ function runCommand(command) {
     const args = parts.splice(1);
     const child = spawn(cmd, args, {
         stdio: 'ignore',
+        cwd: 'verifierKicker',
         detached: true,
         env: process.env,
         maxVuffer: 1000 * 1024 * 1024,
