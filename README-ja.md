@@ -42,7 +42,7 @@
     |errorList|行番号、列番号、エラータイプ、エラーメッセージを含む配列|
     |makeenvText|mizarのバージョンなどが記載されている文字列|
     
-* インデント修正API  
+* フォーマッタAPI  
   * リクエスト
   リクエストボディにJSON形式の文字列を指定してください
     http://localhost:3000/api/v0.1/formatter
@@ -51,10 +51,12 @@
     |:---:|:---:|
     |fileName|Mizarファイル名|
     |repositoryUrl|MizarファイルのあるGitHubリポジトリのURL|
-    |settings|フォーマットに関するユーザー設定|
+    |userSettings|フォーマットに関するユーザー設定|
     
   * レスポンス
 
     |パラメータ|内容|
     |:---:|:---:|
     |fileContent|インデントされたMizarファイル|
+    |isFormatterSuccess|フォーマッタの成功判定|
+    |errorLog|エラーログ|
