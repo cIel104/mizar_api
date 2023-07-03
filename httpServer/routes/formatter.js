@@ -21,7 +21,7 @@ router.post('/', async function (req, res, next) {
     console.log(fs.existsSync(path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mizarformat.py'))))
     runFormatterCommand(formatterCommand)
     const fileContent = fs.readFileSync(path.join(directoryName, 'text', req.body.fileName), 'utf-8');
-    console.log(fileContent)
+    console.log(formatterCommand)
     res.json({
         'fileContent': fileContent,
     })

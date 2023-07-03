@@ -75,6 +75,7 @@ function verifier(ID, command) {
             }
             //verifier実行
             let phase = ''
+            const [numOfEnvironmentalLines, numOfArficleLines] = countLines(result[1])
             carrier.carry(verifierProcess.stdout, (async (line) => {
                 if (line.indexOf('*') !== -1) {
                     isVerifierSuccess = false;
@@ -87,7 +88,6 @@ function verifier(ID, command) {
                 phase = cmdOutput[1];
                 const numOfParsedLines = Number(cmdOutput[2]);
                 numOfErrors = Number(cmdOutput[3]);
-                const [numOfEnvironmentalLines, numOfArficleLines] = countLines(result[1])
                 //進捗計算(表記 : %,　小数点切り捨て)
                 const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
                 console.log(line)//デバッグ用
