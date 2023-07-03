@@ -42,7 +42,7 @@
     |errorList|An array containing the line number, column number, error type, and error message|
     |makeenvText|String with mizar version, etc.|
     
-* API for auto indent.
+* API for format.
   * request
   Please specify a JSON-formatted string in the request body.  
     http://localhost:3000/api/v0.1/formatter
@@ -57,3 +57,5 @@
     |Parameter|Content|
     |:---:|:---:|
     |fileContent|Indented Mizar file content|
+    |isFormatterSuccess|Success determination of format|
+    |errorLog|error log|
