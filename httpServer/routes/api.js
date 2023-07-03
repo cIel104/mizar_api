@@ -40,7 +40,7 @@ router.get('/:ID', function (req, res, next) {
     const client = redis.createClient();
     client.hgetall(req.params.ID, function (error, result) {
         res.json({
-            'progressPhase': result.progressPhase,
+            'progressPhases': JSON.parse(result.progressPhases),
             'progressPercent': Number(result.progressPercent),
             'isMakeenvFinish': (result.isMakeenvFinish == 'true') ? true : false,
             'isMakeenvSuccess': (result.isMakeenvSuccess == 'true') ? true : false,
@@ -68,7 +68,7 @@ async function initializeDB(ID, fileName, filePath) {
     client.hset(String(ID), 'fileName', String(fileName));
     client.hset(String(ID), 'filePath', String(filePath));
     client.hset(String(ID), 'isVerifierFinish', String('false'));
-    client.hset(String(ID), 'progressPhase', String('Parser'));
+    client.hset(String(ID), 'progressPhases', JSON.stringify([]));
     client.hset(String(ID), 'progressPercent', String(0));
     client.hset(String(ID), 'numOfErrors', String(0));
     client.hset(String(ID), 'makeenvText', String(''));

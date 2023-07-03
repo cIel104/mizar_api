@@ -16,6 +16,7 @@ function verifier(ID, command) {
     let isMakeenvFinish = false;
     let makeenvText = '';
     let numOfErrors = 0;
+    let progressPhases = []
     const MIZFILES = process.env.MIZFILES;
     // const ID = process.argv[2];
     // const command = process.argv[3];
@@ -63,18 +64,18 @@ function verifier(ID, command) {
             console.log(isMakeenvSuccess)
             if (isMakeenvSuccess !== true) {
                 await makeErrorList(result[0], ID, result[1]);
-                await updateDb(result[0], ID, 'false', 'Parser', 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
+                await updateDb(result[0], ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
                 return;
             }
 
             console.log('start verifier')
             try {
-                await updateDb(result[0], ID, 'false', 'Parser', 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
+                await updateDb(result[0], ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
             } catch (e) {
                 console.log(e)
             }
             //verifier実行
-            let phase = ''
+            // let phase = ''
             const [numOfEnvironmentalLines, numOfArficleLines] = countLines(result[1])
             carrier.carry(verifierProcess.stdout, (async (line) => {
                 if (line.indexOf('*') !== -1) {
@@ -85,14 +86,17 @@ function verifier(ID, command) {
                     console.log('return')
                     return;
                 }
-                phase = cmdOutput[1];
+                const phase = cmdOutput[1];
+                if (progressPhases.indexOf(phase) === -1) {
+                    progressPhases.push(phase)
+                }
                 const numOfParsedLines = Number(cmdOutput[2]);
                 numOfErrors = Number(cmdOutput[3]);
                 //進捗計算(表記 : %,　小数点切り捨て)
                 const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
                 console.log(line)//デバッグ用
                 try {
-                    await updateDb(result[0], ID, 'false', phase, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
+                    await updateDb(result[0], ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
                 } catch (e) {
                     console.log(e)
                 }
@@ -102,7 +106,7 @@ function verifier(ID, command) {
                 //isVerifierFinishをtrueにprogressPercentを100にする
                 try {
                     await makeErrorList(result[0], ID, result[1]);
-                    await updateDb(result[0], ID, 'true', phase, '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
+                    await updateDb(result[0], ID, 'true', progressPhases, '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
                 } catch (e) {
                     console.log(e)
                 }
@@ -114,11 +118,11 @@ function verifier(ID, command) {
 
 
 //DBを更新(引数が多いので配列などにしたほうがよいかも)
-async function updateDb(client, ID, isVerifierFinish, phase, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess) {
+async function updateDb(client, ID, isVerifierFinish, phases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess) {
     console.log(isVerifierFinish, progressPercent)
     try {
         client.hset(String(ID), 'isVerifierFinish', String(isVerifierFinish));
-        client.hset(String(ID), 'progressPhase', String(phase));
+        client.hset(String(ID), 'progressPhases', JSON.stringify(phases));
         client.hset(String(ID), 'progressPercent', String(progressPercent));
         client.hset(String(ID), 'numOfErrors', String(numOfErrors));
         client.hset(String(ID), 'makeenvText', String(makeenvText));
