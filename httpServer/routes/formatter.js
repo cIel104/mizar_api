@@ -11,23 +11,18 @@ const runGitCommand = require('../verifierKicker/runGitCommand')
 router.post('/', async function (req, res, next) {
     const directoryName = await runGitCommand(req.body.repositoryUrl)
 
-    const formatterCommand = ['./' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'miz_format')),
+    let formatterCommand = ['./' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'miz_format')),
     path.join(directoryName, 'text', req.body.fileName),
     path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
-    req.body.userSettings]
+    JSON.stringify(req.body.userSettings)]
 
-    console.log(formatterCommand)
-    // const result = spawnSync('./' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'miz_format')),
-    //     [path.join(directoryName, 'text', req.body.fileName),
-    //     path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
-    //     JSON.stringify(req.body.userSettings)], { shell: true });
-    const result = spawnSync('./' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'miz_format')),
+    const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "miz_format")),
         [path.join(directoryName, 'text', req.body.fileName),
         path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
-        req.body.userSettings], { shell: false });
+        JSON.stringify(req.body.userSettings)], { shell: true });
 
-    console.log('stdout', result.stdout.toString())
-    console.log('stderr', result.stderr.toString())
+    // console.log('stdout', result.stdout.toString())
+    // console.log('stderr', result.stderr.toString())
     let isFormatterSuccess = true;
     if (result.stderr.toString()) {
         isFormatterSuccess = false
