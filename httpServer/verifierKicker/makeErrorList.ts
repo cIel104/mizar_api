@@ -1,6 +1,6 @@
 // 結果をもらうAPIのレスポンスerroeFileを作成する
 const fs = require('fs');
-const path = require('path');
+// const path = require('path');
 const redis = require('redis');
 const readline = require('readline');
 const MIZFILES = process.env.MIZFILES;

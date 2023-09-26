@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 //beginが記述されている行を判定する関数
 function isBeginLine(line) {
     if (/\bbegin\b/.test(line)) {
@@ -13,7 +11,7 @@ function isBeginLine(line) {
 }
 
 //mizarファイルの環境部・記述部の行数を返す関数
-function countLines(fileName) {
+export function countLines(fileName) {
     let articleCounter = 0;
     let environmentalCounter = 0;
     let result = [];
@@ -42,4 +40,4 @@ function countLines(fileName) {
     return result;
 }
 
-module.exports = countLines;
+// module.exports = countLines;

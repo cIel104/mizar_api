@@ -1,6 +1,6 @@
 //git clone か git pull コマンドを実行する
-const path = require('path');
-const fs = require('fs');
+// const path = require('path');
+// const fs = require('fs');
 const makeDir = require("make-dir");
 
 function gitCommand(repositoryUrl) {
@@ -25,7 +25,7 @@ function gitCommand(repositoryUrl) {
     })
 }
 
-function runGitCommand(command) {
+export function runGitCommand(command) {
     const { spawnSync } = require('node:child_process');
     const parts = command.split(' ');
     const cmd = parts[0]
@@ -47,4 +47,4 @@ function runGitCommand(command) {
 // }
 // d()
 
-module.exports = gitCommand;
+// module.exports = gitCommand;

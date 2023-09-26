@@ -3,10 +3,9 @@
 //コマンドの情報からDBへアクセスし、必要な.mizファイルを見つける
 //返ってきた情報を整理し、DBへ転送
 const carrier = require('carrier');
-const { spawn } = require('node:child_process');
 const countLines = require('./countLines');
-const path = require('path');
-const redis = require('redis');
+// const path = require('path');
+const { spawn } = require('node:child_process');
 const os = require('os');
 const makeErrorList = require('./makeErrorList');
 

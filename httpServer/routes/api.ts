@@ -1,12 +1,11 @@
-const express = require('express');
+// const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const makeDir = require("make-dir");
-const crypto = require("crypto");
-const path = require('path');
+// const crypto = require("crypto");
+// const path = require('path');
 const redis = require('redis');
 const { spawn, spawnSync } = require('node:child_process');
-const runGitCommand = require('../verifierKicker/runGitCommand')
+// const runGitCommand = require('../verifierKicker/runGitCommand')
+import { runGitCommand } from '../verifierKicker/runGitCommand'
 const verifier = require('../verifierKicker/verifierKicker')
 
 //verifierを実行させるapi(POST形式)
@@ -22,7 +21,6 @@ router.post('/', async function (req, res, next) {
     // const filePath = 'C:/mizar_api/mizarDirectory/' + githubName + '/text/' + req.body.fileName;
     console.log(githubName)
     const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
-    console.log(fs.existsSync(filePath))
     initializeDB(uuid, fileName, filePath);//DBの初期化
     // const command = 'node .\\verifierKicker\\verifierKicker.js ' + uuid + ' ' + req.body.command;
     const command = 'node verifierKicker.js ' + uuid + ' ' + req.body.command;

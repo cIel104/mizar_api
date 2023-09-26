@@ -1,9 +1,7 @@
 //mizファイルの整形(フォーマット)を行う
-const express = require('express');
-const { route } = require('../app');
-const path = require('path');
-const makeDir = require("make-dir");
 const fs = require('fs');
+const { route } = require('../app.ts');
+const makeDir = require("make-dir");
 const { execFileSync, spawnSync } = require('node:child_process')
 const router = express.Router();
 const runGitCommand = require('../verifierKicker/runGitCommand')
