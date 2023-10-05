@@ -4,8 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors')
-var verifierRouter = require('./routes/api');
-var formatterRouter = require('./routes/formatter');
+var verifierRouter = require('./routes/api.ts');
+var formatterRouter = require('./routes/formatter.ts');
 
 var app = express();
 

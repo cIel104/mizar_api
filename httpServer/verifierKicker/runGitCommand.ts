@@ -1,7 +1,9 @@
 //git clone か git pull コマンドを実行する
 // const path = require('path');
 // const fs = require('fs');
-const makeDir = require("make-dir");
+import fs from "node:fs"
+import makeDir from "make-dir";
+import path from "node:path";
 
 function gitCommand(repositoryUrl) {
     return new Promise((resolve) => {

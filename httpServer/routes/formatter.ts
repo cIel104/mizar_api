@@ -1,3 +1,6 @@
+import path from "node:path";
+import express from 'express';
+
 //mizファイルの整形(フォーマット)を行う
 const fs = require('fs');
 const { route } = require('../app.ts');

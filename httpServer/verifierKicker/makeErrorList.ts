@@ -1,9 +1,16 @@
 // 結果をもらうAPIのレスポンスerroeFileを作成する
-const fs = require('fs');
+import fs from 'fs';
 // const path = require('path');
-const redis = require('redis');
-const readline = require('readline');
+import readline from 'readline';
+import path from 'node:path';
 const MIZFILES = process.env.MIZFILES;
+
+interface ErrorObj {
+    errorLine: number;
+    errorColumn: number;
+    errorNumber: number;
+    errorMessage: string;
+}
 
 //エラーファイルに記入するMizarエラーメッセージを取得
 function getMizarMsg() {
@@ -12,13 +19,13 @@ function getMizarMsg() {
     return MizarMessageList;
 }
 
-function makeJson(client, ID, filePath) {
-    return new Promise((resolve) => {
+export function makeErrorList(client, ID, filePath) {
+    return new Promise<void>((resolve) => {
         const MizarMessageList = getMizarMsg();
         const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
         const reader = readline.createInterface({ input: stream });
         let isReadingErrorMsg = false;
-        const errorList = [];
+        const errorList : Array<object> = [];
         reader.on('line', (line) => {
             console.log(line)
             const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
@@ -38,7 +45,14 @@ function makeJson(client, ID, filePath) {
                     isReadingErrorMsg = false;
                 }
             }
-            errorList.push({ errorLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
+            const errorObj: ErrorObj = {
+                errorLine: errorLine,
+                errorColumn: errorColumn,
+                errorNumber: errorNumber,
+                errorMessage: errorMessage
+            }
+            errorList.push(errorObj)
+            // errorList.push({ errorLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
 
         }).on('close', () => {
             try {
@@ -54,4 +68,4 @@ function makeJson(client, ID, filePath) {
 }
 
 
-module.exports = makeJson;
+// module.exports = makeJson;

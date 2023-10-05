@@ -1,12 +1,13 @@
-// const express = require('express');
+import express from 'express';
 const router = express.Router();
 // const crypto = require("crypto");
 // const path = require('path');
-const redis = require('redis');
-const { spawn, spawnSync } = require('node:child_process');
+import redis from 'redis';
+import { spawn, spawnSync } from 'node:child_process';
 // const runGitCommand = require('../verifierKicker/runGitCommand')
 import { runGitCommand } from '../verifierKicker/runGitCommand'
-const verifier = require('../verifierKicker/verifierKicker')
+import { verifier } from '../verifierKicker/verifierKicker';
+import path from 'node:path';
 
 //verifierを実行させるapi(POST形式)
 router.post('/', async function (req, res, next) {
@@ -76,19 +77,19 @@ async function initializeDB(ID, fileName, filePath) {
     client.hset(String(ID), 'errorList', JSON.stringify([]))
 }
 
-function runCommand(command) {
-    const parts = command.split(' ');
-    const cmd = parts[0]
-    const args = parts.splice(1);
-    const child = spawn(cmd, args, {
-        stdio: 'ignore',
-        cwd: 'verifierKicker',
-        detached: true,
-        env: process.env,
-        maxVuffer: 1000 * 1024 * 1024,
-    });
-    child.unref();
-}
+// function runCommand(command) {
+//     const parts = command.split(' ');
+//     const cmd = parts[0]
+//     const args = parts.splice(1);
+//     const child = spawn(cmd, args, {
+//         stdio: 'ignore',
+//         cwd: 'verifierKicker',
+//         detached: true,
+//         env: process.env,
+//         maxVuffer: 1000 * 1024 * 1024,
+//     });
+//     child.unref();
+// }
 
 
 module.exports = router;

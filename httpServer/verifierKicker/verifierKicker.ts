@@ -1,15 +1,19 @@
 //フォルダ作成はhttpServerが実行してくれる
 //process.argv[2]にIDをもらう(node verifierKicker.js xxx)
 //コマンドの情報からDBへアクセスし、必要な.mizファイルを見つける
-//返ってきた情報を整理し、DBへ転送
-const carrier = require('carrier');
-const countLines = require('./countLines');
-// const path = require('path');
-const { spawn } = require('node:child_process');
-const os = require('os');
-const makeErrorList = require('./makeErrorList');
 
-function verifier(ID, command) {
+import path from "node:path";
+import redis from 'redis';
+
+//返ってきた情報を整理し、DBへ転送
+import carrier from 'carrier';
+import { countLines } from './countLines';
+// const path = require('path');
+import { spawn } from 'node:child_process';
+import os from 'os';
+import { makeErrorList } from './makeErrorList';
+
+export function verifier(ID, command) {
     let isVerifierSuccess = true;
     let isMakeenvSuccess = true;
     let isMakeenvFinish = false;
@@ -29,11 +33,11 @@ function verifier(ID, command) {
 
     const redisCreateClient = new Promise(async function (resolve) {
         const client = await redis.createClient();
-        client.hget(ID, 'filePath', function (error, result) {
-            resolve([client, result]);
+        client.hget(ID, 'filePath', function (error: any, result: any) {
+            resolve(result);
         })
     })
-    redisCreateClient.then(function (result) {
+    redisCreateClient.then(function (result:any) {
         const makeenvProcess = spawn(makeenvCmd, [result[1]], { shell: true });
         //makeenv実行
         console.log(__dirname)
@@ -85,7 +89,7 @@ function verifier(ID, command) {
                     console.log('return')
                     return;
                 }
-                const phase = cmdOutput[1];
+                const phase:never = cmdOutput[1] as never;
                 if (progressPhases.indexOf(phase) === -1) {
                     progressPhases.push(phase)
                 }
@@ -137,4 +141,4 @@ async function updateDb(client, ID, isVerifierFinish, phases, progressPercent, n
 //デバック
 // verifier(process.argv[2], process.argv[3])
 
-module.exports = verifier;
+// module.exports = verifier;

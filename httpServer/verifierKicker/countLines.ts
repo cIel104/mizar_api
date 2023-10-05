@@ -1,3 +1,4 @@
+import fs from 'fs';
 //beginが記述されている行を判定する関数
 function isBeginLine(line) {
     if (/\bbegin\b/.test(line)) {
@@ -14,7 +15,7 @@ function isBeginLine(line) {
 export function countLines(fileName) {
     let articleCounter = 0;
     let environmentalCounter = 0;
-    let result = [];
+    let result : number[] = [];
     const file = '' + fs.readFileSync(fileName);
     const lines = file.split(/\r\n|[\n\r]/);
     let isArticleArea = false;
