@@ -3,7 +3,7 @@
 * WebAPIを用いたMizarのリモート検証環境
 # メモ
 * このAPIは現在開発中です
-* Cドライブ直下にリポジトリをクローンしてください(修正予定)
+* ~~Cドライブ直下にリポジトリをクローンしてください(修正予定)~~
 * レスポンスデータはJSON形式のみ対応しています
 * [mizar_repository](https://github.com/cIel104/mizar_repository)をフォークして、verifierブランチを作成してください
 # 機能
