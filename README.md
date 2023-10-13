@@ -5,7 +5,7 @@
 * A remote verification environment for Mizar via Web API.
 # memo
 * This API is currently under development.
-* Please clone the repository directly under the C drive.(To be revised)
+* ~~Please clone the repository directly under the C drive.(To be revised)~~
 * The response data is only in JSON.
 * Please fork the [mizar_repository](https://github.com/cIel104/mizar_repository) and create a "verifier" branch.
 # Features
