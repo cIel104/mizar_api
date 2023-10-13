@@ -5,7 +5,7 @@ import fs from "node:fs"
 import makeDir from "make-dir";
 import path from "node:path";
 
-function gitCommand(repositoryUrl) {
+export function runGitCommand(repositoryUrl: string) {
     return new Promise((resolve) => {
         const gitHubName = repositoryUrl.replace("https://github.com/", "").split('/', 1) //repositoryUrlからユーザー名を取得
         const directoryPath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory'))
@@ -13,21 +13,21 @@ function gitCommand(repositoryUrl) {
         let command
         if (fs.existsSync(directoryName)) {
             command = 'git -C ' + directoryName + ' checkout -- .';
-            runGitCommand(command)
+            executeGitCommand(command)
             command = 'git -C ' + directoryName + ' pull'
-            runGitCommand(command)
+            executeGitCommand(command)
             resolve(directoryName)
         } else {
             makeDir(directoryName).then(path => {
                 command = 'git clone -b verifier --depth=1 ' + repositoryUrl + ' ' + path
-                runGitCommand(command)
+                executeGitCommand(command)
                 resolve(directoryName)
             })
         }
     })
 }
 
-export function runGitCommand(command) {
+function executeGitCommand(command: string) {
     const { spawnSync } = require('node:child_process');
     const parts = command.split(' ');
     const cmd = parts[0]

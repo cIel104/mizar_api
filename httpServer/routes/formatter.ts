@@ -7,10 +7,10 @@ const { route } = require('../app.ts');
 const makeDir = require("make-dir");
 const { execFileSync, spawnSync } = require('node:child_process')
 const router = express.Router();
-const runGitCommand = require('../verifierKicker/runGitCommand')
+import { runGitCommand } from '../verifierKicker/runGitCommand';
 
 router.post('/', async function (req, res, next) {
-    const directoryName = await runGitCommand(req.body.repositoryUrl)
+    const directoryName = String(await runGitCommand(req.body.repositoryUrl))
 
     let formatterCommand = ['./' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'miz_format')),
     path.join(directoryName, 'text', req.body.fileName),

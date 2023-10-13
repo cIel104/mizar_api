@@ -1,6 +1,6 @@
 import fs from 'fs';
 //beginが記述されている行を判定する関数
-function isBeginLine(line) {
+function isBeginLine(line: string) {
     if (/\bbegin\b/.test(line)) {
         const beginIndex = line.indexOf('begin');
         const commentIndex = line.indexOf('::');
@@ -12,7 +12,7 @@ function isBeginLine(line) {
 }
 
 //mizarファイルの環境部・記述部の行数を返す関数
-export function countLines(fileName) {
+export function countLines(fileName: fs.PathOrFileDescriptor) {
     let articleCounter = 0;
     let environmentalCounter = 0;
     let result : number[] = [];

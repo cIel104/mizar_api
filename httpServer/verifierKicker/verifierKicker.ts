@@ -3,23 +3,25 @@
 //コマンドの情報からDBへアクセスし、必要な.mizファイルを見つける
 
 import path from "node:path";
-import redis from 'redis';
+// import redis from 'redis';
+const redis = require("redis")
 
 //返ってきた情報を整理し、DBへ転送
-import carrier from 'carrier';
+// import carrier from 'carrier';
+const carrier = require("carrier")
 import { countLines } from './countLines';
 // const path = require('path');
 import { spawn } from 'node:child_process';
 import os from 'os';
 import { makeErrorList } from './makeErrorList';
 
-export function verifier(ID, command) {
+export function verifier(ID: string, command: any) {
     let isVerifierSuccess = true;
     let isMakeenvSuccess = true;
     let isMakeenvFinish = false;
     let makeenvText = '';
     let numOfErrors = 0;
-    let progressPhases = []
+    let progressPhases: never[] = []
     const MIZFILES = process.env.MIZFILES;
     // const ID = process.argv[2];
     // const command = process.argv[3];
@@ -34,7 +36,7 @@ export function verifier(ID, command) {
     const redisCreateClient = new Promise(async function (resolve) {
         const client = await redis.createClient();
         client.hget(ID, 'filePath', function (error: any, result: any) {
-            resolve(result);
+            resolve([client,result]);
         })
     })
     redisCreateClient.then(function (result:any) {
@@ -42,8 +44,9 @@ export function verifier(ID, command) {
         //makeenv実行
         console.log(__dirname)
         console.log('start makeenv')//デバック
+        console.log('')
         console.log(makeenvCmd, result[1])
-        carrier.carry(makeenvProcess.stdout, line => {
+        carrier.carry(makeenvProcess.stdout, (line: string) => {
             console.log('in makeenv')
             console.log(line)
             if (line.indexOf('*') === -1) {
@@ -54,9 +57,14 @@ export function verifier(ID, command) {
                     makeenvText += line;
                 }
             }
-            else {
-                numOfErrors = parseInt(line.match(/\d+/));
+            else { //makeenvでエラーが発生した場合
+                const errorMatch = line.match(/\d+/);
                 isMakeenvSuccess = false;
+                if (errorMatch !== null) {//エラー文に数字がある場合.errファイルが生成される
+                    numOfErrors = parseInt(errorMatch[0]);
+                } else {
+                    //エラー文に数字がない場合の処理を記述（松本さんに要相談）
+                }
             }
         }, null, /\r?\n/);
 
@@ -80,7 +88,7 @@ export function verifier(ID, command) {
             //verifier実行
             // let phase = ''
             const [numOfEnvironmentalLines, numOfArficleLines] = countLines(result[1])
-            carrier.carry(verifierProcess.stdout, (async (line) => {
+            carrier.carry(verifierProcess.stdout, (async (line: string) => {
                 if (line.indexOf('*') !== -1) {
                     isVerifierSuccess = false;
                 }
@@ -121,7 +129,7 @@ export function verifier(ID, command) {
 
 
 //DBを更新(引数が多いので配列などにしたほうがよいかも)
-async function updateDb(client, ID, isVerifierFinish, phases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess) {
+async function updateDb(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: string, isVerifierFinish: string, phases: never[], progressPercent: string | number, numOfErrors: number, makeenvText: string, isMakeenvFinish: boolean, isMakeenvSuccess: boolean, isVerifierSuccess: string | boolean) {
     console.log(isVerifierFinish, progressPercent)
     try {
         client.hset(String(ID), 'isVerifierFinish', String(isVerifierFinish));

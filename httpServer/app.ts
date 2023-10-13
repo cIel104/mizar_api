@@ -1,13 +1,23 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const cors = require('cors')
-var verifierRouter = require('./routes/api.ts');
-var formatterRouter = require('./routes/formatter.ts');
+// var createError = require('http-errors');
+// var express = require('express');
+// var path = require('path');
+// var cookieParser = require('cookie-parser');
+// var logger = require('morgan');
+// var verifierRouter = require('./routes/api.ts');
+// var formatterRouter = require('./routes/formatter.ts');
 
-var app = express();
+import cors from 'cors';
+import createError from 'http-errors'
+import path from 'path'
+import cookieParser from 'cookie-parser'
+import logger from 'morgan'
+// import verifierRouter from './routes/api'
+const verifierRouter = require('./routes/api')
+// import formatterRouter from './routes/formatter'
+const formatterRouter = require('./routes/formatter')
+import express from 'express';
+
+export var app = express();
 
 // CORSを無視する
 app.use(cors());
@@ -26,12 +36,12 @@ app.use('/api/v0.1/verifier', verifierRouter);
 app.use('/api/v0.1/formatter', formatterRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function (req: any, res: any, next: (arg0: any) => void) {
   next(createError(404));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function (err: { message: any; status: any; }, req: { app: { get: (arg0: string) => string; }; }, res: { locals: { message: any; error: any; }; status: (arg0: any) => void; }, next: any) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

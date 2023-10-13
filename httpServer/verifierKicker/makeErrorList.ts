@@ -19,7 +19,7 @@ function getMizarMsg() {
     return MizarMessageList;
 }
 
-export function makeErrorList(client, ID, filePath) {
+export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: any, filePath: string) {
     return new Promise<void>((resolve) => {
         const MizarMessageList = getMizarMsg();
         const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
