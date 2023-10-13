@@ -1,21 +1,11 @@
-// var createError = require('http-errors');
-// var express = require('express');
-// var path = require('path');
-// var cookieParser = require('cookie-parser');
-// var logger = require('morgan');
-// var verifierRouter = require('./routes/api.ts');
-// var formatterRouter = require('./routes/formatter.ts');
-
 import cors from 'cors';
 import createError from 'http-errors'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-// import verifierRouter from './routes/api'
-const verifierRouter = require('./routes/api')
-// import formatterRouter from './routes/formatter'
-const formatterRouter = require('./routes/formatter')
 import express from 'express';
+const verifierRouter = require('./routes/api')
+const formatterRouter = require('./routes/formatter')
 
 export var app = express();
 

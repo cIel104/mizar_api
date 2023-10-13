@@ -1,10 +1,8 @@
-// 結果をもらうAPIのレスポンスerroeFileを作成する
 import fs from 'fs';
-// const path = require('path');
 import readline from 'readline';
 import path from 'node:path';
-const MIZFILES = process.env.MIZFILES;
 
+const MIZFILES = process.env.MIZFILES;
 interface ErrorObj {
     errorLine: number;
     errorColumn: number;
@@ -14,14 +12,17 @@ interface ErrorObj {
 
 //エラーファイルに記入するMizarエラーメッセージを取得
 function getMizarMsg() {
-    const MizarMessage = fs.readFileSync(path.join(String(MIZFILES), 'mizar.msg'), 'utf-8');
-    const MizarMessageList = MizarMessage.split(/\r\n|[\n\r]/);
-    return MizarMessageList;
+    const mizarMessage = fs.readFileSync(path.join(String(MIZFILES), 'mizar.msg'), 'utf-8');
+    const mizarMessageList = mizarMessage.split(/\r\n|[\n\r]/);
+    return mizarMessageList;
 }
 
+//現在はそれぞれのエラーに対してmizarMessageListを探索しているため、2重ループでの実装
+//エラー番号をリストなどに保存しておけば、1重ループで実装できるかも
+//さらに高速化を行うなら2分探索にする方法もある（.msgファイルの数字が抜けていたするので難易度は高そう）
 export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: any, filePath: string) {
     return new Promise<void>((resolve) => {
-        const MizarMessageList = getMizarMsg();
+        const mizarMessageList = getMizarMsg();
         const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
         const reader = readline.createInterface({ input: stream });
         let isReadingErrorMsg = false;
@@ -31,13 +32,11 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
             const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
             let errorMessage = ''
 
-            for (const l of MizarMessageList) {
+            for (const l of mizarMessageList) {
                 const match = l.match(/# (\d+)/);
                 if (match) {
-                    // 「# 数字」の次の行はエラーメッセージであるため、trueを設定
-
                     if (match[1] === errorNumber.toString()) {
-                        console.log(match[1])
+                        // 「# 数字」の次の行はエラーメッセージであるため、isReadingErrorMsgをtrueに設定
                         isReadingErrorMsg = true;
                     }
                 } else if (isReadingErrorMsg) {
@@ -52,7 +51,6 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
                 errorMessage: errorMessage
             }
             errorList.push(errorObj)
-            // errorList.push({ errorLine: errorLine, errorColumn: errorColumn, errorNumber: errorNumber, errorMessage: errorMessage })
 
         }).on('close', () => {
             try {
@@ -66,6 +64,3 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
     })
 
 }
-
-
-// module.exports = makeJson;
