@@ -33,13 +33,13 @@ export function verifier(ID: string, command: any) {
     redisCreateClient.then(function (result:any) {
         const makeenvProcess = spawn(makeenvCmd, [result[1]], { shell: true });
         //makeenv実行
-        console.log(__dirname)
-        console.log('start makeenv')//デバック
-        console.log('')
-        console.log(makeenvCmd, result[1])
+        // console.log(__dirname)
+        // console.log('start makeenv')//デバック
+        // console.log('')
+        // console.log(makeenvCmd, result[1])
         carrier.carry(makeenvProcess.stdout, (line: string) => {
-            console.log('in makeenv')
-            console.log(line)
+            // console.log('in makeenv')
+            // console.log(line)
             if (line.indexOf('*') === -1) {
                 if (line !== '' && !/^-/.test(line)) {
                     if (makeenvText !== '') {
@@ -64,14 +64,14 @@ export function verifier(ID: string, command: any) {
             isMakeenvFinish = true;
             //makeenvが失敗していた場合はverifierを行わず終了
             //carrier.carry(makeenvProcess.stdout)内で完結させたほうがいいかも
-            console.log(isMakeenvSuccess)
+            console.log('isMakeenvSuccess = %s',isMakeenvSuccess.toString())
             if (isMakeenvSuccess !== true) {
                 await makeErrorList(result[0], ID, result[1]);
                 await updateDb(result[0], ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
                 return;
             }
 
-            console.log('start verifier')
+            console.log('start verifier : uuid = %s',ID)
             try {
                 await updateDb(result[0], ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
             } catch (e) {
@@ -86,7 +86,7 @@ export function verifier(ID: string, command: any) {
                 }
                 const cmdOutput = line.match(/^(\w+) +\[ *(\d+) *\**(\d*)\].*$/);
                 if (cmdOutput === null) {
-                    console.log('return')
+                    // console.log('return')
                     return;
                 }
                 const phase:never = cmdOutput[1] as never;
@@ -97,7 +97,7 @@ export function verifier(ID: string, command: any) {
                 numOfErrors = Number(cmdOutput[3]);
                 //進捗計算(表記 : %,　小数点切り捨て)
                 const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
-                console.log(line)//デバッグ用
+                // console.log(line)//デバッグ用
                 try {
                     await updateDb(result[0], ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
                 } catch (e) {
@@ -105,7 +105,7 @@ export function verifier(ID: string, command: any) {
                 }
             }), null, /\r/);
             verifierProcess.on('close', async () => {
-                console.log('c')
+                console.log('verifier finish : uuid = %s',ID)
                 //isVerifierFinishをtrueにprogressPercentを100にする
                 try {
                     await makeErrorList(result[0], ID, result[1]);
@@ -122,7 +122,7 @@ export function verifier(ID: string, command: any) {
 
 //DBを更新(引数が多いので配列などにしたほうがよいかも)
 async function updateDb(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: string, isVerifierFinish: string, phases: never[], progressPercent: string | number, numOfErrors: number, makeenvText: string, isMakeenvFinish: boolean, isMakeenvSuccess: boolean, isVerifierSuccess: string | boolean) {
-    console.log(isVerifierFinish, progressPercent)
+    // console.log(isVerifierFinish, progressPercent)//デバック
     try {
         client.hset(String(ID), 'isVerifierFinish', String(isVerifierFinish));
         client.hset(String(ID), 'progressPhases', JSON.stringify(phases));
