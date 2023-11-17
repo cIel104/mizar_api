@@ -1,13 +1,16 @@
-import path from "node:path";
+import path, { resolve } from "node:path";
 import { countLines } from './countLines';
 import { spawn } from 'node:child_process';
 import os from 'os';
 import { makeErrorList } from './makeErrorList';
-const redis = require("redis")
+import { checkQueue } from "../routes/api";
+const redis = require("ioredis")
 const carrier = require("carrier")
 
 
-export function verifier(ID: string, command: any) {
+export async function verifier(ID: string): Promise<void> {
+    const client = new redis();
+    client.hset(String(ID), 'isMakeenvStart', String('true'))
     let isVerifierSuccess = true;
     let isMakeenvSuccess = true;
     let isMakeenvFinish = false;
@@ -18,105 +21,93 @@ export function verifier(ID: string, command: any) {
 
     //コマンド作成
     let makeenvCmd = 'makeenv';
-    let verifierCmd = command;
+    let verifierCmd = await client.hget(ID, 'command');
     if (process.platform === 'win32') {
         makeenvCmd = path.join(String(MIZFILES), makeenvCmd);
         verifierCmd = path.join(String(MIZFILES), verifierCmd);
     }
+    const filePath = await client.hget(ID, 'filePath')
+    const makeenvProcess = spawn(makeenvCmd, [filePath], { shell: true });
 
-    const redisCreateClient = new Promise(async function (resolve) {
-        const client = await redis.createClient();
-        client.hget(ID, 'filePath', function (error: any, result: any) {
-            resolve([client,result]);
-        })
-    })
-    redisCreateClient.then(function (result:any) {
-        const makeenvProcess = spawn(makeenvCmd, [result[1]], { shell: true });
-        //makeenv実行
-        // console.log(__dirname)
-        // console.log('start makeenv')//デバック
-        // console.log('')
-        // console.log(makeenvCmd, result[1])
-        carrier.carry(makeenvProcess.stdout, (line: string) => {
-            // console.log('in makeenv')
-            // console.log(line)
-            if (line.indexOf('*') === -1) {
-                if (line !== '' && !/^-/.test(line)) {
-                    if (makeenvText !== '') {
-                        makeenvText += os.EOL;
-                    }
-                    makeenvText += line;
+    //makeenv実行
+    carrier.carry(makeenvProcess.stdout, (line: string) => {
+        if (line.indexOf('*') === -1) {
+            if (line !== '' && !/^-/.test(line)) {
+                if (makeenvText !== '') {
+                    makeenvText += os.EOL;
                 }
+                makeenvText += line;
             }
-            else { //makeenvでエラーが発生した場合
-                const errorMatch = line.match(/\d+/);
-                isMakeenvSuccess = false;
-                if (errorMatch !== null) {//エラー文に数字がある場合.errファイルが生成される
-                    numOfErrors = parseInt(errorMatch[0]);
-                } else {
-                    //エラー文に数字がない場合の処理を記述（松本さんに要相談）
-                }
+        }
+        else { //makeenvでエラーが発生した場合
+            const errorMatch = line.match(/\d+/);
+            isMakeenvSuccess = false;
+            if (errorMatch !== null) {//エラー文に数字がある場合.errファイルが生成される
+                numOfErrors = parseInt(errorMatch[0]);
+            } else {
+                //エラー文に数字がない場合の処理を記述（松本さんに要相談）
             }
-        }, null, /\r?\n/);
+        }
+    }, null, /\r?\n/);
+    makeenvProcess.on('close', async () => {
+        const verifierProcess = spawn(verifierCmd, [filePath], { shell: true });
+        isMakeenvFinish = true;
+        //makeenvが失敗していた場合はverifierを行わず終了
+        //carrier.carry(makeenvProcess.stdout)内で完結させたほうがいいかも
+        console.log('isMakeenvSuccess = %s',isMakeenvSuccess.toString())
+        if (isMakeenvSuccess !== true) {
+            await makeErrorList(client, ID, filePath);
+            await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
+            return;
+        }
 
-        makeenvProcess.on('close', async () => {
-            const verifierProcess = spawn(verifierCmd, [result[1]], { shell: true });
-            isMakeenvFinish = true;
-            //makeenvが失敗していた場合はverifierを行わず終了
-            //carrier.carry(makeenvProcess.stdout)内で完結させたほうがいいかも
-            console.log('isMakeenvSuccess = %s',isMakeenvSuccess.toString())
-            if (isMakeenvSuccess !== true) {
-                await makeErrorList(result[0], ID, result[1]);
-                await updateDb(result[0], ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
+        console.log('start verifier : uuid = %s',ID)
+        try {
+            await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
+        } catch (e) {
+            console.log(e)
+        }
+
+        //verifier実行
+        const [numOfEnvironmentalLines, numOfArficleLines] = countLines(filePath)
+        carrier.carry(verifierProcess.stdout, (async (line: string) => {
+            if (line.indexOf('*') !== -1) {
+                isVerifierSuccess = false;
+            }
+            const cmdOutput = line.match(/^(\w+) +\[ *(\d+) *\**(\d*)\].*$/);
+            if (cmdOutput === null) {
+                // console.log('return')
                 return;
             }
-
-            console.log('start verifier : uuid = %s',ID)
+            const phase:never = cmdOutput[1] as never;
+            if (progressPhases.indexOf(phase) === -1) {
+                progressPhases.push(phase)
+            }
+            const numOfParsedLines = Number(cmdOutput[2]);
+            numOfErrors = Number(cmdOutput[3]);
+            //進捗計算(表記 : %,　小数点切り捨て)
+            const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
+            // console.log(line)//デバッグ用
             try {
-                await updateDb(result[0], ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
+                await updateDb(client, ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
             } catch (e) {
                 console.log(e)
             }
-
-            //verifier実行
-            const [numOfEnvironmentalLines, numOfArficleLines] = countLines(result[1])
-            carrier.carry(verifierProcess.stdout, (async (line: string) => {
-                if (line.indexOf('*') !== -1) {
-                    isVerifierSuccess = false;
-                }
-                const cmdOutput = line.match(/^(\w+) +\[ *(\d+) *\**(\d*)\].*$/);
-                if (cmdOutput === null) {
-                    // console.log('return')
-                    return;
-                }
-                const phase:never = cmdOutput[1] as never;
-                if (progressPhases.indexOf(phase) === -1) {
-                    progressPhases.push(phase)
-                }
-                const numOfParsedLines = Number(cmdOutput[2]);
-                numOfErrors = Number(cmdOutput[3]);
-                //進捗計算(表記 : %,　小数点切り捨て)
-                const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
-                // console.log(line)//デバッグ用
-                try {
-                    await updateDb(result[0], ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
-                } catch (e) {
-                    console.log(e)
-                }
-            }), null, /\r/);
-            verifierProcess.on('close', async () => {
-                console.log('verifier finish : uuid = %s',ID)
-                //isVerifierFinishをtrueにprogressPercentを100にする
-                try {
-                    await makeErrorList(result[0], ID, result[1]);
-                    await updateDb(result[0], ID, 'true', progressPhases, '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
-                } catch (e) {
-                    console.log(e)
-                }
-                return;
-            });
+        }), null, /\r/);
+        verifierProcess.on('close', async () => {
+            console.log('finish verifier : uuid = %s',ID)
+            //isVerifierFinishをtrueにprogressPercentを100にする
+            try {
+                await makeErrorList(client, ID, filePath);
+                await updateDb(client, ID, 'true', progressPhases, '100', numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess)
+                checkQueue()
+                resolve()
+            } catch (e) {
+                console.log(e)
+            }
+            return;
         });
-    })
+    });
 }
 
 
