@@ -41,6 +41,7 @@
     |numOfErrors|エラーの個数|
     |errorList|行番号、列番号、エラータイプ、エラーメッセージを含む配列|
     |makeenvText|mizarのバージョンなどが記載されている文字列|
+    |queueNum|処理待ちの順番|
     
 * フォーマッタAPI  
   * リクエスト
