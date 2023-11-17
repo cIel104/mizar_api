@@ -41,6 +41,7 @@
     |numOfErrors|Number of errors|
     |errorList|An array containing the line number, column number, error type, and error message|
     |makeenvText|String with mizar version, etc.|
+    |queueNum|Order in Queue|
     
 * API for format.
   * request
