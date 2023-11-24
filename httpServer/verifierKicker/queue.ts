@@ -29,11 +29,7 @@ export class Queue {
         return this.items[0]
     }
 
-    // public peek(): string | undefined {
-    //     if (this.items.length === 0) {
-    //         return undefined
-    //     } else {
-    //         return this.items[0]
-    //     }
-    // }
+    public removeItem(index: number): void {
+        this.items.splice(index, 1)
+    }
 }
