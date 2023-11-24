@@ -1,32 +1,28 @@
-//mizファイルの整形(フォーマット)を行う
-const express = require('express');
-const { route } = require('../app');
-const path = require('path');
-const makeDir = require("make-dir");
+import path from "node:path";
+import express from 'express';
+import { runGitCommand } from '../verifierKicker/runGitCommand';
 const fs = require('fs');
-const { execFileSync, spawnSync } = require('node:child_process')
+const { spawnSync } = require('node:child_process')
 const router = express.Router();
-const runGitCommand = require('../verifierKicker/runGitCommand')
 
+//mizファイルの整形(フォーマット)を行う
 router.post('/', async function (req, res, next) {
-    const directoryName = await runGitCommand(req.body.repositoryUrl)
+    //git clone(git pull)実行
+    const directoryName = String(await runGitCommand(req.body.repositoryUrl))
 
-    let formatterCommand = ['./' + path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'miz_format')),
-    path.join(directoryName, 'text', req.body.fileName),
-    path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
-    JSON.stringify(req.body.userSettings)]
-
+    //miz_format実行
     const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "miz_format")),
         [path.join(directoryName, 'text', req.body.fileName),
         path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
         JSON.stringify(req.body.userSettings)], { shell: true });
 
-    // console.log('stdout', result.stdout.toString())
-    // console.log('stderr', result.stderr.toString())
+    //formatterからのエラー取得は未完成(miz_format側の問題)
     let isFormatterSuccess = true;
     if (result.stderr.toString()) {
         isFormatterSuccess = false
     }
+
+    //フォーマット後のmizファイル取得
     const fileContent = fs.readFileSync(path.join(directoryName, 'text', req.body.fileName), 'utf-8');
 
     res.json({
