@@ -10,7 +10,7 @@
 * Please fork the [mizar_repository](https://github.com/cIel104/mizar_repository) and create a "verifier" branch.
 # Features
 * API for executing a verification program.
-  * request(POST)
+  * request(POST)  
   Please specify a JSON-formatted string in the request body.  
     http://localhost:3000/api/v0.1/verifier
   
@@ -25,7 +25,7 @@
     |:---:|:---:|
     |ID|DB Index|
 * API for obtaining verification results.
-  * request(GET)
+  * request(GET)  
   Please input the ID in the path parameter.  
     http://localhost:3000/api/v0.1/verifier/{ID}
   * response
@@ -44,7 +44,7 @@
     |queueNum|Order in Queue|
 
 * API to interrupt the verification program.
-  * request(DELETE)
+  * request(DELETE)  
   Please input the ID in the path parameter.  
     http://localhost:3000/api/v0.1/verifier/{ID}
   * response
@@ -54,7 +54,7 @@
     |message|Deletion result|
     
 * API for format.
-  * request(POST)
+  * request(POST)  
   Please specify a JSON-formatted string in the request body.  
     http://localhost:3000/api/v0.1/formatter
   
