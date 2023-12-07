@@ -29,7 +29,7 @@ export class Queue {
         return this.items[0]
     }
 
-    public removeItem(index: number): void {
-        this.items.splice(index, 1)
+    public removeItem(item: string): void {
+        this.items = this.items.filter(n => n !== item)
     }
 }

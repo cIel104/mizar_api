@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from "crypto";
 import { runGitCommand } from '../verifierKicker/runGitCommand';
-import { verifier } from '../verifierKicker/verifierKicker';
+import { verifier, killProcess } from '../verifierKicker/verifierKicker';
 import { Queue } from '../verifierKicker/queue';
 import path from 'node:path';
 const redis = require('ioredis')
@@ -34,7 +34,6 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
 });
 
 //検証結果を取得するapi(GET方式)
-//1つのファイルに2つのapiが書かれているのでファイルを分けたほうがよいかもしれない -> urlの変更が必要
 router.get('/:ID', async function (req: { params: { ID: any; }; }, res: { json: (arg0: { progressPhases: any; progressPercent: number; isMakeenvFinish: boolean; isMakeenvSuccess: boolean; isVerifierFinish: boolean; isVerifierSuccess: boolean; numOfErrors: number; errorList: any; makeenvText: any; queueNum: number }) => void; }, next: any) {
     const client = new redis();
     const result = await client.hgetall(req.params.ID)
@@ -50,6 +49,22 @@ router.get('/:ID', async function (req: { params: { ID: any; }; }, res: { json: 
         'makeenvText': result.makeenvText,
         'queueNum': queue.getItem(req.params.ID),
     });
+})
+
+//検証を取り消すapi
+router.delete('/:ID', async function (req: { params: { ID: any; } }, res: any) {
+    const client = new redis();
+    const ID = req.params.ID
+    if (queue.getItem(ID) === 0) {
+        killProcess()
+        res.status(200).send('kill process')
+    } else if (queue.getItem(ID) > 0) {
+        queue.removeItem(ID)
+        console.log(queue.getItems())
+        res.status(200).send('delete queue')
+    } else {
+        res.status(200).send('Already finished')
+    }
 })
 
 async function initializeDB(ID: string, fileName: any, filePath: string, command: string) {
@@ -75,7 +90,7 @@ async function initializeDB(ID: string, fileName: any, filePath: string, command
     client.hset(String(ID), 'isVerifierSuccess', String('true')); //失敗した際にfalseに変更し処理を止めるため
     client.hset(String(ID), 'errorList', JSON.stringify([]));
     client.hset(String(ID), 'command', String(command));
-    client.hset(String(ID), 'isMakeenvStart', String('false'))
+    client.hset(String(ID), 'isMakeenvStart', String('false'));
 }
 
 export async function checkQueue() {
@@ -95,7 +110,6 @@ export async function checkQueue() {
         if ((isMakeenvSuccess === 'false' && isMakeenvFinish === 'true') || isVerifierFinish === 'true') {
             queue.dequeue()
             console.log('dequeue')
-            console.log(queue.getItems())
             const ID: string | undefined = queue.peek()
             if (ID) {
                 verifier(ID)

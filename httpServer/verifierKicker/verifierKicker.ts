@@ -1,12 +1,19 @@
 import path, { resolve } from "node:path";
 import { countLines } from './countLines';
-import { spawn } from 'node:child_process';
+import * as cp from 'node:child_process';
 import os from 'os';
 import { makeErrorList } from './makeErrorList';
-import { checkQueue } from "../routes/api";
+import { checkQueue} from "../routes/api";
 const redis = require("ioredis")
 const carrier = require("carrier")
 
+let runningCommand: { process?: cp.ChildProcessWithoutNullStreams } = {}
+export function killProcess() {
+    if (runningCommand.process) {
+        console.log('in killProcess')
+        runningCommand.process.kill('SIGINT')
+    }
+}
 
 export async function verifier(ID: string): Promise<void> {
     const client = new redis();
@@ -27,7 +34,8 @@ export async function verifier(ID: string): Promise<void> {
         verifierCmd = path.join(String(MIZFILES), verifierCmd);
     }
     const filePath = await client.hget(ID, 'filePath')
-    const makeenvProcess = spawn(makeenvCmd, [filePath], { shell: true });
+    const makeenvProcess = cp.spawn(makeenvCmd, [filePath]);
+    runningCommand.process = makeenvProcess
 
     //makeenv実行
     carrier.carry(makeenvProcess.stdout, (line: string) => {
@@ -50,7 +58,8 @@ export async function verifier(ID: string): Promise<void> {
         }
     }, null, /\r?\n/);
     makeenvProcess.on('close', async () => {
-        const verifierProcess = spawn(verifierCmd, [filePath], { shell: true });
+        const verifierProcess = cp.spawn(verifierCmd, [filePath]);
+        runningCommand.process = verifierProcess
         isMakeenvFinish = true;
         //makeenvが失敗していた場合はverifierを行わず終了
         //carrier.carry(makeenvProcess.stdout)内で完結させたほうがいいかも
@@ -87,7 +96,7 @@ export async function verifier(ID: string): Promise<void> {
             numOfErrors = Number(cmdOutput[3]);
             //進捗計算(表記 : %,　小数点切り捨て)
             const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
-            // console.log(line)//デバッグ用
+            console.log(line)//デバッグ用
             try {
                 await updateDb(client, ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
             } catch (e) {
