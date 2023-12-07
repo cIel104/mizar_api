@@ -8,7 +8,7 @@
 * [mizar_repository](https://github.com/cIel104/mizar_repository)をフォークして、verifierブランチを作成してください
 # 機能
 * 検証プログラムを実行するAPI
-  * リクエスト  
+  * リクエスト(POST)  
   リクエストボディにJSON形式の文字列を指定してください  
     http://localhost:3000/api/v0.1/verifier
   
@@ -24,7 +24,7 @@
     |ID|DBのインデックス|
 
 * 検証結果を取得するAPI
-  * リクエスト  
+  * リクエスト(GET)  
   パスパラメータにIDを追加してください  
     http://localhost:3000/api/v0.1/verifier/{ID}
 
@@ -42,9 +42,19 @@
     |errorList|行番号、列番号、エラータイプ、エラーメッセージを含む配列|
     |makeenvText|mizarのバージョンなどが記載されている文字列|
     |queueNum|処理待ちの順番|
+
+* 検証プログラムを中断させるAPI
+  * リクエスト(DELETE)
+  パスパラメータにIDを追加してください
+    http://localhost:3000/api/v0.1/verifier/{ID}
+
+  * レスポンス
+    |パラメータ|内容|
+    |:---:|:---:|
+    |message|削除結果|
     
 * フォーマッタAPI  
-  * リクエスト
+  * リクエスト(POST)
   リクエストボディにJSON形式の文字列を指定してください
     http://localhost:3000/api/v0.1/formatter
     
