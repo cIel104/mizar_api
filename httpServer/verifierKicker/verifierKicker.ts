@@ -96,7 +96,7 @@ export async function verifier(ID: string): Promise<void> {
             numOfErrors = Number(cmdOutput[3]);
             //進捗計算(表記 : %,　小数点切り捨て)
             const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
-            console.log(line)//デバッグ用
+            // console.log(line)//デバッグ用
             try {
                 await updateDb(client, ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
             } catch (e) {
@@ -104,6 +104,7 @@ export async function verifier(ID: string): Promise<void> {
             }
         }), null, /\r/);
         verifierProcess.on('close', async () => {
+            runningCommand.process = undefined
             console.log('finish verifier : uuid = %s',ID)
             //isVerifierFinishをtrueにprogressPercentを100にする
             try {
