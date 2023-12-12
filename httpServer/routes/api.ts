@@ -104,14 +104,10 @@ router.delete('/:ID', async function (req: { params: { ID: any; } }, res: any) {
     const ID = req.params.ID
     if (queue.getItem(ID) === 0) {
         killProcess()
-        res.status(200).json({ 'message': 'kill process' })
     } else if (queue.getItem(ID) > 0) {
         queue.removeItem(ID)
-        console.log(queue.getItems())
-        res.status(200).json({ 'message': 'delete queue' })
-    } else {
-        res.status(200).json({ 'message': 'Already finished'})
     }
+    res.sendStatus(204)
 })
 
 async function initializeDB(ID: string, fileName: any, filePath: string, command: string) {
