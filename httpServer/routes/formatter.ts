@@ -37,8 +37,9 @@ router.post('/', async function (req, res, next) {
     }
 
     //miz_format実行
-    const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "miz_format")),
-        [path.join(gitCommandResult.directoryName, 'text', req.body.fileName),
+    const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "main")),
+        ["-f",
+        path.join(gitCommandResult.directoryName, 'text', req.body.fileName),
         path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
         JSON.stringify(req.body.userSettings)], { shell: true });
 
@@ -50,6 +51,7 @@ router.post('/', async function (req, res, next) {
 
     //フォーマット後のmizファイル取得
     const fileContent = fs.readFileSync(path.join(gitCommandResult.directoryName, 'text', req.body.fileName), 'utf-8');
+    console.log(fileContent)
 
     res.json({
         'fileContent': fileContent,
