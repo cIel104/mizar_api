@@ -36,7 +36,7 @@ router.post('/', async function (req, res, next) {
         return
     }
 
-    //miz_format実行
+    //main実行
     const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "main")),
         ["-f",
         path.join(gitCommandResult.directoryName, 'text', req.body.fileName),
