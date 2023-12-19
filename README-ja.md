@@ -71,3 +71,20 @@
     |fileContent|インデントされたMizarファイル|
     |isFormatterSuccess|フォーマッタの成功判定|
     |errorLog|エラーログ|
+
+* リンターAPI
+  * リクエスト(POST)
+  リクエストボディにJSON形式の文字列を指定してください
+    http://localhost:3000/api/v0.1/linter
+    
+    |パラメータ|内容|
+    |:---:|:---:|
+    |fileName|Mizarファイル名|
+    |repositoryUrl|MizarファイルのあるGitHubリポジトリのURL|
+    |userSettings|フォーマットに関するユーザー設定|
+    
+  * レスポンス
+
+    |パラメータ|内容|
+    |:---:|:---:|
+    |errorList|行番号、列番号、エラーメッセージを含む配列|
