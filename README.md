@@ -70,3 +70,19 @@
     |fileContent|Indented Mizar file content|
     |isFormatterSuccess|Success determination of format|
     |errorLog|error log|
+
+* API for linter.
+  * request(POST)  
+  Please specify a JSON-formatted string in the request body.  
+    http://localhost:3000/api/v0.1/linter
+  
+    |Parameter|Content|
+    |:---:|:---:|
+    |fileName|Mizar File Name|
+    |repositoryUrl|The URL of the GitHub repository containing the Mizar file|
+    |settings|User settings regarding the format|
+  * response
+    
+    |Parameter|Content|
+    |:---:|:---:|
+    |errorList|An array containing the line number, column number, and error message|
