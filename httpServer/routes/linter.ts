@@ -54,7 +54,7 @@ router.post('/', async function (req, res, next) {
     const errorList: Array<object> = []
     const errors = result.output[2].toString().split('\n')
     for (let i = 0; i < errors.length - 1; i++) {
-        const errorMessage = errors[i].slice(errors[i].lastIndexOf(":")+1, errors[i].indexOf("["))
+        const errorMessage = errors[i].slice(errors[i].lastIndexOf(":")+1, errors[i].indexOf("[")-1)
         const errorLine = errors[i].slice(errors[i].lastIndexOf("[") + 4, errors[i].indexOf(","))
         const errorColumn = errors[i].slice(errors[i].lastIndexOf(",") + 6, errors[i].indexOf("]"))
         const errorObj: ErrorObj = {
