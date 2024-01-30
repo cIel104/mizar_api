@@ -144,6 +144,7 @@ export async function checkQueue() {
     if (isMakeenvStart === 'false') {
         const ID: string | undefined = queue.peek()
         if (ID) {
+            client.hset(String(ID), 'isMakeenvStart', String('true'))
             verifier(ID)
         }
     } else {

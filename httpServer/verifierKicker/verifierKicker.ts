@@ -17,7 +17,6 @@ export function killProcess() {
 
 export async function verifier(ID: string): Promise<void> {
     const client = new redis();
-    client.hset(String(ID), 'isMakeenvStart', String('true'))
     let isVerifierSuccess = true;
     let isMakeenvSuccess = true;
     let isMakeenvFinish = false;
