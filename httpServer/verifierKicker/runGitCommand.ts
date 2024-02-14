@@ -5,19 +5,14 @@ import path from "node:path";
 export function runGitCommand(repositoryUrl: string) {
     return new Promise<{ result: boolean, directoryName: string }>((resolve) => {
         //repositoryUrlからユーザー名を取得
-        const gitHubName = repositoryUrl.replace("https://github.com/", "").split('/', 1) 
+        const trimmedUrl = repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
+        const accountName = trimmedUrl[0]
+        const repositoryName = trimmedUrl[1]
         const directoryPath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory'))
-        const directoryName = path.join(directoryPath, gitHubName[0])
+        const directoryName = path.join(directoryPath, accountName, repositoryName)
         let command: string
         
         //ディレクトリの有無でコマンド選択
-        /* メモ
-        cloneのが失敗するURLでもgithubユーザー名のフォルダは生成されるため
-        fs.existsSync(directoryName)ではなくfs.existsSync(path.join(directoryName, 'text'))にする
-
-        現在は一つのgithubアカウントにつき、一つのリポジトリまでしか対応していない。
-        (2個め以降はディレクトリが存在しているのでgit pullになってしまう)
-        */
         if (fs.existsSync(path.join(directoryName,'text'))) {
             command = 'git -C ' + directoryName + ' checkout -- .';
             executeGitCommand(command)

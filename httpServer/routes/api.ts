@@ -54,8 +54,8 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
     }
 
     const fileName = req.body.fileName.split('.', 1);
-    const githubName = req.body.repositoryUrl.replace("https://github.com/", "").split('/', 1)
-    const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
+    const githubName = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
+    const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], githubName[1], 'text', req.body.fileName))
     if (!(fs.existsSync(filePath))) {
         res.status(400).json({
             'message': 'The mizar file described in the fileName parameter cannot be found.'
