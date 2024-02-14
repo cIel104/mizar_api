@@ -23,15 +23,10 @@ export async function verifier(ID: string): Promise<void> {
     let makeenvText = '';
     let numOfErrors = 0;
     let progressPhases: never[] = []
-    const MIZFILES = process.env.MIZFILES;
 
     //コマンド作成
     let makeenvCmd = 'makeenv';
     let verifierCmd = await client.hget(ID, 'command');
-    if (process.platform === 'win32') {
-        makeenvCmd = path.join(String(MIZFILES), makeenvCmd);
-        verifierCmd = path.join(String(MIZFILES), verifierCmd);
-    }
     const filePath = await client.hget(ID, 'filePath')
     const makeenvProcess = cp.spawn(makeenvCmd, [filePath]);
     runningCommand.process = makeenvProcess
