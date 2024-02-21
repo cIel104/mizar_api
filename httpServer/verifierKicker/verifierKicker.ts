@@ -3,7 +3,8 @@ import { countLines } from './countLines';
 import * as cp from 'node:child_process';
 import os from 'os';
 import { makeErrorList } from './makeErrorList';
-import { checkQueue} from "../routes/api";
+import { checkQueue } from "../routes/api";
+import { discriminateVersion } from "./discriminatieVersion";
 const redis = require("ioredis")
 const carrier = require("carrier")
 
@@ -24,11 +25,19 @@ export async function verifier(ID: string): Promise<void> {
     let numOfErrors = 0;
     let progressPhases: never[] = []
 
+    //環境変数の設定
+    const mizVersion = await discriminateVersion(ID)
+    process.env.PATH = '/home/kai/'+ mizVersion +'/local/bin:' + process.env.PATH
+    const envPath = {
+        ...process.env,
+        MIZFILES: '/home/kai/'+ mizVersion +'/local/share/mizar',
+    };
+
     //コマンド作成
     let makeenvCmd = 'makeenv';
     let verifierCmd = await client.hget(ID, 'command');
     const filePath = await client.hget(ID, 'filePath')
-    const makeenvProcess = cp.spawn(makeenvCmd, [filePath]);
+    const makeenvProcess = cp.spawn(makeenvCmd, [filePath], {env: envPath});
     runningCommand.process = makeenvProcess
 
     //makeenv実行
@@ -52,7 +61,7 @@ export async function verifier(ID: string): Promise<void> {
         }
     }, null, /\r?\n/);
     makeenvProcess.on('close', async () => {
-        const verifierProcess = cp.spawn(verifierCmd, [filePath]);
+        const verifierProcess = cp.spawn(verifierCmd, [filePath], {env: envPath});
         runningCommand.process = verifierProcess
         isMakeenvFinish = true;
         //makeenvが失敗していた場合はverifierを行わず終了
@@ -79,7 +88,6 @@ export async function verifier(ID: string): Promise<void> {
             }
             const cmdOutput = line.match(/^(\w+) +\[ *(\d+) *\**(\d*)\].*$/);
             if (cmdOutput === null) {
-                // console.log('return')
                 return;
             }
             const phase:never = cmdOutput[1] as never;
