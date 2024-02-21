@@ -46,6 +46,7 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
     //git clone(git pull)実行
     const gitCommandResult: { result: boolean; directoryName: string } = await runGitCommand(req.body.repositoryUrl)
     console.log(gitCommandResult)
+    process.chdir(__dirname)
     if (!(gitCommandResult.result)) {
         res.status(400).json({
             'message': 'The repositoryUrl parameter is incorrect.'
@@ -55,16 +56,19 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
 
     const fileName = req.body.fileName.split('.', 1);
     const githubName = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
-    const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], githubName[1], 'text', req.body.fileName))
-    if (!(fs.existsSync(filePath))) {
-        res.status(400).json({
-            'message': 'The mizar file described in the fileName parameter cannot be found.'
-        })
-        return
-    }
+    console.log('api filepath %s',__dirname)
+    const filePath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', githubName[0], githubName[1], 'text', req.body.fileName))
+    const iniPath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', githubName[0], githubName[1], 'mml.ini'))
+    console.log('filepath %s', filePath)
+    // if (!(fs.existsSync(filePath))) {
+    //     res.status(400).json({
+    //         'message': 'The mizar file described in the fileName parameter cannot be found.'
+    //     })
+    //     return
+    // }
 
     //DBの初期化
-    initializeDB(uuid, fileName, filePath, req.body.command);
+    initializeDB(uuid, fileName, filePath, iniPath, req.body.command);
 
     queue.enqueue(uuid)
     checkQueue()
@@ -78,7 +82,6 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
 router.get('/:ID', async function (req: { params: { ID: any; }; }, res: any, next: any) {
     const client = new redis();
     const result = await client.hgetall(req.params.ID)
-    console.log(result)
     if (Object.keys(result).length === 0) {
         res.status(400).json({
             'message': 'The ID parameter is incorrect.'
@@ -110,7 +113,7 @@ router.delete('/:ID', async function (req: { params: { ID: any; } }, res: any) {
     res.sendStatus(204)
 })
 
-async function initializeDB(ID: string, fileName: any, filePath: string, command: string) {
+async function initializeDB(ID: string, fileName: any, filePath: string, iniPath: string, command: string) {
     const client = new redis();
 
     //デバッグ用
@@ -134,6 +137,7 @@ async function initializeDB(ID: string, fileName: any, filePath: string, command
     client.hset(ID, 'errorList', JSON.stringify([]));
     client.hset(ID, 'command', command);
     client.hset(ID, 'isMakeenvStart', 'false');
+    client.hset(ID, 'iniPath', iniPath);
 }
 
 export async function checkQueue() {

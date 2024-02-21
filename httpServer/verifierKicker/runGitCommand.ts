@@ -8,10 +8,13 @@ export function runGitCommand(repositoryUrl: string) {
         const trimmedUrl = repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
         const accountName = trimmedUrl[0]
         const repositoryName = trimmedUrl[1]
-        const directoryPath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory'))
+        const rootDirectory = path.resolve(__dirname, '../../');
+        const directoryPath = path.join(rootDirectory, 'mizarDirectory');
         const directoryName = path.join(directoryPath, accountName, repositoryName)
+        console.log('directoryName ', directoryName)
+        console.log('__dirname', __dirname)
         let command: string
-        
+
         //ディレクトリの有無でコマンド選択
         if (fs.existsSync(path.join(directoryName,'text'))) {
             command = 'git -C ' + directoryName + ' checkout -- .';
@@ -22,6 +25,7 @@ export function runGitCommand(repositoryUrl: string) {
         } else {
             //mizarDirectoryディレクトリの中にmizarファイル名と同じディレクトリを作成(.mizはなし)
             makeDir(directoryName).then(path => {
+                console.log('git clone', String(path))
                 command = 'git clone -b verifier --depth=1 ' + repositoryUrl + ' ' + path
                 const gitCommandResult = executeGitCommand(command)
                 resolve({ 'result': gitCommandResult, 'directoryName': directoryName })
