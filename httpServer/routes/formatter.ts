@@ -51,7 +51,6 @@ router.post('/', async function (req, res, next) {
 
     //フォーマット後のmizファイル取得
     const fileContent = fs.readFileSync(path.join(gitCommandResult.directoryName, 'text', req.body.fileName), 'utf-8');
-    console.log(fileContent)
 
     res.json({
         'fileContent': fileContent,

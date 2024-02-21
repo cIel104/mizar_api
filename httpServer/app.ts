@@ -29,7 +29,6 @@ app.use('/api/v0.1/linter', linterRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req: any, res: any, next: (arg0: any) => void) {
-  console.log('hogehoge')
   next(createError(404));
 });
 

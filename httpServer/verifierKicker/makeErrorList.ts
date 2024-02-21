@@ -2,6 +2,7 @@ import fs from 'fs';
 import readline from 'readline';
 import path from 'node:path';
 
+process.env.MIZFILES = '/home/kai/v8.1.14/local/share/mizar'
 const MIZFILES = process.env.MIZFILES;
 interface ErrorObj {
     errorLine: number;
@@ -28,7 +29,6 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
         let isReadingErrorMsg = false;
         const errorList : Array<object> = [];
         reader.on('line', (line) => {
-            console.log(line)
             const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
             let errorMessage = ''
 

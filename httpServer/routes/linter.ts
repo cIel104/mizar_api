@@ -49,8 +49,6 @@ router.post('/', async function (req, res, next) {
             path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
             JSON.stringify(req.body.userSettings)], { shell: true });
 
-    console.log(result.output[2].toString())
-
     const errorList: Array<object> = []
     const errors = result.output[2].toString().split('\n')
     for (let i = 0; i < errors.length - 1; i++) {
