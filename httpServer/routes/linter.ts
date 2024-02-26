@@ -1,7 +1,6 @@
 import path from "node:path";
 import express from 'express';
 import { runGitCommand } from '../verifierKicker/runGitCommand';
-import { arrayBuffer } from "stream/consumers";
 const fs = require('fs');
 const { spawnSync } = require('node:child_process')
 const router = express.Router();
@@ -33,8 +32,6 @@ router.post('/', async function (req, res, next) {
         })
         return
     }
-    // const githubName = req.body.repositoryUrl.replace("https://github.com/", "").split('/', 1)
-    // const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
     const trimmedUrl = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
     const accountName = trimmedUrl[0]
     const repositoryName = trimmedUrl[1]
@@ -48,12 +45,6 @@ router.post('/', async function (req, res, next) {
         return
     }
 
-    //main実行
-    // const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "main")),
-    //     ["-l",
-    //         path.join(gitCommandResult.directoryName, 'text', req.body.fileName),
-    //         path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
-    //         JSON.stringify(req.body.userSettings)], { shell: true });
     const result = spawnSync(path.join(rootDirectory, 'httpServer', 'mizarFormatter', 'main'),
         ["-l",
             filePath,
