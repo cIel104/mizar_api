@@ -12,6 +12,7 @@ export async function discriminateVersion(ID: string) {
             versionNbrs.push(match[0])
         }
     });
+    //初期値は最新バージョン
     let MizarReleaseNbr = '8'
     let MizarVersionNbr = '1'
     let MizarVariantNbr = '14'

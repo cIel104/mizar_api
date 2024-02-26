@@ -1,9 +1,8 @@
 import fs from 'fs';
 import readline from 'readline';
 import path from 'node:path';
+import { discriminateVersion } from "./discriminatieVersion";
 
-process.env.MIZFILES = '/home/kai/v8.1.14/local/share/mizar'
-const MIZFILES = process.env.MIZFILES;
 interface ErrorObj {
     errorLine: number;
     errorColumn: number;
@@ -12,7 +11,11 @@ interface ErrorObj {
 }
 
 //エラーファイルに記入するMizarエラーメッセージを取得
-function getMizarMsg() {
+async function getMizarMsg(ID: string) {
+    const mizVersion = await discriminateVersion(ID)
+    const rootDirectory = path.resolve(__dirname, '../../');
+    process.env.MIZFILES = path.join(rootDirectory, 'version', mizVersion, 'local', 'share', 'mizar')
+    const MIZFILES = process.env.MIZFILES
     const mizarMessage = fs.readFileSync(path.join(String(MIZFILES), 'mizar.msg'), 'utf-8');
     const mizarMessageList = mizarMessage.split(/\r\n|[\n\r]/);
     return mizarMessageList;
@@ -22,13 +25,15 @@ function getMizarMsg() {
 //エラー番号をリストなどに保存しておけば、1重ループで実装できるかも
 //さらに高速化を行うなら2分探索にする方法もある（.msgファイルの数字が抜けていたするので難易度は高そう）
 export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: any, filePath: string) {
-    return new Promise<void>((resolve) => {
-        const mizarMessageList = getMizarMsg();
+    return new Promise<void>(async (resolve) => {
+        const mizarMessageList = await getMizarMsg(ID);
+        console.log('mizarMessageList',mizarMessageList)
         const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
         const reader = readline.createInterface({ input: stream });
         let isReadingErrorMsg = false;
         const errorList : Array<object> = [];
         reader.on('line', (line) => {
+            console.log('.err line', line)
             const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
             let errorMessage = ''
 

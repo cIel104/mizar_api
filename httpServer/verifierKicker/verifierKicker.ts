@@ -27,10 +27,11 @@ export async function verifier(ID: string): Promise<void> {
 
     //環境変数の設定
     const mizVersion = await discriminateVersion(ID)
-    process.env.PATH = '/home/kai/'+ mizVersion +'/local/bin:' + process.env.PATH
+    const rootDirectory = path.resolve(__dirname, '../../');
+    process.env.PATH = path.join(rootDirectory, 'version', mizVersion , 'local', 'bin') + ':' + process.env.PATH
     const envPath = {
         ...process.env,
-        MIZFILES: '/home/kai/'+ mizVersion +'/local/share/mizar',
+        MIZFILES: path.join(rootDirectory, 'version', mizVersion , 'local', 'share', 'mizar')
     };
 
     //コマンド作成
