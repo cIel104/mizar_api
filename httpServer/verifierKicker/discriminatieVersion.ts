@@ -4,17 +4,22 @@ const redis = require("ioredis")
 export async function discriminateVersion(ID: string) {
     const client = new redis();
     const iniPath = await client.hget(ID, 'iniPath')
-    const iniFile = fs.readFileSync(iniPath, 'utf8');
-    const matchResult = iniFile.match(/MizarReleaseNbr=(\d+)\s+MizarVersionNbr=(\d+)\s+MizarVariantNbr=(\d+)/);
+    const iniFile = fs.readFileSync(iniPath, 'utf8').split('\n');
+    const versionNbrs:string[] = []
+    iniFile.forEach(line => {
+        const match = line.match(/\d+/);
+        if (match) {
+            versionNbrs.push(match[0])
+        }
+    });
     let MizarReleaseNbr = '8'
     let MizarVersionNbr = '1'
     let MizarVariantNbr = '14'
-    if (matchResult) {
-        MizarReleaseNbr = matchResult[1];
-        MizarVersionNbr = matchResult[2];
-        MizarVariantNbr = matchResult[3];
+    if (versionNbrs) {
+        MizarReleaseNbr = versionNbrs[0];
+        MizarVersionNbr = versionNbrs[1];
+        MizarVariantNbr = versionNbrs[2];
     }
-    console.log(MizarReleaseNbr + '_' + MizarVersionNbr + '_' + MizarVariantNbr)//デバック用
     const mizVersion = 'v' + MizarReleaseNbr + '.' + MizarVersionNbr + '.' + MizarVariantNbr
     return mizVersion
 }

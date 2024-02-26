@@ -54,7 +54,7 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
 
         }).on('close', () => {
             try {
-                console.log(errorList)
+                console.log('errorList ',errorList)
                 client.hset(String(ID), 'errorList', JSON.stringify(errorList))
             } catch (e) {
                 console.log(e)

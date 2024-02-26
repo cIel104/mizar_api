@@ -27,8 +27,13 @@ router.post('/', async function (req, res, next) {
         })
         return
     }
-    const githubName = req.body.repositoryUrl.replace("https://github.com/", "").split('/', 1)
-    const filePath = path.relative(__dirname, path.join(path.dirname(__dirname), 'mizarDirectory', githubName[0], 'text', req.body.fileName))
+    const trimmedUrl = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
+    const accountName = trimmedUrl[0]
+    const repositoryName = trimmedUrl[1]
+    const rootDirectory = path.resolve(__dirname, '../../');
+    const directoryPath = path.join(rootDirectory, 'mizarDirectory', accountName, repositoryName);
+    const filePath = path.join(directoryPath, 'text', req.body.fileName)
+    console.log(filePath)
     if (!(fs.existsSync(filePath))) {
         res.status(400).json({
             'message': 'The mizar file described in the fileName parameter cannot be found.'
@@ -37,21 +42,19 @@ router.post('/', async function (req, res, next) {
     }
 
     //main実行
-    const result = spawnSync("./" + path.relative(__dirname, path.join(__dirname, "mizarFormatter", "main")),
+    const result = spawnSync(path.join(rootDirectory, 'httpServer', 'mizarFormatter', 'main'),
         ["-f",
-        path.join(gitCommandResult.directoryName, 'text', req.body.fileName),
-        path.relative(__dirname, path.join(__dirname, 'mizarFormatter', 'mml.vct')),
+        filePath,
+        path.join(rootDirectory, 'httpServer', 'mizarFormatter', 'mml.vct'),
         JSON.stringify(req.body.userSettings)], { shell: true });
 
-    //formatterからのエラー取得は未完成(miz_format側の問題)
+    //formatterからのエラー取得
     let isFormatterSuccess = true;
     if (result.stderr.toString()) {
         isFormatterSuccess = false
     }
 
-    //フォーマット後のmizファイル取得
-    const fileContent = fs.readFileSync(path.join(gitCommandResult.directoryName, 'text', req.body.fileName), 'utf-8');
-
+    const fileContent = fs.readFileSync(filePath, 'utf-8')
     res.json({
         'fileContent': fileContent,
         'isFormatterSuccess': isFormatterSuccess,

@@ -55,17 +55,20 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
     }
 
     const fileName = req.body.fileName.split('.', 1);
-    const githubName = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
-    console.log('api filepath %s',__dirname)
-    const filePath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', githubName[0], githubName[1], 'text', req.body.fileName))
-    const iniPath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', githubName[0], githubName[1], 'mml.ini'))
+    // const githubName = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
+    const trimmedUrl = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
+    const accountName = trimmedUrl[0]
+    const repositoryName = trimmedUrl[1]
+    console.log('api filepath %s', __dirname)
+    const filePath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', accountName, repositoryName, 'text', req.body.fileName))
+    const iniPath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', accountName, repositoryName, 'mml.ini'))
     console.log('filepath %s', filePath)
-    // if (!(fs.existsSync(filePath))) {
-    //     res.status(400).json({
-    //         'message': 'The mizar file described in the fileName parameter cannot be found.'
-    //     })
-    //     return
-    // }
+    if (!(fs.existsSync(filePath))) {
+        res.status(400).json({
+            'message': 'The mizar file described in the fileName parameter cannot be found.'
+        })
+        return
+    }
 
     //DBの初期化
     initializeDB(uuid, fileName, filePath, iniPath, req.body.command);
