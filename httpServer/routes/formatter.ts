@@ -52,6 +52,7 @@ router.post('/', async function (req, res, next) {
     let isFormatterSuccess = true;
     if (result.stderr.toString()) {
         isFormatterSuccess = false
+        console.log(result.stderr.toString())
     }
 
     const fileContent = fs.readFileSync(filePath, 'utf-8')
