@@ -8,6 +8,11 @@ import { discriminateVersion } from "./discriminatieVersion";
 const redis = require("ioredis")
 const carrier = require("carrier")
 
+const config = {
+    host: "redis",
+    port: 6379
+}
+
 let runningCommand: { process?: cp.ChildProcessWithoutNullStreams } = {}
 export function killProcess() {
     if (runningCommand.process) {
@@ -17,7 +22,7 @@ export function killProcess() {
 }
 
 export async function verifier(ID: string): Promise<void> {
-    const client = new redis();
+    const client = new redis(config);
     let isVerifierSuccess = true;
     let isMakeenvSuccess = true;
     let isMakeenvFinish = false;
@@ -28,21 +33,23 @@ export async function verifier(ID: string): Promise<void> {
     //環境変数の設定
     const mizVersion = await discriminateVersion(ID)
     const rootDirectory = path.resolve(__dirname, '../../');
-    process.env.PATH = path.join(rootDirectory, 'version', mizVersion , 'local', 'bin') + ':' + process.env.PATH
+    process.env.PATH = path.join(rootDirectory, 'version', mizVersion, 'local', 'bin') + ':' + process.env.PATH
     const envPath = {
         ...process.env,
-        MIZFILES: path.join(rootDirectory, 'version', mizVersion , 'local', 'share', 'mizar')
+        MIZFILES: path.join(rootDirectory, 'version', mizVersion, 'local', 'share', 'mizar')
     };
 
     //コマンド作成
     let makeenvCmd = 'makeenv';
     let verifierCmd = await client.hget(ID, 'command');
     const filePath = await client.hget(ID, 'filePath')
-    const makeenvProcess = cp.spawn(makeenvCmd, [filePath], {env: envPath});
+    const makeenvProcess = cp.spawn(makeenvCmd, [filePath], { env: envPath });
     runningCommand.process = makeenvProcess
 
+    console.log('start mekeenv')
     //makeenv実行
     carrier.carry(makeenvProcess.stdout, (line: string) => {
+        console.log('in makeenv', line)
         if (line.indexOf('*') === -1) {
             if (line !== '' && !/^-/.test(line)) {
                 if (makeenvText !== '') {
@@ -62,19 +69,19 @@ export async function verifier(ID: string): Promise<void> {
         }
     }, null, /\r?\n/);
     makeenvProcess.on('close', async () => {
-        const verifierProcess = cp.spawn(verifierCmd, [filePath], {env: envPath});
+        const verifierProcess = cp.spawn(verifierCmd, [filePath], { env: envPath });
         runningCommand.process = verifierProcess
         isMakeenvFinish = true;
         //makeenvが失敗していた場合はverifierを行わず終了
         //carrier.carry(makeenvProcess.stdout)内で完結させたほうがいいかも
-        console.log('isMakeenvSuccess = %s',isMakeenvSuccess.toString())
+        console.log('isMakeenvSuccess = %s', isMakeenvSuccess.toString())
         if (isMakeenvSuccess !== true) {
             await makeErrorList(client, ID, filePath);
             await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
             return;
         }
 
-        console.log('start verifier : uuid = %s',ID)
+        console.log('start verifier : uuid = %s', ID)
         try {
             await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
         } catch (e) {
@@ -91,7 +98,7 @@ export async function verifier(ID: string): Promise<void> {
             if (cmdOutput === null) {
                 return;
             }
-            const phase:never = cmdOutput[1] as never;
+            const phase: never = cmdOutput[1] as never;
             if (progressPhases.indexOf(phase) === -1) {
                 progressPhases.push(phase)
             }
@@ -108,7 +115,7 @@ export async function verifier(ID: string): Promise<void> {
         }), null, /\r/);
         verifierProcess.on('close', async () => {
             runningCommand.process = undefined
-            console.log('finish verifier : uuid = %s',ID)
+            console.log('finish verifier : uuid = %s', ID)
             //isVerifierFinishをtrueにprogressPercentを100にする
             try {
                 await makeErrorList(client, ID, filePath);

@@ -10,6 +10,11 @@ const router = express.Router();
 
 const queue = new Queue();
 
+const config = {
+    host: "redis",
+    port: 6379
+}
+
 const commandArray = [
     'verifier',
     'irrths',
@@ -83,7 +88,7 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
 
 //検証結果を取得するapi(GET方式)
 router.get('/:ID', async function (req: { params: { ID: any; }; }, res: any, next: any) {
-    const client = new redis();
+    const client = new redis(config);
     const result = await client.hgetall(req.params.ID)
     if (Object.keys(result).length === 0) {
         res.status(400).json({
@@ -117,7 +122,7 @@ router.delete('/:ID', async function (req: { params: { ID: any; } }, res: any) {
 })
 
 async function initializeDB(ID: string, fileName: any, filePath: string, iniPath: string, command: string) {
-    const client = new redis();
+    const client = new redis(config);
 
     //デバッグ用
     client.on('connect', function () {
@@ -146,7 +151,7 @@ async function initializeDB(ID: string, fileName: any, filePath: string, iniPath
 export async function checkQueue() {
     //同じIDを複数回確認する必要があるのでqueueの先頭を検証し、検証完了後dequeueするようにしている
     console.log(queue.getItems())
-    const client = new redis();
+    const client = new redis(config);
     const isMakeenvStart = await client.hget(queue.peek(), 'isMakeenvStart')
     if (isMakeenvStart === 'false') {
         const ID: string | undefined = queue.peek()

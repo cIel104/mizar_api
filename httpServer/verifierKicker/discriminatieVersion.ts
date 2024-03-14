@@ -1,11 +1,16 @@
 import fs from 'fs';
 const redis = require("ioredis")
 
+const config = {
+    host: "redis",
+    port: 6379
+}
+
 export async function discriminateVersion(ID: string) {
-    const client = new redis();
+    const client = new redis(config);
     const iniPath = await client.hget(ID, 'iniPath')
     const iniFile = fs.readFileSync(iniPath, 'utf8').split('\n');
-    const versionNbrs:string[] = []
+    const versionNbrs: string[] = []
     iniFile.forEach(line => {
         const match = line.match(/\d+/);
         if (match) {
