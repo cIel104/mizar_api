@@ -1,0 +1,1970 @@
+:: Binary Representation of Natural Numbers
+::  by Hiroyuki Okazaki
+:: 
+:: Received September 29, 2018
+:: Copyright (c) 2018-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, XBOOLE_0, NAT_1, FINSEQ_2, MARGREL1, BINARITH, ARYTM_3,
+      POWER, SUBSET_1, ORDINAL4, FINSEQ_1, FUNCOP_1, XBOOLEAN, CARD_1, RELAT_1,
+      EUCLID, XXREAL_0, FUNCT_1, PARTFUN1, ARYTM_1, INT_1, BINARI_3, XCMPLX_0,
+      BINARI_6, COMPLEX1, FUNCT_2, EQREL_1, BINOP_2, SETWISEO, BINOP_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, NUMBERS, XCMPLX_0, XXREAL_0,
+      NAT_D, POWER, SERIES_1, MARGREL1, FUNCT_1, FUNCT_2, INT_1, COMPLEX1,
+      PARTFUN1, FUNCOP_1, BINOP_1, BINOP_2, SETWOP_2, FINSEQ_1, FINSEQ_2,
+      BINARITH, BINARI_3, EUCLID, EQREL_1;
+ constructors RELSET_1, NAT_D, SERIES_1, BINARITH, ABIAN, EUCLID, BINARI_3,
+      EQREL_1, BINOP_2, SETWISEO, FINSOP_1;
+ registrations RELSET_1, XREAL_0, NAT_1, XBOOLEAN, MARGREL1, ORDINAL1, CARD_1,
+      RELAT_1, RELAT_2, XBOOLE_0, FUNCT_1, FINSEQ_2, INT_1, COMPLEX1, FINSEQ_1,
+      EQREL_1, BINOP_2;
+ requirements REAL, NUMERALS, SUBSET, BOOLE, ARITHM;
+ equalities EUCLID, XBOOLEAN;
+ expansions RELAT_1;
+ theorems TARSKI, NAT_1, MARGREL1, POWER, FUNCOP_1, FINSEQ_1, FINSEQ_2,
+      FINSEQ_4, BINARITH, XREAL_1, PARTFUN1, EQREL_1, ORDINAL1, COMPLEX1,
+      BINARI_4, XREAL_0, INT_1, XXREAL_0, FUNCT_1, FUNCT_2, CARD_1, XBOOLE_0,
+      BINARI_3, FINSEQ_3, FINSOP_1, BINOP_2;
+ schemes NAT_1, FUNCT_2, EQREL_1;
+
+begin :: Preliminaries
+
+theorem LM000:
+  for x be Nat ex m be Nat st x < 2 to_power m
+  proof
+    let x be Nat;
+    per cases;
+    suppose C1:x =0;
+      take m=0;
+      thus x < 2 to_power m by C1,POWER:24;
+    end;
+    suppose x <> 0; then
+      0 < x; then
+      P2: 2 to_power log (2,x) = x by POWER:def 3;
+      X1: log (2,x) <= |. log (2,x) .| by COMPLEX1:76;
+      0 < [/ |. log (2,x) .| \] + 1 by INT_1:32; then
+      reconsider m = [/ |. log (2,x) .| \] + 1 as Nat
+        by INT_1:3,ORDINAL1:def 12;
+      P3:log (2,x) < m by X1,INT_1:32,XXREAL_0:2;
+      take m;
+      thus x < 2 to_power m by P2,P3,POWER:39;
+    end;
+  end;
+
+theorem LM001:
+  for x be Nat
+  st x <> 0
+  ex n be Nat st 2 to_power n <= x & x < 2 to_power (n + 1)
+  proof
+    let x be Nat;
+    assume x <> 0; then
+    P1:1<=x by NAT_1:25;
+    defpred P1[Nat] means x < 2 to_power $1;
+    A2:ex m be Nat st P1[m] by LM000;
+    consider k being Nat such that
+    A3: P1[k] & ( for n being Nat st P1[n] holds
+    k <= n ) from NAT_1:sch 5(A2);
+    k <> 0 by P1,POWER:24,A3;
+    then
+    1 <= k by NAT_1:25;
+    then
+    0 <= k-1 by XREAL_1:48;
+    then
+    reconsider k1=k-1 as Nat by INT_1:3,ORDINAL1:def 12;
+    take k1;
+    thus 2 to_power k1 <= x
+    proof
+      assume ASP1:not 2 to_power k1 <= x;
+      k -1 < k - 0 by XREAL_1:15;
+      hence contradiction by A3,ASP1;
+    end;
+    thus x < 2 to_power (k1 + 1) by A3;
+  end;
+
+theorem LM002:
+  for x be Nat,
+  n1,n2 be Nat st
+  2 to_power n1 <= x & x < 2 to_power (n1 + 1)
+  &
+  2 to_power n2 <= x & x < 2 to_power (n2 + 1)
+  holds n1=n2
+  proof
+    let x be Nat, n1,n2 be Nat;
+    assume that
+    AS1:
+    2 to_power n1 <= x & x < 2 to_power (n1 + 1)
+    and
+    AS2:
+    2 to_power n2 <= x & x < 2 to_power (n2 + 1);
+    assume n1<>n2;
+    then
+    per cases by XXREAL_0:1;
+    suppose n1 < n2;
+      then
+      P1: n1 + 1 <= n2 by NAT_1:13;
+      2 to_power (n1 + 1) <= 2 to_power n2
+      proof
+        per cases by P1,XXREAL_0:1;
+        suppose n1+1 = n2;
+          hence 2 to_power (n1 + 1) <= 2 to_power n2;
+        end;
+        suppose n1+1 < n2;
+          hence 2 to_power (n1 + 1) <= 2 to_power n2 by POWER:39;
+        end;
+      end;
+      hence contradiction by AS2,AS1,XXREAL_0:2;
+    end;
+    suppose n2 < n1; then
+      P1: n2 + 1 <= n1 by NAT_1:13;
+      2 to_power (n2 + 1) <= 2 to_power n1
+      proof
+        per cases by P1,XXREAL_0:1;
+        suppose n2+1 = n1;
+          hence 2 to_power (n2 + 1) <= 2 to_power n1;
+        end;
+        suppose n2+1 < n1;
+          hence 2 to_power (n2 + 1) <= 2 to_power n1 by POWER:39;
+        end;
+      end;
+      hence contradiction by AS1,AS2,XXREAL_0:2;
+    end;
+  end;
+
+theorem LM0020:
+  <* 0 *> = 0*1 by FINSEQ_2:59;
+
+theorem
+  for n1,n2 be Nat
+  holds 0*n1 ^ 0*n2 = 0*(n1+n2) by FINSEQ_2:123;
+
+begin :: Homomorphism from the Natural Numbers to the Bitstreams
+
+definition
+  let x be Nat;
+  func LenBSeq x -> non zero Nat means
+  :Def1:
+  it = 1 if x = 0
+  otherwise
+  ex n be Nat st 2 to_power n <= x & x < 2 to_power (n + 1)
+  & it = n+1;
+  existence
+  proof
+    thus x=0 implies ex y be non zero Nat st y=1;
+    thus not x=0 implies ex y be non zero Nat st
+    ex n be Nat st 2 to_power n <= x & x < 2 to_power (n + 1)
+    & y = n+1
+    proof
+      assume x <> 0; then
+      consider n be Nat such that
+      A1: 2 to_power n <= x & x < 2 to_power (n + 1) by LM001;
+      take y=n+1;
+      thus thesis by A1;
+    end;
+  end;
+  uniqueness by LM002;
+  consistency;
+end;
+
+theorem LM006:
+  for x be Nat holds x < 2 to_power LenBSeq x
+  proof
+    let x be Nat;
+    per cases;
+    suppose C1: x=0; then
+      LenBSeq x = 1 by Def1;
+      hence x < 2 to_power LenBSeq x by POWER:25,C1;
+    end;
+    suppose x <> 0; then
+      consider n be Nat such that
+      C2: 2 to_power n <= x & x < 2 to_power (n + 1)
+      & LenBSeq x = n+1 by Def1;
+      thus x < 2 to_power LenBSeq x by C2;
+    end;
+  end;
+
+theorem LM007:
+  for x be Nat holds
+  x = Absval ((LenBSeq x) -BinarySequence x)
+  proof
+    let x be Nat;
+    x < 2 to_power LenBSeq x by LM006;
+    hence x = Absval ((LenBSeq x) -BinarySequence x) by BINARI_3:35;
+  end;
+
+theorem LM0071:
+  for n be Nat,
+  x be Tuple of n+1, BOOLEAN st x.(n+1) = 1
+  holds
+  2 to_power n <= Absval(x) & Absval(x) < 2 to_power (n + 1)
+  proof
+    let n be Nat,
+    x be Tuple of n+1, BOOLEAN;
+    assume AS: x.(n+1) = 1;
+    len x = n+1 by CARD_1:def 7; then
+    n+1 in Seg len x by FINSEQ_1:4; then
+    n+1 in dom x by FINSEQ_1:def 3; then
+    P3: x/.(n+1) = 1 by AS,PARTFUN1:def 6;
+    0 <= (n+1) -1; then
+    (n+1) -' 1 = n by XREAL_0:def 2;
+    hence 2 to_power n <= Absval(x) by BINARI_4:12,P3;
+    thus Absval(x) < 2 to_power (n + 1) by BINARI_3:1;
+  end;
+
+theorem
+  ex F be Function of BOOLEAN*,NAT
+  st
+  for x be Element of BOOLEAN*
+  ex x0 be Tuple of len x, BOOLEAN
+  st x=x0 &
+  F.x = Absval x0
+  proof
+    defpred P[Element of BOOLEAN*,object] means
+    ex x0 be Tuple of len $1, BOOLEAN
+    st $1=x0 &
+    $2 = Absval x0;
+    A1: for x being Element of BOOLEAN* ex y being Element of NAT st P[x,y]
+    proof
+      let x be Element of BOOLEAN*;
+      x is Element of (len x) -tuples_on BOOLEAN by FINSEQ_2:92;
+      then
+      reconsider x0=x as Tuple of len x, BOOLEAN;
+      reconsider n =Absval x0 as Element of NAT;
+      take n;
+      thus ex x0 be Tuple of len x, BOOLEAN st x=x0 & n= Absval x0;
+    end;
+    consider f being Function of BOOLEAN*,NAT such that
+    A2:for x being Element of BOOLEAN* holds P[x,f.x]
+    from FUNCT_2:sch 3(A1);
+    take f;
+    thus thesis by A2;
+  end;
+
+LM020:
+  ex F be Function of NAT,BOOLEAN*
+  st
+  for x be Element of NAT
+  holds
+  F.x = (LenBSeq x) -BinarySequence x
+  proof
+    defpred P[Element of NAT,object]
+    means
+    $2 = (LenBSeq $1) -BinarySequence $1;
+    A1: for x being Element of NAT ex y being Element of BOOLEAN* st P[x,y]
+    proof
+      let x be Element of NAT;
+      set y = (LenBSeq x ) -BinarySequence x;
+      reconsider y as Element of BOOLEAN* by FINSEQ_1:def 11;
+      take y;
+      thus thesis;
+    end;
+    consider f being Function of NAT,BOOLEAN* such that
+    A2:for x being Element of NAT holds P[x,f.x]
+    from FUNCT_2:sch 3(A1);
+    take f;
+    thus thesis by A2;
+  end;
+
+  LM030:
+  for F be Function of NAT,BOOLEAN*
+  st
+  for x be Element of NAT
+  holds
+  F.x = (LenBSeq x) -BinarySequence x
+  holds
+  F is one-to-one
+  proof
+    let f be Function of NAT,BOOLEAN*;
+    assume AS1:
+    for x be Element of NAT
+    holds
+    f.x = (LenBSeq x) -BinarySequence x;
+    for x1, x2 being object st x1 in NAT& x2 in NAT & f . x1 = f . x2 holds
+    x1 = x2
+    proof
+      let x1, x2 be object;
+      assume A0: x1 in NAT& x2 in NAT & f . x1 = f . x2; then
+      reconsider k1=x1,k2=x2 as Element of NAT;
+      A3: (LenBSeq k1) -BinarySequence k1 = f.k1 by AS1
+      .= (LenBSeq k2) -BinarySequence k2 by AS1,A0;
+      NN:LenBSeq k1 is Element of NAT & LenBSeq k2 is Element of NAT
+        by ORDINAL1:def 12;
+      (LenBSeq k1) -BinarySequence k1 in (LenBSeq k1)-tuples_on BOOLEAN
+      by FINSEQ_2:131; then
+      A4: len ( (LenBSeq k1) -BinarySequence k1 ) = LenBSeq k1
+        by NN,FINSEQ_2:132;
+      (LenBSeq k2) -BinarySequence k2 in (LenBSeq k2) -tuples_on BOOLEAN
+        by FINSEQ_2:131;then
+      A5: LenBSeq k1=LenBSeq k2 by A4,A3,NN,FINSEQ_2:132;
+      thus x1 = Absval ((LenBSeq k1) -BinarySequence k1) by LM007
+      .= x2 by LM007,A3,A5;
+    end;
+    hence thesis by FUNCT_2:19;
+  end;
+
+definition
+  func Nat2BL -> Function of NAT,BOOLEAN* means :Def2:
+  for x be Element of NAT holds
+  it.x = (LenBSeq x) -BinarySequence x;
+  existence by LM020;
+  uniqueness
+  proof
+    let f1,f2 be Function of NAT,BOOLEAN*;
+    assume AS1:
+    for x be Element of NAT holds
+    f1.x = (LenBSeq x) -BinarySequence x;
+    assume AS2:
+    for x be Element of NAT holds
+    f2.x = (LenBSeq x) -BinarySequence x;
+    for x be Element of NAT holds f1.x =f2.x
+    proof
+      let x be Element of NAT;
+      thus f1.x = (LenBSeq x) -BinarySequence x by AS1
+      .=f2.x by AS2;
+    end;
+    hence f1=f2 by FUNCT_2:def 8;
+  end;
+end;
+
+theorem
+  for x be Element of NAT,
+  y be Tuple of LenBSeq x, BOOLEAN
+  st Nat2BL.x = y
+  holds Absval(y) = x
+  proof
+    let x be Element of NAT,
+    y be Tuple of LenBSeq x, BOOLEAN;
+    assume AS: Nat2BL.x = y;
+    Nat2BL.x = (LenBSeq x) -BinarySequence x by Def2;
+    hence thesis by AS,LM007;
+  end;
+
+theorem LM031:
+  rng Nat2BL = {x where x is Element of BOOLEAN*: x.(len x) =1 }
+  \/ { <* 0 *> }
+  proof
+    for z be object
+    holds
+    z in rng Nat2BL
+    iff z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+    \/ { <* 0 *> }
+    proof
+      let z be object;
+      hereby assume z in rng Nat2BL;
+        then consider x be object such that
+        A2: x in NAT & z =Nat2BL.x by FUNCT_2:11;
+        reconsider x as Element of NAT by A2;
+        A3:Nat2BL.x = (LenBSeq x) -BinarySequence x by Def2;
+        set y = (LenBSeq x) -BinarySequence x;
+        per cases;
+        suppose C1:x = 0; then
+          LenBSeq x = 1 by Def1;
+          then
+          Nat2BL.x = <* 0 *> by LM0020,C1,BINARI_3:25,A3;
+          then
+          z in { <* 0 *> } by A2,TARSKI:def 1;
+          hence z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+          \/ { <* 0 *> } by XBOOLE_0:def 3;
+        end;
+        suppose x <> 0; then
+          consider n be Nat such that
+          P1: 2 to_power n <= x & x < 2 to_power (n + 1)
+          & LenBSeq x = n+1 by Def1;
+          P2: y in BOOLEAN* by A3,FUNCT_2:5;
+          per cases;
+          suppose n <> 0; then
+            ( (LenBSeq x)-BinarySequence x) . (LenBSeq x) = 1
+              by P1,BINARI_3:29; then
+            y.(len y ) = 1 by CARD_1:def 7; then
+            z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+            by P2,A2,A3;
+            hence z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+            \/ { <* 0 *> } by XBOOLE_0:def 3;
+          end;
+          suppose C1: n = 0; then
+            1 <=x & x < 1+1 by POWER:24,25,P1; then
+            1<= x & x <=1 by NAT_1:13; then
+            x=1 by XXREAL_0:1; then
+            C2: x = 2 to_power n by C1,POWER:24;
+            (n + 1) -BinarySequence (2 to_power n) = (0* n) ^ <*1*>
+                by BINARI_3:28
+            .= {} ^ <*1*> by C1
+            .= <*1*> by FINSEQ_1:34; then
+            len y =1 & y.1 =1 by FINSEQ_1:40,P1,C2; then
+            z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+            by P2,A2,A3;
+            hence z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+            \/ { <* 0 *> } by XBOOLE_0:def 3;
+          end;
+        end;
+      end;
+      assume z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+      \/ { <* 0 *> };
+      then
+      z in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+      or
+      z in { <* 0 *> } by XBOOLE_0:def 3;
+      then
+      per cases by TARSKI:def 1;
+      suppose ( ex x be Element of BOOLEAN* st z=x & x.(len x) =1 ); then
+        consider x be Element of BOOLEAN* such that
+        A3: z=x & x.(len x) =1;
+        set n = len x;
+        x is Element of (len x) -tuples_on BOOLEAN by FINSEQ_2:92; then
+        reconsider x as Tuple of n, BOOLEAN;
+        set L = Absval x;
+        A4: Nat2BL.L = (LenBSeq L) -BinarySequence L by Def2;
+        L < 2 to_power (LenBSeq L) by LM006; then
+        A5: Absval ( (LenBSeq L) -BinarySequence L ) =Absval x by BINARI_3:35;
+        len x <> 0 by A3; then
+        0 < len x; then
+        0 + 1 <=len x by NAT_1:13; then
+        reconsider n1=n-1 as Element of NAT by INT_1:5;
+        x.(n1+1) = 1 by A3; then
+        X3: 2 to_power n1 <= L & L < 2 to_power (n1+1) by LM0071; then
+        0 < L by POWER:34; then
+        (LenBSeq L) = n by Def1,X3; then
+        z = Nat2BL.L by A4,A3,BINARI_3:2,A5;
+        hence z in rng Nat2BL by FUNCT_2:4;
+      end;
+      suppose C1: z= <* 0 *>;
+        LenBSeq 0 = 1 by Def1; then
+        Nat2BL.0 = 1 -BinarySequence 0 by Def2
+        .=z by C1,BINARI_3:25,LM0020;
+        hence z in rng Nat2BL by FUNCT_2:4;
+      end;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+
+theorem
+  Nat2BL is one-to-one
+  proof
+    for x be Element of NAT
+    holds
+    Nat2BL.x = (LenBSeq x) -BinarySequence x by Def2;
+    hence
+    Nat2BL is one-to-one by LM030;
+  end;
+
+definition
+  let x,y be Element of BOOLEAN*;
+  assume AS:len x <> 0 & len y <> 0;
+  func LenMax(x,y) -> non zero Nat equals :Def15:
+  max(len x,len y);
+  correctness by XXREAL_0:16,AS;
+end;
+
+definition
+  let K be Nat,
+  x be Element of BOOLEAN*;
+  func ExtBit(x,K) -> Tuple of K, BOOLEAN
+  equals
+  :Def20:
+  x ^ ( 0* (K -' len x) ) if len x <= K
+  otherwise x| K;
+  coherence
+  proof
+    thus len x <= K implies
+    x ^ ( 0* (K -' len x) ) is Tuple of K, BOOLEAN
+    proof
+      assume len x <= K;
+      then
+      A2: (K -' len x) = K -len x by XREAL_0:def 2,XREAL_1:48;
+      0* (K -' len x) in BOOLEAN * by BINARI_3:4; then
+      reconsider z = 0* (K -' len x) as Tuple of (K -' len x), BOOLEAN
+      by FINSEQ_1:def 11;
+      x is Element of (len x) -tuples_on BOOLEAN by FINSEQ_2:92; then
+      reconsider y=x as Tuple of len x, BOOLEAN;
+      y ^z is Tuple of K,BOOLEAN by A2;
+      hence thesis;
+    end;
+    thus not len x <= K implies x|K is Tuple of K, BOOLEAN
+    proof
+      assume not len x <= K;
+      then
+      A1: len (x|K) = K by FINSEQ_1:59;
+      (x|K) is Element of (len (x|K)) -tuples_on BOOLEAN by FINSEQ_2:92;
+      hence thesis by A1;
+    end;
+  end;
+  consistency;
+end;
+
+theorem LMExtBit1:
+  for K be Nat,
+  x be Element of BOOLEAN*
+  st len x <= K
+  holds ExtBit(x,K+1) =ExtBit(x,K)^<* 0 *>
+  proof
+    let K be Nat,
+    x be Element of BOOLEAN*;
+    assume AS: len x <= K;
+    A1: K + 0 <= K + 1 by XREAL_1:7;
+    then AA1: len x <= K+1 by AS,XXREAL_0:2;
+    A2:ExtBit(x,K) = x ^ ( 0* (K -' len x) ) by AS,Def20;
+    A3:ExtBit(x,K+1) = x ^ ( 0* ((K+1) -' len x) ) by A1,Def20,AS,XXREAL_0:2;
+    B1: (K -' len x) = K -len x by XREAL_0:def 2,AS,XREAL_1:48;
+    ((K+1) -' len x) = (K+1) -len x by XREAL_0:def 2,AA1,XREAL_1:48; then
+    (K+1) -' len x = (K -' len x)+1 by B1; then
+    0* ((K+1) -' len x ) = (0* (K -' len x)) ^ <* 0 *> by FINSEQ_2:60;
+    hence ExtBit(x,K+1)= ExtBit(x,K)^<* 0 *> by A2, FINSEQ_1:32,A3;
+  end;
+
+theorem LMExtBit8:
+  for K be non zero Nat,
+  x be Element of BOOLEAN*
+  st len x = K
+  holds ExtBit(x,K) = x
+  proof
+    let K be non zero Nat,
+    x be Element of BOOLEAN*;
+    assume PA1: len x = K; then
+    A1: K - len x =0;
+    thus ExtBit(x,K) = x ^ (0* (K -' len x)) by PA1,Def20
+    .=x ^ (0*0) by XREAL_0:def 2,A1
+    .=x by FINSEQ_1:34;
+  end;
+
+theorem LMExtBit2:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN,
+  x1,y1 be Tuple of K+1, BOOLEAN
+  st x1=x^ <* 0 *>
+  & y1=y^ <* 0 *>
+  holds x1,y1 are_summable
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN,
+    x1,y1 be Tuple of K+1, BOOLEAN;
+    set K1=K+1;
+    assume A1:x1=x^ <* 0 *> & y1=y^ <* 0 *>;
+    A5: len x = K & len y = K by CARD_1:def 7;
+    A6: len x1 = K+1 & len y1 = K+1 by CARD_1:def 7;
+    A7: K1 in Seg K1 by FINSEQ_1:4; then
+    K1 in dom x1 by FINSEQ_1:def 3,A6; then
+    x1/.K1 =x1.K1 by PARTFUN1:def 6; then
+    A3:x1 /. K1 = 0 by FINSEQ_1:42,A1,A5;
+    K1 in dom y1 by FINSEQ_1:def 3,A6,A7;
+    then
+    y1/.K1 =y1.K1 by PARTFUN1:def 6;
+    then
+    (((x1 /. K1) '&' (y1 /. K1)) 'or' ((x1 /. K1) '&' ((carry (x1,y1)) /. K1)))
+    'or' ((y1 /. K1) '&' ((carry (x1,y1)) /. K1)) = 0 by A3,FINSEQ_1:42,A1,A5;
+    then
+    add_ovfl (x1,y1) = FALSE by BINARITH:def 6;
+    hence thesis by BINARITH:def 7;
+  end;
+
+theorem LMExtBit4:
+  for K be non zero Nat,
+  y be Tuple of K, BOOLEAN
+  st y=0*K
+  holds
+  for n be non zero Nat st n <= K
+  holds
+  y /.n = 0
+  proof
+    let K be non zero Nat,
+    y be Tuple of K, BOOLEAN;
+    assume AS1: y=0*K;
+    let n be non zero Nat;
+    assume AS2: n <= K;
+    A1: len y = K by CARD_1:def 7;
+    0 < n; then
+    1 + 0 <= n by NAT_1:13; then
+    n in Seg K by FINSEQ_1:1,AS2; then
+    n in dom y by A1,FINSEQ_1:def 3;
+    hence y/.n = y.n by PARTFUN1:def 6
+    .= 0 by AS1;
+  end;
+
+theorem LMExtBit501:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  holds
+  carry (x,y) = carry (y,x)
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    A1: carry (x,y) /. 1 = FALSE & ( for i being Nat st 1 <= i & i < K holds
+    carry (x,y) /. (i + 1) = (((x /. i) '&' (y /. i)) 'or' ((x /. i)
+    '&' (carry (x,y) /. i))) 'or' ((y /. i) '&' (carry (x,y) /. i)) )
+    by BINARITH:def 2;
+    for i being Nat st 1 <= i & i < K holds
+    carry (x,y) /. (i + 1) = (((y /. i) '&' (x /. i)) 'or' ((y /. i)
+    '&' (carry (x,y) /. i))) 'or' ((x /. i) '&' (carry (x,y) /. i))
+    proof
+      let i be Nat;
+      assume 1 <= i & i < K;
+      hence carry (x,y) /. (i + 1)
+      =(((x /. i) '&' (y /. i)) 'or' ((x /. i)
+      '&' (carry (x,y) /. i))) 'or' ((y /. i) '&' (carry (x,y) /. i))
+      by BINARITH:def 2
+      .= (((y /. i) '&' (x /. i)) 'or' ((y /. i)
+      '&' (carry (x,y) /. i))) 'or' ((x /. i) '&' (carry (x,y) /. i));
+    end;
+    hence carry (x,y) = carry (y,x) by A1,BINARITH:def 2;
+  end;
+
+theorem LMExtBit3:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  st y=0*K
+  holds
+  for n be non zero Nat st n <= K
+  holds
+  (carry (x,y)) /. n = 0
+  &
+  (carry (y,x)) /. n = 0
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    assume AS: y=0*K;
+    defpred P[Nat] means
+    1<=$1 & $1 <=K
+    implies carry (x,y) /.$1 = 0;
+    P1: P[1] by BINARITH:def 2;
+    P2: for i being non zero Nat st P[i] holds P[i+1]
+    proof
+      let i be non zero Nat;
+      assume A2: P[i];
+      assume 1<=i+1 & i+1 <=K;
+      then
+      A4: 1 <=i & i < K by NAT_1:25,XXREAL_0:2,NAT_1:16;
+      hence
+      carry (x,y) /. (i + 1) = (((x /. i) '&' (y /. i)) 'or' ((x /. i)
+      '&' (carry (x,y) /. i))) 'or' ((y /. i) '&' (carry (x,y) /. i))
+      by BINARITH:def 2
+      .= 0 by A4,A2,AS,LMExtBit4;
+    end;
+    P3: for k being non zero Nat holds P[k] from NAT_1:sch 10(P1,P2);
+    let n be non zero Nat;
+    assume n <= K; then
+    1 <=n & n <= K by NAT_1:25;
+    hence carry (x,y) /.n = 0 by P3;
+    hence carry (y,x) /.n = 0 by LMExtBit501;
+  end;
+
+theorem LMExtBit500:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  holds
+  x + y = y + x
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    for i being Nat st i in Seg K holds
+    (x+y) /. i = ((y /. i) 'xor' (x /. i)) 'xor' ((carry (y,x)) /. i)
+    proof
+      let i be Nat;
+      assume i in Seg K; then
+      (x+y) /. i = ((x /. i) 'xor' (y /. i)) 'xor' ((carry (x,y)) /. i)
+      by BINARITH:def 5;
+      hence
+      (x+y) /. i = ((y /. i) 'xor' (x /. i)) 'xor' ((carry (y,x)) /. i)
+      by LMExtBit501;
+    end;
+    hence x+y =y+x by BINARITH:def 5;
+  end;
+
+theorem LMExtBit5:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  st y=0*K
+  holds
+  x+ y = x
+  &
+  y+x = x
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    assume AS: y=0*K;
+    for i being Nat st i in Seg K holds
+    (x+y) . i = x . i
+    proof
+      let i be Nat;
+      assume A1: i in Seg K; then
+      A4: 1<=i & i <=K & i <> 0 by FINSEQ_1:1;
+      A2:y /. i = 0 by AS,A4,LMExtBit4;
+      A3:(carry (x,y)) /. i = 0 by AS,A4,LMExtBit3;
+      len x = K by CARD_1:def 7; then
+      D1: dom x = Seg K by FINSEQ_1:def 3;
+      len (x+y) = K by CARD_1:def 7; then
+      D2: dom (x+y) = Seg K by FINSEQ_1:def 3;
+      thus (x+y) . i = (x+y) /. i by D2,A1,PARTFUN1:def 6
+      .= ((x /. i) 'xor' (y /. i)) 'xor' ((carry (x,y)) /. i)
+      by BINARITH:def 5,A1
+      .= x.i by D1,A1,PARTFUN1:def 6,A2,A3;
+    end;
+    hence x+ y = x by FINSEQ_2:119;
+    hence y+x = x by LMExtBit500;
+  end;
+
+theorem LMExtBit9:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  st x.(len x) =1 & y.(len y) =1
+  holds not x, y are_summable
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    assume AS: x.(len x) =1 & y.(len y) =1;
+    A5: len x = K & len y = K by CARD_1:def 7;
+    1<=len x by NAT_1:25; then
+    len x in dom x by FINSEQ_3:25; then
+    A6: x /. K = 1 by AS,A5,PARTFUN1:def 6;
+    1<=len y by NAT_1:25; then
+    len y in dom y by FINSEQ_3:25; then
+    A7: y /. K = 1 by AS,A5,PARTFUN1:def 6;
+    (((x /. K) '&' (y /. K)) 'or' ((x /. K) '&' ((carry (x,y)) /. K)))
+    'or' ((y /. K) '&' ((carry (x,y)) /. K)) = 1 by A6,A7; then
+    add_ovfl (x,y) = 1 by BINARITH:def 6;
+    hence thesis by BINARITH:def 7;
+  end;
+
+  LMExtBit60:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  st x, y are_summable
+  & x . (len x) = 1
+  holds
+  (x + y) .len (x+y) = 1
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    assume AS: x, y are_summable & x.(len x) =1;
+    L0: len y = K by CARD_1:def 7;
+    1<=len y by NAT_1:25; then
+    len y in Seg K by L0,FINSEQ_1:1; then
+    L1: len y in dom y by L0,FINSEQ_1:def 3;
+    R0: len x = K by CARD_1:def 7;
+    1<=len x by NAT_1:25; then
+    PR2: len x in dom x by FINSEQ_3:25;
+    P1: y.(len y) =0
+    proof
+      assume A1:y.(len y) <> 0;
+      y.(len y) in rng y by L1,FUNCT_1:3; then
+      y.(len y) in BOOLEAN by FINSEQ_1:def 4,TARSKI:def 3; then
+      y.(len y) = 1 by A1,MARGREL1:def 11,TARSKI:def 2;
+      hence contradiction by LMExtBit9,AS;
+    end;
+    P2: len (x+y) = K by CARD_1:def 7;
+    1<=len (x+y) by NAT_1:25; then
+    P3: len (x+y) in Seg K by P2,FINSEQ_1:1; then
+    PP5:len (x+y) in dom (x+y) by P2,FINSEQ_1:def 3;
+    R3: x /. len (x+y) = 1 by PR2,P2,R0, AS,PARTFUN1:def 6;
+    L3: y /. len (x+y) = 0 by P2,L0,P1,L1,PARTFUN1:def 6;
+    K1: (carry (x,y)) /. len (x+y) = 0
+    proof
+      assume K2: not (carry (x,y)) /. len (x+y) = 0;
+      (carry (x,y)) /. len (x+y) = 1 by K2, MARGREL1:def 11,TARSKI:def 2;
+      then
+      (((x /. len (x+y)) '&' (y /. len (x+y))) 'or' ((x /. len (x+y))
+      '&' ((carry (x,y)) /. len (x+y))))
+      'or' ((y /. len (x+y)) '&' ((carry (x,y)) /. len (x+y)))
+      =1 by R3; then
+      add_ovfl (x,y) = 1 by P2,BINARITH:def 6;
+      hence contradiction by AS,BINARITH:def 7;
+    end;
+    (x+y) /. len (x+y) = ((x /. len (x+y))
+    'xor' (y /. len (x+y)))
+    'xor' ((carry (x,y)) /. len (x+y) ) by P3,BINARITH:def 5
+    .=1 by L3,K1,PR2,P2,R0, AS,PARTFUN1:def 6;
+    hence thesis by PP5,PARTFUN1:def 6;
+  end;
+
+theorem LMExtBit61:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  st x, y are_summable
+  holds y, x are_summable
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    assume x, y are_summable; then
+    add_ovfl (x,y) = 0 by BINARITH:def 7; then
+    P1: (((x /. K) '&' (y /. K)) 'or' ((x /. K) '&' ((carry (x,y)) /. K)))
+    'or' ((y /. K) '&' ((carry (x,y)) /. K)) = 0 by BINARITH:def 6;
+    carry (x,y) /.K =carry (y,x) /.K by LMExtBit501; then
+    (((y /. K) '&' (x /. K)) 'or' ((y /. K) '&' ((carry (y,x)) /. K)))
+    'or' ((x /. K) '&' ((carry (y,x)) /. K)) = 0 by P1; then
+    add_ovfl (y,x) = 0 by BINARITH:def 6;
+    hence thesis by BINARITH:def 7;
+  end;
+
+theorem LMExtBit6:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN
+  st x, y are_summable
+  & ( x . (len x) =1 or y . (len y) =1)
+  holds
+  (x + y) .len (x+y) =1
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN;
+    assume AS: x, y are_summable & ( x.(len x) =1 or y . (len y) =1);
+    x+y =y+x by LMExtBit500;
+    hence (x + y) .len (x+y) =1 by LMExtBit60,LMExtBit61,AS;
+  end;
+
+theorem LMExtBit7:
+  for K be non zero Nat,
+  x,y be Tuple of K, BOOLEAN,
+  x1,y1 be Tuple of K+1, BOOLEAN
+  st not x, y are_summable
+  & x1 =x^ <* 0 *>
+  & y1 =y^ <* 0 *>
+  holds
+  (x1 + y1) .len (x1+y1) =1
+  proof
+    let K be non zero Nat,
+    x,y be Tuple of K, BOOLEAN,
+    x1,y1 be Tuple of K+1, BOOLEAN;
+    assume AS: not x, y are_summable
+    & x1 =x^ <* 0 *>
+    & y1 =y^ <* 0 *>; then
+    X0: not add_ovfl (x,y) = 0 by BINARITH:def 7;
+    PX1: add_ovfl (x,y) = 1 by X0,MARGREL1:def 11,TARSKI:def 2; then
+    X1: (((x /. K) '&' (y /. K)) 'or' ((x /. K) '&' ((carry (x,y)) /. K)))
+    'or' ((y /. K) '&' ((carry (x,y)) /. K)) = 1 by BINARITH:def 6;
+    set K1=K+1;
+    X3: len x = K & len y = K by CARD_1:def 7; then
+    XX3:len x in Seg K & len y in Seg K by FINSEQ_1:3;
+    L0: len y1 = K1 by CARD_1:def 7;
+    1<=len y1 by NAT_1:25; then
+    len y1 in dom y1 by FINSEQ_3:25; then
+    L2: y1/.(len y1) = y1.(len y1) by PARTFUN1:def 6
+    .= 0 by L0,AS,FINSEQ_1:42,X3;
+    R0: len x1 = K1 by CARD_1:def 7;
+    1<=len x1 by NAT_1:25; then
+    len x1 in dom x1 by FINSEQ_3:25; then
+    R2: x1/.(len x1) = x1.(len x1) by PARTFUN1:def 6
+    .= 0 by R0,AS,FINSEQ_1:42,X3;
+    P2: len (x1+y1) = K1 by CARD_1:def 7;
+    1<=len (x1+y1) by NAT_1:25;
+    then
+    P3: len (x1+y1) in Seg K1 by P2,FINSEQ_1:1;
+    then
+    PP5:len (x1+y1) in dom (x1+y1) by P2,FINSEQ_1:def 3;
+    A1: carry (x,y) /. 1 = FALSE & ( for i being Nat st 1 <= i & i < K holds
+    carry (x,y) /. (i + 1) = (((x /. i) '&' (y /. i)) 'or' ((x /. i)
+    '&' (carry (x,y) /. i))) 'or' ((y /. i) '&' (carry (x,y) /. i)) )
+    by BINARITH:def 2;
+    XR0: len carry (x,y) = K by CARD_1:def 7;
+    1<=len carry (x,y) by NAT_1:25; then
+    PXR1: len carry (x,y) in Seg K by XR0,FINSEQ_1:1;
+    reconsider i1=1 as Element of BOOLEAN by MARGREL1:def 11,TARSKI:def 2;
+    reconsider Z1 = <*i1*> as FinSequence of BOOLEAN;
+    len Z1 = 1 by FINSEQ_1:40; then
+    reconsider Z1 = <*1*> as Tuple of 1, BOOLEAN;
+    carry (x,y) ^ Z1 is Tuple of K + 1, BOOLEAN; then
+    reconsider S = carry (x,y) ^ <* 1 *> as Tuple of K1, BOOLEAN;
+    reconsider i0=0 as Element of BOOLEAN by MARGREL1:def 11,TARSKI:def 2;
+    reconsider Z0 = <*i0*> as FinSequence of BOOLEAN;
+    len Z0 = 1 by FINSEQ_1:40;
+    then
+    reconsider Z0 = <* 0 *> as Tuple of 1, BOOLEAN;
+
+    TT1: S = carry (x,y) ^ Z1;
+    TT2: x1 =x ^Z0 by AS;
+    TT3: y1 =y ^Z0 by AS;
+
+    A20: S /. 1 = FALSE
+    proof
+      1<= K by NAT_1:25; then
+      1 in Seg K by FINSEQ_1:1; then
+      1 in dom carry (x,y) by XR0,FINSEQ_1:def 3;
+      hence S /. 1 = FALSE by A1,TT1,FINSEQ_4:68;
+    end;
+    K in dom x by XX3,X3,FINSEQ_1:def 3; then
+    T3:x1 /. K = x /.K by TT2,FINSEQ_4:68;
+    K in dom y by XX3, X3,FINSEQ_1:def 3; then
+    T4: y1 /. K = y /.K by TT3,FINSEQ_4:68;
+    K in dom carry (x,y) by PXR1,XR0,FINSEQ_1:def 3; then
+    T2: S /. K = carry (x,y) /.K by TT1,FINSEQ_4:68;
+    A2: for i being Nat st 1 <= i & i < K1 holds
+    S /. (i + 1) = (((x1 /. i) '&' (y1 /. i)) 'or' ((x1 /. i)
+    '&' (S /. i))) 'or' ((y1 /. i) '&' (S /. i))
+    proof
+      let i being Nat;
+      assume AS11: 1 <= i & i < K1;
+      per cases;
+      suppose SXX1: not i < K;
+        i <=K by NAT_1:13,AS11; then
+        XX: i = K by SXX1,XXREAL_0:1; then
+        S /. (i + 1) =i1 by FINSEQ_4:67,XR0
+        .=1;
+        hence S /. (i + 1) = (((x1 /. i) '&' (y1 /. i)) 'or' ((x1 /. i)
+        '&' (S /. i))) 'or' ((y1 /. i) '&' (S /. i))
+        by PX1,XX,T2,T3,T4, BINARITH:def 6;
+      end;
+      suppose C1: i < K; then
+        C2: i in Seg K by AS11,FINSEQ_1:1; then
+        i in dom carry (x,y) by XR0,FINSEQ_1:def 3; then
+        T2: S /. i = carry (x,y) /.i by TT1,FINSEQ_4:68;
+        i in dom x by C2,X3,FINSEQ_1:def 3; then
+        T3: x1 /. i = x /.i by TT2,FINSEQ_4:68;
+        i in dom y by C2,X3,FINSEQ_1:def 3;
+        then
+        T4: y1 /. i = y /.i by TT3,FINSEQ_4:68;
+        T5: i+1 <= K by C1,NAT_1:13;
+        1 + 0 <= i+1 by XREAL_1:7;
+        then
+        i+1 in Seg K by T5,FINSEQ_1:1;
+        then
+        i+1 in dom carry (x,y) by XR0,FINSEQ_1:def 3;
+        hence
+        S /. (i+1) = carry (x,y) /.(i+1) by TT1,FINSEQ_4:68
+        .= (((x1 /. i) '&' (y1 /. i)) 'or' ((x1 /. i)
+        '&' (S /. i))) 'or' ((y1 /. i) '&' (S /. i))
+        by T2,T3,T4,C1,AS11,BINARITH:def 2;
+      end;
+    end;
+    then
+    T1: S = carry (x1,y1) by A20,BINARITH:def 2;
+    K in dom carry (x,y) by PXR1,XR0,FINSEQ_1:def 3;
+    then
+    T2: S /. K = carry (x,y) /.K by TT1,FINSEQ_4:68;
+    T6: len (x1+y1) = K1 by CARD_1:def 7;
+    X2:1 <= K by NAT_1:25;
+    (x1+y1) /. len (x1+y1) = ((x1 /. len (x1+y1))
+    'xor' (y1 /. len (x1+y1)))
+    'xor' ((carry (x1,y1)) /. len (x1+y1) ) by BINARITH:def 5,P3
+    .=1 by R2,R0,L2,L0,X2,T1,T6,NAT_1:16,X1,T2,T3,T4,A2;
+    hence thesis by PP5,PARTFUN1:def 6;
+  end;
+
+definition
+  let x, y be Element of BOOLEAN*;
+  func x + y -> Element of BOOLEAN* equals :Def3:
+  y if len x =0,
+  x if len y =0,
+  ExtBit(x,LenMax(x,y))
+  + ExtBit(y,LenMax(x,y))
+  if ExtBit(x,LenMax(x,y)),
+  ExtBit(y,LenMax(x,y))
+  are_summable & len x <> 0 & len y <> 0
+  otherwise
+  ExtBit(x,LenMax(x,y)+1)
+  + ExtBit(y,LenMax(x,y)+1);
+  coherence by FINSEQ_1:def 11;
+  consistency;
+end;
+
+definition
+  let F be Function of NAT,BOOLEAN*;
+  let x be Element of NAT;
+  redefine func F.x -> Element of BOOLEAN*;
+  correctness by FUNCT_2:5;
+end;
+
+theorem LM0710:
+  for x be Element of BOOLEAN*
+  st x in rng Nat2BL
+  holds 1<= len x
+  proof
+    let x be Element of BOOLEAN*;
+    assume x in rng Nat2BL;
+    then
+    consider L be Element of NAT such that
+    H5: x = Nat2BL.L by FUNCT_2:113;
+    x = (LenBSeq L) -BinarySequence L by Def2,H5;
+    then 0 <> len x;
+    then 0 < len x;
+    then 1 + 0 <= len x by NAT_1:13;
+    hence thesis;
+  end;
+
+theorem LM071:
+  for x,y be Element of BOOLEAN*
+  st x in rng Nat2BL & y in rng Nat2BL
+  holds x+y in rng Nat2BL
+  proof
+    let x,y be Element of BOOLEAN*;
+    assume AS1: x in rng Nat2BL & y in rng Nat2BL;
+    then
+    x in {x where x is Element of BOOLEAN*: x.(len x) =1 }
+    or
+    x in { <* 0 *> } by XBOOLE_0:def 3,LM031;
+    then
+    PP1:(ex x0 be Element of BOOLEAN* st x=x0 & x0.(len x0) =1 )
+    or x in { <* 0 *> };
+    y in {y where y is Element of BOOLEAN*: y.(len y) =1 }
+    or
+    y in { <* 0 *> } by XBOOLE_0:def 3,LM031,AS1;
+    then
+    (ex y0 be Element of BOOLEAN* st y=y0 & y0.(len y0) =1 )
+    or
+    y in { <* 0 *> };
+    then
+    per cases by PP1,TARSKI:def 1;
+    suppose x = <* 0 *> or y = <* 0 *>;
+      then
+      per cases;
+      suppose C1: x = <* 0 *>; then
+        reconsider z=x as Tuple of 1, BOOLEAN;
+        P1: len x = 1 by FINSEQ_1:40,C1;
+        P2: 1 <= len y by LM0710,AS1;
+        P30: len x <> 0 & len y <> 0 by LM0710,AS1;
+        then
+        P3: LenMax(x,y) = max(len x,len y ) by Def15
+        .= len y by P1,XXREAL_0:def 10,LM0710,AS1;
+        P6: len y -' len y = len y - len y by XREAL_0:def 2
+        .=0;
+        P7: len y -' len x=len y -1 by XREAL_0:def 2,XREAL_1:48,P1,P2;
+        set x1 = ExtBit(x,LenMax(x,y));
+        set y1 = ExtBit(y,LenMax(x,y));
+        P4: x1= x ^ ( 0* (len y -' len x) ) by P1,P3,Def20,LM0710,AS1;
+        P5: y1 =y ^ (0*0) by P6,P3,Def20
+        .=y by FINSEQ_1:34;
+        set K1 = LenMax(x,y);
+        reconsider K = K1 -1 as Nat by P2,P3,INT_1:5,ORDINAL1:def 12;
+        P6:x1 = 0* ((len y -' len x) + 1) by LM0020,P4,C1, FINSEQ_2:123
+        .=0*K1 by P3,P7;
+        carry (x1,y1) /. K1 =0 by P6,LMExtBit3; then
+        (((x1 /. K1) '&' (y1 /. K1)) 'or' ((x1 /. K1) '&'
+          ((carry (x1,y1)) /. K1)))
+        'or' ((y1 /. K1) '&' ((carry (x1,y1)) /. K1)) = 0 by P6,LMExtBit4;
+        then
+        add_ovfl (x1,y1) = FALSE by BINARITH:def 6; then
+        x+y = x1+y1 by Def3,P30,BINARITH:def 7;
+        hence x+y in rng Nat2BL by AS1,LMExtBit5,P6,P5;
+      end;
+      suppose C1: y = <* 0 *>; then
+        reconsider z=y as Tuple of 1, BOOLEAN;
+        P1: len y = 1 by FINSEQ_1:40,C1;
+        P2: 1 <= len x by LM0710,AS1;
+        P30: len x <> 0 & len y <> 0 by LM0710,AS1;
+        then
+        P3: LenMax(x,y) = max(len x,len y ) by Def15
+        .= len x by P1,XXREAL_0:def 10,LM0710,AS1;
+        P6: len x -' len x = len x - len x by XREAL_0:def 2
+        .=0;
+        P7: len x -' len y =len x -1 by XREAL_0:def 2,XREAL_1:48,P1,P2;
+        set x1 = ExtBit(x,LenMax(x,y));
+        set y1 = ExtBit(y,LenMax(x,y));
+        P4: y1= y ^ ( 0* (len x -' len y) ) by P1,P3,Def20,LM0710,AS1;
+        P5: x1 =x ^ (0*0) by P6,P3,Def20
+        .=x by FINSEQ_1:34;
+        set K1 = LenMax(x,y);
+        reconsider K = K1 -1 as Nat by P2,P3,INT_1:5,ORDINAL1:def 12;
+        P6:y1 = 0* ((len x -' len y) + 1) by LM0020,P4,C1,FINSEQ_2:123
+        .=0*K1 by P3,P7;
+        carry (x1,y1) /. K1 =0 by P6,LMExtBit3; then
+        (((x1 /. K1) '&' (y1 /. K1)) 'or' ((x1 /. K1) '&'
+          ((carry (x1,y1)) /. K1)))
+        'or' ((y1 /. K1) '&' ((carry (x1,y1)) /. K1)) = 0 by P6,LMExtBit4;
+        then
+        add_ovfl (x1,y1) = FALSE by BINARITH:def 6;
+        then
+        x+y = x1+y1 by Def3,P30,BINARITH:def 7;
+        hence x+y in rng Nat2BL by AS1,LMExtBit5,P6,P5;
+      end;
+    end;
+    suppose Y1: x.(len x ) = 1 & y.(len y ) = 1;
+      X1: len x <> 0 & len y <> 0
+      proof
+        assume len x = 0 or len y = 0;
+        then
+        x = {} or y = {};
+        hence contradiction by Y1;
+      end;
+      (x+y). len (x+y) = 1
+      proof
+        per cases;
+        suppose C1: ExtBit(x,LenMax(x,y)),
+          ExtBit(y,LenMax(x,y)) are_summable;
+          then
+          C2: x+y =ExtBit(x,LenMax(x,y))
+          + ExtBit(y,LenMax(x,y)) by X1,Def3;
+          set x1=ExtBit(x,LenMax(x,y));
+          set y1=ExtBit(y,LenMax(x,y));
+          len x <> len y
+          proof
+            assume C10:len x = len y;
+            C11: LenMax(x,y) = max(len x,len y ) by X1,Def15
+            .= len y by C10;
+            LenMax(x,y) = max(len x,len y ) by X1,Def15
+            .= len x by C10; then
+            x1=x & y1=y by LMExtBit8,C11;
+            hence contradiction by C1,LMExtBit9,Y1;
+          end;
+          then
+          per cases by XXREAL_0:1;
+          suppose C11:len x < len y;
+            LenMax(x,y) = max(len x,len y ) by X1,Def15
+            .= len y by C11,XXREAL_0:def 10;
+            then
+            y1 =y by LMExtBit8;
+            hence
+            (x+y). len (x+y) = 1 by Y1,C1,LMExtBit6,C2;
+          end;
+          suppose C11:len y < len x;
+            LenMax(x,y) = max(len x,len y ) by X1,Def15
+            .= len x by C11,XXREAL_0:def 10;
+            then
+            x1 =x by LMExtBit8;
+            hence (x+y). len (x+y) = 1 by C2,C1,LMExtBit6,Y1;
+          end;
+        end;
+        suppose C12: not ExtBit(x,LenMax(x,y)),
+          ExtBit(y,LenMax(x,y)) are_summable; then
+          C13:x+y =ExtBit(x,LenMax(x,y)+1)
+          + ExtBit(y,LenMax(x,y)+1) by X1,Def3;
+          set Nx= ExtBit(x,LenMax(x,y));
+          set Ny= ExtBit(y,LenMax(x,y));
+          set Nx1= ExtBit(x,LenMax(x,y)+1);
+          set Ny1= ExtBit(y,LenMax(x,y)+1);
+          C16: LenMax(x,y) = max(len x,len y ) by X1,Def15; then
+          C14: Nx1 =Nx ^ <* 0 *> by LMExtBit1,XXREAL_0:25;
+          Ny1 =Ny ^ <* 0 *> by C16,LMExtBit1,XXREAL_0:25;
+          hence (x+y). len (x+y) = 1 by C13,C12,C14,LMExtBit7;
+        end;
+      end;
+      then
+      (x+y) in {y where y is Element of BOOLEAN*: y.(len y) =1 }
+      or
+      (x+y) in { <* 0 *> };
+      hence
+      x+y in rng Nat2BL by LM031,XBOOLE_0:def 3;
+    end;
+  end;
+
+theorem LM080:
+  for n be non zero Nat, x be Tuple of n, BOOLEAN
+  holds
+  for m,l be Nat,
+  y be Tuple of l, BOOLEAN
+  st y = x ^(0* m)
+  holds Absval y = Absval x
+  proof
+    let n be non zero Nat;
+    let x be Tuple of n, BOOLEAN;
+    defpred P[Nat] means
+    for l be Nat,
+    y be Tuple of l, BOOLEAN
+    st y = x ^(0* $1)
+    holds Absval y = Absval x;
+
+    A1: for m being Nat st P[m] holds
+    P[m + 1]
+    proof
+      let m be Nat;
+      assume A2:
+      for l be Nat,
+      y be Tuple of l, BOOLEAN
+      st y = x ^(0* m)
+      holds Absval y = Absval x;
+      let l be Nat,
+      y be Tuple of l, BOOLEAN;
+      assume A3:
+      y = x ^(0* (m+1));
+      0* m in BOOLEAN * by BINARI_3:4;
+      then reconsider z = 0* m as Tuple of m, BOOLEAN by FINSEQ_1:def 11;
+      x ^z is Tuple of n+m,BOOLEAN;
+      then
+      reconsider y1 = x ^(0* m) as Tuple of n+m,BOOLEAN;
+      0* (m+1) = (0* m) ^ <*FALSE*> by FINSEQ_2:60;
+      then
+      A4: y = y1 ^ <*FALSE*> by FINSEQ_1:32,A3;
+      X1: len y = l by CARD_1:def 7;
+      len (y1 ^ <*FALSE*>) = len y1 + len <*FALSE*> by FINSEQ_1:22
+      .= len y1 + 1 by FINSEQ_1:40
+      .= n+m+1 by CARD_1:def 7;
+      hence Absval y
+      = (Absval y1) + (IFEQ (FALSE,FALSE,0,(2 to_power (n+m))))
+      by X1,BINARITH:20,A4
+      .= Absval x + (IFEQ (FALSE,FALSE,0,(2 to_power (n+m)))) by A2
+      .= Absval x + 0 by FUNCOP_1:def 8
+      .= Absval x;
+    end;
+    A0: P[0]
+    proof
+      let l be Nat,
+      y be Tuple of l, BOOLEAN;
+      assume AS2: y = x ^(0* 0);
+
+      A3: x ^(0* 0) = x by FINSEQ_1:34;
+      x is Tuple of l, BOOLEAN by FINSEQ_1:34,AS2;
+      then
+      len x = l by CARD_1:def 7;
+      hence
+      Absval y = Absval x by A3,AS2,CARD_1:def 7;
+    end;
+    for m be Nat holds P[m] from NAT_1:sch 2(A0,A1);
+    hence thesis;
+  end;
+
+theorem LM090:
+  for n be Nat,
+  x be Element of NAT,
+  y be Tuple of n, BOOLEAN
+  st y = Nat2BL.x
+  holds
+  n = LenBSeq x & Absval y = x & Nat2BL. Absval y = y
+  proof
+    let n be Nat,
+    x be Element of NAT,
+    y be Tuple of n, BOOLEAN;
+    assume AS: y = Nat2BL.x;
+    A1:Nat2BL.x = (LenBSeq x) -BinarySequence x by Def2;
+    A3: x < 2 to_power (LenBSeq x) by LM006;
+    len y = (LenBSeq x) by CARD_1:def 7,AS,A1;
+    hence n = (LenBSeq x) by CARD_1:def 7;
+    hence thesis by A3,BINARI_3:35,A1,AS;
+  end;
+
+theorem LM100:
+  for x,y be Element of NAT
+  holds Nat2BL.(x+y) = Nat2BL.x + Nat2BL.y
+  proof
+    let x,y be Element of NAT;
+    x+y is Element of NAT by ORDINAL1:def 12;
+    then
+    Nat2BL.(x+y) = (LenBSeq (x+y)) -BinarySequence (x+y) by Def2;
+    then
+    reconsider adxy = Nat2BL.(x+y) as Tuple of LenBSeq (x+y), BOOLEAN;
+    set Nx = Nat2BL.x;
+    set Ny = Nat2BL.y;
+    PX2: Nx = (LenBSeq x) -BinarySequence x by Def2;
+    PA3: Ny = (LenBSeq y) -BinarySequence y by Def2;
+    then
+    A3: len Nx <> 0 & len Ny <> 0 by PX2;
+    B1:Nx = (LenBSeq x) -BinarySequence x by Def2;
+    B2:Ny = (LenBSeq y) -BinarySequence y by Def2;
+    H1: Nx in rng Nat2BL by FUNCT_2:4;
+    PH3: Ny in rng Nat2BL by FUNCT_2:4;
+    PD0:LenMax(Nx,Ny) = max(len Nx,len Ny) by PA3,Def15,PX2;
+    then
+    len Nx <= LenMax(Nx,Ny) & len Ny <= LenMax(Nx,Ny) by XXREAL_0:25;
+    then
+    E0: len Nx + 0 <= LenMax(Nx,Ny) + 1
+    &
+    len Ny + 0 <= LenMax(Nx,Ny) + 1 by XREAL_1:7;
+    per cases;
+    suppose C1: ExtBit(Nx,LenMax(Nx,Ny)),
+      ExtBit(Ny,LenMax(Nx,Ny)) are_summable;
+      then
+      C2: Nx+Ny=ExtBit(Nx,LenMax(Nx,Ny))+ExtBit(Ny,LenMax(Nx,Ny))
+      by Def3,A3;
+      set ENx = ExtBit(Nx,LenMax(Nx,Ny));
+      set ENy = ExtBit(Ny,LenMax(Nx,Ny));
+      D1: ENx = Nx^(0* ( LenMax(Nx,Ny)-' len Nx) ) by Def20,PD0,XXREAL_0:25;
+      D2: ENy = Ny^(0* ( LenMax(Nx,Ny)-' len Ny) ) by Def20,PD0,XXREAL_0:25;
+      A4: x = Absval ( (LenBSeq x) -BinarySequence x )
+      by LM007
+      .= Absval ENx by LM080,B1,D1;
+      y = Absval ( (LenBSeq y) -BinarySequence y )
+      by LM007
+      .= Absval ENy by LM080,B2,D2;
+      then
+      A6: Nat2BL. Absval (ENx+ENy)=Nat2BL.(x+y)
+      by A4,C1,BINARITH:22;
+      consider L be Element of NAT such that
+      H5: ENx+ENy = Nat2BL.L by FUNCT_2:113,PH3,C2,LM071,H1;
+      thus Nat2BL.(x+y) = Nat2BL.x + Nat2BL.y by A6,C2,LM090,H5;
+    end;
+    suppose not ExtBit(Nx,LenMax(Nx,Ny)),
+      ExtBit(Ny,LenMax(Nx,Ny)) are_summable; then
+      C2: Nx+Ny=ExtBit(Nx,LenMax(Nx,Ny)+1)+ExtBit(Ny,LenMax(Nx,Ny)+1)
+      by Def3,A3;
+      set ENx = ExtBit(Nx,LenMax(Nx,Ny)+1);
+      set ENy = ExtBit(Ny,LenMax(Nx,Ny)+1);
+
+      XX1: ENx = ExtBit(Nx,LenMax(Nx,Ny)) ^ <* 0 *>
+        by PD0,LMExtBit1,XXREAL_0:25;
+      XX2: ENy = ExtBit(Ny,LenMax(Nx,Ny)) ^ <* 0 *>
+        by PD0,LMExtBit1,XXREAL_0:25;
+      D1: ENx = Nx^(0* ( LenMax(Nx,Ny)+1-' len Nx) ) by Def20,E0;
+      D2: ENy = Ny^(0* ( LenMax(Nx,Ny)+1-' len Ny) ) by Def20,E0;
+      A4: x = Absval ( (LenBSeq x) -BinarySequence x )
+      by LM007
+      .= Absval ENx by LM080,B1,D1;
+      y = Absval ( (LenBSeq y) -BinarySequence y ) by LM007
+      .= Absval ENy by LM080,B2,D2; then
+      A6: Nat2BL. Absval (ENx+ENy) =Nat2BL.(x+y)
+      by A4,BINARITH:22,XX1,XX2,LMExtBit2;
+      consider L be Element of NAT such that
+      H5: ENx+ENy = Nat2BL.L by FUNCT_2:113,PH3,C2,LM071,H1;
+      thus Nat2BL.(x+y) = Nat2BL.x + Nat2BL.y by A6,C2,LM090,H5;
+    end;
+  end;
+
+theorem
+  for x,y be Element of BOOLEAN*
+  st x in rng Nat2BL & y in rng Nat2BL
+  holds x+y =y+x
+  proof
+    let x,y be Element of BOOLEAN*;
+    assume AS:x in rng Nat2BL & y in rng Nat2BL; then
+    consider n be Element of NAT such that
+    A1: x =Nat2BL.n by FUNCT_2:113;
+    consider m be Element of NAT such that
+    A2: y =Nat2BL.m by AS,FUNCT_2:113;
+    thus x+y = Nat2BL.(n+m) by A1,A2,LM100
+    .=y+x by A1,A2,LM100;
+  end;
+
+theorem
+  for x,y,z be Element of BOOLEAN*
+  st x in rng Nat2BL & y in rng Nat2BL & z in rng Nat2BL
+  holds (x+y)+z =x+(y+z)
+  proof
+    let x,y,z be Element of BOOLEAN*;
+    assume AS:x in rng Nat2BL & y in rng Nat2BL & z in rng Nat2BL;
+    then
+    consider n be Element of NAT
+    such that
+    A1: x =Nat2BL.n by FUNCT_2:113;
+    consider m be Element of NAT such that
+    A2: y =Nat2BL.m by AS,FUNCT_2:113;
+    consider k be Element of NAT such that
+    A3: z =Nat2BL.k by AS,FUNCT_2:113;
+    reconsider nm = n+m as Element of NAT by ORDINAL1:def 12;
+    reconsider mk = m+k as Element of NAT by ORDINAL1:def 12;
+    thus (x+y)+z= Nat2BL.(nm)+ Nat2BL.k by LM100,A1,A2,A3
+    .= Nat2BL.((n+m) + k) by LM100
+    .= Nat2BL.(n+(mk))
+    .= Nat2BL.n + Nat2BL.(mk) by LM100
+    .=x+(y+z) by A1,A2,A3,LM100;
+  end;
+
+begin :: Homomorphism from the Bitstreams to the Natural Numbers
+
+definition
+  let x be Element of BOOLEAN*;
+  func ExAbsval(x) -> Nat means :Def100:
+  ex n be Nat, y be Tuple of n, BOOLEAN
+  st y = x & it = Absval(y);
+  existence
+  proof
+    thus ex IT be Nat
+    st ex n be Nat, y be Tuple of n, BOOLEAN
+    st y = x & IT =Absval(y)
+    proof
+      reconsider n= len x as Nat;
+      reconsider y = x as Tuple of n, BOOLEAN by CARD_1:def 7;
+      take IT = Absval(y);
+      thus ex n be Nat, y be Tuple of n, BOOLEAN
+      st y = x & IT =Absval(y);
+    end;
+  end;
+  uniqueness
+  proof
+    let N1,N2 be Nat;
+    thus
+    ( ex n be Nat, y be Tuple of n, BOOLEAN
+    st y = x & N1 =Absval(y) )
+    & ( ex n be Nat, y be Tuple of n, BOOLEAN
+    st y = x & N2 =Absval(y) )
+    implies N1=N2
+    proof
+      assume that
+      A2: ( ex n be Nat, y be Tuple of n, BOOLEAN
+      st y = x & N1 =Absval(y) ) and
+      A3:( ex n be Nat, y be Tuple of n, BOOLEAN
+      st y = x & N2 =Absval(y) );
+      consider n1 be Nat, y1 be Tuple of n1, BOOLEAN such that
+      A4: y1 = x & N1 =Absval(y1) by A2;
+      consider n2 be Nat, y2 be Tuple of n2, BOOLEAN
+      such that
+      A5: y2 = x & N2 =Absval(y2) by A3;
+      n1=len y1 by CARD_1:def 7
+      .=n2 by CARD_1:def 7,A4,A5;
+      hence N1=N2 by A4,A5;
+    end;
+  end;
+end;
+
+D100:
+for x being Element of BOOLEAN* st len x = 0 holds ExAbsval(x) = 0
+proof
+  let x be Element of BOOLEAN*;
+  consider n being Nat, y being Tuple of n,BOOLEAN such that
+  y: y=x & ExAbsval(x) = Absval(y) by Def100;
+  assume len x = 0;
+  then n=0 by y;
+  then lb: len (Binary y) = 0;
+  thus ExAbsval(x) = Absval(y) by y
+  .= addnat $$ (Binary y) by BINARITH:def 4
+  .= the_unity_wrt addnat by lb,FINSOP_1:def 1
+  .= 0 by BINOP_2:5;
+end;
+
+theorem LM210:
+  ex F be Function of BOOLEAN*,NAT
+  st
+  for x be Element of BOOLEAN*
+  holds F.x = ExAbsval(x)
+  proof
+    defpred P[Element of BOOLEAN*,object] means $2 = ExAbsval($1);
+    A1: for x being Element of BOOLEAN*
+    ex y being Element of NAT st P[x,y]
+    proof
+      let x be Element of BOOLEAN*;
+      set y = ExAbsval(x);
+      reconsider y as Element of NAT by ORDINAL1:def 12;
+      take y;
+      thus thesis;
+    end;
+    consider f being Function of BOOLEAN*,NAT such that
+    A2:for x being Element of BOOLEAN* holds P[x,f.x]
+    from FUNCT_2:sch 3(A1);
+    take f;
+    thus thesis by A2;
+  end;
+
+definition
+  func BL2Nat -> Function of BOOLEAN*,NAT means :Def110:
+  for x be Element of BOOLEAN* holds it.x = ExAbsval(x);
+  existence by LM210;
+  uniqueness
+  proof
+    let f1,f2 be Function of BOOLEAN*,NAT;
+    assume that
+AS1:for x be Element of BOOLEAN* holds f1.x = ExAbsval(x) and
+AS2:for x be Element of BOOLEAN* holds f2.x = ExAbsval(x);
+    for x be Element of BOOLEAN* holds f1.x =f2.x
+    proof
+      let x be Element of BOOLEAN*;
+      thus f1.x = ExAbsval(x) by AS1
+      .=f2.x by AS2;
+    end;
+    hence f1=f2 by FUNCT_2:def 8;
+  end;
+end;
+
+definition
+  let F be Function of BOOLEAN*,NAT;
+  let x be Element of BOOLEAN*;
+  redefine func F.x -> Element of NAT;
+  correctness by FUNCT_2:5;
+end;
+
+LM220:
+for F be Function of BOOLEAN*,NAT
+st
+for x be Element of BOOLEAN* holds F.x = ExAbsval(x) holds
+F is onto
+proof
+  let f be Function of BOOLEAN*,NAT;
+  assume AS1:
+  for x be Element of BOOLEAN* holds f.x = ExAbsval(x);
+  for y being object st y in NAT holds
+  ex x being object st x in BOOLEAN* & y=f.x
+  proof
+    let y being object;
+    assume y in NAT; then
+    reconsider k=y as Nat;
+    per cases;
+    suppose C1: k=0;
+      reconsider x =<*> BOOLEAN as Element of BOOLEAN* by FINSEQ_1:def 11;
+      len x = 0;
+      then
+      ExAbsval(x) = 0 by D100;
+      then
+      y=f.x by AS1,C1;
+      hence thesis;
+    end;
+    suppose k<>0; then
+      consider n being Nat such that
+      A1: 2 to_power n <= k & k < 2 to_power (n+1) by LM001;
+      set xn= (n+1) -BinarySequence k;
+      reconsider x=xn as Element of BOOLEAN* by FINSEQ_1:def 11;
+      ExAbsval(x) =Absval(xn) by Def100
+      .=k by A1,BINARI_3:35;
+      then
+      y = f.x by AS1;
+      hence thesis;
+    end;
+  end;
+  then
+  rng f = NAT by FUNCT_2:10;
+  hence thesis by FUNCT_2:def 3;
+end;
+
+registration
+  cluster BL2Nat -> onto;
+  coherence
+  proof
+    for x be Element of BOOLEAN* holds
+    BL2Nat.x = ExAbsval(x) by Def110;
+    hence thesis by LM220;
+  end;
+end;
+
+theorem LM230:
+  for x be Element of BOOLEAN*,
+  K be Nat
+  st len x <> 0 & len x <= K
+  holds
+  ExAbsval(x) =Absval(ExtBit(x,K))
+  proof
+    let x be Element of BOOLEAN*,
+    K be Nat;
+    assume AS: len x <> 0 & len x <= K;
+    then
+    reconsider n= len x as non zero Nat;
+    reconsider y = x as Tuple of n, BOOLEAN by CARD_1:def 7;
+    ExtBit(x,K) =y ^ ( 0* (K -' len x) ) by AS,Def20;
+    then
+    Absval(ExtBit(x,K)) = Absval(y) by LM080
+    .= ExAbsval(x) by Def100;
+    hence thesis;
+  end;
+
+theorem LM240:
+  for x,y be Element of BOOLEAN*
+  holds BL2Nat.(x+y) = BL2Nat.x + BL2Nat.y
+  proof
+    let x,y be Element of BOOLEAN*;
+    XP1: BL2Nat.x = ExAbsval(x) by Def110;
+    XP2: BL2Nat.y = ExAbsval(y) by Def110;
+    set ENx = ExtBit(x,LenMax(x,y));
+    set ENy = ExtBit(y,LenMax(x,y));
+    set ENx1 = ExtBit(x,LenMax(x,y)+1);
+    set ENy1 = ExtBit(y,LenMax(x,y)+1);
+    per cases;
+    suppose C1: len x = 0;
+      hence BL2Nat.(x+y) =0 + BL2Nat.y by Def3
+      .=BL2Nat.x + BL2Nat.y by XP1,C1,D100;
+    end;
+    suppose C2: len y = 0;
+      hence BL2Nat.(x+y) =BL2Nat.x + 0 by Def3
+      .=BL2Nat.x + BL2Nat.y by XP2,C2,D100;
+    end;
+    suppose C3:ENx,ENy are_summable & len x <> 0 & len y <> 0;
+      then
+      C4: x+y=ENx +ENy by Def3;
+      PXP3:LenMax(x,y) = max(len x,len y) by Def15,C3;
+      XP7: BL2Nat.x = ExAbsval(x) by Def110
+      .=Absval(ENx) by PXP3,C3,LM230,XXREAL_0:25;
+      XP8: BL2Nat.y = ExAbsval(y) by Def110
+      .=Absval(ENy) by PXP3,C3,LM230,XXREAL_0:25;
+      XP15: ExAbsval(x+y) = Absval(ENx+ENy) by C4,Def100;
+      thus BL2Nat.(x+y) =ExAbsval(x +y ) by Def110
+      .= BL2Nat.x + BL2Nat.y by XP7,XP8,C3,BINARITH:22,XP15;
+    end;
+    suppose C3:(not ENx,ENy are_summable) & len x <> 0 & len y <> 0; then
+      C4: x+y=ENx1 +ENy1 by Def3;
+      PXP3:LenMax(x,y) = max(len x,len y) by Def15,C3; then
+      len x <= LenMax(x,y) & len y <= LenMax(x,y) by XXREAL_0:25; then
+      XP5: len x + 0 <= LenMax(x,y) + 1 &
+      len y + 0 <= LenMax(x,y) + 1 by XREAL_1:7;
+      XP9: BL2Nat.x = ExAbsval(x) by Def110
+      .=Absval(ENx1) by XP5,C3,LM230;
+      XP10: BL2Nat.y = ExAbsval(y) by Def110
+      .=Absval(ENy1) by XP5,C3,LM230;
+      XX1: ENx1 = ExtBit(x,LenMax(x,y)) ^ <* 0 *>
+        by PXP3,LMExtBit1,XXREAL_0:25;
+      XX2: ENy1 = ExtBit(y,LenMax(x,y)) ^ <* 0 *>
+        by PXP3,LMExtBit1,XXREAL_0:25;
+      XP15: ExAbsval(x+y) = Absval(ENx1+ENy1) by C4,Def100;
+      thus BL2Nat.(x+y) =ExAbsval(x + y) by Def110
+      .= BL2Nat.x + BL2Nat.y
+      by XP9,XP10,BINARITH:22,XP15,XX1,XX2,LMExtBit2;
+    end;
+  end;
+
+definition
+  func EqBL2Nat -> Equivalence_Relation of BOOLEAN* means :Def300:
+  for x, y being object holds
+  ( [x,y] in it iff ( x in BOOLEAN* & y in BOOLEAN*
+  & BL2Nat.x = BL2Nat.y ));
+  existence
+  proof
+    defpred P1[object,object]
+    means BL2Nat.$1 = BL2Nat.$2;
+    A1: for x being object st x in BOOLEAN* holds
+    P1[x,x];
+    A2: for x, y being object st P1[x,y] holds
+    P1[y,x];
+    A3: for x, y, z being object st P1[x,y] & P1[y,z] holds
+    P1[x,z];
+    consider EqR be Equivalence_Relation of BOOLEAN* such that
+    A4:for x, y being object holds
+    ( [x,y] in EqR iff ( x in BOOLEAN* & y in BOOLEAN* & P1[x,y] ))
+    from EQREL_1:sch 1(A1,A2,A3);
+    thus thesis by A4;
+  end;
+  uniqueness
+  proof
+    let EqR1,EqR2 be Equivalence_Relation of BOOLEAN* such that
+    A1:for x, y being object holds
+    ( [x,y] in EqR1 iff ( x in BOOLEAN* & y in BOOLEAN*
+    & BL2Nat.x = BL2Nat.y )) and
+    A2:for x, y being object holds
+    ( [x,y] in EqR2 iff ( x in BOOLEAN* & y in BOOLEAN*
+    & BL2Nat.x = BL2Nat.y ));
+    for a, b being object holds
+    ( [a,b] in EqR1 iff [a,b] in EqR2 )
+    proof
+      let x, y be object;
+      [x,y] in EqR1 iff ( x in BOOLEAN* & y in BOOLEAN*
+      & BL2Nat.x = BL2Nat.y ) by A1;
+      hence [x,y] in EqR1 iff [x,y] in EqR2 by A2;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  func QuBL2Nat -> Function of Class EqBL2Nat,NAT means :Def400:
+  for A being Element of Class EqBL2Nat
+  holds
+  ex x being object st
+  x in A & it.A =BL2Nat.x;
+  existence
+  proof
+    defpred P[set,object]
+    means
+    ex x being object st
+    x in $1 & $2 =BL2Nat.x;
+    A1: for A being Element of Class EqBL2Nat
+    ex y being Element of NAT st P[A,y]
+    proof
+      let A be Element of Class EqBL2Nat;
+      A is Subset of BOOLEAN* by TARSKI:def 3;
+      then
+      consider x being object such that
+      A2: x in BOOLEAN* & A = Class (EqBL2Nat,x)
+      by EQREL_1:def 3;
+      reconsider y=x as Element of BOOLEAN* by A2;
+      set z = BL2Nat.y;
+      take z;
+      thus thesis by A2,EQREL_1:20;
+    end;
+    consider f being Function of Class EqBL2Nat,NAT such that
+    A2:for A being Element of Class EqBL2Nat holds P[A,f.A]
+    from FUNCT_2:sch 3(A1);
+    take f;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of Class EqBL2Nat,NAT;
+    assume AS1:
+    for A being Element of Class EqBL2Nat
+    holds
+    ex x being object st
+    x in A & f1.A =BL2Nat.x;
+    assume AS2:
+    for A being Element of Class EqBL2Nat
+    holds
+    ex x being object st
+    x in A & f2.A =BL2Nat.x;
+    for A be Element of Class EqBL2Nat
+    holds f1.A =f2.A
+    proof
+      let A be Element of Class EqBL2Nat;
+      consider x1 being object such that
+      P1: x1 in A & f1.A =BL2Nat.x1 by AS1;
+      consider x2 being object such that
+      P2: x2 in A & f2.A =BL2Nat.x2 by AS2;
+      A is Subset of BOOLEAN* by TARSKI:def 3;
+      then
+      consider
+      x being object such that
+      P3: x in BOOLEAN* & A = Class (EqBL2Nat,x)
+      by EQREL_1:def 3;
+      [x1,x2] in EqBL2Nat by EQREL_1:22,P1,P2,P3;
+      hence thesis by P1,P2,Def300;
+    end;
+    hence f1=f2 by FUNCT_2:def 8;
+  end;
+end;
+
+LemmaQU:
+  QuBL2Nat is onto
+  proof
+    for y being object st y in NAT holds
+    ex A being object st A in Class EqBL2Nat
+    & y=QuBL2Nat.A
+    proof
+      let y be object;
+      assume A0: y in NAT; then
+      reconsider k=y as Nat;
+      rng BL2Nat = NAT by FUNCT_2:def 3;
+      then
+      consider x be object
+      such that
+      A1: x in BOOLEAN* & y = BL2Nat.x
+      by FUNCT_2:11,A0;
+      reconsider A = Class (EqBL2Nat,x)
+      as Element of Class EqBL2Nat by EQREL_1:def 3,A1;
+      consider x1 being object such that
+      A2: x1 in A & QuBL2Nat.A =BL2Nat.x1 by Def400;
+      [x1,x] in EqBL2Nat by A2,EQREL_1:19;
+      then
+      BL2Nat.x1 = BL2Nat.x by Def300;
+      hence thesis by A1,A2;
+    end; then
+    rng QuBL2Nat = NAT by FUNCT_2:10;
+    hence thesis by FUNCT_2:def 3;
+  end;
+
+LM600:
+  QuBL2Nat is one-to-one
+  proof
+    for A1, A2 being object st A1 in Class EqBL2Nat & A2 in Class EqBL2Nat
+    & QuBL2Nat . A1 = QuBL2Nat . A2 holds
+    A1 = A2
+    proof
+      let A1, A2 being object;
+      assume P0: A1 in Class EqBL2Nat
+      & A2 in Class EqBL2Nat
+      & QuBL2Nat . A1 = QuBL2Nat . A2;
+      consider z1 being object such that
+      Q1: z1 in BOOLEAN* & A1 = Class (EqBL2Nat,z1) by P0,EQREL_1:def 3;
+      consider z2 being object such that
+      Q2: z2 in BOOLEAN* & A2 = Class (EqBL2Nat,z2) by P0,EQREL_1:def 3;
+      reconsider A10=A1,A20=A2 as Element of Class EqBL2Nat by P0;
+      D1: A10 is Subset of BOOLEAN* by TARSKI:def 3;
+      D2: A20 is Subset of BOOLEAN* by TARSKI:def 3;
+      consider x1 being object such that
+P1:   x1 in A10 & QuBL2Nat.A10 =BL2Nat.x1 by Def400;
+      reconsider x1 as Element of BOOLEAN* by D1,P1;
+      R1: Class (EqBL2Nat,x1) =Class (EqBL2Nat,z1) by Q1,P1,EQREL_1:23;
+      consider x2 being object such that
+      P2:
+      x2 in A20 & QuBL2Nat.A20 =BL2Nat.x2 by Def400;
+      reconsider x2 as Element of BOOLEAN* by D2,P2;
+      R2: Class (EqBL2Nat,x2) =Class (EqBL2Nat,z2) by Q2,P2,EQREL_1:23;
+      [x1,x2] in EqBL2Nat by P1,P2,Def300,P0;
+      hence A1=A2 by EQREL_1:35,R1,R2,Q1,Q2;
+    end;
+    hence thesis by FUNCT_2:19;
+  end;
+
+registration
+  cluster QuBL2Nat -> one-to-one onto;
+  coherence by LemmaQU,LM600;
+end;
+
+theorem LM700:
+  for x be Element of BOOLEAN*
+  holds QuBL2Nat.(Class (EqBL2Nat,x)) =BL2Nat.x
+  proof
+    let x be Element of BOOLEAN*;
+    reconsider A = Class (EqBL2Nat,x)
+    as Element of Class EqBL2Nat by EQREL_1:def 3;
+    reconsider A0 = A as Subset of BOOLEAN*;
+    consider x1 being object such that
+    P1: x1 in A0 & QuBL2Nat.A0 =BL2Nat.x1 by Def400;
+    reconsider x1 as Element of BOOLEAN* by P1;
+    Class (EqBL2Nat,x1) = Class (EqBL2Nat,x) by P1,EQREL_1:23;
+    then
+    [x1,x] in EqBL2Nat by EQREL_1:35;
+    hence thesis by P1,Def300;
+  end;
+
+definition
+  let A, B be Element of Class EqBL2Nat;
+  func A + B -> Element of Class EqBL2Nat means :Def500:
+  ex x, y be Element of BOOLEAN*
+  st x in A & y in B & it = Class (EqBL2Nat,x+y);
+  existence
+  proof
+    P0: A in Class EqBL2Nat & B in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    consider y being object such that
+    Q2: y in BOOLEAN* & B = Class (EqBL2Nat,y) by P0,EQREL_1:def 3;
+    reconsider x,y as Element of BOOLEAN* by Q1,Q2;
+    reconsider AB = Class (EqBL2Nat,x+y)
+    as Element of Class EqBL2Nat by EQREL_1:def 3;
+    take AB;
+    X2: y in B by Q2,EQREL_1:20;
+    thus ex x, y be Element of BOOLEAN*
+    st
+    x in A & y in B & AB = Class (EqBL2Nat,x+y) by Q1,EQREL_1:20,X2;
+  end;
+  uniqueness
+  proof
+    let AB1,AB2 be Element of Class EqBL2Nat
+    such that
+    P1: ex x, y be Element of BOOLEAN*
+    st x in A & y in B & AB1 = Class (EqBL2Nat,x+y) and
+    P2: ex x, y be Element of BOOLEAN*
+    st x in A & y in B & AB2 = Class (EqBL2Nat,x+y);
+    consider x1, y1 be Element of BOOLEAN*
+    such that P3: x1 in A & y1 in B & AB1 = Class (EqBL2Nat,x1+y1) by P1;
+    consider x2, y2 be Element of BOOLEAN*
+    such that P4: x2 in A & y2 in B & AB2 = Class (EqBL2Nat,x2+y2) by P2;
+    P0: A in Class EqBL2Nat & B in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    consider y being object such that
+    Q2: y in BOOLEAN* & B = Class (EqBL2Nat,y) by P0,EQREL_1:def 3;
+    reconsider x,y as Element of BOOLEAN* by Q1,Q2;
+    [x1,x2] in EqBL2Nat by Q1,P3,P4,EQREL_1:22; then
+    R1:BL2Nat.x1= BL2Nat.x2 by Def300;
+    [y1,y2] in EqBL2Nat by Q2,P3,P4,EQREL_1:22; then
+    R2:BL2Nat.y1= BL2Nat.y2 by Def300;
+    BL2Nat.(x1+y1) =BL2Nat.x1+BL2Nat.y1 by LM240
+    .=BL2Nat.(x2+y2) by LM240,R1,R2; then
+    [x1+y1,x2+y2] in EqBL2Nat by Def300;
+    hence AB1=AB2 by P3,P4,EQREL_1:35;
+  end;
+end;
+
+theorem LM800:
+  for A, B be Element of Class EqBL2Nat,
+  x,y be Element of BOOLEAN*
+  st x in A & y in B
+  holds A+B =Class (EqBL2Nat,x+y)
+  proof
+    let A, B be Element of Class EqBL2Nat,
+    x2,y2 be Element of BOOLEAN*;
+    assume AS1: x2 in A & y2 in B;
+    consider x1, y1 be Element of BOOLEAN* such that
+    T1: x1 in A & y1 in B & A+B = Class (EqBL2Nat,x1+y1) by Def500;
+    P0: A in Class EqBL2Nat & B in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    consider y being object such that
+    Q2: y in BOOLEAN* & B = Class (EqBL2Nat,y) by P0,EQREL_1:def 3;
+    reconsider x,y as Element of BOOLEAN* by Q1,Q2;
+    [x1,x2] in EqBL2Nat by Q1,AS1,T1,EQREL_1:22; then
+    R1:BL2Nat.x1= BL2Nat.x2 by Def300;
+    [y1,y2] in EqBL2Nat by Q2,AS1,T1,EQREL_1:22; then
+    R2:BL2Nat.y1= BL2Nat.y2 by Def300;
+    BL2Nat.(x1+y1) =BL2Nat.x1+BL2Nat.y1 by LM240
+    .=BL2Nat.(x2+y2) by LM240,R1,R2; then
+    [x1+y1,x2+y2] in EqBL2Nat by Def300;
+    hence thesis by T1,EQREL_1:35;
+  end;
+
+theorem
+  for A, B be Element of Class EqBL2Nat
+  holds QuBL2Nat.(A+B) =QuBL2Nat.A+QuBL2Nat.B
+  proof
+    let A, B be Element of Class EqBL2Nat;
+    P0: A in Class EqBL2Nat & B in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    consider y being object such that
+    Q2: y in BOOLEAN* & B = Class (EqBL2Nat,y) by P0,EQREL_1:def 3;
+    reconsider x,y as Element of BOOLEAN* by Q1,Q2;
+    x in A & y in B by Q1,Q2,EQREL_1:20; then
+    A+B = Class (EqBL2Nat,x+y ) by LM800; then
+    R2: QuBL2Nat.(A+B) = BL2Nat.(x+y) by LM700
+    .=BL2Nat.x+BL2Nat.y by LM240;
+    BL2Nat.x = QuBL2Nat.A by Q1,LM700;
+    hence thesis by R2,Q2,LM700;
+  end;
+
+theorem LM910:
+  for A, B be Element of Class EqBL2Nat
+  holds A+B = B+A
+  proof
+    let A, B be Element of Class EqBL2Nat;
+    P0: A in Class EqBL2Nat & B in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    consider y being object such that
+    Q2: y in BOOLEAN* & B = Class (EqBL2Nat,y) by P0,EQREL_1:def 3;
+    reconsider x,y as Element of BOOLEAN* by Q1,Q2;
+    R0: x in A & y in B by Q1,Q2,EQREL_1:20; then
+    R1: A+B = Class (EqBL2Nat,x+y ) by LM800;
+    L1: B+A = Class (EqBL2Nat,y+x ) by LM800,R0;
+    QuBL2Nat.(A+B) = BL2Nat.(x+y) by LM700,R1
+    .=BL2Nat.x+BL2Nat.y by LM240
+    .= BL2Nat.(y+x) by LM240
+    .= QuBL2Nat.(B+A) by L1,LM700;
+    hence thesis by FUNCT_2:19;
+  end;
+
+theorem
+  for A, B,C be Element of Class EqBL2Nat
+  holds (A+B)+C = A+(B+C)
+  proof
+    let A, B,C be Element of Class EqBL2Nat;
+    P0: A in Class EqBL2Nat & B in Class EqBL2Nat & C in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    consider y being object such that
+    Q2: y in BOOLEAN* & B = Class (EqBL2Nat,y) by P0,EQREL_1:def 3;
+    consider z being object such that
+    Q3: z in BOOLEAN* & C = Class (EqBL2Nat,z) by P0,EQREL_1:def 3;
+    reconsider x,y,z as Element of BOOLEAN* by Q1,Q2,Q3;
+    R0: x in A & y in B & z in C by Q1,Q2,Q3,EQREL_1:20; then
+    R1: A+B = Class (EqBL2Nat,x+y ) by LM800;
+    x+y in A+B by R1,EQREL_1:20; then
+    R2: (A+B)+C = Class (EqBL2Nat,(x+y)+z ) by LM800,R0;
+    L1: B+C = Class (EqBL2Nat,y+z ) by LM800,R0;
+    y+z in B+C by L1,EQREL_1:20; then
+    L2: A+(B+C) = Class (EqBL2Nat,x+(y+z) ) by LM800,R0;
+    QuBL2Nat.((A+B)+C) = BL2Nat.((x+y)+z) by LM700,R2
+    .= BL2Nat.(x+y)+BL2Nat.z by LM240
+    .=(BL2Nat.x+BL2Nat.y) +BL2Nat.z by LM240
+    .=BL2Nat.x+( BL2Nat.y +BL2Nat.z)
+    .= BL2Nat.x+ BL2Nat.(y+z) by LM240
+    .= BL2Nat.(x+(y+z)) by LM240
+    .= QuBL2Nat.(A+(B+C)) by L2,LM700;
+    hence thesis by FUNCT_2:19;
+  end;
+
+theorem LM930:
+  for n be Nat,
+  z,z1 be Element of BOOLEAN*
+  st z=<*> BOOLEAN & z1 =0*n
+  holds Class (EqBL2Nat,z) =Class (EqBL2Nat,z1)
+  proof
+    let n be Nat,
+    z,z1 be Element of BOOLEAN*;
+    assume AS: z=<*> BOOLEAN & z1 =0*n;
+    then
+    P1: len z = 0;
+    P2: BL2Nat.z = ExAbsval(z) by Def110
+    .=0 by D100,P1;
+    P3: BL2Nat.z1 = ExAbsval(z1) by Def110;
+    per cases;
+    suppose n=0;
+      hence Class (EqBL2Nat,z) =Class (EqBL2Nat,z1) by AS;
+    end;
+    suppose nz: n <>0;
+      consider n1 be Nat, y be Tuple of n1, BOOLEAN such that
+      C2: y = z1 & ExAbsval(z1) =Absval(y) by Def100;
+      n1 = len y by CARD_1:def 7
+      .=n by CARD_1:def 7,AS,C2; then
+      BL2Nat.z1 = 0 by nz,C2,P3,AS, BINARI_3:6; then
+      [z,z1] in EqBL2Nat by P2,Def300;
+      hence Class (EqBL2Nat,z) =Class (EqBL2Nat,z1) by EQREL_1:35;
+    end;
+  end;
+
+theorem
+  for A, Z be Element of Class EqBL2Nat,
+  n be Nat,
+  z be Element of BOOLEAN*
+  st Z =Class (EqBL2Nat,z) & z =0*n
+  holds A+Z = A & Z+A = A
+  proof
+    let A, Z be Element of Class EqBL2Nat,
+    n be Nat,
+    z be Element of BOOLEAN*;
+    assume AS: Z =Class (EqBL2Nat,z) & z =0*n;
+    reconsider zempty =<*> BOOLEAN as Element of BOOLEAN* by FINSEQ_1:def 11;
+    Z =Class (EqBL2Nat,zempty) by AS,LM930;
+    then
+    P3: zempty in Z by EQREL_1:20;
+    P4: len zempty = 0;
+    P0: A in Class EqBL2Nat;
+    consider x being object such that
+    Q1: x in BOOLEAN* & A = Class (EqBL2Nat,x) by P0,EQREL_1:def 3;
+    reconsider x as Element of BOOLEAN* by Q1;
+    x in A by Q1,EQREL_1:20;
+    hence A+Z = Class (EqBL2Nat,x+zempty) by P3,LM800
+    .=A by Q1,P4,Def3;
+    hence Z+A = A by LM910;
+  end;

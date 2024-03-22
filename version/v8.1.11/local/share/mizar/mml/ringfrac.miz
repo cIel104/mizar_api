@@ -1,0 +1,2477 @@
+:: {R}ings of {F}ractions and {L}ocalization
+::  by Yasushige Watase
+:: 
+:: Received January 13, 2020
+:: Copyright (c) 2020-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies ARYTM_3, FUNCT_1, RELAT_1, RLVECT_1, VECTSP_1, ALGSTR_0,
+      XBOOLE_0, TARSKI, VECTSP_2, VECTSP10, STRUCT_0, SUBSET_1, SUPINF_2,
+      MESFUNC1, GROUP_1, ARYTM_1, QUOFIELD, MSSUBFAM, BINOP_1, LATTICES,
+      IDEAL_1, C0SP1, EQREL_1, ZFMISC_1, FUNCSDOM, WAYBEL20, CARD_FIL, RING_2,
+      MCART_1, INT_2, TOPZARI1, FREEALG, FUNCT_2, XCMPLX_0, LATTICEA, RING_1,
+      GROUP_4, RINGFRAC, VALUED_2;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELSET_1, FUNCT_1, PARTFUN1,
+      FUNCT_2, BINOP_1, DOMAIN_1, EQREL_1, STRUCT_0, ALGSTR_0, RLVECT_1,
+      GROUP_1, VECTSP_1, VECTSP_2, QUOFIELD, GCD_1, GROUP_6, IDEAL_1, VECTSP10,
+      C0SP1, RING_1, RING_2, TOPZARI1;
+ constructors BINOP_1, SETWISEO, ORDERS_1, EQREL_1, GCD_1, IDEAL_1, DOMAIN_1,
+      RELSET_1, BINOM, RINGCAT1, MOD_4, QUOFIELD, TOPZARI1;
+ registrations SUBSET_1, RELSET_1, FUNCT_2, STRUCT_0, VECTSP_1, ALGSTR_1,
+      XTUPLE_0, MOD_4, QUOFIELD, XBOOLE_0, ALGSTR_0, RLVECT_1, IDEAL_1, RING_1,
+      RING_2, FOMODEL0, EQREL_1, TOPZARI1;
+ requirements SUBSET, BOOLE;
+ definitions TARSKI;
+ equalities STRUCT_0, ALGSTR_0, VECTSP10;
+ expansions STRUCT_0, GROUP_1, VECTSP_1, TARSKI, GROUP_6, FUNCT_2, FUNCT_1,
+      ALGSTR_0, RINGCAT1, C0SP1, GCD_1;
+ theorems ALGSTR_0, GROUP_1, GROUP_6, VECTSP_1, VECTSP_2, RLVECT_1, IDEAL_1,
+      SUBSET_1, FUNCT_2, TARSKI, FUNCT_1, C0SP1, ZFMISC_1, XBOOLE_0, RING_2,
+      RELAT_1, EQREL_1, BINOP_1, MCART_1, QUOFIELD, RING_1, TOPZARI1;
+ schemes FUNCT_2, EQREL_1, BINOP_1;
+
+begin :: Preliminaries: Zero Divisors, Units, multiplicatively-closed Set
+
+reserve R,R1 for commutative Ring;
+reserve A,B for non degenerated commutative Ring;
+reserve o,o1,o2 for object;
+reserve r,r1,r2 for Element of R;
+reserve a,a1,a2,b,b1 for Element of A;
+reserve f for Function of R, R1;
+reserve p for Element of Spectrum A;
+
+:: Zero-divisor. Unit [AM]p2-3
+definition
+  let R be commutative Ring;
+  let r be Element of R;
+  attr r is zero_divisible means  :Def1:
+  ex r1 be Element of R st r1 <> 0.R & r*r1 = 0.R;
+end;
+
+registration
+  let A be non degenerated commutative Ring;
+  cluster zero_divisible for Element of A;
+  existence
+  proof
+    consider b be Element of A such that
+A1: b = 1.A;
+    0.A * b = 0.A; then
+    0.A is zero_divisible by A1;
+    hence thesis;
+  end;
+end;
+
+definition
+  let A;
+  mode Zero_Divisor of A is zero_divisible Element of A;
+end;
+
+theorem Th1:
+  0.A is Zero_Divisor of A
+  proof
+    consider b be Element of A such that
+A1: b = 1.A;
+    0.A * b = 0.A; then
+    0.A is zero_divisible by A1;
+    hence thesis;
+  end;
+
+theorem Th2:
+  1.A is not Zero_Divisor of A
+  proof
+    assume 1.A is Zero_Divisor of A; then
+    consider b be Element of A such that
+A2: b <> 0.A and
+A3: 1.A * b = 0.A by Def1;
+    thus contradiction by A2,A3;
+  end;
+
+definition
+  let A;
+  func ZeroDiv_Set(A) -> Subset of A equals
+  {a where a is Element of A: a is Zero_Divisor of A};
+  coherence
+  proof
+    set C = {a where a is Element of A: a is Zero_Divisor of A};
+    for x be object holds x in C implies x in [#]A
+    proof
+      let x be object;
+      assume x in C; then
+      ex a be Element of [#]A st x = a & a is Zero_Divisor of A;
+      hence thesis;
+    end; then
+    C c= [#]A;
+    hence thesis;
+  end;
+end;
+
+definition
+  let A;
+  func Non_ZeroDiv_Set(A) -> Subset of A equals
+  [#]A \ ZeroDiv_Set(A);
+  coherence;
+end;
+
+registration
+  let A;
+  cluster ZeroDiv_Set(A) -> non empty;
+  coherence
+  proof
+    set a = 0.A;
+    a is Zero_Divisor of A by Th1; then
+    a in ZeroDiv_Set(A);
+    hence thesis;
+  end;
+  cluster Non_ZeroDiv_Set(A) -> non empty;
+  coherence
+  proof
+    set a = 1.A;
+    not a in ZeroDiv_Set(A)
+    proof
+      assume a in ZeroDiv_Set(A); then
+      ex a1 be Element of [#]A st a1 = a & a1 is Zero_Divisor of A;
+      hence contradiction by Th2;
+    end;
+    hence thesis by XBOOLE_0:def 5;
+  end;
+end;
+
+theorem Th3:
+  not 0.A in Non_ZeroDiv_Set(A)
+  proof
+    0.A is Zero_Divisor of A by Th1; then
+    0.A in ZeroDiv_Set(A);
+    hence thesis by XBOOLE_0:def 5;
+  end;
+
+theorem Th4:
+  A is domRing implies {0.A} = ZeroDiv_Set(A)
+  proof
+    assume
+A0: A is domRing;
+    0.A is Zero_Divisor of A by Th1; then
+A1: 0.A in ZeroDiv_Set(A);
+A2: {0.A} is Subset of ZeroDiv_Set(A) by A1,SUBSET_1:33;
+    for o st o in ZeroDiv_Set(A) holds o in {0.A}
+    proof
+      let o;
+      assume o in ZeroDiv_Set(A); then
+      consider a be Element of [#]A such that
+A4:   o = a and
+A5:   a is Zero_Divisor of A;
+      consider b be Element of A such that
+A6:   b <> 0.A and
+A7:   a*b = 0.A by A5,Def1;
+      a = 0.A by A6,A0,A7,VECTSP_2:def 1;
+      hence thesis by A4,TARSKI:def 1;
+    end; then
+    ZeroDiv_Set(A) c= {0.A};
+    hence thesis by A2,XBOOLE_0:def 10;
+  end;
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::  Definition of multiplicatively-closed set
+::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: [AM] p36
+theorem Th5:
+  {1.R} is multiplicatively-closed
+  proof
+    set M = {1.R};
+    for r1,r2 be Element of R st r1 in M & r2 in M holds r1 * r2 in M
+    proof
+      let r1,r2 be Element of R;
+      assume
+A2:   r1 in M & r2 in M; then
+      r1 * r2 = 1.R * r1 by TARSKI:def 1 .= 1.R by A2, TARSKI:def 1;
+      hence thesis by TARSKI:def 1;
+    end;
+    hence thesis by TARSKI:def 1;
+  end;
+
+registration
+  let R;
+  cluster multiplicatively-closed for non empty Subset of R;
+  existence
+  proof
+    reconsider M = {1.R} as non empty Subset of R;
+    take M;
+    thus thesis by Th5;
+  end;
+end;
+
+definition
+  let A;
+  let V be Subset of A;
+  attr V is without_zero means
+  not 0.A in V;
+end;
+
+registration
+  let A;
+  cluster without_zero for non empty multiplicatively-closed Subset of A;
+  existence
+  proof
+    reconsider M = {1.A} as non empty multiplicatively-closed Subset of A
+      by Th5;
+    take M;
+    thus thesis by TARSKI:def 1;
+  end;
+end;
+
+Lm5:
+  o in Spectrum A implies o is prime Ideal of A
+  proof
+    assume o in Spectrum A; then
+    o in {I where I is Ideal of A: I is quasi-prime & I <> [#]A}
+      by TOPZARI1:def 5; then
+    consider o1 be Ideal of A such that
+A1: o1 = o & o1 is quasi-prime & o1 <> [#]A;
+    o1 is proper Ideal of A by A1, SUBSET_1:def 6;
+    hence thesis by A1;
+  end;
+
+::Example.1.1)of [AM] p38
+theorem Th6:
+  [#]A \ p is multiplicatively-closed
+  proof
+    reconsider p as prime Ideal of A by Lm5;
+    reconsider M = [#]A \ p as Subset of A;
+A1: not 1.A in p by IDEAL_1:19; then
+    reconsider M as non empty Subset of A by XBOOLE_0:def 5;
+    for a,b be Element of A st a in M & b in M holds a * b in M
+    proof
+      let a,b be Element of A;
+      assume
+A2:   a in M & b in M;
+      assume not a*b in M; then
+      a*b in p by XBOOLE_0:def 5; then
+      a in p or b in p by RING_1:def 1;
+      hence contradiction by A2,XBOOLE_0:def 5;
+    end;
+    hence thesis by A1,XBOOLE_0:def 5;
+  end;
+
+::Example.1.3)of [AM] p38
+theorem
+  for J be proper Ideal of A holds multClSet(J,a) is multiplicatively-closed;
+
+registration let A;
+  cluster Non_ZeroDiv_Set(A) -> multiplicatively-closed;
+  coherence
+   proof
+    set M = [#]A \ ZeroDiv_Set(A);
+A1: not 1.A in ZeroDiv_Set(A)
+    proof
+      assume 1.A in ZeroDiv_Set(A); then
+      consider a be Element of [#]A such that
+A2:   a = 1.A and
+A3:   a is Zero_Divisor of A;
+      thus contradiction by Th2,A2,A3;
+    end;
+    for v,u be Element of A st v in M & u in M holds v * u in M
+    proof
+      let v,u be Element of A;
+      assume
+A5:   v in M & u in M;
+      assume not v * u in M; then
+      v*u in ZeroDiv_Set(A) by XBOOLE_0:def 5; then
+      consider w be Element of [#]A such that
+A7:   w = v*u and
+A8:   w is Zero_Divisor of A;
+      w is zero_divisible by A8; then
+      consider b be Element of A such that
+A9:   b <> 0.A and
+A10:  w*b = 0.A;
+A11:  v*(u*b) = 0.A by A10,A7,GROUP_1:def 3;
+      per cases;
+        suppose
+          u*b <> 0.A; then
+          v is zero_divisible by A11; then
+          v in ZeroDiv_Set(A);
+          hence contradiction by A5,XBOOLE_0:def 5;
+        end;
+        suppose
+          u*b = 0.A; then
+          u is zero_divisible by A9; then
+          u in ZeroDiv_Set(A);
+          hence contradiction by A5, XBOOLE_0:def 5;
+        end;
+      end;
+      hence thesis by A1,XBOOLE_0:def 5;
+    end;
+end;
+
+definition
+  let R;
+  func Unit_Set(R) -> Subset of R equals
+  {a where a is Element of R: a is Unit of R };
+  coherence
+  proof
+    set C = {a where a is Element of R: a is Unit of R };
+    for x be object holds x in C implies x in [#]R
+    proof
+      let x be object;
+      assume x in C; then
+      ex a be Element of [#]R st x = a & a is Unit of R;
+      hence thesis;
+    end;
+    then
+    C c= [#]R;
+    hence thesis;
+  end;
+end;
+
+registration
+  let R;
+  cluster Unit_Set(R) -> non empty;
+  coherence
+  proof
+    set r = 1.R;
+    r in Unit_Set(R);
+    hence thesis;
+  end;
+end;
+
+Th9:
+   r1 in Unit_Set(R) implies ex r2 st r1*r2 = 1.R
+   proof
+     assume r1 in Unit_Set(R); then
+     consider r be Element of [#]R such that
+A2:  r1 = r and
+A3:  r is Unit of R;
+     reconsider r1 as Element of R;
+     {r1}-Ideal = [#]R by A2,A3,RING_2:20; then
+A4:  1.R in {r1}-Ideal;
+     {r1}-Ideal = the set of all r1*r where r is Element of R by IDEAL_1:64;
+     hence thesis by A4;
+   end;
+
+Th10:
+  r1 in Unit_Set(R) implies ex r2 st r2*r1 = 1.R
+  proof
+    assume r1 in Unit_Set(R); then
+    ex r2 st r1*r2 = 1.R by Th9;
+    hence thesis;
+  end;
+
+theorem Th11:
+  r1 in Unit_Set(R) implies r1 is right_mult-cancelable
+  proof
+    assume r1 in Unit_Set(R); then
+    consider r2 such that
+A2: r2*r1 = 1.R by Th10;
+    for u,v being Element of R st u*r1 = v*r1 holds u = v
+    proof
+      let u,v be Element of R;
+      assume u*r1 = v*r1; then
+A5:   r1*(u - v) = r1*v - r1*v by VECTSP_1:11
+      .= 0.R by RLVECT_1:15;
+      u - v = (r2*r1)*(u - v) by A2
+      .= r2*(r1*(u - v)) by GROUP_1:def 3 .= 0.R by A5;
+      hence thesis by VECTSP_1:19;
+    end;
+    hence thesis;
+  end;
+
+definition
+  let R;
+  let r be Element of R;
+  assume
+A1: r in Unit_Set(R);
+  func recip(r) -> Element of R means :Def2:
+  it * r = 1.R;
+  existence by A1,Th10;
+  uniqueness
+  proof
+    r is right_mult-cancelable by Th11,A1;
+    hence thesis;
+  end;
+end;
+
+notation
+  let R;
+  let r be Element of R;
+  synonym r["] for recip(r);
+end;
+
+definition
+  let R;
+  let u,v be Element of R;
+:::  assume v in Unit_Set(R);
+  func u[/]v -> Element of R equals u*(recip(u));
+  coherence;
+end;
+
+theorem Th12:
+  for u be Unit of R, v be Element of R holds
+  f is RingHomomorphism implies f.u is Unit of R1 & (f.u)["] = f.(u["])
+  proof
+    let u be Unit of R, v be Element of R;
+    assume
+A1: f is RingHomomorphism; then
+A3: f is multiplicative;
+A2: u in Unit_Set(R);
+    f is unity-preserving by A1; then
+A5: 1.R1 = f.(u*(u["])) by A2,Def2
+      .= f.u*f.(u["]) by A3; then
+    f.u divides 1.R1; then
+A7: f.u is unital; then
+A8: f.u in Unit_Set(R1);
+    (f.u)["] = (f.u)["]*(f.u* f.(u["])) by A5
+      .= ((f.u)["]*f.u)* f.(u["]) by GROUP_1:def 3
+      .= 1.R1*f.(u["]) by Def2,A8
+      .= f.(u["]);
+    hence thesis by A7;
+  end;
+
+theorem
+  for u be Unit of R, v be Element of R holds
+  f is RingHomomorphism implies f.(v*(u["])) = (f.v)*((f.u)["])
+  proof
+    let u be Unit of R, v be Element of R;
+    assume
+A1: f is RingHomomorphism; then
+    f is multiplicative; then
+    f.(v*(u["])) = (f.v)*(f.(u["])) .= (f.v)*((f.u)["]) by A1,Th12;
+    hence thesis;
+  end;
+
+begin :: Equivalence Relation of Fraction
+
+reserve S for non empty multiplicatively-closed Subset of R;
+
+:: Definition of Pairs
+definition
+  let R, S;
+  func Frac(S) -> Subset of [:the carrier of R,the carrier of R:] means
+  :Def3:
+  for x being set holds
+  x in it iff ex a,b being Element of R st x = [a,b] & b in S;
+  existence
+  proof
+    set M = {[a,b] where a,b is Element of R: b in S };
+A1: M c= [:the carrier of R,the carrier of R:]
+    proof
+      let o be object;
+      assume o in M; then
+      ex a,b being Element of R st o = [a,b] & b in S;
+      hence thesis;
+    end;
+    for x being set holds x in M iff ex a,b being Element of R st x = [a,b]
+    & b in S;
+    hence thesis by A1;
+  end;
+  uniqueness
+  proof
+    let M1,M2 be Subset of [:the carrier of R,the carrier of R:];
+    assume
+A2: for x being set holds x in M1 iff ex a,b being Element of R st x =
+    [a,b] & b in S;
+    assume
+A3: for x being set holds x in M2 iff ex a,b being Element of R st x =
+    [a,b] & b in S;
+A4: for x being object holds x in M2 implies x in M1
+    proof
+      let o be object;
+      assume o in M2;
+      then ex a,b being Element of R st o = [a,b] & b in S by A3;
+      hence thesis by A2;
+    end;
+    for o being object holds o in M1 implies o in M2
+    proof
+      let o be object;
+      assume o in M1;
+      then ex a,b being Element of R st o = [a,b] & b in S by A2;
+      hence thesis by A3;
+    end;
+    hence thesis by A4,TARSKI:2;
+  end;
+end;
+
+theorem Th15:
+  Frac(S) = [:[#]R,S:]
+   proof
+     o in Frac(S) implies o in [:[#]R,S:]
+     proof
+       assume o in Frac(S); then
+       consider a,b be Element of R such that
+A2:    o = [a,b] and
+A3:    b in S by Def3;
+       thus thesis by A2,A3,ZFMISC_1:def 2;
+     end; then
+A3:  Frac(S) c= [:[#]R,S:];
+     o in [:[#]R,S:] implies o in Frac(S)
+     proof
+       assume o in [:[#]R,S:]; then
+       consider o1,o2 be object such that
+A5:    o1 in [#]R and
+A6:    o2 in S and
+A7:    o = [o1,o2] by ZFMISC_1:def 2;
+       consider a,b be Element of R such that
+A8:    a = o1 and
+A9:    b = o2 by A5,A6;
+       o = [a,b] by A8,A9,A7;
+       hence thesis by A6,A9,Def3;
+     end; then
+     [:[#]R,S:] c= Frac(S);
+     hence thesis by A3,XBOOLE_0:def 10;
+   end;
+
+registration
+  let R,S;
+  cluster Frac(S) -> non empty;
+  coherence
+  proof
+    1.R in S by C0SP1:def 4;
+    then [1.R,1.R] in Frac(S) by Def3;
+    hence thesis;
+  end;
+end;
+
+Lm16:
+  for x be object st x in the carrier of R holds [x,1.R] in Frac(S)
+  proof
+    let x be object;
+    assume x in the carrier of R; then
+    reconsider x as Element of R;
+    1.R in S by C0SP1:def 4; then
+    [x,1.R] in Frac(S) by Def3;
+    hence thesis;
+  end;
+
+definition
+  let R,S;
+  func frac1(S) -> Function of R, Frac(S) means
+  :Def4:
+  for o be object st o in the carrier of R
+  holds it.o = [o,1.R];
+  existence
+  proof
+  deffunc F(object) = [$1,1.R];
+A1: for o1 be object st o1 in the carrier of R holds F(o1) in Frac(S) by Lm16;
+   ex f being Function of R, Frac(S) st for o2 being object st o2
+  in the carrier of R holds f.o2 = F(o2) from FUNCT_2:sch 2(A1);
+  hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of R, Frac(S) such that
+A2: for o be object st o in the carrier of R holds f1.o = [o,1.R] and
+A3: for o be object st o in the carrier of R holds f2.o = [o,1.R];
+    for o1 be object st o1 in the carrier of R holds f1.o1 = f2.o1
+    proof
+      let o1 be object such that
+A4:   o1 in the carrier of R;
+      f1.o1 = [o1,1.R] by A2,A4;
+      hence thesis by A3,A4;
+    end;
+    hence thesis;
+  end;
+end;
+
+reserve u,v,w,x,y,z for Element of Frac(S);
+
+Lm17:
+  x`1 in R & x`2 in S
+  proof
+    x in Frac(S); then
+    x in [:[#]R,S:] by Th15;
+    hence thesis by MCART_1:10;
+  end;
+
+Th18:
+   for u being Element of Frac(S) holds u`2 in S
+   proof
+     let u be Element of Frac(S);
+     ex a,b being Element of R st u = [a,b] & b in S by Def3;
+     hence thesis;
+   end;
+
+definition
+  let R,S;
+  let u,v be Element of Frac(S);
+  func Fracadd(u,v) -> Element of Frac(S) equals
+  [u`1 * v`2 + v`1 * u`2, u`2 * v`2];
+  coherence
+  proof
+    u`2 in S & v`2 in S by Th18;
+    then u`2 * v`2 in S by C0SP1:def 4;
+    hence thesis by Def3;
+  end;
+  commutativity;
+end;
+
+definition
+  let R,S;
+  let u,v be Element of Frac(S);
+  func Fracmult(u,v) -> Element of Frac(S) equals
+  [u`1 * v`1, u`2 * v`2];
+  coherence
+  proof
+    u`2 in S & v`2 in S by Th18; then
+    u`2 * v`2 in S by C0SP1:def 4;
+    hence thesis by Def3;
+  end;
+  commutativity;
+end;
+
+definition
+  let R,S,x,y;
+  func x+y -> Element of Frac(S) equals
+  Fracadd(x,y);
+  coherence;
+  func x*y -> Element of Frac(S) equals
+  Fracmult(x,y);
+  coherence;
+end;
+
+theorem Th19:
+  Fracadd(x,Fracadd(y,z)) = Fracadd(Fracadd(x,y),z)
+  proof
+    Fracadd(Fracadd(x,y),z)
+     = [(x`1*y`2)*z`2 + (y`1*x`2)*z`2 + z`1*(x`2*y`2),(x`2*y`2)*z`2]
+       by VECTSP_1:def 7
+    .= [x`1*(y`2*z`2) + (y`1*x`2)*z`2 + z`1*(x`2*y`2),(x`2*y`2)*z`2]
+       by GROUP_1:def 3
+    .= [x`1*(y`2*z`2) + (y`1*z`2)*x`2 + z`1*(y`2*x`2),(x`2*y`2)*z`2]
+       by GROUP_1:def 3
+    .= [x`1*(y`2*z`2) + (y`1*z`2)*x`2 + (z`1*y`2)*x`2,(x`2*y`2)*z`2]
+       by GROUP_1:def 3
+    .= [x`1*(y`2*z`2) + (y`1*z`2)*x`2 + (z`1*y`2)*x`2,x`2*(y`2*z`2)]
+       by GROUP_1:def 3
+    .= [x`1*(y`2*z`2) + ((y`1*z`2)*x`2 + (z`1*y`2)*x`2),x`2*(y`2*z`2)]
+       by RLVECT_1:def 3
+    .= Fracadd(x,Fracadd(y,z)) by VECTSP_1:def 7;
+    hence thesis;
+  end;
+
+theorem Th20:
+  Fracmult(x,Fracmult(y,z)) = Fracmult(Fracmult(x,y),z)
+  proof
+    [x`1*(y`1*z`1),x`2*(y`2*z`2)]
+    = [x`1*(y`1*z`1),(x`2*y`2)*z`2] by GROUP_1:def 3
+    .= Fracmult(Fracmult(x,y),z) by GROUP_1:def 3;
+    hence thesis;
+  end;
+
+definition
+  let R,S;
+  let x,y be Element of Frac(S);
+  pred x,y Fr_Eq S means
+  ex s1 being Element of R st s1 in S & (x`1 * y`2 - y`1 * x`2) * s1 = 0.R;
+end;
+
+theorem
+  0.R in S implies x,y Fr_Eq S
+  proof
+    assume
+A1: 0.R in S;
+    reconsider s1 = 0.R as Element of R;
+A2: (x`1 * y`2 - y`1 * x`2) * s1 = 0.R;
+    reconsider s1 as Element of S by A1;
+    thus thesis by A1,A2;
+  end;
+
+theorem Th22:
+  x,x Fr_Eq S
+  proof
+    reconsider s1 = 1.R as Element of R;
+A1: (x`1 * x`2 - x`1 * x`2) * s1 = 0.R by VECTSP_1:19;
+    s1 in S by C0SP1:def 4;
+    hence thesis by A1;
+  end;
+
+theorem Th23:
+   x,y Fr_Eq S implies y,x Fr_Eq S
+   proof
+     assume x,y Fr_Eq S; then
+     consider s1 being Element of R such that
+A2:  s1 in S and
+A3:  (x`1 * y`2 - y`1 * x`2) * s1 = 0.R;
+     reconsider w= y`1*x`2, v = x`1*y`2 as Element of R;
+     (w-v)*s1=(-(v-w))*s1 by VECTSP_1:17
+     .= -0.R by A3,VECTSP_1:9 .= 0.R;
+     hence thesis by A2;
+   end;
+
+theorem Th24:
+  x,y Fr_Eq S & y,z Fr_Eq S implies x,z Fr_Eq S
+   proof
+     assume x,y Fr_Eq S & y,z Fr_Eq S; then
+     consider s1,s2 be Element of R such that
+A2:  s1 in S and
+A3:  s2 in S and
+A4:  (x`1 * y`2 - y`1 * x`2) * s1 = 0.R and
+A5:  (y`1 * z`2 - z`1 * y`2) * s2 = 0.R;
+     0.R = ((x`1*y`2 - y`1*x`2)*s1)*z`2 by A4
+     .= (x`1*y`2*s1 - y`1*x`2*s1)*z`2 by VECTSP_1:13
+     .= z`2*(x`1*y`2*s1) - z`2*(y`1*x`2*s1) by VECTSP_1:11
+     .= z`2*(x`1*(y`2*s1)) - z`2*(y`1*x`2*s1) by GROUP_1:def 3
+     .= (x`1*z`2)*(y`2*s1) - z`2*(y`1*x`2*s1) by GROUP_1:def 3; then
+A7:  0.R = ((x`1*z`2)*(y`2*s1) - z`2*(y`1*x`2*s1))*s2
+     .= (x`1*z`2)*(y`2*s1)*s2 - z`2*(y`1*x`2*s1)*s2 by VECTSP_1:13
+     .= (x`1*z`2)*(y`2*s1*s2) - z`2*(y`1*x`2*s1)*s2 by GROUP_1:def 3
+     .= (x`1*z`2)*(y`2*s1*s2) - z`2*(y`1*x`2*s1*s2) by GROUP_1:def 3;
+A8:  0.R = (y`1 * z`2 - z`1 * y`2) * s2*x`2 by A5
+     .= (y`1*z`2*s2 - z`1*y`2*s2)*x`2 by VECTSP_1:13
+     .= (y`1*z`2*s2)*x`2 - x`2*(z`1*y`2*s2) by VECTSP_1:13
+     .= (y`1*z`2*s2)*x`2 - x`2*(z`1*(y`2*s2)) by GROUP_1:def 3
+     .= (y`1*z`2*s2)*x`2 - (x`2*z`1)*(y`2*s2) by GROUP_1:def 3
+     .= z`2*(y`1*s2)*x`2 - (x`2*z`1)*(y`2*s2) by GROUP_1:def 3
+     .= z`2*(y`1*s2*x`2) - (x`2*z`1)*(y`2*s2) by GROUP_1:def 3
+     .= z`2*(y`1*x`2*s2) - (x`2*z`1)*(y`2*s2) by GROUP_1:def 3
+     .= z`2*(y`1*x`2*s2) - (z`1*x`2*y`2*s2) by GROUP_1:def 3;
+A9:  0.R = 0.R * s1 .= (z`2*(y`1*x`2*s2)-(z`1*x`2)*(y`2*s2))*s1
+     by A8,GROUP_1:def 3
+     .= z`2*(y`1*x`2*s2)*s1 - (z`1*x`2)*(y`2*s2)*s1 by VECTSP_1:13
+     .= z`2*(y`1*x`2*s2*s1) - (z`1*x`2)*(y`2*s2)*s1 by GROUP_1:def 3
+     .= z`2*(y`1*x`2*s2*s1) - (z`1*x`2)*(y`2*s2*s1) by GROUP_1:def 3
+     .= z`2*(y`1*x`2*s1*s2) - (z`1*x`2)*(y`2*s2*s1) by GROUP_1:def 3
+     .= z`2*(y`1*x`2*s1*s2) - (z`1*x`2)*(y`2*s1*s2) by GROUP_1:def 3;
+     reconsider u=z`2*(y`1*x`2*s1*s2) as Element of R;
+     y`2 in S by Lm17; then
+     reconsider v = y`2*s1 as Element of S by A2,C0SP1:def 4;
+     reconsider w = v*s2 as Element of S by A3,C0SP1:def 4;
+     0.R = (x`1*z`2)*(y`2*s1*s2) - u + u - (z`1*x`2)*(y`2*s1*s2) by A7,A9
+     .= (x`1*z`2)*(y`2*s1*s2) +(- u+u) -(z`1*x`2)*(y`2*s1*s2) by RLVECT_1:def 3
+     .= (x`1*z`2)*(y`2*s1*s2) +0.R - (z`1*x`2)*(y`2*s1*s2) by RLVECT_1:5
+     .= (x`1*z`2 - z`1*x`2)*w by VECTSP_1:13;
+     hence thesis;
+   end;
+
+definition let R,S;
+  func EqRel(S) -> Equivalence_Relation of Frac(S) means
+  :Def5:
+  [u,v] in it iff u,v Fr_Eq S;
+  existence
+  proof
+    defpred P[object,object] means ex u,v st u=$1 & v=$2 & u,v Fr_Eq S;
+A1: for o,o1 being object st P[o,o1] holds P[o1,o] by Th23;
+A2: for o,o1,o2 being object st P[o,o1] & P[o1,o2] holds P[o,o2] by Th24;
+A3: for o being object st o in Frac(S) holds P[o,o] by Th22;
+    consider ER being Equivalence_Relation of Frac(S) such that
+A4: for o,o1 being object holds [o,o1] in ER iff
+    o in Frac(S) & o1 in Frac(S) & P[o,o1] from EQREL_1:sch 1(A3,A1,A2);
+    take ER;
+    [u,v] in ER iff u,v Fr_Eq S
+    proof
+      thus [u,v] in ER implies u,v Fr_Eq S
+      proof
+        assume [u,v] in ER; then
+        ex u1,v1 be Element of Frac(S) st u1=u & v1=v & u1,v1 Fr_Eq S by A4;
+        hence thesis;
+      end;
+      assume u,v Fr_Eq S;
+      hence thesis by A4;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let R1,R2 be Equivalence_Relation of Frac(S);
+    assume that
+A5: for u,v holds [u,v] in R1 iff u,v Fr_Eq S and
+A6: for u,v holds [u,v] in R2 iff u,v Fr_Eq S;
+    for o,o1 being object holds [o,o1] in R1 iff [o,o1] in R2
+    proof
+      let o,o1 be object;
+      thus [o,o1] in R1 implies [o,o1] in R2
+      proof
+        assume
+A7:     [o,o1] in R1;
+        then o is Element of Frac(S) & o1 is Element of Frac(S)
+        by ZFMISC_1:87;
+        hence thesis by A5,A6,A7;
+      end;
+      assume
+A8:   [o,o1] in R2;
+      then o is Element of Frac(S) & o1 is Element of Frac(S)
+      by ZFMISC_1:87;
+      hence thesis by A5,A6,A8;
+    end;
+    hence thesis by RELAT_1:def 2;
+  end;
+end;
+
+:::registration
+:::  let R,S;
+:::  cluster EqRel(S) -> non empty total symmetric transitive;
+:::  coherence;
+:::end;
+
+theorem Th25:
+  x in Class(EqRel(S),y) iff x,y Fr_Eq S
+  proof
+    set E = EqRel(S);
+    hereby
+      assume x in Class(E,y);
+      then [x,y] in E by EQREL_1:19;
+      hence x,y Fr_Eq S by Def5;
+    end;
+    assume x,y Fr_Eq S;
+    then [x,y] in E by Def5;
+    hence thesis by EQREL_1:19;
+  end;
+
+theorem Th26:
+  Class(EqRel(S),x) = Class(EqRel(S),y) iff x,y Fr_Eq S
+   proof
+     set E = EqRel(S);
+     thus Class(E,x) = Class(E,y) implies x,y Fr_Eq S
+     proof
+       assume Class(E,x) = Class(E,y);
+       then x in Class(E,y) by EQREL_1:23;
+       hence thesis by Th25;
+     end;
+     assume x,y Fr_Eq S;
+     then x in Class(E,y) by Th25;
+     hence thesis by EQREL_1:23;
+  end;
+
+theorem Th27:
+  x,u Fr_Eq S & y,v Fr_Eq S implies Fracmult(x,y),Fracmult(u,v) Fr_Eq S
+   proof
+     assume that
+A1:  x,u Fr_Eq S and
+A2:  y,v Fr_Eq S;
+     consider s1 being Element of R such that
+A3:  s1 in S and
+A4:  (x`1 * u`2 - u`1 * x`2) * s1 = 0.R by A1;
+     consider s2 being Element of R such that
+A5:  s2 in S and
+A6:  (y`1 * v`2 - v`1 * y`2) * s2 = 0.R by A2;
+A7:  Fracmult(x,y)`1*Fracmult(u,v)`2 -(u`1*x`2)*(y`1*v`2)
+       = (x`1*y`1*u`2*v`2) -(u`1*x`2)*(y`1*v`2) by GROUP_1:def 3
+      .= (x`1*u`2*y`1*v`2) -(u`1*x`2)*(y`1*v`2) by GROUP_1:def 3
+      .= (x`1*u`2)*(y`1*v`2) -(u`1*x`2)*(y`1*v`2) by GROUP_1:def 3
+      .= (x`1*u`2 - u`1*x`2)*(y`1*v`2) by VECTSP_1:13;
+A8:  (u`1*x`2)*(y`1*v`2)-Fracmult(u,v)`1*Fracmult(x,y)`2
+       = (y`1*v`2)*(u`1*x`2)-(v`1*u`1*y`2*x`2) by GROUP_1:def 3
+      .= (y`1*v`2)*(u`1*x`2)-(v`1*y`2*u`1*x`2) by GROUP_1:def 3
+      .= (y`1*v`2)*(u`1*x`2)-(v`1*y`2)*(u`1*x`2) by GROUP_1:def 3
+      .= (y`1*v`2 - v`1*y`2)*(u`1*x`2) by VECTSP_1:13;
+A9:   Fracmult(x,y)`1*Fracmult(u,v)`2 - Fracmult(u,v)`1*Fracmult(x,y)`2
+       = Fracmult(x,y)`1*Fracmult(u,v)`2 - Fracmult(u,v)`1*Fracmult(x,y)`2
+         + 0.R
+      .= Fracmult(x,y)`1*Fracmult(u,v)`2 -Fracmult(u,v)`1*Fracmult(x,y)`2
+         +(-(u`1*x`2)*(y`1*v`2)+(u`1*x`2)*(y`1*v`2)) by RLVECT_1:5
+      .= (Fracmult(x,y)`1*Fracmult(u,v)`2+(-(u`1*x`2)*(y`1*v`2)
+          +(u`1*x`2)*(y`1*v`2))) +(-Fracmult(u,v)`1*Fracmult(x,y)`2)
+         by RLVECT_1:def 3
+      .= (Fracmult(x,y)`1*Fracmult(u,v)`2+(-(u`1*x`2)*(y`1*v`2)))
+         +(u`1*x`2)*(y`1*v`2) +(-Fracmult(u,v)`1*Fracmult(x,y)`2)
+         by RLVECT_1:def 3
+      .= ((x`1*u`2-u`1*x`2)*(y`1*v`2))+((y`1*v`2 - v`1*y`2)*(u`1*x`2))
+         by A8,A7,RLVECT_1:def 3;
+      reconsider s = s1*s2 as Element of S by A3,A5,C0SP1:def 4;
+      reconsider t = x`1*u`2-u`1*x`2 as Element of R;
+      reconsider t2 = s2*y`1*v`2 as Element of R;
+      (Fracmult(x,y)`1*Fracmult(u,v)`2 - Fracmult(u,v)`1*Fracmult(x,y)`2)*s
+       = t*(y`1*v`2)*s+(y`1*v`2-v`1*y`2)*(u`1*x`2)*s by A9,VECTSP_1:def 3
+      .= (t*s)*(y`1*v`2)+(y`1*v`2-v`1*y`2)*(u`1*x`2)*s by GROUP_1:def 3
+      .= ((0.R)*s2)*(y`1*v`2)+(y`1*v`2-v`1*y`2)*(u`1*x`2)*s by A4,GROUP_1:def 3
+      .= ((y`1*v`2-v`1*y`2)*s)*(u`1*x`2) by GROUP_1:def 3
+      .= ((0.R)*s1)*(u`1*x`2) by A6, GROUP_1:def 3
+      .= 0.R;
+      hence thesis;
+    end;
+
+theorem Th28:
+  x,u Fr_Eq S & y,v Fr_Eq S implies Fracadd(x,y),Fracadd(u,v) Fr_Eq S
+   proof
+     assume that
+A1:  x,u Fr_Eq S and
+A2:  y,v Fr_Eq S;
+     consider s1 being Element of R such that
+A3:  s1 in S and
+A4:  (x`1 * u`2 - u`1 * x`2) * s1 = 0.R by A1;
+     consider s2 being Element of R such that
+A5:  s2 in S and
+A6:  (y`1 * v`2 - v`1 * y`2) * s2 = 0.R by A2;
+     reconsider z = Fracadd(x,y) as Element of Frac(S);
+     reconsider w = Fracadd(u,v) as Element of Frac(S);
+A7:  (x`1*u`2)*(y`2*v`2) = (x`1*u`2)*(y`2*v`2) + 0.R
+     .= (x`1*u`2)*(y`2*v`2)+(-(u`1*x`2)*(y`2*v`2) + (u`1*x`2)*(y`2*v`2))
+     by RLVECT_1:5
+     .= (x`1*u`2)*(y`2*v`2) -(u`1*x`2)*(y`2*v`2) + (u`1*x`2)*(y`2*v`2)
+     by RLVECT_1:def 3
+     .= (x`1*u`2 - u`1*x`2)*(y`2*v`2) + (u`1*x`2)*(y`2*v`2) by VECTSP_1:13;
+     reconsider t = u`1*x`2*y`2*v`2 as Element of R;
+A8:  u`1*v`2*x`2*y`2 = u`1*x`2*v`2*y`2 by GROUP_1:def 3
+     .= t by GROUP_1:def 3;
+A9:  y`1*x`2*u`2*v`2 = y`1*(x`2*u`2)*v`2 by GROUP_1:def 3
+     .= (y`1*v`2)*(x`2*u`2) by GROUP_1:def 3;
+A10: (v`1*u`2)*(x`2*y`2) = v`1*u`2*x`2*y`2 by GROUP_1:def 3
+     .= v`1*(u`2*x`2)*y`2 by GROUP_1:def 3
+     .= (v`1*y`2)*(x`2*u`2) by GROUP_1:def 3;
+A11: (u`1*x`2)*(y`2*v`2)+((y`1*x`2)*(u`2*v`2) - w`1*z`2)
+     = (u`1*x`2)*(y`2*v`2)+ (y`1*x`2)*(u`2*v`2) - w`1*z`2 by RLVECT_1:def 3
+     .= (u`1*x`2*y`2*v`2)+(y`1*x`2)*(u`2*v`2) - w`1*z`2 by GROUP_1:def 3
+     .= t+(y`1*x`2)*(u`2*v`2) -((u`1*v`2)*(x`2*y`2)+(v`1*u`2)*(x`2*y`2))
+       by VECTSP_1:def 7
+     .= t+(y`1*x`2)*(u`2*v`2) -(t+(v`1*u`2)*(x`2*y`2)) by A8,GROUP_1:def 3
+     .= t+(y`1*x`2)*(u`2*v`2)+ ( -t + -(v`1*u`2)*(x`2*y`2)) by RLVECT_1:31
+     .= (y`1*x`2)*(u`2*v`2) + t + -t + -(v`1*u`2)*(x`2*y`2) by RLVECT_1:def 3
+     .= (y`1*x`2)*(u`2*v`2) + (t + -t) + -(v`1*u`2)*(x`2*y`2) by RLVECT_1:def 3
+     .= (y`1*x`2)*(u`2*v`2) + 0.R + -(v`1*u`2)*(x`2*y`2) by RLVECT_1:5
+     .= (y`1*v`2)*(x`2*u`2) -(v`1*y`2)*(x`2*u`2) by A10,A9,GROUP_1:def 3
+     .= (y`1*v`2 -v`1*y`2)*(x`2*u`2) by VECTSP_1:13;
+A12: z`1*w`2 -w`1*z`2
+      = (x`1*y`2)*(u`2*v`2)+(y`1*x`2)*(u`2*v`2) -w`1*z`2 by VECTSP_1:def 7
+     .= (x`1*y`2*u`2*v`2)+(y`1*x`2)*(u`2*v`2) -w`1*z`2 by GROUP_1:def 3
+     .= (x`1*u`2*y`2*v`2)+(y`1*x`2)*(u`2*v`2) -w`1*z`2 by GROUP_1:def 3
+     .= (x`1*u`2)*(y`2*v`2)+(y`1*x`2)*(u`2*v`2) -w`1*z`2 by GROUP_1:def 3
+     .= (x`1*u`2-u`1*x`2)*(y`2*v`2)+ (u`1*x`2)*(y`2*v`2)
+       + ((y`1*x`2)*(u`2*v`2) -w`1*z`2) by A7,RLVECT_1:28
+     .= (x`1*u`2-u`1*x`2)*(y`2*v`2)+(y`1*v`2 -v`1*y`2)*(x`2*u`2)
+        by A11,RLVECT_1:def 3;
+     reconsider t1 = x`1*u`2-u`1*x`2 as Element of R;
+     reconsider t2 = y`1*v`2 -v`1*y`2 as Element of R;
+     reconsider s = s1*s2 as Element of S by A3,A5,C0SP1:def 4;
+     (z`1*w`2 -w`1*z`2)*s
+      = t1*(y`2*v`2)*s + t2*(x`2*u`2)*s by A12,VECTSP_1:def 7
+     .= t1*s*(y`2*v`2) + t2*(x`2*u`2)*s by GROUP_1:def 3
+     .= (0.R)*s2*(y`2*v`2) + t2*(x`2*u`2)*s by A4,GROUP_1:def 3
+     .= t2*(s1*s2)*(x`2*u`2) by GROUP_1:def 3
+     .= (0.R)*s1*(x`2*u`2) by A6,GROUP_1:def 3
+     .= 0.R;
+     hence thesis;
+   end;
+
+theorem Th29:
+  (x+y)*z, x*z + y*z Fr_Eq S
+   proof
+A1:  (x`1*z`1)*(y`2*z`2) = x`1*z`1*y`2*z`2 by GROUP_1:def 3
+     .= ((x`1*y`2)*z`1)*z`2 by GROUP_1:def 3
+     .= (x`1*y`2)*(z`1*z`2) by GROUP_1:def 3;
+     (y`1*z`1)*(x`2*z`2) = y`1*z`1*x`2*z`2 by GROUP_1:def 3
+     .= ((y`1*x`2)*z`1)*z`2 by GROUP_1:def 3
+     .= (y`1*x`2)*(z`1*z`2) by GROUP_1:def 3; then
+A3:  Fracadd(Fracmult(x,z),Fracmult(y,z))
+     = [(x`1*y`2 + y`1*x`2)*(z`1*z`2),(x`2*z`2)*(y`2*z`2)]
+     by A1,VECTSP_1:def 7;
+     Fracmult(Fracadd(x,y),z)`1 * Fracadd(Fracmult(x,z),Fracmult(y,z))`2
+     = ((x`1*y`2 + y`1*x`2)*z`1)*(z`2*x`2*y`2*z`2) by GROUP_1:def 3
+     .= ((x`1*y`2 + y`1*x`2)*z`1)*(z`2*(x`2*y`2)*z`2) by GROUP_1:def 3
+     .= (x`1*y`2 + y`1*x`2)*z`1*z`2*((x`2*y`2)*z`2) by GROUP_1:def 3
+     .= Fracadd(Fracmult(x,z),Fracmult(y,z))`1* Fracmult(Fracadd(x,y),z)`2
+     by A3,GROUP_1:def 3; then
+A5:  (Fracmult(Fracadd(x,y),z)`1 * Fracadd(Fracmult(x,z),Fracmult(y,z))`2  -
+     Fracadd(Fracmult(x,z),Fracmult(y,z))`1* Fracmult(Fracadd(x,y),z)`2)*1.R
+     = 0.R by RLVECT_1:5;
+     1.R is Element of S by C0SP1:def 4;
+     hence thesis by A5;
+   end;
+
+definition
+  let R,S;
+  func 0.(R,S) -> Element of Frac(S) equals
+  [0.R, 1.R];
+  coherence
+  proof
+    1.R in S by C0SP1:def 4;
+    hence thesis by Def3;
+  end;
+  func 1.(R,S) -> Element of Frac(S) equals
+  [1.R, 1.R];
+  coherence
+  proof
+    1.R in S by C0SP1:def 4;
+    hence thesis by Def3;
+  end;
+end;
+
+theorem Th30:
+  for s be Element of S holds
+    x=[s,s] implies x,1.(R,S) Fr_Eq S
+   proof
+     let s be Element of S;
+     assume
+A1:  x=[s,s];
+     reconsider s1 = 1.R as Element of R;
+A2:  (x`1 * 1.(R,S)`2 - 1.(R,S)`1 * x`2)*s1 = 0.R by A1,RLVECT_1:5;
+     s1 in S by C0SP1:def 4;
+     hence thesis by A2;
+   end;
+
+begin :: Constraction of Ring of Fraction
+
+definition
+  let R, S;
+  func FracRing(S) -> strict doubleLoopStr means
+  :Def6:
+  the carrier of it = Class EqRel(S) & 1.it = Class(EqRel(S),1.(R,S)) &
+  0.it = Class(EqRel(S),0.(R,S)) &
+  (for x, y being Element of it ex a, b being Element of Frac(S) st
+   x = Class(EqRel(S),a) & y = Class(EqRel(S),b) &
+  (the addF of it).(x,y) = Class(EqRel(S),a+b) ) &
+  for x, y being Element of it ex a, b being Element of Frac(S) st
+  x = Class(EqRel(S),a) & y = Class(EqRel(S),b) &
+  (the multF of it).(x,y) = Class(EqRel(S),a*b );
+  existence
+  proof
+    set E = EqRel(S);
+    set A = Class E;
+    set SR = Frac(S);
+    defpred P[set,set,set] means ex P,Q being Element of SR st $1 = Class(E,P)
+    & $2 = Class(E,Q) & $3 = Class(E,P+Q );
+    defpred R[set,set,set] means ex P,Q being Element of SR st $1 = Class(E,P)
+    & $2 = Class(E,Q) & $3 = Class(E,P*Q );
+  reconsider u = Class(EqRel(S),1.(R,S)) as Element of A by EQREL_1:def 3;
+  reconsider z = Class(EqRel(S),0.(R,S)) as Element of A by EQREL_1:def 3;
+A1: for x, y being Element of A ex z being Element of A st P[x,y,z]
+    proof
+      let x, y be Element of A;
+      consider P being object such that
+A2:   P in SR and
+A3:   x = Class(E,P) by EQREL_1:def 3;
+      consider Q being object such that
+A4:   Q in SR and
+A5:   y = Class(E,Q) by EQREL_1:def 3;
+      reconsider P,Q as Element of SR by A2,A4;
+      Class(E,P+Q ) is Element of A by EQREL_1:def 3;
+      hence thesis by A3,A5;
+    end;
+    consider g being BinOp of A such that
+A6: for a,b being Element of A holds P[a,b,g.(a,b)] from BINOP_1:sch 3
+    (A1);
+A7: for x,y being Element of A ex z being Element of A st R[x,y,z]
+    proof
+      let x, y be Element of A;
+      consider P being object such that
+A8:   P in SR and
+A9:   x = Class(E,P) by EQREL_1:def 3;
+      consider Q being object such that
+A10:  Q in SR and
+A11:  y = Class(E,Q) by EQREL_1:def 3;
+      reconsider P,Q as Element of SR by A8,A10;
+      Class(E,P*Q) is Element of A by EQREL_1:def 3;
+      hence thesis by A9,A11;
+    end;
+     consider h being BinOp of A such that
+A12: for a,b being Element of A holds R[a,b,h.(a,b)] from BINOP_1:sch 3(A7);
+     take doubleLoopStr(#A,g,h,u,z#);
+     thus thesis by A6,A12;
+  end;
+  uniqueness
+  proof
+    set SR = Frac(S);
+    set E = EqRel(S);
+    set A = Class E;
+    set SR = Frac(S);
+     let X, Y be strict doubleLoopStr such that
+A13: the carrier of X = Class E and
+A14: 1.X = Class(E,1.(R,S)) & 0.X = Class(E,0.(R,S)) and
+A15: for x, y being Element of X ex a, b being Element of SR st x =
+     Class(E,a) & y=Class(E,b) & (the addF of X).(x,y)=Class(E,a+b) and
+A16: for x,y being Element of X ex a,b being Element of SR st x =
+     Class(E,a) & y=Class(E,b) & (the multF of X).(x,y)=Class(E,a*b) and
+A17: the carrier of Y = Class E and
+A18: 1.Y = Class(E,1.(R,S)) & 0.Y = Class(E,0.(R,S)) and
+A19: for x, y being Element of Y ex a, b being Element of SR st x =
+     Class(E,a) & y = Class(E,b) & (the addF of Y).(x,y)=Class(E,a+b) and
+A20: for x, y being Element of Y ex a, b being Element of SR st x =
+     Class(E,a) & y = Class(E,b) & (the multF of Y).(x,y)=Class(E,a*b);
+A21: for x, y being Element of X holds (the multF of X).(x,y) = (the multF
+     of Y).(x,y)
+     proof
+       let x, y be Element of X;
+       consider a, b being Element of SR such that
+A22:   x = Class(E,a) and
+A23:   y = Class(E,b) and
+A24:   (the multF of X).(x,y) = Class(E,a*b) by A16;
+       consider a1, b1 being Element of SR such that
+A25:   x = Class(E,a1) and
+A26:   y = Class(E,b1) and
+A27:   (the multF of Y).(x,y) = Class(E,a1*b1) by A13,A17,A20;
+A28:   b,b1 Fr_Eq S by A23,A26,Th26;
+A29:   a,a1 Fr_Eq S by A22,A25,Th26;
+       reconsider u = a*b as Element of SR;
+:::       reconsider v = a1*b1 as Element of SR;
+       thus thesis by A24,A27,Th26,Th27,A28,A29;
+     end;
+     for x, y being Element of X holds (the addF of X).(x,y) =
+     (the addF of Y).(x,y)
+     proof
+       let x, y be Element of X;
+       consider a, b being Element of SR such that
+A30:   x = Class(E,a) & y = Class(E,b) and
+A31:   (the addF of X).(x,y) = Class(E,a+b) by A15;
+       consider a1, b1 being Element of SR such that
+A32:   x = Class(E,a1) & y = Class(E,b1) and
+A33:   (the addF of Y).(x,y) = Class(E,a1+b1) by A13,A17,A19;
+       a,a1 Fr_Eq S & b,b1 Fr_Eq S by A30,A32,Th26;
+       hence thesis by A31,A33,Th26,Th28;
+     end;
+     then the addF of X = the addF of Y by A13,A17,BINOP_1:2;
+     hence thesis by A13,A14,A17,A18,A21,BINOP_1:2;
+   end;
+ end;
+
+notation
+  let R,S;
+  synonym S~R for FracRing(S);
+end;
+
+registration
+  let R, S;
+  cluster S~R -> non empty;
+  coherence
+  proof
+    Class(EqRel(S),1.(R,S)) in Class EqRel(S) by EQREL_1:def 3;
+    hence thesis by Def6;
+  end;
+end;
+
+:: Example 2) of [AM] p38
+theorem Th31:
+   0.R in S iff S~R is degenerated
+   proof
+A1:  S~R is degenerated implies 0.R in S
+     proof
+       assume S~R is degenerated; then
+       Class(EqRel(S),1.(R,S)) = 0.(S~R) by Def6
+       .= Class(EqRel(S),0.(R,S)) by Def6; then
+       1.(R,S), 0.(R,S) Fr_Eq S by Th26; then
+       consider s1 be Element of R such that
+A3:    s1 in S and
+A4:    (1.(R,S)`1 * 0.(R,S)`2 - 0.(R,S)`1 * 1.(R,S)`2) * s1 = 0.R;
+       thus thesis by A3,A4;
+     end;
+     0.R in S implies S~R is degenerated
+     proof
+       assume 0.R in S; then
+A6:    1.(R,S), 0.(R,S) Fr_Eq S;
+       1.(S~R) = Class(EqRel(S),1.(R,S)) by Def6
+       .= Class(EqRel(S),0.(R,S)) by A6,Th26 .= 0.(S~R) by Def6;
+       hence thesis;
+     end;
+     hence thesis by A1;
+   end;
+
+reserve a, b, c for Element of Frac(S);
+reserve x, y, z for Element of S~R;
+
+theorem Th32:
+  for x holds
+   ex a being Element of Frac(S) st x = Class(EqRel(S),a)
+   proof
+     let x;
+     the carrier of S~R = Class EqRel(S) by Def6; then
+     x in Class EqRel(S); then
+     ex a being object st a in Frac(S) & x = Class(EqRel(S),a)
+     by EQREL_1:def 3;
+     hence thesis;
+   end;
+
+theorem Th33:
+   x = Class(EqRel(S),a) & y = Class(EqRel(S),b) implies
+     x*y = Class(EqRel(S),a*b)
+   proof
+     assume that
+A1:  x = Class(EqRel(S),a) and
+A2:  y = Class(EqRel(S),b);
+     consider a1, b1 being Element of Frac(S) such that
+A3:  x = Class(EqRel(S),a1) and
+A4:  y = Class(EqRel(S),b1) and
+A5:  (the multF of S~R).(x,y) = Class(EqRel(S),a1*b1) by Def6;
+A6:  a1,a Fr_Eq S by A1,A3,Th26;
+     b1,b Fr_Eq S by A2,A4,Th26;
+     hence thesis by A5,Th26,A6,Th27;
+   end;
+
+theorem Th34:
+  x*y = y*x
+   proof
+     consider a such that
+A1:  x = Class(EqRel(S),a) by Th32;
+     consider b such that
+A2:  y = Class(EqRel(S),b) by Th32;
+     x*y = Class(EqRel(S),a*b) by A1,A2,Th33
+     .= Class(EqRel(S),b*a)  .= y*x by A1,A2,Th33;
+     hence thesis;
+   end;
+
+theorem Th35:
+  x = Class(EqRel(S),a) & y = Class(EqRel(S),b) implies
+    x+y = Class(EqRel(S),a+b)
+   proof
+     consider a1, b1 being Element of Frac(S) such that
+A1:  x = Class(EqRel(S),a1) & y = Class(EqRel(S),b1) and
+A2:  (the addF of S~R).(x,y) = Class(EqRel(S),a1+b1) by Def6;
+     assume x = Class(EqRel(S),a) & y = Class(EqRel(S),b); then
+     a,a1 Fr_Eq S & b,b1 Fr_Eq S by A1,Th26;
+     hence thesis by A2,Th26,Th28;
+   end;
+
+Lm36:
+  Fracadd((frac1(S)).r1,(frac1(S)).r2),(frac1(S)).(r1+r2) Fr_Eq S
+  proof
+A1: (frac1(S)).r1 = [r1,1.R] by Def4;
+    (frac1(S)).r2 = [r2,1.R] by Def4; then
+    Fracadd((frac1(S)).r1,(frac1(S)).r2) = (frac1(S)).(r1+r2) by A1,Def4;
+    hence thesis by Th22;
+  end;
+
+Lm37:
+   x = Class(EqRel(S),(frac1(S)).r1) & y = Class(EqRel(S),(frac1(S)).r2)
+   implies x+y = Class(EqRel(S),(frac1(S)).(r1+r2))
+   proof
+     reconsider rr1 = (frac1(S)).r1, rr2 = (frac1(S)).r2 as Element of Frac(S);
+     assume
+     x = Class(EqRel(S),(frac1(S)).r1) & y = Class(EqRel(S),(frac1(S)).r2);
+     then x+ y = Class(EqRel(S),rr1+rr2) by Th35;
+     hence thesis by Th26,Lm36;
+   end;
+
+Lm38:
+   Fracmult((frac1(S)).r1,(frac1(S)).r2),(frac1(S)).(r1*r2) Fr_Eq S
+   proof
+A1:  (frac1(S)).r1 = [r1,1.R] by Def4;
+     (frac1(S)).r2 = [r2,1.R] by Def4; then
+     Fracmult((frac1(S)).r1,(frac1(S)).r2) = (frac1(S)).(r1*r2) by A1,Def4;
+     hence thesis by Th22;
+   end;
+
+Lm39:
+   x = Class(EqRel(S),(frac1(S)).r1) & y = Class(EqRel(S),(frac1(S)).r2)
+   implies x*y = Class(EqRel(S),(frac1(S)).(r1*r2))
+   proof
+     reconsider rr1 = (frac1(S)).r1, rr2 = (frac1(S)).r2 as Element of Frac(S);
+     assume
+     x = Class(EqRel(S),(frac1(S)).r1) & y = Class(EqRel(S),(frac1(S)).r2);
+     then x* y = Class(EqRel(S),rr1*rr2) by Th33;
+     hence thesis by Th26,Lm38;
+   end;
+
+theorem Th40:
+   S~R is Ring
+   proof
+A1:  x + y = y + x
+     proof
+       consider a such that
+A2:    x = Class(EqRel(S),a) by Th32;
+       consider b such that
+A3:    y = Class(EqRel(S),b) by Th32;
+       x+y = Class(EqRel(S),a+b) by A2,A3,Th35
+        .= Class(EqRel(S),b+a)
+        .= y + x by A2,A3,Th35;
+      hence thesis;
+     end;
+A4:  (x + y) + z = x + (y + z)
+     proof
+       consider a such that
+A5:    x = Class(EqRel(S),a) by Th32;
+       consider b such that
+A6:    y = Class(EqRel(S),b) by Th32;
+       consider c such that
+A7:    z = Class(EqRel(S),c) by Th32;
+A8:    y+z = Class(EqRel(S),b+c) by A6,A7,Th35;
+       x+y = Class(EqRel(S),a+b) by A5,A6,Th35; then
+       (x+y) + z = Class(EqRel(S),(a+b)+c) by A7,Th35
+       .= Class(EqRel(S),a+(b+c)) by Th19
+       .= x + (y+z) by A8,A5,Th35;
+       hence thesis;
+     end;
+A9:  x + 0.(S~R) = x
+     proof
+       consider a such that
+A10:   x = Class(EqRel(S),a) by Th32;
+       0.(S~R) = Class(EqRel(S),0.(R,S)) by Def6; then
+       x + 0.(S~R) = Class(EqRel(S),a + 0.(R,S)) by A10,Th35
+       .= x by A10;
+       hence thesis;
+     end;
+A11: x is right_complementable
+     proof
+        ex y be Element of S~R st x+y = 0.(S~R)
+        proof
+        consider a, b being Element of Frac(S) such that
+A12:    x = Class(EqRel(S),a) and
+        0.(S~R) = Class(EqRel(S),b) and
+        (the addF of S~R).(x,0.(S~R)) = Class(EqRel(S),a+b) by Def6;
+        reconsider u1 = a`1 as Element of R;
+        reconsider u2 = a`2 as Element of S by Lm17;
+        reconsider u = [-u1,u2] as Element of Frac(S) by Def3;
+A13:    a + u = [u1*u2 + (-u1*u2), u2*u2] by VECTSP_1:9
+             .= [0.R, u2*u2] by RLVECT_1:5;
+        reconsider s = 1.R as Element of S by C0SP1:def 4;
+        reconsider u3 = u2*u2 as Element of S by C0SP1:def 4;
+        (0.R * 1.R - 0.R * u3) * s = 0.R; then
+        a+u,0.(R,S) Fr_Eq S by A13; then
+A14:    Class(EqRel(S),a+u) = Class(EqRel(S),0.(R,S)) by Th26
+        .= 0.(S~R) by Def6;
+A15:    the carrier of S~R = Class EqRel(S) by Def6;
+        reconsider y = Class(EqRel(S),u) as Element of S~R
+        by A15,EQREL_1:def 3;
+        x + y = 0.(S~R) by A14,A12,Th35;
+        hence thesis;
+      end;
+      hence thesis;
+     end;
+A16: (x + y) * z = x * z + y * z
+     proof
+       consider a such that
+A17:   x = Class(EqRel(S),a) by Th32;
+       consider b such that
+A18:   y = Class(EqRel(S),b) by Th32;
+       consider c such that
+A19:   z = Class(EqRel(S),c) by Th32;
+A21:   x*z = Class(EqRel(S),a*c) by A17,A19,Th33;
+A22:   y*z = Class(EqRel(S),b*c) by A18,A19,Th33;
+       x+y = Class(EqRel(S),a+b) by A17,A18,Th35; then
+       (x+y)*z = Class(EqRel(S),(a+b)*c) by A19,Th33
+       .= Class(EqRel(S),a*c+ b*c) by Th29,Th26 .= x*z+ y*z by A21,A22,Th35;
+       hence thesis;
+     end;
+A23: x * (y + z) = x * y + x * z & (y + z) * x = y * x + z * x
+     proof
+       x * (y + z) = (y + z) * x by Th34 .= y*x + z* x by A16
+       .= x*y + z* x by Th34 .= x*y + x*z by Th34;
+       hence thesis by A16;
+     end;
+A25: (x * y) * z = x * (y * z)
+     proof
+       consider a such that
+A26:   x = Class(EqRel(S),a) by Th32;
+       consider b such that
+A27:   y = Class(EqRel(S),b) by Th32;
+       consider c such that
+A28:   z = Class(EqRel(S),c) by Th32;
+A29:   y*z = Class(EqRel(S),b*c) by A27,A28,Th33;
+       x*y = Class(EqRel(S),a*b) by A26,A27,Th33; then
+       (x*y)*z = Class(EqRel(S),(a*b)*c) by A28,Th33
+       .= Class(EqRel(S),a*(b*c)) by Th20  .= x*(y*z) by A26,A29,Th33;
+       hence thesis;
+     end;
+     x *1.(S~R) = x & 1.(S~R) * x = x
+     proof
+       consider a such that
+A30:   x = Class(EqRel(S),a) by Th32;
+       1.(S~R) = Class(EqRel(S),1.(R,S)) by Def6; then
+       x * 1.(S~R) = Class(EqRel(S),a * 1.(R,S)) by A30,Th33 .= x by A30;
+       hence thesis by Th34;
+     end;
+     hence thesis by A1,A4,A9,A11,A23,A25,VECTSP_1:def 6,def 7,
+     GROUP_1:def 3,RLVECT_1:def 2,def 3,def 4,ALGSTR_0:def 16;
+   end;
+
+registration
+  let R,S;
+  cluster S~R -> commutative Abelian add-associative right_zeroed
+    right_complementable associative well-unital distributive;
+  coherence by Th34,Th40;
+end;
+
+Lm41:
+   Class(EqRel(S),a) is Element of S~R
+   proof
+     the carrier of S~R = Class EqRel(S) by Def6;
+     hence thesis by EQREL_1:def 3;
+   end;
+
+Lm42:
+   a`1 = a`2 implies Class(EqRel(S),a) = 1.(S~R)
+   proof
+     assume
+A1:  a`1 = a`2;
+     reconsider s1 = 1.R as Element of S by C0SP1:def 4;
+     (a`1*1.(R,S)`2 -1.(R,S)`1*a`2)*s1 = 0.R by A1,RLVECT_1:5; then
+     a,1.(R,S) Fr_Eq S; then
+     Class(EqRel(S),a) = Class(EqRel(S),1.(R,S)) by Th26
+     .= 1.(S~R) by Def6;
+     hence thesis;
+   end;
+
+Lm43:
+    Class(EqRel(S),(frac1(S)).(1.R)) = 1.(S~R)
+    proof
+      reconsider a = (frac1(S)).(1.R) as Element of Frac(S);
+A1:   (frac1(S)).1.R = [1.R,1.R] by Def4;
+      a`1 = a`2 by A1;
+      hence thesis by Lm42;
+    end;
+
+Lm44:
+   for o be object st o in the carrier of R holds
+   Class(EqRel(S),(frac1(S)).o) in the carrier of S~R
+   proof
+     let o be object;
+     assume o in the carrier of R; then
+     reconsider a = (frac1(S)).o as Element of Frac(S) by FUNCT_2:5;
+     Class(EqRel(S),a) is Element of S~R by Lm41;
+     hence thesis;
+   end;
+
+Lm45:
+   a`1 in S implies Class(EqRel(S),a) is Unit of S~R
+   proof
+     assume a`1 in S; then
+     reconsider b = [a`2,a`1] as Element of Frac(S) by Def3;
+A2:  (a*b)`1 = (a*b)`2;
+     reconsider x = Class(EqRel(S),a), y = Class(EqRel(S),b)
+     as Element of S~R by Lm41;
+A3:  x*y = Class(EqRel(S),a*b) by Th33 .= 1.(S~R) by A2,Lm42;
+A4:  x divides 1.(S~R) by A3;
+     x is unital by A4;
+     hence thesis;
+  end;
+
+Lm46:
+   for s be Element of S holds Class(EqRel(S),[s,1.R]) is Unit of S~R
+   proof
+     let s be Element of S;
+     1.R in S by C0SP1:def 4; then
+     reconsider a = [s,1.R] as Element of Frac(S) by Def3;
+     a`1 in S;
+     hence thesis by Lm45;
+   end;
+
+theorem Th46:
+   for z holds
+   ex r1,r2 be Element of R st r2 in S & z = Class(EqRel(S),[r1,r2])
+   proof
+     let z;
+     consider r be Element of Frac(S)  such that
+A1:  z = Class(EqRel(S),r) by Th32;
+     consider r1,r2 be Element of R such that
+A2:  r1 = r`1 and
+A3:  r2 = r`2;
+     z = Class(EqRel(S),[r1,r2]) by A1,A2,A3;
+     hence thesis by A3,Lm17;
+   end;
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::::::   canHom(obj1)  obj1: multiclosed set of a Ring
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+reserve S for without_zero non empty multiplicatively-closed Subset of A;
+
+definition
+  let A,S;
+  func canHom(S) -> Function of A, S~A means
+  :Def7:
+  for o be object st o in the carrier of A holds
+  it.o = Class(EqRel(S),(frac1(S)).o);
+  existence
+  proof
+    deffunc F(object) = Class(EqRel(S),(frac1(S)).$1);
+A1: for o1 be object st o1 in the carrier of A
+    holds F(o1) in the carrier of S~A by Lm44;
+    ex g be Function of A,S~A st
+    for o2 being object st o2 in the carrier of A holds g.o2 = F(o2)
+    from FUNCT_2:sch 2(A1);
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of A, S~A such that
+A2: for o be object st o in the carrier of A holds
+    f1.o = Class(EqRel(S),(frac1(S)).o) and
+A3: for o be object st o in the carrier of A
+    holds f2.o = Class(EqRel(S),(frac1(S)).o);
+    for o1 be object st o1 in the carrier of A holds f1.o1 = f2.o1
+    proof
+      let o1 be object such that
+A4:   o1 in the carrier of A;
+      f1.o1 = Class(EqRel(S),(frac1(S)).o1) by A2,A4;
+      hence thesis by A3,A4;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let A,S;
+  cluster canHom(S) -> additive multiplicative unity-preserving;
+  coherence
+   proof
+     set ER = EqRel(S), B = S~A;
+     for a,b being Element of A holds
+     (canHom(S)).(a+b) = (canHom(S)).a + (canHom(S)).b &
+     (canHom(S)).(a*b) = (canHom(S)).a * (canHom(S)).b &
+     (canHom(S)).(1_A) = 1_S~A
+     proof
+       let a,b be Element of A;
+       reconsider a1 = (frac1(S)).a, b1 = (frac1(S)).b,
+                  ab1 = (frac1(S)).(a+b), ab2 = (frac1(S)).(a*b),
+                  E1 = (frac1(S)).1.A as Element of Frac(S);
+       reconsider x= Class(EqRel(S),a1),
+                  y= Class(EqRel(S),b1) as Element of S~A by Lm41;
+A1:    (canHom(S)).a = x by Def7;
+A2:    (canHom(S)).b = y by Def7; then
+A3:    (canHom(S)).a + (canHom(S)).b
+        = Class(EqRel(S),(frac1(S)).(a+b)) by A1,Lm37
+       .= (canHom(S)).(a+b) by Def7;
+A4:    (canHom(S)).a * (canHom(S)).b
+        = Class(EqRel(S),(frac1(S)).(a*b)) by A1,A2,Lm39
+       .= (canHom(S)).(a*b) by Def7;
+       (canHom(S)).(1.A) = Class(EqRel(S),(frac1(S)).1.A) by Def7
+       .= 1.(S~A) by Lm43;
+       hence thesis by A3,A4;
+     end;
+     hence thesis;
+   end;
+end;
+
+theorem Lm49:
+   for a,b being Element of A holds
+   (canHom(S)).(a-b) = (canHom(S)).a - (canHom(S)).b
+   proof
+     let a,b be Element of A;
+     thus
+     (canHom(S)).(a-b) = (canHom(S)).a + (canHom(S)).(-b) by VECTSP_1:def 20
+     .= (canHom(S)).a - (canHom(S)).b by RING_2:7;
+   end;
+
+theorem Lm50:
+   not 0.A in S implies ker canHom(S) c= ZeroDiv_Set(A)
+   proof
+     assume
+A1:  not 0.A in S;
+     for o st o in ker canHom(S) holds o in ZeroDiv_Set(A)
+     proof
+       let o;
+       assume o in ker canHom(S); then
+       consider v1 be Element of A such that
+A3:    v1 = o and
+A4:    (canHom(S)).v1 = 0.(S~A);
+       1.A in S by C0SP1:def 4; then
+       reconsider w = [v1,1.A] as Element of Frac(S) by Def3;
+       Class(EqRel(S),0.(A,S)) = (canHom(S)).v1 by A4,Def6
+       .= Class(EqRel(S),(frac1(S)).v1) by Def7
+       .= Class(EqRel(S),w) by Def4; then
+       0.(A,S), w Fr_Eq S by Th26; then
+       consider t1 be Element of A such that
+A5:    t1 in S and
+A6:    (0.(A,S)`1 * w`2 - w`1* 0.(A,S)`2)*t1 = 0.A;
+A7:    0.A = ((- 1.A) * v1)*t1 by A6,VECTSP_2:29
+       .= (- 1.A) * (v1*t1) by GROUP_1:def 3
+       .= - (v1*t1) by VECTSP_2:29;
+A8:    0.A = -(-v1*t1) by A7 .= v1*t1;
+       v1 is zero_divisible by A1,A5,A8;
+       hence thesis by A3;
+     end;
+     hence thesis;
+   end;
+
+theorem
+   not 0.A in S & A is domRing implies ker canHom(S) = {0.A} &
+   canHom(S) is one-to-one
+   proof
+     assume
+A1:  not 0.A in S & A is domRing; then
+
+::::proof for ker canHom(S) = {0.A}
+A2:  ker canHom(S) c= ZeroDiv_Set(A) by Lm50;
+A3:  ZeroDiv_Set(A) = {0.A} by A1,Th4;
+A4:  (canHom(S)).0.A = Class(EqRel(S),(frac1(S)).0.A) by Def7
+     .= Class(EqRel(S),0.(A,S)) by Def4
+     .= 0.(S~A) by Def6;
+A5:  0.A in ker canHom(S) by A4;
+A6:  {0.A} is Subset of ker canHom(S) by A5,SUBSET_1:33;
+
+:::::proof for canHom(S) is one-to-one
+     for x,y be object st x in dom canHom(S) & y in dom canHom(S) &
+     (canHom(S)).x = (canHom(S)).y holds x = y
+     proof
+       let x,y be object;
+       assume
+A8:    x in dom canHom(S) & y in dom canHom(S)
+       & (canHom(S)).x = (canHom(S)).y; then
+       reconsider a = x, b = y as Element of A;
+A9:    0.(S~A) = (canHom(S)).a - (canHom(S)).b by A8,RLVECT_1:15
+       .= (canHom(S)).(a-b) by Lm49;
+A10:   a - b in ker canHom(S) by A9;
+A11:   0.A = a + -b by A2, A3, A10, TARSKI:def 1;
+       a = -(-b) by A11, RLVECT_1:6 .= b;
+       hence thesis;
+     end;
+     hence thesis by A2,A3,A6,XBOOLE_0:def 10;
+   end;
+
+begin ::Localization in terms of Prime Ideal
+
+reserve p for Element of Spectrum A;
+
+definition
+  let A,p;
+  func Loc(A,p) -> Subset of A equals
+  [#]A \ p;
+  coherence;
+end;
+
+Th52:
+   1.A in Loc(A,p)
+   proof
+     reconsider p as prime Ideal of A by Lm5;
+     not 1.A in p by IDEAL_1:19;
+     hence thesis by XBOOLE_0:def 5;
+   end;
+
+registration
+  let A, p;
+  cluster Loc(A,p) -> non empty;
+  coherence by Th52;
+  cluster Loc(A,p) -> multiplicatively-closed;
+  coherence by Th6;
+  cluster Loc(A,p) -> without_zero;
+  coherence
+  proof
+    reconsider p as prime Ideal of A by Lm5;
+    0.A in p by IDEAL_1:3;
+    hence thesis by XBOOLE_0:def 5;
+  end;
+end;
+
+definition
+  let A,p;
+  func A~p -> Ring equals
+  (Loc(A,p))~A;
+  correctness;
+end;
+
+registration
+  let A,p;
+  cluster A~p -> non degenerated;
+  coherence
+  proof
+    reconsider p as prime Ideal of A by Lm5;
+    0.A in p by IDEAL_1:3; then
+    not 0.A in [#]A \ p by XBOOLE_0:def 5;
+    hence thesis by Th31;
+  end;
+  cluster A~p -> commutative;
+  coherence;
+end;
+
+definition
+  let A,p;
+  func Loc-Ideal(p) -> Subset of [#](A~p) equals
+  {y where y is Element of A~p : ex a be Element of Frac(Loc(A,p))
+   st a in [:p,Loc(A,p):] & y = Class(EqRel(Loc(A,p)),a) };
+  coherence
+  proof
+    set C = {y where y is Element of A~p :
+    ex a be Element of Frac(Loc(A,p)) st a in [:p,Loc(A,p):] &
+    y = Class(EqRel(Loc(A,p)),a) };
+    for x be object holds x in C implies x in [#](A~p)
+    proof
+      let x be object;
+      assume x in C; then
+      consider y1 be Element of A~p such that
+A2:   y1 = x and
+      ex a be Element of Frac(Loc(A,p))
+      st a in [:p,Loc(A,p):] & y1 = Class(EqRel(Loc(A,p)),a);
+      thus thesis by A2;
+    end; then
+    C c= [#](A~p);
+    hence thesis;
+  end;
+end;
+
+registration
+  let A,p;
+  cluster Loc-Ideal(p) -> non empty;
+  coherence
+  proof
+    p is prime Ideal of A by Lm5; then
+A1: 0.A in p by IDEAL_1:2;
+A2: 1.A in Loc(A,p) by Th52; then
+    reconsider a = [0.A,1.A] as Element of Frac(Loc(A,p)) by Def3;
+A3: a in [:p,Loc(A,p):] by A1,A2,ZFMISC_1:87;
+    reconsider y = Class(EqRel(Loc(A,p)),a) as Element of A~p by Lm41;
+    y in Loc-Ideal(p) by A3;
+    hence thesis;
+  end;
+end;
+
+reserve a,m,n for Element of A~p;
+
+theorem Th53:
+   Loc-Ideal(p) is proper Ideal of A~p
+   proof
+     reconsider M = Loc-Ideal(p) as Subset of A~p;
+A1:  for m, n being Element of A~p st m in M & n in M holds m+n in M
+     proof
+       let m, n being Element of A~p;
+       assume that
+A2:    m in M and
+A3:    n in M;
+       consider y1 be Element of A~p such that
+A4:    y1 = m and
+A5:    ex a be Element of Frac(Loc(A,p))
+       st a in [:p,Loc(A,p):] & y1 = Class(EqRel(Loc(A,p)),a) by A2;
+       consider y2 be Element of A~p such that
+A6:    y2 = n and
+A7:    ex a be Element of Frac(Loc(A,p))
+       st a in [:p,Loc(A,p):] & y2 = Class(EqRel(Loc(A,p)),a) by A3;
+       consider a1 be Element of Frac(Loc(A,p)) such that
+A8:    a1 in [:p,Loc(A,p):] and
+A9:    y1 = Class(EqRel(Loc(A,p)),a1) by A5;
+       consider a2 be Element of Frac(Loc(A,p)) such that
+A10:   a2 in [:p,Loc(A,p):] and
+A11:   y2 = Class(EqRel(Loc(A,p)),a2) by A7;
+A12:   a1`1 in p & a2`1 in p by A8,A10,MCART_1:10;
+       a1`2 in Loc(A,p) & a2`2 in Loc(A,p) by A8,A10,MCART_1:10; then
+A17:   a1`2 * a2`2 in Loc(A,p) by C0SP1:def 4;
+A14:   p is prime Ideal of A by Lm5; then
+A15:   a1`1 * a2`2 in p by A12,IDEAL_1:def 3;
+       a2`1 * a1`2 in p by A12,A14,IDEAL_1:def 2; then
+A16:   a1`1 * a2`2 + a2`1 * a1`2 in p by A14,A15,IDEAL_1:def 1;
+       reconsider a3 = a1 + a2 as Element of Frac(Loc(A,p));
+A18:   a3 in [:p,Loc(A,p):] by A16,A17,ZFMISC_1:87;
+       reconsider y3 = y1 + y2 as Element of A~p;
+       y3 = Class(EqRel(Loc(A,p)),a3) by A9,A11,Th35;
+       hence thesis by A4,A6,A18;
+     end;
+     for x,m being Element of A~p st m in M holds x*m in M
+     proof
+       let x,m be Element of A~p;
+       assume m in M; then
+       consider y1 be Element of A~p such that
+A20:   y1 = m and
+A21:   ex a be Element of Frac(Loc(A,p))
+       st a in [:p,Loc(A,p):] & y1 = Class(EqRel(Loc(A,p)),a);
+       consider a1 be Element of Frac(Loc(A,p)) such that
+A22:   a1 in [:p,Loc(A,p):] and
+A23:   y1 = Class(EqRel(Loc(A,p)),a1) by A21;
+       consider b being Element of Frac(Loc(A,p)) such that
+A24:   x = Class(EqRel(Loc(A,p)),b) by Th32;
+A25:   a1`1 in p & a1`2 in Loc(A,p) by A22,MCART_1:10;
+       b in Frac(Loc(A,p)); then
+       b in [:[#]A, Loc(A,p):] by Th15; then
+       b`1 in [#]A & b`2 in Loc(A,p) by MCART_1:10; then
+A28:   b`2 * a1`2 in Loc(A,p) by A25,C0SP1:def 4;
+       reconsider ba1 = b*a1 as Element of Frac(Loc(A,p));
+       p is prime Ideal of A by Lm5; then
+       b`1 * a1`1 in p by A22,MCART_1:10,IDEAL_1:def 2; then
+A29:   ba1 in [:p,Loc(A,p):] by A28,ZFMISC_1:87;
+       reconsider xy = x*y1 as Element of A~p;
+       xy = Class(EqRel(Loc(A,p)),ba1) by A23,A24,Th33;
+       hence thesis by A20,A29;
+     end; then
+A31: M is left-ideal by IDEAL_1:def 2;
+     M is proper
+     proof
+       assume not M is proper; then
+       1.(A~p) in M by A31,IDEAL_1:19; then
+       consider y1 be Element of A~p such that
+A34:   y1 = 1.(A~p) and
+A35:   ex a be Element of Frac(Loc(A,p))
+       st a in [:p,Loc(A,p):] & y1 = Class(EqRel(Loc(A,p)),a);
+       consider a be Element of Frac(Loc(A,p)) such that
+A36:   a in [:p,Loc(A,p):] and
+A37:   y1 = Class(EqRel(Loc(A,p)),a) by A35;
+A38:   (frac1(Loc(A,p))).(1.A) = [1.A,1.A] by Def4;
+       Class(EqRel(Loc(A,p)),a)
+       = Class(EqRel(Loc(A,p)),(frac1(Loc(A,p))).(1.A)) by A34,A37,Lm43; then
+A39:   a, (frac1(Loc(A,p))).(1.A) Fr_Eq Loc(A,p) by Th26;
+       reconsider y = (frac1(Loc(A,p))).(1.A) as Element of Frac(Loc(A,p));
+       consider s1 be Element of A such that
+A40:  s1 in Loc(A,p) and
+A41:  (a`1 * y`2 - y`1 * a`2) * s1 = 0.A by A39;
+      0.A = a`1*s1 - a`2 * s1 by A38,A41,VECTSP_1:13; then
+A42:  a`1*s1 = a`2 * s1 by VECTSP_1:27;
+A43:  a`1 in p & a`2 in Loc(A,p) by A36,MCART_1:10;
+      p is prime Ideal of A by Lm5; then
+A44:  a`1 * s1 in p by A36,MCART_1:10,IDEAL_1:def 2;
+      a`2 * s1 in Loc(A,p) by A40,A43,C0SP1:def 4;
+      hence contradiction by A42,A44,XBOOLE_0:def 5;
+     end;
+     hence thesis by A1,A31,IDEAL_1:def 1;
+   end;
+
+theorem Th54:
+  for x be object holds x in [#](A~p) \ Loc-Ideal(p) implies x is Unit of A~p
+   proof
+     let x be object;
+     assume
+A1:  x in [#](A~p) \ Loc-Ideal(p); then
+     consider a being Element of Frac(Loc(A,p)) such that
+A2:  x = Class(EqRel(Loc(A,p)),a) by Th32;
+     a in Frac(Loc(A,p)); then
+     a in [:[#]A, Loc(A,p):] by Th15; then
+A3:  a`1 in [#]A & a`2 in Loc(A,p) by MCART_1:10;
+     per cases;
+       suppose
+A4:      a`1 in [#]A \p;
+         reconsider b = [a`1,a`2] as Element of Frac(Loc(A,p));
+         thus thesis by A4,A2,Lm45;
+       end;
+       suppose
+         not a`1 in [#]A \p; then
+A7:      a`1 in p by XBOOLE_0:def 5;
+         reconsider b = [a`1,a`2] as Element of Frac(Loc(A,p));
+         reconsider y = x as Element of A~p by A1;
+A8:      b in [:p, Loc(A,p):] by A3,A7,ZFMISC_1:87;
+         y = Class(EqRel(Loc(A,p)),b) by A2; then
+         x in Loc-Ideal(p) by A8;
+         hence thesis by A1,XBOOLE_0:def 5;
+       end;
+     end;
+
+theorem
+  A~p is local & Loc-Ideal(p) is maximal Ideal of A~p
+  proof
+    reconsider J = Loc-Ideal(p) as proper Ideal of A~p by Th53;
+A1: A~p is local
+    proof
+      (for x be object holds x in [#](A~p) \ J
+        implies x is Unit of A~p) implies A~p is local by TOPZARI1:13;
+      hence thesis by Th54;
+    end;
+    J is maximal Ideal of A~p
+    proof
+      consider m be maximal Ideal of A~p such that
+A3:   J c= m by TOPZARI1:8;
+      o in m implies o in J
+      proof
+        assume
+A4:     o in m; then
+A5:     o is NonUnit of A~p by TOPZARI1:11;
+        per cases;
+        suppose o in m \ J; then
+A7:       o in m & not o in J by XBOOLE_0:def 5;
+          o in [#](A~p) \ J by A7,XBOOLE_0:def 5;
+          hence thesis by A5,Th54;
+        end;
+        suppose not o in m \ J;
+          hence thesis by A4,XBOOLE_0:def 5;
+        end;
+      end; then
+      m c= J;
+      hence thesis by A3,XBOOLE_0:def 10;
+    end;
+    hence thesis by A1;
+  end;
+
+begin :: Universal Property of Ring of Fraction
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::  for any f st f.S c= Unit_Set(B) !ex g:S~A->B st f = g*canHom
+::     f:A ------> B
+::        \       /
+:: canHom  \  #  / !ex Univ_Map(S,f): S~R ---> B
+::          \   /
+::           S~A
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+reserve f for Function of A,B;
+
+theorem Th56:
+   for s be Element of S holds
+   f is RingHomomorphism & f.:S c= Unit_Set(B) implies f.s is Unit of B
+   proof
+     let s be Element of S;
+     assume
+A1:  f is RingHomomorphism & f.:S c= Unit_Set(B);
+A2:  dom f = the carrier of A by FUNCT_2:def 1;
+     reconsider t = f.s as object;
+     t in f.:S by A2,FUNCT_1:def 6; then
+     1.B = f.s*((f.s)["]) by A1, Def2; then
+     f.s divides 1.B; then
+     f.s is unital;
+     hence thesis;
+   end;
+
+:: Prop 3.1 of [AM] p37.
+definition
+  let A,B,S,f;
+  assume
+A1: f is RingHomomorphism & f.:S c= Unit_Set(B);
+  func Univ_Map(S,f) -> Function of S~A, B means :Def8:
+  for x being object st x in the carrier of S~A holds
+  ex a,s being Element of A st s in S &
+  x = Class(EqRel(S),[a,s]) & it.x = (f.a)*((f.s)["]);
+  existence
+  proof
+    defpred P[object,object] means
+    ex a,s being Element of A st s in S &
+    $1 = Class(EqRel(S),[a,s]) & $2 = (f.a)*((f.s)["]);
+A2:  for x being object st x in the carrier of S~A
+    ex y being object st y in the carrier of B & P[x,y]
+    proof
+      let x be object;
+      assume x in the carrier of S~A; then
+      reconsider z=x as Element of S~A;
+      consider a,s be Element of A such that
+A4:   s in S and
+A5:   z = Class(EqRel(S),[a,s]) by Th46;
+      reconsider y = (f.a)*((f.s)["]) as Element of B;
+      P[x,y] by A4,A5;
+      hence thesis;
+    end;
+    ex g being Function of S~A,B
+    st for x being object st x in the carrier of S~A holds P[x,g.x]
+      from FUNCT_2:sch 1(A2); then
+    consider g being Function of S~A,B such that
+A6: for x being object st x in the carrier of S~A holds
+    ex a,s being Element of A st s in S &
+    x = Class(EqRel(S),[a,s]) & g.x = (f.a)*((f.s)["]);
+    take g;
+    thus thesis by A6;
+  end;
+  uniqueness
+    proof
+      let g1,g2 be Function of S~A,B such that
+A7:   for x being object st x in the carrier of S~A holds
+      ex a1,s1 being Element of A st s1 in S &
+      x = Class(EqRel(S),[a1,s1]) & g1.x = (f.a1)*((f.s1)["]) and
+A8:   for x being object st x in the carrier of S~A holds
+      ex a2,s2 being Element of A st s2 in S &
+      x = Class(EqRel(S),[a2,s2]) & g2.x = (f.a2)*((f.s2)["]);
+A9:   dom g1 = the carrier of S~A by FUNCT_2:def 1
+      .= dom g2 by FUNCT_2:def 1;
+      now let x be object;
+        assume
+A10:    x in dom g1; then
+        consider a1,s1 being Element of A such that
+A11:    s1 in S and
+A12:    x = Class(EqRel(S),[a1,s1]) and
+A13:    g1.x = (f.a1)*((f.s1)["]) by A7;
+        consider a2,s2 being Element of A such that
+A14:    s2 in S and
+A15:    x = Class(EqRel(S),[a2,s2]) and
+A16:    g2.x = (f.a2)*((f.s2)["]) by A8,A10;
+        reconsider as1 = [a1,s1] as Element of Frac(S) by A11,Def3;
+        reconsider as2 = [a2,s2] as Element of Frac(S) by A14,Def3;
+        as1,as2 Fr_Eq S by A15,A12,Th26; then
+        consider s3 being Element of A such that
+A18:    s3 in S and
+A19:    (as1`1 * as2`2 - as2`1 * as1`2) * s3 = 0.A;
+A20:    f is multiplicative by A1;
+A21:    0.B = f.(0.A) by A1,QUOFIELD:50
+        .= (f.(a1*s2 -a2*s1))*(f.s3) by A19,A20;
+        f.s3 is Unit of B by A1,Th56,A18; then
+A22:    f.s3 in Unit_Set(B);
+A23:    0.B = ((f.(a1*s2 -a2*s1))*(f.s3))*((f.s3)["]) by A21
+        .= (f.(a1*s2 -a2*s1))*((f.s3)*((f.s3)["])) by GROUP_1:def 3
+        .= (f.(a1*s2 -a2*s1))*(1.B) by A22,Def2
+        .= f.(a1*s2)- f.(a2*s1) by A1,RING_2:8;
+        f.s1 is Unit of B by A1,A11,Th56; then
+A24:    f.s1 in Unit_Set(B);
+        f.s2 is Unit of B by A1,A14,Th56; then
+A26:    f.s2 in Unit_Set(B);
+        reconsider fa1 = f.a1, fa2 = f.a2 as Element of B;
+        reconsider fs1 = f.s1, fs2 = f.s2 as Element of B;
+A27:    f.a1*f.s2 = f.(a1*s2) by A20 .= f.(a2*s1) by A23,VECTSP_1:27
+        .= f.a2*f.s1 by A20;
+        (fa1*fs2)*(fs2["]) = fa1*(fs2*(fs2["])) by GROUP_1:def 3
+        .= fa1*1.B by Def2,A26 .= fa1; then
+        g1.x = ((fa2*(fs2["]))*fs1)*(fs1["]) by A27,A13,GROUP_1:def 3
+        .= (fa2*(fs2["]))*(fs1*(fs1["])) by GROUP_1:def 3
+        .= (fa2*(fs2["]))*1.B by A24,Def2 .= g2.x by A16;
+        hence g1.x = g2.x;
+      end;
+      hence thesis by A9;
+    end;
+  end;
+
+theorem Th57:
+  f is RingHomomorphism & f.:S c= Unit_Set(B) implies
+    Univ_Map(S,f) is additive
+   proof
+     set F = Univ_Map(S,f);
+     assume
+A1:  f is RingHomomorphism & f.:S c= Unit_Set(B);
+     for x,y being Element of S~A holds
+     (Univ_Map(S,f)).(x+y) = (Univ_Map(S,f)).x + (Univ_Map(S,f)).y
+     proof
+       let x,y be Element of S~A;
+       consider a1,s1 being Element of A such that
+A3:    s1 in S and
+A4:    x = Class(EqRel(S),[a1,s1]) and
+A5:    F.x = (f.a1)*((f.s1)["]) by A1,Def8;
+       consider a2,s2 being Element of A such that
+A6:    s2 in S and
+A7:    y = Class(EqRel(S),[a2,s2]) and
+A8:    F.y = (f.a2)*((f.s2)["]) by A1,Def8;
+       reconsider as1 = [a1,s1] as Element of Frac(S) by A3,Def3;
+       reconsider as2 = [a2,s2] as Element of Frac(S) by A6,Def3;
+       reconsider z = x + y as Element of S~A;
+       consider a3,s3 being Element of A such that
+A9:    s3 in S and
+A10:   z = Class(EqRel(S),[a3,s3]) and
+A11:   F.z = (f.a3)*((f.s3)["]) by A1,Def8;
+       reconsider as3 = [a3,s3] as Element of Frac(S) by A9,Def3;
+       Class(EqRel(S),as3) = Class(EqRel(S),as1+as2) by Th35,A4,A7,A10; then
+       as3, as1+as2 Fr_Eq S by Th26; then
+       consider s0 being Element of A such that
+A14:   s0 in S and
+A15:   (as3`1 * (as1+as2)`2 - (as1+as2)`1 * as3`2) * s0 = 0.A;
+A16:   0.B = f.(0.A) by A1,QUOFIELD:50
+       .= f.((a3 * (s1*s2) - (a1*s2+a2*s1)*s3))*f.s0 by A1,A15,GROUP_6:def 6;
+       f.s0 is Unit of B by A1,A14,Th56; then
+A17:   f.s0 in Unit_Set(B);
+       f.s1 is Unit of B by A1,A3,Th56; then
+A18:   f.s1 in Unit_Set(B);
+       f.s2 is Unit of B by A1,A6,Th56; then
+A19:   f.s2 in Unit_Set(B);
+       f.s3 is Unit of B by A1,A9,Th56; then
+A20:   f.s3 in Unit_Set(B);
+A21:   0.B = (f.((a3*(s1*s2) - (a1*s2+a2*s1)*s3))*f.s0)*((f.s0)["]) by A16
+       .= (f.((a3*(s1*s2) - (a1*s2+a2*s1)*s3)))*(f.s0*((f.s0)["]))
+        by GROUP_1:def 3
+       .= (f.((a3*(s1*s2) - (a1*s2+a2*s1)*s3)))*(1.B) by A17,Def2
+       .= f.(a3*(s1*s2)) - f.((a1*s2+a2*s1)*s3) by A1,RING_2:8;
+       f.a3*(f.s1*f.s2) = f.a3*f.(s1*s2) by A1,GROUP_6:def 6
+       .= f.(a3*(s1*s2)) by A1,GROUP_6:def 6
+       .= f.((a1*s2+a2*s1)*s3) by A21, VECTSP_1:27
+       .= f.(a1*s2+a2*s1)*f.s3 by A1,GROUP_6:def 6; then
+A23:   (f.a3*((f.s3)["]))*(f.s1*f.s2)
+        = (f.(a1*s2+a2*s1)*f.s3)*((f.s3)["]) by GROUP_1:def 3
+       .= f.(a1*s2+a2*s1)*((f.s3)*((f.s3)["])) by GROUP_1:def 3
+       .= f.(a1*s2+a2*s1)*1.B by A20,Def2
+       .= f.(a1*s2)+f.(a2*s1) by A1,VECTSP_1:def 20;
+       reconsider fa1 = f.a1, fa2 = f.a2, fa3 = f.a3 as Element of B;
+       reconsider fs1 = f.s1, fs2 = f.s2, fs3 = f.s3 as Element of B;
+A24:   fa3*(fs3["])*fs1 = (fa3*(fs3["])*fs1)*1.B
+       .= (fa3*(fs3["])*fs1)*(fs2*(fs2["])) by A19,Def2
+       .= (fa3*(fs3["])*fs1)*fs2*(fs2["]) by GROUP_1:def 3
+       .= (f.(a1*s2)+f.(a2*s1))*((f.s2)["]) by A23,GROUP_1:def 3
+       .= (f.a1*f.s2+f.(a2*s1))*((f.s2)["]) by A1,GROUP_6:def 6
+       .= (fa1*fs2+fa2*fs1)*(fs2["]) by A1,GROUP_6:def 6
+       .= (fa1*fs2)*(fs2["])+(fa2*fs1)*(fs2["]) by VECTSP_1:def 3
+       .= (fa1*(fs2*(fs2["])))+(fa2*fs1)*(fs2["]) by GROUP_1:def 3
+       .= (fa1*(1.B))+(fa2*fs1)*(fs2["]) by A19,Def2
+       .= fa1 + (fa2*(fs2["]))*fs1 by GROUP_1:def 3;
+       Univ_Map(S,f).(x+y) = (fa3*(fs3["]))*1.B by A11
+       .= (fa3*(fs3["]))*(fs1*(fs1["])) by A18,Def2
+       .= (fa1 + (fa2*(fs2["]))*fs1)*(fs1["]) by A24,GROUP_1:def 3
+       .= fa1*(fs1["]) + (fa2*(fs2["]))*fs1*(fs1["]) by VECTSP_1:def 3
+       .= fa1*(fs1["]) + fa2*(fs2["])*(fs1*(fs1["])) by GROUP_1:def 3
+       .= fa1*(fs1["]) + fa2*(fs2["])*(1.B) by A18,Def2
+       .= Univ_Map(S,f).x + Univ_Map(S,f).y by A5,A8;
+       hence thesis;
+     end;
+     hence thesis;
+   end;
+
+theorem Th58:
+  f is RingHomomorphism & f.:S c= Unit_Set(B) implies
+    Univ_Map(S,f) is multiplicative
+   proof
+     set F = Univ_Map(S,f);
+     assume
+A1:  f is RingHomomorphism & f.:S c= Unit_Set(B);
+     for x,y being Element of S~A holds
+     (Univ_Map(S,f)).(x*y) = (Univ_Map(S,f)).x * (Univ_Map(S,f)).y
+     proof
+       let x,y be Element of S~A;
+       consider a1,s1 being Element of A such that
+A3:    s1 in S and
+A4:    x = Class(EqRel(S),[a1,s1]) and
+A5:    F.x = (f.a1)*((f.s1)["]) by A1,Def8;
+       consider a2,s2 being Element of A such that
+A6:    s2 in S and
+A7:    y = Class(EqRel(S),[a2,s2]) and
+A8:    F.y = (f.a2)*((f.s2)["]) by A1,Def8;
+       reconsider as1 = [a1,s1] as Element of Frac(S) by A3,Def3;
+       reconsider as2 = [a2,s2] as Element of Frac(S) by A6,Def3;
+       reconsider z = x * y as Element of S~A;
+       consider a3,s3 being Element of A such that
+A9:    s3 in S and
+A10:   z = Class(EqRel(S),[a3,s3]) and
+A11:   F.z = (f.a3)*((f.s3)["]) by A1,Def8;
+       reconsider as3 = [a3,s3] as Element of Frac(S) by A9,Def3;
+       Class(EqRel(S),as3) = Class(EqRel(S),as1*as2) by Th33,A4,A7,A10; then
+       as3, as1*as2 Fr_Eq S by Th26; then
+       consider s0 being Element of A such that
+A14:   s0 in S and
+A15:   (as3`1 * (as1*as2)`2 - (as1*as2)`1 * as3`2) * s0 = 0.A;
+A16:   0.B = f.(0.A) by A1,QUOFIELD:50
+       .= f.(a3 * (s1*s2) - (a1*a2)*s3)*f.s0 by A15,A1,GROUP_6:def 6;
+       f.s0 is Unit of B by A1,A14,Th56; then
+A17:   f.s0 in Unit_Set(B);
+       f.s1 is Unit of B by A1,A3,Th56; then
+A18:   f.s1 in Unit_Set(B) & f.s1 is unital Element of B;
+       f.s2 is Unit of B by A1,A6,Th56; then
+A19:   f.s2 in Unit_Set(B) & f.s2 is unital Element of B;
+       f.s3 is Unit of B by A1,A9,Th56; then
+A20:   f.s3 in Unit_Set(B);
+       s1*s2 is Element of S by A3,A6,C0SP1:def 4; then
+       f.(s1*s2) is Unit of B by A1,Th56; then
+A21:   f.(s1*s2) in Unit_Set(B);
+A22:   f.(s1*s2)*(((f.s2)["])*((f.s1)["]))
+        = (f.s1*f.s2)*(((f.s2)["])*((f.s1)["])) by A1,GROUP_6:def 6
+       .= ((f.s1*f.s2)*((f.s2)["]))*((f.s1)["]) by GROUP_1:def 3
+       .= (f.s1*((f.s2)*((f.s2)["])))*((f.s1)["]) by GROUP_1:def 3
+       .= (f.s1*(1.B))*((f.s1)["]) by A19,Def2
+       .= 1.B by A18,Def2;
+A23:   0.B = ((f.((a3*(s1*s2) - (a1*a2)*s3)))*f.s0)*((f.s0)["]) by A16
+       .= (f.((a3*(s1*s2) - (a1*a2)*s3)))*(f.s0*((f.s0)["])) by GROUP_1:def 3
+       .= (f.((a3*(s1*s2) - (a1*a2)*s3)))*(1.B) by A17,Def2
+       .= f.(a3*(s1*s2)) - f.((a1*a2)*s3) by A1,RING_2:8;
+A24:   f.a3*f.(s1*s2) = f.(a3*(s1*s2)) by A1,GROUP_6:def 6
+       .= f.((a1*a2)*s3) by A23, VECTSP_1:27
+       .= f.(a1*a2)*f.s3 by A1,GROUP_6:def 6;
+A25:   (f.a3*((f.s3)["]))*f.(s1*s2)
+        = (f.a3*(f.(s1*s2)))*((f.s3)["]) by GROUP_1:def 3
+       .= f.(a1*a2)*((f.s3)*((f.s3)["])) by A24,GROUP_1:def 3
+       .= f.(a1*a2)*1.B by A20,Def2
+       .= f.a1*f.a2 by A1,GROUP_6:def 6;
+A26:   (f.(s1*s2))["]
+       = ((f.(s1*s2))["])*( f.(s1*s2)*(((f.s2)["])*((f.s1)["])) ) by A22
+       .= (((f.(s1*s2))["])* f.(s1*s2) )*(((f.s2)["])*((f.s1)["]))
+       by GROUP_1:def 3
+       .= (1.B )*(((f.s2)["])*((f.s1)["])) by A21,Def2
+       .= ((f.s2)["])*((f.s1)["]);
+       reconsider fa1 = f.a1, fa2 = f.a2, fa3 = f.a3 as Element of B;
+       reconsider fs1 = f.s1, fs2 = f.s2, fs3 = f.s3 as Element of B;
+       reconsider fs1s2 = f.(s1*s2) as Element of B;
+       Univ_Map(S,f).(x*y) = (fa3*(fs3["]))*(1.B) by A11
+       .= (fa3*(fs3["]))*(fs1s2*(fs1s2["]) ) by A21,Def2
+       .= (fa1*fa2)*((fs2["])*(fs1["])) by A26,A25,GROUP_1:def 3
+       .= ((fa1*fa2)*(fs1["]))*(fs2["]) by GROUP_1:def 3
+       .= ((fa1*(fs1["]))*fa2)*(fs2["]) by GROUP_1:def 3
+       .= Univ_Map(S,f).x *Univ_Map(S,f).y by A5,A8,GROUP_1:def 3;
+       hence thesis;
+     end;
+     hence thesis;
+   end;
+
+theorem Th59:
+  f is RingHomomorphism & f.:S c= Unit_Set(B) implies
+    Univ_Map(S,f) is unity-preserving
+   proof
+     set F = Univ_Map(S,f);
+     assume
+A1:  f is RingHomomorphism & f.:S c= Unit_Set(B);
+     Univ_Map(S,f).1.(S~A)= 1.B
+     proof
+       consider a1,s1 being Element of A such that
+A3:    s1 in S and
+A4:    1.(S~A) = Class(EqRel(S),[a1,s1]) and
+A5:    F.1.(S~A) = (f.a1)*((f.s1)["]) by A1,Def8;
+       reconsider as1 = [a1,s1] as Element of Frac(S) by A3,Def3;
+       Class(EqRel(S),1.(A,S)) = Class(EqRel(S),as1) by A4,Def6; then
+A6:    as1, 1.(A,S) Fr_Eq S by Th26;
+       consider s0 being Element of A such that
+A7:    s0 in S and
+A8:    (as1`1 * 1.(A,S)`2 - 1.(A,S)`1 * as1`2) * s0 = 0.A by A6;
+A9:    0.B = f.(0.A) by A1,QUOFIELD:50
+       .= f.(a1 - s1)*f.s0 by A1,A8,GROUP_6:def 6;
+       f.s0 is Unit of B by A1,A7,Th56; then
+A10:   f.s0 in Unit_Set(B);
+A11:   0.B = (f.(a1 - s1)*f.s0)*((f.s0)["]) by A9
+       .= f.(a1 - s1)*(f.s0*((f.s0)["])) by GROUP_1:def 3
+       .= f.(a1 - s1)*(1.B) by A10,Def2
+       .= f.a1 - f.s1 by A1,RING_2:8;
+       f.s1 is Unit of B by A1,A3,Th56; then
+A12:   f.s1 in Unit_Set(B);
+       Univ_Map(S,f).1.(S~A)
+       = (f.s1)*((f.s1)["]) by A5,A11,VECTSP_1:27 .= 1.B by A12,Def2;
+       hence thesis;
+     end;
+     hence thesis;
+   end;
+
+theorem
+  f is RingHomomorphism & f.:S c= Unit_Set(B) implies
+    Univ_Map(S,f) is RingHomomorphism by Th57,Th58,Th59;
+
+theorem Th61:
+  f is RingHomomorphism & f.:S c= Unit_Set(B) implies
+    f = ((Univ_Map(S,f))*(canHom(S)))
+    proof
+    set h = canHom(S);
+    set g = Univ_Map(S,f);
+    set g1 = ((Univ_Map(S,f))*(canHom(S)));
+    assume
+A1: f is RingHomomorphism & f.:S c= Unit_Set(B);
+A2: dom h = [#]A by FUNCT_2:def 1;
+A3: dom g1 = the carrier of A by FUNCT_2:def 1
+      .= dom f by FUNCT_2:def 1;
+    for x be object st x in dom f holds f.x = g1.x
+    proof
+      set g1 = ((Univ_Map(S,f))*(canHom(S)));
+      let x be object;
+      assume x in dom f; then
+      reconsider x as Element of A;
+A7:   h.x = Class(EqRel(S),(frac1(S)).x) by Def7
+        .= Class(EqRel(S),[x,1.A]) by Def4;
+      (frac1(S)).x = [x,1.A] by Def4; then
+      reconsider x1 = [x,1.A] as Element of Frac(S);
+      reconsider hx = h.x as Element of S~A;
+      consider a1,s1 being Element of A such that
+A9:   s1 in S and
+A10:  hx = Class(EqRel(S),[a1,s1]) and
+A11:  g.hx = (f.a1)*((f.s1)["]) by A1,Def8;
+      reconsider as1 = [a1,s1] as Element of Frac(S) by A9,Def3;
+      as1,x1 Fr_Eq S by A7,A10,Th26; then
+      consider s0 being Element of A such that
+A13:  s0 in S and
+A14:  (as1`1 * x1`2 - x1`1 * as1`2) * s0 = 0.A;
+      f.s0 is Unit of B by A1,A13,Th56; then
+A15:  f.s0 in Unit_Set(B);
+      f.s1 is Unit of B by A1,A9,Th56; then
+A16:  f.s1 in Unit_Set(B);
+      0.B = f.(0.A) by A1,QUOFIELD:50
+      .= f.(a1 - x*s1)*f.s0 by A1,A14,GROUP_6:def 6; then
+      0.B = (f.(a1 - x*s1)*f.s0)*((f.s0)["])
+      .= f.(a1 -x*s1)*(f.s0*((f.s0)["])) by GROUP_1:def 3
+      .= f.(a1 - x*s1)*(1.B) by A15,Def2
+      .= f.a1 - f.(x*s1) by A1,RING_2:8; then
+A19:  f.a1 = f.(x*s1) by VECTSP_1:27 .= f.x*f.s1 by A1,GROUP_6:def 6;
+      (f.a1)*((f.s1)["]) = (f.x)*((f.s1)*((f.s1)["])) by A19,GROUP_1:def 3
+      .= (f.x)*(1.B) by A16,Def2 .= f.x;
+      hence thesis by A2,A11,FUNCT_1:13;
+    end;
+    hence thesis by A3;
+  end;
+
+begin :: The total-quotient ring and The Quotient Field of Integral Domain.
+::  Total Quotient Ring of R is S~R & S = {the all non zero-divisors}
+::  Exercise 9. i) from [AM] p.44
+
+definition
+  let A;
+  func Total-Quotient-Ring(A) -> Ring equals
+  (Non_ZeroDiv_Set(A))~A;
+  correctness;
+end;
+
+registration
+  let A;
+  cluster Total-Quotient-Ring(A) -> non degenerated;
+  coherence
+  proof
+    0.A is Zero_Divisor of A by Th1; then
+    0.A in ZeroDiv_Set(A); then
+    not 0.A in Non_ZeroDiv_Set(A) by XBOOLE_0:def 5;
+    hence thesis by Th31;
+  end;
+end;
+
+reserve x for object;
+
+::Prop1.2 i)<-> ii)[AM] p.3
+theorem
+   A is Field implies Ideals(A) = {{0.A}, the carrier of A}
+   proof
+     assume
+A1:  A is Field;
+A2:  x in Ideals(A) implies x in {{0.A}, the carrier of A}
+     proof
+       assume x in Ideals(A); then
+       x in the set of all I where I is Ideal of A by RING_2:def 3; then
+       consider x1 being Ideal of A such that
+A4:    x1 = x;
+       x = {0.A} or x = the carrier of A by A1,A4,IDEAL_1:22;
+       hence thesis by TARSKI:def 2;
+     end;
+     x in {{0.A}, the carrier of A} implies x in Ideals(A)
+     proof
+       assume x in {{0.A}, the carrier of A}; then
+       per cases by TARSKI:def 2;
+         suppose
+           x = {0.A}; then
+           x in the set of all I where I is Ideal of A;
+           hence thesis by RING_2:def 3;
+         end;
+         suppose x = the carrier of A; then
+           x is Ideal of A by IDEAL_1:10; then
+           x in the set of all I where I is Ideal of A;
+           hence thesis by RING_2:def 3;
+         end;
+       end;
+      hence thesis by A2,TARSKI:2;
+    end;
+
+reserve A for domRing;
+
+theorem Lm63:
+   Non_ZeroDiv_Set(A) = [#]A \ {0.A} & Non_ZeroDiv_Set(A) is
+   without_zero non empty multiplicatively-closed Subset of A
+   proof
+A1:  Non_ZeroDiv_Set(A) = [#]A \ {0.A} by Th4;
+     0.A in [#]A & 0.A in {0.A} by TARSKI:def 1; then
+     Non_ZeroDiv_Set(A) is without_zero by A1, XBOOLE_0:def 5;
+     hence thesis by Th4;
+   end;
+
+theorem Th64:
+   for a be Element of A holds a in Non_ZeroDiv_Set(A) iff a <> 0.A
+   proof
+     let a be Element of A;
+     thus a in Non_ZeroDiv_Set(A) implies a <> 0.A
+     proof
+       assume a in Non_ZeroDiv_Set(A); then
+       a in [#]A \ {0.A} by Lm63; then
+       a in [#]A & not a in {0.A} by XBOOLE_0:def 5;
+       hence thesis by TARSKI:def 1;
+     end;
+     assume a <> 0.A; then
+     not a in {0.A} by TARSKI:def 1; then
+     a in [#]A \ {0.A} by XBOOLE_0:def 5;
+     hence thesis by Lm63;
+   end;
+
+:: Remark of [AM] p.37
+theorem Th65:
+  Total-Quotient-Ring(A) is Field
+  proof
+    set S = Non_ZeroDiv_Set(A);
+A0: S = [#]A \ {0.A} by Th4;
+    for x be Element of S~A st x <> 0.(S~A) holds
+    x is left_invertible
+    proof
+      let x be Element of S~A;
+      assume
+A1:   x <> 0.(S~A);
+      consider a1,s1 being Element of A such that
+A2:   s1 in S and
+A3:   x = Class(EqRel(S),[a1,s1]) by Th46;
+      reconsider as1 = [a1,s1] as Element of Frac(S) by A2,Def3;
+      a1 <> 0.A
+      proof
+        assume
+A5:     a1 = 0.A;
+        reconsider t = 1.A as Element of A;
+        t in S by C0SP1:def 4; then
+        as1, 0.(A,S) Fr_Eq S by A5; then
+        x = Class(EqRel(S),0.(A,S)) by A3,Th26 .= 0.(S~A) by Def6;
+        hence contradiction by A1;
+      end; then
+      not a1 in {0.A} by TARSKI:def 1; then
+      as1`1 in S by A0,XBOOLE_0:def 5; then
+      Class(EqRel(S),as1) is Unit of S~A by Lm45; then
+      x in Unit_Set(S~A) by A3; then
+      x["]*x = 1.(S~A) by Def2;
+      hence thesis;
+    end;
+    then S~A is almost_left_invertible;
+    hence thesis;
+  end;
+
+reserve x for Element of Q.A, y for object;
+
+theorem
+   for A be domRing holds
+   the_Field_of_Quotients(A) is_ringisomorph_to Total-Quotient-Ring(A)
+   proof
+     let A be domRing;
+     set S = Non_ZeroDiv_Set(A);
+     set B = the_Field_of_Quotients(A);
+     set f = canHom(A);
+A1:  f is RingHomomorphism by QUOFIELD:56;
+A2:  f is RingMonomorphism by QUOFIELD:57;
+A3:  f.:S c= Unit_Set(B)
+     proof
+       y in f.:S implies y in Unit_Set(B)
+       proof
+         assume y in f.:S; then
+         consider x be object such that
+A5:      x in dom f and
+A6:      x in S and
+A7:      y = f.x by FUNCT_1:def 6;
+A8:      x <> 0.A by A6,Th3;
+         reconsider x as Element of A by A5;
+A9:      f.x <> 0.B by A2,A8,QUOFIELD:51;
+         f.x is Element of B; then
+         reconsider y as Element of B by A7;
+         not y is zero by A7,A9;
+         hence thesis;
+       end;
+       hence thesis;
+     end;
+     reconsider S = Non_ZeroDiv_Set(A)
+     as without_zero non empty multiplicatively-closed Subset of A by Lm63;
+A11: Univ_Map(S,f) is RingHomomorphism by A3,QUOFIELD:56,Th57,Th58,Th59;
+A12: Total-Quotient-Ring(A) is Field by Th65;
+     set g = Univ_Map(S,f);
+     set h = canHom(S);
+A13: dom g = [#](S~A) by FUNCT_2:def 1;
+A14: y in [#]B implies y in rng g
+     proof
+       assume y in [#]B; then
+       reconsider y as Element of Quot.A by QUOFIELD:30;
+       consider y12 being Element of Q.A such that
+A16:   y = QClass.y12 by QUOFIELD:def 5;
+       consider y1,y2 being Element of A such that
+A17:   y12 = [y1,y2] and
+A18:   y2 <> 0.A by QUOFIELD:def 1;
+A19:   y2 in Non_ZeroDiv_Set(A) by A18,Th64; then
+A20:   [y1,y2] in Frac(S) by Def3;
+       reconsider yy12 = y12 as Element of Frac(S) by A17,A19,Def3;
+       reconsider x = Class(EqRel(S),yy12) as Element of S~A by Lm41;
+A21:   1.A <> 0.A; then
+       reconsider p1 = [y1,1.A] as Element of Q.A by QUOFIELD:def 1;
+       reconsider p2 = [y2,1.A] as Element of Q.A by A21,QUOFIELD:def 1;
+       reconsider q = [1.A,y2] as Element of Q.A by A18,QUOFIELD:def 1;
+       reconsider r12 = [y1,y2] as Element of Q.A by A18,QUOFIELD:def 1;
+       quotient(y1,1.A) = p1 by A21,QUOFIELD:def 24; then
+A24:   f.y1 = QClass.p1 by QUOFIELD:def 25;
+       quotient(y2,1.A) = p2 by A21,QUOFIELD:def 24; then
+A25:   f.y2 = QClass.p2 by QUOFIELD:def 25; then
+A26:   QClass.p2 <> 0.B by A2,A18,QUOFIELD:51; then
+A27:   (f.y2)" = QClass.q by A18,A25,QUOFIELD:47;
+A28:   pmult(p1,q) = [p1`1*q`1,p1`2*q`2] by QUOFIELD:def 3
+       .= [y1,y2];
+A29:   r12 in QClass.r12 by QUOFIELD:5;
+       r12`1 * y12`2 = r12`2 * y12`1 by A17; then
+       r12 in QClass.y12 by QUOFIELD:def 4; then
+A30:   r12 in QClass.r12 /\ QClass.y12 by A29,XBOOLE_0:def 4;
+A31:   (f.y1)*(f.y2)" = (quotmult(A)).(f.y1,(f.y2)") by QUOFIELD:37
+       .= qmult(QClass.p1,QClass.q)by A24,A27,QUOFIELD:def 13
+       .= QClass.r12 by A28,QUOFIELD:10
+       .= y by QUOFIELD:8,XBOOLE_0:4,A30,A16;
+       reconsider x = Class(EqRel(S),[y1,y2]) as Element of S~A by A20,Lm41;
+       consider x1,x2 being Element of A such that
+A32:   x2 in S and
+       x = Class(EqRel(S),[x1,x2]) and
+       g.x = (f.x1)*((f.x2)["]) by A1,A3,Def8;
+       reconsider x12 = [x1,x2] as Element of Frac(S) by Def3,A32;
+A33:   dom h = [#]A by FUNCT_2:def 1;
+A34:   h.y2 = Class(EqRel(S),(frac1(S)).y2) by Def7
+       .= Class(EqRel(S),[y2,1.A]) by Def4; then
+       h.y2 is Unit of S~A by A19,Lm46; then
+A35:   h.y2 in Unit_Set(S~A);
+A36:   f.y2 = (g*h).y2 by Th61,QUOFIELD:56,A3
+       .= g.(h.y2) by A33,FUNCT_1:13;
+A37:   g is unity-preserving by QUOFIELD:56,A3,Th59;
+       (f.y2)*(g.((h.y2)["]))
+        = g.((h.y2)*((h.y2)["])) by A11,A36,GROUP_6:def 6
+       .= 1.B by A37,A35,Def2; then
+A39:   (f.y2)" = (f.y2)"*((f.y2)*(g.((h.y2)["])))
+       .= ((f.y2)"*(f.y2))*(g.((h.y2)["])) by GROUP_1:def 3
+       .= (1.B)*(g.((h.y2)["])) by A25,A26,VECTSP_1:def 10
+       .= g.((h.y2)["]);
+A40:   h.y1 = Class(EqRel(S),(frac1(S)).y1) by Def7
+       .= Class(EqRel(S),[y1,1.A]) by Def4;
+A41:   1.A in S by C0SP1:def 4; then
+       reconsider zz1 = [y1,1.A] as Element of Frac(S) by Def3;
+       reconsider zz2 = [y2,1.A] as Element of Frac(S) by A41,Def3;
+       reconsider zz2inv = [1.A,y2] as Element of Frac(S) by A19,Def3;
+       reconsider z1 = Class(EqRel(S),zz1) as Element of S~A by Lm41;
+       reconsider z2 = Class(EqRel(S),zz2) as Element of S~A by Lm41;
+       reconsider z2inv = Class(EqRel(S),zz2inv) as Element of S~A by Lm41;
+       Class(EqRel(S),[y2,1.A]) is Unit of S~A by A19,Lm46; then
+A43:   z2 in Unit_Set(S~A);
+A44:   z2inv*z2 = Class(EqRel(S),zz2inv*zz2) by Th33
+       .= Class(EqRel(S),1.(A,S)) by A19,Th30,Th26 .= 1.(S~A) by Def6;
+       z2["] = (z2inv*z2)*(z2["]) by A44
+       .= z2inv*(z2*(z2["])) by GROUP_1:def 3 .= z2inv*1.(S~A) by A43,Def2
+       .= z2inv; then
+A46:   z1*(z2["]) = Class(EqRel(S),zz1*zz2inv) by Th33
+       .= Class(EqRel(S),[y1,y2]);
+       f.y1 = (g*h).y1 by Th61,QUOFIELD:56,A3
+       .= g.(h.y1) by A33,FUNCT_1:13; then
+A49:   y = g.(Class(EqRel(S),[y1,y2]))
+         by A40,A34,A46,A11,A39,A31,GROUP_6:def 6;
+       Class(EqRel(S),[y1,y2]) is Element of S~A by A20,Lm41;
+       hence thesis by A13,A49,FUNCT_1:def 3;
+     end;
+     [#]B c= rng g by A14; then
+     g is onto by XBOOLE_0:def 10;
+     hence thesis by A11,A12,QUOFIELD:def 23;
+   end;

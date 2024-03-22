@@ -1,0 +1,4754 @@
+:: Object-Free Definition of Categories
+::  by Marco Riccardi
+::
+:: Received October 7, 2013
+:: Copyright (c) 2013-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FUNCT_1, TARSKI, ZFMISC_1, XBOOLE_0, RELAT_1, SUBSET_1, WELLORD1,
+      CAT_1, ALTCAT_1, GRAPH_1, BINOP_1, STRUCT_0, PARTFUN1, FUNCOP_1,
+      MONOID_0, NATTRA_1, MSSUBFAM, ALTCAT_2, ARYTM_0, NUMBERS, ARYTM_3,
+      CARD_1, FUNCTOR0, MOD_4, CAT_6, NAT_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, FUNCT_3, FUNCT_4, RELAT_1,
+      FUNCT_1, FUNCT_2, ORDINAL1, PARTFUN1, FINSEQ_1, STRUCT_0, FUNCOP_1,
+      RELSET_1, BINOP_1, GRAPH_1, CAT_1, CAT_2, NUMBERS, NAT_1, XXREAL_0,
+      XTUPLE_0, ALG_1, XCMPLX_0, WELLORD2, CARD_1, INT_1, VALUED_0, ISOCAT_1;
+ constructors NUMBERS, FUNCT_2, CLASSES2, FINSEQ_1, STRUCT_0, FUNCOP_1,
+      RELAT_2, PARTFUN1, RELSET_1, BINOP_1, FUNCT_4, CAT_1, CAT_2, NAT_1,
+      XXREAL_0, WELLORD2, XREAL_0, CARD_1, XCMPLX_0, INT_1, VALUED_0, ISOCAT_1;
+ registrations XBOOLE_0, SUBSET_1, ZFMISC_1, RELAT_1, FUNCT_1, ORDINAL1,
+      STRUCT_0, RELSET_1, FUNCT_2, PARTFUN1, CAT_1, CARD_2, NAT_1;
+ requirements SUBSET, BOOLE, NUMERALS, ARITHM;
+ theorems TARSKI, XBOOLE_0, XTUPLE_0, ZFMISC_1, RELAT_1, FUNCT_1, STRUCT_0,
+      FUNCT_2, SUBSET_1, BINOP_1, GRAPH_1, CAT_1, FUNCOP_1, FUNCT_4, NAT_1,
+      ORDINAL1, ISOCAT_1;
+ schemes FUNCT_2;
+
+begin :: Yet another definition of category
+
+definition
+  struct (1-sorted) CategoryStr
+  (# carrier -> set,
+     composition -> PartFunc of [:the carrier, the carrier:], the carrier #);
+end;
+
+reserve C for CategoryStr;
+
+definition
+  let C;
+  func Mor(C) -> set equals the carrier of C;
+  correctness;
+end;
+
+definition
+  let C;
+  mode morphism of C is Element of Mor(C);
+end;
+
+reserve f,f1,f2,f3 for morphism of C;
+
+definition
+  let C,f1,f2;
+  pred f1,f2 are_composable means :Def2:
+  [f1,f2] in dom the composition of C;
+end;
+
+notation
+  let C,f1,f2;
+  synonym f1 |> f2 for f1,f2 are_composable;
+end;
+
+definition
+  let C,f1,f2;
+  assume
+A1: f1 |> f2;
+  func f1 (*) f2 -> morphism of C equals :Def3:
+  (the composition of C).(f1,f2);
+  correctness
+  proof
+    per cases by A1;
+    suppose [f1,f2] in dom the composition of C;
+      then (the composition of C).[f1,f2] in rng(the composition of C)
+      by FUNCT_1:3;
+      hence thesis by BINOP_1:def 1;
+    end;
+    suppose
+A2:   Mor(C) is empty;
+      (the composition of C).[f1,f2] = (the composition of C).(f1,f2)
+      by BINOP_1:def 1;
+      hence thesis by A2,SUBSET_1:def 1;
+    end;
+  end;
+end;
+
+definition
+  let C,f;
+  attr f is left_identity means :Def4:
+  for f1 being morphism of C st f |> f1 holds f (*) f1 = f1;
+  attr f is right_identity means :Def5:
+  for f1 being morphism of C st f1 |> f holds f1 (*) f = f1;
+end;
+
+definition
+  let C;
+  attr C is with_left_identities means :Def6:
+  for f1 being morphism of C st f1 in the carrier of C holds
+      ex f being morphism of C st f |> f1 & f is left_identity;
+  attr C is with_right_identities means :Def7:
+  for f1 being morphism of C st f1 in the carrier of C holds
+      ex f being morphism of C st f1 |> f & f is right_identity;
+  attr C is left_composable means
+  for f,f1,f2 being morphism of C st f1 |> f2 holds f1(*)f2 |> f iff f2 |> f;
+  attr C is right_composable means :Def9:
+  for f,f1,f2 being morphism of C st f1 |> f2 holds f |> f1(*)f2 iff f |> f1;
+  attr C is associative means :Def10:
+  for f1,f2,f3 being morphism of C
+      st f1 |> f2 & f2 |> f3 & (f1(*)f2) |> f3 & f1 |> (f2(*)f3)
+      holds f1(*)(f2(*)f3) = (f1(*)f2)(*)f3;
+end;
+
+definition
+  let C;
+  attr C is composable means :Def11:
+  C is left_composable right_composable;
+  attr C is with_identities means :Def12:
+  C is with_left_identities with_right_identities;
+end;
+
+definition
+  let C;
+  func C opp -> strict CategoryStr equals
+  CategoryStr (#the carrier of C, ~the composition of C#);
+  coherence;
+end;
+
+theorem
+  C is empty implies not f1 |> f2;
+
+reserve g1,g2 for morphism of C opp;
+
+theorem
+  f1 = g1 & f2 = g2 implies (f1 |> f2 iff g2 |> g1) by FUNCT_4:42;
+
+theorem Th3:
+  f1 = g1 & f2 = g2 & f1 |> f2 implies f1 (*) f2 = g2 (*) g1
+  proof
+    assume
+A1: f1 = g1 & f2 = g2;
+    assume
+A2: f1 |> f2;
+A3: g2 |> g1 by A1,A2,FUNCT_4:42;
+    thus f1 (*) f2 = (the composition of C).(f1,f2) by A2,Def3
+    .= (~the composition of C).(f2,f1) by A2,FUNCT_4:def 2
+    .= g2 (*) g1 by A1,A3,Def3;
+  end;
+
+theorem Th4:
+  C is left_composable iff C opp is right_composable
+  proof
+    hereby
+      assume
+A1:   C is left_composable;
+      for g,g1,g2 being morphism of C opp st g1 |> g2
+      holds (g |> g1(*)g2 iff g |> g1)
+      proof
+        let g,g1,g2 be morphism of C opp;
+        reconsider f=g,f2=g1,f1=g2 as morphism of C;
+        assume g1 |> g2;
+        then
+A2:     f1 |> f2 by FUNCT_4:42;
+        then
+A3:     f1(*)f2 = g1(*)g2 by Th3;
+        hereby
+          assume g |> g1(*)g2;
+          then f1(*)f2 |> f by A3,FUNCT_4:42;
+          then f2 |> f by A1,A2;
+          hence g |> g1 by FUNCT_4:42;
+        end;
+        assume g |> g1;
+        then f2 |> f by FUNCT_4:42;
+        then f1(*)f2 |> f by A1,A2;
+        hence g |> g1(*)g2 by A3,FUNCT_4:42;
+      end;
+      hence C opp is right_composable;
+    end;
+    assume
+A4: C opp is right_composable;
+    for f,f1,f2 being morphism of C st f1 |> f2
+    holds (f1(*)f2 |> f iff f2 |> f)
+    proof
+      let f,f1,f2 be morphism of C;
+      reconsider g=f,g2=f1,g1=f2 as morphism of C opp;
+      assume
+A5:   f1 |> f2;
+      then
+A6:   g1 |> g2 by FUNCT_4:42;
+A7:   f1(*)f2 = g1(*)g2 by A5,Th3;
+      hereby
+        assume f1(*)f2 |> f;
+        then g |> g1(*)g2 by A7,FUNCT_4:42;
+        then g |> g1 by A4,A6;
+        hence f2 |> f by FUNCT_4:42;
+      end;
+        assume f2 |> f;
+        then g |> g1 by FUNCT_4:42;
+        then g |> g1(*)g2 by A4,A6;
+        hence f1(*)f2 |> f by A7,FUNCT_4:42;
+    end;
+    hence C is left_composable;
+  end;
+
+theorem Th5:
+  C is right_composable iff C opp is left_composable
+  proof
+    hereby
+      assume
+A1:   C is right_composable;
+      for g,g1,g2 being morphism of C opp st g1 |> g2
+      holds (g1(*)g2 |> g iff g2 |> g)
+      proof
+        let g,g1,g2 be morphism of C opp;
+        reconsider f=g,f2=g1,f1=g2 as morphism of C;
+        assume g1 |> g2;
+        then
+A2:     f1 |> f2 by FUNCT_4:42;
+        then
+A3:     f1(*)f2 = g1(*)g2 by Th3;
+        hereby
+          assume g1(*)g2 |> g;
+          then f |> f1(*)f2 by A3,FUNCT_4:42;
+          then f |> f1 by A1,A2;
+          hence g2 |> g by FUNCT_4:42;
+        end;
+        assume g2 |> g;
+        then f |> f1 by FUNCT_4:42;
+        then f |> f1(*)f2 by A1,A2;
+        hence g1(*)g2 |> g by A3,FUNCT_4:42;
+      end;
+      hence C opp is left_composable;
+    end;
+    assume
+A4: C opp is left_composable;
+    for f,f1,f2 being morphism of C st f1 |> f2
+    holds (f |> f1(*)f2 iff f |> f1)
+    proof
+      let f,f1,f2 be morphism of C;
+      reconsider g=f,g2=f1,g1=f2 as morphism of C opp;
+      assume
+A5:   f1 |> f2;
+      then
+A6:   g1 |> g2 by FUNCT_4:42;
+A7:   f1(*)f2 = g1(*)g2 by A5,Th3;
+      hereby
+        assume f |> f1(*)f2;
+        then g1(*)g2 |> g by A7,FUNCT_4:42;
+        then g2 |> g by A4,A6;
+        hence f |> f1 by FUNCT_4:42;
+      end;
+      assume f |> f1;
+      then g2 |> g by FUNCT_4:42;
+      then g1(*)g2 |> g by A4,A6;
+      hence f |> f1(*)f2 by A7,FUNCT_4:42;
+    end;
+    hence C is right_composable;
+  end;
+
+theorem Th6:
+  C is with_left_identities iff C opp is with_right_identities
+  proof
+    hereby
+      assume
+A1:   C is with_left_identities;
+      for g1 being morphism of C opp st g1 in the carrier of C opp holds
+      ex g being morphism of C opp st g1 |> g & g is right_identity
+      proof
+        let g1 be morphism of C opp;
+        assume
+A2:     g1 in the carrier of C opp;
+        reconsider f1 = g1 as morphism of C;
+        consider f be morphism of C such that
+A3:    f |> f1 & f is left_identity by A1,A2;
+        reconsider g = f as morphism of C opp;
+        take g;
+        thus g1 |> g by A3,FUNCT_4:42;
+        for g2 being morphism of C opp st g2 |> g holds g2 (*) g = g2
+        proof
+          let g2 be morphism of C opp;
+          reconsider f2 = g2 as morphism of C;
+          assume g2 |> g;
+          then
+A4:      f |> f2 by FUNCT_4:42;
+          then f (*) f2 = f2 by A3;
+          hence g2 (*) g = g2 by A4,Th3;
+        end;
+        hence g is right_identity;
+      end;
+      hence C opp is with_right_identities;
+    end;
+    assume
+A5: C opp is with_right_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f |> f1 & f is left_identity
+    proof
+      let f1 be morphism of C;
+      assume
+A6:   f1 in the carrier of C;
+      reconsider g1 = f1 as morphism of C opp;
+      consider g be morphism of C opp such that
+A7:  g1 |> g & g is right_identity by A5,A6;
+      reconsider f = g as morphism of C;
+      take f;
+      thus f |> f1 by A7,FUNCT_4:42;
+      for f2 being morphism of C st f |> f2 holds f (*) f2 = f2
+      proof
+        let f2 be morphism of C;
+        reconsider g2 = f2 as morphism of C opp;
+        assume
+A8:    f |> f2;
+        then g2 |> g by FUNCT_4:42;
+        then g2 (*) g = g2 by A7;
+        hence f (*) f2 = f2 by A8,Th3;
+      end;
+      hence f is left_identity;
+    end;
+    hence C is with_left_identities;
+  end;
+
+theorem Th7:
+  C is with_right_identities iff C opp is with_left_identities
+  proof
+    hereby
+      assume
+A1:   C is with_right_identities;
+      for g1 being morphism of C opp st g1 in the carrier of C opp holds
+      ex g being morphism of C opp st g |> g1 & g is left_identity
+      proof
+        let g1 be morphism of C opp;
+        assume
+A2:     g1 in the carrier of C opp;
+        reconsider f1 = g1 as morphism of C;
+        consider f be morphism of C such that
+A3:    f1 |> f & f is right_identity by A1,A2;
+        reconsider g = f as morphism of C opp;
+        take g;
+        thus g |> g1 by A3,FUNCT_4:42;
+        for g2 being morphism of C opp st g |> g2 holds g (*) g2 = g2
+        proof
+          let g2 be morphism of C opp;
+          reconsider f2 = g2 as morphism of C;
+          assume g |> g2;
+          then
+A4:      f2 |> f by FUNCT_4:42;
+          then f2 (*) f = f2 by A3;
+          hence g (*) g2 = g2 by A4,Th3;
+        end;
+        hence g is left_identity;
+      end;
+      hence C opp is with_left_identities;
+    end;
+    assume
+A5: C opp is with_left_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f1 |> f & f is right_identity
+    proof
+      let f1 be morphism of C;
+      assume
+A6:   f1 in the carrier of C;
+      reconsider g1 = f1 as morphism of C opp;
+      consider g be morphism of C opp such that
+A7:  g |> g1 & g is left_identity by A5,A6;
+      reconsider f = g as morphism of C;
+      take f;
+      thus f1 |> f by A7,FUNCT_4:42;
+      for f2 being morphism of C st f2 |> f holds f2 (*) f = f2
+      proof
+        let f2 be morphism of C;
+        reconsider g2 = f2 as morphism of C opp;
+        assume
+A8:    f2 |> f;
+        then g |> g2 by FUNCT_4:42;
+        then g (*) g2 = g2 by A7;
+        hence f2 (*) f = f2 by A8,Th3;
+      end;
+      hence f is right_identity;
+    end;
+    hence C is with_right_identities;
+  end;
+
+theorem Th8:
+  C is associative iff C opp is associative
+  proof
+    hereby
+      assume
+A1:  C is associative;
+      for g1,g2,g3 being morphism of C opp st g1 |> g2 & g2 |> g3 &
+      g1(*)g2 |> g3 & g1 |> g2(*)g3 holds g1(*)(g2(*)g3) = (g1(*)g2)(*)g3
+      proof
+        let g1,g2,g3 be morphism of C opp;
+        reconsider f3=g1,f2=g2,f1=g3 as morphism of C;
+        assume g1 |> g2;
+        then
+A2:     f2 |> f3 by FUNCT_4:42;
+        assume g2 |> g3;
+        then
+A3:     f1 |> f2 by FUNCT_4:42;
+        assume
+A4:    g1(*)g2 |> g3;
+        assume
+A5:    g1 |> g2(*)g3;
+A6:    g1(*)g2 = f2(*)f3 by A2,Th3;
+        then
+A7:     f1 |> f2(*)f3 by A4,FUNCT_4:42;
+A8:     f1(*)f2 = g2(*)g3 by A3,Th3;
+        then
+A9:     f1(*)f2 |> f3 by A5,FUNCT_4:42;
+        thus g1(*)(g2(*)g3) = (f1(*)f2)(*)f3 by A8,A9,Th3
+        .= f1(*)(f2(*)f3) by A1,A2,A3,A7,A9
+        .= (g1(*)g2)(*)g3 by A6,A7,Th3;
+      end;
+      hence C opp is associative;
+    end;
+    assume
+A10: C opp is associative;
+    for f1,f2,f3 being morphism of C st f1 |> f2 & f2 |> f3 &
+    f1(*)f2 |> f3 & f1 |> f2(*)f3 holds f1(*)(f2(*)f3) = (f1(*)f2)(*)f3
+    proof
+      let f1,f2,f3 be morphism of C;
+      reconsider g3=f1,g2=f2,g1=f3 as morphism of C opp;
+      assume
+A11:  f1 |> f2;
+      then
+A12:   g2 |> g3 by FUNCT_4:42;
+      assume
+A13:  f2 |> f3;
+      then
+A14:   g1 |> g2 by FUNCT_4:42;
+      assume
+A15:  f1(*)f2 |> f3;
+      assume
+A16:  f1 |> f2(*)f3;
+A17:  f1(*)f2 = g2(*)g3 by A11,Th3;
+      then
+A18:   g1 |> g2(*)g3 by A15,FUNCT_4:42;
+A19:   g1(*)g2 = f2(*)f3 by A13,Th3;
+      then
+A20:   g1(*)g2 |> g3 by A16,FUNCT_4:42;
+      thus f1(*)(f2(*)f3) = (g1(*)g2)(*)g3 by A19,A16,Th3
+      .= g1(*)(g2(*)g3) by A10,A12,A14,A18,A20
+      .= (f1(*)f2)(*)f3 by A17,A15,Th3;
+    end;
+    hence C is associative;
+  end;
+
+registration
+  cluster with_left_identities non with_right_identities
+          composable associative for CategoryStr;
+  correctness
+  proof
+    reconsider X = {0,1} as set;
+    set comp = {[[0,0],0],[[0,1],1]};
+A1: for x,y1,y2 being object st [x,y1] in comp & [x,y2] in comp holds y1 = y2
+    proof
+      let x,y1,y2 be object;
+      assume
+A2:  [x,y1] in comp;
+      assume
+A3:  [x,y2] in comp;
+      per cases by A2,TARSKI:def 2;
+      suppose
+A4:    [x,y1] = [[0,0],0];
+        then
+A5:     x = [0,0] & y1 = 0 by XTUPLE_0:1;
+        per cases by A3,TARSKI:def 2;
+        suppose [x,y2] = [[0,0],0];
+          hence thesis by A4,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[0,1],1];
+          then x = [0,1] & y2 = 1 by XTUPLE_0:1;
+          hence thesis by A5,XTUPLE_0:1;
+        end;
+      end;
+      suppose
+A6:    [x,y1] = [[0,1],1];
+        then
+A7:     x = [0,1] & y1 = 1 by XTUPLE_0:1;
+        per cases by A3,TARSKI:def 2;
+        suppose [x,y2] = [[0,0],0];
+          then x = [0,0] & y2 = 0 by XTUPLE_0:1;
+          hence thesis by A7,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[0,1],1];
+         hence thesis by A6,XTUPLE_0:1;
+        end;
+      end;
+    end;
+    for x being object st x in comp holds x in [:[:X,X:],X:]
+    proof
+      let x be object;
+      assume
+A8:  x in comp;
+      per cases by A8,TARSKI:def 2;
+      suppose
+A9:     x = [[0,0],0];
+A10:    0 in X by TARSKI:def 2;
+        then [0,0] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A9,A10,ZFMISC_1:def 2;
+      end;
+      suppose
+A11:     x = [[0,1],1];
+A12:    0 in X & 1 in X by TARSKI:def 2;
+        then [0,1] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A11,A12,ZFMISC_1:def 2;
+      end;
+    end;
+    then reconsider comp as PartFunc of [:X,X:],X
+    by A1,TARSKI:def 3,FUNCT_1:def 1;
+    set C = CategoryStr(# X, comp #);
+A13: for f1,f2 being morphism of C st f1 |> f2 holds
+    (f1 = 0 & f2 = 0 & f1(*)f2 = 0) or
+    (f1 = 0 & f2 = 1 & f1(*)f2 = 1)
+    proof
+      let f1,f2 be morphism of C;
+      assume
+A14:   f1 |> f2;
+      assume
+A15:   not (f1 = 0 & f2 = 0 & f1(*)f2 = 0);
+      consider y be object such that
+A16: [[f1,f2],y] in the composition of C by A14,XTUPLE_0:def 12;
+A17:   f1(*)f2 = (the composition of C).(f1,f2) by Def3,A14
+      .= (the composition of C).[f1,f2] by BINOP_1:def 1
+      .= y by A16,FUNCT_1:1;
+      per cases by A16,TARSKI:def 2;
+      suppose [[f1,f2],y] = [[0,0],0];
+        then [f1,f2] = [0,0] & y = 0 by XTUPLE_0:1;
+        hence thesis by A17,A15,XTUPLE_0:1;
+      end;
+      suppose [[f1,f2],y] = [[0,1],1];
+        then [f1,f2] = [0,1] & y = 1 by XTUPLE_0:1;
+        hence thesis by A17,XTUPLE_0:1;
+      end;
+    end;
+A18: for f1,f2 being morphism of C st f1 |> f2 holds f1 = 0 &
+     (f2 = 0 or f2 = 1)
+    proof
+      let f1,f2 be morphism of C;
+      assume f1 |> f2;
+      then consider y be object such that
+A19: [[f1,f2],y] in the composition of C by XTUPLE_0:def 12;
+      per cases by A19,TARSKI:def 2;
+      suppose [[f1,f2],y] = [[0,0],0];
+        then [f1,f2] = [0,0] & y = 0 by XTUPLE_0:1;
+        hence thesis by XTUPLE_0:1;
+      end;
+      suppose [[f1,f2],y] = [[0,1],1];
+        then [f1,f2] = [0,1] & y = 1 by XTUPLE_0:1;
+        hence thesis by XTUPLE_0:1;
+      end;
+    end;
+A20: for f1,f2 being morphism of C st f1 = 0 holds f1 |> f2
+    proof
+      let f1,f2 be morphism of C;
+      assume
+A21:  f1 = 0;
+      f2 = 0 or f2 = 1 by TARSKI:def 2;
+      then [[f1,f2],f2] in the composition of C by A21,TARSKI:def 2;
+      hence thesis by FUNCT_1:1;
+    end;
+    for f,f1,f2 being morphism of C st f1 |> f2 holds
+    f1(*)f2 |> f iff f2 |> f
+    proof
+      let f,f1,f2 be morphism of C;
+      assume
+A22:   f1 |> f2;
+      per cases by A22,A13;
+      suppose f1 = 0 & f2 = 0 & f1(*)f2 = 0; hence thesis; end;
+      suppose f1 = 0 & f2 = 1 & f1(*)f2 = 1; hence thesis; end;
+    end;
+    then
+A23: C is left_composable;
+    for f,f1,f2 being morphism of C st f1 |> f2 holds
+    f |> f1(*)f2 iff f |> f1
+    proof
+      let f,f1,f2 be morphism of C;
+      assume
+A24:   f1 |> f2;
+      per cases by A24,A13;
+      suppose f1 = 0 & f2 = 0 & f1(*)f2 = 0; hence thesis; end;
+      suppose f1 = 0 & f2 = 1 & f1(*)f2 = 1;
+        hereby
+          assume f |> f1(*)f2;
+          then f = 0 by A18;
+          hence f |> f1 by A20;
+        end;
+        assume f |> f1;
+        then f = 0 by A18;
+        hence f |> f1(*)f2 by A20;
+      end;
+    end;
+    then
+A25: C is composable by A23,Def9;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f |> f1 & f is left_identity
+    proof
+      let f1 be morphism of C;
+      assume f1 in the carrier of C;
+      reconsider f = 0 as morphism of C by TARSKI:def 2;
+      take f;
+      thus f |> f1 by A20;
+      for f2 being morphism of C st f |> f2 holds f (*) f2 = f2
+      proof
+        let f2 be morphism of C;
+        assume
+A26:     f |> f2;
+        f2 = 0 or f2 = 1 by TARSKI:def 2;
+        hence f (*) f2 = f2 by A26,A13;
+      end;
+      hence f is left_identity;
+    end;
+    then
+A27: C is with_left_identities;
+    ex f1 being morphism of C st f1 in the carrier of C &
+    for f being morphism of C st f1 |> f holds not f is right_identity
+    proof
+      reconsider f1 = 1 as morphism of C by TARSKI:def 2;
+      take f1;
+      thus f1 in the carrier of C;
+      let f be morphism of C;
+      assume f1 |> f;
+      hence thesis by A18;
+    end;
+    then
+A28: C is non with_right_identities;
+    for f1,f2,f3 being morphism of C st f1 |> f2 & f2 |> f3 &
+    f1 (*) f2 |> f3 & f1 |> f2 (*) f3 holds
+    f1 (*) (f2 (*) f3) = (f1 (*) f2) (*) f3
+    proof
+      let f1,f2,f3 be morphism of C;
+      assume
+A29:  f1 |> f2 & f2 |> f3;
+      assume
+A30:  f1 (*) f2 |> f3;
+      assume
+A31:  f1 |> f2 (*) f3;
+      per cases by TARSKI:def 2;
+      suppose
+A32:     f3 = 0;
+        then f2 (*) f3 = 0 by A29,A13;
+        hence f1 (*) (f2 (*) f3) = 0 by A31,A13
+        .= (f1 (*) f2) (*) f3 by A30,A32,A13;
+      end;
+      suppose
+A33:     f3 = 1;
+        then f2 (*) f3 = 1 by A29,A13;
+        hence f1 (*) (f2 (*) f3) = 1 by A31,A13
+        .= (f1 (*) f2) (*) f3 by A30,A33,A13;
+      end;
+    end;
+    hence thesis by A25,A27,A28,Def10;
+  end;
+end;
+
+registration
+  cluster non with_left_identities with_right_identities
+          composable associative for CategoryStr;
+  correctness
+  proof
+    set C1 = the with_left_identities non with_right_identities
+          composable associative CategoryStr;
+    set C = C1 opp;
+    take C;
+    thus C is non with_left_identities by Th7;
+    thus C is with_right_identities by Th6;
+    thus C is composable by Th4,Th5,Def11;
+    thus thesis by Th8;
+  end;
+end;
+
+registration
+  cluster non left_composable right_composable
+          with_identities associative for CategoryStr;
+  correctness
+  proof
+    set X1 = NAT \ {0};
+    set X2 = {[n1,n2] where n1,n2 is Element of NAT: n2 = n1 + 1};
+    reconsider X = X1 \/ X2 as set;
+    set c0 = {[[[n1,n2],[n1,n2]],[n1,n2]] where n1,n2 is Element of NAT:
+                     n2 = n1 + 1};
+    set c1 = {[[[n1,n2],n2],n2] where n1,n2 is Element of NAT: n2 = n1 + 1};
+    set c2 = {[[n1,[n1,n2]],n1] where n1,n2 is Element of NAT: n2 = n1 + 1 &
+                     n1 <> 0};
+    set c3 = {[[n1,n2],n1] where n1,n2 is Element of NAT: n2 = n1 + 1 &
+                     n1 <> 0};
+    set comp = c0 \/ c1 \/ c2 \/ c3;
+    1 in NAT & not 1 in {0} by TARSKI:def 1;
+    then
+A1: 1 in X1 by XBOOLE_0:def 5;
+A2: for x,y1,y2 being object st [x,y1] in comp & [x,y2] in comp holds y1 = y2
+    proof
+      let x,y1,y2 be object;
+      assume [x,y1] in comp;
+      then [x,y1] in c0 \/ c1 \/ c2 or [x,y1] in c3 by XBOOLE_0:def 3;
+      then
+A3:  [x,y1] in c0 \/ c1 or [x,y1] in c2 or [x,y1] in c3
+      by XBOOLE_0:def 3;
+      assume [x,y2] in comp;
+      then [x,y2] in c0 \/ c1 \/ c2 or [x,y2] in c3 by XBOOLE_0:def 3;
+      then
+A4:  [x,y2] in c0 \/ c1 or [x,y2] in c2 or [x,y2] in c3
+      by XBOOLE_0:def 3;
+      per cases by A3,XBOOLE_0:def 3;
+      suppose [x,y1] in c0;
+        then consider n11,n12 be Element of NAT such that
+A5:     [x,y1] = [[[n11,n12],[n11,n12]],[n11,n12]] & n12 = n11 + 1;
+A6:     x = [[n11,n12],[n11,n12]] & y1 = [n11,n12] by A5,XTUPLE_0:1;
+        per cases by A4,XBOOLE_0:def 3;
+        suppose [x,y2] in c0;
+          then consider n21,n22 be Element of NAT such that
+A7:       [x,y2] = [[[n21,n22],[n21,n22]],[n21,n22]] & n22 = n21 + 1;
+          x = [[n21,n22],[n21,n22]] & y2 = [n21,n22] by A7,XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c1;
+          then consider n21,n22 be Element of NAT such that
+A8:       [x,y2] = [[[n21,n22],n22],n22] & n22 = n21 + 1;
+          x = [[n21,n22],n22] & y2 = n22 by A8,XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c2;
+          then consider n21,n22 be Element of NAT such that
+A9:       [x,y2] = [[n21,[n21,n22]],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,[n21,n22]] & y2 = n21 by A9,XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c3;
+          then consider n21,n22 be Element of NAT such that
+A10:       [x,y2] = [[n21,n22],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,n22] & y2 = n21 by A10,XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+      end;
+      suppose [x,y1] in c1;
+        then consider n11,n12 be Element of NAT such that
+A11:     [x,y1] = [[[n11,n12],n12],n12] & n12 = n11 + 1;
+A12:     x = [[n11,n12],n12] & y1 = n12 by A11,XTUPLE_0:1;
+        per cases by A4,XBOOLE_0:def 3;
+        suppose [x,y2] in c0;
+          then consider n21,n22 be Element of NAT such that
+A13:       [x,y2] = [[[n21,n22],[n21,n22]],[n21,n22]] & n22 = n21 + 1;
+          x = [[n21,n22],[n21,n22]] & y2 = [n21,n22] by A13,XTUPLE_0:1;
+          hence thesis by A12,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c1;
+          then consider n21,n22 be Element of NAT such that
+A14:       [x,y2] = [[[n21,n22],n22],n22] & n22 = n21 + 1;
+          x = [[n21,n22],n22] & y2 = n22 by A14,XTUPLE_0:1;
+          hence thesis by A12,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c2;
+          then consider n21,n22 be Element of NAT such that
+A15:       [x,y2] = [[n21,[n21,n22]],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,[n21,n22]] & y2 = n21 by A15,XTUPLE_0:1;
+          hence thesis by A12,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c3;
+          then consider n21,n22 be Element of NAT such that
+A16:       [x,y2] = [[n21,n22],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,n22] & y2 = n21 by A16,XTUPLE_0:1;
+          hence thesis by A12,XTUPLE_0:1;
+        end;
+      end;
+      suppose [x,y1] in c2;
+        then consider n11,n12 be Element of NAT such that
+A17:     [x,y1] = [[n11,[n11,n12]],n11] & n12 = n11 + 1 & n11 <> 0;
+A18:     x = [n11,[n11,n12]] & y1 = n11 by A17,XTUPLE_0:1;
+        per cases by A4,XBOOLE_0:def 3;
+        suppose [x,y2] in c0;
+          then consider n21,n22 be Element of NAT such that
+A19:       [x,y2] = [[[n21,n22],[n21,n22]],[n21,n22]] & n22 = n21 + 1;
+          x = [[n21,n22],[n21,n22]] & y2 = [n21,n22] by A19,XTUPLE_0:1;
+          hence thesis by A18,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c1;
+          then consider n21,n22 be Element of NAT such that
+A20:       [x,y2] = [[[n21,n22],n22],n22] & n22 = n21 + 1;
+          x = [[n21,n22],n22] & y2 = n22 by A20,XTUPLE_0:1;
+          hence thesis by A18,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c2;
+          then consider n21,n22 be Element of NAT such that
+A21:       [x,y2] = [[n21,[n21,n22]],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,[n21,n22]] & y2 = n21 by A21,XTUPLE_0:1;
+          hence thesis by A18,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c3;
+          then consider n21,n22 be Element of NAT such that
+A22:       [x,y2] = [[n21,n22],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,n22] & y2 = n21 by A22,XTUPLE_0:1;
+          hence thesis by A18,XTUPLE_0:1;
+        end;
+      end;
+      suppose [x,y1] in c3;
+        then consider n11,n12 be Element of NAT such that
+A23:     [x,y1] = [[n11,n12],n11] & n12 = n11 + 1 & n11 <> 0;
+A24:     x = [n11,n12] & y1 = n11 by A23,XTUPLE_0:1;
+        per cases by A4,XBOOLE_0:def 3;
+        suppose [x,y2] in c0;
+          then consider n21,n22 be Element of NAT such that
+A25:       [x,y2] = [[[n21,n22],[n21,n22]],[n21,n22]] & n22 = n21 + 1;
+          x = [[n21,n22],[n21,n22]] & y2 = [n21,n22] by A25,XTUPLE_0:1;
+          hence thesis by A24,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c1;
+          then consider n21,n22 be Element of NAT such that
+A26:       [x,y2] = [[[n21,n22],n22],n22] & n22 = n21 + 1;
+          x = [[n21,n22],n22] & y2 = n22 by A26,XTUPLE_0:1;
+          hence thesis by A24,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c2;
+          then consider n21,n22 be Element of NAT such that
+A27:       [x,y2] = [[n21,[n21,n22]],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,[n21,n22]] & y2 = n21 by A27,XTUPLE_0:1;
+          hence thesis by A24,XTUPLE_0:1;
+        end;
+        suppose [x,y2] in c3;
+          then consider n21,n22 be Element of NAT such that
+A28:       [x,y2] = [[n21,n22],n21] & n22 = n21 + 1 & n21 <> 0;
+          x = [n21,n22] & y2 = n21 by A28,XTUPLE_0:1;
+          hence thesis by A24,XTUPLE_0:1;
+        end;
+      end;
+    end;
+    for x being object st x in comp holds x in [:[:X,X:],X:]
+    proof
+      let x be object;
+      assume x in comp;
+      then x in c0 \/ c1 \/ c2 or x in c3 by XBOOLE_0:def 3;
+      then
+A29:  x in c0 \/ c1 or x in c2 or x in c3 by XBOOLE_0:def 3;
+      per cases by A29,XBOOLE_0:def 3;
+      suppose x in c0;
+        then consider n1,n2 be Element of NAT such that
+A30:     x = [[[n1,n2],[n1,n2]],[n1,n2]] & n2 = n1 + 1;
+        [n1,n2] in X2 by A30;
+        then
+A31:     [n1,n2] in X by XBOOLE_0:def 3;
+        then [[n1,n2],[n1,n2]] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A30,A31,ZFMISC_1:def 2;
+      end;
+      suppose x in c1;
+        then consider n1,n2 be Element of NAT such that
+A32:     x = [[[n1,n2],n2],n2] & n2 = n1 + 1;
+        [n1,n2] in X2 by A32;
+        then
+A33:     [n1,n2] in X by XBOOLE_0:def 3;
+        not n2 in {0} by A32,TARSKI:def 1;
+        then n2 in X1 by XBOOLE_0:def 5;
+        then
+A34:     n2 in X by XBOOLE_0:def 3;
+        [[n1,n2],n2] in [:X,X:] by A33,A34,ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A32,A34,ZFMISC_1:def 2;
+      end;
+      suppose x in c2;
+        then consider n1,n2 be Element of NAT such that
+A35:     x = [[n1,[n1,n2]],n1] & n2 = n1 + 1 & n1 <> 0;
+        [n1,n2] in X2 by A35;
+        then
+A36:     [n1,n2] in X by XBOOLE_0:def 3;
+        not n1 in {0} by A35,TARSKI:def 1;
+        then n1 in X1 by XBOOLE_0:def 5;
+        then
+A37:     n1 in X by XBOOLE_0:def 3;
+        [n1,[n1,n2]] in [:X,X:] by A36,A37,ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A35,A37,ZFMISC_1:def 2;
+      end;
+      suppose x in c3;
+        then consider n1,n2 be Element of NAT such that
+A38:     x = [[n1,n2],n1] & n2 = n1 + 1 & n1 <> 0;
+        not n1 in {0} by A38,TARSKI:def 1;
+        then n1 in X1 by XBOOLE_0:def 5;
+        then
+A39:    n1 in X by XBOOLE_0:def 3;
+        not n2 in {0} by A38,TARSKI:def 1;
+        then n2 in X1 by XBOOLE_0:def 5;
+        then
+A40:    n2 in X by XBOOLE_0:def 3;
+        [n1,n2] in [:X,X:] by A39,A40,ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A38,A39,ZFMISC_1:def 2;
+      end;
+    end;
+    then reconsider comp as PartFunc of [:X,X:],X
+    by A2,TARSKI:def 3,FUNCT_1:def 1;
+    set C = CategoryStr(# X, comp #);
+A41: for n1 being Element of NAT st n1 <> 0 holds n1 is morphism of C
+    proof
+      let n1 be Element of NAT;
+      assume n1 <> 0;
+      then not n1 in {0} by TARSKI:def 1;
+      then n1 in X1 by XBOOLE_0:def 5;
+      hence n1 is morphism of C by XBOOLE_0:def 3;
+    end;
+A42: for f1,f2 being morphism of C, n1,n2 being Element of NAT st
+    f1 = n1 & f2 = n2 & n2 = n1 + 1 & n1 <> 0 holds f1 |> f2 & f1(*)f2 = f1
+    proof
+      let f1,f2 be morphism of C;
+      let n1,n2 be Element of NAT;
+      assume
+A43:   f1 = n1 & f2 = n2;
+      assume n2 = n1 + 1 & n1 <> 0;
+      then
+A44:  [[n1,n2],n1] in c3;
+      then
+A45:   [[n1,n2],n1] in c0 \/ c1 \/ c2 \/ c3 by XBOOLE_0:def 3;
+A46:   [[n1,n2],n1] in the composition of C by A44,XBOOLE_0:def 3;
+A47:  [f1,f2] in dom the composition of C by A43,A45,XTUPLE_0:def 12;
+      thus f1 |> f2 by A43,A45,XTUPLE_0:def 12;
+      thus f1(*)f2 = (the composition of C).(f1,f2) by A47,Def2,Def3
+      .= (the composition of C).[n1,n2] by A43,BINOP_1:def 1
+      .= f1 by A46,A43,FUNCT_1:1;
+    end;
+A48: for f being morphism of C st f in X2 holds f is left_identity &
+    f is right_identity & f |> f
+    proof
+      let f be morphism of C;
+      assume f in X2;
+      then consider nf1,nf2 be Element of NAT such that
+A49:  f = [nf1,nf2] & nf2 = nf1 + 1;
+      for f1 being morphism of C st f |> f1 holds f (*) f1 = f1
+      proof
+        let f1 be morphism of C;
+        assume
+A50:     f |> f1;
+        then consider y be object such that
+A51:     [[f,f1],y] in the composition of C by XTUPLE_0:def 12;
+        [[f,f1],y] in c0 \/ c1 \/ c2 or [[f,f1],y] in c3
+        by A51,XBOOLE_0:def 3;
+        then
+A52:     [[f,f1],y] in c0 \/ c1 or [[f,f1],y] in c2
+        or [[f,f1],y] in c3 by XBOOLE_0:def 3;
+        per cases by A52,XBOOLE_0:def 3;
+        suppose [[f,f1],y] in c0;
+          then consider n1,n2 be Element of NAT such that
+A53:       [[f,f1],y] = [[[n1,n2],[n1,n2]],[n1,n2]] & n2 = n1 + 1;
+          [f,f1] = [[n1,n2],[n1,n2]] & y = [n1,n2] by A53,XTUPLE_0:1;
+          then
+A54:       f = [n1,n2] & f1 = [n1,n2] by XTUPLE_0:1;
+          thus f (*) f1 = (the composition of C).(f,f1) by A50,Def3
+          .= (the composition of C).[f,f1] by BINOP_1:def 1
+          .= f1 by A54,A51,FUNCT_1:1,A53;
+        end;
+        suppose [[f,f1],y] in c1;
+          then consider n1,n2 be Element of NAT such that
+A55:       [[f,f1],y] = [[[n1,n2],n2],n2] & n2 = n1 + 1;
+          [f,f1] = [[n1,n2],n2] & y = n2 by A55,XTUPLE_0:1;
+          then
+A56:       f = [n1,n2] & f1 = n2 by XTUPLE_0:1;
+          thus f (*) f1 = (the composition of C).(f,f1) by A50,Def3
+          .= (the composition of C).[f,f1] by BINOP_1:def 1
+          .= f1 by A56,A51,FUNCT_1:1,A55;
+        end;
+        suppose [[f,f1],y] in c2;
+          then consider n1,n2 be Element of NAT such that
+A57:       [[f,f1],y] = [[n1,[n1,n2]],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f,f1] = [n1,[n1,n2]] by A57,XTUPLE_0:1;
+          hence thesis by A49,XTUPLE_0:1;
+        end;
+        suppose [[f,f1],y] in c3;
+          then consider n1,n2 be Element of NAT such that
+A58:       [[f,f1],y] = [[n1,n2],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f,f1] = [n1,n2] by A58,XTUPLE_0:1;
+          hence thesis by A49,XTUPLE_0:1;
+        end;
+      end;
+      hence f is left_identity;
+      for f1 being morphism of C st f1 |> f holds f1 (*) f = f1
+      proof
+        let f1 be morphism of C;
+        assume
+A59:     f1 |> f;
+        then consider y be object such that
+A60:     [[f1,f],y] in the composition of C by XTUPLE_0:def 12;
+        [[f1,f],y] in c0 \/ c1 \/ c2 or [[f1,f],y] in c3
+        by A60,XBOOLE_0:def 3;
+        then
+A61:     [[f1,f],y] in c0 \/ c1 or [[f1,f],y] in c2
+        or [[f1,f],y] in c3 by XBOOLE_0:def 3;
+        per cases by A61,XBOOLE_0:def 3;
+        suppose [[f1,f],y] in c0;
+          then consider n1,n2 be Element of NAT such that
+A62:       [[f1,f],y] = [[[n1,n2],[n1,n2]],[n1,n2]] & n2 = n1 + 1;
+          [f1,f] = [[n1,n2],[n1,n2]] & y = [n1,n2] by A62,XTUPLE_0:1;
+          then
+A63:       f1 = [n1,n2] & f = [n1,n2] by XTUPLE_0:1;
+          thus f1 (*) f = (the composition of C).(f1,f) by A59,Def3
+          .= (the composition of C).[f1,f] by BINOP_1:def 1
+          .= f1 by A63,A60,FUNCT_1:1,A62;
+        end;
+        suppose [[f1,f],y] in c1;
+          then consider n1,n2 be Element of NAT such that
+A64:       [[f1,f],y] = [[[n1,n2],n2],n2] & n2 = n1 + 1;
+          [f1,f] = [[n1,n2],n2] & y = n2 by A64,XTUPLE_0:1;
+          hence thesis by A49,XTUPLE_0:1;
+        end;
+        suppose [[f1,f],y] in c2;
+          then consider n1,n2 be Element of NAT such that
+A65:       [[f1,f],y] = [[n1,[n1,n2]],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f1,f] = [n1,[n1,n2]] & y = n1 by A65,XTUPLE_0:1;
+          then
+A66:       f1 = n1 & f = [n1,n2] by XTUPLE_0:1;
+          thus f1 (*) f = (the composition of C).(f1,f) by A59,Def3
+          .= (the composition of C).[f1,f] by BINOP_1:def 1
+          .= f1 by A66,A60,FUNCT_1:1,A65;
+        end;
+        suppose [[f1,f],y] in c3;
+          then consider n1,n2 be Element of NAT such that
+A67:       [[f1,f],y] = [[n1,n2],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f1,f] = [n1,n2] by A67,XTUPLE_0:1;
+          hence thesis by A49,XTUPLE_0:1;
+        end;
+      end;
+      hence f is right_identity;
+      [[f,f],f] in c0 by A49;
+      then [[f,f],f] in c0 \/ c1 by XBOOLE_0:def 3;
+      then [[f,f],f] in c0 \/ c1 \/ c2 by XBOOLE_0:def 3;
+      then [[f,f],f] in c0 \/ c1 \/ c2 \/ c3 by XBOOLE_0:def 3;
+      hence f |> f by FUNCT_1:1;
+    end;
+A68: for f1,f2 being morphism of C st f1 in X1 & f1 |> f2 holds f1(*)f2 = f1
+    proof
+      let f1,f2 be morphism of C;
+      assume
+A69: f1 in X1;
+      reconsider nf1 = f1 as Element of NAT by A69;
+      assume
+A70:   f1 |> f2;
+      per cases by A1,XBOOLE_0:def 3;
+      suppose
+A71:   f2 in X1;
+        reconsider nf2 = f2 as Element of NAT by A71;
+        consider y be object such that
+A72:     [[f1,f2],y] in the composition of C by A70,XTUPLE_0:def 12;
+        [[f1,f2],y] in c0 \/ c1 \/ c2 or [[f1,f2],y] in c3
+        by A72,XBOOLE_0:def 3;
+        then
+A73:     [[f1,f2],y] in c0 \/ c1 or [[f1,f2],y] in c2
+        or [[f1,f2],y] in c3 by XBOOLE_0:def 3;
+        per cases by A73,XBOOLE_0:def 3;
+        suppose [[f1,f2],y] in c0;
+          then consider n1,n2 be Element of NAT such that
+A74:       [[f1,f2],y] = [[[n1,n2],[n1,n2]],[n1,n2]] & n2 = n1 + 1;
+          [f1,f2] = [[n1,n2],[n1,n2]] by A74,XTUPLE_0:1;
+          hence thesis by A71,XTUPLE_0:1;
+        end;
+        suppose [[f1,f2],y] in c1;
+          then consider n1,n2 be Element of NAT such that
+A75:       [[f1,f2],y] = [[[n1,n2],n2],n2] & n2 = n1 + 1;
+          [f1,f2] = [[n1,n2],n2] & y = n2 by A75,XTUPLE_0:1;
+          hence thesis by A69,XTUPLE_0:1;
+        end;
+        suppose [[f1,f2],y] in c2;
+          then consider n1,n2 be Element of NAT such that
+A76:       [[f1,f2],y] = [[n1,[n1,n2]],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f1,f2] = [n1,[n1,n2]] by A76,XTUPLE_0:1;
+          hence thesis by A71,XTUPLE_0:1;
+        end;
+        suppose [[f1,f2],y] in c3;
+          then consider n1,n2 be Element of NAT such that
+A77:       [[f1,f2],y] = [[n1,n2],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f1,f2] = [n1,n2] & y = n1 by A77,XTUPLE_0:1;
+          then
+A78:       f1 = n1 & f2 = n2 by XTUPLE_0:1;
+          thus f1 (*) f2 = (the composition of C).(f1,f2) by A70,Def3
+          .= (the composition of C).[f1,f2] by BINOP_1:def 1
+          .= f1 by A78,A72,FUNCT_1:1,A77;
+        end;
+      end;
+      suppose f2 in X2;
+        then f2 is right_identity by A48;
+        hence thesis by A70;
+      end;
+    end;
+    ex f,f1,f2 being morphism of C st f1 |> f2 & not( f1(*)f2 |> f iff f2 |> f)
+    proof
+      reconsider f1=1,f2=2,f=3 as morphism of C by A41;
+      take f,f1,f2;
+A79:   2 = 1 + 1;
+      hence f1 |> f2 by A42;
+A80:  not f1 |> f
+      proof
+        assume f1 |> f;
+        then consider y be object such that
+A81:     [[f1,f],y] in the composition of C by XTUPLE_0:def 12;
+        [[f1,f],y] in c0 \/ c1 \/ c2 or [[f1,f],y] in c3
+        by A81,XBOOLE_0:def 3;
+        then
+A82:     [[f1,f],y] in c0 \/ c1 or [[f1,f],y] in c2
+        or [[f1,f],y] in c3 by XBOOLE_0:def 3;
+        per cases by A82,XBOOLE_0:def 3;
+        suppose [[f1,f],y] in c0;
+          then consider n1,n2 be Element of NAT such that
+A83:       [[f1,f],y] = [[[n1,n2],[n1,n2]],[n1,n2]] & n2 = n1 + 1;
+          [f1,f] = [[n1,n2],[n1,n2]] by A83,XTUPLE_0:1;
+          hence contradiction by XTUPLE_0:1;
+        end;
+        suppose [[f1,f],y] in c1;
+          then consider n1,n2 be Element of NAT such that
+A84:       [[f1,f],y] = [[[n1,n2],n2],n2] & n2 = n1 + 1;
+          [f1,f] = [[n1,n2],n2] by A84,XTUPLE_0:1;
+          hence contradiction by XTUPLE_0:1;
+        end;
+        suppose [[f1,f],y] in c2;
+          then consider n1,n2 be Element of NAT such that
+A85:       [[f1,f],y] = [[n1,[n1,n2]],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f1,f] = [n1,[n1,n2]] by A85,XTUPLE_0:1;
+          hence contradiction by XTUPLE_0:1;
+        end;
+        suppose [[f1,f],y] in c3;
+          then consider n1,n2 be Element of NAT such that
+A86:       [[f1,f],y] = [[n1,n2],n1] & n2 = n1 + 1 & n1 <> 0;
+          [f1,f] = [n1,n2] by A86,XTUPLE_0:1;
+          then f1 = n1 & f = n2 by XTUPLE_0:1;
+          hence contradiction by A86;
+        end;
+      end;
+      3 = 2 + 1;
+      hence thesis by A42,A80,A79;
+    end;
+    then
+A87: C is non left_composable;
+    for f,f1,f2 being morphism of C st f1 |> f2 holds f |> f1(*)f2 iff f |> f1
+    proof
+      let f,f1,f2 be morphism of C;
+      assume
+A88:   f1 |> f2;
+      per cases by A1,XBOOLE_0:def 3;
+      suppose
+A89:     f2 in X1;
+        per cases by A1,XBOOLE_0:def 3;
+        suppose f1 in X1;
+          hence thesis by A88,A68; end;
+        suppose
+A90:       f1 in X2;
+          then
+A91:     f1 is left_identity by A48;
+          then
+A92:       f1(*)f2 = f2 by A88;
+          consider n1,n2 be Element of NAT such that
+A93:       f1 = [n1,n2] & n2 = n1 + 1 by A90;
+          reconsider n3 = f2 as Element of NAT by A89;
+A94:    n2 = n3
+          proof
+            assume
+A95:         n2 <> n3;
+            consider y be object such that
+A96:         [[f1,f2],y] in the composition of C by A88,XTUPLE_0:def 12;
+            [[f1,f2],y] in c0 \/ c1 \/ c2 or [[f1,f2],y] in c3
+            by A96,XBOOLE_0:def 3;
+            then
+A97:         [[f1,f2],y] in c0 \/ c1 or [[f1,f2],y] in c2
+            or [[f1,f2],y] in c3 by XBOOLE_0:def 3;
+            per cases by A97,XBOOLE_0:def 3;
+            suppose [[f1,f2],y] in c0;
+              then consider n1,n2 be Element of NAT such that
+A98:           [[f1,f2],y] = [[[n1,n2],[n1,n2]],[n1,n2]] & n2 = n1 + 1;
+              [f1,f2] = [[n1,n2],[n1,n2]] by A98,XTUPLE_0:1;
+              hence contradiction by XTUPLE_0:1,A89;
+            end;
+            suppose [[f1,f2],y] in c1;
+              then consider n11,n22 be Element of NAT such that
+A99:           [[f1,f2],y] = [[[n11,n22],n22],n22] & n22 = n11 + 1;
+              [f1,f2] = [[n11,n22],n22] by A99,XTUPLE_0:1;
+              then f1 = [n11,n22] & f2 = n22 by XTUPLE_0:1;
+              hence contradiction by A95,A93,XTUPLE_0:1;
+            end;
+            suppose [[f1,f2],y] in c2;
+              then consider n1,n2 be Element of NAT such that
+A100:           [[f1,f2],y] = [[n1,[n1,n2]],n1] & n2 = n1 + 1 & n1 <> 0;
+              [f1,f2] = [n1,[n1,n2]] by A100,XTUPLE_0:1;
+              hence contradiction by XTUPLE_0:1,A89;
+            end;
+            suppose [[f1,f2],y] in c3;
+              then consider n1,n2 be Element of NAT such that
+A101:           [[f1,f2],y] = [[n1,n2],n1] & n2 = n1 + 1 & n1 <> 0;
+              [f1,f2] = [n1,n2] by A101,XTUPLE_0:1;
+              hence contradiction by A93,XTUPLE_0:1;
+            end;
+          end;
+          hereby
+            assume f |> f1(*)f2;
+            then consider y be object such that
+A102:         [[f,f2],y] in the composition of C by A92,XTUPLE_0:def 12;
+            [[f,f2],y] in c0 \/ c1 \/ c2 or [[f,f2],y] in c3
+            by A102,XBOOLE_0:def 3;
+            then
+A103:         [[f,f2],y] in c0 \/ c1 or [[f,f2],y] in c2
+            or [[f,f2],y] in c3 by XBOOLE_0:def 3;
+            per cases by A103,XBOOLE_0:def 3;
+            suppose [[f,f2],y] in c0;
+              then consider n,n2 be Element of NAT such that
+A104:           [[f,f2],y] = [[[n,n2],[n,n2]],[n,n2]] & n2 = n + 1;
+              [f,f2] = [[n,n2],[n,n2]] by A104,XTUPLE_0:1;
+              hence f |> f1 by XTUPLE_0:1,A89;
+            end;
+            suppose [[f,f2],y] in c1;
+              then consider n,n22 be Element of NAT such that
+A105:           [[f,f2],y] = [[[n,n22],n22],n22] & n22 = n + 1;
+              [f,f2] = [[n,n22],n22] by A105,XTUPLE_0:1;
+              then
+A106:          f = [n,n22] & f2 = n22 by XTUPLE_0:1;
+              [[f1,f1],f1] in c0 by A93;
+              then [[f1,f1],f1] in c0 \/ c1 by XBOOLE_0:def 3;
+              then [[f1,f1],f1] in c0 \/ c1 \/ c2 by XBOOLE_0:def 3;
+              then [[f1,f1],f1] in the composition of C by XBOOLE_0:def 3;
+              hence f |> f1 by A93,A106,A105,A94,XTUPLE_0:def 12;
+            end;
+            suppose [[f,f2],y] in c2;
+              then consider n,n2 be Element of NAT such that
+A107:           [[f,f2],y] = [[n,[n,n2]],n] & n2 = n + 1 & n <> 0;
+              [f,f2] = [n,[n,n2]] by A107,XTUPLE_0:1;
+              hence f |> f1 by A89,XTUPLE_0:1;
+            end;
+            suppose [[f,f2],y] in c3;
+              then consider n,n22 be Element of NAT such that
+A108:           [[f,f2],y] = [[n,n22],n] & n22 = n + 1 & n <> 0;
+A109:        [f,f2] = [n,n22] by A108,XTUPLE_0:1;
+              then
+A110:          f = n & f2 = n22 by XTUPLE_0:1;
+A111:        n + 1 = n1 + 1 by A94,A108,A93,A109,XTUPLE_0:1;
+              [[n1,[n1,n2]],n1] in c2 by A93,A108,A111;
+              then [[f,f1],f] in c0 \/ c1 \/ c2
+              by A93,A110,XBOOLE_0:def 3,A94,A108;
+              then [[f,f1],f] in the composition of C by XBOOLE_0:def 3;
+              hence f |> f1 by XTUPLE_0:def 12;
+            end;
+          end;
+          assume A112: f |> f1;
+          f |> f2
+          proof
+            consider y be object such that
+A113:         [[f,f1],y] in the composition of C by A112,XTUPLE_0:def 12;
+            [[f,f1],y] in c0 \/ c1 \/ c2 or [[f,f1],y] in c3
+            by A113,XBOOLE_0:def 3;
+            then
+A114:         [[f,f1],y] in c0 \/ c1 or [[f,f1],y] in c2
+            or [[f,f1],y] in c3 by XBOOLE_0:def 3;
+            per cases by A114,XBOOLE_0:def 3;
+            suppose [[f,f1],y] in c0;
+              then consider n,n1 be Element of NAT such that
+A115:           [[f,f1],y] = [[[n,n1],[n,n1]],[n,n1]] & n1 = n + 1;
+              [f,f1] = [[n,n1],[n,n1]] by A115,XTUPLE_0:1;
+              then f = [n,n1] & f1 = [n,n1] by XTUPLE_0:1;
+              hence f |> f2 by A88;
+            end;
+            suppose [[f,f1],y] in c1;
+              then consider n,n1 be Element of NAT such that
+A116:           [[f,f1],y] = [[[n,n1],n1],n1] & n1 = n + 1;
+              [f,f1] = [[n,n1],n1] by A116,XTUPLE_0:1;
+              hence f |> f2 by A93,XTUPLE_0:1;
+            end;
+            suppose [[f,f1],y] in c2;
+              then consider n,n11 be Element of NAT such that
+A117:           [[f,f1],y] = [[n,[n,n11]],n] & n11 = n + 1 & n <> 0;
+              [f,f1] = [n,[n,n11]] by A117,XTUPLE_0:1;
+              then
+A118:          f = n & f1 = [n,n11] by XTUPLE_0:1;
+              then
+A119:          n = n1 & n11 = n2 by A93,XTUPLE_0:1;
+              [[n1,n2],n1] in c3 by A117,A119;
+              then [[f,f2],f] in the composition of C
+                by A119,A118,A94,XBOOLE_0:def 3;
+              hence f |> f2 by XTUPLE_0:def 12;
+            end;
+            suppose [[f,f1],y] in c3;
+              then consider n,n1 be Element of NAT such that
+A120:           [[f,f1],y] = [[n,n1],n] & n1 = n + 1 & n <> 0;
+              [f,f1] = [n,n1] by A120,XTUPLE_0:1;
+              hence f |> f2 by A93,XTUPLE_0:1;
+            end;
+          end;
+          hence f |> f1(*)f2 by A91,A88;
+        end;
+      end;
+      suppose f2 in X2;
+        then f2 is right_identity by A48;
+        hence thesis by A88;
+      end;
+    end;
+    then
+A121: C is right_composable;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f |> f1 & f is left_identity
+    proof
+      let f1 be morphism of C;
+      assume A122: f1 in the carrier of C;
+      per cases by A122,XBOOLE_0:def 3;
+      suppose
+A123:    f1 in X1;
+        then
+A124:     f1 in NAT & not f1 in {0} by XBOOLE_0:def 5;
+        reconsider n2 = f1 as Element of NAT by A123;
+        reconsider n22 = n2 as Nat;
+        n22 <> 0 by A124,TARSKI:def 1;
+        then consider n11 be Nat such that
+A125:     n22 = n11 + 1 by NAT_1:6;
+        reconsider n1 = n11 as Element of NAT by ORDINAL1:def 12;
+A126:     [n1,n2] in X2 by A125;
+        then reconsider f = [n1,n2] as morphism of C by XBOOLE_0:def 3;
+        take f;
+        [[[n1,n2],n2],n2] in c1 by A125;
+        then [[f,f1],f1] in c0 \/ c1 by XBOOLE_0:def 3;
+        then [[f,f1],f1] in c0 \/ c1 \/ c2 by XBOOLE_0:def 3;
+        then [[f,f1],f1] in the composition of C by XBOOLE_0:def 3;
+        hence f |> f1 by XTUPLE_0:def 12;
+        thus f is left_identity by A126,A48;
+      end;
+      suppose
+A127:     f1 in X2;
+        set f = f1;
+        take f;
+        thus thesis by A127,A48;
+      end;
+    end;
+    then
+A128: C is with_left_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f1 |> f & f is right_identity
+    proof
+      let f1 be morphism of C;
+      assume A129: f1 in the carrier of C;
+      per cases by A129,XBOOLE_0:def 3;
+      suppose
+A130:    f1 in X1;
+        then
+A131:     f1 in NAT & not f1 in {0} by XBOOLE_0:def 5;
+        reconsider n1 = f1 as Element of NAT by A130;
+A132:     n1 <> 0 by A131,TARSKI:def 1;
+        reconsider n2 = n1 + 1 as Element of NAT;
+A133:     [n1,n2] in X2;
+        then reconsider f = [n1,n2] as morphism of C by XBOOLE_0:def 3;
+        take f;
+        [[n1,[n1,n2]],n1] in c2 by A132;
+        then [[f1,f],f1] in c0 \/ c1 \/ c2 by XBOOLE_0:def 3;
+        then [[f1,f],f1] in the composition of C by XBOOLE_0:def 3;
+        hence f1 |> f by XTUPLE_0:def 12;
+        thus f is right_identity by A133,A48;
+      end;
+      suppose
+A134:     f1 in X2;
+        set f = f1;
+        take f;
+        thus thesis by A134,A48;
+      end;
+     end;
+     then
+A135: C is with_identities by A128,Def7;
+    for f1,f2,f3 being morphism of C st f1 |> f2 & f2 |> f3 &
+    f1(*)f2 |> f3 & f1 |> f2(*)f3 holds  f1(*)(f2(*)f3) = (f1(*)f2)(*)f3
+    proof
+      let f1,f2,f3 be morphism of C;
+      assume A136: f1 |> f2;
+      assume f2 |> f3;
+      assume A137: f1(*)f2 |> f3;
+      assume A138: f1 |> f2(*)f3;
+A139:  C is non empty by A136;
+      per cases by A139,XBOOLE_0:def 3;
+      suppose
+A140:   f1 in X1;
+        then
+A141:   f1(*)(f2(*)f3) = f1 & f1(*)f2 = f1 by A136,A138,A68;
+        thus f1(*)(f2(*)f3) = (f1(*)f2)(*)f3 by A140,A68,A141,A137;
+      end;
+      suppose f1 in X2;
+        then f1 is left_identity by A48;
+        then f1(*)(f2(*)f3) = f2(*)f3 & f1(*)f2 = f2 by A136,A138;
+        hence f1(*)(f2(*)f3) = (f1(*)f2)(*)f3;
+      end;
+    end;
+    hence thesis by A87,A121,A135,Def10;
+  end;
+end;
+
+registration
+  cluster left_composable non right_composable
+          with_identities associative for CategoryStr;
+  correctness
+  proof
+    set C1 = the non left_composable right_composable with_identities
+          associative CategoryStr;
+    set C = C1 opp;
+    take C;
+    thus C is left_composable by Th5;
+    thus C is non right_composable by Th4;
+    thus C is with_identities by Th6,Th7,Def12;
+    thus thesis by Th8;
+  end;
+end;
+
+registration
+  cluster non associative composable with_identities for CategoryStr;
+  correctness
+  proof
+    set X = NAT;
+    set comp = {[[n1,n2],n3] where n1,n2,n3 is Element of NAT :
+    (n1 <> n2 implies n3 = n1+n2) & (n1 = n2 implies n3 = 0)};
+A1: for x,y1,y2 being object st [x,y1] in comp & [x,y2] in comp holds y1 = y2
+    proof
+      let x,y1,y2 be object;
+      assume [x,y1] in comp;
+      then consider n11,n12,n13 be Element of NAT such that
+A2:   [x,y1] = [[n11,n12],n13] & (n11 <> n12 implies n13 = n11+n12) &
+      (n11 = n12 implies n13 = 0);
+      assume [x,y2] in comp;
+      then consider n21,n22,n23 be Element of NAT such that
+A3:   [x,y2] = [[n21,n22],n23] & (n21 <> n22 implies n23 = n21+n22) &
+      (n21 = n22 implies n23 = 0);
+A4:   x = [n11,n12] & y1 = n13 by A2,XTUPLE_0:1;
+      x = [n21,n22] & y2 = n23 by A3,XTUPLE_0:1;
+      then
+A5:   n11 = n21 & n12 = n22 by A4,XTUPLE_0:1;
+      per cases;
+      suppose n11 <> n12;
+        thus y1 = y2 by A2,A3,A5,XTUPLE_0:1;
+      end;
+      suppose n11 = n12;
+        thus y1 = y2 by A2,A3,A5,XTUPLE_0:1;
+      end;
+    end;
+    for x being object st x in comp holds x in [:[:X,X:],X:]
+    proof
+      let x be object;
+      assume x in comp;
+      then consider n11,n12,n13 be Element of NAT such that
+A6:   x = [[n11,n12],n13] & (n11 <> n12 implies n13 = n11+n12) &
+      (n11 = n12 implies n13 = 0);
+      [n11,n12] in [:X,X:] by ZFMISC_1:def 2;
+      hence thesis by A6,ZFMISC_1:def 2;
+    end;
+    then reconsider comp as PartFunc of [:X,X:],X
+    by A1,TARSKI:def 3,FUNCT_1:def 1;
+    set C = CategoryStr(# X, comp #);
+A7: for f1,f2 being morphism of C holds f1 |> f2
+    proof
+      let f1,f2 be morphism of C;
+      reconsider n1=f1,n2=f2 as Element of NAT;
+      per cases;
+      suppose
+A8:     n1 <> n2;
+        reconsider n3 = n1 + n2 as Element of NAT;
+        [[n1,n2],n3] in the composition of C by A8;
+        hence thesis by FUNCT_1:1;
+      end;
+      suppose
+A9:     n1 = n2;
+        set n3 = 0;
+        [[n1,n2],n3] in the composition of C by A9;
+        hence thesis by FUNCT_1:1;
+      end;
+    end;
+A10: for f1,f2 being morphism of C st f1 = 0 holds f1(*)f2 = f2 & f2(*)f1 = f2
+    proof
+      let f1,f2 be morphism of C;
+      assume
+A11:   f1 = 0;
+      reconsider n2=f2 as Element of NAT;
+      [f1,f2] in dom the composition of C by A7,Def2;
+      then consider y be object such that
+A12:   [[f1,f2],y] in the composition of C by XTUPLE_0:def 12;
+      consider n1,n2,n3 be Element of NAT such that
+A13:   [[f1,f2],y] = [[n1,n2],n3] & (n1 <> n2 implies n3 = n1+n2) &
+      (n1 = n2 implies n3 = 0) by A12;
+      [f1,f2] = [n1,n2] & y = n3 by A13,XTUPLE_0:1;
+      then
+A14:   f1 = n1 & f2 = n2 by XTUPLE_0:1;
+      thus f1(*)f2 = (the composition of C).(f1,f2) by Def3,A7
+      .= (the composition of C).[f1,f2] by BINOP_1:def 1
+      .= f2 by FUNCT_1:1,A12,A13,A14,A11;
+      [f2,f1] in dom the composition of C by A7,Def2;
+      then consider y be object such that
+A15:   [[f2,f1],y] in the composition of C by XTUPLE_0:def 12;
+      consider n2,n1,n3 be Element of NAT such that
+A16:   [[f2,f1],y] = [[n2,n1],n3] & (n2 <> n1 implies n3 = n2+n1) &
+      (n2 = n1 implies n3 = 0) by A15;
+      [f2,f1] = [n2,n1] & y = n3 by A16,XTUPLE_0:1;
+      then
+A17:   f2 = n2 & f1 = n1 by XTUPLE_0:1;
+      thus f2(*)f1 = (the composition of C).(f2,f1) by Def3,A7
+      .= (the composition of C).[f2,f1] by BINOP_1:def 1
+      .= f2 by FUNCT_1:1,A15,A16,A17,A11;
+    end;
+A18: C is left_composable by A7;
+    for f,f1,f2 being morphism of C st f1|>f2 holds f|>f1(*)f2 iff f|>f1
+    by A7;
+    then
+A19: C is composable by A18,Def9;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f|>f1 & f is left_identity
+    proof
+      let f1 be morphism of C;
+      assume f1 in the carrier of C;
+      reconsider f = 0 as morphism of C;
+      take f;
+      thus f |> f1 by A7;
+      thus f is left_identity by A10;
+    end;
+    then
+A20: C is with_left_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f1|>f & f is right_identity
+    proof
+      let f1 be morphism of C;
+      assume f1 in the carrier of C;
+      reconsider f = 0 as morphism of C;
+      take f;
+      thus f1 |> f by A7;
+      thus f is right_identity by A10;
+    end;
+    then
+A21: C is with_identities by A20,Def7;
+A22: for f1,f2 being morphism of C, n1,n2 being Element of NAT st
+    f1 = n1 & f2 = n2 & n1 = n2 holds f1 (*) f2 = 0
+    proof
+      let f1,f2 be morphism of C;
+      let n1,n2 be Element of NAT;
+      assume
+A23:   f1 = n1 & f2 = n2;
+      assume
+A24:   n1 = n2;
+      [f1,f2] in dom the composition of C by A7,Def2;
+      then consider y be object such that
+A25:   [[f1,f2],y] in the composition of C by XTUPLE_0:def 12;
+      consider n11,n22,n33 be Element of NAT such that
+A26:   [[f1,f2],y] = [[n11,n22],n33] & (n11 <> n22 implies n33 = n11+n22) &
+      (n11 = n22 implies n33 = 0) by A25;
+      [f1,f2] = [n11,n22] & y = n33 by A26,XTUPLE_0:1;
+      then
+A27:  f1 = n11 & f2 = n22 by XTUPLE_0:1;
+      thus f1(*)f2 = (the composition of C).(f1,f2) by Def3,A7
+      .= (the composition of C).[f1,f2] by BINOP_1:def 1
+      .= 0 by A27,FUNCT_1:1,A25,A26,A24,A23;
+    end;
+A28: for f1,f2 being morphism of C, n1,n2 being Element of NAT st
+    f1 = n1 & f2 = n2 & n1 <> n2 holds f1 (*) f2 = n1+n2
+    proof
+      let f1,f2 be morphism of C;
+      let n1,n2 be Element of NAT;
+      assume
+A29:   f1 = n1 & f2 = n2;
+      assume
+A30:   n1 <> n2;
+      [f1,f2] in dom the composition of C by A7,Def2;
+      then consider y be object such that
+A31:   [[f1,f2],y] in the composition of C by XTUPLE_0:def 12;
+      consider n11,n22,n33 be Element of NAT such that
+A32:   [[f1,f2],y] = [[n11,n22],n33] & (n11 <> n22 implies n33 = n11+n22) &
+      (n11 = n22 implies n33 = 0) by A31;
+      [f1,f2] = [n11,n22] & y = n33 by A32,XTUPLE_0:1;
+      then
+A33:  f1 = n11 & f2 = n22 by XTUPLE_0:1;
+      thus f1(*)f2 = (the composition of C).(f1,f2) by Def3,A7
+      .= (the composition of C).[f1,f2] by BINOP_1:def 1
+      .= n1+n2 by A33,FUNCT_1:1,A31,A32,A30,A29;
+    end;
+    ex f1,f2,f3 being morphism of C st f1 |> f2 & f2 |> f3 & f1 (*) f2 |> f3
+    & f1 |> f2 (*) f3 & not f1 (*) (f2 (*) f3) = (f1 (*) f2) (*) f3
+    proof
+      reconsider f1=1,f2=2,f3=3 as morphism of C;
+      take f1,f2,f3;
+      thus f1 |> f2 & f2 |> f3 & f1 (*) f2 |> f3 & f1 |> f2 (*) f3 by A7;
+A34:   f1 (*) f2 = 1+2 & f2 (*) f3 = 2+3 by A28;
+      reconsider f12 = 3, f23 = 5 as morphism of C;
+      f1 (*) f23 = 1+5 & f12 (*) f3 = 0 by A22,A28;
+      hence thesis by A34;
+    end;
+    hence thesis by A19,A21,Def10;
+  end;
+end;
+
+registration
+  cluster empty for CategoryStr;
+  correctness
+  proof
+    reconsider X = the empty set as set;
+    reconsider F = the PartFunc of [:the empty set,the empty set:],
+    the empty set as PartFunc of [:X,X:],X;
+    set C = CategoryStr (# X, F #);
+    take C;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster empty -> left_composable right_composable with_left_identities
+  with_right_identities associative for CategoryStr;
+  correctness
+  proof
+    let C be CategoryStr;
+    assume
+A1: C is empty;
+    for f,f1,f2 being morphism of C holds
+    f1 |> f2 implies (f1(*)f2 |> f iff f2 |> f) by A1;
+    hence C is left_composable;
+    for f,f1,f2 being morphism of C holds
+    f1 |> f2 implies (f |> f1(*)f2 iff f |> f1) by A1;
+    hence C is right_composable;
+    thus C is with_left_identities by A1;
+    thus C is with_right_identities by A1;
+    for f1,f2,f3 being morphism of C holds
+    f1 |> f2 & f2 |> f3 & (f1(*)f2) |> f3 & f1 |> (f2(*)f3) implies
+    f1(*)(f2(*)f3) = (f1(*)f2)(*)f3 by A1;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster strict with_left_identities with_right_identities
+          left_composable right_composable associative for CategoryStr;
+  correctness
+  proof
+    set C = (the empty CategoryStr) opp;
+    take C;
+    thus thesis by Th4,Th5,Th8;
+  end;
+end;
+
+registration
+  cluster strict with_identities composable associative for CategoryStr;
+  correctness
+  proof
+    set C = the strict with_left_identities with_right_identities
+          left_composable right_composable associative CategoryStr;
+    take C;
+    thus thesis;
+  end;
+end;
+
+definition
+  mode category is with_identities composable associative CategoryStr;
+end;
+
+definition
+  let C,f;
+  attr f is identity means
+  f is left_identity right_identity;
+end;
+
+theorem Th9:
+  C is with_identities implies (f is left_identity iff f is right_identity)
+  proof
+    assume
+A1: C is with_identities;
+    hereby
+      assume
+A2:   f is left_identity;
+      for f1 being morphism of C st f1 |> f holds f1 (*) f = f1
+      proof
+        let f1 be morphism of C;
+        assume
+A3:     f1 |> f;
+        then C is non empty;
+        then consider g be morphism of C such that
+A4:     f |> g & g is right_identity by A1,Def7;
+        f = f(*)g by A4 .= g by A2,A4;
+        hence f1 (*) f = f1 by A4,A3;
+      end;
+      hence f is right_identity;
+    end;
+    assume
+A5: f is right_identity;
+    for f1 being morphism of C st f |> f1 holds f (*) f1 = f1
+    proof
+      let f1 be morphism of C;
+      assume
+A6:   f |> f1;
+      then C is non empty;
+      then consider g be morphism of C such that
+A7:   g |> f & g is left_identity by A1,Def6;
+      f = g(*)f by A7 .= g by A5,A7;
+      hence f (*) f1 = f1 by A7,A6;
+    end;
+    hence f is left_identity;
+  end;
+
+theorem Th10:
+  C is empty implies f is identity
+  proof
+    assume C is empty;
+    then (for f1 being morphism of C st f |> f1 holds f (*) f1 = f1) &
+    (for f1 being morphism of C st f1 |> f holds f1 (*) f = f1);
+    then f is left_identity & f is right_identity;
+    hence f is identity;
+  end;
+
+theorem Th11:
+   for g1,g2 being morphism of the CategoryStr of C
+   st f1 = g1 & f2 = g2 & f1 |> f2 holds f1 (*) f2 = g1 (*) g2
+   proof
+     let g1,g2 be morphism of the CategoryStr of C;
+     assume
+A1:  f1 = g1 & f2 = g2;
+     assume
+A2:  f1 |> f2;
+     then
+A3:  g1 |> g2 by A1;
+     thus f1 (*) f2 = (the composition of C).(f1,f2) by A2,Def3
+     .= g1 (*) g2 by A1,A3,Def3;
+   end;
+
+theorem Th12:
+  C is left_composable iff the CategoryStr of C is left_composable
+  proof
+    hereby
+      assume
+A1:  C is left_composable;
+      for g,g1,g2 being morphism of the CategoryStr of C st g1 |> g2 holds
+      g1 (*) g2 |> g iff g2 |> g
+      proof
+        let g,g1,g2 be morphism of the CategoryStr of C;
+        reconsider f=g,f1=g1,f2=g2 as morphism of C;
+        assume g1 |> g2;
+        then
+A2:     f1 |> f2;
+        hereby
+          assume g1 (*) g2 |> g;
+          then f1 (*) f2 |> f by A2,Th11;
+          then f2 |> f by A2,A1;
+          hence g2 |> g;
+        end;
+        assume g2 |> g;
+        then f2 |> f;
+        then f1 (*) f2 |> f by A2,A1;
+        hence g1 (*) g2 |> g by A2,Th11;
+      end;
+      hence the CategoryStr of C is left_composable;
+    end;
+    assume
+A3: the CategoryStr of C is left_composable;
+    for f,f1,f2 being morphism of C st f1 |> f2 holds
+    f1 (*) f2 |> f iff f2 |> f
+    proof
+      let f,f1,f2 be morphism of C;
+      reconsider g=f,g1=f1,g2=f2 as morphism of the CategoryStr of C;
+      assume
+A4:   f1 |> f2;
+      then
+A5:  g1 |> g2;
+      hereby
+        assume f1 (*) f2 |> f;
+        then g1 (*) g2 |> g by A4,Th11;
+        then g2 |> g by A3,A5;
+        hence f2 |> f;
+      end;
+      assume f2 |> f;
+      then g2 |> g;
+      then g1 (*) g2 |> g by A3,A5;
+      hence f1 (*) f2 |> f by A4,Th11;
+    end;
+    hence C is left_composable;
+  end;
+
+theorem Th13:
+  C is right_composable iff the CategoryStr of C is right_composable
+  proof
+    hereby
+      assume
+A1:  C is right_composable;
+      for g,g1,g2 being morphism of the CategoryStr of C st g1 |> g2 holds
+      g |> g1 (*) g2 iff g |> g1
+      proof
+        let g,g1,g2 be morphism of the CategoryStr of C;
+        reconsider f=g,f1=g1,f2=g2 as morphism of C;
+        assume g1 |> g2;
+        then
+A2:     f1 |> f2;
+        hereby
+          assume g |> g1 (*) g2;
+          then f |> f1 (*) f2 by A2,Th11;
+          then f |> f1 by A2,A1;
+          hence g |> g1;
+        end;
+        assume g |> g1;
+        then f |> f1;
+        then f |> f1 (*) f2 by A2,A1;
+        hence g |> g1 (*) g2 by A2,Th11;
+      end;
+      hence the CategoryStr of C is right_composable;
+    end;
+    assume
+A3: the CategoryStr of C is right_composable;
+    for f,f1,f2 being morphism of C st f1 |> f2 holds
+    f |> f1 (*) f2 iff f |> f1
+    proof
+      let f,f1,f2 be morphism of C;
+      reconsider g=f,g1=f1,g2=f2 as morphism of the CategoryStr of C;
+      assume
+A4:   f1 |> f2;
+      then
+A5:  g1 |> g2;
+      hereby
+        assume f |> f1 (*) f2;
+        then g |> g1 (*) g2 by A4,Th11;
+        then g |> g1 by A3,A5;
+        hence f |> f1;
+      end;
+      assume f |> f1;
+      then g |> g1;
+      then g |> g1 (*) g2 by A3,A5;
+      hence f |> f1 (*) f2 by A4,Th11;
+    end;
+    hence C is right_composable;
+  end;
+
+theorem
+  C is composable iff the CategoryStr of C is composable by Th12,Th13;
+
+theorem
+  C is associative iff the CategoryStr of C is associative
+  proof
+    hereby
+      assume A1: C is associative;
+      for g1,g2,g3 being morphism of the CategoryStr of C
+      st g1 |> g2 & g2 |> g3 & g1 (*) g2 |> g3 & g1 |> g2 (*) g3
+      holds g1(*)(g2(*)g3) = (g1(*)g2)(*)g3
+      proof
+        let g1,g2,g3 be morphism of the CategoryStr of C;
+        reconsider f1=g1,f2=g2,f3=g3 as morphism of C;
+        assume g1 |> g2 & g2 |> g3;
+        then
+A2:     f1 |> f2 & f2 |> f3;
+A3:     f1 (*) f2 = g1 (*) g2 & f2 (*) f3 = g2 (*) g3 by A2,Th11;
+        assume g1 (*) g2 |> g3 & g1 |> g2 (*) g3;
+        then
+A4:     f1 (*) f2 |> f3 & f1 |> f2 (*) f3 by A2,Th11;
+        then f1(*)(f2(*)f3) = (f1(*)f2)(*)f3 by A2,A1;
+        hence g1(*)(g2(*)g3) = (f1(*)f2)(*)f3 by A4,A3,Th11
+        .= (g1(*)g2)(*)g3 by A4,A3,Th11;
+      end;
+      hence the CategoryStr of C is associative;
+    end;
+    assume
+A5: the CategoryStr of C is associative;
+    for f1,f2,f3 being morphism of C st f1 |> f2 & f2 |> f3 &
+    f1 (*) f2 |> f3 & f1 |> f2 (*) f3 holds f1(*)(f2(*)f3) = (f1(*)f2)(*)f3
+    proof
+      let f1,f2,f3 be morphism of C;
+      reconsider g1=f1,g2=f2,g3=f3 as morphism of the CategoryStr of C;
+      assume
+A6:   f1 |> f2 & f2 |> f3;
+      then
+A7:   g1 |> g2 & g2 |> g3;
+A8:   f1 (*) f2 = g1 (*) g2 & f2 (*) f3 = g2 (*) g3 by A6,Th11;
+      assume
+A9:   f1 (*) f2 |> f3 & f1 |> f2 (*) f3;
+      then g1 (*) g2 |> g3 & g1 |> g2 (*) g3 by A6,Th11;
+      then g1(*)(g2(*)g3) = (g1(*)g2)(*)g3 by A7,A5;
+      hence f1(*)(f2(*)f3) = (g1(*)g2)(*)g3 by A9,A8,Th11
+      .= (f1(*)f2)(*)f3 by A9,A8,Th11;
+    end;
+    hence C is associative;
+  end;
+
+theorem Th16:
+  for g being morphism of the CategoryStr of C st f = g
+  holds f is left_identity iff g is left_identity
+  proof
+    let g be morphism of the CategoryStr of C;
+    assume
+A1: f = g;
+    hereby
+      assume
+A2:  f is left_identity;
+      for g1 being morphism of the CategoryStr of C st g |> g1
+      holds g (*) g1 = g1
+      proof
+        let g1 be morphism of the CategoryStr of C;
+        reconsider f1 = g1 as morphism of C;
+        assume g |> g1;
+        then
+A3:     f |> f1 by A1;
+        then f (*) f1 = f1 by A2;
+        hence g (*) g1 = g1 by A1,A3,Th11;
+      end;
+      hence g is left_identity;
+    end;
+    assume
+A4: g is left_identity;
+    for f2 being morphism of C st f |> f2 holds f (*) f2 = f2
+    proof
+      let f2 be morphism of C;
+      reconsider g2 = f2 as morphism of the CategoryStr of C;
+      assume
+A5:   f |> f2;
+      then g |> g2 by A1;
+      then g (*) g2 = g2 by A4;
+      hence f (*) f2 = f2 by A1,A5,Th11;
+    end;
+    hence f is left_identity;
+  end;
+
+theorem Th17:
+  C is with_left_identities iff the CategoryStr of C is with_left_identities
+  proof
+    hereby
+      assume
+A1:   C is with_left_identities;
+      for g1 being morphism of the CategoryStr of C st
+      g1 in the carrier of the CategoryStr of C holds
+      ex g being morphism of the CategoryStr of C st
+      g |> g1 & g is left_identity
+      proof
+        let g1 be morphism of the CategoryStr of C;
+        reconsider f1 = g1 as morphism of C;
+        assume g1 in the carrier of the CategoryStr of C;
+        then consider f be morphism of C such that
+A2:     f |> f1 & f is left_identity by A1;
+        reconsider g = f as morphism of the CategoryStr of C;
+        take g;
+        thus g |> g1 by A2;
+        thus g is left_identity by A2,Th16;
+      end;
+      hence the CategoryStr of C is with_left_identities;
+    end;
+    assume
+A3: the CategoryStr of C is with_left_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f |> f1 & f is left_identity
+    proof
+      let f1 be morphism of C;
+      reconsider g1 = f1 as morphism of the CategoryStr of C;
+      assume f1 in the carrier of C;
+      then consider g be morphism of the CategoryStr of C such that
+A4:   g |> g1 & g is left_identity by A3;
+      reconsider f = g as morphism of C;
+      take f;
+      thus f |> f1 by A4;
+      thus f is left_identity by A4,Th16;
+    end;
+    hence C is with_left_identities;
+  end;
+
+theorem Th18:
+  for g being morphism of the CategoryStr of C st f = g
+  holds f is right_identity iff g is right_identity
+  proof
+    let g be morphism of the CategoryStr of C;
+    assume
+A1: f = g;
+    hereby
+      assume
+A2:  f is right_identity;
+      for g1 being morphism of the CategoryStr of C st g1 |> g
+      holds g1 (*) g = g1
+      proof
+        let g1 be morphism of the CategoryStr of C;
+        reconsider f1 = g1 as morphism of C;
+        assume g1 |> g;
+        then
+A3:     f1 |> f by A1;
+        then f1 (*) f = f1 by A2;
+        hence g1 (*) g = g1 by A1,A3,Th11;
+      end;
+      hence g is right_identity;
+    end;
+    assume
+A4: g is right_identity;
+    for f1 being morphism of C st f1 |> f holds f1 (*) f = f1
+    proof
+      let f1 be morphism of C;
+      reconsider g1 = f1 as morphism of the CategoryStr of C;
+      assume
+A5:   f1 |> f;
+      then g1 |> g by A1;
+      then g1 (*) g = g1 by A4;
+      hence f1 (*) f = f1 by A1,A5,Th11;
+    end;
+    hence f is right_identity;
+  end;
+
+theorem Th19:
+  C is with_right_identities iff the CategoryStr of C is with_right_identities
+  proof
+    hereby
+      assume
+A1:   C is with_right_identities;
+      for g1 being morphism of the CategoryStr of C st
+      g1 in the carrier of the CategoryStr of C holds
+      ex g being morphism of the CategoryStr of C st
+      g1 |> g & g is right_identity
+      proof
+        let g1 be morphism of the CategoryStr of C;
+        reconsider f1 = g1 as morphism of C;
+        assume g1 in the carrier of the CategoryStr of C;
+        then consider f be morphism of C such that
+A2:     f1 |> f & f is right_identity by A1;
+        reconsider g = f as morphism of the CategoryStr of C;
+        take g;
+        thus g1 |> g by A2;
+        thus g is right_identity by A2,Th18;
+      end;
+      hence the CategoryStr of C is with_right_identities;
+    end;
+    assume
+A3: the CategoryStr of C is with_right_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f1 |> f & f is right_identity
+    proof
+      let f1 be morphism of C;
+      reconsider g1 = f1 as morphism of the CategoryStr of C;
+      assume f1 in the carrier of C;
+      then consider g be morphism of the CategoryStr of C such that
+A4:   g1 |> g & g is right_identity by A3;
+      reconsider f = g as morphism of C;
+      take f;
+      thus f1 |> f by A4;
+      thus f is right_identity by A4,Th18;
+    end;
+    hence C is with_right_identities;
+  end;
+
+theorem
+  C is with_identities iff the CategoryStr of C is with_identities
+  by Th17,Th19;
+
+
+definition
+  let C;
+  attr C is discrete means :Def15:
+  for f being morphism of C holds f is identity;
+end;
+
+Lm1:
+  (the empty CategoryStr) opp is discrete
+proof
+  set C = (the empty CategoryStr) opp;
+  for f being morphism of C holds f is identity
+  proof
+    let f be morphism of C;
+    for f1 being morphism of C st f |> f1 holds f (*) f1 = f1;
+    then
+A1: f is left_identity;
+    for f1 being morphism of C st f1 |> f holds f1 (*) f = f1;
+    hence f is identity by A1,Def5;
+  end;
+  hence thesis;
+end;
+
+registration
+  cluster strict empty discrete with_identities composable associative
+  for CategoryStr;
+  correctness
+  proof
+    set C = (the empty CategoryStr) opp;
+    take C;
+    C is left_composable right_composable with_left_identities
+    with_right_identities associative by Th4,Th5,Th8;
+    hence thesis by Lm1;
+  end;
+end;
+
+theorem Th21:
+  for C being discrete CategoryStr, f1,f2 being morphism of C
+  st f1 |> f2 holds f1 = f2 & f1 (*) f2 = f2
+  proof
+    let C be discrete CategoryStr;
+    let f1,f2 be morphism of C;
+    assume
+A1: f1 |> f2;
+    f2 is identity by Def15;
+    then
+A2: f1 (*) f2 = f1 by Def5,A1;
+    f1 is identity by Def15;
+    hence thesis by A2,A1,Def4;
+  end;
+
+registration
+  cluster discrete -> composable associative for CategoryStr;
+  correctness
+  proof
+    let C be CategoryStr;
+    assume
+A1: C is discrete;
+A2: for f,g,h being morphism of C holds
+    (h(*)g |> f & h |> g implies g |> f) &
+    (h |> g(*)f & g |> f implies h |> g) &
+    (g |> f & h |> g implies h(*)g |> f & h |> g(*)f)
+    proof
+      let f,g,h be morphism of C;
+      thus h(*)g |> f & h |> g implies g |> f by A1,Th21;
+      thus h |> g(*)f & g |> f implies h |> g
+      proof
+        assume
+A3:     h |> g(*)f & g |> f;
+        then g(*)f = f & f = g by A1,Th21;
+        hence h |> g by A3;
+      end;
+      assume A4: g |> f;
+      assume A5: h |> g;
+      thus h(*)g |> f by A4,A5,A1,Th21;
+      g |> g(*)f & h = g by A4,A5,A1,Th21;
+      hence h |> g(*)f;
+    end;
+A6: for f,g,h being morphism of C st h |> g & g |> f
+    holds h(*)(g(*)f) = (h(*)g)(*)f
+    proof
+      let f,g,h be morphism of C;
+      assume A7: h |> g;
+      assume g |> f;
+      then
+A8:   f = g & g (*) f = f by A1,Th21;
+      thus h(*)(g(*)f) = g by A1,Th21,A7,A8
+      .= (h(*)g)(*)f by A1,Th21,A7,A8;
+    end;
+A9: C is left_composable by A2;
+    for f,f1,f2 being morphism of C holds
+    f1 |> f2 implies (f |> f1(*)f2 iff f |> f1) by A2;
+    hence thesis by A6,A9,Def9;
+  end;
+end;
+
+definition
+  let X be set;
+  func DiscreteCat(X) -> strict discrete category means :Def16:
+  the carrier of it = X;
+  existence
+  proof
+    per cases;
+    suppose
+A1:   X is empty;
+      set C = the strict empty discrete with_identities composable associative
+      CategoryStr;
+      take C;
+      thus thesis by A1;
+    end;
+    suppose X is not empty;
+      set F = {[[x,x],x] where x is Element of X : x in X};
+A2:   for x,y1,y2 being object st [x,y1] in F & [x,y2] in F
+      holds y1 = y2
+      proof
+        let x,y1,y2 be object;
+        assume [x,y1] in F;
+        then consider x1 be Element of X such that
+A3:     [x,y1] = [[x1,x1],x1] & x1 in X;
+        assume [x,y2] in F;
+        then consider x2 be Element of X such that
+A4:     [x,y2] = [[x2,x2],x2] & x2 in X;
+A5:     x = [x1,x1] & y1 = x1 by A3,XTUPLE_0:1;
+        x = [x2,x2] & y2 = x2 by A4,XTUPLE_0:1;
+        hence y1 = y2 by A5,XTUPLE_0:1;
+      end;
+      for x being object st x in F holds x in [:[:X,X:],X:]
+      proof
+        let x be object;
+        assume x in F;
+        then consider x1 be Element of X such that
+A6:     x = [[x1,x1],x1] & x1 in X;
+        [x1,x1] in [:X,X:] by A6,ZFMISC_1:87;
+        hence x in [:[:X,X:],X:] by A6,ZFMISC_1:87;
+      end;
+      then reconsider F as PartFunc of [:X,X:],X
+      by A2,TARSKI:def 3,FUNCT_1:def 1;
+      set C = CategoryStr(# X, F #);
+      for u being morphism of C holds u is identity
+      proof
+        let u be morphism of C;
+A7:     for f being morphism of C st u |> f  holds u (*) f = f
+        proof
+          let f be morphism of C;
+          assume
+A8:      u |> f ;
+          u (*) f = F.(u,f) by A8,Def3
+          .= F.[u,f] by BINOP_1:def 1;
+          then [[u,f], u (*) f] in F by A8,FUNCT_1:def 2;
+          then consider x be Element of X such that
+A9:       [[u,f], u (*) f] = [[x,x],x] & x in X;
+          [u,f] = [x,x] & u (*) f = x by A9,XTUPLE_0:1;
+          hence u (*) f = f by XTUPLE_0:1;
+        end;
+        for g being morphism of C st g |> u  holds g (*) u = g
+        proof
+          let g be morphism of C;
+          assume
+A10:       g |> u;
+          g (*) u = F.(g,u) by A10,Def3
+          .= F.[g,u] by BINOP_1:def 1;
+          then [[g,u], g (*) u] in F by A10,FUNCT_1:def 2;
+          then consider x be Element of X such that
+A11:       [[g,u], g (*) u] = [[x,x],x] & x in X;
+          [g,u] = [x,x] & g (*) u = x by A11,XTUPLE_0:1;
+          hence g (*) u = g by XTUPLE_0:1;
+        end;
+        then u is left_identity & u is right_identity by A7;
+        hence u is identity;
+      end;
+      then reconsider C as strict discrete CategoryStr by Def15;
+A12: now
+      let f be morphism of C;
+      assume
+A13: f in the carrier of C;
+      then
+A14:   f is identity & f in X by Def15;
+      reconsider x = f as Element of X;
+      [[f,f],f] in {[[x,x],x] where x is Element of X : x in X} by A13;
+      then [f,f] in dom the composition of C by XTUPLE_0:def 12;
+      hence
+      (ex c being morphism of C st c |> f & c is left_identity) &
+      (ex d being morphism of C st f |> d & d is right_identity)
+      by Def2,A14;
+    end;
+    C is with_left_identities & C is with_right_identities by A12;
+      then reconsider C as strict discrete composable associative
+      with_identities CategoryStr by Def12;
+      take C;
+      thus thesis;
+    end;
+  end;
+  uniqueness
+  proof
+    let C1,C2 be strict discrete category;
+    assume
+A15: the carrier of C1 = X & the carrier of C2 = X;
+A16: for C being discrete with_identities CategoryStr, x being object
+    st C is non empty holds
+    x in the composition of C iff ex f being morphism of C st x = [[f,f],f]
+    proof
+      let C be discrete with_identities CategoryStr;
+      let x be object;
+      assume
+A17:   C is non empty;
+      hereby
+        assume
+A18:     x in the composition of C;
+        then consider y,f be object such that
+A19:     y in [:the carrier of C,the carrier of C:] & f in the carrier of C &
+        x = [y,f] by ZFMISC_1:def 2;
+        reconsider f as morphism of C by A19;
+        take f;
+        consider f1,f2 be object such that
+A20:     f1 in the carrier of C & f2 in the carrier of C &
+        y = [f1,f2] by A19,ZFMISC_1:def 2;
+        reconsider f1,f2 as morphism of C by A20;
+A21:     [f1,f2] in dom the composition of C by A20,A19,A18,XTUPLE_0:def 12;
+A22:     f1 |> f2 by A20,A19,A18,XTUPLE_0:def 12;
+        then
+        f1 = f2 & f1 (*) f2 = f2 by Th21;
+        then (the composition of C).(f1,f2) = f2 by A21,Def3,Def2;
+        then (the composition of C).y = f2 by A20,BINOP_1:def 1;
+        then f = f2 by A18,A19,FUNCT_1:1;
+        hence x = [[f,f],f] by A22,A20,A19,Th21;
+      end;
+      given f be morphism of C such that
+A23:   x = [[f,f],f];
+      consider f1 be morphism of C such that
+A24:   f1 |> f & f1 is left_identity by A17,Def6,Def12;
+A25:   f is identity by Def15;
+A26:  f1 = f1 (*) f by A25,A24,Def5 .= f by A24;
+      f = f (*) f by A24,A26;
+      then (the composition of C).(f,f) = f by A24,A26,Def3;
+      then (the composition of C).[f,f] = f by BINOP_1:def 1;
+      hence x in the composition of C by A23,A24,A26,FUNCT_1:1;
+    end;
+    per cases;
+    suppose the carrier of C1 is empty; hence thesis by A15; end;
+    suppose
+      the carrier of C1 is non empty;
+      then
+A27:  C1 is non empty & C2 is non empty by A15;
+      for x being object holds
+      x in the composition of C1 iff x in the composition of C2
+      proof
+        let x be object;
+        hereby
+          assume x in the composition of C1;
+          then consider f be morphism of C1 such that
+A28:       x = [[f,f],f] by A27,A16;
+          reconsider f1 = f as morphism of C2 by A15;
+          x = [[f1,f1],f1] by A28;
+          hence x in the composition of C2 by A27,A16;
+        end;
+        assume x in the composition of C2;
+        then consider f be morphism of C2 such that
+A29:     x = [[f,f],f] by A27,A16;
+        reconsider f1 = f as morphism of C1 by A15;
+        x = [[f1,f1],f1] by A29;
+        hence x in the composition of C1 by A27,A16;
+      end;
+      hence thesis by A15,TARSKI:2;
+    end;
+  end;
+end;
+
+registration
+  cluster strict for category;
+  correctness
+  proof
+    set C = DiscreteCat(the empty set);
+    take C;
+    thus thesis;
+  end;
+  cluster strict empty for category;
+  correctness
+  proof
+    set C = DiscreteCat(the empty set);
+    take C;
+    thus thesis by Def16;
+  end;
+  cluster strict non empty for category;
+  correctness
+  proof
+    set C = DiscreteCat(the non empty set);
+    take C;
+    thus thesis by Def16;
+  end;
+end;
+
+definition
+  let C;
+  func Ob(C) -> Subset of Mor(C) equals
+  {f where f is morphism of C: f is identity & f in Mor(C)};
+  correctness
+  proof
+    set O = {f where f is morphism of C: f is identity & f in Mor(C)};
+    for x being object st x in O holds x in Mor(C)
+    proof
+      let x be object;
+      assume x in O;
+      then consider f be morphism of C such that
+A1:   x = f & f is identity & f in Mor(C);
+      thus thesis by A1;
+    end;
+    hence thesis by TARSKI:def 3;
+  end;
+end;
+
+definition
+  let C;
+  mode Object of C is Element of Ob(C);
+end;
+
+registration
+  let C be non empty with_identities CategoryStr;
+  cluster Ob(C) -> non empty;
+  correctness
+  proof
+    consider f be object such that
+A1: f in Mor(C) by XBOOLE_0:def 1;
+    reconsider f as morphism of C by A1;
+    consider c be morphism of C such that
+A2: c |> f & c is left_identity by Def12,Def6;
+    c is identity by A2,Th9;
+    then
+    c in {u where u is morphism of C: u is identity & u in Mor(C)};
+    hence thesis;
+  end;
+end;
+
+theorem Th22:
+  for C being non empty with_identities CategoryStr, f being morphism of C
+  holds f is identity iff f is Object of C
+  proof
+    let C be non empty with_identities CategoryStr;
+    let f be morphism of C;
+    hereby
+      assume f is identity;
+      then f in {u where u is morphism of C: u is identity & u in Mor(C)};
+      hence f is Object of C;
+    end;
+    assume f is Object of C;
+    then f in {u where u is morphism of C: u is identity & u in Mor(C)};
+    then consider u be morphism of C such that
+A1: f = u & u is identity & u in Mor(C);
+    thus f is identity by A1;
+  end;
+
+theorem Th23:
+  for C being non empty with_identities CategoryStr, f,f1 being morphism of C,
+  o being Object of C st f = o holds
+   (f |> f1 implies f (*) f1 = f1) &
+   (f1 |> f implies f1 (*) f = f1) & f |> f
+  proof
+    let C be non empty with_identities CategoryStr;
+    let f,f1 be morphism of C;
+    let o be Object of C;
+    assume A1: f = o;
+A2: f is identity by A1,Th22;
+    consider c be morphism of C such that
+A3: c |> f & c is left_identity by Def12,Def6;
+A4: c = c (*) f by A2,A3,Def5 .= f by A3;
+    thus f |> f1 implies f (*) f1 = f1 by A2,Def4;
+    thus f1 |> f implies f1 (*) f = f1 by A2,Def5;
+    thus f |> f by A3,A4;
+  end;
+
+theorem Th24:
+  for C being non empty with_identities CategoryStr, f being morphism of C
+  st f is identity holds f |> f
+  proof
+    let C be non empty with_identities CategoryStr;
+    let f be morphism of C;
+    assume f is identity;
+    then f is Object of C by Th22;
+    hence thesis by Th23;
+  end;
+
+theorem Th25:
+  for C1,C2 being with_identities CategoryStr
+  st the CategoryStr of C1 = the CategoryStr of C2
+  holds for f1 being morphism of C1, f2 being morphism of C2 st f1 = f2 holds
+  f1 is identity iff f2 is identity
+  proof
+    let C1,C2 be with_identities CategoryStr;
+    assume
+A1: the CategoryStr of C1 = the CategoryStr of C2;
+    let f1 be morphism of C1;
+    let f2 be morphism of C2;
+    assume
+A2: f1 = f2;
+    hereby
+      assume
+A3:  f1 is identity;
+A4:   for f being morphism of C2 st f2 |> f holds f2 (*) f = f
+      proof
+        let f be morphism of C2;
+        assume
+A5:    f2 |> f;
+        reconsider f3=f as morphism of C1 by A1;
+        thus f2 (*) f = (the composition of C2).(f2,f) by A5,Def3
+        .= f1 (*) f3 by A5,A2,A1,Def3,Def2
+        .= f by A5,A3,Def4,Def2,A1,A2;
+      end;
+      for f being morphism of C2 st f,f2 are_composable holds f (*) f2 = f
+      proof
+        let f be morphism of C2;
+        assume
+A6:    f |> f2;
+        reconsider f3=f as morphism of C1 by A1;
+        thus f (*) f2 = (the composition of C2).(f,f2) by A6,Def3
+        .= f3 (*) f1 by A6,A2,A1,Def3,Def2
+        .= f by A6,A3,Def5,Def2,A1,A2;
+      end;
+      then f2 is right_identity;
+      hence f2 is identity by A4,Def4;
+    end;
+    assume
+A7: f2 is identity;
+A8: for f being morphism of C1 st f1 |> f holds f1 (*) f = f
+    proof
+      let f be morphism of C1;
+      assume
+A9:  f1 |> f;
+      reconsider f3=f as morphism of C2 by A1;
+      thus f1 (*) f = (the composition of C1).(f1,f) by A9,Def3
+      .= f2 (*) f3 by A9,A2,A1,Def3,Def2
+      .= f by A9,A7,Def4,Def2,A1,A2;
+    end;
+    for f being morphism of C1 st f |> f1 holds f (*) f1 = f
+    proof
+      let f be morphism of C1;
+      assume
+A10:  f |> f1;
+      reconsider f3=f as morphism of C2 by A1;
+      thus f (*) f1 = (the composition of C1).(f,f1) by A10,Def3
+      .= f3 (*) f2 by A10,A2,A1,Def3,Def2
+      .= f by A10,A7,Def5,Def2,A1,A2;
+    end;
+    then f1 is right_identity;
+    hence f1 is identity by A8,Def4;
+  end;
+
+Lm2:
+for C being CategoryStr holds C is with_identities iff
+  for f being morphism of C st f in Mor(C) holds
+  (ex c being morphism of C st c |> f & c is identity) &
+  (ex d being morphism of C st f |> d & d is identity)
+  proof
+    let C be CategoryStr;
+    hereby
+      assume
+A1:  C is with_identities;
+      let f be morphism of C;
+      assume A2: f in Mor(C);
+      thus (ex c being morphism of C st c |> f & c is identity)
+      proof
+        consider c be morphism of C such that
+A3:     c |> f & c is left_identity by A2,A1,Def6;
+        take c;
+        thus c |> f by A3;
+        thus c is identity by A3,Th9,A1;
+      end;
+      consider d be morphism of C such that
+A4:   f |> d & d is right_identity by A2,A1,Def7;
+      take d;
+      thus f |> d by A4;
+      thus d is identity by A4,A1,Th9;
+    end;
+    assume
+A5: for f being morphism of C st f in Mor(C) holds
+    (ex c being morphism of C st c |> f & c is identity) &
+    (ex d being morphism of C st f |> d & d is identity);
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f |> f1 & f is left_identity
+    proof
+      let f1 be morphism of C;
+      assume f1 in the carrier of C;
+      then consider f be morphism of C such that
+A6:   f |> f1 & f is identity by A5;
+      take f;
+      thus f |> f1 by A6;
+      thus f is left_identity by A6;
+    end;
+    then
+A7: C is with_left_identities;
+    for f1 being morphism of C st f1 in the carrier of C holds
+    ex f being morphism of C st f1 |> f & f is right_identity
+    proof
+      let f1 be morphism of C;
+      assume f1 in the carrier of C;
+      then consider f be morphism of C such that
+A8:   f1 |> f & f is identity by A5;
+      take f;
+      thus f1 |> f by A8;
+      thus f is right_identity by A8;
+    end;
+    hence C is with_identities by A7,Def7;
+  end;
+
+Lm3:
+for C being CategoryStr holds C is composable iff
+  for f,g,h being morphism of C holds
+  (h(*)g |> f & h |> g implies g |> f) &
+  (h |> g(*)f & g |> f implies h |> g) &
+  (g |> f & h |> g implies
+   h(*)g |> f & h |> g(*)f)
+   proof
+     let C be CategoryStr;
+     hereby
+       assume C is composable;
+       then
+A1:    C is left_composable & C is right_composable;
+       let f,g,h be morphism of C;
+       thus h(*)g |> f & h |> g implies g |> f by A1;
+       thus h |> g(*)f & g |> f implies h |> g by A1;
+       assume A2: g |> f;
+       assume A3: h |> g;
+       thus h(*)g |> f by A2,A3,A1;
+       thus h |> g(*)f by A2,A3,A1;
+     end;
+     assume A4: for f,g,h being morphism of C holds
+     (h(*)g |> f & h |> g implies g |> f)
+     & (h |> g(*)f & g |> f
+     implies h |> g) & (g |> f & h |> g
+     implies h(*)g |> f & h |> g(*)f);
+     then
+A5:  C is left_composable;
+     for f, f1, f2 being morphism of C st f1 |> f2 holds
+     f |> f1 (*) f2 iff f |> f1 by A4;
+     hence C is composable by A5,Def9;
+   end;
+
+
+definition
+  let C be composable with_identities CategoryStr;
+  let f be morphism of C;
+  func dom f -> Object of C means :Def18:
+  ex f1 being morphism of C st it = f1 & f |> f1 & f1 is identity
+  if C is non empty otherwise it = the Object of C;
+  existence
+  proof
+    thus not C is empty implies ex o being Object of C,
+    f1 being morphism of C st o = f1 & f |> f1 & f1 is identity
+    proof
+      assume
+A1:   not C is empty;
+      then consider f1 be morphism of C such that
+A2:   f |> f1 & f1 is identity by Lm2;
+      reconsider o = f1 as Object of C by A2,A1,Th22;
+      take o,f1;
+      thus thesis by A2;
+    end;
+    assume C is empty;
+    take the Object of C;
+    thus thesis;
+  end;
+  uniqueness
+  proof
+    now
+      let o1,o2 be Object of C;
+      assume not C is empty;
+      assume
+      ex f1 being morphism of C st o1=f1 & f |> f1 & f1 is identity;
+      then consider f11 be morphism of C such that
+A3:   o1=f11 & f |> f11 & f11 is identity;
+      assume
+      ex f1 being morphism of C st o2=f1 & f |> f1 & f1 is identity;
+      then consider f12 be morphism of C such that
+A4:   o2=f12 & f |> f12 & f12 is identity;
+      f(*)f11 = f & f(*)f12 = f by A3,A4,Def5;
+      then
+A5:   f11 |> f12 by A3,A4,Lm3;
+      f11 = f11 (*) f12 by A5,A4,Def5 .= f12 by A5,A3,Def4;
+      hence o1 = o2 by A3,A4;
+    end;
+    hence thesis;
+  end;
+  correctness;
+  func cod f -> Object of C means :Def19:
+  ex f1 being morphism of C st it = f1 & f1 |> f & f1 is identity
+  if C is non empty otherwise it = the Object of C;
+  existence
+  proof
+    thus not C is empty implies ex o being Object of C,
+    f1 being morphism of C st
+    o = f1 & f1 |> f & f1 is identity
+    proof
+      assume
+A6:   not C is empty;
+      then consider f1 be morphism of C such that
+A7:   f1 |> f & f1 is identity by Lm2;
+      reconsider o = f1 as Object of C by A7,A6,Th22;
+      take o,f1;
+      thus thesis by A7;
+    end;
+    assume C is empty;
+    take the Object of C;
+    thus thesis;
+  end;
+  uniqueness
+  proof
+    now
+      let o1,o2 be Object of C;
+      assume not C is empty;
+      assume
+      ex f1 being morphism of C st o1=f1 & f1 |> f & f1 is identity;
+      then consider f11 be morphism of C such that
+A8:   o1=f11 & f11 |> f & f11 is identity;
+      assume
+      ex f1 being morphism of C st o2=f1 & f1 |> f & f1 is identity;
+      then consider f12 be morphism of C such that
+A9:   o2=f12 & f12 |> f & f12 is identity;
+      f11(*)f = f & f12(*)f = f by A8,A9,Def4;
+      then
+A10:  f11 |> f12 by A8,A9,Lm3;
+      f11 = f11 (*) f12 by A10,A9,Def5 .= f12 by A10,A8,Def4;
+      hence o1 = o2 by A8,A9;
+    end;
+    hence thesis;
+  end;
+  correctness;
+end;
+
+theorem Th26:
+  for C being composable with_identities CategoryStr, f,f1 being morphism of C
+  st f |> f1 & f1 is identity holds dom f = f1
+  proof
+    let C be composable with_identities CategoryStr;
+    let f,f1 be morphism of C;
+    assume
+A1: f |> f1 & f1 is identity;
+    then
+A2: C is non empty;
+    then reconsider o = f1 as Object of C by A1,Th22;
+    ex f11 being morphism of C st o = f11 & f |> f11 & f11 is identity by A1;
+    hence dom f = f1 by A2,Def18;
+  end;
+
+theorem Th27:
+  for C being composable with_identities CategoryStr, f,f1 being morphism of C
+  st f1 |> f & f1 is identity holds cod f = f1
+  proof
+    let C be composable with_identities CategoryStr;
+    let f,f1 be morphism of C;
+    assume
+A1: f1 |> f & f1 is identity;
+    then
+A2: C is non empty;
+    then reconsider o = f1 as Object of C by A1,Th22;
+    ex f11 being morphism of C st o = f11 & f11 |> f & f11 is identity by A1;
+    hence cod f = f1 by A2,Def19;
+  end;
+
+
+definition
+  let C be with_identities CategoryStr;
+  let o be Object of C;
+  func id- o -> morphism of C equals
+  o;
+  correctness
+  proof
+    per cases;
+    suppose C is empty; hence thesis; end;
+    suppose not C is empty;
+      then not Ob(C) is empty;
+      then o in Ob(C);
+      hence thesis;
+    end;
+  end;
+end;
+
+definition
+  let C,D be CategoryStr;
+  mode Functor of C,D is Function of C,D;
+end;
+
+reserve C,D,E for with_identities CategoryStr;
+reserve F for Functor of C,D;
+reserve G for Functor of D,E;
+reserve f for morphism of C;
+
+definition
+  let C,D,F,f;
+  func F.f -> morphism of D equals :Def21:
+  F.f if C is non empty otherwise the Object of D;
+  correctness
+  proof
+    thus not C is empty implies F.f is morphism of D
+    proof
+      assume
+A1:   C is non empty;
+      per cases;
+      suppose Mor(D) <> {};
+        hence thesis by A1,FUNCT_2:5;
+      end;
+      suppose Mor(D) = {};
+        hence thesis by SUBSET_1:def 1;
+      end;
+    end;
+    the Object of D is morphism of D
+    proof
+      per cases;
+      suppose Mor(D) <> {};
+        then D is non empty;
+        hence thesis by TARSKI:def 3;
+      end;
+      suppose Mor(D) = {};
+        hence thesis;
+      end;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let C,D,F;
+  attr F is identity-preserving means :Def22:
+  for f being morphism of C st f is identity holds F.f is identity;
+  attr F is multiplicative means :Def23:
+  for f1,f2 being morphism of C st f1 |> f2 holds F.f1 |> F.f2 &
+  F.(f1(*)f2) = (F.f1) (*) (F.f2);
+  attr F is antimultiplicative means
+  for f1,f2 being morphism of C st f1 |> f2 holds F.f2 |> F.f1 &
+  F.(f1(*)f2) = (F.f2) (*) (F.f1);
+end;
+
+registration
+  let C,D;
+  cluster identity-preserving for Functor of C,D;
+  correctness
+  proof
+    per cases;
+    suppose
+      Mor(D) is non empty;
+      then reconsider D1 = D as non empty with_identities CategoryStr;
+A1:   Ob(D1) is non empty;
+      set F = Mor(C) --> the Object of D;
+      the Object of D in Ob(D) by A1;
+      then reconsider F as Function of C,D by FUNCOP_1:45;
+      take F;
+      for f being morphism of C st f is identity holds F.f is identity
+      proof
+        let f be morphism of C;
+        assume f is identity;
+        reconsider x = f as object;
+        per cases;
+        suppose
+A2:      C is non empty;
+          F.f = F.x by A2,Def21 .= the Object of D by A2,FUNCOP_1:7;
+          then F.f is Object of D1;
+          hence F.f is identity by Th22;
+        end;
+        suppose C is empty;
+          then F.f is Object of D1 by Def21;
+          hence thesis by Th22;
+        end;
+      end;
+      hence thesis;
+    end;
+    suppose
+A3:   Mor(D) is empty;
+      set F = the Function of C,D;
+      take F;
+      for f being morphism of C st f is identity holds F.f is identity
+      proof
+        let f be morphism of C;
+        assume f is identity;
+        D is empty by A3;
+        hence F.f is identity by Th10;
+      end;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let C be empty with_identities CategoryStr;
+  let D be with_identities CategoryStr;
+  cluster identity-preserving multiplicative antimultiplicative
+  for Functor of C,D;
+  correctness
+  proof
+    per cases;
+    suppose
+      Mor(D) is non empty;
+      then reconsider D1 = D as non empty with_identities CategoryStr;
+      set F = Mor(C) --> the Object of D;
+      reconsider F as Function of C,D;
+      take F;
+A1:   for f being morphism of C st f is identity holds F.f is identity
+      proof
+        let f be morphism of C;
+        assume f is identity;
+        F.f is Object of D1 by Def21;
+        hence thesis by Th22;
+      end;
+      (for f1,f2 being morphism of C st f1 |> f2
+      holds F.f1 |> F.f2 & F.(f1(*)f2) = (F.f1) (*) (F.f2)) &
+      (for f1,f2 being morphism of C st f1 |> f2
+      holds F.f2 |> F.f1 & F.(f1(*)f2) = (F.f2) (*) (F.f1));
+      hence thesis by A1;
+    end;
+    suppose
+A2:   Mor(D) is empty;
+      set F = the Function of C,D;
+      take F;
+A3:   for f being morphism of C st f is identity holds F.f is identity
+      proof
+        let f be morphism of C;
+        assume f is identity;
+        D is empty by A2;
+        hence F.f is identity by Th10;
+      end;
+      (for f1,f2 being morphism of C st f1 |> f2
+      holds F.f1 |> F.f2 & F.(f1(*)f2) = (F.f1) (*) (F.f2)) &
+      (for f1,f2 being morphism of C st f1 |> f2
+      holds F.f2 |> F.f1 & F.(f1(*)f2) = (F.f2) (*) (F.f1));
+      hence thesis by A3;
+    end;
+  end;
+end;
+
+registration
+  let C be with_identities CategoryStr;
+  let D be non empty with_identities CategoryStr;
+  cluster identity-preserving multiplicative antimultiplicative
+  for Functor of C,D;
+  correctness
+  proof
+    per cases;
+    suppose
+A1:   C is non empty;
+      set F = Mor(C) --> the Object of D;
+      the Object of D in Ob(D);
+      then reconsider F as Function of C,D by FUNCOP_1:45;
+      take F;
+A2:   for f1,f2 being morphism of C st f1 |> f2
+      holds F.f1 |> F.f2 & F.(f1(*)f2) = (F.f1) (*) (F.f2)
+      proof
+        let f1,f2 be morphism of C;
+        assume f1 |> f2;
+        reconsider x1 = f1, x2 = f2, x3 = f1(*)f2 as object;
+A3:     F.f1 = F.x1 by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+A4:     F.f2 = F.x2 by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+A5:     F.(f1(*)f2) = F.x3 by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+        thus
+A6:     F.f1 |> F.f2 by A3,A4,Th23;
+        thus F.(f1(*)f2) = (F.f1) (*) (F.f2) by A4,A5,A3,A6,Th23;
+      end;
+A7:   for f1,f2 being morphism of C st f1 |> f2
+      holds F.f2 |> F.f1 & F.(f1(*)f2) = (F.f2) (*) (F.f1)
+      proof
+        let f1,f2 be morphism of C;
+        assume f1 |> f2;
+        reconsider x1 = f1, x2 = f2, x3 = f1(*)f2 as object;
+A8:     F.f1 = F.x1 by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+A9:     F.f2 = F.x2 by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+A10:     F.(f1(*)f2) = F.x3 by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+        thus
+A11:    F.f2 |> F.f1 by A8,A9,Th23;
+        thus F.(f1(*)f2) = (F.f2) (*) (F.f1) by A9,A10,A8,A11,Th23;
+      end;
+      for f being morphism of C st f is identity holds F.f is identity
+      proof
+        let f be morphism of C;
+        assume f is identity;
+        reconsider x = f as object;
+        F.f = F.x by A1,Def21 .= the Object of D by A1,FUNCOP_1:7;
+        hence F.f is identity by Th22;
+      end;
+      hence thesis by A2,A7;
+    end;
+    suppose
+A12:   C is empty;
+      set F = the Function of C,D;
+      take F;
+A13:   for f being morphism of C st f is identity holds F.f is identity
+      proof
+        let f be morphism of C;
+        assume f is identity;
+        F.f = the Object of D by A12,Def21;
+        hence F.f is identity by Th22;
+      end;
+      (for f1,f2 being morphism of C st f1 |> f2
+      holds F.f1 |> F.f2 & F.(f1(*)f2) = (F.f1) (*) (F.f2)) &
+      (for f1,f2 being morphism of C st f1 |> f2
+      holds F.f2 |> F.f1 & F.(f1(*)f2) = (F.f2) (*) (F.f1)) by A12;
+      hence thesis by A13;
+    end;
+  end;
+end;
+
+theorem
+  ex C,D being category, F being Functor of C,D st
+  F is multiplicative & F is non identity-preserving
+  proof
+    set C = the non empty category;
+    reconsider X = {0,1} as set;
+    set comp = {[[0,0],0],[[1,1],1]} \/ {[[0,1],1],[[1,0],1]};
+A1: for x being object holds x in comp iff
+    (x = [[0,0],0] or x = [[1,1],1] or x = [[0,1],1] or x = [[1,0],1])
+    proof
+      let x be object;
+      thus x in comp implies
+      (x = [[0,0],0] or x = [[1,1],1] or x = [[0,1],1] or x = [[1,0],1])
+      proof
+        assume x in comp;
+        then x in {[[0,0],0],[[1,1],1]} or
+        x in {[[0,1],1],[[1,0],1]} by XBOOLE_0:def 3;
+        hence thesis by TARSKI:def 2;
+      end;
+      assume x = [[0,0],0] or x = [[1,1],1] or x = [[0,1],1] or x = [[1,0],1];
+      then x in {[[0,0],0],[[1,1],1]} or
+      x in {[[0,1],1],[[1,0],1]} by TARSKI:def 2;
+      hence x in comp by XBOOLE_0:def 3;
+    end;
+A2: for x,y1,y2 being object st [x,y1] in comp & [x,y2] in comp holds y1 = y2
+    proof
+      let x,y1,y2 be object;
+      assume
+A3:  [x,y1] in comp;
+      assume
+A4:  [x,y2] in comp;
+      per cases by A3,A1;
+      suppose
+A5:    [x,y1] = [[0,0],0];
+        then
+A6:     x = [0,0] & y1 = 0 by XTUPLE_0:1;
+        per cases by A4,A1;
+        suppose [x,y2] = [[0,0],0];
+          hence thesis by A5,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[1,1],1];
+          then x = [1,1] & y2 = 1 by XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[0,1],1];
+          then x = [0,1] & y2 = 1 by XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[1,0],1];
+          then x = [1,0] & y2 = 1 by XTUPLE_0:1;
+          hence thesis by A6,XTUPLE_0:1;
+        end;
+      end;
+      suppose [x,y1] = [[1,1],1];
+        then
+A7:     x = [1,1] & y1 = 1 by XTUPLE_0:1;
+        per cases by A4,A1;
+        suppose [x,y2] = [[0,0],0];
+          then x = [0,0] & y2 = 0 by XTUPLE_0:1;
+          hence thesis by A7,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[1,1],1] or [x,y2] = [[0,1],1] or [x,y2] = [[1,0],1];
+          hence thesis by A7,XTUPLE_0:1;
+        end;
+      end;
+      suppose [x,y1] = [[0,1],1];
+        then
+A8:     x = [0,1] & y1 = 1 by XTUPLE_0:1;
+        per cases by A4,A1;
+        suppose [x,y2] = [[0,0],0];
+          then x = [0,0] & y2 = 0 by XTUPLE_0:1;
+          hence thesis by A8,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[1,1],1] or [x,y2] = [[0,1],1] or [x,y2] = [[1,0],1];
+          hence thesis by A8,XTUPLE_0:1;
+        end;
+      end;
+      suppose [x,y1] = [[1,0],1];
+        then
+A9:     x = [1,0] & y1 = 1 by XTUPLE_0:1;
+        per cases by A4,A1;
+        suppose [x,y2] = [[0,0],0];
+          then x = [0,0] & y2 = 0 by XTUPLE_0:1;
+          hence thesis by A9,XTUPLE_0:1;
+        end;
+        suppose [x,y2] = [[1,1],1] or [x,y2] = [[0,1],1] or [x,y2] = [[1,0],1];
+          hence thesis by A9,XTUPLE_0:1;
+        end;
+      end;
+    end;
+    for x being object st x in comp holds x in [:[:X,X:],X:]
+    proof
+      let x be object;
+      assume
+A10:  x in comp;
+      per cases by A10,A1;
+      suppose
+A11:     x = [[0,0],0];
+A12:    0 in X by TARSKI:def 2;
+        then [0,0] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A11,A12,ZFMISC_1:def 2;
+      end;
+      suppose
+A13:     x = [[1,1],1];
+A14:    1 in X by TARSKI:def 2;
+        then [1,1] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A13,A14,ZFMISC_1:def 2;
+      end;
+      suppose
+A15:     x = [[0,1],1];
+A16:    0 in X & 1 in X by TARSKI:def 2;
+        then [0,1] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A15,A16,ZFMISC_1:def 2;
+      end;
+      suppose
+A17:     x = [[1,0],1];
+A18:    0 in X & 1 in X by TARSKI:def 2;
+        then [1,0] in [:X,X:] by ZFMISC_1:def 2;
+        hence x in [:[:X,X:],X:] by A17,A18,ZFMISC_1:def 2;
+      end;
+    end;
+    then reconsider comp as PartFunc of [:X,X:],X
+    by A2,TARSKI:def 3,FUNCT_1:def 1;
+    set D = CategoryStr(# X, comp #);
+A19: for f1,f2 being morphism of D st f1 |> f2 holds
+    (f1 = 0 & f2 = 0 & f1(*)f2 = 0) or
+    (f1 = 1 & f2 = 1 & f1(*)f2 = 1) or
+    (f1 = 0 & f2 = 1 & f1(*)f2 = 1) or
+    (f1 = 1 & f2 = 0 & f1(*)f2 = 1)
+    proof
+      let f1,f2 be morphism of D;
+      assume
+A20:   f1 |> f2;
+      assume
+A21:   not (f1 = 0 & f2 = 0 & f1(*)f2 = 0) &
+      not (f1 = 1 & f2 = 1 & f1(*)f2 = 1) &
+      not (f1 = 0 & f2 = 1 & f1(*)f2 = 1);
+      consider y be object such that
+A22: [[f1,f2],y] in the composition of D by A20,XTUPLE_0:def 12;
+A23:   f1(*)f2 = (the composition of D).(f1,f2) by Def3,A20
+      .= (the composition of D).[f1,f2] by BINOP_1:def 1
+      .= y by A22,FUNCT_1:1;
+      per cases by A22,A1;
+      suppose [[f1,f2],y] = [[0,0],0];
+        then [f1,f2] = [0,0] & y = 0 by XTUPLE_0:1;
+        hence thesis by A23,A21,XTUPLE_0:1;
+      end;
+      suppose [[f1,f2],y] = [[1,1],1];
+        then [f1,f2] = [1,1] & y = 1 by XTUPLE_0:1;
+        hence thesis by A21,A23,XTUPLE_0:1;
+      end;
+      suppose [[f1,f2],y] = [[0,1],1];
+        then [f1,f2] = [0,1] & y = 1 by XTUPLE_0:1;
+        hence thesis by A21,A23,XTUPLE_0:1;
+      end;
+      suppose [[f1,f2],y] = [[1,0],1];
+        then [f1,f2] = [1,0] & y = 1 by XTUPLE_0:1;
+        hence thesis by A23,XTUPLE_0:1;
+      end;
+    end;
+A24: for f1,f2 being morphism of D holds f1 |> f2
+    proof
+      let f1,f2 be morphism of D;
+      per cases by TARSKI:def 2;
+      suppose (f1 = 0 & f2 = 0) or (f1 = 1 & f2 = 1) or (f1 = 0 & f2 = 1);
+        then [[f1,f2],f2] in the composition of D by A1;
+        hence thesis by FUNCT_1:1;
+      end;
+      suppose f1 = 1 & f2 = 0;
+        then [[f1,f2],f1] in the composition of D by A1;
+        hence thesis by FUNCT_1:1;
+      end;
+    end;
+A25: D is left_composable by A24;
+A26: for f,f1,f2 being morphism of D st f1 |> f2 holds
+    f |> f1(*)f2 iff f |> f1 by A24;
+A27: for f1 being morphism of D st f1 in the carrier of D holds
+    ex f being morphism of D st f |> f1 & f is left_identity
+    proof
+      let f1 be morphism of D;
+      assume f1 in the carrier of D;
+      reconsider f = 0 as morphism of D by TARSKI:def 2;
+      take f;
+      thus f |> f1 by A24;
+      for f2 being morphism of D st f |> f2 holds f (*) f2 = f2
+      proof
+        let f2 be morphism of D;
+        assume
+A28:     f |> f2;
+        f2 = 0 or f2 = 1 by TARSKI:def 2;
+        hence f (*) f2 = f2 by A28,A19;
+      end;
+      hence f is left_identity;
+    end;
+    for f1 being morphism of D st f1 in the carrier of D holds
+    ex f being morphism of D st f1 |> f & f is right_identity
+    proof
+      let f1 be morphism of D;
+      assume f1 in the carrier of D;
+      reconsider f = 0 as morphism of D by TARSKI:def 2;
+      take f;
+      thus f1 |> f by A24;
+      for f2 being morphism of D st f2 |> f holds f2 (*) f = f2
+      proof
+        let f2 be morphism of D;
+        assume
+A29:     f2 |> f;
+        f2 = 0 or f2 = 1 by TARSKI:def 2;
+        hence f2 (*) f = f2 by A29,A19;
+      end;
+      hence f is right_identity;
+    end;
+    then
+A30: D is with_right_identities;
+    for f1,f2,f3 being morphism of D st f1 |> f2 & f2 |> f3 &
+    f1 (*) f2 |> f3 & f1 |> f2 (*) f3 holds
+    f1 (*) (f2 (*) f3) = (f1 (*) f2) (*) f3
+    proof
+      let f1,f2,f3 be morphism of D;
+      assume
+A31:  f1 |> f2 & f2 |> f3;
+      assume
+A32:  f1 (*) f2 |> f3;
+      assume
+A33:  f1 |> f2 (*) f3;
+      per cases by TARSKI:def 2;
+      suppose
+A34:     f3 = 0;
+        per cases by TARSKI:def 2;
+        suppose
+A35:       f2 = 0;
+          then
+A36:       f2 (*) f3 = 0 by A34,A31,A19;
+          per cases by TARSKI:def 2;
+          suppose f1 = 0;
+            hence f1(*)(f2(*)f3) = (f1(*)f2)(*)f3 by A36,A34,A35;
+          end;
+          suppose
+A37:        f1 = 1;
+            then
+A38:        f1 (*) f2 = 1 by A31,A19;
+            thus f1 (*) (f2 (*) f3) = 1 by A37,A33,A19
+            .= (f1 (*) f2) (*) f3 by A32,A38,A19;
+          end;
+        end;
+        suppose
+A39:       f2 = 1;
+          then f2 (*) f3 = 1 & f1 (*) f2 = 1  by A31,A19;
+          hence f1 (*) (f2 (*) f3) = (f1 (*) f2) (*) f3 by A39;
+        end;
+      end;
+      suppose
+A40:     f3 = 1;
+        then f2 (*) f3 = 1 by A31,A19;
+        hence f1 (*) (f2 (*) f3) = 1 by A33,A19
+        .= (f1 (*) f2) (*) f3 by A32,A40,A19;
+      end;
+    end;
+    then reconsider D as category by A26,A27,A30,Def6,Def10,Def12,A25,Def9,
+    Def11;
+    take C,D;
+    reconsider d1 = 1 as morphism of D by TARSKI:def 2;
+    deffunc F1(object) = d1;
+A41: for x being object st x in the carrier of C
+    holds F1(x) in the carrier of D;
+    consider F be Function of the carrier of C, the carrier of D such that
+A42: for x being object st x in the carrier of C holds F.x = F1(x)
+    from FUNCT_2:sch 2(A41);
+    reconsider F as Functor of C, D;
+    take F;
+    for f1,f2 being morphism of C st f1 |> f2 holds
+    F.f1 |> F.f2 & F.(f1 (*) f2) = (F .f1) (*) (F .f2)
+    proof
+      let f1,f2 be morphism of C;
+      assume f1 |> f2;
+      thus F.f1 |> F.f2 by A24;
+      reconsider x1 = f1, x2  = f2, x12 = f1 (*) f2 as object;
+A43:  F.f1 = F.x1 by Def21 .= d1 by A42;
+A44:  F.f2 = F.x2 by Def21 .= d1 by A42;
+A45:   d1 |> d1 by A24;
+      thus F.(f1(*)f2) = F.x12 by Def21
+      .= d1 by A42
+      .= (F.f1)(*)(F.f2) by A43,A44,A45,A19;
+    end;
+    hence F is multiplicative;
+    ex f being morphism of C st f is identity & not F.f is identity
+    proof
+      reconsider f = the Object of C as morphism of C by TARSKI:def 3;
+      take f;
+      thus f is identity by Th22;
+      reconsider x = f as object;
+A46:   F.f = F.x by Def21 .= d1 by A42;
+      ex d0 being morphism of D st d1 |> d0 & not d1(*)d0 = d0
+      proof
+        reconsider d0 = 0 as morphism of D by TARSKI:def 2;
+        take d0;
+        thus d1 |> d0 by A24;
+        hence not d1(*)d0 = d0 by A19;
+      end;
+      hence not F.f is identity by A46,Def4;
+    end;
+    hence F is non identity-preserving;
+  end;
+
+theorem Th29:
+  C is non empty & D is empty implies not ex F being Functor of C,D st
+  F is multiplicative or F is antimultiplicative
+  proof
+    assume
+A1: C is non empty;
+    then reconsider f = the Object of C as morphism of C by TARSKI:def 3;
+A2: f |> f by A1,Th23;
+    assume
+A3: D is empty;
+    assume ex F being Functor of C,D st F is multiplicative
+    or F is antimultiplicative;
+    then consider F be Functor of C,D such that
+A4: F is multiplicative or F is antimultiplicative;
+A5: not F.f |> F.f by A3;
+    per cases by A4;
+    suppose F is multiplicative;
+      hence thesis by A5,A2;
+    end;
+    suppose F is antimultiplicative;
+      hence thesis by A5,A2;
+    end;
+  end;
+
+theorem
+  ex C,D being category, F being Functor of C,D st
+  F is non multiplicative & F is identity-preserving
+  proof
+    set C = the non empty category;
+    set D = the empty category;
+    set F = the identity-preserving Functor of C,D;
+    take C,D,F;
+    thus thesis by Th29;
+  end;
+
+definition
+  let C,D,F;
+  attr F is covariant means :Def25:
+  F is identity-preserving & F is multiplicative;
+  attr F is contravariant means
+  F is identity-preserving & F is antimultiplicative;
+end;
+
+registration
+  let C be empty with_identities CategoryStr;
+  let D be with_identities CategoryStr;
+  cluster covariant contravariant for Functor of C,D;
+  correctness
+  proof
+    set F = the identity-preserving multiplicative antimultiplicative
+    Functor of C,D;
+    take F;
+    thus thesis;
+  end;
+end;
+
+registration
+  let C be with_identities CategoryStr;
+  let D be non empty with_identities CategoryStr;
+  cluster covariant contravariant for Functor of C,D;
+  correctness
+  proof
+    set F = the identity-preserving multiplicative antimultiplicative
+    Functor of C,D;
+    take F;
+    thus thesis;
+  end;
+end;
+
+theorem
+  C is non empty & D is empty implies not ex F being Functor of C,D
+  st F is covariant or F is contravariant by Th29;
+
+definition
+  let C,D be non empty with_identities CategoryStr;
+  let F be covariant Functor of C,D;
+  let f be Object of C;
+  redefine func F.f -> Object of D;
+  coherence
+  proof
+    f in Ob(C);
+    then consider f1 be morphism of C such that
+A1: f = f1 & f1 is identity & f1 in Mor(C);
+    F.f1 is identity & F.f1 in Mor(D) by A1,Def22,Def25;
+    then F.f1 in Ob(D);
+    hence thesis by A1,Def21;
+  end;
+end;
+
+theorem Th32:
+  for C,D being non empty composable with_identities CategoryStr,
+      F being covariant Functor of C,D,
+      f being morphism of C
+  holds F.(dom f) = dom(F.f) & F.(cod f) = cod(F.f)
+  proof
+    let C,D be non empty composable with_identities CategoryStr;
+    let F be covariant Functor of C,D;
+    let f be morphism of C;
+A1: F is multiplicative by Def25;
+    consider d be morphism of C such that
+A2: dom f = d & f |> d & d is identity by Def18;
+    F.(dom f) in Ob(D);
+    then reconsider d1 = F.(dom f) as morphism of D;
+A3: F.f |> F.d by A2,A1;
+A4: F.d = F.(dom f) by A2,Def21;
+    d1 is identity by Th22;
+    hence F.(dom f) = dom(F.f) by A3,A4,Def18;
+    consider c be morphism of C such that
+A5: cod f = c & c |> f & c is identity by Def19;
+    F.(cod f) in Ob(D);
+    then reconsider c1 = F.(cod f) as morphism of D;
+A6: F.c |> F.f by A5,A1;
+A7: F.c = F.(cod f) by A5,Def21;
+    c1 is identity by Th22;
+    hence F.(cod f) = cod(F.f) by A6,A7,Def19;
+  end;
+
+theorem
+  for C,D being non empty composable with_identities CategoryStr,
+      F being covariant Functor of C,D,
+      o being Object of C holds F.(id- o) = id-(F.o) by Def21;
+
+definition
+  let C,D,E;
+  let F,G;
+  assume
+A1: (F is covariant or F is contravariant) &
+    (G is covariant or G is contravariant);
+  func G (*) F -> Functor of C,E equals :Def27:
+  F * G;
+  coherence
+  proof
+    set FG  = F * G;
+    reconsider FG as PartFunc of the carrier of C, the carrier of E;
+    not (C is non empty & D is empty)
+    & not (D is non empty & E is empty) by A1,Th29;
+    hence thesis;
+  end;
+end;
+
+theorem Th34:
+  F is covariant & G is covariant & C is non empty implies (G(*)F).f = G.(F.f)
+  proof
+    assume
+A1: F is covariant;
+    assume
+A2: G is covariant;
+    assume
+A3: C is non empty;
+    then
+A4: D is non empty by A1,Th29;
+    then
+A5: E is non empty by A2,Th29;
+    reconsider x = f as object;
+A6: dom(G (*) F) = the carrier of C by A5,FUNCT_2:def 1;
+A7: F.x = F.f by A3,Def21;
+    then
+A8: G.(F.x) = G.(F.f) by A4,Def21;
+A9: dom F = the carrier of C by A4,FUNCT_2:def 1;
+    dom G = the carrier of D by A5,FUNCT_2:def 1;
+    then [x,F.x] in F & [F.x,G.(F.x)] in G by A3,A4,A9,A7,FUNCT_1:1;
+    then [f,G.(F.f)] in F * G by A8,RELAT_1:def 8;
+    then
+A10: [f,G.(F.f)] in G (*) F by A1,A2,Def27;
+    thus (G(*)F).f = (G(*)F).x by A3,Def21
+    .= G.(F.f) by A10,A6,FUNCT_1:def 2;
+  end;
+
+theorem
+  F is covariant & G is covariant implies G (*) F is covariant
+  proof
+    assume
+A1: F is covariant;
+    assume
+A2: G is covariant;
+    set GF = G (*) F;
+    for f being morphism of C st f is identity holds GF.f is identity
+    proof
+      let f be morphism of C;
+      assume
+A3:   f is identity;
+      per cases;
+      suppose
+A4:     C is non empty;
+A7:     F.f is identity by A1,A3,Def22;
+        (G(*)F).f = G.(F.f) by A1,A2,Th34,A4;
+        hence GF.f is identity by A2,A7,Def22;
+      end;
+      suppose
+A8:     C is empty;
+        per cases;
+        suppose
+A9:       E is non empty;
+          GF.f = the Object of E by A8,Def21;
+          hence GF.f is identity by A9,Th22;
+        end;
+        suppose E is empty; hence GF.f is identity by Th10; end;
+      end;
+    end;
+    then
+A10: GF is identity-preserving;
+    for f1,f2 being morphism of C st f1 |> f2 holds
+    GF.f1 |> GF.f2 & GF.(f1 (*) f2) = (GF.f1) (*) (GF.f2)
+    proof
+      let f1,f2 be morphism of C;
+      assume
+A11:   f1 |> f2;
+      then
+A12:   C is non empty;
+A15:   GF.f1 = G.(F.f1) by A12,A1,A2,Th34;
+A16:   G is multiplicative by A2;
+      F is multiplicative by A1;
+      then
+A17:   F.f1 |> F.f2 & F.(f1 (*) f2) = (F.f1) (*) (F.f2) by A11;
+      then G.(F.f1) |> G.(F.f2) &
+      G.((F.f1) (*) (F.f2)) = (G.(F.f1)) (*) (G.(F.f2)) by A16;
+      hence GF.f1 |> GF.f2 by A15,A12,A1,A2,Th34;
+      thus GF.(f1 (*) f2) = G.(F.(f1 (*) f2)) by A12,A1,A2,Th34
+      .= (G.(F.f1)) (*) (G.(F.f2)) by A17,A16
+      .= (GF.f1) (*) (GF.f2) by A15,A12,A1,A2,Th34;
+    end;
+    hence G (*) F is covariant by A10,Def23;
+  end;
+
+definition
+  let C;
+  redefine func id C -> Functor of C,C;
+  coherence;
+end;
+
+registration
+  let C;
+  cluster id C -> covariant;
+  correctness
+  proof
+    set F = id C;
+A1: F = id the carrier of C by STRUCT_0:def 4;
+    for f1,f2 being morphism of C st f1 |> f2
+    holds F.f1 |> F.f2 & F.(f1(*)f2) = (F.f1)(*)(F.f2)
+    proof
+      let f1,f2 be morphism of C;
+      assume A2: f1 |> f2;
+      per cases;
+      suppose
+A3:     C is non empty;
+        reconsider x1=f1, x2=f2, x3=f1(*)f2 as object;
+A4:     F.f1 = F.x1 by A3,Def21 .= f1 by A1;
+A5:     F.f2 = F.x2 by A3,Def21 .= f2 by A1;
+A6:     F.(f1(*)f2) = F.x3 by A3,Def21 .= f1(*)f2 by A1;
+        thus F.f1 |> F.f2 by A4,A5,A2;
+        thus F.(f1(*)f2) = (F.f1)(*)(F.f2) by A4,A6,A5;
+      end;
+      suppose C is empty;
+        hence thesis by A2;
+      end;
+    end;
+    then
+A7: F is multiplicative;
+    for f being morphism of C st f is identity holds F.f is identity
+    proof
+      let f be morphism of C;
+      assume A8: f is identity;
+      per cases;
+      suppose
+A9:     C is non empty;
+        reconsider x=f as object;
+        F.f = F.x by A9,Def21 .= f by A1;
+        hence F.f is identity by A8;
+      end;
+      suppose C is empty;
+        hence F.f is identity by Th10;
+      end;
+    end;
+    hence thesis by A7,Def22;
+  end;
+end;
+
+definition
+  let C,D;
+  pred C,D are_isomorphic means
+  ex F being Functor of C,D, G being Functor of D,C
+  st F is covariant & G is covariant & G (*) F = id C & F (*) G = id D;
+  reflexivity
+  proof
+    let C be with_identities CategoryStr;
+    set F = id C, G = id C;
+A1: F = id the carrier of C & G = id the carrier of C by STRUCT_0:def 4;
+    take F,G;
+    G (*) F = (id the carrier of C) * (id the carrier of C) by A1,Def27
+    .= id ((the carrier of C) /\ (the carrier of C)) by FUNCT_1:22
+    .= id C by STRUCT_0:def 4;
+    hence thesis;
+  end;
+  symmetry;
+end;
+
+notation
+  let C,D;
+  synonym C ~= D for C,D are_isomorphic;
+end;
+
+begin :: Transform a category in the other
+
+Lm4:
+  for C being CategoryStr, f,g being morphism of C st g |> f
+  holds g (*) f = (the composition of C).[g,f]
+  proof
+    let C be CategoryStr;
+    let f,g be morphism of C;
+    assume g |> f;
+    hence g (*) f = (the composition of C).(g,f) by Def3
+    .= (the composition of C).[g,f] by BINOP_1:def 1;
+  end;
+
+Lm5:
+  for C being composable CategoryStr holds C is associative iff
+  for f,g,h being morphism of C st h |> g & g |> f
+  holds h(*)(g(*)f) = (h(*)g)(*)f
+  proof
+    let C be composable CategoryStr;
+    hereby
+      assume
+A1:   C is associative;
+A2:   C is left_composable & C is right_composable by Def11;
+      let f,g,h be morphism of C;
+      assume
+A3:  h |> g & g |> f;
+      then h (*) g |> f & h |> g (*) f by A2;
+      hence h(*)(g(*)f) = (h(*)g)(*)f by A3,A1;
+    end;
+    assume for f,g,h being morphism of C st
+    h |> g & g |> f holds h(*)(g(*)f) = (h(*)g)(*)f;
+    hence C is associative;
+  end;
+
+definition
+  let C be CategoryStr;
+  func CompMap(C) ->
+       PartFunc of [:Mor(C), Mor(C):], Mor(C) equals
+  the composition of C;
+  correctness;
+end;
+
+definition
+  let C be composable with_identities CategoryStr;
+  func SourceMap(C) -> Function of Mor(C), Ob(C) means :Def30:
+  for f being Element of Mor(C) holds it.f = dom f if C is non empty
+  otherwise it = {};
+  correctness
+  proof
+A1: not C is empty implies ex F being Function of Mor(C), Ob(C) st
+    for f being Element of Mor(C) holds F.f = dom f
+    proof
+      assume not C is empty;
+      then reconsider A = Mor(C), O = Ob(C) as non empty set;
+      defpred P[set,set] means
+      ex a being Element of Mor(C), o being Element of Ob(C)
+      st a = $1 & o = $2 & o = dom a;
+A2:  for x being Element of A ex y being Element of O st P[x,y]
+      proof
+        let x be Element of A;
+        reconsider f = x as Element of Mor(C);
+        reconsider y = dom f as Element of O;
+        take y;
+        thus P[x,y];
+      end;
+      consider F be Function of A, O such that
+A3:   for x being Element of A holds P[x,F.x] from FUNCT_2:sch 3(A2);
+      reconsider F as Function of Mor(C), Ob(C);
+      take F;
+      let f be Element of Mor(C);
+      P[f,F.f] by A3;
+      hence thesis;
+    end;
+A4: C is empty implies ex F being Function of Mor(C), Ob(C)
+    st F = {}
+    proof
+      assume C is empty;
+      then Mor(C) = {} & Ob(C) = {};
+      then reconsider F = {} as Function of Mor(C), Ob(C);
+      take F;
+      thus thesis;
+    end;
+A5: for F1, F2 being Function of Mor(C), Ob(C) holds
+    (for f being Element of Mor(C) holds F1.f = dom f) &
+    (for f being Element of Mor(C) holds F2.f = dom f)
+    implies F1 = F2
+    proof
+      let F1,F2 be Function of Mor(C), Ob(C);
+      assume
+A6:   for f being Element of Mor(C) holds F1.f = dom f;
+      assume
+A7:   for f being Element of Mor(C) holds F2.f = dom f;
+      for x being object st x in Mor(C) holds F1.x = F2.x
+      proof
+        let x be object;
+        assume x in Mor(C);
+        then reconsider f = x as Element of Mor(C);
+        thus F1.x = dom f by A6 .= F2.x by A7;
+      end;
+      hence thesis by FUNCT_2:12;
+    end;
+    thus thesis by A1,A4,A5;
+  end;
+  func TargetMap(C) -> Function of Mor(C), Ob(C) means :Def31:
+  for f being Element of Mor(C) holds it.f = cod f if C is non empty
+  otherwise it = {};
+  correctness
+  proof
+A8: not C is empty implies ex F being Function of Mor(C), Ob(C) st
+    for f being Element of Mor(C) holds F.f = cod f
+    proof
+      assume not C is empty;
+      then reconsider A = Mor(C), O = Ob(C) as non empty set;
+      defpred P[set,set] means
+      ex a being Element of Mor(C), o being Element of Ob(C)
+      st a = $1 & o = $2 & o = cod a;
+A9:  for x being Element of A ex y being Element of O st P[x,y]
+      proof
+        let x be Element of A;
+        reconsider f = x as Element of Mor(C);
+        reconsider y = cod f as Element of O;
+        take y;
+        thus P[x,y];
+      end;
+      consider F be Function of A, O such that
+A10:   for x being Element of A holds P[x,F.x] from FUNCT_2:sch 3(A9);
+      reconsider F as Function of Mor(C), Ob(C);
+      take F;
+      let f be Element of Mor(C);
+      P[f,F.f] by A10;
+      hence thesis;
+    end;
+A11: C is empty implies ex F being Function of Mor(C), Ob(C)
+    st F = {}
+    proof
+      assume C is empty;
+      then Mor(C) = {} & Ob(C) = {};
+      then reconsider F = {} as Function of Mor(C), Ob(C);
+      take F;
+      thus thesis;
+    end;
+A12: for F1, F2 being Function of Mor(C), Ob(C) holds
+    (for f being Element of Mor(C) holds F1.f = cod f) &
+    (for f being Element of Mor(C) holds F2.f = cod f)
+    implies F1 = F2
+    proof
+      let F1,F2 be Function of Mor(C), Ob(C);
+      assume
+A13:   for f being Element of Mor(C) holds F1.f = cod f;
+      assume
+A14:   for f being Element of Mor(C) holds F2.f = cod f;
+      for x being object st x in Mor(C) holds F1.x = F2.x
+      proof
+        let x be object;
+        assume x in Mor(C);
+        then reconsider f = x as Element of Mor(C);
+        thus F1.x = cod f by A13 .= F2.x by A14;
+      end;
+      hence thesis by FUNCT_2:12;
+    end;
+    thus thesis by A8,A11,A12;
+  end;
+end;
+
+definition
+  let C be with_identities CategoryStr;
+  func IdMap(C) -> Function of Ob(C), Mor(C) means :Def32:
+  for o being Element of Ob(C) holds it.o = id-o if C is non empty
+  otherwise it = {};
+  correctness
+  proof
+A1: not C is empty implies ex F being Function of Ob(C), Mor(C) st
+    for o being Element of Ob(C) holds F.o = id-o
+    proof
+      assume not C is empty;
+      then reconsider A = Mor(C), O = Ob(C) as non empty set;
+      defpred P[set,set] means
+      ex o being Element of Ob(C), a being Element of Mor(C)
+      st o = $1 & a = $2 & a = id-o;
+A2:  for x being Element of O ex y being Element of A st P[x,y]
+      proof
+        let x be Element of O;
+        reconsider o = x as Element of Ob(C);
+        reconsider y = id-o as Element of A;
+        take y;
+        thus P[x,y];
+      end;
+      consider F be Function of O, A such that
+A3:   for x being Element of O holds P[x,F.x] from FUNCT_2:sch 3(A2);
+      reconsider F as Function of Ob(C), Mor(C);
+      take F;
+      let o be Element of Ob(C);
+      P[o,F.o] by A3;
+      hence thesis;
+    end;
+A4: C is empty implies ex F being Function of Ob(C), Mor(C)
+    st F = {}
+    proof
+      assume C is empty;
+      then Mor(C) = {} & Ob(C) = {};
+      then reconsider F = {} as Function of Ob(C), Mor(C);
+      take F;
+      thus thesis;
+    end;
+A5: for F1, F2 being Function of Ob(C), Mor(C) holds
+    (for o being Element of Ob(C) holds F1.o = id-o) &
+    (for o being Element of Ob(C) holds F2.o = id-o)
+    implies F1 = F2
+    proof
+      let F1,F2 be Function of Ob(C), Mor(C);
+      assume
+A6:   for o being Element of Ob(C) holds F1.o = id-o;
+      assume
+A7:   for o being Element of Ob(C) holds F2.o = id-o;
+      for x being object st x in Ob(C) holds F1.x = F2.x
+      proof
+        let x be object;
+        assume x in Ob(C);
+        then reconsider o = x as Element of Ob(C);
+        thus F1.x = id-o by A6 .= F2.x by A7;
+      end;
+      hence thesis by FUNCT_2:12;
+    end;
+    thus thesis by A1,A4,A5;
+  end;
+end;
+
+theorem Th37:
+  for C being non empty composable with_identities CategoryStr
+  for f,g being Element of Mor(C) holds
+  [g,f] in dom(CompMap(C)) iff (SourceMap(C)).g = (TargetMap(C)).f
+  proof
+    let C be non empty composable with_identities CategoryStr;
+    let f,g be Element of Mor(C);
+    hereby
+      assume [g,f] in dom(CompMap(C));
+      then
+A1:   g |> f;
+      consider u be morphism of C such that
+A2:   dom g = u & g |> u & u is identity by Def18;
+      g (*) u = g by A2,Def5;
+      then
+A3:   u |> f by A2,A1,Lm3;
+      thus (SourceMap(C)).g = dom g by Def30
+      .= cod f by A3,A2,Def19
+      .= (TargetMap(C)).f by Def31;
+    end;
+    assume
+A4: (SourceMap(C)).g = (TargetMap(C)).f;
+A5: dom g = (SourceMap(C)).g by Def30
+    .= cod f by A4,Def31;
+    consider d be morphism of C such that
+A6: dom g = d & g |> d & d is identity by Def18;
+    consider c be morphism of C such that
+A7: cod f = c & c |> f & c is identity by Def19;
+    g(*)d |> f by A6,A7,A5,Lm3;
+    hence [g,f] in dom(CompMap(C)) by A6,Def5;
+  end;
+
+theorem Th38:
+    for C being composable with_identities CategoryStr
+    for f,g being Element of Mor(C)
+    st (SourceMap(C)).g = (TargetMap(C)).f holds
+    (SourceMap(C)).((CompMap(C)).(g,f)) = (SourceMap(C)).f &
+    (TargetMap(C)).((CompMap(C)).(g,f)) = (TargetMap(C)).g
+    proof
+      let C be composable with_identities CategoryStr;
+      let f,g be Element of Mor(C);
+      assume
+A1:   (SourceMap(C)).g = (TargetMap(C)).f;
+      per cases;
+      suppose
+A2:     C is empty;
+        thus (SourceMap(C)).((CompMap(C)).(g,f)) = {} by A2
+        .= (SourceMap(C)).f by A2;
+        thus (TargetMap(C)).((CompMap(C)).(g,f)) = {} by A2
+        .= (TargetMap(C)).g by A2;
+      end;
+      suppose
+A3:     not C is empty;
+        then
+A4:     [g,f] in dom (CompMap(C)) by A1,Th37;
+        then
+A5:     (CompMap(C)).[g,f] in rng (CompMap(C)) by FUNCT_1:3;
+        reconsider a = (CompMap(C)).(g,f) as Element of Mor(C)
+        by A5,BINOP_1:def 1;
+        consider d be morphism of C such that
+A6:     dom a = d & a |> d & d is identity by A3,Def18;
+A7:     g |> f by A4;
+A8:    a = (the composition of C).[g,f] by BINOP_1:def 1
+        .= g (*) f by A4,Def2,Lm4;
+        then f |> d by A6,A7,Lm3;
+        then
+A9:     dom a = dom f by A3,A6,Def18;
+        thus (SourceMap(C)).((CompMap(C)).(g,f)) = dom a by A3,Def30
+        .= (SourceMap(C)).f by A9,A3,Def30;
+        consider c be morphism of C such that
+A10:     cod a = c & c |> a & c is identity by A3,Def19;
+        c |> g by A10,A7,A8,Lm3;
+        then
+A11:     cod a = cod g by A3,A10,Def19;
+        thus (TargetMap(C)).((CompMap(C)).(g,f)) = cod a by A3,Def31
+        .= (TargetMap(C)).g by A11,A3,Def31;
+      end;
+    end;
+
+theorem Th39:
+    for C being composable associative with_identities CategoryStr
+    for f,g,h being Element of Mor(C)
+    st (SourceMap(C)).h = (TargetMap(C)).g &
+    (SourceMap(C)).g = (TargetMap(C)).f
+    holds (CompMap(C)).(h,(CompMap(C)).(g,f)) =
+    (CompMap(C)).((CompMap(C)).(h,g),f)
+    proof
+      let C be composable associative with_identities CategoryStr;
+      let f,g,h be Element of Mor(C);
+      assume
+A1:   (SourceMap(C)).h = (TargetMap(C)).g &
+      (SourceMap(C)).g = (TargetMap(C)).f;
+      per cases;
+      suppose
+A2:     C is empty;
+        thus (CompMap(C)).(h,(CompMap(C)).(g,f))
+        = (CompMap(C)).[h,(CompMap(C)).(g,f)] by BINOP_1:def 1
+        .= {} by A2
+        .= (CompMap(C)).[(CompMap(C)).(h,g),f] by A2
+        .= (CompMap(C)).((CompMap(C)).(h,g),f) by BINOP_1:def 1;
+      end;
+      suppose
+A3:     not C is empty;
+A4:    [h,g] in dom(CompMap(C)) by Th37,A3,A1;
+        then
+A5:    h |> g;
+A6:    [g,f] in dom(CompMap(C)) by Th37,A3,A1;
+        then
+A7:    g |> f;
+A8:     h |> g(*)f by A7,A5,Lm3;
+A9:     h(*)g |> f by A7,A5,Lm3;
+A10:     (CompMap(C)).(g,f) = (the composition of C).[g,f] by BINOP_1:def 1
+        .= g(*)f by A6,Def2,Lm4;
+A11:     (CompMap(C)).(h,g) = (the composition of C).[h,g] by BINOP_1:def 1
+        .= h(*)g by A4,Def2,Lm4;
+        thus (CompMap(C)).(h,(CompMap(C)).(g,f))
+        = (CompMap(C)).[h,g(*)f] by A10,BINOP_1:def 1
+        .= h(*)(g(*)f) by A8,Lm4
+        .= (h(*)g)(*)f by A5,A7,Lm5
+        .= (CompMap(C)).[h(*)g,f] by A9,Lm4
+        .= (CompMap(C)).((CompMap(C)).(h,g),f) by A11,BINOP_1:def 1;
+      end;
+    end;
+
+theorem Th40:
+  for C being composable with_identities CategoryStr
+  for b being Element of Ob(C) holds
+    (SourceMap(C)).((IdMap(C)).b) = b & (TargetMap(C)).((IdMap(C)).b) = b &
+    (for f being Element of Mor(C) st (TargetMap(C)).f = b
+     holds (CompMap(C)).((IdMap(C)).b,f) = f ) &
+     for g being Element of Mor(C) st (SourceMap(C)).g = b
+     holds (CompMap(C)).(g,(IdMap(C)).b) = g
+  proof
+    let C be composable with_identities CategoryStr;
+    let b be Element of Ob(C);
+    per cases;
+    suppose
+A1:   C is empty;
+      then
+A2:   b = {} by SUBSET_1:def 1;
+      thus (SourceMap(C)).((IdMap(C)).b) = b by A1,A2;
+      thus (TargetMap(C)).((IdMap(C)).b) = b by A1,A2;
+      thus for f being Element of Mor(C) st (TargetMap(C)).f = b
+      holds (CompMap(C)).((IdMap(C)).b,f) = f
+      proof
+        let f be Element of Mor(C);
+        assume (TargetMap(C)).f = b;
+A3:     f = {} by A1,SUBSET_1:def 1;
+        thus (CompMap(C)).((IdMap(C)).b,f)
+        = (the composition of C).[(IdMap(C)).b,f] by BINOP_1:def 1
+        .= f by A1,A3;
+      end;
+      thus for g being Element of Mor(C) st (SourceMap(C)).g = b
+      holds (CompMap(C)).(g,(IdMap(C)).b) = g
+      proof
+        let g be Element of Mor(C);
+        assume (SourceMap(C)).g = b;
+A4:     g = {} by A1,SUBSET_1:def 1;
+        thus (CompMap(C)).(g,(IdMap(C)).b)
+        = (the composition of C).[g,(IdMap(C)).b] by BINOP_1:def 1
+        .= g by A1,A4;
+      end;
+    end;
+    suppose
+A5:   not C is empty;
+      then
+A6:   (IdMap(C)).b = id-b by Def32 .= b;
+      not Ob(C) is empty by A5;
+      then b in Ob(C);
+      then reconsider u = b as Element of Mor(C);
+A7:   u is identity by A5,Th22;
+      consider d be morphism of C such that
+A8:   dom u = d & u |> d & d is identity by A5,Def18;
+A9:   d = u (*) d by A7,A8,Def4 .= u by A8,Def5;
+      thus
+A10:  (SourceMap(C)).((IdMap(C)).b) = b by A8,A9,A6,A5,Def30;
+      consider c be morphism of C such that
+A11:   cod u = c & c |> u & c is identity by A5,Def19;
+A12:   c = c (*) u by A7,A11,Def5 .= u by A11,Def4;
+      thus
+A13:  (TargetMap(C)).((IdMap(C)).b) = b by A11,A12,A6,A5,Def31;
+      thus for f being Element of Mor(C) st (TargetMap(C)).f = b
+      holds (CompMap(C)).((IdMap(C)).b,f) = f
+      proof
+        let f be Element of Mor(C);
+        assume (TargetMap(C)).f = b;
+        then
+A14:   [u,f] in dom(CompMap(C)) by A6,A10,A5,Th37;
+        then
+A15:    u |> f;
+        thus (CompMap(C)).((IdMap(C)).b,f) = (CompMap(C)).[u,f]
+        by A6,BINOP_1:def 1
+        .= u (*) f by A14,Def2,Lm4
+        .= f by A7,A15,Def4;
+      end;
+      thus for g being Element of Mor(C) st (SourceMap(C)).g = b
+      holds (CompMap(C)).(g,(IdMap(C)).b) = g
+      proof
+        let g be Element of Mor(C);
+        assume (SourceMap(C)).g = b;
+        then
+A16:   [g,u] in dom(CompMap(C)) by A6,A13,A5,Th37;
+        then
+A17:    g |> u;
+        thus (CompMap(C)).(g,(IdMap(C)).b)
+        = (CompMap(C)).[g,u] by A6,BINOP_1:def 1
+        .= g (*) u by A16,Def2,Lm4
+        .= g by A7,A17,Def5;
+      end;
+    end;
+  end;
+
+Lm6:
+  for C being non empty category holds
+  CatStr(# Ob(C), Mor(C), SourceMap(C), TargetMap(C), CompMap(C) #)
+  is Category
+  proof
+    let C be non empty composable associative with_identities CategoryStr;
+    set CC = CatStr(# Ob(C), Mor(C), SourceMap(C),
+    TargetMap(C), CompMap(C) #);
+    reconsider CC as non empty non void CatStr;
+A1: for f,g being Morphism of CC
+    holds [g,f] in dom(the Comp of CC) iff dom g = cod f
+    proof
+      let f,g be Morphism of CC;
+      (the Source of CC).g = dom g &
+      (the Target of CC).f = cod f by GRAPH_1:def 4,def 3;
+      hence thesis by Th37;
+    end;
+A2: for f,g being Morphism of CC st dom g = cod f
+    holds dom(g (*) f) = dom f & cod(g (*) f) = cod g
+    proof
+      let f,g be Morphism of CC;
+      assume A3: dom g = cod f;
+      then
+      A4: (the Source of CC).g = cod f by GRAPH_1:def 3
+      .= (the Target of CC).f by GRAPH_1:def 4;
+      A5: [g,f] in dom the Comp of CC by A3,A1;
+      thus dom(g (*) f) = (the Source of CC).(g (*) f) by GRAPH_1:def 3
+      .= (the Source of CC).((the Comp of CC).(g,f)) by A5,CAT_1:def 1
+      .= (the Source of CC).f by A4,Th38
+      .= dom f by GRAPH_1:def 3;
+      thus cod(g (*) f) = (the Target of CC).(g (*) f) by GRAPH_1:def 4
+      .= (the Target of CC).((the Comp of CC).(g,f)) by A5,CAT_1:def 1
+      .= (the Target of CC).g by A4,Th38
+      .= cod g by GRAPH_1:def 4;
+    end;
+A6: for f,g,h being Morphism of CC st dom h = cod g & dom g = cod f
+    holds h(*)(g(*)f) = (h(*)g)(*)f
+    proof
+      let f,g,h be Morphism of CC;
+      assume A7: dom h = cod g;
+      then
+      A8: (the Source of CC).h = cod g by GRAPH_1:def 3
+      .= (the Target of CC).g by GRAPH_1:def 4;
+      A9: [h,g] in dom the Comp of CC by A7,A1;
+      assume A10: dom g = cod f;
+      then
+      A11: (the Source of CC).g = cod f by GRAPH_1:def 3
+      .= (the Target of CC).f by GRAPH_1:def 4;
+      A12: [g,f] in dom the Comp of CC by A10,A1;
+      dom h = cod(g(*)f) by A2,A7,A10;
+      then
+      A13: [h,g(*)f] in dom the Comp of CC by A1;
+      dom (h(*)g) = cod f by A2,A7,A10;
+      then
+      A14: [h(*)g,f] in dom the Comp of CC by A1;
+      thus h(*)(g(*)f) = (the Comp of CC).(h,g(*)f) by A13,CAT_1:def 1
+      .= (the Comp of CC).(h,(the Comp of CC).(g,f)) by A12,CAT_1:def 1
+      .= (the Comp of CC).((the Comp of CC).(h,g),f) by Th39,A8,A11
+      .= (the Comp of CC).(h(*)g,f) by A9,CAT_1:def 1
+      .= (h(*)g)(*)f by A14,CAT_1:def 1;
+    end;
+A15: for b being Element of CC holds (IdMap(C)).b in Hom(b,b)
+    proof
+      let b be Element of CC;
+      reconsider o = b as Element of Ob(C);
+      reconsider f = o as Morphism of CC by TARSKI:def 3;
+      A16: (IdMap(C)).b = id- o by Def32 .= f;
+      (SourceMap(C)).((IdMap(C)).b) = b & (TargetMap(C)).((IdMap(C)).b) = b
+      by Th40;
+      then (SourceMap(C)).(id- o) = b & (TargetMap(C)).(id- o) = b by Def32;
+      then dom f = b & cod f = b by GRAPH_1:def 3,def 4;
+      hence (IdMap(C)).b in Hom(b,b) by A16,CAT_1:1;
+    end;
+    then
+A17: for b being Element of CC holds Hom(b,b) <> {};
+    for a being Element of CC
+    ex i being Morphism of a,a st
+    for b being Element of CC holds
+    (Hom(a,b)<>{} implies for g being Morphism of a,b holds g(*)i = g) &
+    (Hom(b,a)<>{} implies for f being Morphism of b,a holds i(*)f = f)
+    proof
+      let a be Element of CC;
+      set i = (IdMap(C)).a;
+      A18: i in Hom (a,a) by A15;
+      then reconsider i as Morphism of a,a by CAT_1:def 5;
+      take i;
+      let b be Element of CC;
+      thus (Hom(a,b)<>{} implies for g being Morphism of a,b holds g(*)i = g)
+      proof
+        assume A19: Hom(a,b)<>{};
+        let g be Morphism of a,b;
+        g in Hom(a,b) by A19,CAT_1:def 5;
+        then
+        A20: dom g = a by CAT_1:1;
+        then dom g = cod i by A18,CAT_1:1;
+        then
+        A21: [g,i] in dom the Comp of CC by A1;
+        (the Source of CC).g = a by A20,GRAPH_1:def 3;
+        then (CompMap(C)).(g,(IdMap(C)).a) = g by Th40;
+        hence g(*)i = g by A21,CAT_1:def 1;
+      end;
+      assume A22: Hom(b,a)<>{};
+      let f be Morphism of b,a;
+      f in Hom(b,a) by A22,CAT_1:def 5;
+      then
+      A23: cod f = a by CAT_1:1;
+      then cod f = dom i by A18,CAT_1:1;
+      then
+      A24: [i,f] in dom the Comp of CC by A1;
+      (the Target of CC).f = a by A23,GRAPH_1:def 4;
+      then (CompMap(C)).((IdMap(C)).a,f) = f by Th40;
+      hence i(*)f = f by A24,CAT_1:def 1;
+    end;
+    hence thesis by A1,A2,A6,A17,CAT_1:def 6,def 7,def 8,def 9,def 10;
+  end;
+
+definition
+  let C be non empty category;
+  func Alter(C) -> strict Category equals
+  CatStr(#Ob(C), Mor(C), SourceMap(C), TargetMap(C), CompMap(C)#);
+  coherence by Lm6;
+end;
+
+Lm7:
+  for C being Category holds
+  CategoryStr(# the carrier' of C, the Comp of C #) is category
+  proof
+    let C be Category;
+    consider o be object such that
+A1: o in the carrier of C by XBOOLE_0:def 1;
+    reconsider o as Object of C by A1;
+    reconsider cc = CategoryStr (# the carrier' of C, the Comp of C #)
+    as non empty CategoryStr;
+A2: for f,g being morphism of cc, f1,g1 being Element of the carrier' of C
+    st g = g1 & f = f1 & g |> f holds g(*)f = g1(*)f1
+    proof
+      let f,g be morphism of cc;
+      let f1,g1 be Element of the carrier' of C;
+      assume
+A3:   g = g1 & f = f1;
+      assume
+A4:   g |> f;
+      thus g(*)f = (CompMap(cc)).[g1,f1] by A3,A4,Lm4
+      .= (the Comp of C).(g1,f1) by BINOP_1:def 1
+      .= g1(*)f1 by A3,A4,CAT_1:def 1;
+    end;
+A5: for f,g,h being morphism of cc holds
+    (h(*)g |> f & h |> g implies g |> f) &
+    (h |> g(*)f & g |> f implies h |> g) &
+    (g |> f & h |> g implies
+    h(*)g |> f & h |> g(*)f)
+    proof
+      let f,g,h be morphism of cc;
+      reconsider f1=f,g1=g,h1=h as Morphism of C;
+      thus (h(*)g |> f & h |> g
+      implies g |> f)
+      proof
+        assume
+A6:    h(*)g |> f;
+        assume
+A7:     h |> g;
+        then
+A8:     dom h1 = cod g1 by CAT_1:def 6;
+        h(*)g = h1(*)g1 by A7,A2;
+        then dom(h1(*)g1) = cod f1 by A6,CAT_1:def 6;
+        then dom g1 = cod f1 by A8,CAT_1:def 7;
+        hence g |> f by CAT_1:def 6;
+      end;
+      thus (h |> g(*)f & g |> f
+      implies h |> g)
+      proof
+        assume
+A9:   h |> g(*)f;
+          assume
+A10:       g |> f;
+          then
+A11:       dom g1 = cod f1 by CAT_1:def 6;
+          g(*)f = g1(*)f1 by A10,A2;
+          then
+          dom h1 = cod(g1(*)f1) by A9,CAT_1:def 6;
+          then dom h1 = cod g1 by A11,CAT_1:def 7;
+          hence h |> g by CAT_1:def 6;
+        end;
+        assume
+A12:    g |> f;
+        then
+A13:    dom g1 = cod f1 by CAT_1:def 6;
+        assume
+A14:     h |> g;
+A15:     dom h1 = cod g1 by A14,CAT_1:def 6;
+        dom(h1(*)g1) = cod f1 by A13,A15,CAT_1:def 7;
+        then [h1(*)g1, f1] in dom(CompMap(cc)) by CAT_1:def 6;
+        hence h(*)g |> f by A14,A2;
+        dom h1 = cod g1 by A14,CAT_1:def 6;
+        then dom h1 = cod(g1(*)f1) by A13,CAT_1:def 7;
+        then [h1, g1(*)f1] in dom(CompMap(cc)) by CAT_1:def 6;
+        hence h |> g(*)f by A12,A2;
+      end;
+A16: for f,g,h being morphism of cc
+    st h |> g & g |> f
+    holds h(*)(g(*)f) = (h(*)g)(*)f
+    proof
+      let f,g,h be morphism of cc;
+      reconsider f1=f,g1=g,h1=h,gf1=g(*)f,hg1=h(*)g as Morphism of C;
+      assume
+A17:   h |> g;
+      then
+A18:   dom h1 = cod g1 by CAT_1:def 6;
+      assume
+A19:   g |> f;
+      then
+A20:   dom g1 = cod f1 by CAT_1:def 6;
+A21:  h |> g(*)f by A17,A19,A5;
+A22:  h(*)g |> f by A17,A19,A5;
+      thus h(*)(g(*)f) = h1(*)gf1 by A21,A2 .= h1(*)(g1(*)f1) by A19,A2
+      .= (h1(*)g1)(*)f1 by A20,A18,CAT_1:def 8
+      .= (hg1)(*)f1 by A17,A2
+      .= (h(*)g)(*)f by A22,A2;
+    end;
+A23: for f being morphism of cc st f in Mor(cc) holds
+    (ex c being morphism of cc st c |> f & c is identity) &
+    (ex d being morphism of cc st f |> d & d is identity)
+    proof
+      let f be morphism of cc;
+      assume f in Mor(cc);
+      reconsider f1=f as Morphism of C;
+      thus (ex c being morphism of cc st c |> f & c is identity)
+      proof
+        set c1 = id cod f1;
+A24:    dom c1 = cod f1;
+        reconsider c = c1 as morphism of cc;
+        take c;
+        thus c |> f by A24,CAT_1:def 6;
+A25:     for ff being morphism of cc st c |> ff holds c (*) ff = ff
+        proof
+          let ff be morphism of cc;
+          reconsider ff1=ff as Morphism of C;
+          assume A26: c |> ff;
+          then
+          A27: dom c1 = cod ff1 by CAT_1:def 6;
+          thus c (*) ff = c1(*)ff1 by A26,A2 .= ff by A27,CAT_1:21;
+        end;
+        for gg being morphism of cc st gg |> c holds gg (*) c = gg
+        proof
+          let gg be morphism of cc;
+          reconsider gg1=gg as Morphism of C;
+          assume A28: gg |> c;
+          then
+          A29: cod c1 = dom gg1 by CAT_1:def 6;
+          thus gg (*) c = gg1(*)c1 by A28,A2 .= gg by A29,CAT_1:22;
+        end;
+        hence c is identity by A25,Def4,Def5;
+      end;
+      set d1 = id dom f1;
+A30:  cod d1 = dom f1;
+      reconsider d=d1 as morphism of cc;
+      take d;
+      thus f |> d by A30,CAT_1:def 6;
+A31:   for ff being morphism of cc st d |> ff holds d (*) ff = ff
+      proof
+        let ff be morphism of cc;
+        reconsider ff1=ff as Morphism of C;
+        assume A32: d |> ff;
+        then
+        A33: dom d1 = cod ff1 by CAT_1:def 6;
+        thus d (*) ff = d1(*)ff1 by A32,A2 .= ff by A33,CAT_1:21;
+      end;
+      for gg being morphism of cc st gg |> d holds gg (*) d = gg
+      proof
+        let gg be morphism of cc;
+        reconsider gg1=gg as Morphism of C;
+        assume A34: gg |> d;
+        then
+A35:    cod d1 = dom gg1 by CAT_1:def 6;
+        thus gg (*) d = gg1(*)d1 by A34,A2 .= gg by A35,CAT_1:22;
+      end;
+      hence d is identity by A31,Def4,Def5;
+    end;
+    set CS = CategoryStr (# the carrier' of C, the Comp of C #);
+    CS is composable by A5,Lm3;
+    hence thesis by A23,A16,Lm5,Lm2;
+  end;
+
+definition
+  let A be Category;
+  func alter(A) -> strict category equals
+  CategoryStr(# the carrier' of A, the Comp of A #);
+  coherence by Lm7;
+end;
+
+registration
+  let A be Category;
+  cluster alter(A) -> non empty;
+  correctness;
+end;
+
+theorem Th41:
+  for A being Category, a1,a2 being (Morphism of A),
+  f1,f2 being morphism of alter(A) st a1 = f1 & a2 = f2 &
+  [a1,a2] in dom the Comp of A holds a1(*)a2 = f1(*)f2
+  proof
+    let A be Category;
+    let a1,a2 be Morphism of A;
+    let f1,f2 be morphism of alter(A);
+    assume
+A1: a1 = f1 & a2 = f2;
+    assume
+A2: [a1,a2] in dom the Comp of A;
+    thus a1(*)a2 = (the composition of alter A).(f1,f2) by A1,A2,CAT_1:def 1
+    .= f1(*)f2 by A2,A1,Def2,Def3;
+  end;
+
+theorem Th42:
+  for A being Category, f being morphism of alter(A)
+  holds f is identity iff ex o being Object of A st f = id o
+  proof
+    let A be Category;
+    let f be morphism of alter(A);
+    hereby
+      assume
+A1:   f is identity;
+A3:  f is Object of alter(A) by A1,Th22;
+      then
+A4:  for f1 being morphism of alter(A) holds
+      ( f |> f1 implies f (*) f1 = f1 ) & ( f1 |> f implies f1 (*) f = f1 ) &
+      f |> f by Th23;
+      reconsider a1 = f as Morphism of A;
+      [a1,a1] in dom the Comp of A by A4,Def2;
+      then
+A5:  dom a1 = cod a1 by CAT_1:15;
+      set o = dom a1;
+      reconsider a1 as Morphism of o,o by A5,CAT_1:4;
+      take o;
+      for b being Object of A holds
+      (Hom(o,b)<>{} implies for a being Morphism of o,b holds a(*)a1 = a) &
+      (Hom(b,o)<>{} implies for a being Morphism of b,o holds a1(*)a = a)
+      proof
+        let b be Object of A;
+        thus (Hom(o,b)<>{} implies
+        for f1 being Morphism of o,b holds f1(*)a1 = f1)
+        proof
+          assume
+A6:       Hom(o,b)<>{};
+          let f1 be Morphism of o,b;
+          f1 in Hom(o,b) by A6,CAT_1:def 5;
+          then dom f1 = o & cod f1 = b by CAT_1:1;
+          then
+A7:       [f1,a1] in dom the Comp of A by A5,CAT_1:def 6;
+          reconsider f2 = f1 as morphism of alter(A);
+          f2(*)f = f2 by A4,A7,Def2;
+          hence f1(*)a1 = f1 by Th41,A7;
+        end;
+        assume
+A8:     Hom(b,o)<>{};
+        let f1 be Morphism of b,o;
+        f1 in Hom(b,o) by A8,CAT_1:def 5;
+        then
+A9:    dom f1 = b & cod f1 = o by CAT_1:1;
+        then
+A10:   [a1,f1] in dom the Comp of A by CAT_1:def 6;
+        reconsider f2 = f1 as morphism of alter(A);
+        f |> f2 by A9,CAT_1:def 6;
+        then f(*)f2 = f2 by A3,Th23;
+        hence a1(*)f1 = f1 by Th41,A10;
+      end;
+      hence f = id o by CAT_1:def 12;
+    end;
+    given o be Object of A such that
+A11: f = id o;
+A12: for f1 being morphism of alter(A) st f |> f1 holds f (*) f1 = f1
+    proof
+      let f1 be morphism of alter(A);
+      assume
+A13:  f |> f1;
+      reconsider a2 = f1, a1 = f as Morphism of A;
+A14:  cod a2 = dom id o by A11,CAT_1:15,A13 .= o;
+      thus f (*) f1 = a1(*)a2 by A13,Th41
+      .= f1 by A11,A14,CAT_1:21;
+    end;
+    for f1 being morphism of alter(A) st f1 |> f holds f1 (*) f = f1
+    proof
+      let f1 be morphism of alter(A);
+      assume
+A15:  f1 |> f;
+      reconsider a2 = f1, a1 = f as Morphism of A;
+A16:  dom a2 = cod id o by A15,A11,CAT_1:15 .= o;
+      thus f1 (*) f = a2(*)a1 by A15,Th41
+      .= f1 by A11,A16,CAT_1:22;
+    end;
+    then f is right_identity;
+    hence f is identity by A12,Def4;
+  end;
+
+theorem
+  for A,B being Category, F being Functor of A,B
+  holds F is covariant Functor of alter(A), alter(B)
+  proof
+    let A,B be Category;
+    let F be Functor of A,B;
+    reconsider F1 = F as Function of alter(A), alter(B);
+    for f1,f2 being morphism of alter(A) st f1 |> f2
+    holds F1.f1 |> F1.f2 & F1.(f1(*)f2) = (F1.f1)(*)(F1.f2)
+    proof
+      let f1,f2 be morphism of alter(A);
+      assume
+A1:  f1 |> f2;
+      reconsider a1 = f1, a2 = f2 as Morphism of A;
+A2:   dom a1 = cod a2 by A1,CAT_1:15;
+      dom(F.a1) = F.(dom a1) & cod(F.a2) = F.(cod a2) by CAT_1:72;
+      then dom(F.a1) = cod(F.a2) by A1,CAT_1:15;
+      then
+A3:   [F.a1,F.a2] in dom the Comp of B by CAT_1:15;
+A4:   F1.f1 = F.a1 by Def21;
+A5:   F1.f2 = F.a2 by Def21;
+      thus F1.f1,F1.f2 are_composable by A3,A4,Def21;
+      f1(*)f2 = a1(*)a2 by A1,Th41;
+      hence F1.(f1(*)f2) = F.(a1(*)a2) by Def21
+      .= (F.a1)(*)(F.a2) by A2,CAT_1:64
+      .= (F1.f1)(*)(F1.f2) by A3,A4,A5,Th41;
+    end;
+    then
+A6: F1 is multiplicative;
+    for f being morphism of alter(A) st f is identity holds F1.f is identity
+    proof
+      let f be morphism of alter(A);
+      assume f is identity;
+      then consider o be Object of A such that
+A7:  f = id o by Th42;
+      consider o1 be Object of B such that
+A8:  F.(id o) = id o1 by CAT_1:62;
+      thus F1.f is identity by Def21,A7,A8,Th42;
+    end;
+    hence thesis by A6,Def25,Def22;
+  end;
+
+
+theorem Th44:
+  for C being non empty category, a1,a2 being (Morphism of Alter(C)),
+  f1,f2 being morphism of C st a1 = f1 & a2 = f2 & f1 |> f2
+  holds a1(*)a2 = f1(*)f2
+  proof
+    let C be non empty category;
+    let a1,a2 be Morphism of Alter(C);
+    let f1,f2 be morphism of C;
+    assume
+A1: a1 = f1 & a2 = f2;
+    assume
+A2: f1 |> f2;
+    thus a1(*)a2 = (the Comp of Alter(C)).(a1,a2) by A1,A2,CAT_1:def 1
+    .= f1(*)f2 by A1,A2,Def3;
+  end;
+
+theorem Th45:
+  for C being non empty category, f1 being morphism of C,
+      a1 being Morphism of Alter(C) st a1 = f1
+  holds dom f1 = dom a1 & cod f1 = cod a1
+  proof
+    let C be non empty category;
+    let f1 be morphism of C;
+    let a1 be Morphism of Alter(C);
+    assume
+A1: a1 = f1;
+    thus dom f1 = (the Source of Alter(C)).a1 by A1,Def30
+    .= dom a1 by GRAPH_1:def 3;
+    thus cod f1 = (the Target of Alter(C)).a1 by A1,Def31
+    .= cod a1 by GRAPH_1:def 4;
+  end;
+
+theorem Th46:
+  for C being non empty category, o1 being Object of C,
+      o2 being Object of Alter(C) st o1 = o2 holds id- o1 = id o2
+  proof
+    let C be non empty category;
+    let o1 be Object of C;
+    let o2 be Object of Alter(C);
+    assume
+A1: o1 = o2;
+A2: o1 in Ob(C);
+    then reconsider f1 = o1 as morphism of C;
+    reconsider a2 = o2 as Morphism of Alter(C) by A1,A2;
+A3: f1 is identity & f1 |> f1 by Th22,Th24;
+A4: dom a2 = dom f1 by A1,Th45 .= o2 by A1,A3,Def18;
+A5: cod a2 = cod f1 by A1,Th45 .= o2 by A1,A3,Def19;
+    reconsider a3 = a2 as Morphism of o2,o2 by A4,A5,CAT_1:4;
+    for b being Object of Alter(C) holds
+    ( Hom (o2,b) <> {} implies
+    for a being Morphism of o2,b holds a (*) a3 = a ) &
+    ( Hom (b,o2) <> {} implies
+    for a being Morphism of b,o2 holds a3 (*) a = a )
+    proof
+      let b be Object of Alter(C);
+      thus Hom (o2,b) <> {} implies
+      for a being Morphism of o2,b holds a (*) a3 = a
+      proof
+        assume A6: Hom (o2,b) <> {};
+        let a be Morphism of o2,b;
+        reconsider f2=a as morphism of C;
+        dom a = cod a3 by A5,A6,CAT_1:5;
+        then
+A7:   [f2,f1] in dom the composition of C by A1,CAT_1:15;
+        thus a (*) a3 = f2 (*) f1 by A1,A7,Def2,Th44 .= a
+        by A3,A7,Def2,Def5;
+      end;
+      assume A8: Hom (b,o2) <> {};
+      let a be Morphism of b,o2;
+      reconsider f2=a as morphism of C;
+      dom a3 = cod a by A4,A8,CAT_1:5;
+      then
+A9: [f1,f2] in dom the composition of C by A1,CAT_1:15;
+      thus a3 (*) a = f1 (*) f2 by A1,A9,Def2,Th44 .= a
+      by A3,A9,Def2,Def4;
+    end;
+    hence thesis by A1,CAT_1:def 12;
+  end;
+
+theorem Th47:
+  for C being non empty category, f being morphism of C
+  holds f is identity iff ex o being Object of Alter(C) st f = id o
+  proof
+    let C be non empty category;
+    let f be morphism of C;
+    set A = Alter(C);
+    reconsider a=f as morphism of alter(A);
+    hereby
+      assume f is identity;
+      then a is identity by Th25;
+      then consider o be Object of Alter(C) such that
+A1:   a = id o by Th42;
+      take o;
+      thus f = id o by A1;
+    end;
+    given o be Object of Alter(C) such that
+A2: f = id o;
+    a is identity by A2,Th42;
+    hence f is identity by Th25;
+  end;
+
+theorem
+  for C,D being non empty category, F being covariant Functor of C,D
+  holds F is Functor of Alter(C), Alter(D)
+  proof
+    let C,D be non empty category;
+    let F be covariant Functor of C,D;
+    reconsider F1 = F as
+    Function of the carrier' of Alter(C),the carrier' of Alter(D);
+A1: F is identity-preserving & F is multiplicative by Def25;
+A2: for a being Object of Alter(C) ex b being Object of Alter(D)
+    st F1.(id a) = id b
+    proof
+      let a be Object of Alter(C);
+      reconsider a1 = id a as morphism of C;
+      a1 is identity by Th47;
+      then consider b be Object of Alter(D) such that
+A3:   F.a1 = id b by Th47,A1;
+      take b;
+      thus F1.(id a) = id b by A3,Def21;
+    end;
+A4: for f being Morphism of Alter(C) holds F1.(id dom f) = id dom (F1.f) &
+    F1.(id cod f) = id cod (F1.f)
+    proof
+      let f be Morphism of Alter(C);
+      reconsider o1 = dom f as Object of Alter(C);
+      reconsider o2 = o1 as Object of C;
+      reconsider f1=f as morphism of C;
+A5:   F.f1 = F1.f by Def21;
+A6:   F.o2 = F1.(dom f1) by Th45
+      .= dom(F.f1) by Th32
+      .= dom(F1.f) by Th45,A5;
+      thus F1.(id dom f) = F1.(id- o2) by Th46
+      .= id-(F.o2)
+      .= id dom (F1.f) by A6,Th46;
+      reconsider o3 = cod f as Object of Alter(C);
+      reconsider o4 = o3 as Object of C;
+      reconsider f1=f as morphism of C;
+A7:   F.f1 = F1.f by Def21;
+A8:   F.o3 = F1.(cod f1) by Th45
+      .= cod(F.f1) by Th32
+      .= cod(F1.f) by Th45,A7;
+      thus F1.(id cod f) = F1.(id- o4) by Th46
+      .= id-(F.o4)
+      .= id cod (F1.f) by A8,Th46;
+    end;
+    for f,g being Morphism of Alter(C) st dom g = cod f
+    holds F1.(g(*)f) = (F1.g)(*)(F1.f)
+    proof
+      let f,g be Morphism of Alter(C);
+      assume
+A9:   dom g = cod f;
+      reconsider f1=f,g1=g as morphism of C;
+A10:   [g1,f1] in dom the composition of C by A9,CAT_1:15;
+A11:   g1 |> f1 by A9,CAT_1:15;
+A12:   (the composition of C).(g1,f1) = g1(*)f1 by A10,Def2,Def3;
+A13:   F.g1 = F1.g & F.f1 = F1.f by Def21;
+A14:   [F1.g,F1.f] in dom the Comp of Alter D by A13,Def2,A11,A1;
+      thus F1.(g(*)f) = F1.((the Comp of Alter C).(g,f)) by A9,CAT_1:16
+      .= F.(g1(*)f1) by A12,Def21
+      .= (F.g1)(*)(F.f1) by A11,A1
+      .= (the Comp of Alter(D)).(F1.g,F1.f) by A13,Def3,A11,A1
+      .= (F1.g)(*)(F1.f) by A14,CAT_1:def 1;
+    end;
+    hence thesis by A2,A4,CAT_1:61;
+  end;
+
+theorem Th49:
+  for C,D being Category, F being covariant Functor of alter(C), alter(D)
+  holds F is Functor of C, D
+  proof
+    let C,D be Category;
+    let F be covariant Functor of alter(C), alter(D);
+    reconsider F1 = F as
+    Function of the carrier' of C,the carrier' of D;
+A1: F is identity-preserving & F is multiplicative by Def25;
+A2: for a being Object of C ex b being Object of D st F1.(id a) = id b
+    proof
+      let a be Object of C;
+      reconsider a1 = id a as morphism of alter(C);
+      a1 is identity by Th42;
+      then consider b be Object of D such that
+A3:   F.a1 = id b by Th42,A1;
+      take b;
+      thus F1.(id a) = id b by A3,Def21;
+    end;
+A4: for f being Morphism of C holds F1.(id dom f) = id dom (F1.f) &
+    F1.(id cod f) = id cod (F1.f)
+    proof
+      let f be Morphism of C;
+      reconsider f1 = f as morphism of alter(C);
+      reconsider d1 = id dom f as morphism of alter(C);
+      dom f = cod (id dom f);
+      then
+A5:  f1 |> d1 by CAT_1:15;
+A6:   F.d1 is identity by Th42,A1;
+      reconsider d2 = id dom (F1.f) as morphism of alter(D);
+      dom (F1.f) = cod (id dom (F1.f));
+      then [F1.f,id dom (F1.f)] in dom the Comp of D by CAT_1:15;
+      then
+A7:   F.f1 |> d2 by Def21;
+      F.d1 = dom (F.f1) by A1,A5,A6,Th26 .= d2 by Th42,A7,Th26;
+      hence F1.(id dom f) = id dom (F1.f) by Def21;
+      reconsider c1 = id cod f as morphism of alter(C);
+      cod f = dom (id cod f);
+      then
+A8:  c1 |> f1 by CAT_1:15;
+A9:   F.c1 is identity by Th42,A1;
+      reconsider c2 = id cod (F1.f) as morphism of alter(D);
+      cod (F1.f) = dom (id cod (F1.f));
+      then [id cod (F1.f),F1.f] in dom the Comp of D by CAT_1:15;
+      then
+A10:   c2 |> F.f1 by Def21;
+      F.c1 = cod (F.f1) by A1,A8,A9,Th27 .= c2 by Th42,A10,Th27;
+      hence F1.(id cod f) = id cod (F1.f) by Def21;
+    end;
+    for f,g being Morphism of C st dom g = cod f
+    holds F1.(g(*)f) = (F1.g)(*)(F1.f)
+    proof
+      let f,g be Morphism of C;
+      assume
+A11:   dom g = cod f;
+      reconsider f1=f,g1=g as morphism of alter(C);
+A12:   [g1,f1] in dom the composition of alter(C) by A11,CAT_1:15;
+A13:   g1 |> f1 by A11,CAT_1:15;
+A14:   (the composition of alter(C)).(g1,f1) = g1(*)f1 by A12,Def2,Def3;
+A15:   F.g1 = F1.g & F.f1 = F1.f by Def21;
+A16:   [F1.g,F1.f] in dom the Comp of D by A15,Def2,A13,A1;
+      thus F1.(g(*)f) = F1.((the Comp of C).(g,f)) by A11,CAT_1:16
+      .= F.(g1(*)f1) by A14,Def21
+      .= (F.g1)(*)(F.f1) by A13,A1
+      .= (the Comp of D).(F1.g,F1.f) by A15,Def3,A13,A1
+      .= (F1.g)(*)(F1.f) by A16,CAT_1:def 1;
+    end;
+    hence thesis by A2,A4,CAT_1:61;
+  end;
+
+theorem Th50:
+  for C1,C2 being Category st alter(C1) ~= alter(C2) holds C1 ~= C2
+  proof
+    let C1,C2 be Category;
+    assume alter(C1) ~= alter(C2);
+    then consider F be Functor of alter(C1), alter(C2),
+     G be Functor of alter(C2), alter(C1) such that
+A1: F is covariant & G is covariant & G (*) F = id alter(C1) &
+    F (*) G = id alter(C2);
+    reconsider F1 = F as Functor of C1,C2 by A1,Th49;
+A2: dom F = the carrier of alter(C1) by FUNCT_2:def 1;
+    G (*) F = F * G by A1,Def27;
+    then F * G = id the carrier of alter(C1) by A1,STRUCT_0:def 4;
+    then
+A3: F is one-to-one by A2,FUNCT_1:31;
+A4: F (*) G = G * F by A1,Def27;
+A5: the carrier' of C2 = rng(id the carrier' of C2)
+    .= rng(G*F) by A4,A1,STRUCT_0:def 4;
+    the carrier' of C2 c= rng F by A5,RELAT_1:26;
+    then rng F1 = the carrier' of C2 by XBOOLE_0:def 10;
+    hence C1 ~= C2 by A3,ISOCAT_1:def 4,def 3;
+  end;
+
+theorem Th51:
+  for C1,C2 being Category st the carrier' of C1 = the carrier' of C2
+  & the Comp of C1 = the Comp of C2 holds C1 ~= C2
+  proof
+    let C1,C2 be Category;
+    assume the carrier' of C1 = the carrier' of C2 &
+      the Comp of C1 = the Comp of C2;
+    then alter(C1) = alter(C2);
+    hence C1 ~= C2 by Th50;
+  end;
+
+theorem
+  for C being Category holds C ~= Alter(alter(C)) by Th51;
+
+theorem
+  for C being non empty category holds C ~= alter(Alter(C))
+  proof
+    let C be non empty category;
+    set D = alter(Alter(C));
+    reconsider X = the carrier of C as set;
+    reconsider I0 = id C as Function of X, X;
+A1: I0 = id X by STRUCT_0:def 4;
+    reconsider F = id C as Functor of C,D;
+    reconsider G = id C as Functor of D,C;
+    for f being morphism of C st f is identity holds F.f is identity
+    proof
+      let f be morphism of C;
+      assume
+A2:   f is identity;
+      F.f = I0.f by Def21
+      .= (id X).f by STRUCT_0:def 4
+      .= f;
+      hence F.f is identity by A2,Th16,Th18;
+    end;
+    then
+A3: F is identity-preserving;
+    for f1, f2 being morphism of C st f1 |> f2 holds
+    F.f1 |> F.f2 & F.(f1 (*) f2) = (F.f1) (*) (F.f2)
+    proof
+      let f1, f2 be morphism of C;
+      assume
+A4:  f1 |> f2;
+A5:   F.f1 = I0.f1 by Def21
+      .= (id X).f1 by STRUCT_0:def 4
+      .= f1;
+A6:   F.f2 = I0.f2 by Def21
+      .= (id X).f2 by STRUCT_0:def 4
+      .= f2;
+      hence
+A7:  F.f1 |> F.f2 by A4,A5;
+      thus F.(f1 (*) f2) = I0.(f1(*)f2) by Def21
+      .= (id X).(f1(*)f2) by STRUCT_0:def 4
+      .= (the composition of C).(f1,f2) by A4,Def3
+      .= (F.f1) (*) (F.f2) by A5,A6,A7,Def3;
+    end;
+    then F is multiplicative;
+    then
+A8: F is covariant by A3;
+    for f being morphism of D st f is identity holds G.f is identity
+    proof
+      let f be morphism of D;
+      assume
+A9:   f is identity;
+      G.f = I0.f by Def21
+      .= (id X).f by STRUCT_0:def 4
+      .= f;
+      hence G.f is identity by A9,Th16,Th18;
+    end;
+    then
+A10: G is identity-preserving;
+    for f1, f2 being morphism of D st f1 |> f2 holds
+    G.f1 |> G.f2 & G.(f1 (*) f2) = (G.f1) (*) (G.f2)
+    proof
+      let f1, f2 be morphism of D;
+      assume
+A11:  f1 |> f2;
+A12:   G.f1 = I0.f1 by Def21
+      .= (id X).f1 by STRUCT_0:def 4
+      .= f1;
+A13:   G.f2 = I0.f2 by Def21
+      .= (id X).f2 by STRUCT_0:def 4
+      .= f2;
+      hence
+A14:  G.f1 |> G.f2 by A11,A12;
+      thus G.(f1 (*) f2) = I0.(f1(*)f2) by Def21
+      .= (id X).(f1(*)f2) by STRUCT_0:def 4
+      .= (the composition of D).(f1,f2) by A11,Def3
+      .= (G.f1) (*) (G.f2) by A12,A13,A14,Def3;
+    end;
+    then G is multiplicative;
+    then
+A15: G is covariant by A10;
+A16: G (*) F = F*G by A8,A15,Def27
+    .= id(X /\ X) by A1,FUNCT_1:22
+    .= id C by STRUCT_0:def 4;
+    F (*) G = G*F by A8,A15,Def27
+    .= id(X /\ X) by A1,FUNCT_1:22
+    .= id D by STRUCT_0:def 4;
+    hence C ~= alter(Alter(C)) by A8,A15,A16;
+  end;

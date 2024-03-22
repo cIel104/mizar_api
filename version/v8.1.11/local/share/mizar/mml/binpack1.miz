@@ -1,0 +1,3983 @@
+:: Algorithm NextFit for the Bin Packing Problem
+::  by Hiroshi Fujiwara , Ryota Adachi and Hiroaki Yamamoto
+:: 
+:: Received June 30, 2021
+:: Copyright (c) 2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies BINPACK1, NUMBERS, NAT_1, FINSEQ_1, CARD_1, RELAT_1, SUBSET_1,
+      XBOOLE_0, FUNCT_1, TARSKI, ORDINAL4, ARYTM_1, ARYTM_3, REAL_1, ZFMISC_1,
+      XXREAL_0, CARD_3, INT_1, FINSEQ_2, VALUED_0, PARTFUN1, ABIAN, FINSET_1,
+      CLASSES1, RFUNCT_3, AFINSQ_1, AFINSQ_2, PRGCOR_2;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, RELSET_1,
+      PARTFUN1, FUNCT_2, ORDINAL1, CARD_1, ABIAN, BINOP_1, NUMBERS, XCMPLX_0,
+      XXREAL_0, XREAL_0, FINSEQ_1, FINSEQ_2, FINSEQOP, RVSUM_1, INT_1,
+      FINSET_1, VALUED_0, CLASSES1, RFUNCT_3, GLIB_003, RVSUM_3, AFINSQ_1,
+      AFINSQ_2;
+ constructors CARD_1, RELSET_1, RVSUM_1, NAT_D, CLASSES1, RFUNCT_3, DBLSEQ_1,
+      GLIB_003, PROB_1, PARTFUN3, AFINSQ_2, RECDEF_1, WELLORD2;
+ registrations ORDINAL1, XBOOLE_0, FUNCT_1, NUMBERS, XREAL_0, NAT_1, FINSEQ_1,
+      FINSEQ_2, VALUED_0, RELAT_1, RVSUM_1, ABIAN, RELSET_1, INT_1, FINSET_1,
+      CARD_1, XXREAL_0, MEMBERED, AFINSQ_1, AFINSQ_2, NAT_6;
+ requirements NUMERALS, SUBSET, BOOLE, ARITHM, REAL;
+ equalities FINSEQ_1, FINSEQ_2;
+ expansions BINOP_1, XBOOLE_0, CARD_1, FINSEQ_1, TARSKI, RVSUM_3;
+ theorems FUNCT_1, FUNCT_2, FINSEQ_1, FINSEQ_2, FINSEQ_5, FINSEQOP, RELAT_1,
+      XREAL_0, ZFMISC_1, FINSEQ_3, XXREAL_0, XREAL_1, XBOOLE_1, XBOOLE_0,
+      TARSKI, RVSUM_1, NAT_1, NAT_2, ORDINAL1, CARD_1, INT_1, NAT_D, GRFUNC_1,
+      CLASSES1, RFINSEQ, RFUNCT_3, DBLSEQ_2, NAT_6, CARD_2, RVSUM_3, AFINSQ_1,
+      AFINSQ_2, PARTFUN3, XCMPLX_1, WELLORD2;
+ schemes BINOP_1, RECDEF_1, INT_1, FINSEQ_1, NAT_1;
+
+begin :: Preliminaries
+
+definition
+  let a be non empty FinSequence of REAL;
+  let i be Element of dom a;
+  redefine func a . i -> Element of REAL;
+  correctness
+  proof
+    a . i in rng a by FUNCT_1:3;
+    then a . i in REAL;
+    hence thesis;
+  end;
+end;
+
+definition
+  let h be non empty FinSequence of NAT*;
+  let i be Element of dom h;
+  redefine func h . i -> FinSequence of NAT;
+  correctness
+  proof
+    h . i in rng h by FUNCT_1:3;
+    then h . i in NAT*;
+    hence h . i is FinSequence of NAT by FINSEQ_1:def 11;
+  end;
+end;
+
+theorem NF992:
+  for n being Nat st n is odd holds 1 <= n & (n + 1) div 2 = (n + 1) / 2
+  proof
+    let n be Nat;
+
+    assume L010: n is odd; then
+
+    0 < 0 + n;
+    hence 1 <= n by NAT_1:19;
+
+    thus (n + 1) div 2 = (n + 1) / 2 by L010,NAT_6:4;
+  end;
+
+theorem NF315:
+  for D be set, p being FinSequence st
+  (for i being Nat st i in dom p holds p . i in D) holds
+  p is FinSequence of D
+  proof
+    let D be set, p be FinSequence;
+
+    assume L000: for i being Nat st i in dom p holds p . i in D;
+
+    for y being object st y in rng p holds y in D
+    proof
+      let y1 be object;
+
+      assume L430: y1 in rng p;
+
+      consider i being object such that
+      L431: i in dom p and
+      L432: y1 = p . i by L430,FUNCT_1:def 3;
+
+      thus y1 in D by L431,L000,L432;
+    end;
+    then rng p c= D;
+    hence p is FinSequence of D by FINSEQ_1:def 4;
+  end;
+
+theorem NF501:
+  for x, y being object holds {[x, y]} " {y} = {x}
+  proof
+    let x, y be object;
+
+    for v being object holds
+    v in {x} iff (v in dom {[x, y]} & {[x, y]} . v in {y})
+    proof
+      let v be object;
+
+      hereby
+        assume v in {x};
+        then L032: v = x by TARSKI:def 1;
+
+        L0325: [x, y] in {[x, y]} by TARSKI:def 1;
+        then L033: x in dom {[x, y]} & {[x, y]} . x = y by FUNCT_1:1;
+
+        thus v in dom {[x, y]} by L032,L0325,FUNCT_1:1;
+        thus {[x, y]} . v in {y} by L033,TARSKI:def 1,L032;
+      end;
+
+      assume v in dom {[x, y]} & {[x, y]} . v in {y};
+      hence v in {x} by RELAT_1:9;
+    end;
+    hence thesis by FUNCT_1:def 7;
+  end;
+
+theorem NF600:
+  for a, b being Nat, s being set holds
+  Seg a \/ {s} = Seg b implies a = b or a + 1 = b
+  proof
+    let a, b be Nat, s be set;
+
+    assume L000: Seg b = Seg a \/ {s}; then
+
+    L300: card (Seg a \/ {s}) = b by FINSEQ_1:57;
+
+    L500: b - a <= 1
+    proof
+      assume L505: b - a > 1; then
+
+      b - a + a > 1 + a by XREAL_1:8;
+      then L519: b - 0 > a + 1 - 1 by XREAL_1:14;
+
+      per cases;
+      suppose s in Seg a;
+        then card ((Seg a) \/ {s}) = card Seg a by ZFMISC_1:40
+        .= a by FINSEQ_1:57;
+        hence contradiction by L519,L000,FINSEQ_1:57;
+      end;
+      suppose not s in Seg a;
+        then card ((Seg a) \/ {s})
+        =  (card (Seg a)) + 1 by CARD_2:41
+        .= a + 1 by FINSEQ_1:57;
+        hence contradiction by L505,L300;
+      end;
+    end;
+
+    set d = b - a;
+
+    a <= b - 0 by L000,XBOOLE_1:11,FINSEQ_1:5;
+    then d in NAT by XREAL_1:11,INT_1:3;
+    then reconsider d as Nat;
+
+    d = 0 or d = 1 by L500,NAT_1:25;
+    hence a = b or a + 1 = b;
+  end;
+
+definition
+  let D be non empty set;
+  let f be D-valued FinSequence;
+  let I be set;
+:::  assume I c= dom f; :: not needed to prove the correctness of definition
+  func Seq (f, I) -> D-valued FinSequence equals
+  Seq (f | I);
+  coherence;
+end;
+
+definition
+  let a be non empty FinSequence of REAL;
+  let f be Function;
+  let s be set;
+  func SumBin (a, f, s) -> Real equals
+  Sum (Seq (a, (f " s)));
+  coherence;
+end;
+
+registration
+  cluster positive for non empty FinSequence of REAL;
+  existence
+  proof
+    set a0 = <* 1 *>;
+
+    L100: rng a0 = {1} by FINSEQ_1:38;
+    then L200: a0 is non empty FinSequence of REAL by FINSEQ_1:def 4;
+
+    for r being Real st r in rng a0 holds 0 < r by L100;
+    then a0 is positive by PARTFUN3:def 1;
+    hence ex a being non empty FinSequence of REAL st a is positive
+    by L200;
+  end;
+end;
+
+definition
+  let a be FinSequence of REAL;
+  attr a is at_most_one means
+  for i being Nat st 1 <= i & i <= len a holds a . i <= 1;
+end;
+
+registration
+  cluster at_most_one for non empty positive FinSequence of REAL;
+  existence
+  proof
+    set a0 = <* 1 *>;
+
+    rng a0 = {1} by FINSEQ_1:38;
+    then L250: for r being Real st r in rng a0 holds 0 < r;
+
+    reconsider a0 as non empty positive FinSequence of REAL
+    by FINSEQ_1:def 4,L250,PARTFUN3:def 1;
+
+    for i being Nat st 1 <= i & i <= len a0 holds a0 . i <= 1
+    proof
+      let i be Nat;
+
+      assume that
+      L400: 1 <= i and
+      L410: i <= len a0;
+
+      len a0 = 1 by FINSEQ_1:40;
+      then i = 1 by L410,L400,XXREAL_0:1;
+      hence a0 . i <= 1 by FINSEQ_1:def 8;
+    end;
+    then a0 is at_most_one;
+    hence ex a being non empty positive FinSequence of REAL
+    st a is at_most_one;
+  end;
+end;
+
+theorem NF100:
+  for f being FinSequence of NAT, j, b being Nat holds
+  b = j implies (f ^ <* b *>) " {j} = f " {j} \/ {len f + 1}
+  proof
+    let f be FinSequence of NAT, j, b be Nat;
+
+    assume A130: b = j;
+
+    for z being object holds
+    ( z in ((f ^ <* b *>) " {j}) iff z in (f " {j} \/ {len f + 1}))
+    proof
+      let z be object;
+
+      hereby
+        assume A200: z in ((f ^ <* b *>) " {j});
+        then ( z in dom (f ^ <* b *>) & (f ^ <* b *>) . z in {j} )
+        by FUNCT_1:def 7;
+        then per cases by FINSEQ_1:25;
+        suppose B00: z in dom f;
+          then (f ^ <* b *>) . z = f . z by FINSEQ_1:def 7;
+          then f . z in {j} by A200,FUNCT_1:def 7;
+          then z in f " {j} by B00,FUNCT_1:def 7;
+          hence z in (f " {j} \/ {len f + 1}) by XBOOLE_0:def 3;
+        end;
+        suppose ex n being Nat st n in dom <* b *> & z = (len f) + n;
+          then consider n1 being Nat such that
+          B60: n1 in dom <* b *> & z = (len f) + n1;
+
+          n1 = 1 by B60,FINSEQ_1:90;
+          then z in {len f + 1} by B60,TARSKI:def 1;
+          hence z in (f " {j} \/ {len f + 1}) by XBOOLE_0:def 3;
+        end;
+      end;
+
+      assume z in (f " {j} \/ {len f + 1});
+      then z in f " {j} or z in {len f + 1} by XBOOLE_0:def 3;
+      then per cases by FUNCT_1:def 7;
+      suppose B00: ( z in dom f & f . z in {j} );
+        A319: dom f c= dom (f ^ <* b *>) by FINSEQ_1:26;
+
+        (f ^ <* b *>) . z in {j} by B00,FINSEQ_1:def 7;
+        hence ( z in ((f ^ <* b *>) " {j})) by A319,B00,FUNCT_1:def 7;
+      end;
+      suppose z in {len f + 1};
+        then B60: z = len f + 1 by TARSKI:def 1;
+
+        dom <* b *> = {1} by FINSEQ_1:def 8,FINSEQ_1:2;
+        then 1 in dom <* b *> by TARSKI:def 1;
+        then B69: len f + 1 in dom (f ^ <* b *>) by FINSEQ_1:28;
+
+        (f ^ <* b *>) . z = j by B60,FINSEQ_1:42,A130;
+        then (f ^ <* b *>) . z in {j} by ZFMISC_1:31;
+        hence thesis by B69,B60,FUNCT_1:def 7;
+      end;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+
+theorem NF110:
+  for f being FinSequence of NAT, j, b being Nat holds
+  b <> j implies (f ^ <* b *>) " {j} = f " {j}
+  proof
+    let f be FinSequence of NAT, j, b be Nat;
+
+    assume A130: b <> j;
+
+    for z being object holds
+    ( z in ((f ^ <* b *>) " {j}) iff z in (f " {j}))
+    proof
+      let z be object;
+
+      hereby
+        assume A200: z in ((f ^ <* b *>) " {j});
+        then A210: ( z in dom (f ^ <* b *>) & (f ^ <* b *>) . z in {j} )
+        by FUNCT_1:def 7;
+
+        A240: not z in dom (f ^ <* b *>)
+        or z in dom f
+        or ex n being Nat st
+        ( n in dom <* b *> & z = (len f) + n ) by FINSEQ_1:25;
+
+        A260: not ex n being Nat st n in dom <* b *> & z = (len f) + n
+        proof
+          now given n1 being Nat such that
+            B10: n1 in dom <* b *> & z = (len f) + n1;
+
+            dom <* b *> = Seg 1 by FINSEQ_1:def 8;
+            then n1 = 1 by B10,FINSEQ_1:2,TARSKI:def 1;
+            then B50: (f ^ <* b *>) . z = b by B10,FINSEQ_1:42;
+
+            not b in {j} by A130,TARSKI:def 1;
+            hence contradiction by B50,FUNCT_1:def 7,A200;
+          end;
+          hence thesis;
+        end;
+        (f ^ <* b *>) . z = f . z
+          by A240,FUNCT_1:def 7,A200,A260,FINSEQ_1:def 7;
+        hence z in (f " {j}) by A240,A210,A260,FUNCT_1:def 7;
+      end;
+
+      assume z in (f " {j});
+      then A310: z in dom f & f . z in {j} by FUNCT_1:def 7;
+
+      A315: dom f c= dom (f ^ <* b *>) by FINSEQ_1:26;
+
+      f . z = (f ^ <* b *>) . z by A310,FINSEQ_1:def 7;
+      hence z in ((f ^ <* b *>) " {j}) by A315,A310,FUNCT_1:def 7;
+    end;
+    hence ((f ^ <* b *>) " {j}) = f " {j} by TARSKI:2;
+  end;
+
+theorem NF120:
+  for a being non empty FinSequence of REAL,
+      p being set, i being Nat st
+  (p \/ {i}) c= dom a &
+  (for m being Nat st m in p holds m < i) holds
+  Seq (a | (p \/ {i})) = Seq (a | p) ^ <* a . i *>
+  proof
+    let a be non empty FinSequence of REAL, p be set, i be Nat;
+
+    assume that
+    A00: p \/ {i} c= dom a and
+    A05: for m being Nat st m in p holds m < i;
+
+    A20: dom (a | (p \/ {i})) = p \/ {i} by A00,RELAT_1:62;
+
+    reconsider api = a | (p \/ {i}) as FinSubsequence;
+
+    A32: p c= dom a by A00,XBOOLE_1:11;
+
+    i in dom a by A00,XBOOLE_1:11,ZFMISC_1:31;
+    then A34: 1 <= i & i <= len a by FINSEQ_3:25;
+
+    A35: p c= Seg len a by A32,FINSEQ_1:def 3;
+
+    i in Seg i by A34;
+    then A36: {i} c= Seg i by ZFMISC_1:31;
+
+    A40: for m, n being Nat st m in p & n in {i} holds m < n
+    proof
+      let m, n be Nat;
+
+      assume that
+      B00: m in p and
+      B10: n in {i};
+      n = i by B10,TARSKI:def 1;
+
+      hence m < n by B00,A05;
+    end;
+
+    A41: for z being object holds not z in p /\ {i}
+    proof
+      let z be object;
+
+      now assume z in p /\ {i};
+        then C10: z in p & z in {i} by XBOOLE_0:def 4;
+        then z = i by TARSKI:def 1;
+        hence contradiction by C10,A05;
+      end;
+      hence not z in p /\ {i};
+    end;
+
+    A50: Sgm (p \/ {i})
+     = (Sgm p) ^ (Sgm {i}) by A35,A36,A40,FINSEQ_3:42
+    .= (Sgm p) ^ <* i *> by A34,FINSEQ_3:44;
+
+    set sgmp = Sgm p, poi = p \/ {i};
+
+    i in {i} by ZFMISC_1:31;
+    then reconsider i as Element of poi by XBOOLE_0:def 3;
+
+    A57: rng sgmp = p by A35,FINSEQ_1:def 13;
+
+    reconsider sgmp as FinSequence of poi by XBOOLE_1:7,A57,FINSEQ_1:def 4;
+
+    A58: rng a c= REAL;
+
+    rng api c= rng a by RELAT_1:70;
+    then rng api c= REAL by A58;
+    then reconsider api as Function of poi,REAL by A20,FUNCT_2:2;
+
+    A60: (a | (p \/ {i})) * (Sgm (p \/ {i})) = (api * sgmp) ^ <* api . i *>
+    by A50,FINSEQOP:8;
+
+    A65: api = (a | p) \/ (a | {i}) by RELAT_1:78;
+
+    reconsider api as PartFunc of NAT,REAL;
+
+    set apai = (a | p) \/ (a | {i});
+
+    A70: api * (Sgm p) = (((a | p) * (Sgm p)) \/ ((a | {i}) * (Sgm p)))
+    by A65,RELAT_1:32;
+
+    A75: dom (a | p) = p by A00,XBOOLE_1:11,RELAT_1:62;
+
+    A82: p misses {i} by A41,XBOOLE_0:def 1;
+
+    dom (a | {i}) = {i} by A00,XBOOLE_1:11,RELAT_1:62;
+    then (a | {i}) * (Sgm p) = {} by A57,A82,RELAT_1:44;
+
+    hence thesis by A20,A60,A70,A75,FUNCT_1:49;
+  end;
+
+theorem NF200:
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, j, b being Nat st
+  len f + 1 <= len a holds
+  b = j implies
+  SumBin (a, f ^ <* b *>, {j}) = SumBin (a, f, {j}) + a . (len f + 1)
+  proof
+    let a be non empty FinSequence of REAL,
+    f be FinSequence of NAT, j, b be Nat;
+
+    assume A10: len f + 1 <= len a;
+
+    assume A15: b = j;
+
+    len (f ^ <* b *>) = len f + 1 by FINSEQ_2:16;
+    then A20: dom (f ^ <* b *>) c= dom a by A10,FINSEQ_3:30;
+
+    (f ^ <* b *>) " {j} c= dom (f ^ <* b *>) by RELAT_1:132;
+    then A30: (f ^ <* b *>) " {j} c= dom a by A20;
+
+    A40: (f ^ <* b *>) " {j} = f " {j} \/ {len f + 1} by A15,NF100;
+
+    A59: for m being Nat st m in f " {j} holds m < len f + 1
+    proof
+      let m be Nat;
+
+      assume B00: m in f " {j};
+
+      f " {j} c= dom f by RELAT_1:132;
+      then m <= len f by B00,FINSEQ_3:25;
+      hence m < len f + 1 by NAT_1:13;
+    end;
+
+    Seq (a , (f ^ <* b *>) " {j})
+     = Seq (a | (f ^ <* b *>) " {j})
+    .= Seq (a | f " {j}) ^ <* a . (len f + 1) *> by A30,A40,A59,NF120
+    .= Seq (a , f " {j}) ^ <* a . (len f + 1) *>;
+    hence thesis by RVSUM_1:74;
+  end;
+
+theorem
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, j, b being Nat st
+  len f + 1 <= len a holds
+  b <> j implies
+  SumBin (a, f ^ <* b *>, {j}) = SumBin (a, f, {j}) by NF110;
+
+theorem NF260:
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT st
+  dom f = dom a holds
+  SumBin (a, f, rng f) = Sum a
+  proof
+    let a be non empty FinSequence of REAL, f be FinSequence of NAT;
+
+    assume L00: dom f = dom a;
+
+    L200: f " (rng f) = dom f by RELAT_1:134;
+
+    Seq (a, f " (rng f)) = Seq (a | dom a) by L200,L00
+    .= a by FINSEQ_3:116;
+    hence SumBin (a, f, rng f) = Sum a;
+  end;
+
+theorem NF270:
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, s, t being set st s misses t holds
+  SumBin (a, f, s \/ t) = SumBin (a, f, s) + SumBin (a, f, t)
+  proof
+    let a be non empty FinSequence of REAL,
+    f be FinSequence of NAT, s, t be set;
+
+    assume 
+    L08: s misses t;
+
+    set U = f " s, V = f " t;
+
+    reconsider F = a as PartFunc of NAT,REAL;
+
+    A200: dom (F | (U \/ V)) is finite;
+
+    A290: for W be set holds Sum (F, W) = Sum (Seq (a, W))
+    proof
+      let W be set;
+      dom (F | (W /\ W)) is finite;
+      then A310: (a | W), FinS (F,W) are_fiberwise_equipotent
+      by RFUNCT_3:def 13;
+
+      reconsider fssu = a | W as Subset of a by RELAT_1:59;
+
+      A320: Seq fssu, fssu are_fiberwise_equipotent by DBLSEQ_2:51;
+      thus Sum (F, W) = Sum FinS (F,W) by RFUNCT_3:def 14
+      .= Sum Seq (a, W) by A310,A320,CLASSES1:76,RFINSEQ:9;
+    end;
+    A610: Sum (F,U) = SumBin (a, f, s) by A290;
+    A620: Sum (F,V) = SumBin (a, f, t) by A290;
+    Sum (F,(U \/ V))
+     = Sum (Seq (a, (f " s \/ f " t))) by A290
+    .= SumBin (a, f, s \/ t) by RELAT_1:140;
+    hence SumBin (a, f, s \/ t) = SumBin (a, f, s) + SumBin (a, f, t)
+    by A200,L08,FUNCT_1:71,RFUNCT_3:83,A610,A620;
+  end;
+
+theorem NF280:
+  for a being non empty positive FinSequence of REAL,
+  f being FinSequence of NAT, s being set holds
+  0 <= SumBin (a, f, s)
+  proof
+    let a be non empty positive FinSequence of REAL,
+        f be FinSequence of NAT, s be set;
+
+    reconsider seqaxs = Seq (a, f " s) as real-valued FinSequence;
+
+    for i being Nat st i in dom seqaxs holds 0 <= seqaxs . i
+    proof
+      let i be Nat;
+
+      assume i in dom seqaxs; then
+
+      L300: seqaxs . i in rng seqaxs by FUNCT_1:3;
+
+      L400: rng seqaxs = rng (Seq (a | f " s))
+      .= rng (a | f " s) by FINSEQ_1:101;
+
+      rng (a | f " s) c= rng a by RELAT_1:70;
+      hence thesis by L300,L400,PARTFUN3:def 1;
+    end;
+    hence 0 <= SumBin (a, f, s) by RVSUM_1:84;
+  end;
+
+theorem NF290:
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, s be set st
+  s misses rng f holds
+  SumBin (a, f, s) = 0
+  proof
+    let a be non empty FinSequence of REAL,
+    f be FinSequence of NAT, s be set;
+    assume L033: s misses rng f;
+    reconsider emptyrealseq = <*> REAL as FinSequence of REAL;
+    Seq (a, {}) = Seq (a | {})
+    .= emptyrealseq;
+    hence SumBin (a, f, s) = 0 by L033,RELAT_1:138,RVSUM_1:72;
+  end;
+
+begin :: Optimal Packing
+
+theorem NF300:
+  for a being non empty at_most_one FinSequence of REAL holds
+  ex k being Nat st
+  ex f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) &
+  k = card rng f
+  proof
+    let a be non empty at_most_one FinSequence of REAL;
+    set k1 = len a, f1 = idseq k1;
+    L591: for j being Nat st j in rng f1 holds SumBin (a, f1, {j}) <= 1
+    proof
+      let j be Nat;
+
+      assume L5910: j in rng f1; then
+
+      L59115: {j} c= Seg k1 by ZFMISC_1:31;
+      then L5913: f1 " {j} = {j} by FUNCT_2:94;
+      then f1 " {j} c= dom a by L59115,FINSEQ_1:def 3;
+      then L5918: a | (f1 " {j}) = {[j, a . j]}
+      by L5913,ZFMISC_1:31,GRFUNC_1:28;
+
+      dom {[j, a . j]} = {j} by RELAT_1:9;
+      then {[j, a . j]} is FinSubsequence-like by L5910,ZFMISC_1:31;
+      then reconsider jaj = {[j, a . j]} as FinSubsequence;
+
+      Seq (a, (f1 " {j}))
+       = Seq jaj by L5918
+      .= <* a . j *> by FINSEQ_3:157;
+      then L5919: SumBin (a, f1, {j}) = a . j by RVSUM_1:73;
+
+      L59192: 1 <= j & j <= len a by L5910,FINSEQ_1:1;
+
+      a is at_most_one;
+      hence SumBin (a, f1, {j}) <= 1 by L5919,L59192;
+    end;
+
+    L592: rng f1 = Seg k1;
+
+    take k1;
+
+    ex f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) &
+    k1 = card rng f
+    proof
+      reconsider f1 as non empty FinSequence of NAT by L592,FINSEQ_1:def 4;
+
+      take f1;
+
+      thus thesis by FINSEQ_1:def 3,L591,FINSEQ_1:57;
+    end;
+    hence thesis;
+  end;
+
+theorem NF305:
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  ex fr being FinSequence of NAT st
+  dom fr = dom a &
+  (for j being Nat st j in rng fr holds SumBin (a, fr, {j}) <= 1) &
+  (ex k being Nat st rng fr = Seg k) &
+  card rng f = card rng fr
+  proof
+    let a be non empty FinSequence of REAL, f be FinSequence of NAT;
+
+    assume that
+    DM00: dom f = dom a and
+    FS00: for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1;
+
+    reconsider gix = Sgm0 (rng f) as XFinSequence of NAT;
+    reconsider gi = XFS2FS gix as one-to-one Function;
+
+    L040: rng gi = rng gix by AFINSQ_1:97
+    .= rng f by AFINSQ_2:def 4;
+
+    reconsider g = gi " as one-to-one Function;
+
+    L400: dom g = rng f by FUNCT_1:33,L040; then
+
+    reconsider fr0 = g * f as FinSequence by FINSEQ_1:16;
+
+    L500: rng fr0 = rng g by L400,RELAT_1:28;
+
+    L520: rng fr0 = rng g by L400,RELAT_1:28
+    .= dom gi by FUNCT_1:33;
+
+    consider k0 being Nat such that
+    L530: dom gi = Seg k0 by FINSEQ_1:def 2;
+
+    reconsider fr0 as FinSequence of NAT by L520,L530,FINSEQ_1:def 4;
+
+    take fr0;
+
+    thus dom fr0 = dom a by L400,RELAT_1:27,DM00;
+
+    thus for j being Nat st j in rng fr0 holds SumBin (a, fr0, {j}) <= 1
+    proof
+      let j0 be Nat;
+
+      assume L710: j0 in rng fr0;
+
+      set j1 = (g ") . j0;
+
+      j0 in dom (g ") by L710,L500,FUNCT_1:33;
+      then L749: j1 in rng (g ") by FUNCT_1:3;
+      then L750: j1 in dom g by FUNCT_1:33;
+
+      L760: j1 in rng f by L749,FUNCT_1:43,L040;
+
+      L761: j0 = g . j1 by L710,L500,FUNCT_1:32;
+
+      for x being object holds x in {j1} iff ( x in dom g & g . x in {j0} )
+      proof
+        let x be object;
+
+        hereby
+          assume L762: x in {j1};
+          hence x in dom g by TARSKI:def 1,L750;
+
+          g . x = j0 by L762,TARSKI:def 1,L761;
+          hence g . x in {j0} by TARSKI:def 1;
+        end;
+
+        assume that
+        L764: x in dom g and
+        L765: g . x in {j0};
+
+        g . x = j0 by L765,TARSKI:def 1;
+        then x = j1 by L764,FUNCT_1:32;
+        hence x in {j1} by TARSKI:def 1;
+      end;
+      then g " {j0} = {j1} by FUNCT_1:def 7;
+      then SumBin (a, fr0, {j0}) = SumBin (a, f, {j1}) by RELAT_1:146;
+      hence SumBin (a, fr0, {j0}) <= 1 by L760,FS00;
+    end;
+
+    thus ex k being Nat st rng fr0 = Seg k by L520,L530;
+
+    card dom gi = card (rng (gi ")) by FUNCT_1:33
+    .= card rng fr0 by L400,RELAT_1:28;
+    hence card rng f = card rng fr0 by CARD_1:70,L040;
+  end;
+
+LM003:
+  for a being non empty at_most_one FinSequence of REAL holds
+  ex opt being Element of NAT st
+  ex g being non empty FinSequence of NAT st
+  dom g = dom a &
+  (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+  opt = card rng g &
+  (for f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  opt <= card rng f)
+  proof
+    let a be non empty at_most_one FinSequence of REAL;
+
+    defpred P1[Nat] means
+    ex f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) &
+    $1 = card rng f;
+
+    L50: ex k being Nat st P1[k] by NF300;
+
+    consider k1 being Nat such that
+    L60: P1[k1] and
+    L62: (for n being Nat st P1[n] holds k1 <= n) from NAT_1:sch 5(L50);
+
+    consider optP being non empty FinSequence of NAT such that
+    L70: dom optP = dom a and
+    L71: for j being Nat st j in rng optP holds SumBin (a, optP, {j}) <= 1
+    and
+    L74: k1 = card rng optP by L60;
+
+    reconsider k1 as Element of NAT by ORDINAL1:def 12;
+
+    take k1;
+    take optP;
+
+    thus thesis by L70,L71,L74,L62;
+  end;
+
+LM004:
+  for a being non empty at_most_one FinSequence of REAL
+  for opt1, opt2 being Element of NAT st
+  (ex g being non empty FinSequence of NAT st
+  dom g = dom a &
+  (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+  opt1 = card rng g &
+  (for f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  opt1 <= card rng f))
+  &
+  (ex g being non empty FinSequence of NAT st
+  dom g = dom a &
+  (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+  opt2 = card rng g &
+  (for f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  opt2 <= card rng f))
+  holds opt1 = opt2
+  proof
+    let a be non empty at_most_one FinSequence of REAL;
+    let opt1, opt2 be Element of NAT;
+
+    assume that
+    L000: ex g being non empty FinSequence of NAT st
+    dom g = dom a &
+    (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+    opt1 = card rng g &
+    (for f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+    opt1 <= card rng f)
+    and
+    L001: ex g being non empty FinSequence of NAT st
+    dom g = dom a &
+    (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+    opt2 = card rng g &
+    (for f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+    opt2 <= card rng f);
+
+    consider g1 being non empty FinSequence of NAT such that
+    L010: dom g1 = dom a and
+    L011: (for j being Nat st j in rng g1 holds SumBin (a, g1, {j}) <= 1) and
+    L012: opt1 = card rng g1 and
+    L013: (for f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+    opt1 <= card rng f) by L000;
+
+    consider g2 being non empty FinSequence of NAT such that
+    L020: dom g2 = dom a and
+    L021: (for j being Nat st j in rng g2 holds SumBin (a, g2, {j}) <= 1) and
+    L022: opt2 = card rng g2 and
+    L023: (for f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+    opt2 <= card rng f) by L001;
+
+    L050: opt1 <= opt2 by L020,L021,L013,L022;
+
+    opt2 <= opt1 by L010,L011,L023,L012;
+    hence opt1 = opt2 by L050,XXREAL_0:1;
+  end;
+
+definition
+  let a be non empty at_most_one FinSequence of REAL;
+  func Opt(a) -> Element of NAT means
+  :defOpt:
+  ex g being non empty FinSequence of NAT st
+  dom g = dom a &
+  (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+  it = card rng g &
+  (for f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  it <= card rng f);
+  existence by LM003;
+  uniqueness by LM004;
+end;
+
+theorem NF310:
+  for a being non empty FinSequence of REAL, f being FinSequence of NAT,
+  k being Nat, R1 being real-valued FinSequence st
+  dom f = dom a & (rng f = Seg k) & len R1 = k &
+  (for j being Nat st j in dom R1 holds R1 . j = SumBin (a, f, {j})) holds
+  Sum R1 = SumBin (a, f, rng f)
+  proof
+    let a be non empty FinSequence of REAL, f be FinSequence of NAT,
+    k be Nat, R1 be real-valued FinSequence;
+
+    assume that
+    L00: dom f = dom a and
+    L30: rng f = Seg k and
+    L40: len R1 = k and
+    L41: for j being Nat st j in dom R1 holds R1 . j = SumBin (a, f, {j});
+
+    A00: dom R1 = Seg k by L40,FINSEQ_1:def 3;
+
+    rng f <> {} by L00,RELAT_1:42;
+    then 0 < k by L30;
+    then A94: 0 + 1 <= k by INT_1:7;
+
+    defpred P[Nat] means
+    for r1segi being real-valued FinSequence st
+    r1segi = R1 | (Seg $1) holds
+    Sum r1segi = SumBin (a, f, Seg $1);
+
+    reconsider k as Element of NAT by ORDINAL1:def 12;
+
+    for r1segi being real-valued FinSequence st
+    r1segi = R1 | (Seg 1) holds
+    Sum r1segi = SumBin (a, f, Seg 1)
+    proof
+      let r1seg1 be real-valued FinSequence;
+
+      assume A10: r1seg1 = R1 | (Seg 1);
+      then A18: dom r1seg1 = Seg 1 by A94,L40,FINSEQ_1:17;
+
+      A19: 1 in dom R1 by A00,A94;
+
+      1 in Seg 1;
+      then A20: r1seg1 . 1 = R1 . 1 by A10,FUNCT_1:49
+      .= SumBin (a, f, Seg 1) by A19,L41,FINSEQ_1:2;
+
+      r1seg1 = <* SumBin (a, f, Seg 1) *> by A18,A20,FINSEQ_1:def 8;
+      hence Sum r1seg1 = SumBin (a, f, Seg 1) by RVSUM_1:73;
+    end;
+    then A30: P[1];
+
+    A60: for i being Element of NAT st 1 <= i & i < k & P[i] holds P[i + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      1 <= i0 and
+      A62: i0 < k and
+      A63: P[i0];
+
+      reconsider r1segi0 = R1 | (Seg i0) as real-valued FinSequence
+      by FINSEQ_1:15;
+      reconsider r1segi0p = R1 | (Seg (i0 + 1)) as real-valued FinSequence
+      by FINSEQ_1:15;
+
+      A733: 1 <= i0 + 1 by NAT_1:12;
+
+      i0 + 1 <= k by A62,INT_1:7;
+      then A74: i0 + 1 in dom R1 by A733,A00;
+      then A80: Sum r1segi0p
+       = Sum (r1segi0 ^ <* (R1 . (i0 + 1)) *>) by FINSEQ_5:10
+      .= Sum r1segi0 + (R1 . (i0 + 1)) by RVSUM_1:74
+      .= Sum r1segi0 + SumBin (a, f, {i0 + 1}) by A74,L41;
+
+      SumBin (a, f, Seg (i0 + 1))
+       = SumBin (a, f, Seg i0 \/ {i0 + 1}) by FINSEQ_1:9
+      .= SumBin (a, f, Seg i0) + SumBin (a, f, {i0 + 1})
+      by FINSEQ_3:14,NF270
+      .= Sum r1segi0p by A63,A80;
+      hence for r1segi being real-valued FinSequence st
+      r1segi = R1 | (Seg (i0 + 1)) holds
+      Sum r1segi = SumBin (a, f, Seg (i0 + 1));
+    end;
+
+    A89: for i being Element of NAT st 1 <= i & i <= k holds P[i]
+    from INT_1:sch 7(A30,A60);
+
+    R1 = R1 | (dom R1)
+    .= R1 | (Seg k) by L40,FINSEQ_1:def 3;
+    hence Sum R1 = SumBin (a, f, rng f) by L30,A94,A89;
+  end;
+
+theorem NF320:
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  [/ (Sum a) \] <= card rng f
+  proof
+    let a be non empty FinSequence of REAL, f be FinSequence of NAT;
+
+    assume that
+    L00: dom f = dom a and
+    L10: for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1;
+
+    consider fr being FinSequence of NAT such that
+    L25: dom fr = dom a and
+    L26: for j being Nat st j in rng fr holds SumBin (a, fr, {j}) <= 1 and
+    L27: ex k being Nat st rng fr = Seg k and
+    L28: card rng f = card rng fr by L00,L10,NF305;
+
+    consider i being Nat such that
+    L29: rng fr = Seg i by L27;
+
+    deffunc FR(Nat) = SumBin (a, fr, {$1});
+
+    ex p being FinSequence st
+    (len p = i &
+    (for j being Nat st j in dom p holds p . j = FR(j)))
+    from FINSEQ_1:sch 2;
+    then consider R1 being FinSequence such that
+    L40: len R1 = i and
+    L41: for j being Nat st j in dom R1 holds R1 . j = SumBin (a, fr, {j});
+
+    for j being Nat st j in dom R1 holds R1 . j in REAL
+    proof
+      let j be Nat;
+      assume j in dom R1;
+      then R1 . j = SumBin (a, fr, {j}) by L41;
+      hence R1 . j in REAL by XREAL_0:def 1;
+    end;
+    then L55: R1 is FinSequence of REAL by NF315;
+
+    R1 is i -element by L40;
+    then reconsider R1 as real-valued i -element FinSequence by L55;
+
+    reconsider R2 = (i |-> 1) as real-valued i -element FinSequence;
+
+    for j being Nat st j in Seg i holds R1 . j <= R2 . j
+    proof
+      let j be Nat;
+
+      assume L71: j in Seg i;
+
+      Seg i = dom R1 by L40,FINSEQ_1:def 3;
+      then L78: R1 . j = SumBin (a, fr, {j}) by L71,L41;
+
+      R2 . j = 1 by L71,FINSEQ_2:57;
+      hence R1 . j <= R2 . j by L78,L26,L29,L71;
+    end;
+    then L80: Sum R1 <= Sum R2 by RVSUM_1:82;
+
+    L90: Sum R1 = SumBin (a, fr, rng fr) by L25,L29,L40,L41,NF310;
+
+    Sum R2 = i * 1 by RVSUM_1:80
+    .= card rng f by L29,FINSEQ_1:57,L28;
+    then Sum a <= card rng f by L80,L90,L25,NF260;
+    hence [/ (Sum a) \] <= card rng f by INT_1:65;
+  end;
+
+theorem NF330:
+  for a being non empty at_most_one FinSequence of REAL holds
+  [/ Sum a \] <= Opt a
+  proof
+    let a be non empty at_most_one FinSequence of REAL;
+
+    consider g1 being non empty FinSequence of NAT such that
+    L00: dom g1 = dom a and
+    L10: (for j being Nat st j in rng g1 holds SumBin (a, g1, {j}) <= 1) and
+    L20: Opt a = card rng g1 and
+    (for f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1)
+    holds Opt a <= card rng f) by defOpt;
+
+    thus [/ Sum a \] <= Opt a by L00,L10,NF320,L20;
+  end;
+
+begin :: Online Algorithms
+
+LM001:
+for a being non empty FinSequence of REAL,
+Alg being Function of [:REAL,NAT*:],NAT holds
+ex h being non empty FinSequence of NAT* st
+len h = len a & h . 1 = <* 1 *> &
+(for i being Nat st 1 <= i & i < len a holds
+ex d1 being Element of REAL, d2 being FinSequence of NAT
+st d1 = a . (i + 1) & d2 = h . i & h . (i + 1) = d2 ^ <* Alg . (d1, d2) *> )
+proof
+  let a be non empty FinSequence of REAL,
+  Alg be Function of [:REAL,NAT*:],NAT;
+
+  defpred P[object , object , object] means
+  ex d0 be Element of NAT, d1 be Element of REAL, d2 being Element of NAT*
+  st $1 = d0 & d1 = a . (d0 + 1) & $2 = d2 &
+  $3 = d2 ^ <* Alg . (d1, d2) *>;
+
+  reconsider I1 = <* 1 *> as Element of NAT* by FINSEQ_1:def 11;
+
+  A1: for n0 being Nat st 1 <= n0 & n0 < len a holds
+  for f being Element of NAT*
+  ex y being Element of NAT* st P[n0,f,y]
+  proof
+    let n0 be Nat;
+
+    assume L01: 1 <= n0 & n0 < len a;
+
+    let f be Element of NAT*;
+
+    n0 + 1 <= len a by L01,NAT_1:13;
+    then L018: Seg (n0 + 1) c= Seg (len a) by FINSEQ_1:5;
+
+    n0 + 1 in Seg len a by L018,FINSEQ_1:3;
+    then n0 + 1 in dom a by FINSEQ_1:def 3;
+    then a . (n0 + 1) in rng a by FUNCT_1:3;
+    then reconsider dd1 = a . (n0 + 1) as Element of REAL;
+
+    reconsider L = Alg . (dd1, f) as Element of NAT;
+    reconsider y = f ^ <*L*> as  Element of NAT* by FINSEQ_1:def 11;
+
+    FC99: ex d0 be Element of NAT, d1 be Element of REAL,
+    d2 being Element of NAT* st
+    n0 = d0 & d1 = a . (d0 + 1) & f = d2 & y = d2 ^ <* Alg . (d1, d2) *>
+    proof
+      reconsider n0 as Element of NAT by ORDINAL1:def 12;
+
+      take n0, dd1, f;
+
+      thus thesis;
+    end;
+
+    take y;
+
+    thus thesis by FC99;
+  end;
+
+  consider H being FinSequence of NAT* such that
+  A2: (len H = len a & (H . 1 = I1 or len a = 0) &
+  (for n being Nat st 1 <= n & n < len a
+  holds P[n, H . n, H . (n + 1)])) from RECDEF_1:sch 4(A1);
+
+  reconsider H as non empty FinSequence of NAT* by A2;
+  take H;
+
+  thus len H = len a & H.1 = <*1*> by A2;
+
+  thus for i being Nat st 1 <= i & i < len a holds
+  ex d1 being Element of REAL,d2 being FinSequence of NAT
+  st d1 = a . (i + 1) & d2 = H . i &
+  H . (i + 1) = d2 ^ <* Alg . (d1, d2) *>
+  proof
+    let i be Nat;
+    assume 1 <= i & i < len a; then
+    ex d0 be Element of NAT, d1 be Element of REAL, d2 being Element of NAT*
+    st i = d0 & d1 = a . (d0 + 1) & H.i = d2 &
+    H.(i+1) = d2 ^ <* Alg . (d1, d2) *> by A2;
+    hence thesis;
+  end;
+end;
+
+LM002:
+for a being non empty FinSequence of REAL,
+Alg being Function of [:REAL,NAT*:],NAT holds
+for f,y be non empty FinSequence of NAT* st
+( len f = len a &  f.1 = <*1*> &
+for i being Nat st 1 <= i & i < len a holds
+ex d1 being Element of REAL,d2 being FinSequence of NAT
+st d1 = a . (i + 1) & d2 = f . i &
+f . (i + 1) = d2 ^ <* Alg . (d1, d2) *> )
+&
+( len y = len a & y.1 = <*1*> &
+for i being Nat st 1 <= i & i < len a holds
+ex  d1 being Element of REAL,d2 being FinSequence of NAT
+st d1 = a . (i + 1) & d2 = y . i &
+y . (i + 1) = d2 ^ <* Alg . (d1, d2) *> )
+holds f = y
+proof
+  let a be non empty FinSequence of REAL,
+  Alg be Function of [:REAL,NAT*:],NAT;
+
+  let f,y be non empty FinSequence of NAT*;
+
+  assume that
+  B1: len f = len a & f.1 = <*1*> &
+  for i being Nat st 1 <= i & i < len a holds
+  ex d1 being Element of REAL,d2 being FinSequence of NAT
+  st d1 = a . (i + 1) & d2 = f . i &
+  f . (i + 1) = d2 ^ <* Alg . (d1, d2) *> and
+  B2: len y = len a & y.1 = <*1*> &
+  for i being Nat st 1 <= i & i < len a holds
+  ex d1 being Element of REAL,d2 being FinSequence of NAT
+  st d1 = a . (i + 1) & d2 = y . i &
+  y . (i + 1) = d2 ^ <* Alg . (d1, d2) *>;
+
+  for k being Nat st k in dom f holds f . k = y . k
+  proof
+    let k be Nat;
+
+    assume B41:k in dom f;
+    then B42: 1 <= k & k <= len a by B1,FINSEQ_3:25;
+
+    defpred P[Nat] means f.($1) = y.($1);
+
+    F1: P[1] by B1,B2;
+
+    F2: for j being Element of NAT st 1 <= j & j < len a &
+    (for j2 being Element of NAT st 1 <= j2 & j2 <= j holds P[j2])
+    holds P[j+1]
+    proof
+      let j be Element of NAT;
+
+      assume that
+      F21: 1 <= j & j < len a and
+      F22: for j2 being Element of NAT st 1 <= j2 & j2 <= j holds P[j2];
+      F23: ex d1 being Element of REAL,d2 being FinSequence of NAT
+      st d1 = a . (j + 1) & d2 = f . j &
+      f . (j + 1) = d2 ^ <* Alg . (d1, d2)  *> by B1,F21;
+
+      F24: ex d1 being Element of REAL,d2 being FinSequence of NAT
+      st d1 = a . (j + 1) & d2 = y . j &
+      y . (j + 1) = d2 ^ <* Alg . (d1, d2)  *> by B2,F21;
+
+      f . j = y . j by F21,F22;
+      hence thesis by F23,F24;
+    end;
+    for i being Element of NAT st 1 <= i & i <= len a holds P[i]
+    from INT_1:sch 8(F1,F2);
+    hence thesis by B41,B42;
+  end;
+  hence thesis by B1,B2,FINSEQ_2:9;
+end;
+
+definition
+  let a be non empty FinSequence of REAL,
+  Alg be Function of [:REAL,NAT*:],NAT;
+  func OnlinePackingHistory(a, Alg) -> non empty FinSequence of NAT*
+  means
+  :defPackHistory:
+  len it = len a &
+  it . 1 = <* 1 *> &
+  for i being Nat st 1 <= i & i < len a holds
+  ex d1 being Element of REAL, d2 being FinSequence of NAT
+  st d1 = a . (i + 1) & d2 = it . i &
+  it . (i + 1) = d2 ^ <* Alg . (d1, d2) *>;
+  existence by LM001;
+  uniqueness by LM002;
+end;
+
+theorem
+  for a be non empty FinSequence of REAL,
+  Alg being Function of [:REAL,NAT*:],NAT holds
+  (OnlinePackingHistory(a, Alg)) . 1 = {[1, 1]} by defPackHistory;
+
+theorem NF502:
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  SumBin (a, h . 1, {(h . 1) . 1}) = a . 1
+  proof
+    let a be non empty FinSequence of REAL,
+    Alg be Function of [:REAL, NAT*:],NAT,
+    h be non empty FinSequence of NAT*;
+
+    assume HC00: h = OnlinePackingHistory(a, Alg);
+    L010: h . 1 =  {[1, 1]} by HC00,defPackHistory;
+    1 in Seg 1;
+    then (a | 1) . 1 = a . 1 by FUNCT_1:49;
+    then L049: a | 1 = <* a . 1 *> by FINSEQ_1:40;
+
+    L055: Seq (a, {1}) = Seq (a | {1})
+    .= <* a . 1 *> by L049,FINSEQ_1:2,FINSEQ_3:157;
+
+    thus SumBin (a, h . 1, {(h . 1) . 1})
+     = SumBin (a, {[1, 1]}, {1}) by defPackHistory,L010,FINSEQ_1:def 8
+    .= Sum (Seq (a , {1})) by NF501
+    .= a . 1 by L055,RVSUM_1:73;
+  end;
+
+theorem NF505:
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i <= len a holds
+  h . i is FinSequence of NAT)
+  proof
+    let a be non empty FinSequence of REAL,
+    Alg be Function of [:REAL, NAT*:],NAT,
+    h be non empty FinSequence of NAT*;
+
+    assume HC00: h = OnlinePackingHistory(a, Alg);
+
+    let i be Nat;
+
+    assume that
+    L000: 1 <= i and
+    L001: i <= len a;
+    L023: i <= len h by HC00,defPackHistory,L001;
+
+    reconsider i as Element of dom h by L000,L023,FINSEQ_3:25;
+
+    h . i is FinSequence of NAT;
+    hence thesis;
+  end;
+
+theorem NF510:
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i <= len a holds len (h . i) = i)
+  proof
+    let a be non empty FinSequence of REAL,
+    Alg be Function of [:REAL, NAT*:],NAT,
+    h be non empty FinSequence of NAT*;
+
+    assume L00: h = OnlinePackingHistory(a, Alg);
+
+    defpred P[Nat] means
+    len (h . $1) = $1;
+
+    h . 1 = <* 1 *> by L00,defPackHistory;
+    then L05: P[1] by FINSEQ_1:39;
+
+    L08:for i being Element of NAT st 1 <= i & i < len a & P[i] holds
+    P[i+1]
+    proof
+      let im be Element of NAT;
+
+      assume that
+      L10: 1 <= im & im < len a and
+      L15: len (h . im) = im;
+
+      consider d1 being Element of REAL, d2 being FinSequence of NAT
+      such that
+      L20: d1 = a . (im + 1) & d2 = h . im and
+      L30: h . (im + 1) = d2 ^ <* Alg . (d1, d2) *>
+      by L00,L10,defPackHistory;
+
+      len (h . (im + 1))
+      = len (h . im) + len (<* Alg . (a . (im + 1), h . im) *>)
+      by L20,L30,FINSEQ_1:22
+      .= im + 1 by FINSEQ_1:39,L15;
+      hence thesis;
+    end;
+
+    L800: for i being Element of NAT st 1 <= i & i <= len a holds P[i]
+    from INT_1:sch 7(L05,L08);
+
+    for i being Nat st 1 <= i & i <= len a holds P[i]
+    proof
+      let i be Nat;
+
+      assume that
+      L810: 1 <= i and
+      L811: i <= len a;
+
+      i in NAT by ORDINAL1:def 12;
+      hence thesis by L810,L811,L800;
+    end;
+    hence thesis;
+  end;
+
+theorem NF520:
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i < len a holds
+  h . (i + 1) = (h . i) ^ <* Alg . (a . (i + 1), h . i) *> &
+  (h . (i + 1)) . (i + 1) =  Alg . (a . (i + 1), h . i))
+  proof
+    let a be non empty FinSequence of REAL,
+        Alg be Function of [:REAL, NAT*:],NAT,
+        h be non empty FinSequence of NAT*;
+
+    assume L00: h = OnlinePackingHistory(a, Alg);
+
+    let i be Nat;
+
+    assume L10: 1 <= i & i < len a;
+
+    consider d1 being Element of REAL, d2 being FinSequence of NAT
+    such that
+    L20: d1 = a . (i + 1) & d2 = h . i and
+    L30: h . (i + 1) = d2 ^ <* Alg . (d1, d2) *> by L00,L10,defPackHistory;
+
+    thus h . (i + 1) = (h . i) ^ <* Alg . (a . (i + 1), h . i) *>
+    by L20,L30;
+
+    len (h . i) = i by L00,L10,NF510;
+    hence (h . (i + 1)) . (i + 1) = Alg . (a . (i + 1), h . i)
+    by L20,L30,FINSEQ_1:42;
+  end;
+
+theorem NF525:
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i < len a holds
+  rng (h . (i + 1)) = rng (h . i) \/ {(h . (i + 1)) . (i + 1)})
+  proof
+    let a be non empty FinSequence of REAL,
+    Alg be Function of [:REAL, NAT*:],NAT,
+    h be non empty FinSequence of NAT*;
+
+    assume L00: h = OnlinePackingHistory(a, Alg);
+
+    let i be Nat;
+
+    assume 1 <= i & i < len a;
+    then h . (i + 1) = (h . i) ^ <* Alg . (a . (i + 1), h . i) *> &
+    (h . (i + 1)) . (i + 1) =  Alg . (a . (i + 1), h . i) by L00,NF520;
+    hence rng (h . (i + 1))
+    = (rng (h . i)) \/ (rng <* (h . (i + 1)) . (i + 1) *>) by FINSEQ_1:31
+    .= rng (h . i) \/ {(h . (i + 1)) . (i + 1)} by FINSEQ_1:38;
+  end;
+
+theorem NF530:
+  for a being non empty positive FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i, l being Nat st
+  1 <= i & i < len a holds
+  SumBin (a, h . i, {l}) <= SumBin (a, h . (i + 1), {l}))
+  proof
+    let a be non empty positive FinSequence of REAL,
+    Alg be Function of [:REAL, NAT*:],NAT,
+    h be non empty FinSequence of NAT*;
+
+    assume HC00: h = OnlinePackingHistory(a, Alg);
+
+    let i, l be Nat;
+
+    assume that
+    L000: 1 <= i and
+    L001: i < len a;
+    L120: h . i is FinSequence of NAT by HC00,L000,L001,NF505;
+    L147: i + 1 <= len a by L001,NAT_1:13;
+    then L150: len (h . i) + 1 <= len a by HC00,L000,L001,NF510;
+
+    i + 1 in dom a by L147,XREAL_1:38,FINSEQ_3:25;
+    then a . (i + 1) in rng a by FUNCT_1:3;
+    then reconsider aip = a . (i + 1) as Element of REAL;
+
+    reconsider hi = h . i as Element of NAT* by L120,FINSEQ_1:def 11;
+
+    L190: Alg . (aip, hi) is Nat;
+
+    per cases;
+    suppose L200: Alg . (a . (i + 1), h . i) = l;
+      L279: SumBin (a, h . (i + 1), {l})
+       = SumBin (a, (h . i) ^ <* Alg . (a . (i + 1), h . i) *>, {l})
+      by HC00,L000,L001,NF520
+      .= SumBin (a, h . i, {l}) +  a . (len (h . i) + 1)
+      by L120,L150,L200,NF200;
+
+      len (h . i) + 1 in dom a by XREAL_1:38,L150,FINSEQ_3:25;
+      hence thesis by L279,RVSUM_3:def 1,XREAL_1:29;
+    end;
+    suppose L500: Alg . (a . (i + 1), h . i) <> l;
+      reconsider b = Alg . (a . (i + 1), h . i) as Nat by L190;
+
+      SumBin (a, h . (i + 1), {l})
+      =  SumBin (a, (h . i) ^ <* b *>, {l}) by HC00,L000,L001,NF520
+      .= SumBin (a, h . i, {l}) by L120,L500,NF110;
+      hence thesis;
+    end;
+  end;
+
+LM008:
+for a being non empty FinSequence of REAL,
+Alg being Function of [:REAL,NAT*:],NAT holds
+OnlinePackingHistory(a, Alg) . (len OnlinePackingHistory(a, Alg))
+is non empty FinSequence of NAT
+proof
+  let a be non empty FinSequence of REAL, Alg be Function of [:REAL,NAT*:],NAT;
+
+  set h = OnlinePackingHistory(a, Alg);
+
+  L150: 1 <= len h by NAT_1:14;
+
+  L170: len h = len a by defPackHistory;
+  then len (h . (len h)) = len h by L150,NF510;
+  hence h . (len h) is non empty FinSequence of NAT by L150,L170,NF505;
+end;
+
+definition
+  let a be non empty FinSequence of REAL, Alg be Function of [:REAL,NAT*:],NAT;
+  func OnlinePacking(a, Alg) -> non empty FinSequence of NAT
+  equals
+  OnlinePackingHistory(a, Alg) . (len OnlinePackingHistory(a, Alg));
+  coherence by LM008;
+end;
+
+theorem NF540:
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT*,
+  f being non empty FinSequence of NAT holds
+  dom OnlinePacking(a, Alg) = dom a
+  proof
+    let a be non empty FinSequence of REAL,
+    Alg be Function of [:REAL, NAT*:],NAT,
+    h be non empty FinSequence of NAT*, f be non empty FinSequence of NAT;
+
+    set f = OnlinePacking(a, Alg), h = OnlinePackingHistory(a, Alg);
+
+    L220: len h = len a by defPackHistory;
+
+    1 <= len h by NAT_1:14;
+    then len (h . (len h)) = len h by L220,NF510;
+    hence dom f = dom a by L220,FINSEQ_3:29;
+  end;
+
+begin :: Feasibility of Algorithm NextFit
+
+LM020:
+  for a being non empty FinSequence of REAL holds
+  (ex nf being Function of [:REAL, NAT*:],NAT st
+  (for s being Real, f being FinSequence of NAT holds
+  (s + SumBin (a, f, {f . (len f)}) <= 1 implies nf . (s, f) = f . (len f)) &
+  (s + SumBin (a, f, {f . (len f)}) > 1 implies nf . (s, f) = f.(len f) + 1)))
+  proof
+    let a be non empty FinSequence of REAL;
+
+    defpred P1[object, object, object] means
+    ex s being Real, f being FinSequence of NAT st $1 = s & $2 = f &
+    (s + SumBin (a, f, {f . (len f)}) <= 1 implies $3 = f . (len f)) &
+    (s + SumBin (a, f, {f . (len f)}) > 1 implies $3 = f . (len f) + 1);
+
+    A1: for s, f being object st s in REAL & f in NAT* holds
+    ex z being object st z in NAT & P1[s, f, z]
+    proof
+      let s, f be object;
+
+      assume that
+      L030: s in REAL and
+      L031: f in NAT*;
+
+      reconsider s0 = s as Real by L030;
+      reconsider f0 = f as FinSequence of NAT by L031,FINSEQ_1:def 11;
+
+      per cases;
+      suppose L050: s0 + SumBin (a, f0, {f0 . (len f0)}) <= 1;
+        take z = f0 . (len f0);
+        thus z in NAT by ORDINAL1:def 12;
+        thus P1[s, f, z] by L050;
+      end;
+      suppose L060: s0 + SumBin (a, f0, {f0 . (len f0)}) > 1;
+        take z = f0 . (len f0) + 1;
+        thus z in NAT by ORDINAL1:def 12;
+        thus P1[s, f, z] by L060;
+      end;
+    end;
+
+    consider nf being Function of [:REAL, NAT*:],NAT such that
+    L100: for s, f being object st s in REAL & f in NAT* holds
+    P1[s, f, nf . (s, f)] from BINOP_1:sch 1(A1);
+
+    take nf;
+
+    thus for s being Real, f being FinSequence of NAT holds
+    (s + SumBin (a, f, {f . (len f)}) <= 1 implies nf . (s, f) = f.(len f)) &
+    (s + SumBin (a, f, {f . (len f)}) > 1 implies nf . (s, f) = f.(len f) + 1)
+    proof
+      let s be Real, f be FinSequence of NAT;
+
+      f in NAT* by FINSEQ_1:def 11;
+      then consider s0 being Real, f0 being FinSequence of NAT such that
+      L350: s = s0 & f = f0 &
+      (s0 + SumBin (a,f0,{f0.(len f0)}) <= 1 implies nf.(s,f) = f0.(len f0)) &
+      (s0 + SumBin (a,f0,{f0.(len f0)}) > 1 implies nf.(s,f) = f0.(len f0) + 1)
+      by XREAL_0:def 1,L100;
+
+      thus
+      (s + SumBin (a, f, {f . (len f)}) <= 1 implies nf.(s, f) = f.(len f)) &
+      (s + SumBin (a, f, {f . (len f)}) > 1 implies nf.(s, f) = f.(len f)+1)
+      by L350;
+    end;
+  end;
+
+LM021:
+for a being non empty FinSequence of REAL holds
+for nf1, nf2 being Function of [:REAL, NAT*:],NAT st
+(for s being Real, f being FinSequence of NAT holds
+(s + SumBin (a, f, {f . (len f)}) <= 1 implies nf1 . (s, f) = f . (len f)) &
+(s + SumBin (a, f, {f . (len f)}) > 1 implies nf1 . (s, f) = f.(len f) + 1))
+&
+(for s being Real, f being FinSequence of NAT holds
+(s + SumBin (a, f, {f . (len f)}) <= 1 implies nf2 . (s, f) = f . (len f)) &
+(s + SumBin (a, f, {f . (len f)}) > 1 implies nf2 . (s, f) = f.(len f) + 1))
+holds nf1 = nf2
+proof
+  let a be non empty FinSequence of REAL,
+  nf1, nf2 be Function of [:REAL, NAT*:],NAT;
+
+  assume that
+  L000: (for s being Real, f being FinSequence of NAT holds
+  (s + SumBin (a, f, {f . (len f)}) <= 1 implies nf1 . (s, f) = f.(len f)) &
+  (s + SumBin (a, f, {f . (len f)}) > 1 implies nf1 . (s, f) = f.(len f)+1))
+  and
+  L001: (for s being Real, f being FinSequence of NAT holds
+  (s + SumBin (a, f, {f . (len f)}) <= 1 implies nf2 . (s, f) = f.(len f)) &
+  (s + SumBin (a, f, {f . (len f)}) > 1 implies nf2 . (s, f) = f.(len f)+1));
+
+  for s, f being set st s in REAL & f in NAT* holds nf1.(s, f) = nf2.(s, f)
+  proof
+    let s, f be set;
+
+    assume that
+    L030: s in REAL and
+    L031: f in NAT*;
+
+    reconsider s0 = s as Real by L030;
+    reconsider f0 = f as FinSequence of NAT by L031,FINSEQ_1:def 11;
+
+    per cases;
+    suppose L050: s0 + SumBin (a, f0, {f0 . (len f0)}) <= 1;
+      hence nf1 . (s, f) = f0 . (len f0) by L000
+      .= nf2 . (s, f) by L001,L050;
+    end;
+    suppose L060: s0 + SumBin (a, f0, {f0 . (len f0)}) > 1;
+      hence nf1 . (s, f) = f0 . (len f0) + 1 by L000
+      .= nf2 . (s, f) by L001,L060;
+    end;
+  end;
+  hence nf1 = nf2;
+end;
+
+definition
+  let a be non empty FinSequence of REAL;
+  func NextFit(a) -> Function of [:REAL, NAT*:],NAT
+  means
+  :defNextFit:
+  for s be Real, f be FinSequence of NAT holds
+  (s + SumBin (a, f, {f . (len f)}) <= 1 implies it . (s, f) = f . (len f)) &
+  (s + SumBin (a, f, {f . (len f)}) > 1 implies it . (s, f) = f . (len f) + 1);
+  existence by LM020;
+  uniqueness by LM021;
+end;
+
+theorem NF805:
+  for a being non empty FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i being Nat st 1 <= i & i <= len a holds
+  ex k being Nat st rng (h . i) = Seg k & (h . i) . i = k)
+  proof
+    let a be non empty FinSequence of REAL,
+    h be non empty FinSequence of NAT*;
+
+    assume HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    defpred RNGISSEG[Nat] means
+    ex k being Nat st rng (h . $1) = Seg k & (h . $1) . $1 = k;
+
+    OnlinePackingHistory(a, NextFit(a)) . 1 = {[1, 1]} by defPackHistory;
+    then L219: rng (h . 1) = {1} by HN00,RELAT_1:9;
+
+    L289: h . 1 = <* 1 *> by defPackHistory,HN00;
+
+    L300: RNGISSEG[1] by L219,FINSEQ_1:2,L289,FINSEQ_1:def 8;
+
+    L400: for i being Element of NAT st 1 <= i & i < len a & RNGISSEG[i]
+    holds RNGISSEG[i + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      L410: 1 <= i0 and
+      L411: i0 < len a and
+      L412: RNGISSEG[i0];
+
+      reconsider hi0 = h . i0 as FinSequence of NAT by HN00,L410,L411,NF505;
+      reconsider i0p = i0 + 1 as Element of NAT by ORDINAL1:def 12;
+
+      L074: 1 + 0 <= i0 + 1 by XREAL_1:7;
+
+      L076: i0p <= len a by L411,NAT_1:13;
+
+      reconsider hi0p = h . i0p as FinSequence of NAT by HN00,L074,L076,NF505;
+
+      consider k0 being Nat such that
+      L427: rng hi0 = Seg k0 and
+      L428: (h . i0) . i0 = k0 by L412;
+      L090: len (h . i0) = i0 by HN00,L410,L411,NF510;
+
+      L100: (a . i0p + SumBin (a, hi0, {hi0 . i0}) <= 1 implies
+      (NextFit(a)) . (a . i0p, hi0) = hi0 . i0) &
+      (a . i0p + SumBin (a, hi0, {hi0 . i0}) > 1 implies
+      (NextFit(a)) . (a . i0p, hi0) = hi0 . i0 + 1) by L090,defNextFit;
+
+      ex k being Nat st rng (h . i0p) = Seg k & (h . i0p) . i0p = k
+      proof
+        per cases;
+        suppose L500: a . i0p + SumBin (a, hi0, {hi0 . i0}) > 1;
+          rng hi0p = Seg k0  \/ {hi0p . i0p} by HN00,L410,L411,NF525,L427;
+          then rng hi0p
+          = Seg k0  \/ {k0 + 1} by HN00,L410,L411,NF520,L100,L500,L428
+          .= Seg (k0 + 1) by FINSEQ_1:9;
+          hence ex k being Nat st rng (h . i0p) = Seg k & (h . i0p) . i0p = k
+          by HN00,L410,L411,NF520,L100,L500,L428;
+        end;
+        suppose L700: a . i0p + SumBin (a, hi0, {hi0 . i0}) <= 1;
+          now assume not 1 <= k0; then
+            k0 < 0 + 1;
+            then k0 <= 0 by NAT_1:13;
+            then hi0 = {} by L427;
+            hence contradiction by HN00,L410,L411,NF510;
+          end;
+          then L739: k0 in Seg k0;
+
+          rng hi0p
+           = rng hi0 \/ {hi0p . i0p} by HN00,L410,L411,NF525
+          .= Seg k0  \/ {k0} by L427,HN00,L410,L411,NF520,L100,L700,L428
+          .= Seg k0 by L739,ZFMISC_1:31,XBOOLE_1:12;
+          hence ex k being Nat st rng (h . i0p) = Seg k & (h . i0p) . i0p = k
+          by HN00,L410,L411,NF520,L100,L700,L428;
+        end;
+      end;
+      hence thesis;
+    end;
+
+    L800: for i being Element of NAT st 1 <= i & i <= len a holds RNGISSEG[i]
+    from INT_1:sch 7(L300,L400);
+
+    for i being Nat st 1 <= i & i <= len a holds RNGISSEG[i]
+    proof
+      let i be Nat;
+
+      assume that
+      L810: 1 <= i and
+      L811: i <= len a;
+
+      i in NAT by ORDINAL1:def 12;
+      hence thesis by L810,L811,L800;
+    end;
+    hence thesis;
+  end;
+
+theorem NF880:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  for i being Nat st 1 <= i & i <= len a holds
+  SumBin (a, h . i, {(h . i) . i}) <= 1
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    h be non empty FinSequence of NAT*;
+
+    assume HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    defpred TAILISFEASIBLE[Nat] means
+    SumBin (a, h . $1, {(h . $1) . $1}) <= 1;
+
+    SumBin (a, h . 1, {(h . 1) . 1}) <= 1
+    proof
+      L005: 1 <= len a by NAT_1:14;
+      L060: SumBin (a, h . 1, {(h . 1) . 1}) = a . 1 by HN00,NF502;
+      a is at_most_one;
+      hence SumBin (a, h . 1, {(h . 1) . 1}) <= 1 by L005,L060;
+    end;
+    then L300: TAILISFEASIBLE[1];
+
+    L400: for i being Element of NAT st 1 <= i & i < len a & TAILISFEASIBLE[i]
+    holds TAILISFEASIBLE[i + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      L410: 1 <= i0 and
+      L411: i0 < len a and
+      TAILISFEASIBLE[i0];
+
+      reconsider hi0 = h . i0 as FinSequence of NAT by HN00,L410,L411,NF505;
+      reconsider i0p = i0 + 1 as Element of NAT by ORDINAL1:def 12;
+
+      L074: 1 + 0 <= i0 + 1 by XREAL_1:7;
+
+      L076: i0p <= len a by L411,NAT_1:13;
+
+      reconsider hi0p = h . i0p as FinSequence of NAT by HN00,L074,L076,NF505;
+
+      consider k0 being Nat such that
+      L427: rng hi0 = Seg k0 and
+      L428: (h . i0) . i0 = k0 by HN00,L410,L411,NF805;
+
+      L080: hi0p = hi0 ^ <* (NextFit(a)) . (a . i0p, hi0) *>
+      by HN00,L410,L411,NF520;
+
+      L081: hi0p . i0p = (NextFit(a)) . (a . i0p, hi0) by HN00,L410,L411,NF520;
+
+      L090: len (h . i0) = i0 by HN00,L410,L411,NF510;
+
+      L094: len hi0 + 1 = i0p by HN00,L410,L411,NF510;
+
+      L100: (a . i0p + SumBin (a, hi0, {hi0 . i0}) <= 1 implies
+      (NextFit(a)) . (a . i0p, hi0) = hi0 . i0) &
+      (a . i0p + SumBin (a, hi0, {hi0 . i0}) > 1 implies
+      (NextFit(a)) . (a . i0p, hi0) = hi0 . i0 + 1) by L090,defNextFit;
+
+      SumBin (a, h . i0p, {(h . i0p) . i0p}) <= 1
+      proof
+        per cases;
+        suppose a . i0p + SumBin (a, hi0, {hi0 . i0}) > 1;
+          L599: SumBin (a, hi0 ^ <* hi0p . i0p *>, {hi0p . i0p}) =
+          SumBin (a, hi0, {hi0p . i0p}) + a . ((len hi0) + 1)
+          by L094,L076,NF200;
+
+          not k0 + 1 in Seg k0 by XREAL_1:29,FINSEQ_1:1;
+          then L619: SumBin (a, hi0, {hi0 . i0 + 1}) = 0
+          by L427,L428,ZFMISC_1:50,NF290;
+
+          a is at_most_one;
+          hence thesis by L619,L100,L081,L599,L080,L074,L076,L094;
+        end;
+        suppose L700: a . i0p + SumBin (a, hi0, {hi0 . i0}) <= 1;
+          SumBin (a, hi0p, {hi0p . i0p})
+           = SumBin (a, hi0, {hi0p . i0p}) + a . ((len hi0) + 1)
+          by L094,L076,NF200,L080,L081
+          .= SumBin (a, hi0, {hi0 . i0}) + a . i0p
+          by L090,defNextFit,L700,L081;
+          hence thesis by L700;
+        end;
+      end;
+      hence TAILISFEASIBLE[i0 + 1];
+    end;
+
+    L900: for i being Element of NAT st 1 <= i & i <= len a holds
+    TAILISFEASIBLE[i] from INT_1:sch 7(L300,L400);
+
+    for i being Nat st 1 <= i & i <= len a holds TAILISFEASIBLE[i]
+    proof
+      let i be Nat;
+
+      assume that
+      L910: 1 <= i and
+      L911: i <= len a;
+
+      i in NAT by ORDINAL1:def 12;
+      hence TAILISFEASIBLE[i] by L910,L911,L900;
+    end;
+    hence thesis;
+  end;
+
+theorem NF890:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  for i, j being Nat st 1 <= i & i <= len a & j in rng (h . i) holds
+  SumBin (a, h . i, {j}) <= 1
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    h be non empty FinSequence of NAT*;
+
+    assume that HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    defpred P[Nat] means
+    for j being Nat st j in rng (h . $1) holds SumBin (a, h . $1, {j}) <= 1;
+
+    for j being Nat st j in rng (h . 1) holds SumBin (a, h . 1, {j}) <= 1
+    proof
+      let j be Nat;
+
+      assume FF000: j in rng (h . 1);
+
+      FF005: 1 <= len a by NAT_1:14;
+
+      h . 1 = {[1, 1]} by HN00,defPackHistory;
+      then rng (h . 1) = {1} by RELAT_1:9;
+      then FF020: j = 1 by FF000,TARSKI:def 1;
+
+      h . 1 = <* 1 *> by HN00,defPackHistory;
+      then (h . 1) . 1 = 1 by FINSEQ_1:def 8;
+
+      hence SumBin (a, h . 1, {j}) <= 1 by FF005,HN00,NF880,FF020;
+    end;
+    then F1: P[1];
+
+    F2: for i0 being Element of NAT st 1 <= i0 & i0 < len a & P[i0]
+    holds P[i0 + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      F21: 1 <= i0 & i0 < len a and
+      F22: P[i0];
+
+      set i0p = i0 + 1;
+
+      F26: i0p <= len a by F21,INT_1:7;
+
+      for j being Nat st j in rng (h . i0p) holds SumBin (a, h . i0p, {j}) <= 1
+      proof
+        let j be Nat;
+
+        assume I00: j in rng (h . i0p);
+
+        rng (h . i0p) = rng (h . i0) \/ {(h . i0p) . i0p} by HN00,F21,NF525;
+        then rng (h . i0p) =
+        (rng (h . i0) \ {(h . i0p) . i0p}) \/ {(h . i0p) . i0p} by XBOOLE_1:39;
+        then per cases by I00,XBOOLE_0:def 3;
+        suppose IA00: j in (rng (h . i0) \ {(h . i0p) . i0p});
+          IA05: j <> (h . i0p) . i0p by IA00,ZFMISC_1:56;
+
+          IA09: h . i0p = (h . i0) ^ <* (NextFit(a)) . (a . i0p, h . i0) *> &
+          (h . i0p) . i0p = (NextFit(a)) . (a . i0p, h . i0) by HN00,F21,NF520;
+
+          set f = h . i0;
+
+          IA35: f is FinSequence of NAT by HN00,F21,NF505;
+
+          IA36: h . i0p is FinSequence of NAT by HN00,XREAL_1:31,F26,NF505;
+
+          set b = (h . i0p) . i0p;
+
+          SumBin (a, h . i0p, {j}) = SumBin (a, f, {j})
+          by IA09,IA05,IA35,IA36,NF110;
+          hence SumBin (a, h . i0p, {j}) <= 1 by IA00,F22;
+        end;
+        suppose j in {(h . i0p) . i0p};
+          then j = (h . i0p) . i0p by TARSKI:def 1;
+          hence SumBin (a, h . i0p, {j}) <= 1 by HN00,XREAL_1:31,F26,NF880;
+        end;
+      end;
+      hence thesis;
+    end;
+
+    L900: for i being Element of NAT st 1 <= i & i <= len a holds P[i]
+    from INT_1:sch 7(F1,F2);
+
+    thus for i, j being Nat st 1 <= i & i <= len a & j in rng (h . i) holds
+    SumBin (a, h . i, {j}) <= 1
+    proof
+      let i, j be Nat;
+
+      assume that
+      L910: 1 <= i & i <= len a and
+      L912: j in rng (h . i);
+
+      i in NAT by ORDINAL1:def 12;
+      hence SumBin (a, h . i, {j}) <= 1 by L910,L900,L912;
+    end;
+  end;
+
+theorem
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT st
+  f = OnlinePacking(a, NextFit(a)) holds
+  for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT;
+
+    assume HL00: f = OnlinePacking(a, NextFit(a));
+
+    let j be Nat;
+
+    assume L002: j in rng f;
+
+    set h = OnlinePackingHistory(a, NextFit(a));
+
+    reconsider i = len h as Nat;
+
+    L200: 1 <= i by NAT_1:14;
+
+    i <= len a by defPackHistory;
+    hence SumBin (a, f, {j}) <= 1 by L200,L002,HL00,NF890;
+  end;
+
+begin :: Approximation Guarantee of Algorithm NextFit
+
+theorem NF807:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, k being Nat st
+  1 <= i & i <= len a & rng (h . i) = Seg k holds (h . i) . i = k)
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+        h be non empty FinSequence of NAT*;
+
+    assume HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    let i, k be Nat;
+
+    assume that
+    L410: 1 <= i and
+    L415: i <= len a and
+    L417: rng (h . i) = Seg k;
+
+    consider k0 being Nat such that
+    L427: rng (h . i) = Seg k0 and
+    L428: (h . i) . i = k0 by HN00,L410,L415,NF805;
+
+    thus thesis by L417,L427,FINSEQ_1:6,L428;
+  end;
+
+theorem NF815:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, k being Nat st 1 <= i & i < len a &
+  rng (h . i) = Seg k & rng (h . (i + 1)) = Seg (k + 1) holds
+  SumBin (a, (h . (i + 1)), {k}) + SumBin (a, (h . (i + 1)), {k + 1}) > 1)
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    h be non empty FinSequence of NAT*;
+
+    assume HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    let i, k be Nat;
+
+    assume that
+    L060: 1 <= i and
+    L061: i < len a and
+    L062: rng (h . i) = Seg k and
+    L063: rng (h . (i + 1)) = Seg (k + 1);
+
+    reconsider hi = h . i as FinSequence of NAT by HN00,L060,L061,NF505;
+
+    L030: hi <> {} by HN00,L060,L061,NF510;
+
+    L013: now assume not 1 <= k;
+      then k < 0 + 1;
+      then k <= 0 by NAT_1:13;
+      hence contradiction by L062,L030;
+    end;
+
+    reconsider ip = i + 1 as Element of NAT by ORDINAL1:def 12;
+
+    L074: 1 + 0 <= i + 1 by XREAL_1:7;
+
+    L076: ip <= len a by L061,NAT_1:13;
+
+    reconsider hip = h . ip as FinSequence of NAT by HN00,L074,L076,NF505;
+
+    L080: hip = hi ^ <* (NextFit(a)) . (a . ip, hi) *> by HN00,L060,L061,NF520;
+
+    L081: hip . ip = (NextFit(a)) . (a . ip, hi) by HN00,L060,L061,NF520;
+
+    L100: (a . ip + SumBin (a, hi, {hi . (len hi)}) <= 1 implies
+    (NextFit(a)) . (a . ip, hi) = hi . (len hi)) &
+    (a . ip + SumBin (a, hi, {hi . (len hi)}) > 1 implies
+    (NextFit(a)) . (a . ip, hi) = hi . (len hi) + 1) by defNextFit;
+
+    L499: now assume not a . ip + SumBin (a, hi, {hi . (len hi)}) > 1;
+      then L140: hip . ip = hi . (len hi) by L081,defNextFit
+      .= hi . i by HN00,L060,L061,NF510
+      .= k by HN00,L060,L061,L062,NF807;
+
+      L149: k in Seg k by L013;
+
+      rng (h . (i + 1)) = rng (h . i) \/ {k} by HN00,L060,L061,NF525,L140
+      .= Seg k by L062,L149,ZFMISC_1:31,XBOOLE_1:12;
+      then k = k + 1 by L063,FINSEQ_1:6;
+      hence contradiction;
+    end;
+
+    reconsider kp = k + 1 as Nat;
+
+    len (h . ip) = ip by HN00,L074,L076,NF510;
+    then L540: (h . ip) . (len (h . ip)) = k + 1 by HN00,L074,L076,L063,NF807;
+
+    L559: len (hi ^ <* hi . (len hi) + 1 *>)
+     = (len hi) + (len <* hi . (len hi) + 1 *>) by FINSEQ_1:22
+    .= (len hi) + 1 by FINSEQ_1:40;
+
+    L599: (h . ip) . (len (h . ip)) = hi . (len hi) + 1
+    by FINSEQ_1:42,L100,L499,L080,L559;
+
+    L649: len hi = ip - 1 by HN00,L060,L061,NF510;
+
+    L670: len hi + 1 <= len a by HN00,L060,L061,NF510,L076;
+
+    k + 1 <> k;
+    then L700: SumBin (a, (h . ip), {k}) = SumBin (a, hi, {hi . (len hi)})
+    by L100,L499,L080,L599,L540,NF110;
+
+    L799: SumBin (a, hi ^ <* k + 1 *>, {k + 1}) =
+    SumBin (a, hi, {k + 1}) + a . ((len hi) + 1) by L670,NF200;
+
+    0 <= SumBin (a, hi, {k + 1}) by NF280;
+    then a . ip + SumBin (a, hi, {hi . (len hi)}) + 0 <=
+    a . ip + SumBin (a, hi, {hi . (len hi)}) + SumBin (a, hi, {k + 1})
+    by XREAL_1:7;
+    hence
+    SumBin (a, (h . (i + 1)), {k}) + SumBin (a, (h . (i + 1)), {k + 1}) > 1
+    by L499,L700,L799,L599,L540,L100,L080,L649,XXREAL_0:2;
+  end;
+
+theorem NF820:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, l, k being Nat st 1 <= i & i <= len a &
+  rng (h . i) = Seg k & 2 <= k & 1 <= l & l < k holds
+  SumBin (a, (h . i), {l}) + SumBin (a, (h . i), {l + 1}) > 1)
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    h be non empty FinSequence of NAT*;
+
+    assume HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    defpred EVERYPAIRBIG[Nat] means
+    for l being Nat, k being Nat st
+    rng (h . $1) = Seg k & 2 <= k & 1 <= l & l < k holds
+    SumBin (a, (h . $1), {l}) + SumBin (a, (h . $1), {l + 1}) > 1;
+
+    for l being Nat, k being Nat st
+    rng (h . 1) = Seg k & 2 <= k & 1 <= l & l < k holds
+    SumBin (a, (h . 1), {l}) + SumBin (a, (h . 1), {l + 1}) > 1
+    proof
+      let l be Nat, k be Nat;
+
+      assume that
+      L110: rng (h . 1) = Seg k and
+      L111: 2 <= k and
+      1 <= l & l < k;
+
+      Seg k = rng <* 1 *> by L110,HN00,defPackHistory
+      .= {1} by FINSEQ_1:38;
+      then k = 1 by FINSEQ_3:20;
+      hence thesis by L111;
+    end;
+    then L100: EVERYPAIRBIG[1];
+
+    L400: for i0 being Element of NAT st
+    1 <= i0 & i0 < len a & EVERYPAIRBIG[i0]
+    holds EVERYPAIRBIG[i0 + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      L410: 1 <= i0 and
+      L411: i0 < len a and
+      L412: EVERYPAIRBIG[i0];
+
+      ex k being Nat st rng (h . i0) = Seg k & (h . i0) . i0 = k
+      by HN00,L410,L411,NF805;
+      then consider k being Nat such that
+      L427: rng (h . i0) = Seg k;
+
+      for l being Nat, k being Nat st
+      rng (h . (i0 + 1)) = Seg k & 2 <= k & 1 <= l & l < k holds
+      SumBin (a, (h . (i0 + 1)), {l}) + SumBin (a, (h . (i0 + 1)), {l + 1}) > 1
+      proof
+        let l be Nat, kp be Nat;
+
+        assume that
+        L430: rng (h . (i0 + 1)) = Seg kp and
+        L431: 2 <= kp and
+        L432: 1 <= l and
+        L433: l < kp;
+
+        I20: rng (h . (i0 + 1)) = rng (h . i0) \/ {(h . (i0 + 1)) . (i0 + 1)}
+        by HN00,L410,L411,NF525;
+
+        set f = (h . (i0 + 1)) . (i0 + 1);
+
+        per cases by L427,L430,I20,NF600;
+        suppose kp = k;
+          then
+          L540: SumBin (a, (h . i0), {l}) + SumBin (a, (h . i0), {l + 1}) > 1
+          by L427,L431,L432,L433,L412;
+
+          L550: SumBin (a, (h . i0), {l}) <= SumBin (a, (h . (i0 + 1)), {l})
+          by HN00,L410,L411,NF530;
+
+          SumBin (a, (h . i0), {l + 1}) <=
+          SumBin (a, (h . (i0 + 1)), {l + 1}) by HN00,L410,L411,NF530;
+          then
+          SumBin (a, (h . i0), {l}) +
+          SumBin (a, (h . i0), {l + 1}) <=
+          SumBin (a, (h . (i0 + 1)), {l}) +
+          SumBin (a, (h . (i0 + 1)), {l + 1}) by L550,XREAL_1:7;
+          hence SumBin (a, (h . (i0 + 1)), {l}) +
+          SumBin (a, (h . (i0 + 1)), {l + 1}) > 1 by L540,XXREAL_0:2;
+        end;
+        suppose L600: kp = k + 1;
+
+          set jay = kp - 2;
+
+          2 - 2 <= kp - 2 by L431,XREAL_1:9;
+          then jay in NAT by INT_1:3;
+          then reconsider jay as Nat;
+
+          l + 1 <= kp by L433,NAT_1:13;
+          then l + 1 - 1 <= kp - 1 by XREAL_1:9;
+          then l <= jay + 1;
+          then per cases by NAT_1:8;
+          suppose L700: l <= kp - 2;
+            1 <= kp - 2 by L432,L700,XXREAL_0:2;
+            then L709: 1 + 1 <= (k + 1) - 2 + 1 by XREAL_1:6,L600;
+
+            0 + l < 1 + (k + 1 - 2) by L600,L700,XREAL_1:8;
+            then
+            L740: SumBin (a, (h . i0), {l}) + SumBin (a, (h . i0), {l + 1}) > 1
+            by L427,L709,L432,L412;
+
+            L750: SumBin (a, (h . i0), {l}) <= SumBin (a, (h . (i0 + 1)), {l})
+            by HN00,L410,L411,NF530;
+
+            SumBin (a, (h . i0), {l + 1}) <=
+            SumBin (a, (h . (i0 + 1)), {l + 1}) by HN00,L410,L411,NF530;
+            then
+            SumBin (a, (h . i0), {l}) + SumBin (a, (h . i0), {l + 1}) <=
+            SumBin (a, (h . (i0 + 1)), {l}) + SumBin (a, (h . (i0 + 1)), {l+1})
+            by L750,XREAL_1:7;
+            hence
+            SumBin (a, (h . (i0 + 1)), {l}) +
+            SumBin (a, (h . (i0 + 1)), {l + 1}) > 1 by L740,XXREAL_0:2;
+          end;
+          suppose l = kp - 1;
+            hence SumBin (a, (h . (i0 + 1)), {l}) +
+            SumBin (a, (h . (i0 + 1)), {l + 1}) > 1
+            by HN00,L410,L411,L427,L600,L430,NF815;
+          end;
+        end;
+      end;
+      hence EVERYPAIRBIG[i0 + 1];
+    end;
+
+    L900: for i being Element of NAT st 1 <= i & i <= len a holds
+    EVERYPAIRBIG[i] from INT_1:sch 7(L100,L400);
+
+    thus for i, l, k being Nat st 1 <= i & i <= len a &
+    rng (h . i) = Seg k & 2 <= k & 1 <= l & l < k holds
+    SumBin (a, (h . i), {l}) + SumBin (a, (h . i), {l + 1}) > 1
+    proof
+      let i, l, k be Nat;
+
+      assume that
+      L910: 1 <= i & i <= len a and
+      L911: rng (h . i) = Seg k & 2 <= k & 1 <= l & l < k;
+
+      i in NAT by ORDINAL1:def 12;
+      hence thesis by L910,L900,L911;
+    end;
+  end;
+
+theorem NF830:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, j, k be Nat st 1 <= i & i <= len a &
+  rng (h . i) = Seg k & 2 <= k & 1 <= j & j <= k div 2 holds
+  SumBin (a, (h . i), {2 * j - 1}) + SumBin (a, (h . i), {2 * j}) > 1)
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    h be non empty FinSequence of NAT*;
+
+    assume HN00: h = OnlinePackingHistory(a, NextFit(a));
+
+    let i, j, k be Nat;
+
+    assume that
+    L100: 1 <= i and
+    L101: i <= len a and
+    L200: rng (h . i) = Seg k and
+    L201: 2 <= k and
+    L202: 1 <= j and
+    L203: j <= k div 2;
+
+    set l = 2 * j - 1;
+
+    L298: 2 * 1 <= 2 * j by L202,XREAL_1:64;
+    then L299: 2 * 1 - 1 <= 2 * j - 1 by XREAL_1:9;
+
+    L320: k mod 2 >= 0 by INT_1:57;
+
+    ((k div 2) * 2) + (k mod 2) = k by INT_1:59;
+    then L339: ((k div 2) * 2) + (k mod 2) - (k mod 2) <= k - 0
+    by L320,XREAL_1:13;
+
+    2 * j <= 2 * (k div 2) by L203,XREAL_1:64;
+    then 2 * j <= k by L339,XXREAL_0:2;
+    then 2 * j < k + 1 by NAT_1:13;
+    then L399: 2 * j - 1 < k + 1 - 1 by XREAL_1:14;
+
+    reconsider l as Nat by L298;
+
+    SumBin (a, (h . i), {l}) + SumBin (a, (h . i), {l + 1}) > 1
+    by HN00,L100,L101,L200,L201,L299,L399,NF820;
+    hence SumBin (a, (h . i), {2 * j - 1}) + SumBin (a, (h . i), {2 * j}) > 1;
+  end;
+
+theorem NF910:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT*,
+  f being FinSequence of NAT st
+  f = OnlinePacking(a, NextFit(a)) holds
+  ex k being Nat st rng f = Seg k
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    h be non empty FinSequence of NAT*, f be FinSequence of NAT;
+
+    assume HL00: f = OnlinePacking(a, NextFit(a));
+
+    set h = OnlinePackingHistory(a, NextFit(a)), i = len h;
+
+    L200: 1 <= i by NAT_1:14;
+
+    L220: i <= len a by defPackHistory;
+
+    ex k being Nat st rng (h . i) = Seg k & (h . i) . i = k by L200,L220,NF805;
+    hence ex k being Nat st rng f = Seg k by HL00;
+  end;
+
+theorem NF950:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & rng f = Seg k holds
+  (for j being Nat st 1 <= j & j <= k div 2 holds
+  SumBin (a, f, {2 * j - 1}) + SumBin (a, f, {2 * j}) > 1)
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT, k be Nat;
+
+    assume that
+    HL00: f = OnlinePacking(a, NextFit(a)) and
+    BN00: rng f = Seg k;
+
+    set h = OnlinePackingHistory(a, NextFit(a));
+
+    let j be Nat;
+
+    assume that
+    L202: 1 <= j and
+    L203: j <= k div 2;
+
+    k <> 0 by BN00;
+    then per cases by NAT_1:23;
+    suppose k = 1;
+      hence thesis by NAT_D:27,L202,L203;
+    end;
+    suppose L60: 2 <= k;
+
+      set i = len h;
+
+      L220: len h = len a by defPackHistory;
+
+      1 <= len h by NAT_1:14;
+      hence SumBin (a, f, {2 * j - 1}) + SumBin (a, f, {2 * j}) > 1
+      by L220,NF830,L60,L202,L203,HL00,BN00;
+    end;
+  end;
+
+theorem NF960:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & k = card rng f holds
+  k div 2 < Sum a
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT, k be Nat;
+
+    assume that
+    HL00: f = OnlinePacking(a, NextFit(a)) and
+    BK00: k = card rng f;
+
+    consider k0 being Nat such that
+    B00: rng f = Seg k0 by HL00,NF910;
+
+    BN00: rng f = Seg k by FINSEQ_1:57,BK00,B00;
+
+    L00: dom f = dom a by HL00,NF540;
+
+    per cases by BK00,NAT_1:23;
+    suppose L55: k = 1;
+      L57: for n being Nat st n in dom a holds 0 <= a . n by RVSUM_3:def 1;
+
+      L575: len a >= 1 by FINSEQ_1:20;
+
+      a is positive;
+      then 0 < a . 1 by L575,FINSEQ_3:25;
+      then 0 < Sum a by L57,L575,FINSEQ_3:25,RVSUM_1:85;
+      hence k div 2 < Sum a by L55,NAT_D:27;
+    end;
+    suppose L60: 2 <= k;
+      set kd2 = k div 2;
+
+      reconsider kd2 as Element of NAT by INT_1:55,INT_1:3;
+
+      2 div 2 <= k div 2 by L60,NAT_2:24;
+      then L80: 1 <= kd2 by NAT_2:3;
+
+      deffunc FSBP(Nat) =
+      SumBin (a, f, {2 * $1 - 1}) + SumBin (a, f, {2 * $1});
+
+      ex p being FinSequence st
+      (len p = kd2 &
+      (for i being Nat st i in dom p holds p . i = FSBP(i)))
+      from FINSEQ_1:sch 2;
+      then consider SBP being FinSequence such that
+      L100: len SBP = kd2 and
+      L101: for i being Nat st i in dom SBP holds
+      SBP . i = SumBin (a, f, {2 * i - 1}) + SumBin (a, f, {2 * i});
+
+      deffunc FSB(Nat) = SumBin (a, f, {$1});
+
+      ex p being FinSequence st
+      (len p = 2 * kd2 &
+      (for j being Nat st j in dom p holds p . j = FSB(j)))
+      from FINSEQ_1:sch 2;
+      then consider SB being FinSequence such that
+      L150: len SB = 2 * kd2 and
+      L151: for j being Nat st j in dom SB holds
+      SB . j = SumBin (a, f, {j});
+
+      for i being Nat st i in dom SBP holds SBP . i in REAL
+      proof
+        let i be Nat;
+
+        assume i in dom SBP;
+        then SBP . i = SumBin (a, f, {2 * i - 1}) + SumBin (a, f, {2 * i})
+        by L101;
+        hence SBP . i in REAL by XREAL_0:def 1;
+      end;
+      then LSBP55: SBP is FinSequence of REAL by NF315;
+
+      SBP is kd2 -element by L100;
+      then reconsider SBP as real-valued kd2 -element FinSequence by LSBP55;
+      for j being Nat st j in dom SB holds SB . j in REAL
+      proof
+        let j be Nat;
+
+        assume j in dom SB;
+        then SB . j = SumBin (a, f, {j}) by L151;
+        hence SB . j in REAL by XREAL_0:def 1;
+      end;
+      then LSB55: SB is FinSequence of REAL by NF315;
+
+      SB is (2 * kd2) -element by L150;
+      then reconsider SB as real-valued (2 * kd2) -element FinSequence
+      by LSB55;
+
+      set R2 = (kd2 |-> 1);
+
+      reconsider R2 as real-valued kd2 -element FinSequence;
+
+      L170: Sum R2 = kd2 * 1 by RVSUM_1:80;
+
+      L175: for i being Nat st i in Seg kd2 holds R2 . i < SBP . i
+      proof
+        let i be Nat;
+        assume LR271: i in Seg kd2;
+        Seg kd2 = dom SBP by L100,FINSEQ_1:def 3;
+        then LR278: SBP . i =
+        SumBin (a, f, {2 * i - 1}) + SumBin (a, f, {2 * i}) by LR271,L101;
+        LR279: R2 . i = 1 by LR271,FINSEQ_2:57;
+        1 <= i & i <= k div 2 by LR271,FINSEQ_1:1;
+        hence R2 . i < SBP . i by HL00,BN00,NF950,LR278,LR279;
+      end;
+
+      L180: for i being Nat st i in Seg kd2 holds R2 . i <= SBP . i by L175;
+
+      ex i being Nat st i in Seg kd2 & R2 . i < SBP . i
+      proof
+        reconsider i0 = 1 as Nat;
+
+        take i0;
+
+        i0 in Seg kd2 by L80;
+        hence thesis by L175;
+      end;
+      then L200: kd2 < Sum SBP by L180,RVSUM_1:83,L170;
+
+      defpred SSBPEQSB[Nat] means
+      for SBPi being real-valued FinSequence,
+      SBi being real-valued FinSequence st
+      SBPi  = SBP | (Seg $1) & SBi   = SB  | (Seg (2 * $1)) holds
+      Sum SBPi = Sum SBi;
+
+      for SBP1 being real-valued FinSequence,
+      SB1 being real-valued FinSequence st
+      SBP1  = SBP | (Seg 1) & SB1   = SB  | (Seg (2 * 1)) holds
+      Sum SBP1 = Sum SB1
+      proof
+        let sbp1 be real-valued FinSequence, sb1 be real-valued FinSequence;
+
+        assume that
+        B00: sbp1  = SBP | (Seg 1) and
+        B01: sb1   = SB  | (Seg (2 * 1));
+
+        Seg kd2 = dom SBP by FINSEQ_1:def 3,L100;
+        then B140: 1 in dom SBP by L80;
+
+        1 in Seg 1;
+        then B160: sbp1 . 1
+        =  SBP . 1 by B00,FUNCT_1:49
+        .= SumBin (a, f, {2 * 1 - 1}) + SumBin (a, f, {2 * 1}) by B140,L101
+        .= SumBin (a, f, {1}) + SumBin (a, f, {2});
+
+        dom sbp1 = Seg 1 by L100,L80,B00,FINSEQ_1:17;
+        then B180: sbp1 = <* SumBin (a, f, {1}) + SumBin (a, f, {2}) *>
+        by B160,FINSEQ_1:def 8;
+
+        B220: Seg (2 * kd2) = dom SB by FINSEQ_1:def 3,L150;
+
+        B229: 1 * 2 <= kd2 * 2 by XREAL_1:64,L80;
+        then 2 - 1 <= (2 * kd2) - 0 by XREAL_1:13;
+        then B240: 1 in dom SB by B220;
+
+        B241: 2 in dom SB by B229,B220;
+
+        B250: 1 in Seg 2;
+
+        B251: 2 in Seg 2;
+
+        B260: sb1 . 1
+        =  SB . 1 by B01,B250,FUNCT_1:49
+        .= SumBin (a, f, {1}) by B240,L151;
+
+        B261: sb1 . 2
+        =  SB . 2 by B01,B251,FUNCT_1:49
+        .= SumBin (a, f, {2}) by B241,L151;
+
+        B263: 1 * 2 <= kd2 * 2 by XREAL_1:64,L80;
+
+        len sb1
+        =  min (2,(len SB)) by B01,FINSEQ_2:21
+        .= 2 by B263,L150,XXREAL_0:def 9;
+        then B280: sb1 = <* SumBin (a, f, {1}), SumBin (a, f, {2}) *>
+        by B260,B261,FINSEQ_1:44;
+
+        Sum sbp1
+        =  SumBin (a, f, {1}) + SumBin (a, f, {2}) by B180,RVSUM_1:73
+        .= Sum sb1 by B280,RVSUM_1:77;
+        hence thesis;
+      end;
+      then L230: SSBPEQSB[1];
+
+      L260: for i being Element of NAT st 1 <= i & i < kd2 & SSBPEQSB[i]
+      holds SSBPEQSB[i + 1]
+      proof
+        let i0 be Element of NAT;
+
+        assume that
+        1 <= i0 and
+        A262: i0 < kd2  and
+        A263: SSBPEQSB[i0];
+
+        reconsider sbpi0 = SBP | (Seg i0)
+        as real-valued FinSequence by FINSEQ_1:15;
+        reconsider sbi0 = SB | (Seg (2 * i0))
+        as real-valued FinSequence by FINSEQ_1:15;
+        reconsider sbpi0p = SBP | (Seg (i0 + 1))
+        as real-valued FinSequence by FINSEQ_1:15;
+        reconsider sbi0p = SB | (Seg (2 * (i0 + 1)))
+        as real-valued FinSequence by FINSEQ_1:15;
+        reconsider sbi0h = SB | (Seg (2 * i0 + 1))
+        as real-valued FinSequence by FINSEQ_1:15;
+
+        A270: 1 <= i0 + 1 by NAT_1:12;
+
+        A271: i0 + 1 <= kd2 by A262,INT_1:7;
+
+        i0 + 1 in Seg kd2 by A270,A271;
+        then A272: i0 + 1 in dom SBP by L100,FINSEQ_1:def 3;
+        then A274: SBP . (i0 + 1) =
+        SumBin (a, f, {2 * (i0 + 1) - 1}) + SumBin (a, f, {2 * (i0 + 1)})
+        by L101;
+
+        A280: Sum sbpi0p
+        =  Sum (sbpi0 ^ <* (SBP . (i0 + 1)) *>) by A272,FINSEQ_5:10
+        .= Sum sbpi0 + (SBP . (i0 + 1)) by RVSUM_1:74
+        .= Sum sbpi0 +
+        SumBin (a, f, {2 * i0 + 1}) + SumBin (a, f, {2 * i0 + 2})
+        by A274;
+
+        A300: 1 <= 2 * i0 + 2 by NAT_1:12;
+
+        A304: 2 * (i0 + 1) <= 2 * kd2 by A271,XREAL_1:64;
+
+        2 * (i0 + 1) in Seg (2 * kd2) by A300,A304;
+        then A320: 2 * i0 + 2 in dom SB by L150,FINSEQ_1:def 3;
+
+        A330: 1 <= 2 * i0 + 1 by NAT_1:12;
+
+        (2 * i0 + 2) - 1 <= (2 * kd2) - 0 by A304,XREAL_1:13;
+        then 2 * i0 + 1 in Seg (2 * kd2) by A330;
+        then A340: 2 * i0 + 1 in dom SB by L150,FINSEQ_1:def 3;
+
+        A370: SB | (Seg (2 * (i0 + 1)))
+        =  SB | (Seg (2 * i0 + 1 + 1))
+        .= sbi0h ^ <* (SB . (2 * i0 + 2)) *> by A320,FINSEQ_5:10;
+
+        A380: sbi0h
+        = sbi0 ^ <* (SB . (2 * i0 + 1)) *> by A340,FINSEQ_5:10;
+
+        A390: Sum sbi0h
+        = Sum sbi0 + (SB . (2 * i0 + 1)) by A380,RVSUM_1:74
+        .= Sum sbi0 + SumBin (a, f, {2 * i0 + 1}) by A340,L151;
+
+        Sum sbi0p
+        = Sum sbi0h + (SB . (2 * i0 + 2)) by A370,RVSUM_1:74
+        .= Sum sbi0 + SumBin (a, f, {2 * i0 + 1}) + SumBin (a, f, {2 * i0 + 2})
+        by A320,L151,A390;
+
+        hence for SBPi being real-valued FinSequence,
+        SBi being real-valued FinSequence st
+        SBPi  = SBP | (Seg (i0 + 1)) & SBi   = SB  | (Seg (2 * (i0 + 1)))
+        holds Sum SBPi = Sum SBi by A280,A263;
+      end;
+
+      L289: for i being Element of NAT st 1 <= i & i <= kd2 holds SSBPEQSB[i]
+      from INT_1:sch 7(L230,L260);
+
+      L298: SBP
+      =  SBP | (dom SBP)
+      .= SBP | (Seg kd2) by L100,FINSEQ_1:def 3;
+
+      SB
+      =  SB | (dom SB)
+      .= SB | (Seg (2 * kd2)) by L150,FINSEQ_1:def 3;
+      then L300: Sum SBP = Sum SB by L80,L298,L289;
+
+      deffunc F(Nat) = SumBin (a, f, {$1});
+
+      ex p being FinSequence st
+      (len p = k &
+      (for j being Nat st j in dom p holds p . j = F(j)))
+      from FINSEQ_1:sch 2;
+      then consider R1 being FinSequence such that
+      LL40: len R1 = k and
+      LL41: for j being Nat st j in dom R1 holds R1 . j = SumBin (a, f, {j});
+
+      for j being Nat st j in dom R1 holds R1 . j in REAL
+      proof
+        let j be Nat;
+
+        assume j in dom R1;
+        then R1 . j = SumBin (a, f, {j}) by LL41;
+        hence R1 . j in REAL by XREAL_0:def 1;
+      end;
+      then LL55: R1 is FinSequence of REAL by NF315;
+
+      R1 is k -element by LL40;
+      then reconsider R1 as real-valued k -element FinSequence by LL55;
+
+      L500: Sum SB <= Sum R1
+      proof
+        per cases;
+        suppose L530: k is even;
+          L539: k div 2 = k / 2 by L530,NAT_6:4;
+
+          SB = R1
+          proof
+            L5505: dom R1 = Seg (2 * kd2) by LL40,L539,FINSEQ_1:def 3;
+
+            L5510: dom SB = Seg (2 * kd2) by L150,FINSEQ_1:def 3;
+
+            for k0 being Nat st k0 in dom SB holds SB . k0 = R1 . k0
+            proof
+              let k0 be Nat;
+
+              assume L55310: k0 in dom SB;
+
+              SB . k0 = SumBin (a, f, {k0}) by L55310,L151;
+              hence SB . k0 = R1 . k0 by L55310,L5505,L5510,LL41;
+            end;
+            hence SB = R1 by L5505,L5510,FINSEQ_1:13;
+          end;
+          hence thesis;
+        end;
+        suppose L560: k is odd;
+          L569: k div 2 = (k - 1) / 2 by L560,NAT_6:5;
+
+          reconsider r12kd2 = R1 | (Seg (2 * kd2))
+          as real-valued FinSequence by FINSEQ_1:15;
+
+          L580: SB = r12kd2
+          proof
+            2 * kd2 + 1 - 1 <= k - 0 by L569,XREAL_1:13;
+            then L5805: dom r12kd2 = Seg (2 * kd2) by LL40,FINSEQ_1:17;
+
+            L5810: dom SB = Seg (2 * kd2) by L150,FINSEQ_1:def 3;
+
+            for k0 being Nat st k0 in dom SB holds SB . k0 = r12kd2 . k0
+            proof
+              let k0 be Nat;
+
+              assume L58310: k0 in dom SB;
+
+              L58329: dom r12kd2 c= dom R1 by RELAT_1:60;
+
+              k0 in Seg (2 * kd2) by L58310,L150,FINSEQ_1:def 3;
+              then r12kd2 . k0
+              =  R1 . k0 by FUNCT_1:49
+              .= SumBin (a, f, {k0}) by L58329,L58310,L5805,L5810,LL41;
+              hence SB . k0 = r12kd2 . k0 by L58310,L151;
+            end;
+            hence SB = r12kd2 by L5805,L5810,FINSEQ_1:13;
+          end;
+
+          L584: Seg (2 * kd2 + 1) = dom R1 by LL40,FINSEQ_1:def 3,L569;
+
+          2 * 0 + 1 <= 2 * kd2 + 1 by XREAL_1:7;
+          then L587: 2 * kd2 + 1 in dom R1 by L584;
+
+          R1
+          =  R1 | (dom R1)
+          .= R1 | (Seg (2 * kd2 + 1)) by LL40,FINSEQ_1:def 3,L569
+          .= r12kd2 ^ <* R1 . (2 * kd2 + 1) *> by L587,FINSEQ_5:10
+          .= SB ^ <* SumBin (a, f, {2 * kd2 + 1}) *> by L587,LL41,L580;
+          then Sum R1 = Sum SB + SumBin (a, f, {2 * kd2 + 1}) by RVSUM_1:74;
+          then SumBin (a, f, {2 * kd2 + 1}) = Sum R1 - Sum SB;
+          then Sum SB <= Sum R1 - 0 by NF280,XREAL_1:11;
+          hence Sum SB <= Sum R1;
+        end;
+      end;
+
+      Sum R1
+      =  SumBin (a, f, rng f) by L00,FINSEQ_1:57,BK00,B00,LL40,LL41,NF310
+      .= Sum a by L00,NF260;
+      hence thesis by L200,L300,L500,XXREAL_0:2;
+    end;
+  end;
+
+theorem NF980:
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & k = card rng f holds
+  k <= 2 * [/ Sum a \] - 1
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT, k be Nat;
+
+    assume that
+    HL00: f = OnlinePacking(a, NextFit(a)) and
+    BK00: k = card rng f;
+
+    Sum a <= [/ Sum a \] by INT_1:def 7;
+    then k div 2 < [/ Sum a \] by HL00,BK00,NF960,XXREAL_0:2;
+    then k div 2 + 1 <= [/ Sum a \] by INT_1:7;
+    then F29: k div 2 + 1 - 1 <= [/ Sum a \] - 1 by XREAL_1:9;
+
+    F40: (k - 1) / 2 <= k div 2
+    proof
+      per cases;
+      suppose k is even;
+        then FF150: k div 2 = k / 2 by NAT_6:4;
+
+        k - 1 <= k - 0 by XREAL_1:10;
+        hence (k - 1) / 2 <= k div 2 by XREAL_1:72,FF150;
+      end;
+      suppose k is odd;
+        hence (k - 1) / 2 <= k div 2 by NAT_6:5;
+      end;
+    end;
+
+    (k - 1) / 2 <= [/ Sum a \] - 1 by F29,F40,XXREAL_0:2;
+    then ((k - 1) / 2) * 2 <= ([/ Sum a \] - 1) * 2 by XREAL_1:64;
+    then k - 1 + 1 <= 2 * [/ Sum a \] - 2 + 1 by XREAL_1:7;
+    hence k <= 2 * [/ Sum a \] - 1;
+  end;
+
+theorem
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & k = card rng f holds
+  k <= 2 * Opt a - 1
+  proof
+    let a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT, k be Nat;
+
+    assume that
+    HL00: f = OnlinePacking(a, NextFit(a)) and
+    BK00: k = card rng f;
+
+    F200: k <= 2 * [/ Sum a \] - 1 by HL00,BK00,NF980;
+
+    2 * [/ Sum a \] <= 2 * Opt a by NF330,XREAL_1:64;
+    then 2 * [/ Sum a \] - 1 <= 2 * Opt a - 1 by XREAL_1:9;
+    hence k <= 2 * Opt a - 1 by F200,XXREAL_0:2;
+  end;
+
+begin :: Tightness of Approximation Guarantee of Algorithm NextFit
+
+theorem NF993:
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) &
+  f = OnlinePacking(a, NextFit(a)) holds
+  n = card rng f
+  proof
+    let n be Nat, epsilon be Real,
+    a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT;
+
+    assume that
+    L010: n is odd and
+    L030: len a = n and
+    L040: epsilon = 1 / (n + 1) and
+    L050: for i being Nat st i in Seg n holds
+    (i is odd  implies a . i = 2 * epsilon) &
+    (i is even implies a . i = 1 - epsilon) and
+    HL00: f = OnlinePacking(a, NextFit(a));
+
+    L020: 1 <= n by L010,NF992;
+
+    set h = OnlinePackingHistory(a, NextFit(a));
+
+    defpred ODDEVENHIST[Nat] means
+    ($1 is odd implies
+    SumBin (a, h . $1, {(h . $1) . $1}) = 2 * epsilon) &
+    ($1 is even implies
+    SumBin (a, h . $1, {(h . $1) . $1}) = 1 - epsilon) &
+    (h . $1) . $1 = $1 & rng (h . $1) = Seg $1;
+
+    L300: ODDEVENHIST[1]
+    proof
+      L305: h . 1 = <* 1 *> by defPackHistory;
+
+      L324: 1 = 2 * 0 + 1;
+
+      L332: 1 in Seg n by L020;
+
+      SumBin (a, h . 1, {(h . 1) . 1})
+      =  a . 1 by NF502
+      .= 2 * epsilon by L324,L332,L050;
+      hence thesis by L305,FINSEQ_1:def 8,FINSEQ_1:39,FINSEQ_1:2,L324;
+    end;
+
+    L400: for i being Element of NAT st 1 <= i & i < len a & ODDEVENHIST[i]
+    holds ODDEVENHIST[i + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      L410: 1 <= i0 and
+      L411: i0 < len a and
+      L412: ODDEVENHIST[i0];
+
+      reconsider i0p = i0 + 1 as Nat;
+
+      L469: 1 + 0 <= i0 + 1 by XREAL_1:7;
+
+      L480: i0p <= n by L411,L030,NAT_1:13; then
+
+      L490: i0p in Seg n by L469;
+
+      reconsider hi0 = h . i0 as FinSequence of NAT by L410,L411,NF505;
+      reconsider hi0p = h . i0p as FinSequence of NAT by L469,L030,L480,NF505;
+
+      L496: hi0p = hi0 ^ <* (NextFit(a)) . (a . i0p, hi0) *> &
+      hi0p . i0p = (NextFit(a)) . (a . i0p, hi0) by L410,L411,NF520;
+
+      L498: len hi0 = i0 by L410,L411,NF510;
+
+      L500: i0p is odd implies
+      hi0p . i0p = i0p & rng hi0p = Seg i0p &
+      SumBin (a, h . i0p, {(h . i0p) . i0p}) = 2 * epsilon
+      proof
+        assume L510: i0p is odd;
+        then a . i0p = 2 * epsilon by L050,L490;
+        then L542: a . i0p + SumBin (a, hi0, {hi0 . i0}) = 1 + epsilon
+        by L510,L412;
+
+        L549: 0 + 1 < epsilon + 1 by XREAL_1:139,L040,XREAL_1:6;
+
+        L580: hi0p . i0p
+        =  (NextFit(a)) . (a . i0p, hi0) by L410,L411,NF520
+        .= hi0 . i0 + 1 by L549,L542,L498,defNextFit;
+        hence hi0p . i0p = i0p by L412;
+
+        thus rng hi0p = rng hi0 \/ {hi0p . i0p} by L410,L411,NF525
+        .= Seg i0p by L580,L412,FINSEQ_1:9;
+
+        not i0 + 1 in Seg i0 by XREAL_1:29,FINSEQ_1:1;
+        then L590: SumBin (a, hi0, {hi0 . i0 + 1}) = 0
+        by L412,ZFMISC_1:50,NF290;
+
+        SumBin (a, hi0p, {hi0p . i0p})
+        = SumBin (a, hi0, {hi0p . i0p}) + a . (len hi0 + 1)
+        by L496,L498,L480,L030,NF200
+        .= a . (i0 + 1) by L580,L590,L410,L411,NF510
+        .= 2 * epsilon by L490,L510,L050;
+        hence SumBin (a, h . i0p, {(h . i0p) . i0p}) = 2 * epsilon;
+      end;
+
+      i0p is even implies
+      hi0p . i0p = i0p & rng hi0p = Seg i0p &
+      SumBin (a, hi0p, {hi0p . i0p}) = 1 - epsilon
+      proof
+        assume L710: i0p is even;
+        then L720: a . i0p = 1 - epsilon by L050,L490;
+
+        L742: a . i0p + SumBin (a, hi0, {hi0 . i0}) = 1 + epsilon
+        by L720,L710,L412;
+
+        L749: 0 + 1 < epsilon + 1 by XREAL_1:139,L040,XREAL_1:6;
+
+        L780: hi0p . i0p
+        =  (NextFit(a)) . (a . i0p, hi0) by L410,L411,NF520
+        .= hi0 . i0 + 1 by L742,L498,defNextFit,L749;
+        hence hi0p . i0p = i0p by L412;
+
+        thus rng hi0p = rng hi0 \/ {hi0p . i0p} by L410,L411,NF525
+        .= Seg i0p by L780,L412,FINSEQ_1:9;
+
+        not i0 + 1 in Seg i0 by XREAL_1:29,FINSEQ_1:1;
+        then L790: SumBin (a, hi0, {hi0 . i0 + 1}) = 0
+        by L412,ZFMISC_1:50,NF290;
+
+        SumBin (a, hi0p, {hi0p . i0p})
+        =  SumBin (a, hi0, {hi0p . i0p}) + a . (len hi0 + 1)
+        by L496,L498,L480,L030,NF200
+        .= a . (i0 + 1) by L780,L790,L410,L411,NF510
+        .= 1 - epsilon by L490,L710,L050;
+        hence SumBin (a, hi0p, {hi0p . i0p}) = 1 - epsilon;
+      end;
+      hence ODDEVENHIST[i0 + 1] by L500;
+    end;
+
+    L899: for i being Element of NAT st 1 <= i & i <= len a holds
+    ODDEVENHIST[i] from INT_1:sch 7(L300,L400);
+
+    L902: f = h . n by HL00,defPackHistory,L030;
+
+    thus n = card Seg n by FINSEQ_1:57
+    .= card rng f by L020,L030,L899,L902;
+  end;
+
+theorem NF994:
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) holds
+  Sum a = (n + 1) / 2 + 1 / (n + 1) - 1 / 2
+  proof
+    let n be Nat, epsilon be Real,
+    a be non empty positive at_most_one FinSequence of REAL;
+
+    assume that
+    L010: n is odd and
+    L030: len a = n and
+    L040: epsilon = 1 / (n + 1) and
+    L050: for i being Nat st i in Seg n holds
+    (i is odd  implies a . i = 2 * epsilon) &
+    (i is even implies a . i = 1 - epsilon);
+
+    L020: 1 <= n by L010,NF992;
+
+    L060: (n + 1) div 2 = (n + 1) / 2 by L010,NF992;
+
+    defpred ODDEVENSUM[Nat] means
+    ($1 is odd implies
+    Sum (a | $1)
+    = 2 * epsilon * (($1 + 1) div 2)
+    + (1 - epsilon) * (($1 + 1) div 2 - 1)) &
+    ($1 is even implies
+    Sum (a | $1) = 2 * epsilon * ($1 div 2)
+    + (1 - epsilon) * ($1 div 2));
+
+    L199: 1 = 2 * 0 + 1;
+
+    1 in Seg 1;
+    then (a | 1) . 1 = a . 1 by FUNCT_1:49;
+    then L230: a | 1 = <* a . 1 *> by FINSEQ_1:40;
+
+    L231: 2 = 2 * 1 + 0;
+
+    2 / 2 = 1;
+    then L235: (1 + 1) div 2 = 1 by L231,NAT_6:4;
+
+    L238: 1 in Seg n by L020;
+
+    Sum (a | 1) = a . 1 by L230,RVSUM_1:73
+    .= 2 * epsilon * ((1 + 1) div 2) + (1 - epsilon) * ((1 + 1) div 2 - 1)
+    by L238,L199,L050,L235;
+    then L300: ODDEVENSUM[1];
+
+    L400: for i being Element of NAT st 1 <= i & i < len a & ODDEVENSUM[i]
+    holds ODDEVENSUM[i + 1]
+    proof
+      let i0 be Element of NAT;
+
+      assume that
+      1 <= i0 and
+      L411: i0 < len a and
+      L412: ODDEVENSUM[i0];
+
+      reconsider i0p = i0 + 1 as Nat;
+
+      L469: 1 + 0 <= i0 + 1 by XREAL_1:7;
+
+      i0p <= n by L411,L030,NAT_1:13;
+      then L490: i0p in Seg n by L469;
+
+      L500: i0p is odd implies
+      Sum (a | i0p) = 2 * epsilon * ((i0p + 1) div 2)
+      + (1 - epsilon) * ((i0p + 1) div 2 - 1)
+      proof
+        assume L510: i0p is odd; then
+
+        L530: i0 is even;
+
+        i0 / 2 = (i0p + 1) / 2 - 1;
+        then i0 / 2 = (i0p + 1) div 2 - 1 by L510,NAT_6:4;
+        then L580: i0 div 2 = (i0p + 1) div 2 - 1 by L530,NAT_6:4;
+
+        thus Sum (a | i0p)
+         = Sum ((a | i0) ^ <* a . i0p *>) by L411,FINSEQ_5:83
+        .= Sum (a | i0) + a . i0p by RVSUM_1:74
+        .= 2 * epsilon * (i0 div 2) + (1 - epsilon) * (i0 div 2)
+        + 2 * epsilon by L050,L490,L510,L412
+        .= 2 * epsilon * ((i0p + 1) div 2)
+        + (1 - epsilon) * ((i0p + 1) div 2 - 1) by L580;
+      end;
+
+      i0p is even implies
+      Sum (a | i0p) = 2 * epsilon * (i0p div 2)
+      + (1 - epsilon) * (i0p div 2)
+      proof
+        assume L710: i0p is even;
+
+        thus Sum (a | i0p)
+         = Sum ((a | i0) ^ <* a . i0p *>) by L411,FINSEQ_5:83
+        .= Sum (a | i0) + a . i0p by RVSUM_1:74
+        .= 2 * epsilon * ((i0 + 1) div 2)
+        + (1 - epsilon) * ((i0 + 1) div 2 - 1) + (1 - epsilon)
+        by L050,L490,L412,L710
+        .= 2 * epsilon * (i0p div 2) + (1 - epsilon) * (i0p div 2);
+      end;
+      hence ODDEVENSUM[i0 + 1] by L500;
+    end;
+
+    L899: for i being Element of NAT st 1 <= i & i <= len a holds
+    ODDEVENSUM[i] from INT_1:sch 7(L300,L400);
+
+    Sum (a | n)
+    =  2 * epsilon * ((n + 1) div 2) + (1 - epsilon) * ((n + 1) div 2 - 1)
+    by L020,L030,L010,L899
+    .= 2 * (1 / (n + 1) * (n + 1)) / 2
+    + (1 - 1 / (n + 1)) * ((n + 1) / 2 - 1) by L060,L040
+    .= 2 / 2  + (1 - 1 / (n + 1)) * ((n + 1) / 2 - 1) by XCMPLX_1:87
+    .= (n + 1) / 2 - 1 / (n + 1) * (n + 1) / 2 + 1 / (n + 1)
+    .= (n + 1) / 2 - 1 / 2 + 1 / (n + 1) by XCMPLX_1:87
+    .= (n + 1) / 2 + 1 / (n + 1) - 1 / 2;
+    hence thesis by L030,FINSEQ_1:58;
+  end;
+
+theorem NF996:
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) &
+  dom f = dom a &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies f . i = 1) &
+  (i is even implies f . i = i div 2 + 1)) holds
+  for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1
+  proof
+    let n be Nat, epsilon be Real,
+    a be non empty positive at_most_one FinSequence of REAL,
+    f be non empty FinSequence of NAT;
+
+    assume that
+    L010: n is odd and
+    L030: len a = n and
+    L040: epsilon = 1 / (n + 1) and
+    L050: for i being Nat st i in Seg n holds
+    (i is odd  implies a . i = 2 * epsilon) &
+    (i is even implies a . i = 1 - epsilon) and
+    L205: dom f = dom a and
+    L220: for i being Nat st i in Seg n holds
+    (i is odd  implies f . i = 1) &
+    (i is even implies f . i = i div 2 + 1);
+
+    L020: 1 <= n by L010,NF992;
+
+    L060: (n + 1) div 2 = (n + 1) / 2 by L010,NF992;
+
+    let j be Nat;
+
+    assume L250: j in rng f;
+
+    set npd2 = (n + 1) div 2;
+
+    1 + 1 <= n + 1 by L010,NF992,XREAL_1:6;
+    then L189: 2 / 2 <= (n + 1) / 2 by XREAL_1:72;
+
+    reconsider npd2 as Nat by L010,L060;
+
+    L253: dom f = Seg n by L205,FINSEQ_1:def 3,L030;
+
+    for y being object holds
+    ( y in Seg npd2 iff
+    ex x being object st x in dom f & y = f . x )
+    proof
+      let y be object;
+
+      hereby
+        assume L255: y in Seg npd2;
+        then reconsider y0 = y as Nat;
+
+        1 <= y0 & y0 <= npd2 by L255,FINSEQ_1:1;
+        then 1 + 1 <= y0 + 1 by XREAL_1:6;
+        then 2 <= y0 or 2 = y0 + 1 by NAT_1:8;
+        then per cases by L255,FINSEQ_1:1;
+        suppose L260: y0 = 1;
+          set x0 = 1;
+
+          L262: 1 in Seg n by L020;
+
+          L263: x0 in dom f by L020,L253;
+
+          1 = 2 * 0 + 1;
+          then f . x0 = y0 by L262,L220,L260;
+          hence ex x being object st x in dom f & y = f . x by L263;
+        end;
+        suppose L270: 2 <= y0 & y0 <= npd2;
+
+          set x0 = (y0 - 1) * 2;
+
+          2 - 1 <= y0 - 1 by XREAL_1:9,L270;
+          then 1 * 2 <= (y0 - 1) * 2 by XREAL_1:64;
+          then L272: 2 - 1 <= (y0 - 1) * 2 - 0 by XREAL_1:13;
+
+          reconsider x0 as Nat by L270;
+
+          y0 * 2 <= ((n + 1) / 2) * 2 by L060,L270,XREAL_1:64;
+          then y0 * 2 - 1 <= n by XREAL_1:20;
+          then L2735: y0 * 2 - 1 - 1 <= n - 0 by XREAL_1:13;
+          then L275: x0 in Seg n by L272;
+
+          L276: x0 in dom f by L253,L272,L2735;
+
+          f . x0 = x0 div 2 + 1 by L275,L220
+          .= ((y0 - 1) * 2) / 2 + 1 by NAT_6:4
+          .= y0;
+          hence ex x being object st x in dom f & y = f . x by L276;
+        end;
+      end;
+
+      given x0 being object such that
+      L280: x0 in dom f and
+      L281: y = f . x0;
+
+      reconsider x0 as Nat by L280;
+
+      L283: 1 <= x0 & x0 <= n by L280,L253,FINSEQ_1:1;
+
+      per cases;
+      suppose x0 is odd;
+        then f . x0 = 1 by L280,L253,L220;
+        hence y in Seg npd2 by L281,L189,L060;
+      end;
+      suppose L284: x0 is even;
+        then L2845: f . x0 = x0 div 2 + 1 by L280,L253,L220;
+
+        reconsider y0 = y as Integer by L281;
+
+        L286: y0 = x0 / 2 + 1 by L2845,L281,L284,NAT_6:4;
+
+        L2865: 0 + 1 <= x0 / 2 + 1 by XREAL_1:6;
+
+        reconsider y0 as Nat by L281;
+
+        x0 + 1 <= n + 1 by XREAL_1:6,L283;
+        then x0 + 1 <= n by L284,L010,NAT_1:8;
+        then x0 + 1 + 1 <= n + 1 by XREAL_1:6;
+        then (x0 + 2) / 2 <= (n + 1) / 2 by XREAL_1:72;
+        then y0 <= npd2 by L010,NF992,L286;
+        hence y in Seg npd2 by L286,L2865;
+      end;
+    end;
+    then L291: rng f = Seg npd2 by FUNCT_1:def 3;
+    then 1 <= j & j <= npd2 by L250,FINSEQ_1:1;
+    then 1 + 1 <= j + 1 by XREAL_1:6;
+    then 2 <= j or 2 = j + 1 by NAT_1:8;
+    then per cases by L291,L250,FINSEQ_1:1;
+    suppose L300: j = 1;
+      set OddSegn = { i where i is Nat : ( 1 <= i & i <= n & i is odd) };
+
+      defpred P[Nat, object] means $2 = 2 * $1 - 1;
+
+      L310: for i being Nat st i in Seg npd2 holds
+      ex x being object st P[i, x];
+
+      consider sgmo being FinSequence such that
+      L320: dom sgmo = Seg npd2 and
+      L321: for i being Nat st i in Seg npd2 holds P[i, sgmo . i]
+      from FINSEQ_1:sch 1 (L310);
+
+      for y being object holds
+      y in OddSegn iff
+      ex x being object st x in dom sgmo & y = sgmo . x
+      proof
+        let y be object;
+
+        hereby
+          assume y in OddSegn;
+          then consider y0 being Nat such that
+          L322: y0 = y and
+          L323: 1 <= y0 & y0 <= n & y0 is odd;
+
+          set x0 = (y0 + 1) div 2;
+
+          x0 * 2 = ((y0 + 1) / 2) * 2 by L323,NAT_6:4
+          .= y0 + 1;
+          then L326: y0 = 2 * x0 - 1;
+          then 1 + 1 <= 2 * x0 by L323,XREAL_1:19;
+          then L3265: 2 / 2 <= (x0 * 2) / 2 by XREAL_1:72;
+          then x0 in NAT by INT_1:3;
+          then reconsider x0 as Nat;
+
+          x0 * 2 <= n + 1 by L323,L326,XREAL_1:20;
+          then L3275: (x0 * 2) / 2 <= (n + 1) / 2 by XREAL_1:72;
+          then L329: x0 in Seg npd2 by L3265,L060;
+
+          L330: x0 in dom sgmo by L3265,L3275,L060,L320;
+
+          y0 = sgmo . x0 by L329,L321,L326;
+          hence ex x being object st x in dom sgmo & y = sgmo . x
+          by L330,L322;
+        end;
+
+        given x0 being object such that
+        L340: x0 in dom sgmo and
+        L342: y = sgmo . x0;
+
+        reconsider x0 as Nat by L340;
+
+        L351: 1 <= x0 & x0 <= npd2 by L340,L320,FINSEQ_1:1;
+
+        L352: y = 2 * x0 - 1 by L340,L320,L321,L342;
+        then reconsider y0 = y as Integer;
+
+        1 * 2 <= x0 * 2 by L351,XREAL_1:64;
+        then L359: 2 - 1 <= 2 * x0 - 1 by XREAL_1:9;
+        then 1 <= y0 by L340,L320,L321,L342;
+        then y0 in NAT by INT_1:3;
+        then reconsider y0 as Nat;
+
+        x0 * 2 <= ((n + 1) / 2) * 2 by L351,L060,XREAL_1:64;
+        then y0 <= n by XREAL_1:20,L352;
+        hence y in OddSegn by L359,L352;
+      end;
+      then L370: rng sgmo = OddSegn by FUNCT_1:def 3;
+
+      for x1, x2 being object st
+      x1 in dom sgmo & x2 in dom sgmo & sgmo . x1 = sgmo . x2 holds
+      x1 = x2
+      proof
+        let x1, x2 be object;
+
+        assume that
+        L371: x1 in dom sgmo & x2 in dom sgmo and
+        L372: sgmo . x1 = sgmo . x2;
+
+        reconsider x01 = x1, x02 = x2 as Nat by L371;
+
+        sgmo . x01 = 2 * x01 - 1 & sgmo . x02 = 2 * x02 - 1 by L320,L371,L321;
+        then 2 * x01 - 1 = 2 * x02 - 1 by L372;
+        hence x1 = x2;
+      end;
+      then L380: sgmo is one-to-one by FUNCT_1:def 4;
+
+      L395: card Seg npd2 = npd2 by FINSEQ_1:57;
+
+      L419: for x being object st x in OddSegn holds x in Seg n
+      proof
+        let x be object;
+
+        assume x in OddSegn;
+        then consider x0 being Nat such that
+        L410: x0 = x and
+        L411: 1 <= x0 & x0 <= n & x0 is odd;
+
+        thus x in Seg n by L410,L411;
+      end;
+      then L420: OddSegn c= Seg n;
+
+      L430: len (Sgm OddSegn)
+      =  card OddSegn by L420,FINSEQ_3:39
+      .= npd2 by L320,L370,L380,WELLORD2:def 4,L395,CARD_1:5;
+
+      L505: dom a = Seg n by FINSEQ_1:def 3,L030;
+      then L510: OddSegn c= dom a by L419;
+      then L512: dom (a | OddSegn) = OddSegn by RELAT_1:62;
+
+      L522: dom (Sgm (dom (a | OddSegn))) = dom (Sgm OddSegn)
+        by L510,RELAT_1:62;
+
+      L499: for i being object holds
+      i in OddSegn iff i in dom f & f . i in {j}
+      proof
+        let i be object;
+
+        hereby
+          assume i in OddSegn;
+          then consider i0 being Nat such that
+          L440: i0 = i and
+          L441: 1 <= i0 & i0 <= n & i0 is odd;
+          L442: i0 in Seg n by L441;
+
+          thus i in dom f by L441,L505,L205,L440;
+
+          f . i0 = 1 by L442,L441,L220;
+          hence f . i in {j} by TARSKI:def 1,L440,L300;
+        end;
+
+        assume that
+        L450: i in dom f and
+        L451: f . i in {j};
+
+        L452: f . i = 1 by L451,TARSKI:def 1,L300;
+
+        reconsider i0 = i as Nat by L450;
+
+        L454: 1 <= i0 & i0 <= n by L450,L205,L505,FINSEQ_1:1;
+
+        i0 is odd
+        proof
+          assume L460: not i0 is odd;
+
+          0 / 2 < i0 / 2 by L454,XREAL_1:74;
+          then 0 < i0 div 2 by L460,NAT_6:4;
+          then 0 + 1 < i0 div 2 + 1 by XREAL_1:6;
+          hence contradiction by L460,L450,L205,L505,L220,L452;
+        end;
+        hence i in OddSegn by L454;
+      end;
+
+      L515: Seq (a | OddSegn) = (a | OddSegn) * (Sgm OddSegn)
+      by L510,RELAT_1:62;
+      then reconsider aosgmo = (a | OddSegn) * (Sgm OddSegn) as FinSequence;
+
+      L525: rng Sgm OddSegn = OddSegn by L420,FINSEQ_1:def 13;
+
+      rng Sgm OddSegn c= dom (a | OddSegn) by L420,FINSEQ_1:def 13,L512;
+      then L520: len Seq (a | OddSegn)
+      =  len (Sgm OddSegn) by L515,FINSEQ_2:29
+      .= len (npd2 |-> (2 * epsilon)) by L430,CARD_1:def 7;
+
+      reconsider co = card OddSegn as Nat by L370;
+
+      L524: dom Sgm OddSegn
+      =  Seg co by L420,FINSEQ_3:40
+      .= Seg npd2 by L320,L370,L380,WELLORD2:def 4,L395,CARD_1:5;
+
+      L526: for k being Nat st k in dom (Sgm OddSegn) holds
+      (Sgm OddSegn) . k = 2 * k - 1
+      proof
+        reconsider npd2 as Element of NAT by ORDINAL1:def 12;
+
+        defpred ODDSEQ[Nat] means (Sgm OddSegn) . $1 = 2 * $1 - 1;
+
+        now assume not (Sgm OddSegn) . 1 = 1;
+          then per cases by XXREAL_0:1;
+          suppose B210: (Sgm OddSegn) . 1 < 1;
+            1 in Seg npd2 by L189,L060;
+            then (Sgm OddSegn) . 1 in rng (Sgm OddSegn) by L524,FUNCT_1:3;
+            then consider i being Nat such that
+            B211: (Sgm OddSegn) . 1 = i and
+            B212: 1 <= i and i <= n and i is odd by L525;
+
+            thus contradiction by B211,B212,B210;
+          end;
+          suppose B218: (Sgm OddSegn) . 1 > 1;
+            1 = (2 * 0) + 1;
+            then 1 in OddSegn by L020;
+            then consider l being object such that
+            B220: l in dom (Sgm OddSegn) and
+            B230: 1 = (Sgm OddSegn) . l by L525,FUNCT_1:def 3;
+
+            reconsider l as Nat by B220;
+
+            B237: 1 <= l & l <= len (Sgm OddSegn) by L430,L524,B220,FINSEQ_1:1;
+            then 1 < l by XXREAL_0:1,B230,B218;
+            hence contradiction by B237,B230,B218,L420,FINSEQ_1:def 13;
+          end;
+        end;
+        then B300: ODDSEQ[1];
+
+        B400: for k being Element of NAT st 1 <= k & k < npd2 & ODDSEQ[k]
+        holds ODDSEQ[k + 1]
+        proof
+          let k be Element of NAT;
+
+          assume that
+          B410: 1 <= k & k < npd2 and
+          B412: ODDSEQ[k];
+
+          now assume not (Sgm OddSegn) . (k + 1) = 2 * (k + 1) - 1;
+            then per cases by XXREAL_0:1;
+            suppose B500: (Sgm OddSegn) . (k + 1) < 2 * (k + 1) - 1;
+              (Sgm OddSegn) . (k + 1) <= 2 * (k + 1) - 1 - 1 by B500,INT_1:52;
+              then B510: (Sgm OddSegn) . (k + 1) + 1 <= 2 * k + 1 by XREAL_1:6;
+
+              B520: (Sgm OddSegn) . (k + 1) + 1 <> 2 * k + 1
+              proof
+                assume B521: not (Sgm OddSegn) . (k + 1) + 1 <> 2 * k + 1;
+
+                B523: 1 + 0 <= k + 1 by XREAL_1:7;
+
+                B524: k + 1 <= npd2 by B410,INT_1:7;
+
+                k + 1 in Seg npd2 by B523,B524;
+                then 2 * k in rng (Sgm OddSegn) by L524,B521,FUNCT_1:3;
+                then consider i being Nat such that
+                B525: 2 * k = i and
+                1 <= i & i <= n and
+                B526: i is odd by L525;
+
+                thus contradiction by B525,B526;
+              end;
+
+              1 <= k & k < k + 1 & k + 1 <= len (Sgm OddSegn) &
+              (Sgm OddSegn) . k >= (Sgm OddSegn) . (k + 1)
+              by B410,XREAL_1:29,XREAL_1:19,L430,B510,B520,NAT_1:8,B412;
+              hence contradiction by L420,FINSEQ_1:def 13;
+            end;
+            suppose B700: (Sgm OddSegn) . (k + 1) > 2 * (k + 1) - 1;
+              0 <= 2 * k + 2 * 1 - 1;
+              then reconsider i0 = 2 * (k + 1) - 1 as Nat;
+
+              B710: 0 + 1 <= 2 * k + 1 by XREAL_1:6;
+
+              k <= npd2 - 1 by B410,INT_1:52;
+              then (k + 1) * 2 <= (n + 1) / 2 * 2
+              by L060,XREAL_1:19,XREAL_1:64;
+              then B717: i0 <= n by XREAL_1:20;
+
+              2 * (k + 1) - 1 in OddSegn by B710,B717;
+              then consider l being object such that
+              B720: l in dom (Sgm OddSegn) and
+              B730: 2 * (k + 1) - 1 = (Sgm OddSegn) . l by L525,FUNCT_1:def 3;
+
+              reconsider l as Nat by B720;
+
+              B737: 1 <= l & l <= len (Sgm OddSegn)
+              by L430,L524,B720,FINSEQ_1:1;
+
+              B749: now assume B740: not l <= k + 1;
+                1 + 0 <= k + 1 by XREAL_1:7;
+                hence contradiction
+                  by B740,B737,B700,B730,L420,FINSEQ_1:def 13;
+              end;
+
+              B769: now assume B760: not l >= k;
+                2 * (k + 1) > 2 * k by XREAL_1:29,XREAL_1:68;
+                then 1 <= l & l < k & k <= len (Sgm OddSegn) &
+                (Sgm OddSegn) . l > (Sgm OddSegn) . k
+                by XREAL_1:9,B730,B412,L430,L524,B720,FINSEQ_1:1,B760,B410;
+                hence contradiction by L420,FINSEQ_1:def 13;
+              end;
+
+              now assume not l <> k; then
+                (Sgm OddSegn) . k = 2 * (k + 1) - 1 by B730;
+                hence contradiction by B412;
+              end;
+
+              hence contradiction by B749,B769,B730,B700,NAT_1:9;
+            end;
+          end;
+          hence ODDSEQ[k + 1];
+        end;
+
+        B900: for k being Element of NAT st 1 <= k & k <= npd2 holds ODDSEQ[k]
+        from INT_1:sch 7(B300,B400);
+        for k being Nat st k in dom Sgm OddSegn holds ODDSEQ[k]
+        proof
+          let k be Nat;
+
+          assume k in dom Sgm OddSegn;
+          then B920: 1 <= k & k <= npd2 by L524,FINSEQ_1:1;
+
+          k in NAT by ORDINAL1:def 12;
+          hence ODDSEQ[k] by B920,B900;
+        end;
+        hence thesis;
+      end;
+
+      L699: for k being Nat st k in dom (npd2 |-> (2 * epsilon)) holds
+      (npd2 |-> (2 * epsilon)) . k = (Seq (a | OddSegn)) . k
+      proof
+        let k be Nat;
+
+        assume L530: k in dom (npd2 |-> (2 * epsilon));
+        L535: len (npd2 |-> (2 * epsilon)) = npd2 by CARD_1:def 7;
+        L536: dom (npd2 |-> (2 * epsilon)) = Seg (len (npd2 |-> (2 * epsilon)))
+        by FINSEQ_1:def 3;
+
+        L537: k in Seg npd2 by FINSEQ_1:def 3,L530,L535;
+        then L630: (Sgm OddSegn) . k = 2 * k - 1 by L526,L524;
+        then L655: 2 * k - 1 in Seg n by L537,L524,FUNCT_1:3,L525,L419;
+
+        (a | OddSegn) . (2 * k - 1)
+        =  a . (2 * k - 1) by L537,L524,FUNCT_1:3,L630,L525,FUNCT_1:49
+        .= 2 * epsilon by L655,L050;
+        then (a | OddSegn) . (Sgm (dom (a | OddSegn)) . k) = 2 * epsilon
+        by L630,L505,L420,RELAT_1:62;
+        then (Seq (a | OddSegn)) . k = 2 * epsilon
+          by L522,L524,L537,FUNCT_1:13;
+        hence thesis by L536,L530,L535,FINSEQ_2:57;
+      end;
+
+      L750: Seq (a, f " {j})
+      =  Seq (a, OddSegn) by L499,FUNCT_1:def 7
+      .= Seq (a | OddSegn)
+      .= npd2 |-> (2 * epsilon) by L699,L520,FINSEQ_2:9;
+
+      npd2 * (2 * epsilon)
+      =  (n + 1) / 2 * (2 * epsilon) by L010,NF992
+      .= ((n + 1) / 2 * 2) * epsilon
+      .= 1 by L040,XCMPLX_1:106;
+      hence SumBin (a, f, {j}) <= 1 by L750,RVSUM_1:80;
+    end;
+    suppose L800: 2 <= j & j <= npd2;
+      set tjm2 = 2 * j - 2;
+
+      2 - 1 <= j - 1 by L800,XREAL_1:9;
+      then L808: 1 * 2 <= (j - 1) * 2 by XREAL_1:64;
+      then L809: 2 - 1 <= (j - 1) * 2 - 0 by XREAL_1:13;
+
+      tjm2 in NAT by L808,INT_1:3;
+      then reconsider tjm2 as Nat;
+
+      j * 2 <= ((n + 1) / 2) * 2 by L800,L060,XREAL_1:64;
+      then j * 2 - 2 <= n + 1 - 1 by XREAL_1:13;
+      then L820: tjm2 in Seg n by L809;
+
+      L829: tjm2 = 2 * (j - 1);
+      then L860: a . tjm2 = 1 - epsilon by L820,L050;
+
+      L929: for i being object holds
+      i in {tjm2} iff ( i in dom f & f . i in {j} )
+      proof
+        let i be object;
+
+        hereby
+          assume L869: i in {tjm2};
+          then L870: i = tjm2 by TARSKI:def 1;
+
+          reconsider i0 = i as Nat by L869;
+
+          thus i in dom f by L869,TARSKI:def 1,L820,L253;
+
+          f . i0 = i0 div 2 + 1 by L820,L220,L870,L829
+          .= ((j - 1) * 2) / 2 + 1 by L870,NAT_6:4
+          .= j;
+          hence f . i in {j} by TARSKI:def 1;
+        end;
+
+        assume that
+        L900: i in dom f and
+        L901: f . i in {j};
+        L902: f . i = j by L901,TARSKI:def 1;
+
+        reconsider i0 = i as Nat by L900;
+
+        L910: i0 is even
+        proof
+          assume i0 is odd;
+          then f . i0 = 1 by L900,L253,L220;
+          hence contradiction by L902,L800;
+        end;
+        then f . i0 = i0 div 2 + 1 by L900,L253,L220;
+        then i0 / 2 = j - 1 by L902,L910,NAT_6:4;
+        hence i in {tjm2} by TARSKI:def 1;
+      end;
+
+      L939: a | {tjm2} = {[tjm2, a . tjm2]} by L820,L253,L205,GRFUNC_1:28;
+
+      Seq (a, f " {j})
+      =  Seq (a, {tjm2}) by L929,FUNCT_1:def 7
+      .= Seq (a | {tjm2})
+      .= <* 1 - epsilon *> by L939,L860,FINSEQ_3:157;
+      then SumBin (a, f, {j}) = 1 - epsilon by RVSUM_1:73;
+      hence SumBin (a, f, {j}) <= 1 by XREAL_1:139,L040,XREAL_1:44;
+    end;
+  end;
+
+theorem NF997:
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) holds n = 2 * Opt a - 1
+  proof
+    let n be Nat, epsilon be Real,
+    a be non empty positive at_most_one FinSequence of REAL;
+
+    assume that
+    L010: n is odd and
+    L030: len a = n and
+    L040: epsilon = 1 / (n + 1) and
+    L050: for i being Nat st i in Seg n holds
+    (i is odd  implies a . i = 2 * epsilon) &
+    (i is even implies a . i = 1 - epsilon);
+
+    L020: 1 <= n by L010,NF992;
+
+    L060: (n + 1) div 2 = (n + 1) / 2 by L010,NF992;
+
+    ex g being non empty FinSequence of NAT st
+    dom g = dom a &
+    (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+    (n + 1) div 2 = card rng g &
+    (for f being non empty FinSequence of NAT st
+    dom f = dom a &
+    (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+    (n + 1) div 2 <= card rng f)
+    proof
+      defpred P[Nat, object] means
+      ($1 is odd  implies $2 = 1) &
+      ($1 is even implies $2 = $1 div 2 + 1);
+
+      L100: for i being Nat st i in Seg n holds ex x being object st P[i, x]
+      proof
+        let i be Nat;
+
+        assume i in Seg n;
+
+        per cases;
+        suppose i is odd;
+          hence thesis;
+        end;
+        suppose i is even;
+          hence thesis;
+        end;
+      end;
+
+      consider g0 being FinSequence such that
+      L200: dom g0 = Seg n and
+      L210: for i being Nat st i in Seg n holds P[i, g0 . i]
+      from FINSEQ_1:sch 1 (L100);
+
+      for i being Nat st i in dom g0 holds g0 . i in NAT
+      proof
+        let i be Nat;
+
+        assume L309: i in dom g0;
+
+        per cases;
+        suppose i is odd; then
+          g0 . i = 1 by L309,L200,L210;
+          hence g0 . i in NAT;
+        end;
+        suppose i is even; then
+          L370: g0 . i = i div 2 + 1 by L309,L200,L210;
+          0 <= i div 2 by INT_1:55;
+          hence g0 . i in NAT by INT_1:3,L370;
+        end;
+      end;
+      then reconsider g0 as non empty FinSequence of NAT by NF315,L010,L200;
+
+      take g0;
+
+      L379: dom a = Seg n by FINSEQ_1:def 3,L030;
+
+      thus dom g0 = dom a by FINSEQ_1:def 3,L030,L200;
+
+      thus for j being Nat st j in rng g0 holds SumBin (a, g0, {j}) <= 1
+      by L010,L030,L040,L050,L379,L200,L210,NF996;
+
+      set npd2 = (n + 1) div 2;
+
+      1 + 1 <= n + 1 by L010,NF992,XREAL_1:6;
+      then L388: 2 / 2 <= (n + 1) / 2 by XREAL_1:72;
+
+      reconsider npd2 as Nat by L010,L060;
+
+      for y being object holds
+      y in Seg npd2 iff ex x being object st x in dom g0 & y = g0 . x
+      proof
+        let y be object;
+
+        hereby
+          assume L405: y in Seg npd2;
+
+          reconsider y0 = y as Nat by L405;
+
+          1 <= y0 & y0 <= npd2 by L405,FINSEQ_1:1;
+          then 1 + 1 <= y0 + 1 by XREAL_1:6;
+          then 2 <= y0 or 2 = y0 + 1 by NAT_1:8;
+          then per cases by L405,FINSEQ_1:1;
+          suppose L410: y0 = 1;
+            set x0 = 1;
+
+            L415: x0 in Seg n by L020;
+
+            L420: x0 in dom g0 by L020,L200;
+
+            reconsider x0 as Nat;
+
+            x0 mod 2 = 1 by NAT_D:14;
+            then x0 is odd by NAT_2:22;
+            then y0 = g0 . x0 by L415,L210,L410;
+            hence ex x being object st x in dom g0 & y = g0 . x by L420;
+          end;
+          suppose L430: 2 <= y0 & y0 <= npd2;
+
+            set x0 = (y0 - 1) * 2;
+
+            2 - 1 <= y0 - 1 by L430,XREAL_1:9;
+            then 1 * 2 <= (y0 - 1) * 2 by XREAL_1:64;
+            then L4125: 2 - 1 <= x0 - 0 by XREAL_1:13;
+
+            reconsider x0 as Nat by L430;
+
+            x0 div 2 = ((y0 - 1) * 2) / 2 by NAT_6:4;
+            then L412: y0 = x0 div 2 + 1;
+
+            y0 - 1 <= (n + 1) / 2 - 1 by L430,L060,XREAL_1:9;
+            then x0 <= ((n + 1) / 2 - 1) * 2 by XREAL_1:64;
+            then L4135: x0 + 0 <= n - 1 + 1 by XREAL_1:7;
+            then L415: x0 in Seg n by L4125;
+
+            L420: x0 in dom g0 by L4125,L4135,L200;
+
+            y0 = g0 . x0 by L415,L210,L412;
+            hence ex x being object st x in dom g0 & y = g0 . x by L420;
+          end;
+        end;
+
+        given x0 being object such that
+        L440: x0 in dom g0 and
+        L442: y = g0 . x0;
+
+        reconsider x0 as Nat by L440;
+
+        per cases;
+        suppose x0 is odd;
+          then g0 . x0 = 1 by L440,L200,L210;
+          hence y in Seg npd2 by L442,L388,L060;
+        end;
+        suppose L470: x0 is even;
+          then g0 . x0 = x0 div 2 + 1 by L440,L200,L210;
+          then L472: y = x0 / 2 + 1 by L442,L470,NAT_6:4;
+
+          reconsider y0 = y as Nat by L442;
+
+          L4725: 0 + 1 <= x0 / 2 + 1 by XREAL_1:6;
+
+          L474: x0 <= n by L440,L200,FINSEQ_1:1;
+
+          x0 + 1 <= n or not x0 + 1 <= n + 1 by L010,L470,NAT_1:8;
+          then x0 + 1 + 1 <= n + 1 by L474,XREAL_1:6;
+          then (x0 + 2) / 2 <= (n + 1) / 2 by XREAL_1:72;
+          hence y in Seg npd2 by L4725,L442,L060,L472;
+        end;
+      end;
+      then rng g0 = Seg npd2 by FUNCT_1:def 3;
+      hence (n + 1) div 2 = card rng g0 by FINSEQ_1:57;
+
+      reconsider i0 = (n + 1) / 2 as Integer by L010;
+      reconsider r = 1 / (n + 1) - 1 / 2 as Real;
+
+      L810: Sum a
+       = (n + 1) / 2 + 1 / (n + 1) - 1 / 2 by L010,L030,L040,L050,NF994
+      .= r + i0;
+
+      1 + 1 <= n + 1 by L010,NF992,XREAL_1:6;
+      then 1 * 2 <= 1 * (n + 1);
+      then 1 / (n + 1) <= 1 / 2 by XREAL_1:102;
+      then L820: r <= 0 by XREAL_1:47;
+
+      0 < 1 / (n + 1) + 1 / 2 by XREAL_1:34;
+      then 0 < r + 1;
+      then L835: [/ r \] = 0 by L820,INT_1:def 7;
+
+      [/ r + i0 \] = [/ r \] + i0 by INT_1:33
+      .= i0 by L835; then
+
+      [/ Sum a \] = (n + 1) div 2 by L810,L010,NF992;
+      hence for f being non empty FinSequence of NAT st dom f = dom a &
+      (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1)
+      holds (n + 1) div 2 <= card rng f by NF320;
+    end;
+    then Opt a = (n + 1) div 2 by defOpt;
+    hence n = 2 * Opt a - 1 by L060;
+  end;
+
+theorem
+  for n being Nat st n is odd holds
+  ex a being non empty positive at_most_one FinSequence of REAL st
+  len a = n &
+  for f being non empty FinSequence of NAT st
+  f = OnlinePacking(a, NextFit(a)) holds
+  n = card rng f & n = 2 * Opt a - 1
+  proof
+    let n be Nat;
+
+    assume that
+    L010: n is odd;
+    L020: 1 <= n by L010,NF992;
+
+    set epsilon = 1 / (n + 1);
+
+    defpred P[Nat, object] means
+    ($1 is odd  implies $2 = 2 * epsilon) &
+    ($1 is even implies $2 = 1 - epsilon);
+
+    L100: for i being Nat st i in Seg n holds ex x being object st P[i, x]
+    proof
+      let i be Nat;
+
+      assume i in Seg n;
+
+      per cases;
+      suppose i is odd;
+        hence thesis;
+      end;
+      suppose i is even;
+        hence thesis;
+      end;
+    end;
+
+    consider a0 being FinSequence such that
+    L200: dom a0 = Seg n and
+    L210: for i being Nat st i in Seg n holds P[i, a0 . i]
+    from FINSEQ_1:sch 1 (L100);
+
+    for i being Nat st i in dom a0 holds a0 . i in REAL
+    proof
+      let i be Nat;
+
+      assume L309: i in dom a0;
+
+      per cases;
+      suppose i is odd;
+        then a0 . i = 2 * epsilon by L309,L200,L210;
+        hence a0 . i in REAL by XREAL_0:def 1;
+      end;
+      suppose i is even;
+        then a0 . i = 1 - epsilon by L309,L200,L210;
+        hence a0 . i in REAL by XREAL_0:def 1;
+      end;
+    end;
+    then reconsider a0 as non empty FinSequence of REAL by NF315,L010,L200;
+
+    L500: a0 is positive
+    proof
+      1 + 1 <= n + 1 by L010,NF992,XREAL_1:6;
+      then 2 <= n or 2 = n + 1 by NAT_1:8;
+      then per cases;
+      suppose B000: n = 1;
+        for y being object holds
+        y in {2 * epsilon} iff
+        ex x being object st x in dom a0 & y = a0 . x
+        proof
+          let y be object;
+
+          hereby
+            assume y in {2 * epsilon};
+            then L410: y = 2 * epsilon by TARSKI:def 1;
+
+            set x0 = 1;
+
+            L415: x0 in Seg n by L020;
+
+            L420: x0 in dom a0 by L020,L200;
+
+            reconsider x0 as Nat;
+
+            x0 mod 2 = 1 by NAT_D:14;
+            then x0 is odd by NAT_2:22;
+            then y = a0 . x0 by L415,L210,L410;
+            hence ex x being object st x in dom a0 & y = a0 . x by L420;
+          end;
+
+          given x0 being object such that
+          L440: x0 in dom a0 and
+          L442: y = a0 . x0;
+          L455: x0 = 1 by L440,L200,B000,FINSEQ_1:2,TARSKI:def 1;
+
+          reconsider x0 as Nat by L440;
+
+          x0 mod 2 = 1 by L455,NAT_D:14;
+          then L460: x0 is odd by NAT_2:22;
+
+          a0 . x0 = 2 * epsilon by L440,L200,L460,L210;
+          hence y in {2 * epsilon} by L442,TARSKI:def 1;
+        end;
+        then L480: rng a0 = {2 * epsilon} by FUNCT_1:def 3;
+
+        for r being Real st r in rng a0 holds 0 < r
+        proof
+          let r be Real;
+
+          assume L489: r in rng a0;
+
+          0 / (n + 1) < 1 / (n + 1) by XREAL_1:74;
+          then 0 * 2 < epsilon * 2 by XREAL_1:68;
+          hence 0 < r by L489,L480,TARSKI:def 1;
+        end;
+        hence a0 is positive by PARTFUN3:def 1;
+      end;
+      suppose B500: 2 <= n;
+        for y being object holds
+        y in {2 * epsilon, 1 - epsilon} iff
+        ex x being object st x in dom a0 & y = a0 . x
+        proof
+          let y be object;
+
+          hereby
+            assume y in {2 * epsilon, 1 - epsilon};
+            then per cases by TARSKI:def 2;
+            suppose L410: y = 2 * epsilon;
+              set x0 = 1;
+
+              L415: x0 in Seg n by L020;
+
+              L420: x0 in dom a0 by L020,L200;
+
+              reconsider x0 as Nat;
+
+              x0 = 2 * 0 + 1;
+              then y = a0 . x0 by L415,L210,L410;
+              hence ex x being object st x in dom a0 & y = a0 . x by L420;
+            end;
+            suppose L430: y = 1 - epsilon;
+
+              set x0 = 2;
+
+              L415: x0 in Seg n by B500;
+
+              L420: x0 in dom a0 by L200,B500;
+
+              reconsider x0 as Nat;
+
+              x0 = 2 * 1;
+              then y = a0 . x0 by L415,L210,L430;
+              hence ex x being object st x in dom a0 & y = a0 . x by L420;
+            end;
+          end;
+
+          given x0 being object such that
+          L440: x0 in dom a0 and
+          L442: y = a0 . x0;
+
+          reconsider x0 as Nat by L440;
+
+          per cases;
+          suppose x0 is odd;
+            P[x0, a0 . x0] by L440,L200,L210;
+            hence y in {2 * epsilon, 1 - epsilon} by L442,TARSKI:def 2;
+          end;
+          suppose x0 is even;
+            P[x0, a0 . x0] by L440,L200,L210;
+            hence y in {2 * epsilon, 1 - epsilon} by L442,TARSKI:def 2;
+          end;
+        end;
+        then L480: rng a0 = {2 * epsilon, 1 - epsilon} by FUNCT_1:def 3;
+
+        for r being Real st r in rng a0 holds 0 < r
+        proof
+          let r be Real;
+
+          assume r in rng a0;
+          then per cases by L480,TARSKI:def 2;
+          suppose L490: r = 2 * epsilon;
+            0 / (n + 1) < 1 / (n + 1) by XREAL_1:74;
+            then 0 * 2 < epsilon * 2 by XREAL_1:68;
+            hence thesis by L490;
+          end;
+          suppose L495: r = 1 - epsilon;
+            1 < (n + 1) * 1 by L010,NF992,NAT_1:13;
+            then 1 / (n + 1) < 1 by XREAL_1:83;
+            hence thesis by XREAL_1:50,L495;
+          end;
+        end;
+        hence a0 is positive by PARTFUN3:def 1;
+      end;
+    end;
+
+    for i being Nat st 1 <= i & i <= len a0 holds a0 . i <= 1
+    proof
+      let i be Nat;
+
+      assume 1 <= i & i <= len a0;
+      then L510: i in Seg n by FINSEQ_3:25,L200;
+
+      per cases;
+      suppose i is odd;
+        then L530: a0 . i = 2 * epsilon by L510,L210;
+        1 + 1 <= n + 1 by L010,NF992,XREAL_1:6;
+        then (2 * 1) / (n + 1) <= 1 by XREAL_1:183;
+        hence a0 . i <= 1 by XCMPLX_1:74,L530;
+      end;
+      suppose L560: i is even;
+        1 - 1 / (n + 1) <= 1 - 0 by XREAL_1:10;
+        hence a0 . i <= 1 by L510,L560,L210;
+      end;
+    end;
+    then a0 is at_most_one; then
+
+    reconsider a0 as non empty positive at_most_one FinSequence of REAL
+    by L500;
+
+    take a0;
+
+    L649: Seg len a0 = Seg n by FINSEQ_1:def 3,L200;
+    hence len a0 = n by FINSEQ_1:6;
+
+    let f be non empty FinSequence of NAT;
+
+    assume f = OnlinePacking(a0, NextFit(a0));
+
+    hence n = card rng f by L010,L649,FINSEQ_1:6,L210,NF993;
+
+    thus n = 2 * Opt a0 - 1 by L010,L649,FINSEQ_1:6,L210,NF997;
+  end;

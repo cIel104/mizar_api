@@ -1,0 +1,1105 @@
+:: Grothendieck Universes
+::  by Karol P\kak
+:: 
+:: Received May 31, 2020
+:: Copyright (c) 2020-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FUNCT_1, RELAT_1, SETFAM_1, XBOOLE_0, SUBSET_1, TARSKI, ZFMISC_1,
+      NAT_1, CARD_1, ORDINAL1, CLASSES1, CARD_3, CLASSES2, CLASSES3, WELLORD1,
+      FINSET_1, NUMBERS, XXREAL_0, ARYTM_3, ARYTM_1, MEMBERED, ROUGHS_4;
+ notations TARSKI, XBOOLE_0, SUBSET_1, SETFAM_1, RELAT_1, FUNCT_1, ORDINAL1,
+      CARD_1, NUMBERS, CLASSES1, CARD_3, CLASSES2, XCMPLX_0, NAT_1, WELLORD1,
+      FINSET_1, MEMBERED, XXREAL_0, XXREAL_2;
+ constructors WELLORD2, CLASSES1, CARD_3, NUMBERS, WELLORD1, NAT_1, ORDINAL6,
+      XXREAL_2;
+ registrations XBOOLE_0, FUNCT_1, ORDINAL1, RELAT_1, SUBSET_1, CARD_1, CARD_3,
+      CLASSES1, CLASSES2, FINSET_1, XCMPLX_0, ORDINAL6, ZFMISC_1, XXREAL_0,
+      MEMBERED, XXREAL_2;
+ requirements SUBSET, BOOLE, NUMERALS, ARITHM;
+ definitions XBOOLE_0, ORDINAL1, CLASSES1, TARSKI, FUNCT_1;
+ expansions TARSKI, ORDINAL1, CLASSES1, XBOOLE_0;
+ theorems TARSKI, ZFMISC_1, SETFAM_1, CLASSES1, CLASSES2, XBOOLE_1, XBOOLE_0,
+      CARD_1, ORDINAL1, RELAT_1, FUNCT_1, CARD_3, CARD_5, WELLORD2, XXREAL_2,
+      WELLORD1, ORDINAL2, CARD_4, FINSET_1, MEMBERED, NAT_1;
+ schemes XFAMILY, FUNCT_1, ORDINAL1, CLASSES1, ORDINAL2, NAT_1;
+
+begin :: Grothendieck Universes Axioms
+
+:: The material is an extension of the formalization used in
+:: Chad E. Brown, Karol Pak,
+:: A Tale of Two Set Theories, Intelligent Computer Mathematics
+:: In C. Kaliszyk and E. Brady and A. Kohlhase and C. Sacerdoti Coen editors,
+:: Intelligent Computer Mathematics - 12th International Conference, CICM 2019,
+:: Proceedings, Vol 11617 of LNCS, pages 44-60. Springer, 2019.
+
+reserve X,Y,Z for set,
+        x,y,z for object,
+        A,B,C for Ordinal;
+
+definition
+  let X;
+  attr X is power-closed means :Def1:
+    Y in X implies bool Y in X;
+end;
+
+definition
+  let X;
+  attr X is union-closed means :Def2:
+    Y in X implies union Y in X;
+end;
+
+definition
+  let X;
+  attr X is FamUnion-closed means :Def3:
+    for Y for f being Function st
+      dom f = Y & rng f c= X & Y in X
+    holds union rng f in X;
+end;
+
+registration
+  cluster Tarski -> power-closed subset-closed for set;
+  coherence;
+end;
+
+registration
+  cluster epsilon-transitive Tarski -> union-closed FamUnion-closed
+     for set;
+  coherence
+  proof
+    let X such that
+A1: X is epsilon-transitive Tarski;
+    thus X is union-closed by A1,CLASSES2:59;
+    let Y;
+    let f be Function such that
+A2: dom f = Y & rng f c= X & Y in X;
+    reconsider X as Universe by A1,A2;
+    not Y,X are_equipotent & card Y in card X by A2,CLASSES2:1;
+    then card rng f in card X by A2,ORDINAL1:12,CARD_1:12;
+    then
+A3: card rng f<>card X;
+    rng f,X are_equipotent or rng f in X by A2,CLASSES1:def 2;
+    hence thesis by A3,CARD_1:5,CLASSES2:59;
+  end;
+end;
+
+registration
+  cluster epsilon-transitive FamUnion-closed -> union-closed for set;
+  coherence
+  proof
+    let X be set such that
+A1: X is epsilon-transitive FamUnion-closed;
+    let A be set such that
+A2: A in X;
+    dom id A = A & rng id A = A c= X by A1,A2;
+    hence thesis by A1,A2;
+  end;
+end;
+
+registration
+  cluster epsilon-transitive power-closed -> subset-closed for set;
+  coherence
+  proof
+    let X be set such that
+A1: X is epsilon-transitive power-closed;
+    let A,B be set such that
+A2: A in X & B c= A;
+    B in bool A c= X by A1,A2;
+    hence thesis;
+  end;
+end;
+
+definition
+  mode Grothendieck is epsilon-transitive power-closed FamUnion-closed set;
+end;
+
+begin :: Grothendieck Universe Operator
+
+definition
+  let X be set;
+  mode Grothendieck of X -> Grothendieck means :Def4:
+    X in it;
+  existence
+  proof
+    set R = the_transitive-closure_of {X};
+    take T = Tarski-Class R;
+A1: union T c= T by CLASSES1:48;
+    X in {X} & {X} c= R by CLASSES1:52,TARSKI:def 1;
+    then X in R & R in T by CLASSES1:2;
+    then X in union T by TARSKI:def 4;
+    hence thesis by A1;
+  end;
+end;
+
+registration
+  let G1,G2 be Grothendieck;
+  cluster G1/\G2 -> epsilon-transitive power-closed FamUnion-closed;
+  coherence
+  proof
+    thus G1 /\G2 is epsilon-transitive by CLASSES1:50;
+    hereby
+      let X be set such that
+A1:   X in G1/\G2;
+A2:   G1 is power-closed & G2 is power-closed;
+      X in G1 & X in G2 by A1,XBOOLE_0:def 4;
+      then bool X in G1 & bool X in G2 by A2;
+      hence bool X in G1 /\G2 by XBOOLE_0:def 4;
+    end;
+    let X;
+    let f be Function such that
+A3: dom f= X & rng f c= G1/\G2 & X in G1/\G2;
+    rng f c= G1 & X in G1 by A3,XBOOLE_0:def 4;
+    then
+A4: union rng f in G1 by A3,Def3;
+    rng f c= G2 & X in G2 by A3,XBOOLE_0:def 4;
+    then union rng f in G2 by A3,Def3;
+    hence thesis by A4,XBOOLE_0:def 4;
+  end;
+end;
+
+theorem Th1:
+  for G1,G2 being Grothendieck of X holds G1/\G2 is Grothendieck of X
+proof
+  let G1,G2 be Grothendieck of X;
+  X in G1 & X in G2 by Def4;
+  hence X in G1 /\ G2 by XBOOLE_0:def 4;
+end;
+
+definition
+  let X be set;
+  func GrothendieckUniverse X -> Grothendieck of X means :GDef:
+    for G being Grothendieck of X holds it c= G;
+  existence
+  proof
+    set g=the Grothendieck of X;
+    defpred g[set] means $1 is Grothendieck of X;
+    consider Gclasses be set such that
+A1: Y in Gclasses iff Y in bool g & g[Y] from XFAMILY:sch 1;
+A2: g in bool g by ZFMISC_1:def 1;
+    then reconsider Gclasses as non empty set by A1;
+    set M = meet Gclasses;
+A3: M is epsilon-transitive
+    proof
+      let Y such that
+A4:   Y in M;
+      for Z st Z in Gclasses holds Y c= Z
+      proof
+        let Z;
+        assume Z in Gclasses;
+        then Y in Z & Z is epsilon-transitive by SETFAM_1:def 1,A4,A1;
+        hence Y c= Z;
+      end;
+      hence Y c= M by SETFAM_1:5;
+    end;
+A5: M is power-closed
+    proof
+      let Z such that
+A6:   Z in M;
+      for Y st Y in Gclasses holds bool Z in Y
+      proof
+        let Y;
+        assume Y in Gclasses;
+        then Z in Y & Y is power-closed by A1,A6,SETFAM_1:def 1;
+        hence bool Z in Y;
+      end;
+      hence bool Z in M by SETFAM_1:def 1;
+    end;
+    M is FamUnion-closed
+    proof
+      let Z;
+      let f be Function such that
+A7:   dom f= Z & rng f c= M & Z in M;
+      for Y st Y in Gclasses holds union rng f in Y
+      proof
+        let Y such that
+A8:     Y in Gclasses;
+A9:     Z in Y & Y is FamUnion-closed by A8,A1,A7,SETFAM_1:def 1;
+        rng f c= M & M c= Y by A8,A7,SETFAM_1:7;
+        then rng f c= Y;
+        hence union rng f in Y by A7,A9;
+      end;
+      hence union rng f in M by SETFAM_1:def 1;
+    end;
+    then reconsider M as Grothendieck by A3,A5;
+    M is Grothendieck of X
+    proof
+      now
+        let Y;
+        assume Y in Gclasses;
+        then Y is Grothendieck of X by A1;
+        hence X in Y by Def4;
+      end;
+      hence X in M by SETFAM_1:def 1;
+    end;
+    then reconsider M as Grothendieck of X;
+    take M;
+    let G1 be Grothendieck of X;
+    A10: M /\ G1 is Grothendieck of X by Th1;
+    M/\G1 c= M c= g by SETFAM_1:3,A2,A1,XBOOLE_1:17;
+    then A11: M/\G1 c= g & M/\G1 c= G1 by XBOOLE_1:17;
+    then M c= M/\G1 by A10,A1,SETFAM_1:3;
+    hence thesis by A11;
+  end;
+  uniqueness;
+end;
+
+scheme ClosedUnderReplacement
+  {X()-> set, U() -> Grothendieck of X(),F(set) -> set}:
+    {F(x) where x is Element of X(): x in X()} in U()
+  provided
+A1: Y in X() implies F(Y) in U()
+proof
+A2: U() is epsilon-transitive power-closed FamUnion-closed;
+  deffunc S(set)={F($1)};
+  consider s be Function such that
+A3:dom s = X() & for X st X in X() holds s.X=S(X) from FUNCT_1:sch 5;
+  rng s c= U()
+  proof
+    let y;
+    assume y in rng s;
+    then consider x such that
+A4: x in dom s & s.x=y by FUNCT_1:def 3;
+    reconsider x as set by TARSKI:1;
+    bool (F(x)) in U() by A2,A1,A4,A3;
+    then
+A5: bool bool (F(x)) c= U() by A2;
+    S(x) c= bool (F(x)) by ZFMISC_1:68;
+    then S(x) in bool bool (F(x));
+    then y in bool bool (F(x)) by A4,A3;
+    hence thesis by A5;
+  end;
+  then
+A6: union rng s in U() by A3,A2,Def4;
+  set FX={F(x) where x is Element of X(): x in X()};
+A7: Union s c= FX
+  proof
+    let y;
+    assume y in Union s;
+    then consider x such that
+A8: x in dom s & y in s.x by CARD_5:2;
+    reconsider x as set by TARSKI:1;
+    s.x = S(x) by A8,A3;
+    then y = F(x) by A8,TARSKI:def 1;
+    hence thesis by A8,A3;
+  end;
+  FX c= Union s
+  proof
+    let fx be object;
+    assume fx in FX;
+    then consider x be Element of X() such that
+A9: fx=F(x) & x in X();
+    fx in S(x) = s.x by A9,A3,TARSKI:def 1;
+    hence thesis by A9,A3,CARD_5:2;
+  end;
+  then FX=Union s by A7;
+  hence thesis by CARD_3:def 4,A6;
+end;
+
+reserve U for Grothendieck;
+
+theorem Th2:
+  for f be Function st dom f in U & rng f c= U holds rng f in U
+proof
+  let f be Function such that
+A1: dom f in U & rng f c= U;
+  set A=dom f;
+A2: U is epsilon-transitive power-closed FamUnion-closed;
+  deffunc S(set)={f.$1};
+  consider s be Function such that
+A3:dom s = A & for X st X in A holds s.X=S(X) from FUNCT_1:sch 5;
+  rng s c= U
+  proof
+    let y; assume y in rng s;
+    then consider x such that
+A4: x in dom s & s.x=y by FUNCT_1:def 3;
+    reconsider x as set by TARSKI:1;
+    f.x in rng f by A4,A3,FUNCT_1:def 3;
+    then bool (f.x) in U by A1,A2;
+    then
+A5: bool bool (f.x) c= U by A2;
+    S(x) c= bool (f.x) by ZFMISC_1:68;
+    then S(x) in bool bool (f.x);
+    then y in bool bool (f.x) by A4,A3;
+    hence thesis by A5;
+  end;
+  then
+A6: union rng s in U by A3,A1,A2;
+A7: Union s c= rng f
+  proof
+    let y;
+    assume y in Union s;
+    then consider x such that
+A8: x in dom s & y in s.x by CARD_5:2;
+    reconsider x as set by TARSKI:1;
+    s.x = S(x) by A8,A3;
+    then y = f.x by A8,TARSKI:def 1;
+    hence thesis by A8, A3,FUNCT_1:def 3;
+  end;
+  rng f c= Union s
+  proof
+    let fx be object;
+    assume fx in rng f;
+    then consider x such that
+A9:   x in dom f & f.x=fx by FUNCT_1:def 3;
+    reconsider x as set by A9;
+    fx in S(x) = s.x by A9,A3,TARSKI:def 1;
+    hence thesis by A9,A3,CARD_5:2;
+  end;
+  then rng f=Union s by A7;
+  hence thesis by CARD_3:def 4,A6;
+end;
+
+begin :: Set of All Sets Up To Given Rank
+
+definition
+  let x be object;
+  func Rrank x -> epsilon-transitive set equals
+    Rank the_rank_of x;
+  coherence;
+end;
+
+theorem Th3:
+  X in Rank A iff ex B st B in A & X in bool Rank B
+proof
+  thus X in Rank A implies ex B st B in A & X in bool Rank B
+  proof
+    assume
+A1: X in Rank A;
+    per cases;
+    suppose
+      A is limit_ordinal;
+      then consider B such that
+A3:   B in A & X in Rank B by A1,CLASSES1:29,CLASSES1:31;
+      take B;
+      B c= B\/{B} by XBOOLE_1:7;
+      then B c= succ B by ORDINAL1:def 1;
+      then Rank B c= Rank succ B by CLASSES1:37;
+      then X in Rank succ B by A3;
+      hence thesis by A3,CLASSES1:30;
+    end;
+    suppose not A is limit_ordinal;
+      then consider B be Ordinal such that
+A4:     A= succ B by ORDINAL1:29;
+      take B;
+      thus thesis by A1,A4,ORDINAL1:6,CLASSES1:30;
+    end;
+  end;
+  thus thesis by CLASSES1:36,41;
+end;
+
+theorem Th4:
+     Y in Rrank X iff ex Z st Z in X & Y in bool Rrank Z
+proof
+  thus Y in Rrank X implies
+    ex Z st Z in X & Y in bool Rrank Z
+  proof
+    assume Y in Rrank X;
+    then consider B be Ordinal such that
+A1:   B in the_rank_of X & Y in bool Rank B by Th3;
+    consider a be set such that
+A2:   a in X & B c= the_rank_of a by A1,CLASSES1:70;
+    Rank B c= Rrank a by A2,CLASSES1:37;
+    then Y c= Rrank a by A1;
+    hence thesis by A2;
+  end;
+  given Z be set such that
+A3: Z in X & Y in bool Rrank Z;
+  succ the_rank_of Z c= the_rank_of X by A3,CLASSES1:68,ORDINAL1:21;
+  then
+A4: Rank succ the_rank_of Z c= Rrank X by CLASSES1:37;
+  Y in Rank succ the_rank_of Z by A3,CLASSES1:30;
+  hence thesis by A4;
+end;
+
+theorem :: Theorem 2 (1)
+  x in X & y in Rrank x implies y in Rrank X
+proof
+  assume
+A1: x in X & y in Rrank x;
+  reconsider x,y as set by TARSKI:1;
+  the_rank_of x in the_rank_of X by A1,CLASSES1:68;
+  then Rrank x c= Rrank X by ORDINAL1:def 2,CLASSES1:36;
+  hence thesis by A1;
+end;
+
+theorem :: Theorem 2 (2)
+  Y in Rrank X implies ex x st x in X & Y c= Rrank x
+proof
+  assume Y in Rrank X;
+  then ex Z st Z in X & Y in bool Rrank Z by Th4;
+  hence thesis;
+end;
+
+theorem  :: Theorem 2 (3)
+  X c= Rrank X by CLASSES1:def 9;
+
+theorem :: Theorem 2 (4)
+  X c= Rrank Y implies Rrank X c= Rrank Y
+proof
+  assume X c= Rrank Y;
+  then the_rank_of X c= the_rank_of Y by CLASSES1:65;
+  hence thesis by CLASSES1:37;
+end;
+
+theorem :: Theorem 2 (5)
+  X in Rrank Y implies Rrank X in Rrank Y
+proof
+  assume X in Rrank Y;
+  then the_rank_of X in the_rank_of Y by CLASSES1:66;
+  hence thesis by CLASSES1:36;
+end;
+
+theorem :: Theorem 2 (6)
+  X in Rrank Y or Rrank Y c= Rrank X
+proof
+  assume not X in Rrank Y;
+  then not the_rank_of X in the_rank_of Y by CLASSES1:66;
+  hence thesis by CLASSES1:37,ORDINAL1:16;
+end;
+
+theorem :: Theorem 2 (7)
+  Rrank X in Rrank Y or Rrank Y c= Rrank X
+proof
+  assume not Rrank X in Rrank Y;
+  then not the_rank_of X in the_rank_of Y by CLASSES1:36;
+  hence thesis by CLASSES1:37,ORDINAL1:16;
+end;
+
+theorem
+   X in U & X,A are_equipotent implies A in U
+proof
+  defpred P[Ordinal] means for X st X,$1 are_equipotent & X in U holds $1 in U;
+A1:for A be Ordinal st
+    for C be Ordinal st C in A holds P[C] holds P[A]
+  proof
+    let A be Ordinal such that
+A2:   for C be Ordinal st C in A holds P[C];
+    let S be set such that
+A3:   S,A are_equipotent & S in U;
+    consider f be Function such that
+A4:   f is one-to-one & dom f = S & rng f = A by A3,WELLORD2:def 4;
+    rng f c= U
+    proof
+      let y such that
+A5:     y in rng f;
+      reconsider B=y as Ordinal by A5,A4;
+A6:     B|` f is one-to-one by A4,FUNCT_1:58;
+A7:     rng (B|`f) = B by A4,RELAT_1:89,A5,ORDINAL1:def 2;
+      dom(B|`f) in U by A3,A4,CLASSES1:def 1,RELAT_1:186;
+      hence thesis by A7,A6,WELLORD2:def 4,A5,A4,A2;
+    end;
+    hence A in U by A4,A3,Th2;
+  end;
+  for O be Ordinal holds P[O] from ORDINAL1:sch 2(A1);
+  hence thesis;
+end;
+
+theorem Th13:
+  X in Y in U implies X in U
+proof
+  assume X in Y in U;
+  then union Y in U & X c= union Y by Def2,ZFMISC_1:74;
+  hence thesis by CLASSES1:def 1;
+end;
+
+theorem Th14: :: Theorem 3
+  X in U implies Rrank X in U
+proof
+  defpred P[Ordinal] means for A be set st (the_rank_of A) in $1
+     & A in U holds Rrank A in U;
+A1:  for A st for C st C in A holds P[C] holds P[A]
+  proof
+    let A such that
+A2:   for C st C in A holds P[C];
+    let S be set such that
+A3: the_rank_of S in A & S in U;
+    deffunc V(object) = bool Rrank $1;
+    consider v be Function such that
+A4: dom v = S & for x be object st x in S holds v.x = V(x)
+      from FUNCT_1:sch 3;
+A5:   rng v c= U
+    proof
+      let y such that
+A6:   y in rng v;
+      consider x such that
+A7:   x in dom v & v.x = y by A6,FUNCT_1:def 3;
+      succ the_rank_of x c= the_rank_of S by ORDINAL1:21,A7,A4,CLASSES1:68;
+      then
+A8:   for S be set st (the_rank_of S) in succ the_rank_of x & S in U
+        holds Rrank S in U by A2,A3;
+A9:   x in U by A3,Th13,A7,A4;
+      Rrank x in U by A8,A9,ORDINAL1:6;
+      then bool Rrank x in U by Def1;
+      hence thesis by A7,A4;
+    end;
+A10: union rng v c= Rrank S
+    proof
+      let a be object;
+      assume a in union rng v;
+      then consider b be set such that
+A11:  a in b & b in rng v by TARSKI:def 4;
+      consider x be object such that
+A12:  x in dom v & v.x= b by A11,FUNCT_1:def 3;
+      reconsider a,b,x as set by TARSKI:1;
+      b = bool Rrank x by A12,A4;
+      hence thesis by A11,A12,A4,Th4;
+    end;
+    Rrank S c= union rng v
+    proof
+      let x be object;
+      assume x in Rrank S;
+      then consider a be set such that
+A13:  a in S & x in bool Rrank a by Th4;
+      v.a = bool Rrank a & v.a in rng v by A13,A4,FUNCT_1:def 3;
+      hence thesis by A13,TARSKI:def 4;
+    end;
+    then
+    union rng v = Rrank S by A10;
+    hence Rrank S in U by A5,A4,A3,Def3;
+  end;
+A14: for O be Ordinal holds P[O] from ORDINAL1:sch 2(A1);
+  (the_rank_of X) in succ (the_rank_of X) by ORDINAL1:6;
+  hence thesis by A14;
+end;
+
+theorem
+  A in U implies Rank A in U
+proof
+  defpred P[Ordinal] means $1 in U implies Rank $1 in U;
+A1:for A st for C st C in A holds P[C] holds P[A]
+  proof
+    let A such that
+A2: for C st C in A holds P[C];
+    assume
+A3: A in U;
+    deffunc BR(Ordinal)=bool Rank $1;
+    consider br be Sequence such that
+A4:   dom br = A & for O be Ordinal st O in A holds br.O =BR(O)
+      from ORDINAL2:sch 2;
+A5: rng br c= U
+    proof
+      let y be object;
+      assume y in rng br;
+      then consider B be object such that
+A6:     B in dom br & br.B = y by FUNCT_1:def 3;
+      reconsider B as Ordinal by A6;
+      B in U by A6,A4,A3,Th13;
+      then bool Rank B in U & br.B = bool Rank B by A2,A4,A6,Def1;
+      hence thesis by A6;
+    end;
+A7: union rng br c= Rank A
+    proof
+      let z;
+      assume z in union rng br;
+      then consider y be set such that
+A8:   z in y & y in rng br by TARSKI:def 4;
+      consider B be object such that
+A9:   B in dom br & br.B = y by A8,FUNCT_1:def 3;
+      reconsider B as Ordinal by A9;
+      br.B = bool Rank B by A4,A9;
+      hence thesis by A8,A9,A4,Th3;
+    end;
+    Rank A c= union rng br
+    proof
+      let x such that
+A10:  x in Rank A;
+      reconsider X=x as set by TARSKI:1;
+      consider B such that
+A11:  B in A & X in bool Rank B by A10,Th3;
+A12:  br.B in rng br by A11,A4,FUNCT_1:def 3;
+      br.B = bool Rank B by A11,A4;
+      hence thesis by A11,A12,TARSKI:def 4;
+    end;
+    then Rank A = union rng br by A7;
+    hence thesis by A5,Def3,A4,A3;
+  end;
+  for O be Ordinal holds P[O] from ORDINAL1:sch 2(A1);
+  hence thesis;
+end;
+
+begin :: Tarski vs. Grothendieck Universe
+
+theorem Th16:  :: Main Lemma 1
+  for X st X c= U & not X in U
+  ex f be Function st f is one-to-one & dom f = On U & rng f = X
+proof
+   let X such that
+A1:X c= U & not X in U;
+   for x be set st x in On U holds x is Ordinal & x c= On U
+   proof
+     let x be set;
+     assume
+A2:  x in On U;
+     then x in U & x is Ordinal by ORDINAL1:def 9;
+     then x c= U by ORDINAL1:def 2;
+     hence thesis by A2,ORDINAL1:def 9;
+   end;
+   then On U is epsilon-transitive epsilon-connected by ORDINAL1:19;
+   then reconsider Lambda=On U as Ordinal;
+   ex THE be Function st for x be set st {} <> x c= X holds THE.x in x
+   proof
+     consider V be Relation such that
+A3:    V well_orders X by WELLORD2:17;
+     defpred The[object,object] means for A be set st A = $1 holds
+     $2 in A & for b be object st b in A holds [$2,b] in V;
+A4:    for x st x in (bool X)\{{}} ex u be object st The[x,u]
+     proof
+       let x such that
+A5:    x in (bool X)\{{}};
+       reconsider y=x as set by TARSKI:1;
+       consider a be object such that
+A6:    a in y and
+A7:    for b be object st b in y holds [a,b] in V
+         by A3,WELLORD1:5,A5,ZFMISC_1:56;
+       take a;
+       thus thesis by A6,A7;
+     end;
+     consider THE be Function such that
+     dom THE = (bool X)\{{}} and
+A8:  for e be object st e in (bool X)\{{}} holds The[e,THE.e]
+         from CLASSES1:sch 1(A4);
+     take THE;
+     let x be set;
+     assume {}<>x c= X;
+     then x in (bool X)\{{}} by ZFMISC_1:56;
+     hence thesis by A8;
+   end;
+   then consider THE be Function such that
+A9:  for x be set st {} <> x c= X holds THE.x in x;
+   deffunc ranks(set) = {the_rank_of x where x is Element of $1:x in $1};
+A10: for A be set, x be object holds
+   x in ranks(A) iff ex a be set st a in A & x = the_rank_of a
+   proof
+     let A be set, x be object;
+     thus x in ranks(A) implies ex a be set st a in A & x = the_rank_of a
+     proof
+       assume x in ranks(A);
+       then consider a be Element of A such that
+A11:   x = the_rank_of a & a in A;
+       take a;
+       thus thesis by A11;
+     end;
+     assume ex a be set st a in A & x = the_rank_of a;
+     hence thesis;
+   end;
+   defpred Q[set,object] means
+      $2 in X \ $1 &
+      for B be Ordinal st B in ranks(X\$1) holds the_rank_of $2 c= B;
+   deffunc F(Sequence) = THE. {x where x is Element of X: Q[rng $1,x]};
+   consider f be Sequence such that
+A12: dom f = Lambda and
+A13: for A be Ordinal,L be Sequence st
+   A in Lambda & L = f|A holds f.A = F(L) from ORDINAL1:sch 4;
+A14: for A be Ordinal st A in Lambda holds Q[rng (f|A), f.A]
+   proof
+     let A be Ordinal such that
+A15: A in Lambda;
+A16: A in U by A15,ORDINAL1:def 9;
+A17: dom (f|A) = A by A12,RELAT_1:62,A15,ORDINAL1:def 2;
+A18: f.A = F(f|A) by A15,A13;
+     set II= {x where x is Element of X: Q[rng (f|A),x]};
+     II c= X
+     proof
+       let i be object;
+       assume i in II;
+       then ex x be Element of X st i=x & Q[rng (f|A),x];
+       hence thesis;
+     end;
+     then reconsider II as Subset of X;
+     defpred P[Ordinal] means ex a be set st a in X\rng (f|A) &
+       $1 = the_rank_of a;
+A19: ex O be Ordinal st P[O]
+     proof
+       assume
+A20:   for O be Ordinal holds not P[O];
+A21:   X\rng (f|A)={}
+       proof
+         assume X\rng (f|A)<>{};
+         then consider a be object such that
+A22:     a in X\rng (f|A) by XBOOLE_0:def 1;
+         P[the_rank_of a] by A22;
+         hence contradiction by A20;
+       end;
+A23:   dom ( X |` (f|A)) in U by A17,A16,CLASSES1:def 1,FUNCT_1:56;
+       rng ( X |` (f|A)) = X by A21,XBOOLE_1:37,RELAT_1:89;
+       hence contradiction by A1,Th2,A23;
+     end;
+     consider Min be Ordinal such that
+A24:   P[Min] & for O be Ordinal st P[O] holds Min c= O
+       from ORDINAL1:sch 1(A19);
+     consider t be set such that
+A25:   t in X\rng (f|A) & Min = the_rank_of t by A24;
+     for B be Ordinal st B in ranks(X\rng (f|A)) holds the_rank_of t c= B
+     proof
+       let B be Ordinal such that
+A26:   B in ranks(X\rng (f|A));
+       ex a be set st a in X\rng (f|A) & B=the_rank_of a by A10,A26;
+       hence thesis by A24,A25;
+     end;
+     then t in II by A25;
+     then THE.II in II by A9;
+     then ex x be Element of X st x = THE.II & Q[rng (f|A),x];
+     hence Q[rng (f|A),f.A] by A18;
+   end;
+A27: f is one-to-one
+   proof
+     let x1,x2 be object such that
+A28: x1 in dom f & x2 in dom f & f.x1 = f.x2;
+     assume
+A29: x1<>x2;
+     reconsider x1,x2 as Ordinal by A28;
+A30: f.x1 in X\rng (f|x1) & f.x2 in X\rng (f|x2) by A14,A28,A12;
+     per cases by A28,ORDINAL1:def 3,A29;
+     suppose x1 in x2;
+       then x1 in dom (f|x2) & f.x1 = (f|x2).x1 by A28,RELAT_1:57,FUNCT_1:49;
+       then f.x1 in rng (f|x2) by FUNCT_1:def 3;
+       hence contradiction by A30,XBOOLE_0:def 5,A28;
+     end;
+     suppose x2 in x1;
+       then x2 in dom (f|x1) & f.x2 = (f|x1).x2 by A28,RELAT_1:57,FUNCT_1:49;
+       then f.x2 in rng (f|x1) by FUNCT_1:def 3;
+       hence contradiction by A30,XBOOLE_0:def 5,A28;
+     end;
+   end;
+A31: rng f c= X
+   proof
+     let y such that
+A32: y in rng f;
+     consider A be object such that
+A33: A in dom f & f.A =y by A32,FUNCT_1:def 3;
+     reconsider A as Ordinal by A33;
+     Q[rng (f|A), f.A] by A12,A14,A33;
+     hence thesis by A33;
+   end;
+A34: X c= rng f
+   proof
+     let x such that
+A35: x in X;
+     assume
+A36: not x in rng f;
+     Rrank x in U by A1,A35,Th14;
+     then
+A37: bool Rrank x in U by Def1;
+     rng f c= bool Rrank x
+     proof
+       let y be object such that
+A38:   y in rng f;
+       consider A be object such that
+A39:   A in dom f & f.A = y by A38,FUNCT_1:def 3;
+       reconsider A as Ordinal by A39;
+       rng (f|A) c= rng f by RELAT_1:70;
+       then not x in rng (f|A) by A36;
+       then x in X\rng(f|A) by A35,XBOOLE_0:def 5;
+       then the_rank_of x in ranks(X\rng (f|A));
+       then the_rank_of (f.A) in  succ the_rank_of x
+         by A39,A12,A14,ORDINAL1:22;
+       then
+A40:   Rank succ the_rank_of (f.A) c= Rank succ the_rank_of x
+         by CLASSES1:37,ORDINAL1:21;
+       f.A in Rank succ the_rank_of (f.A) by CLASSES1:def 8;
+       then f.A in Rank succ the_rank_of x by A40;
+       hence thesis by A39, CLASSES1:30;
+     end;
+     then
+A41: rng f in U by A37,CLASSES1:def 1;
+A42: rng (f") = dom f & dom (f") = rng f by A27,FUNCT_1:33;
+     dom f in U by A42,A41,A12,ORDINAL2:7,Th2;
+     then dom f in Lambda by ORDINAL1:def 9;
+     hence thesis by A12;
+   end;
+   take f;
+   thus thesis by A34,A31,A27,A12;
+ end;
+
+theorem Th17: :: Theorem 5
+  for U be Grothendieck holds U is Tarski
+proof
+  let U be Grothendieck;
+  thus U is subset-closed;
+  thus for X be set holds X in U implies bool X in U by Def1;
+  let X be set such that
+A1: X c= U;
+  not X in U implies X,U are_equipotent
+  proof
+    assume not X in U;
+    then consider f be Function such that
+A2: f is one-to-one & dom f = On U & rng f = X by A1,Th16;
+    not U in U;
+    then consider g be Function such that
+A3: g is one-to-one & dom g = On U & rng g = U by Th16;
+    set gf = g*(f");
+    dom (f") = X & rng (f") = On U by A2,FUNCT_1:33;
+    then dom gf = X & rng gf = U by A3,RELAT_1:27,28;
+    hence thesis by A2,A3,WELLORD2:def 4;
+  end;
+  hence thesis;
+end;
+
+registration
+  cluster epsilon-transitive power-closed FamUnion-closed -> universal for set;
+  coherence
+  proof
+    let X be set;
+    assume
+A1: X is epsilon-transitive power-closed FamUnion-closed;
+    then X is Tarski by Th17;
+    hence thesis by A1;
+  end;
+  cluster universal -> epsilon-transitive power-closed FamUnion-closed for set;
+  coherence;
+end;
+
+theorem Th18:
+  for G be Grothendieck of X holds Tarski-Class X c= G
+proof
+  let G be Grothendieck of X;
+  G is_Tarski-Class_of X by Def4;
+  hence thesis by CLASSES1:def 4;
+end;
+
+theorem Th19:
+  for X be infinite set holds not X in Tarski-Class {X}
+proof
+  let A be infinite set;
+  deffunc Bool(set,set) = $2\/bool $2;
+  consider f be Function such that
+A1: dom f = NAT & f.0 = {{A},{}} and
+A2: for n be Nat holds f.(n+1) = Bool(n,f.n) from NAT_1:sch 11;
+  set U = Union f;
+  f.(0+1) = f.0 \/ bool (f.0) & {} c= {{A},{}} by A2;
+  then
+A3: {} in f.1 by A1,XBOOLE_0:def 3;
+  then
+A4: {} in U by A1,CARD_5:2;
+  defpred Min[object,object] means  $1 in f.$2 & $2 in dom f &
+    for i,j be Nat st i < j =$2 holds not $1 in f.i;
+A5: for x be object st x in U ex y be object st Min[x,y]
+  proof
+    let x such that
+A6: x in U;
+    consider k be object such that
+A7: k in dom f & x in f.k by A6,CARD_5:2;
+    reconsider k as Nat by A7,A1;
+    defpred M[Nat] means x in f.$1;
+    M[k] by A7;
+    then
+A8: ex k be Nat st M[k];
+    consider k be Nat such that
+A9: M[k] and
+A10:  for n being Nat st M[n] holds k <= n from NAT_1:sch 5(A8);
+    take k;
+    thus thesis by A10,A9,A1,ORDINAL1:def 12;
+  end;
+  consider Min be Function such that
+A11:dom Min = U & for x be object st x in U holds Min[x,Min.x]
+    from CLASSES1:sch 1(A5);
+A12:U is subset-closed
+  proof
+    let X,Y such that
+A13:  X in U & Y c= X;
+    set x=Min.X;
+A14:  Min[X,x] by A11,A13;
+    then reconsider x as Nat by A1;
+    per cases by NAT_1:3;
+    suppose X=Y;
+      hence thesis by A13;
+    end;
+    suppose x=0 & X<>Y;
+      then X ={A} or X={} by A1,TARSKI:def 2,A14;
+      hence thesis by A4,A13,ZFMISC_1:33;
+    end;
+    suppose x >0;
+      then reconsider x1=x-1 as Element of NAT by NAT_1:20;
+      x1 < x1+1 by NAT_1:13;
+      then
+A15:    not X in f.x1 by A11,A13;
+A16:    f.(x1+1) = f.x1 \/ bool (f.x1) by A2;
+      then X in bool (f.x1) by A14,A15,XBOOLE_0:def 3;
+      then X c= f.x1;
+      then Y c= f.x1 by A13;
+      then Y in f.x by A16,XBOOLE_0:def 3;
+      hence thesis by A14,CARD_5:2;
+    end;
+  end;
+A17: for X st X in U holds bool X in U
+  proof
+    let X such that
+A18:  X in U;
+    set x=Min.X;
+A19:  Min[X,x] by A11,A18;
+    reconsider x as Nat by A19,A1;
+A20:  f.(x+1) = f.x \/ bool (f.x) by A2;
+    per cases by NAT_1:3;
+    suppose
+A21:    x=0;
+      then X ={A} or X= {} by A1,TARSKI:def 2,A19;
+      then bool X c= {{A},{}} by ZFMISC_1:7,ZFMISC_1:24,ZFMISC_1:1;
+      then bool X in f.1 by A20,A21,A1,XBOOLE_0:def 3;
+      hence thesis by A1,CARD_5:2;
+    end;
+    suppose x >0;
+      then reconsider x1=x-1 as Element of NAT by NAT_1:20;
+      x1 < x1+1 by NAT_1:13;
+      then
+A22:  not X in f.x1 by A11,A18;
+A23:  f.(x1+1) = f.x1 \/ bool (f.x1) by A2;
+A24:  f.(x+1) = f.x \/ bool (f.x) by A2;
+      X in bool (f.x1) by A23,A19,A22,XBOOLE_0:def 3;
+      then bool X c= bool (f.x1) by ZFMISC_1:67;
+      then bool X c= f.x by A23,XBOOLE_1:10;
+      then bool X in f.(x+1) by A24,XBOOLE_0:def 3;
+      hence thesis by A1,CARD_5:2;
+    end;
+  end;
+  defpred D[Nat] means f.$1 is finite;
+A25: D[0] by A1;
+A26: for n be Nat st D[n] holds D[n+1]
+  proof
+    let n be Nat such that
+A27:  D[n];
+    f.(n+1) = f.n \/ bool (f.n) by A2;
+    hence thesis by A27;
+  end;
+A28: for n be Nat holds D[n] from NAT_1:sch 2(A25,A26);
+A29: for x be set st x in dom f holds f.x is countable
+  proof
+    let x be set such that
+A30:x in dom f;
+    reconsider x as Nat by A30,A1;
+    D[x] by A28;
+    hence thesis;
+  end;
+  then
+A31:U is countable by CARD_4:11,A1;
+  for X holds X c= U implies X,U are_equipotent or X in U
+  proof
+    let X such that
+A32:  X c= U;
+    per cases;
+    suppose card X = omega or X={};
+      then card U=card X or X={}
+        by A32,CARD_1:11,CARD_3:def 14,A29,CARD_4:11,A1;
+      hence thesis by A3,A1,CARD_5:2,CARD_1:5;
+    end;
+    suppose
+A33:  card X <> omega & X<>{};
+      then card X c< omega by A32,CARD_3:def 14,A31;
+      then card X in omega by ORDINAL1:11;
+      then
+A34:  X is finite;
+      defpred P[object,object] means $1 in f.$2 & $2 in dom f;
+A35:  for x be object st x in X ex u be object st P[x,u]
+      proof
+        let x;assume x in X;
+        then ex n be object st n in dom f & x in f.n by A32,CARD_5:2;
+        hence thesis;
+      end;
+      consider fX be Function such that
+A36:  dom fX = X and
+A37:  for x be object st x in X holds P[x,fX.x] from CLASSES1:sch 1(A35);
+A38:  now let y be object;
+        assume y in rng fX;
+        then ex x be object st x in dom fX & fX.x=y by FUNCT_1:def 3;
+        hence y is natural by A1,A37,A36;
+      end;
+      reconsider RNG=rng fX as finite natural-membered non empty set
+        by A33,RELAT_1:42,A38,MEMBERED:def 6,A36,A34,FINSET_1:8;
+      set m= max RNG;
+      m in omega by ORDINAL1:def 12;then
+      reconsider m as Nat;
+A39:  f.(m+1) = f.m \/ bool (f.m) & m+1 in omega by A2;
+      X c= f.m
+      proof
+        let x be object such that
+A40:    x in X;
+        P[x,fX.x] by A40,A37;
+        then reconsider k=fX.x as Nat by A1;
+        k in rng fX by A40,A36,FUNCT_1:def 3;
+        then
+A41:    k <= m by XXREAL_2:def 8;
+        defpred Q[Nat] means x in f.$1;
+A42:    Q[k] by A40,A37;
+A43:      for i be Nat st k <= i & Q[i] holds Q[i+1]
+        proof
+          let i be Nat such that
+A44:      k <= i & Q[i];
+          f.(i+1) = f.i \/ bool (f.i) by A2;
+          hence thesis by A44,XBOOLE_0:def 3;
+        end;
+        for i be Nat st k <= i holds Q[i] from NAT_1:sch 8(A42,A43);
+        hence thesis by A41;
+      end;
+      then X in f.(m+1) by A39,XBOOLE_0:def 3;
+      hence thesis by A1,CARD_5:2;
+    end;
+  end;
+  then
+A45: U is Tarski by A12,A17;
+  {A} in f.0 & 0 in omega by A1,TARSKI:def 2;
+  then U is_Tarski-Class_of {A} by A45,CARD_5:2,A1;
+  then
+A46: Tarski-Class {A} c= U by CLASSES1:def 4;
+  not A in U
+  proof
+    assume
+A48:  A in U;
+    then
+A49:  Min[A,Min.A] by A11;
+    then reconsider x=Min.A as Nat by A1;
+    per cases by NAT_1:3;
+    suppose x=0;
+      hence thesis by A1,A49;
+    end;
+    suppose x >0;
+      then reconsider x1=x-1 as Element of NAT by NAT_1:20;
+      x1 < x1+1 by NAT_1:13;
+      then
+A50:  not A in f.x1 by A48,A11;
+A51:  f.(x1+1) = f.x1 \/ bool (f.x1) by A2;
+      A in bool (f.x1) by A51,A49,A50,XBOOLE_0:def 3;
+      then A c= f.x1 & f.x1 is finite by A28;
+      hence thesis;
+    end;
+  end;
+  hence thesis by A46;
+end;
+
+theorem
+  for X be infinite set holds
+    Tarski-Class {X} c< GrothendieckUniverse {X}
+proof
+  let X be infinite set;
+  thus Tarski-Class {X} c= GrothendieckUniverse {X} by Th18;
+  GrothendieckUniverse {X} is union-closed;
+  then union {X} in GrothendieckUniverse {X} by Def4;
+  hence thesis by Th19;
+end;
+
+theorem
+  GrothendieckUniverse X is Universe &
+    for U be Universe st X in U holds GrothendieckUniverse X c= U
+proof
+   set G=GrothendieckUniverse X;
+   thus G is Universe by Def4;
+   let U be Universe; assume X in U;
+   then U is Grothendieck of X by Def4;
+   hence thesis by GDef;
+end;
+
+theorem
+  for X be epsilon-transitive set holds
+    Tarski-Class X = GrothendieckUniverse X
+proof
+  let X be epsilon-transitive set;
+  Tarski-Class X is Grothendieck of X by Def4,CLASSES1:2;
+  hence thesis by GDef,Th18;
+end;

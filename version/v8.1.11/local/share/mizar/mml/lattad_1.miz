@@ -1,0 +1,2676 @@
+:: Formalization of Generalized Almost Distributive Lattices
+::  by Adam Grabowski
+::
+:: Received September 26, 2014
+:: Copyright (c) 2014-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies STRUCT_0, XBOOLE_0, ZFMISC_1, SUBSET_1, EQREL_1, PBOOLE,
+      LATTICES, ROBBINS3, LATTAD_1, QUANTAL1, RELAT_1, RELAT_2, PARTFUN1,
+      TARSKI, ORDERS_1, ORDERS_2, WAYBEL_0, XXREAL_0, BINOP_1, FUNCT_1,
+      REALSET1, LATTICE4, FILTER_0;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, STRUCT_0, BINOP_1, RELAT_1,
+      RELAT_2, RELSET_1, PARTFUN1, ORDERS_1, ORDERS_2, LATTICES, ROBBINS3,
+      WAYBEL_0, REALSET1, FUNCT_1, ENUMSET1;
+ constructors BINOP_1, STRUCT_0, LATTICES, ROBBINS3, RELAT_1, RELAT_2,
+      RELSET_1, PARTFUN1, ORDERS_1, ORDERS_2, WAYBEL_0, REALSET1, ENUMSET1;
+ registrations SUBSET_1, STRUCT_0, LATTICES, RELSET_1, RELAT_1, PARTFUN1,
+      ORDERS_2;
+ requirements SUBSET, BOOLE;
+ definitions LATTICES;
+ equalities STRUCT_0, RELAT_1, LATTICES, BINOP_1, REALSET1;
+ expansions STRUCT_0, ROBBINS3, LATTICES;
+ theorems SUBSET_1, LATTICES, ROBBINS3, STRUCT_0, RELAT_2, RELAT_1, RELSET_1,
+      XTUPLE_0, PARTFUN1, XBOOLE_0, PREFER_1, ORDERS_1, WAYBEL_0, ORDERS_2,
+      ZFMISC_1, FUNCT_1, REALSET1, TARSKI, ENUMSET1, BINOP_1;
+ schemes BINOP_1;
+
+begin :: Preliminaries
+
+theorem Ble1:
+  for L being non empty 1-sorted,
+      R being total Relation of the carrier of L holds
+    R is reflexive iff for x being Element of L holds [x,x] in R
+  proof
+    let L be non empty 1-sorted,
+        R be total Relation of the carrier of L;
+    thus R is reflexive implies for x being Element of L holds [x,x] in R
+    proof
+      assume
+A1:   R is reflexive;
+      let x be Element of L;
+A2:   R is_reflexive_in field R by A1,RELAT_2:def 9;
+      dom R = the carrier of L by PARTFUN1:def 2; then
+      x in dom R \/ rng R by XBOOLE_0:def 3;
+      hence thesis by A2,RELAT_2:def 1;
+    end;
+    assume
+B1: for x being Element of L holds [x,x] in R;
+    for x being object st x in field R holds [x,x] in R
+    proof
+      let x be object;
+b2:   field R c= (the carrier of L) \/ the carrier of L by RELSET_1:8;
+      assume x in field R;
+      hence thesis by B1,b2;
+    end;
+    hence thesis by RELAT_2:def 9,RELAT_2:def 1;
+  end;
+
+registration
+  cluster trivial -> distributive for non empty LattStr;
+  coherence;
+end;
+
+begin :: Almost Distributive Lattices
+
+:: Almost Distributive Lattices satisfy:
+:: a "/\" (b "\/" c) = (a "/\" b) "\/" (a "/\" c);
+:: (x \/ y) /\ z = (x /\ z) \/ (y /\ z)
+:: (x \/ y) /\ y = y
+:: (x \/ y) /\ x = x
+:: x \/ (x /\ y) = x (meet-Absorbing)
+
+definition let L be non empty LattStr;
+  attr L is Distributive means :DefD:
+    for x,y,z being Element of L holds
+      (x "\/" y) "/\" z = (x "/\" z) "\/" (y "/\" z);
+  attr L is Meet-absorbing means :DefA1:
+    for x,y being Element of L holds
+      (x "\/" y) "/\" y = y;
+  attr L is Meet-Absorbing means :DefA2:
+    for x,y being Element of L holds
+      (x "\/" y) "/\" x = x;
+end;
+
+registration
+  cluster trivial -> Distributive Meet-absorbing
+    Meet-Absorbing meet-Absorbing for non empty LattStr;
+  coherence;
+  cluster trivial -> Lattice-like for non empty LattStr;
+  coherence
+  proof
+    let L be non empty LattStr;
+    assume L is trivial; then
+    reconsider LL = L as trivial non empty LattStr;
+    LL is meet-absorbing join-absorbing meet-commutative join-commutative
+      meet-associative join-associative by STRUCT_0:def 10;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster trivial for Lattice;
+  existence
+  proof
+    take L = the trivial non empty LattStr;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster Distributive distributive Meet-absorbing
+    Meet-Absorbing meet-Absorbing for non empty LattStr;
+  existence
+  proof
+    take L = the trivial Lattice;
+    thus thesis;
+  end;
+end;
+
+definition
+  mode AD_Lattice is Distributive distributive Meet-absorbing
+    Meet-Absorbing meet-Absorbing non empty LattStr;
+end;
+
+begin :: Properties of Almost Distributive Lattices
+
+ reserve L for AD_Lattice;
+ reserve x,y,z for Element of L;
+
+theorem    :: Lemma 2.3. (1)
+  x "\/" y = x iff x "/\" y = y by DefA1,ROBBINS3:def 3;
+
+theorem ISum:   :: Lemma 2.3. (11)
+  x "\/" x = x
+  proof
+A8: for x,y holds (x "\/" x) "/\" y = x "/\" (y "\/" y)
+    proof
+      let x,y;
+      set z = x;
+      (x "/\" y) "\/" (x "/\" y) = x "/\" (y "\/" y) by LATTICES:def 11;
+      hence thesis by DefD;
+    end;
+A27: x "/\" (x "\/" x) = x
+    proof
+      (x "\/" x) "/\" x = x "/\" (x "\/" x) by A8;
+      hence thesis by DefA1;
+    end;
+A43:for x,y holds (x "\/" y) "/\" (y "\/" y) = y "\/" y
+    proof
+      let x,y;
+      (x "\/" y) "/\" (y "\/" y) =
+         ((x "\/" y) "/\" y) "\/" ((x "\/" y) "/\" y) by LATTICES:def 11
+         .= y "\/" ((x "\/" y) "/\" y) by DefA1
+         .= y "\/" y by DefA1;
+      hence thesis;
+    end;
+A49:(x "\/" x) "\/" (x "\/" x) = x "\/" x
+    proof
+      (x "\/" x) "/\" (x "\/" x)
+       = ((x "\/" x) "/\" x) "\/" ((x "\/" x) "/\" x) by LATTICES:def 11
+      .= x "\/" ((x "\/" x) "/\" x) by DefA1
+      .= x "\/" x by DefA1;
+      hence thesis by ROBBINS3:def 3;
+    end;
+    set R = x "\/" x;
+    x "\/" x = (x "\/" x) "/\" (x "\/" x) by A43
+            .= x by A27,A49,A8;
+    hence thesis;
+  end;
+
+theorem IMeet:   :: Lemma 2.3. (11)
+  x "/\" x = x
+  proof
+    thus x "/\" x = (x "\/" x) "/\" x by ISum
+      .= x by DefA2;
+  end;
+
+theorem LemXX:   :: Lemma 2.3. (9)
+  (x "/\" y) "\/" y = y
+  proof
+    (x "/\" y) "\/" y = (x "/\" y) "\/" (y "/\" y) by IMeet
+                     .= (x "\/" y) "/\" y by DefD
+                     .= y by DefA1;
+    hence thesis;
+  end;
+
+theorem Lem232:   :: Lemma 2.3 (2)
+  x "\/" y = y iff x "/\" y = x
+  proof
+    hereby
+      assume x "\/" y = y; then
+      x "/\" y = (x "/\" x) "\/" (x "/\" y) by LATTICES:def 11
+              .= x "\/" (x "/\" y) by IMeet
+              .= x by ROBBINS3:def 3;
+      hence x "/\" y = x;
+    end;
+    assume x "/\" y = x;
+    hence thesis by LemXX;
+  end;
+
+theorem Ze:   :: Lemma 2.3. (9)
+  x "/\" (x "\/" y) = x
+  proof
+    x "/\" (x "\/" y) = (x "/\" x) "\/" (x "/\" y) by LATTICES:def 11
+      .= x "\/" (x "/\" y) by IMeet
+      .= x by ROBBINS3:def 3;
+    hence thesis;
+  end;
+
+theorem    :: Lemma 2.3. (9)
+  x "\/" (y "/\" x) = x
+  proof
+    x "\/" (y "/\" x) = (x "/\" x) "\/" (y "/\" x) by IMeet
+      .= (x "\/" y) "/\" x by DefD
+      .= x by DefA2;
+    hence thesis;
+  end;
+
+theorem    :: Lemma 2.3. (10)
+  x [= x "\/" y & x "/\" y [= y
+  proof
+    x "/\" (x "\/" y) = x by Ze;
+    hence thesis by LemXX;
+  end;
+
+theorem
+  x [= y iff x "/\" y = x by Lem232;
+
+theorem Lem36c:
+  x "/\" (y "/\" x) = y "/\" x
+  proof
+    for y, x be Element of L holds
+      y "/\" (x "/\" y) = x "/\" y
+    proof
+      let y, x be Element of L;
+      (x "/\" y) "\/" y = y by LemXX;
+      hence thesis by DefA2;
+    end;
+    hence thesis;
+  end;
+
+theorem Th1712: :: Theorem 1.7. (1) <=> (2)
+  (x "/\" y) "\/" x = x iff x "/\" (y "\/" x) = x
+  proof
+    hereby
+      assume
+A1:   (x "/\" y) "\/" x = x;
+      x "/\" (y "\/" x) = (x "/\" y) "\/" (x "/\" x) by LATTICES:def 11
+                       .= x by A1,IMeet;
+      hence x "/\" (y "\/" x) = x;
+    end;
+    assume
+A1: x "/\" (y "\/" x) = x;
+    (x "/\" y) "\/" x = (x "/\" y) "\/" (x "/\" x) by IMeet
+                     .= x "/\" (y "\/" x) by LATTICES:def 11;
+    hence thesis by A1;
+  end;
+
+theorem  :: Theorem 1.7. (3) <=> (4)
+  (y "/\" x) "\/" y = y iff y "/\" (x "\/" y) = y by Th1712;
+
+theorem  :: Theorem 1.7. (1) => (5)
+  (x "/\" y) "\/" x = x implies x "/\" y = y "/\" x
+  proof
+    assume (x "/\" y) "\/" x = x; then
+    y "/\" x = (y "/\" (x "/\" y)) "\/" (y "/\" x) by LATTICES:def 11
+            .= (x "/\" y) "\/" (y "/\" x) by Lem36c
+            .= (x "/\" y) "\/" (x "/\" (y "/\" x)) by Lem36c
+            .= x "/\" (y "\/" (y "/\" x)) by LATTICES:def 11
+            .= x "/\" y by ROBBINS3:def 3;
+    hence thesis;
+  end;
+
+theorem Th1726:  :: Theorem 1.7. (2) => (6)
+  x "/\" (y "\/" x) = x implies x "\/" y = y "\/" x
+  proof
+    assume
+A0: x "/\" (y "\/" x) = x;
+    x "\/" y = (x "/\" (y "\/" x)) "\/" (y "/\" (y "\/" x)) by Ze,A0
+            .= (x "\/" y) "/\" (y "\/" x) by DefD
+            .= ((x "\/" y) "/\" y) "\/" ((x "\/" y) "/\" x) by LATTICES:def 11
+            .= y "\/" ((x "\/" y) "/\" x) by DefA1
+            .= y "\/" x by DefA2;
+    hence thesis;
+  end;
+
+theorem Hehe1:  :: Lemma 2.3. (13)
+  (ex z being Element of L st x [= z & y [= z) implies
+     x "\/" y = y "\/" x
+  proof
+    assume
+A0: ex z being Element of L st x [= z & y [= z;
+    y "/\" (x "\/" y) = y
+    proof
+      consider z being Element of L such that
+A1:   x [= z & y [= z by A0;
+      thus y "/\" (x "\/" y) = (y "/\" x) "\/" (y "/\" y) by LATTICES:def 11
+                       .= (y "/\" x) "\/" y by IMeet
+                       .= (y "/\" x) "\/" (y "/\" z) by A1,Lem232
+                       .= y "/\" (x "\/" z) by LATTICES:def 11
+                       .= y by A1,Lem232;
+    end;
+    hence thesis by Th1726;
+  end;
+
+theorem   :: Lemma 2.3. (3)
+  x [= y implies x "\/" y = y "\/" x
+  proof
+    assume
+A1: x [= y;
+    ex c being Element of L st x [= c & y [= c
+    proof
+      take y;
+      thus thesis by A1,ISum;
+    end;
+    hence thesis by Hehe1;
+  end;
+
+begin :: Generalization of Almost Distributive Lattices
+
+:: A Generalized Almost Distributive Lattice satisfies:
+::
+:: (x /\ y) /\ z = x /\ (y /\ z)
+:: x /\ (y \/ z) = (x /\ y) \/ (x /\ z) (distributive)
+:: x \/ (y /\ z) = (x \/ y) /\ (x \/ z)
+:: x /\ (x \/ y) = x (join-absorbing)
+:: (x \/ y) /\ x = x (Meet-Absorbing)
+:: (x /\ y) \/ y = y (meet-absorbing)
+
+definition let L be non empty LattStr;
+  attr L is left-Distributive means :DefLDS:
+    for x,y,z being Element of L holds
+      x "\/" (y "/\" z) = (x "\/" y) "/\" (x "\/" z);
+  attr L is ADL-absorbing means
+    for x,y being Element of L holds
+      x "/\" (y "\/" x) = x;
+end;
+
+registration
+  cluster trivial -> meet-associative distributive left-Distributive
+    Meet-Absorbing for non empty LattStr;
+  coherence;
+end;
+
+registration
+  cluster meet-associative distributive left-Distributive
+    join-absorbing Meet-Absorbing meet-absorbing
+      for non empty LattStr;
+  existence
+  proof
+    take L = the trivial Lattice;
+    thus thesis;
+  end;
+end;
+
+definition
+  mode GAD_Lattice is meet-associative distributive left-Distributive
+    join-absorbing Meet-Absorbing meet-absorbing non empty LattStr;
+end;
+
+ reserve L for GAD_Lattice;
+ reserve x,y,z for Element of L;
+
+theorem ISum:   :: Lemma 3.4. (I \/)
+  x "\/" x = x
+  proof
+    thus x "\/" x = ((x "\/" x) "/\" x) "\/" x by DefA2
+      .= x by LATTICES:def 8;
+  end;
+
+theorem IMeet:   :: Lemma 3.4. (I /\)
+  x "/\" x = x
+  proof
+    thus x "/\" x = x "/\" (x "\/" x) by ISum
+      .= x by LATTICES:def 9;
+  end;
+
+theorem ThA4:   :: Lemma 3.4. (A4)
+  x "\/" (x "/\" y) = x
+  proof
+    thus x "\/" (x "/\" y) = (x "\/" x) "/\" (x "\/" y) by DefLDS
+       .= x "/\" (x "\/" y) by ISum
+       .= x by LATTICES:def 9;
+  end;
+
+theorem ThA5:   :: Lemma 3.4. (A5)
+  x "\/" (y "/\" x) = x
+  proof
+    thus x "\/" (y "/\" x) = (x "\/" y) "/\" (x "\/" x) by DefLDS
+       .= (x "\/" y) "/\" x by ISum
+       .= x by DefA2;
+  end;
+
+theorem    :: Lemma 3.5. (1)
+  x "/\" y = y implies x "\/" y = x by ThA4;
+
+theorem    :: Lemma 3.5. (2)
+  x "\/" y = y iff x "/\" y = x by LATTICES:def 9,def 8;
+
+begin :: Order Properties of the Generated Relation on GADLs
+
+theorem Idem:
+  x [= x
+  proof
+    x "/\" x = x by IMeet;
+    hence thesis by LATTICES:4;
+  end;
+
+theorem TransLat:
+  x [= y & y [= z implies x [= z
+  proof
+    assume
+A0: x [= y & y [= z; then
+    x "/\" y = x & y "/\" z = y by LATTICES:4; then
+A1: x "/\" (y "/\" z) = x "/\" z by LATTICES:def 7;
+    x "/\" (y "/\" z) = x "/\" y by LATTICES:def 9,A0
+       .= x by A0,LATTICES:4;
+    hence x [= z by LATTICES:4,A1;
+  end;
+
+definition let L be non empty LattStr;
+::: LattRel could be used, if generalized - TODO
+  func LatOrder L -> Relation equals
+    { [a,b] where a,b is Element of L : a [= b };
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in { [p,q] where p is Element of L, q is Element of L :
+        p [= q };
+      then ex p,q being Element of L st x = [p,q] & p [= q;
+      hence ex x1,x2 being object st x = [x1,x2];
+    end;
+    hence thesis by RELAT_1:def 1;
+  end;
+end;
+
+theorem Th32:
+  dom LatOrder L = the carrier of L &
+    rng LatOrder L = the carrier of L &
+    field LatOrder L = the carrier of L
+proof
+  now
+    let x be object;
+    thus x in the carrier of L implies
+    ex y being object st [x,y] in LatOrder L
+    proof
+      assume x in the carrier of L;
+      then reconsider p = x as Element of L;
+      p [= p by Idem; then
+      [p,p] in LatOrder L;
+      hence thesis;
+    end;
+    given y being object such that
+A1: [x,y] in LatOrder L;
+    consider p,q being Element of L such that
+A2: [x,y] = [p,q] and
+    p [= q by A1;
+    x = p by A2,XTUPLE_0:1;
+    hence x in the carrier of L;
+  end;
+  hence
+A3: dom LatOrder L = the carrier of L by XTUPLE_0:def 12;
+T1: now
+    let x be object;
+    thus x in the carrier of L implies
+      ex y being object st [y,x] in LatOrder L
+    proof
+      assume x in the carrier of L;
+      then reconsider p = x as Element of L;
+      p [= p by Idem; then
+      [p,p] in LatOrder L;
+      hence thesis;
+    end;
+    given y being object such that
+A4: [y,x] in LatOrder L;
+    consider p,q being Element of L such that
+A5: [y,x] = [p,q] and
+    p [= q by A4;
+    x = q by A5,XTUPLE_0:1;
+    hence x in the carrier of L;
+  end;
+  hence rng LatOrder L = the carrier of L by XTUPLE_0:def 13;
+  thus field LatOrder L = (the carrier of L) \/ the carrier of L by A3,
+    XTUPLE_0:def 13,T1
+    .= the carrier of L;
+end;
+
+definition let L;
+  redefine func LatOrder L -> Relation of the carrier of L;
+  correctness
+  proof
+    dom LatOrder L = the carrier of L &
+    rng LatOrder L = the carrier of L by Th32;
+    hence thesis by RELSET_1:4;
+  end;
+end;
+
+registration let L;
+  cluster LatOrder L -> total for Relation of the carrier of L;
+  correctness
+  proof
+    set R = LatOrder L;
+    dom R = the carrier of L by Th32;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+theorem OrdLat:
+  [x,y] in LatOrder L iff x [= y
+  proof
+    hereby assume [x,y] in LatOrder L; then
+      consider a1,b1 being Element of L such that
+A1:   [x,y] = [a1,b1] & a1 [= b1;
+      thus x [= y by A1,XTUPLE_0:1;
+    end;
+    assume x [= y;
+    hence thesis;
+  end;
+
+definition let L be non empty LattStr;
+  func ThetaOrder L -> Relation equals
+    { [a,b] where a,b is Element of L : a "/\" b = b };
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in { [p,q] where p is Element of L, q is Element of L :
+        p "/\" q = q };
+      then ex p,q being Element of L st x = [p,q] & p "/\" q = q;
+      hence ex x1,x2 being object st x = [x1,x2];
+    end;
+    hence thesis by RELAT_1:def 1;
+  end;
+end;
+
+theorem Th32:
+  dom ThetaOrder L = the carrier of L &
+    rng ThetaOrder L = the carrier of L &
+    field ThetaOrder L = the carrier of L
+proof
+  now
+    let x be object;
+    thus x in the carrier of L implies
+    ex y being object st [x,y] in ThetaOrder L
+    proof
+      assume x in the carrier of L;
+      then reconsider p = x as Element of L;
+      p "/\" p = p by IMeet; then
+      [p,p] in ThetaOrder L;
+      hence thesis;
+    end;
+    given y being object such that
+A1: [x,y] in ThetaOrder L;
+    consider p,q being Element of L such that
+A2: [x,y] = [p,q] and
+    p "/\" q = q by A1;
+    x = p by A2,XTUPLE_0:1;
+    hence x in the carrier of L;
+  end;
+  hence
+A3: dom ThetaOrder L = the carrier of L by XTUPLE_0:def 12;
+T1: now
+    let x be object;
+    thus x in the carrier of L implies
+      ex y being object st [y,x] in ThetaOrder L
+    proof
+      assume x in the carrier of L;
+      then reconsider p = x as Element of L;
+      p "/\" p = p by IMeet; then
+      [p,p] in ThetaOrder L;
+      hence thesis;
+    end;
+    given y being object such that
+A4: [y,x] in ThetaOrder L;
+    consider p,q being Element of L such that
+A5: [y,x] = [p,q] and
+    p "/\" q = q by A4;
+    x = q by A5,XTUPLE_0:1;
+    hence x in the carrier of L;
+  end;
+  hence rng ThetaOrder L = the carrier of L by XTUPLE_0:def 13;
+  thus field ThetaOrder L = (the carrier of L) \/ the carrier of L by A3,
+     XTUPLE_0:def 13,T1
+    .= the carrier of L;
+end;
+
+definition let L;
+  redefine func ThetaOrder L -> Relation of the carrier of L;
+  correctness
+  proof
+    dom ThetaOrder L = the carrier of L &
+    rng ThetaOrder L = the carrier of L by Th32;
+    hence thesis by RELSET_1:4;
+  end;
+end;
+
+registration let L;
+  cluster ThetaOrder L -> total for Relation of the carrier of L;
+  correctness
+  proof
+    set R = ThetaOrder L;
+    dom R = the carrier of L by Th32;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+theorem ThetaOrdLat:
+  [x,y] in ThetaOrder L iff x "/\" y = y
+  proof
+    hereby assume [x,y] in ThetaOrder L; then
+      consider a1,b1 being Element of L such that
+A1:   [x,y] = [a1,b1] & a1 "/\" b1 = b1;
+      thus x "/\" y = y by A1,XTUPLE_0:1;
+    end;
+    assume x "/\" y = y;
+    hence thesis;
+  end;
+
+registration let L;
+  cluster LatOrder L -> reflexive;
+  coherence
+  proof
+    set R = LatOrder L;
+    for x being Element of L holds [x,x] in R
+    proof
+      let x be Element of L;
+      x [= x by Idem;
+      hence thesis;
+    end;
+    hence thesis by Ble1;
+  end;
+  cluster LatOrder L -> transitive;
+  coherence
+  proof
+    set R = LatOrder L;
+    for x,y,z being object st [x,y] in R & [y,z] in R holds [x,z] in R
+    proof
+      let x,y,z be object;
+      assume
+A1:   [x,y] in R & [y,z] in R; then
+      consider x1,y1 being object such that
+A2:   [x,y] = [x1,y1] & x1 in the carrier of L & y1 in the carrier of L
+        by RELSET_1:2;
+      consider y2, z2 being object such that
+A3:   [y,z] = [y2,z2] & y2 in the carrier of L & z2 in the carrier of L
+        by A1,RELSET_1:2;
+      reconsider xx = x, yy = y, zz = z as Element of L
+        by A2,A3,XTUPLE_0:1;
+      xx [= yy & yy [= zz by A1,OrdLat; then
+      xx [= zz by TransLat;
+      hence [x,z] in R;
+    end;
+    hence thesis by RELAT_2:31;
+  end;
+end;
+
+registration let L;
+  cluster ThetaOrder L -> reflexive;
+  coherence
+  proof
+    set R = ThetaOrder L;
+    for x being Element of L holds [x,x] in R
+    proof
+      let x be Element of L;
+      x "/\" x = x by IMeet;
+      hence thesis;
+    end;
+    hence thesis by Ble1;
+  end;
+  cluster ThetaOrder L -> transitive;
+  coherence
+  proof
+    set R = ThetaOrder L;
+    for x,y,z being object st [x,y] in R & [y,z] in R holds [x,z] in R
+    proof
+      let x,y,z be object;
+      assume
+A1:   [x,y] in R & [y,z] in R; then
+      consider x1,y1 being object such that
+A2:   [x,y] = [x1,y1] & x1 in the carrier of L & y1 in the carrier of L
+        by RELSET_1:2;
+      consider y2, z2 being object such that
+A3:   [y,z] = [y2,z2] & y2 in the carrier of L & z2 in the carrier of L
+        by A1,RELSET_1:2;
+      reconsider xx = x, yy = y, zz = z as Element of L
+        by A2,A3,XTUPLE_0:1;
+      xx "/\" zz = xx "/\" (yy "/\" zz) by A1,ThetaOrdLat
+                .= (xx "/\" yy) "/\" zz by LATTICES:def 7
+                .= yy "/\" zz by A1,ThetaOrdLat
+                .= zz by A1,ThetaOrdLat;
+      hence [x,z] in R;
+    end;
+    hence thesis by RELAT_2:31;
+  end;
+end;
+
+begin :: Formalization of Rao et al.'s paper
+
+theorem Lem36X:   :: Lemma 3.6. (1)
+  x "\/" (x "\/" y) = x "\/" y
+  proof
+    x "/\" (x "\/" y) = x by LATTICES:def 9;
+    hence thesis by LATTICES:def 8;
+  end;
+
+theorem Lem36c:   :: Lemma 3.6. (3)
+  x "/\" (y "/\" x) = y "/\" x
+  proof
+    for v2, v0 be Element of L holds
+      v2 "/\" (v0 "/\" v2) = v0 "/\" v2
+    proof
+      let v2, v0 be Element of L;
+      (v0 "/\" v2) "\/" v2 = v2 by LATTICES:def 8;
+      hence thesis by DefA2;
+    end;
+    hence thesis;
+  end;
+
+theorem    :: Lemma 3.6. (2)
+  y "/\" (x "/\" y) = x "/\" y by Lem36c;
+
+Th3715: :: Theorem 3.7. (1) => (5)
+  (x "/\" y) "\/" x = x implies x "/\" y = y "/\" x
+  proof
+    assume (x "/\" y) "\/" x = x; then
+    y "/\" x = (y "/\" (x "/\" y)) "\/" (y "/\" x) by LATTICES:def 11
+            .= (x "/\" y) "\/" (y "/\" x) by Lem36c
+            .= (x "/\" y) "\/" (x "/\" (y "/\" x)) by Lem36c
+            .= x "/\" (y "\/" (y "/\" x)) by LATTICES:def 11
+            .= x "/\" y by ThA4;
+    hence thesis;
+  end;
+
+Th3713: :: Theorem 3.7. (1) => (3)
+  (x "/\" y) "\/" x = x implies (y "/\" x) "\/" y = y
+  proof
+    assume (x "/\" y) "\/" x = x; then
+    (y "/\" x) "\/" y = (x "/\" y) "\/" y by Th3715
+                     .= y by LATTICES:def 8;
+    hence thesis;
+  end;
+
+Th3712: :: Theorem 3.7 (1) <=> (2)
+  (x "/\" y) "\/" x = x iff x "/\" (y "\/" x) = x
+  proof
+    thus (x "/\" y) "\/" x = x implies x "/\" (y "\/" x) = x
+    proof
+      assume
+A1:   (x "/\" y) "\/" x = x;
+      x "/\" (y "\/" x) = (x "/\" y) "\/" (x "/\" x) by LATTICES:def 11
+                       .= (x "/\" y) "\/" x by IMeet;
+      hence thesis by A1;
+    end;
+    assume
+A1: x "/\" (y "\/" x) = x;
+    (x "/\" y) "\/" x = (x "/\" y) "\/" (x "/\" x) by IMeet
+                     .= x "/\" (y "\/" x) by LATTICES:def 11;
+    hence thesis by A1;
+  end;
+
+Th3726: :: Theorem 3.7. (2) => (6)
+  x "/\" (y "\/" x) = x implies x "\/" y = y "\/" x
+  proof
+    assume
+A0: x "/\" (y "\/" x) = x;
+    (x "/\" y) "\/" x = x by Th3712,A0; then
+    (y "/\" x) "\/" y = y by Th3713; then
+a3: y "/\" (x "\/" y) = y by Th3712;
+    y "\/" x = y "\/" ((x "\/" y) "/\" x) by DefA2
+            .= (y "\/" (x "\/" y)) "/\" (y "\/" x) by DefLDS
+            .= (x "\/" y) "/\" (y "\/" x) by a3,LATTICES:def 8
+            .= (x "\/" y) "/\" (x "\/" (y "\/" x)) by A0,LATTICES:def 8
+            .= x "\/" (y "/\" (y "\/" x)) by DefLDS
+            .= x "\/" y by LATTICES:def 9;
+    hence thesis;
+  end;
+
+DefB2: :: Theorem 3.8 3) => 1)
+  for a,b being Element of L st
+  (ex c being Element of L st a [= c & b [= c) holds
+     a "\/" b = b "\/" a
+  proof
+    let a,b be Element of L;
+    assume
+A0: ex c being Element of L st a [= c & b [= c;
+    b "/\" (a "\/" b) = b
+    proof
+      consider c being Element of L such that
+A1:   a [= c & b [= c by A0;
+      thus b "/\" (a "\/" b) = (b "/\" a) "\/" (b "/\" b) by LATTICES:def 11
+                       .= (b "/\" a) "\/" b by IMeet
+                       .= (b "/\" a) "\/" (b "/\" c) by A1,LATTICES:def 9
+                       .= b "/\" (a "\/" c) by LATTICES:def 11
+                       .= b by A1,LATTICES:def 9;
+    end;
+    hence thesis by Th3726;
+  end;
+
+definition let L; let a,b be Element of L;
+  pred ex_lub_of a,b means
+  ex c being Element of L st
+    a [= c & b [= c &
+      for x being Element of L st a [= x & b [= x holds c [= x;
+  pred ex_glb_of a,b means
+  ex c being Element of L st
+    c [= a & c [= b &
+      for x being Element of L st x [= a & x [= b holds x [= c;
+end;
+
+definition let L; let a,b be Element of L;
+  assume
+A1:  ex_lub_of a,b;
+  func lub (a,b) -> Element of L means :DefLUB:
+    a [= it & b [= it &
+      for x being Element of L st a [= x & b [= x holds it [= x;
+  existence by A1;
+  correctness
+  proof
+    let A1, A2 be Element of L such that
+A1: a [= A1 & b [= A1 &
+      for x being Element of L st a [= x & b [= x holds A1 [= x and
+A2: a [= A2 & b [= A2 &
+      for x being Element of L st a [= x & b [= x holds A2 [= x;
+a3: A1 [= A2 by A1,A2;
+B2: A2 [= A1 by A1,A2;
+    A1 [= A1 by ISum;
+    hence thesis by a3,DefB2,B2;
+  end;
+end;
+
+definition let L; let a,b be Element of L;
+  assume
+A1:  ex_glb_of a,b;
+  func glb (a,b) -> Element of L means :DefGLB:
+    it [= a & it [= b &
+      for x being Element of L st x [= a & x [= b holds x [= it;
+  existence by A1;
+  correctness
+  proof
+    let A1, A2 be Element of L such that
+A1: A1 [= a & A1 [= b &
+      for x being Element of L st x [= a & x [= b holds x [= A1 and
+A2: A2 [= a & A2 [= b &
+      for x being Element of L st x [= a & x [= b holds x [= A2;
+a3: A1 [= A2 by A1,A2;
+B2: A2 [= A1 by A1,A2;
+    A1 [= A1 by ISum;
+    hence thesis by a3,DefB2,B2;
+  end;
+end;
+
+Th3751: :: Theorem 3.7. (5) => (1)
+  x "/\" y = y "/\" x implies (x "/\" y) "\/" x = x by LATTICES:def 8;
+
+IffComm: :: Theorem 3.7 6) => 5)
+  x "\/" y = y "\/" x implies x "/\" y = y "/\" x
+  proof
+    assume x "\/" y = y "\/" x; then
+    x "/\" (y "\/" x) = x by LATTICES:def 9; then
+    (x "/\" y) "\/" x = x by Th3712;
+    hence thesis by Th3715;
+  end;
+
+:: Theorem 3.7.
+
+theorem  :: Theorem 3.7. (1) <=> (2)
+  (x "/\" y) "\/" x = x iff x "/\" (y "\/" x) = x by Th3712;
+
+theorem  :: Theorem 3.7. (1) <=> (3)
+  (x "/\" y) "\/" x = x iff (y "/\" x) "\/" y = y by Th3713;
+
+theorem  :: Theorem 3.7. (1) <=> (4)
+  (x "/\" y) "\/" x = x iff y "/\" (x "\/" y) = y
+  proof
+    thus (x "/\" y) "\/" x = x implies y "/\" (x "\/" y) = y
+    proof
+      assume (x "/\" y) "\/" x = x; then
+      (y "/\" x) "\/" y = y by Th3713;
+      hence thesis by Th3712;
+    end;
+    assume y "/\" (x "\/" y) = y; then
+    (y "/\" x) "\/" y = y by Th3712;
+    hence thesis by Th3713;
+  end;
+
+theorem  :: Theorem 3.7. (1) <=> (5)
+  (x "/\" y) "\/" x = x iff x "/\" y = y "/\" x by Th3715,LATTICES:def 8;
+
+theorem Th3716: :: Theorem 3.7. (1) <=> (6)
+  (x "/\" y) "\/" x = x iff x "\/" y = y "\/" x
+  proof
+    hereby
+      assume
+A1:   (x "/\" y) "\/" x = x;
+      x "/\" (y "\/" x) = x by A1,Th3712;
+      hence x "\/" y = y "\/" x by Th3726;
+    end;
+    assume x "\/" y = y "\/" x; then
+    x "/\" (y "\/" x) = x by LATTICES:def 9;
+    hence thesis by Th3712;
+  end;
+
+theorem
+  x [= y iff x "/\" y = x by LATTICES:def 9,def 8;
+
+LemX3:
+  x [= x "\/" y
+  proof
+    x "/\" (x "\/" y) = x by LATTICES:def 9;
+    hence thesis by LATTICES:def 8;
+  end;
+
+LemB1:
+  x "/\" y [= y by LATTICES:def 8;
+
+Th3823: :: Theorem 3.8. 2) => 3)
+  y [= x "\/" y implies ex z st x [= z & y [= z
+  proof
+    assume
+A1: y [= x "\/" y;
+    take z = x "\/" y;
+    thus thesis by LemX3,A1;
+  end;
+
+Th3851: :: Theorem 3.8. 5) => 1)
+  x [= y "\/" x implies x "\/" y = y "\/" x
+  proof
+    assume
+A1: x [= y "\/" x;
+    x "/\" (y "\/" x) = x by LATTICES:4,A1;
+    hence thesis by Th3726;
+  end;
+
+Th3856: :: Theorem 3.8. 5) => 6)
+  x [= y "\/" x implies ex_lub_of x,y & y "\/" x = lub (x,y)
+  proof
+    assume
+A1: x [= y "\/" x;
+A2: y [= y "\/" x by LemX3;
+    ex c being Element of L st
+    x [= c & y [= c &
+      for d being Element of L st x [= d & y [= d holds c [= d
+    proof
+      take c = y "\/" x;
+      thus x [= c & y [= c by A1,LemX3;
+      let d be Element of L;
+      assume
+B1:   x [= d & y [= d; then
+      (y "\/" x) "/\" d = y "\/" (x "/\" d) by DefLDS
+                       .= y "\/" x by B1,LATTICES:def 9;
+      hence thesis by LATTICES:def 8;
+    end;
+    hence
+A3: ex_lub_of x,y;
+    for c being Element of L st x [= c & y [= c holds y "\/" x [= c
+    proof
+      let c be Element of L;
+      assume
+B1:   x [= c & y [= c; then
+      (y "\/" x) "/\" c = y "\/" (x "/\" c) by DefLDS
+                       .= y "\/" x by B1,LATTICES:def 9;
+      hence thesis by LATTICES:def 8;
+    end;
+    hence thesis by DefLUB,A1,A2,A3;
+  end;
+
+Th3865: :: Theorem 3.8. 6) => 5)
+  ex_lub_of x,y & y "\/" x = lub (x,y) implies x [= y "\/" x by DefLUB;
+
+Th3834: :: Theorem 3.8 3) => 4)
+  (ex c being Element of L st x [= c & y [= c) implies
+    ex_lub_of x,y & x "\/" y = lub (x,y)
+  proof
+    given c being Element of L such that
+A0: x [= c & y [= c;
+    ex c being Element of L st
+    x [= c & y [= c &
+      for d being Element of L st x [= d & y [= d holds c [= d
+    proof
+      take c = x "\/" y;
+S1:   x "\/" y = y "\/" x by A0,DefB2;
+      hence x [= c & y [= c by LemX3;
+      let d be Element of L;
+      assume
+B1:   x [= d & y [= d; then
+      (y "\/" x) "/\" d = y "\/" (x "/\" d) by DefLDS
+                       .= y "\/" x by B1,LATTICES:def 9;
+      hence thesis by S1,LATTICES:def 8;
+    end;
+    hence
+A3: ex_lub_of x,y;
+    x "\/" y = y "\/" x by A0,DefB2; then
+B2: x [= x "\/" y & y [= x "\/" y by LemX3;
+    for c being Element of L st x [= c & y [= c holds x "\/" y [= c
+    proof
+      let c be Element of L;
+      assume
+B1:   x [= c & y [= c; then
+      (x "\/" y) "/\" c = x "\/" (y "/\" c) by DefLDS
+                       .= x "\/" y by B1,LATTICES:def 9;
+      hence thesis by LATTICES:def 8;
+    end;
+    hence thesis by DefLUB,A3,B2;
+  end;
+
+Th3841: :: Theorem 3.8 4) => 1)
+  ex_lub_of x,y & x "\/" y = lub (x,y) implies
+    x "\/" y = y "\/" x
+  proof
+    assume ex_lub_of x,y & x "\/" y = lub (x,y); then
+    y [= x "\/" y by DefLUB; then
+    y "/\" (x "\/" y) = y by LATTICES:def 9;
+    hence thesis by Th3726;
+  end;
+
+:: Theorem 3.8.
+
+theorem  :: Theorem 3.8. 1) <=> 2)
+  x "\/" y = y "\/" x iff y [= x "\/" y
+  proof
+    thus x "\/" y = y "\/" x implies y [= x "\/" y by LemX3;
+    assume y [= x "\/" y; then
+    ex z st x [= z & y [= z by Th3823;
+    hence thesis by DefB2;
+  end;
+
+theorem  :: Theorem 3.8. 1) <=> 3)
+  x "\/" y = y "\/" x iff ex z st x [= z & y [= z by Th3823,LemX3,DefB2;
+
+theorem Th381i4: :: Theorem 3.8. 1) <=> 4)
+  x "\/" y = y "\/" x iff ex_lub_of x,y & x "\/" y = lub (x,y)
+  proof
+    hereby
+      assume x "\/" y = y "\/" x; then
+      ex c being Element of L st x [= c & y [= c by Th3823,LemX3;
+      hence ex_lub_of x,y & x "\/" y = lub (x,y) by Th3834;
+    end;
+    assume ex_lub_of x,y & x "\/" y = lub (x,y);
+    hence thesis by Th3841;
+  end;
+
+theorem  :: Theorem 3.8. 1) <=> 5)
+  x "\/" y = y "\/" x iff x [= y "\/" x by LemX3,Th3851;
+
+theorem  :: Theorem 3.8. 1) <=> 6)
+  x "\/" y = y "\/" x iff ex_lub_of x,y & y "\/" x = lub (x,y)
+  proof
+    hereby
+      assume x "\/" y = y "\/" x; then
+      x [= y "\/" x by LemX3;
+      hence ex_lub_of x,y & y "\/" x = lub (x,y) by Th3856;
+    end;
+    assume ex_lub_of x,y & y "\/" x = lub (x,y);
+    hence thesis by Th3851,Th3865;
+  end;
+
+Lm1: now
+  let L;
+  let a,b be Element of L;
+  assume
+ZZ: L is join-commutative;
+Z1: for x,y being Element of L holds
+  ex_lub_of x,y & x "\/" y = lub (x,y)
+  proof
+    let x,y be Element of L;
+    x "\/" y = y "\/" x by ZZ;
+    hence thesis by Th381i4;
+  end;
+S1:ex_lub_of a,b & a "\/" b = lub (a,b) by Z1;
+  let c be Element of L;
+  thus c = a "\/" b iff
+  a [= c & b [= c & for d being Element of L st
+  a [= d & b [= d holds c [= d by S1,DefLUB;
+end;
+
+Th14:
+  L is join-commutative implies
+    for u1,u2,u3 being Element of L holds
+    (u1 "\/" u2) "\/" u3 = u1 "\/" (u2 "\/" u3)
+  proof
+    assume
+Z0: L is join-commutative;
+    let u1,u2,u3 be Element of L;
+Z1: for x,y being Element of L holds
+    ex_lub_of x,y & x "\/" y = lub (x,y)
+    proof
+      let x,y be Element of L;
+      x "\/" y = y "\/" x by Z0;
+      hence thesis by Th381i4;
+    end;
+A2: u1 [= u1 "\/" u2 by Lm1,Z0;
+A3: u2 [= u1 "\/" u2 by Lm1,Z0;
+A4: u2 [= u2 "\/" u3 by Lm1,Z0;
+A5: u3 [= u2 "\/" u3 by Lm1,Z0;
+A6: u1 "\/" u2 [= (u1 "\/" u2) "\/" u3 by Lm1,Z0;
+A7: u3 [= (u1 "\/" u2) "\/" u3 by Lm1,Z0;
+A8: u1 [= (u1 "\/" u2) "\/" u3 by A2,A6,TransLat;
+    u2 [= (u1 "\/" u2) "\/" u3 by A3,A6,TransLat;
+    then
+A9: u2 "\/" u3 [= (u1 "\/" u2) "\/" u3 by A7,Lm1,Z0;
+S1: ex_lub_of u1,u2 "\/" u3 & u1 "\/" (u2 "\/" u3) = lub (u1,u2 "\/" u3)
+      by Z1;
+    now
+      let u4 be Element of L;
+      assume that
+A10:  u1 [= u4 and
+A11:  u2 "\/" u3 [= u4;
+A12:  u2 [= u4 by A4,A11,TransLat;
+A13:  u3 [= u4 by A5,A11,TransLat;
+      u1 "\/" u2 [= u4 by A10,A12,Lm1,Z0;
+      hence (u1 "\/" u2) "\/" u3 [= u4 by A13,Lm1,Z0;
+    end;
+    hence thesis by A8,A9,S1,DefLUB;
+  end;
+
+:: Theorem 3.9.
+
+theorem   :: Theorem 3.9.  (2) => (?)
+  x "/\" y [= x implies ex z st z [= x & z [= y by LemB1;
+
+theorem Th391i4:  :: Theorem 3.9. (1) <=> (4)
+  x "/\" y = y "/\" x iff y "/\" x [= y by LATTICES:def 8,Th3715;
+
+Th3956: :: Theorem 3.9. 4) => 5)
+  y "/\" x [= y implies ex_glb_of x,y & y "/\" x = glb (x,y)
+  proof
+    assume
+A1: y "/\" x [= y;
+A2: y "/\" x [= x by LATTICES:def 8;
+    ex c being Element of L st
+      c [= x & c [= y &
+        for d being Element of L st d [= x & d [= y holds d [= c
+    proof
+      take c = y "/\" x;
+      thus c [= x & c [= y by A1,LATTICES:def 8;
+      let d be Element of L;
+      assume d [= x & d [= y;
+      hence thesis by DefLDS;
+    end;
+    hence
+T1: ex_glb_of x,y;
+    for d being Element of L st d [= x & d [= y holds d [= y "/\" x
+      by DefLDS;
+    hence thesis by T1,DefGLB,A1,A2;
+  end;
+
+Th3965: :: Theorem 3.9. 5) => 4)
+  ex_glb_of x,y & y "/\" x = glb (x,y) implies y "/\" x [= y by DefGLB;
+
+theorem   :: Theorem 3.9. (1) <=> (5)
+  x "/\" y = y "/\" x iff ex_glb_of x,y & y "/\" x = glb (x,y)
+  proof
+    thus x "/\" y = y "/\" x implies ex_glb_of x,y & y "/\" x = glb (x,y)
+    proof
+      assume x "/\" y = y "/\" x; then
+      y "/\" x [= y by LATTICES:def 8;
+      hence thesis by Th3956;
+    end;
+    assume ex_glb_of x,y & y "/\" x = glb (x,y);
+    hence thesis by Th391i4,Th3965;
+  end;
+
+theorem   :: Theorem 3.9. (1) <=> (2)
+  x "/\" y = y "/\" x iff x "/\" y [= x by LATTICES:def 8,Th3715;
+
+ThXXX: :: Theorem 3.9. 2) => 3)
+  x "/\" y [= x implies ex_glb_of x,y & x "/\" y = glb (x,y)
+  proof
+    assume
+A1: x "/\" y [= x;
+A2: x "/\" y [= y by LATTICES:def 8;
+    ex c being Element of L st
+      c [= x & c [= y &
+        for d being Element of L st d [= x & d [= y holds d [= c
+    proof
+      take c = x "/\" y;
+      thus c [= x & c [= y by A1,LATTICES:def 8;
+      let d be Element of L;
+      assume d [= x & d [= y;
+      hence thesis by DefLDS;
+    end;
+    hence
+T1: ex_glb_of x,y;
+    for d being Element of L st d [= x & d [= y holds d [= x "/\" y
+      by DefLDS;
+    hence thesis by T1,DefGLB,A1,A2;
+  end;
+
+theorem   :: Theorem 3.9. (1) <=> (3)
+  x "/\" y = y "/\" x iff ex_glb_of x,y & x "/\" y = glb (x,y)
+  proof
+    thus x "/\" y = y "/\" x implies ex_glb_of x,y & x "/\" y = glb (x,y)
+    proof
+      assume x "/\" y = y "/\" x; then
+      x "/\" y [= x by LATTICES:def 8;
+      hence thesis by ThXXX;
+    end;
+    assume ex_glb_of x,y & x "/\" y = glb (x,y); then
+    x "/\" y [= x by DefGLB;
+    hence thesis by Th3715;
+  end;
+
+theorem Lem310:  :: Lemma 3.10.
+  x "/\" y "/\" z = y "/\" x "/\" z
+  proof
+A1: x "/\" z [= z by LATTICES:def 8;
+    y "/\" z [= z by LATTICES:def 8; then
+    (x "/\" z) "\/" (y "/\" z) = (y "/\" z) "\/" (x "/\" z) by DefB2,A1; then
+    (x "/\" z) "/\" (y "/\" z) = (y "/\" z) "/\" (x "/\" z) by IffComm; then
+    (x "/\" z) "/\" y "/\" z = (y "/\" z) "/\" (x "/\" z)
+      by LATTICES:def 7; then
+    x "/\" z "/\" y "/\" z = y "/\" z "/\" x "/\" z by LATTICES:def 7; then
+    x "/\" z "/\" (y "/\" z) = y "/\" z "/\" x "/\" z by LATTICES:def 7; then
+    x "/\" (z "/\" (y "/\" z)) = y "/\" z "/\" x "/\" z by LATTICES:def 7; then
+    x "/\" (y "/\" z) = y "/\" z "/\" x "/\" z by Lem36c; then
+    x "/\" y "/\" z = y "/\" z "/\" x "/\" z by LATTICES:def 7; then
+    x "/\" y "/\" z = y "/\" z "/\" (x "/\" z) by LATTICES:def 7; then
+    x "/\" y "/\" z = y "/\" (z "/\" (x "/\" z)) by LATTICES:def 7; then
+    x "/\" y "/\" z = y "/\" (x "/\" z) by Lem36c;
+    hence thesis by LATTICES:def 7;
+  end;
+
+definition
+  let L be GAD_Lattice;
+  func LatRelStr L -> strict RelStr equals
+  RelStr (# the carrier of L, LatOrder L #);
+  coherence;
+end;
+
+registration
+  let L be GAD_Lattice;
+  cluster LatRelStr L -> reflexive transitive;
+  coherence;
+end;
+
+theorem
+  for a,b being Element of L,
+      x,y being Element of LatRelStr L st
+    a = x & b = y holds
+    x <= y iff a [= b by OrdLat,ORDERS_2:def 5;
+
+Th31145:
+  L is join-commutative iff L is meet-commutative
+  proof
+    hereby
+      assume
+A1:   L is join-commutative;
+      thus L is meet-commutative
+      proof
+        let a,b be Element of L;
+        a "\/" b = b "\/" a by A1; then
+        (a "/\" b) "\/" a = a by Th3716;
+        hence thesis by Th3715;
+      end;
+    end;
+    assume
+B1: L is meet-commutative;
+    let a,b be Element of L;
+    a "/\" b = b "/\" a by B1; then
+    (a "/\" b) "\/" a = a by LATTICES:def 8;
+    hence thesis by Th3716;
+  end;
+
+theorem Th31141: :: Theorem 3.11. (4) <=> (1)
+  L is join-commutative iff L is Lattice-like distributive
+  proof
+    thus L is join-commutative implies L is Lattice-like distributive
+    proof
+      assume
+T0:   L is join-commutative; then
+      L is join-associative by Th14;
+      hence thesis by T0,Th31145;
+    end;
+    thus thesis;
+  end;
+
+theorem   :: Theorem 3.11. (4) <=> (2)
+  L is join-commutative iff LatRelStr L is directed
+  proof
+    thus L is join-commutative implies LatRelStr L is directed
+    proof
+      assume
+A1:   L is join-commutative;
+      set X = [#]LatRelStr L;
+      for x,y being Element of LatRelStr L st x in X & y in X
+       ex z being Element of LatRelStr L st z in X & x <= z & y <= z
+      proof
+        let x,y be Element of LatRelStr L;
+        assume x in X & y in X;
+        reconsider xx = x, yy = y as Element of L;
+        xx "\/" yy = yy "\/" xx by A1; then
+        consider z being Element of L such that
+B1:     xx [= z & yy [= z by Th3823,LemX3;
+        reconsider zz = z as Element of LatRelStr L;
+C1:     x <= zz by OrdLat,ORDERS_2:def 5,B1;
+        y <= zz by OrdLat,ORDERS_2:def 5,B1;
+        hence thesis by C1;
+      end;
+      hence thesis by WAYBEL_0:def 6,WAYBEL_0:def 1;
+    end;
+    assume
+a1: LatRelStr L is directed;
+    for a,b being Element of L holds a "\/" b = b "\/" a
+    proof
+      let a,b be Element of L;
+      reconsider aa = a, bb = b as Element of LatRelStr L;
+      set X = [#]LatRelStr L;
+      consider z being Element of LatRelStr L such that
+B2:   z in X & aa <= z & bb <= z by WAYBEL_0:def 1,a1,WAYBEL_0:def 6;
+      reconsider zz = z as Element of L;
+B3:   a [= zz by B2,OrdLat,ORDERS_2:def 5;
+      b [= zz by B2,OrdLat,ORDERS_2:def 5;
+      hence thesis by DefB2,B3;
+    end;
+    hence thesis;
+  end;
+
+theorem Th31143:  :: Theorem 3.11. (4) <=> (3)
+  L is join-commutative iff L is ADL-absorbing
+  proof
+    thus L is join-commutative implies L is ADL-absorbing
+    proof
+      assume
+A1:   L is join-commutative;
+      let a,b be Element of L;
+      a "\/" b = b "\/" a by A1;
+      hence thesis by LATTICES:def 9;
+    end;
+    assume
+B1: L is ADL-absorbing;
+    let a,b be Element of L;
+    a "/\" (b "\/" a) = a by B1;
+    hence thesis by Th3726;
+  end;
+
+theorem   :: Theorem 3.11. (4) <=> (5)
+  L is join-commutative iff L is meet-commutative by Th31145;
+
+theorem Th31146:  :: Theorem 3.11. (4) <=> (6)
+  L is join-commutative iff ThetaOrder L is antisymmetric
+  proof
+    set R = ThetaOrder L;
+    thus L is join-commutative implies ThetaOrder L is antisymmetric
+    proof
+      assume L is join-commutative; then
+A0:   L is meet-commutative by Th31145;
+      for x,y being object st
+        [x,y] in R & [y,x] in R holds x = y
+      proof
+        let x,y be object;
+        assume
+A1:     [x,y] in R & [y,x] in R; then
+        consider xx,yy being Element of L such that
+A3:     [x,y] = [xx,yy] & xx "/\" yy = yy;
+A4:     x = xx & y = yy by A3,XTUPLE_0:1;
+        xx "/\" yy = yy & yy "/\" xx = xx by ThetaOrdLat,A1,A4;
+        hence thesis by A4,A0;
+      end;
+      hence thesis by PREFER_1:31;
+    end;
+    assume
+z1: ThetaOrder L is antisymmetric;
+    for x, y being Element of L holds x "/\" y = y "/\" x
+    proof
+      let x,y be Element of L;
+B1:   (x "/\" y) "/\" (y "/\" x) =
+        (y "/\" x) "/\" (y "/\" x) by Lem310
+              .= y "/\" x by IMeet;
+B2:   (y "/\" x) "/\" (x "/\" y) =
+        (x "/\" y) "/\" (x "/\" y) by Lem310
+              .= x "/\" y by IMeet;
+B3:   [x "/\" y,y "/\" x] in R by B1;
+      [y "/\" x,x "/\" y] in R by B2;
+      hence thesis by z1,B3,PREFER_1:31;
+    end; then
+    L is meet-commutative;
+    hence thesis by Th31145;
+  end;
+
+theorem   :: Theorem 3.11. (4) <=> (7)
+  L is join-commutative iff ThetaOrder L is being_partial-order
+  proof
+    set R = ThetaOrder L;
+    thus L is join-commutative implies ThetaOrder L is being_partial-order
+    proof
+      assume L is join-commutative; then
+      R is antisymmetric by Th31146;
+      hence thesis by ORDERS_1:def 5;
+    end;
+    assume ThetaOrder L is being_partial-order; then
+    R is antisymmetric by ORDERS_1:def 5;
+    hence thesis by Th31146;
+  end;
+
+registration let L be join-commutative GAD_Lattice;
+  cluster ThetaOrder L -> antisymmetric;
+  coherence by Th31146;
+end;
+
+registration
+  cluster join-commutative -> ADL-absorbing for GAD_Lattice;
+  coherence by Th31143;
+  cluster ADL-absorbing -> join-commutative for GAD_Lattice;
+  coherence by Th31143;
+end;
+
+registration
+  cluster join-commutative -> meet-commutative for GAD_Lattice;
+  coherence by Th31145;
+  cluster meet-commutative -> join-commutative for GAD_Lattice;
+  coherence by Th31145;
+end;
+
+
+:: Theorem 3.13.
+
+theorem   :: Theorem 3.13. (3) => (1)
+  (for a,b,c being Element of L holds
+      (a "\/" b) "/\" c = (b "\/" a) "/\" c) implies
+    for a,b,c being Element of L holds
+       (a "\/" b) "/\" c = (a "/\" c) "\/" (b "/\" c)
+  proof
+    assume
+A1: for a,b,c being Element of L holds
+      (a "\/" b) "/\" c = (b "\/" a) "/\" c;
+    let a,b,c be Element of L;
+    (a "/\" c) "\/" (b "/\" c) = ((a "/\" c) "\/" b) "/\" ((a "/\" c) "\/" c)
+                     by DefLDS
+                  .= ((a "/\" c) "\/" b) "/\" c by LATTICES:def 8
+                  .= (b "\/" (a "/\" c)) "/\" c by A1
+                  .= ((b "\/" a) "/\" (b "\/" c)) "/\" c by DefLDS
+                  .= (((b "\/" a) "/\" b) "\/" ((b "\/" a) "/\" c)) "/\" c
+                    by LATTICES:def 11
+                  .= (b "\/" ((b "\/" a) "/\" c)) "/\" c by DefA2
+                  .= ((b "\/" (b "\/" a)) "/\" (b "\/" c)) "/\" c
+                    by DefLDS
+                  .= (b "\/" (b "\/" a)) "/\" ((b "\/" c) "/\" c)
+                    by LATTICES:def 7
+                  .= (b "\/" (b "\/" a)) "/\" ((c "\/" b) "/\" c) by A1
+                  .= (b "\/" (b "\/" a)) "/\" c by DefA2
+                  .= (b "\/" a) "/\" c by Lem36X
+                  .= (a "\/" b) "/\" c by A1;
+    hence thesis;
+  end;
+
+theorem   :: Theorem 3.13. (1) => (2)
+  (for a,b,c being Element of L holds
+    (a "\/" b) "/\" c = (a "/\" c) "\/" (b "/\" c)) implies
+    for a,b being Element of L holds (a "\/" b) "/\" b = b
+  proof
+    assume
+A1: for a,b,c being Element of L holds
+    (a "\/" b) "/\" c = (a "/\" c) "\/" (b "/\" c);
+    let a,b be Element of L;
+    (a "\/" b) "/\" b = (a "/\" b) "\/" (b "/\" b) by A1
+                     .= (a "/\" b) "\/" b by IMeet
+                     .= b by LATTICES:def 8;
+    hence thesis;
+  end;
+
+theorem   :: Theorem 3.13. (2) => (3)
+  (for a,b being Element of L holds (a "\/" b) "/\" b = b) implies
+    for a,b,c being Element of L holds
+      (a "\/" b) "/\" c = (b "\/" a) "/\" c
+  proof
+    assume
+AA: for a,b being Element of L holds (a "\/" b) "/\" b = b;
+    let a,b,c be Element of L;
+aa: (b "\/" a) "/\" a = a by AA;
+S1: ex d being Element of L st (a "\/" b) "/\" c [= d &
+       (b "\/" a) "/\" c [= d
+    proof
+      take d = c;
+      thus thesis by LATTICES:def 8;
+    end;
+    ((a "\/" b) "/\" c) "\/" ((b "\/" a) "/\" c) =
+      ((b "\/" a) "/\" c) "\/" ((a "\/" b) "/\" c) by S1,DefB2; then
+    ((a "\/" b) "/\" c) "/\" ((b "\/" a) "/\" c) =
+      ((b "\/" a) "/\" c) "/\" ((a "\/" b) "/\" c) by IffComm; then
+    (a "\/" b) "/\" (c "/\" ((b "\/" a) "/\" c)) =
+      ((b "\/" a) "/\" c) "/\" ((a "\/" b) "/\" c) by LATTICES:def 7; then
+    (a "\/" b) "/\" (c "/\" ((b "\/" a) "/\" c)) =
+      (b "\/" a) "/\" (c "/\" ((a "\/" b) "/\" c)) by LATTICES:def 7; then
+    (a "\/" b) "/\" (((b "\/" a) "/\" c)) =
+      (b "\/" a) "/\" (c "/\" ((a "\/" b) "/\" c)) by Lem36c; then
+    (a "\/" b) "/\" (((b "\/" a) "/\" c)) =
+      (b "\/" a) "/\" (((a "\/" b) "/\" c)) by Lem36c; then
+    (a "\/" b) "/\" ((b "\/" a) "/\" c "/\" c) =
+      ((b "\/" a) "/\" ((a "\/" b) "/\" c)) "/\" c by LATTICES:def 7; then
+    (a "\/" b) "/\" ((b "\/" a) "/\" (c "/\" c)) =
+      ((b "\/" a) "/\" ((a "\/" b) "/\" c)) "/\" c by LATTICES:def 7; then
+    (a "\/" b) "/\" ((b "\/" a) "/\" c) =
+      ((b "\/" a) "/\" ((a "\/" b) "/\" c)) "/\" c by IMeet; then
+    (a "\/" b) "/\" ((b "\/" a) "/\" c) =
+      (b "\/" a) "/\" (((a "\/" b) "/\" c) "/\" c) by LATTICES:def 7; then
+    (a "\/" b) "/\" ((b "\/" a) "/\" c) =
+      (b "\/" a) "/\" ((a "\/" b) "/\" (c "/\" c)) by LATTICES:def 7; then
+    (a "\/" b) "/\" ((b "\/" a) "/\" c) =
+      (b "\/" a) "/\" ((a "\/" b) "/\" c) by IMeet; then
+    ((a "\/" b) "/\" (b "\/" a)) "/\" c =
+      (b "\/" a) "/\" ((a "\/" b) "/\" c) by LATTICES:def 7; then
+    ((a "\/" b) "/\" (b "\/" a)) "/\" c =
+      ((b "\/" a) "/\" (a "\/" b)) "/\" c by LATTICES:def 7; then
+    (((a "\/" b) "/\" b) "\/" ((a "\/" b) "/\" a)) "/\" c =
+      ((b "\/" a) "/\" (a "\/" b)) "/\" c by LATTICES:def 11; then
+    (b "\/" ((a "\/" b) "/\" a)) "/\" c =
+      ((b "\/" a) "/\" (a "\/" b)) "/\" c by AA; then
+    (b "\/" a) "/\" c =
+      ((b "\/" a) "/\" (a "\/" b)) "/\" c by DefA2; then
+    (b "\/" a) "/\" c =
+      (((b "\/" a) "/\" a) "\/" ((b "\/" a) "/\" b)) "/\" c
+        by LATTICES:def 11;
+    hence thesis by DefA2,aa;
+  end;
+
+begin :: Generalized Almost Distributive Lattices with Zero
+
+definition let L;
+  attr L is with_zero means
+    ex x being Element of L st
+    for a being Element of L holds x "/\" a = x;
+end;
+
+registration
+  cluster trivial -> with_zero for non empty GAD_Lattice;
+  coherence
+  proof
+    let L be non empty GAD_Lattice;
+    assume L is trivial; then
+    reconsider LL = L as trivial non empty GAD_Lattice;
+    set a = the Element of LL;
+    for x being Element of LL holds a "/\" x = a by SUBSET_1:def 7;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster with_zero for non empty GAD_Lattice;
+  existence
+  proof
+    take L = the trivial GAD_Lattice;
+    thus thesis;
+  end;
+end;
+
+definition let L; :: Definition 3.14.
+  assume
+A1:  L is with_zero;
+  func bottom L -> Element of L means :GADL0:
+    for a being Element of L holds it "/\" a = it;
+  existence by A1;
+  uniqueness
+  proof
+    let b1, b2 be Element of L such that
+A2: for a being Element of L holds b1 "/\" a = b1 and
+A3: for a being Element of L holds b2 "/\" a = b2;
+A4: b1 "/\" b2 = b1 by A2;
+A5: b2 "/\" b1 = b2 by A3;
+    (b1 "/\" b2) "/\" b1 = b1 "/\" (b2 "/\" b1) by LATTICES:def 7
+       .= b1 "/\" b2 by A3; then
+    b1 "/\" b2 [= b1 by LATTICES:def 8;
+    hence thesis by A4,A5,Th3715;
+  end;
+end;
+
+reserve L for with_zero GAD_Lattice,
+        x,y for Element of L;
+
+theorem   :: Lemma 3.15. (2)
+  x "\/" bottom L = x
+  proof
+    bottom L "/\" x = bottom L by GADL0; then
+a1: bottom L [= x by LATTICES:def 8;
+    set b1 = bottom L;
+    x "/\" b1 = x "/\" (b1 "/\" x) by GADL0
+             .= (x "/\" b1) "/\" x by LATTICES:def 7
+             .= (b1 "/\" x) "/\" x by Lem310
+             .= b1 "/\" x by GADL0; then
+    (b1 "/\" x) "\/" b1 = b1 by LATTICES:def 8;
+    hence thesis by a1,Th3716;
+  end;
+
+theorem   :: Lemma 3.15. (3)
+  bottom L "\/" x = x
+  proof
+    bottom L "/\" x = bottom L by GADL0;
+    hence thesis by LATTICES:def 8;
+  end;
+
+theorem   :: Lemma 3.15. (4)
+  x "/\" bottom L = bottom L
+  proof
+    set b1 = bottom L;
+A4: b1 "/\" x = b1 by GADL0;
+    x "/\" b1 = (x "/\" b1) "/\" x by LATTICES:def 7,A4
+             .= (b1 "/\" x) "/\" x by Lem310
+             .= b1 "/\" x by GADL0;
+    hence thesis by GADL0;
+  end;
+
+theorem Lem316:  :: Lemma 3.16.
+  x "/\" y = bottom L iff y "/\" x = bottom L
+  proof
+    set b1 = bottom L;
+    thus x "/\" y = bottom L implies y "/\" x = bottom L
+    proof
+      assume
+Z1:   x "/\" y = b1;
+      y "/\" x = y "/\" (x "/\" x) by IMeet
+              .= (y "/\" x) "/\" x by LATTICES:def 7
+              .= (x "/\" y) "/\" x by Lem310
+              .= b1 by GADL0,Z1;
+      hence y "/\" x = bottom L;
+    end;
+    assume
+Z1: y "/\" x = bottom L;
+    x "/\" y = x "/\" (y "/\" y) by IMeet
+            .= (x "/\" y) "/\" y by LATTICES:def 7
+            .= (y "/\" x) "/\" y by Lem310
+            .= b1 by GADL0,Z1;
+    hence thesis;
+  end;
+
+theorem   :: Lemma 3.17.
+  x "/\" y = bottom L implies x "\/" y = y "\/" x
+  proof
+    assume x "/\" y = bottom L; then
+    (y "/\" x) "\/" y = y by Th3751,Lem316;
+    hence thesis by Th3716;
+  end;
+
+begin :: Constructing Examples of Almost Distributive Lattices
+
+Lmx2: ex x being Element of {1,2,3} st x = 1
+proof
+  reconsider x = 1 as Element of {1,2,3} by ENUMSET1:def 1;
+  take x;
+  thus thesis;
+end;
+
+definition
+  let x,y be Element of {1,2,3};
+  func x example32"/\" y -> Element of {1,2,3} equals :Defx5:
+  1 if y = 1 or (y = 2 & (x = 1 or x = 3)),
+  2 if x = 2 & y = 2,
+  3 if y = 3;
+  coherence by Lmx2;
+  consistency;
+  func x example32"\/" y -> Element of {1,2,3} equals :Defx6:
+  1 if x = 1 & (y = 1 or y = 3),
+  2 if x = 2 or (x = 1 & y = 2),
+  3 if x = 3;
+  coherence;
+  consistency;
+end;
+
+definition
+  func example32\/ -> BinOp of {1,2,3} means :Defx7:
+  for x,y being Element of {1,2,3} holds it.(x,y) = x example32"\/" y;
+  existence
+  proof
+    deffunc O(Element of {1,2,3},Element of {1,2,3})=$1 example32"\/" $2;
+    ex o being BinOp of {1,2,3} st for a,b being Element of {1,2,3} holds
+    o.(a,b) = O(a,b) from BINOP_1:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let o1,o2 be BinOp of ({1,2,3}) such that
+A1: for x,y being Element of {1,2,3} holds o1.(x,y) = x example32"\/" y and
+A2: for x,y being Element of {1,2,3} holds o2.(x,y) = x example32"\/" y;
+    now
+      let x,y be Element of {1,2,3};
+      thus o1.(x,y) = x example32"\/" y by A1
+        .= o2.(x,y) by A2;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+  func example32/\ -> BinOp of {1,2,3} means :Defx8:
+  for x,y being Element of {1,2,3} holds it.(x,y) = x example32"/\" y;
+  existence
+  proof
+    deffunc O(Element of {1,2,3},Element of {1,2,3})=$1 example32"/\" $2;
+    ex o being BinOp of {1,2,3} st for a,b being Element of {1,2,3} holds
+    o.(a,b) = O(a,b) from BINOP_1:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let o1,o2 be BinOp of ({1,2,3}) such that
+A1: for x,y being Element of {1,2,3} holds o1.(x,y) = x example32"/\" y and
+A2: for x,y being Element of {1,2,3} holds o2.(x,y) = x example32"/\" y;
+    now
+      let x,y be Element of {1,2,3};
+      thus o1.(x,y) = x example32"/\" y by A1
+        .= o2.(x,y) by A2;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+end;
+
+theorem :: Example 3.2
+  ex L being non empty LattStr st
+  (for x being Element of L holds x = 1 or x = 2 or x = 3) &
+  (for x,y being Element of L holds
+    (x "/\" y = 1 iff y = 1 or (y = 2 & (x = 1 or x = 3))) &
+    (x "/\" y = 2 iff x = 2 & y = 2) &
+    (x "/\" y = 3 iff y = 3)) &
+  (for x,y being Element of L holds
+    (x "\/" y = 1 iff x = 1 & (y = 1 or y = 3)) &
+    (x "\/" y = 2 iff x = 2 or (x = 1 & y = 2)) &
+    (x "\/" y = 3 iff x = 3)) &
+  L is GAD_Lattice & L is not AD_Lattice
+  proof
+    set L = LattStr(# {1,2,3}, example32\/, example32/\ #);
+    take L;
+    thus for x being Element of L holds x = 1 or x = 2 or x = 3
+    by ENUMSET1:def 1;
+    thus
+Z7: for x,y being Element of L holds
+    (x "/\" y = 1 iff y = 1 or (y = 2 & (x = 1 or x = 3))) &
+    (x "/\" y = 2 iff x = 2 & y = 2) &
+    (x "/\" y = 3 iff y = 3)
+    proof
+      let x,y be Element of L;
+      reconsider x1=x, y1=y as Element of {1,2,3};
+B1:   x "/\" y = x1 example32"/\" y1 by Defx8;
+      thus x "/\" y = 1 iff y = 1 or (y = 2 & (x = 1 or x = 3))
+      proof
+        hereby
+          assume
+B3:       x "/\" y = 1;
+          assume not (y = 1 or (y = 2 & (x = 1 or x = 3)));
+          then (x = 2 & y = 2) or y = 3 by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx5;
+        end;
+        assume y = 1 or (y = 2 & (x = 1 or x = 3));
+        hence x "/\" y = 1 by B1,Defx5;
+      end;
+      thus x "/\" y = 2 iff x = 2 & y = 2
+      proof
+        hereby
+          assume
+B3:       x "/\" y = 2;
+          assume not (x = 2 & y = 2);
+          then (y = 1 or (y = 2 & (x = 1 or x = 3))) or y = 3
+          by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx5;
+        end;
+        assume x = 2 & y = 2;
+        hence x "/\" y = 2 by B1,Defx5;
+      end;
+      thus x "/\" y = 3 iff y = 3
+      proof
+        hereby
+          assume
+B3:       x "/\" y = 3;
+          assume not y = 3;
+          then (y = 1 or (y = 2 & (x = 1 or x = 3))) or (x = 2 & y = 2)
+          by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx5;
+        end;
+        assume y = 3;
+        hence x "/\" y = 3 by B1,Defx5;
+      end;
+    end;
+    thus
+Z8: for x,y being Element of L holds
+    (x "\/" y = 1 iff x = 1 & (y = 1 or y = 3)) &
+    (x "\/" y = 2 iff x = 2 or (x = 1 & y = 2)) &
+    (x "\/" y = 3 iff x = 3)
+    proof
+      let x,y be Element of L;
+      reconsider x1=x, y1=y as Element of {1,2,3};
+B1:   x "\/" y = x1 example32"\/" y1 by Defx7;
+      thus x "\/" y = 1 iff x = 1 & (y = 1 or y = 3)
+      proof
+        hereby
+          assume
+B3:       x "\/" y = 1;
+          assume not (x = 1 & (y = 1 or y = 3));
+          then (x = 2 or (x = 1 & y = 2)) or x = 3 by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx6;
+        end;
+        assume x = 1 & (y = 1 or y = 3);
+        hence x "\/" y = 1 by B1,Defx6;
+      end;
+      thus x "\/" y = 2 iff x = 2 or (x = 1 & y = 2)
+      proof
+        hereby
+          assume
+B3:       x "\/" y = 2;
+          assume not (x = 2 or (x = 1 & y = 2));
+          then (x = 1 & (y = 1 or y = 3)) or x = 3 by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx6;
+        end;
+        assume x = 2 or (x = 1 & y = 2);
+        hence x "\/" y = 2 by B1,Defx6;
+      end;
+      thus x "\/" y = 3 iff x = 3
+      proof
+        hereby
+          assume
+B3:       x "\/" y = 3;
+          assume not (x = 3);
+          then (x = 1 & (y = 1 or y = 3)) or (x = 2 or (x = 1 & y = 2))
+          by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx6;
+        end;
+        assume x = 3;
+        hence x "\/" y = 3 by B1,Defx6;
+      end;
+    end;
+    for x,y,z being Element of L
+    holds x "/\" (y "/\" z) = (x "/\" y) "/\" z
+    proof
+      let x,y,z be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "/\" (y "/\" z) = 1;
+        then y "/\" z = 1 or (y "/\" z = 2 & (x = 1 or x = 3)) by Z7;
+        then (z = 1 or (z = 2 & (y = 1 or y = 3))) or
+             ((y = 2 & z = 2) & (x = 1 or x = 3)) by Z7;
+        then z = 1 or (z = 2 & (x "/\" y = 1 or x "/\" y = 3)) by Z7;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "/\" (y "/\" z) = 2;
+        then x = 2 & y "/\" z = 2 by Z7;
+        then x = 2 & y = 2 & z = 2 by Z7;
+        then (x "/\" y) = 2 & z = 2 by Z7;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "/\" (y "/\" z) = 3;
+        then y "/\" z = 3 by Z7;
+        then z = 3 by Z7;
+        hence thesis by B1,Z7;
+      end;
+    end;
+    then
+C1: L is meet-associative;
+    for x,y,z being Element of L
+    holds x "/\" (y "\/" z) = (x "/\" y) "\/" (x "/\" z)
+    proof
+      let x,y,z be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "/\" (y "\/" z) = 1;
+        y "\/" z = 1 or (y "\/" z  = 2 & (x = 1 or x = 3)) by B1,Z7;
+        then (y = 1 or (y = 2 & (x = 1 or x = 3))) &
+        ((z = 1 or (z = 2 & (x = 1 or x = 3))) or z = 3) by Z8,ENUMSET1:def 1;
+        then x "/\" y = 1 & (x "/\" z = 1 or z = 3) by Z7;
+        hence thesis by B1,Z7,Z8;
+      end;
+      suppose
+B1:     x "/\" (y "\/" z) = 2;
+        then x = 2 & y "\/" z = 2 by Z7;
+        then x = 2 & (y = 2 or (y = 1 & z = 2)) by Z8;
+        then x "/\" y = 2 or (x "/\" y = 1 & x "/\" z = 2) by Z7;
+        hence thesis by B1,Z8;
+      end;
+      suppose
+B1:     x "/\" (y "\/" z) = 3;
+        then (y "\/" z) = 3 by Z7;
+        then x "/\" y = 3 by Z7,Z8;
+        hence thesis by B1,Z8;
+      end;
+    end;
+    then
+C2: L is distributive;
+    for x,y,z being Element of L
+    holds x "\/" (y "/\" z) = (x "\/" y) "/\" (x "\/" z)
+    proof
+      let x,y,z be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "\/" (y "/\" z) = 1;
+        then x = 1 & (y "/\" z = 1 or y "/\" z = 3) by Z8;
+        then x = 1 & ((z = 1 or (z = 2 & (y = 1 or y = 3))) or z = 3) by Z7;
+        then x "\/" z = 1 or (x "\/" z = 2 & (x "\/" y = 1 or x "\/" y = 3))
+        by Z8;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "\/" (y "/\" z) = 2;
+        then x = 2 or (x = 1 & y "/\" z = 2) by Z8;
+        then x = 2 or (x = 1 & y = 2 & z = 2) by Z7;
+        then x "\/" y = 2 & x "\/" z = 2 by Z8;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "\/" (y "/\" z) = 3;
+        then x = 3 by Z8;
+        then x "\/" z = 3 by Z8;
+        hence thesis by B1,Z7;
+      end;
+    end;
+    then
+C3: L is left-Distributive;
+    for x,y being Element of L holds x "/\" (x "\/" y) = x
+    proof
+      let x,y  be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "/\" (x "\/" y) = 1;
+        then x "\/" y = 1 or (x "\/" y = 2 & (x = 1 or x = 3)) by Z7;
+        hence thesis by B1,Z8;
+      end;
+      suppose x "/\" (x "\/" y) = 2; hence thesis by Z7; end;
+      suppose
+B1:     x "/\" (x "\/" y) = 3;
+        then x "\/" y = 3 by Z7;
+        hence thesis by B1,Z8;
+      end;
+    end;
+    then
+C4: L is join-absorbing;
+    for x, y being Element of L holds (x "\/" y) "/\" x = x
+    proof
+      let x,y  be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     (x "\/" y) "/\" x = 1;
+        then x = 1 or (x = 2 & (x "\/" y = 1 or x "\/" y = 3)) by Z7;
+        hence thesis by B1,Z8;
+      end;
+      suppose (x "\/" y) "/\" x = 2; hence thesis by Z7; end;
+      suppose (x "\/" y) "/\" x = 3; hence thesis by Z7; end;
+    end;
+    then
+C5: L is Meet-Absorbing;
+    for x,y being Element of L holds (x "/\" y) "\/" y = y
+    proof
+      let x,y  be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     (x "/\" y) "\/" y = 1;
+        then x "/\" y = 1 & (y = 1 or y = 3) by Z8;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     (x "/\" y) "\/" y = 2;
+        then x "/\" y = 2 or (x "/\" y = 1 & y = 2) by Z8;
+        hence thesis by Z7,B1;
+      end;
+      suppose
+B1:     (x "/\" y) "\/" y = 3;
+        then x "/\" y = 3 by Z8;
+        hence thesis by B1,Z7;
+      end;
+    end;
+    then
+C6: L is meet-absorbing;
+    L is not Meet-absorbing
+    proof
+      assume
+B1:   L is Meet-absorbing;
+      set x=3,y=2;
+      reconsider x=3,y=2 as Element of L by ENUMSET1:def 1;
+      (x "\/" y) "/\" y = 1 by Z7,Z8;
+      hence contradiction by B1;
+    end;
+    hence thesis by C1,C2,C3,C4,C5,C6;
+  end;
+
+Lmx3: ex x being Element of {1,2,3} st x = 2
+proof
+  reconsider x = 2 as Element of {1,2,3} by ENUMSET1:def 1;
+  take x;
+  thus thesis;
+end;
+
+definition
+  let x,y be Element of {1,2,3};
+  func x example33"/\" y -> Element of {1,2,3} equals :Defx5:
+  1 if x = 1 & y = 1,
+  2 if y = 2 or (y = 1 & (x = 2 or x = 3)),
+  3 if y = 3;
+  coherence by Lmx3;
+  consistency;
+  func x example33"\/" y -> Element of {1,2,3} equals :Defx6:
+  1 if x = 1 or (x = 2 & y = 1),
+  2 if x = 2 & (y = 2 or y = 3),
+  3 if x = 3;
+  coherence;
+  consistency;
+end;
+
+definition
+  func example33\/ -> BinOp of {1,2,3} means :Defx7:
+  for x,y being Element of {1,2,3} holds it.(x,y) = x example33"\/" y;
+  existence
+  proof
+    deffunc O(Element of {1,2,3},Element of {1,2,3})=$1 example33"\/" $2;
+    ex o being BinOp of {1,2,3} st for a,b being Element of {1,2,3} holds
+    o.(a,b) = O(a,b) from BINOP_1:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let o1,o2 be BinOp of ({1,2,3}) such that
+A1: for x,y being Element of {1,2,3} holds o1.(x,y) = x example33"\/" y and
+A2: for x,y being Element of {1,2,3} holds o2.(x,y) = x example33"\/" y;
+    now
+      let x,y be Element of {1,2,3};
+      thus o1.(x,y) = x example33"\/" y by A1
+        .= o2.(x,y) by A2;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+  func example33/\ -> BinOp of {1,2,3} means :Defx8:
+  for x,y being Element of {1,2,3} holds it.(x,y) = x example33"/\" y;
+  existence
+  proof
+    deffunc O(Element of {1,2,3},Element of {1,2,3})=$1 example33"/\" $2;
+    ex o being BinOp of {1,2,3} st for a,b being Element of {1,2,3} holds
+    o.(a,b) = O(a,b) from BINOP_1:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let o1,o2 be BinOp of ({1,2,3}) such that
+A1: for x,y being Element of {1,2,3} holds o1.(x,y) = x example33"/\" y and
+A2: for x,y being Element of {1,2,3} holds o2.(x,y) = x example33"/\" y;
+    now
+      let x,y be Element of {1,2,3};
+      thus o1.(x,y) = x example33"/\" y by A1
+        .= o2.(x,y) by A2;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+end;
+
+theorem :: Example 3.3
+  ex L being non empty LattStr st
+  (for x being Element of L holds x = 1 or x = 2 or x = 3) &
+  (for x,y being Element of L holds
+    (x "/\" y = 1 iff x = 1 & y = 1) &
+    (x "/\" y = 2 iff y = 2 or (y = 1 & (x = 2 or x = 3))) &
+    (x "/\" y = 3 iff y = 3)) &
+  (for x,y being Element of L holds
+    (x "\/" y = 1 iff x = 1 or (x = 2 & y = 1)) &
+    (x "\/" y = 2 iff x = 2 & (y = 2 or y = 3)) &
+    (x "\/" y = 3 iff x = 3)) &
+  L is GAD_Lattice
+  proof
+    set L = LattStr(# {1,2,3}, example33\/, example33/\ #);
+    take L;
+    thus for x being Element of L holds x = 1 or x = 2 or x = 3
+    by ENUMSET1:def 1;
+    thus
+Z7: for x,y being Element of L holds
+    (x "/\" y = 1 iff x = 1 & y = 1) &
+    (x "/\" y = 2 iff y = 2 or (y = 1 & (x = 2 or x = 3))) &
+    (x "/\" y = 3 iff y = 3)
+    proof
+      let x,y be Element of L;
+      reconsider x1=x, y1=y as Element of {1,2,3};
+B1:   x "/\" y = x1 example33"/\" y1 by Defx8;
+      thus x "/\" y = 1 iff x = 1 & y = 1
+      proof
+        hereby
+          assume
+B3:       x "/\" y = 1;
+          assume not (x = 1 & y = 1);
+          then (y = 2 or (y = 1 & (x = 2 or x = 3))) or y = 3
+          by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx5;
+        end;
+        assume x = 1 & y = 1;
+        hence x "/\" y = 1 by B1,Defx5;
+      end;
+      thus x "/\" y = 2 iff y = 2 or (y = 1 & (x = 2 or x = 3))
+      proof
+        hereby
+          assume
+B3:       x "/\" y = 2;
+          assume not (y = 2 or (y = 1 & (x = 2 or x = 3)));
+          then (x = 1 & y = 1) or y = 3 by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx5;
+        end;
+        assume y = 2 or (y = 1 & (x = 2 or x = 3));
+        hence x "/\" y = 2 by B1,Defx5;
+      end;
+      thus x "/\" y = 3 iff y = 3
+      proof
+        hereby
+          assume
+B3:       x "/\" y = 3;
+          assume not y = 3;
+          then (y = 2 or (y = 1 & (x = 2 or x = 3))) or (x = 1 & y = 1)
+          by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx5;
+        end;
+        assume y = 3;
+        hence x "/\" y = 3 by B1,Defx5;
+      end;
+    end;
+    thus
+Z8: for x,y being Element of L holds
+    (x "\/" y = 1 iff x = 1 or (x = 2 & y = 1)) &
+    (x "\/" y = 2 iff x = 2 & (y = 2 or y = 3)) &
+    (x "\/" y = 3 iff x = 3)
+    proof
+      let x,y be Element of L;
+      reconsider x1=x, y1=y as Element of {1,2,3};
+B1:   x "\/" y = x1 example33"\/" y1 by Defx7;
+      thus x "\/" y = 1 iff x = 1 or (x = 2 & y = 1)
+      proof
+        hereby
+          assume
+B3:       x "\/" y = 1;
+          assume not (x = 1 or (x = 2 & y = 1));
+          then (x = 2 & (y = 2 or y = 3)) or x = 3 by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx6;
+        end;
+        assume x = 1 or (x = 2 & y = 1);
+        hence x "\/" y = 1 by B1,Defx6;
+      end;
+      thus x "\/" y = 2 iff x = 2 & (y = 2 or y = 3)
+      proof
+        hereby
+          assume
+B3:       x "\/" y = 2;
+          assume not (x = 2 & (y = 2 or y = 3));
+          then (x = 1 or (x = 2 & y = 1)) or x = 3 by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx6;
+        end;
+        assume x = 2 & (y = 2 or y = 3);
+        hence x "\/" y = 2 by B1,Defx6;
+      end;
+      thus x "\/" y = 3 iff x = 3
+      proof
+        hereby
+          assume
+B3:       x "\/" y = 3;
+          assume not (x = 3);
+          then (x = 2 & (y = 2 or y = 3)) or (x = 1 or (x = 2 & y = 1))
+          by ENUMSET1:def 1;
+          hence contradiction by B3,B1,Defx6;
+        end;
+        assume x = 3;
+        hence x "\/" y = 3 by B1,Defx6;
+      end;
+    end;
+    for x,y,z being Element of L
+    holds x "/\" (y "/\" z) = (x "/\" y) "/\" z
+    proof
+      let x,y,z be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "/\" (y "/\" z) = 2;
+        then y "/\" z = 2 or (y "/\" z = 1 & (x = 2 or x = 3)) by Z7;
+        then (z = 2 or (z = 1 & (y = 2 or y = 3))) or
+             ((y = 1 & z = 1) & (x = 2 or x = 3)) by Z7;
+        then z = 2 or (z = 1 & (x "/\" y = 2 or x "/\" y = 3)) by Z7;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "/\" (y "/\" z) = 1;
+        then x = 1 & y "/\" z = 1 by Z7;
+        then x = 1 & y = 1 & z = 1 by Z7;
+        then (x "/\" y) = 1 & z = 1 by Z7;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "/\" (y "/\" z) = 3;
+        then y "/\" z = 3 by Z7;
+        then z = 3 by Z7;
+        hence thesis by B1,Z7;
+      end;
+    end;
+    then
+C1: L is meet-associative;
+    for x,y,z being Element of L
+    holds x "/\" (y "\/" z) = (x "/\" y) "\/" (x "/\" z)
+    proof
+      let x,y,z be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "/\" (y "\/" z) = 2;
+        y "\/" z = 2 or (y "\/" z  = 1 & (x = 2 or x = 3)) by B1,Z7;
+        then (y = 2 or (y = 1 & (x = 2 or x = 3))) &
+        ((z = 2 or (z = 1 & (x = 2 or x = 3))) or z = 3) by Z8,ENUMSET1:def 1;
+        then x "/\" y = 2 & (x "/\" z = 2 or z = 3) by Z7;
+        hence thesis by B1,Z7,Z8;
+      end;
+      suppose
+B1:     x "/\" (y "\/" z) = 1;
+        then x = 1 & y "\/" z = 1 by Z7;
+        then x = 1 & (y = 1 or (y = 2 & z = 1)) by Z8;
+        then x "/\" y = 1 or (x "/\" y = 2 & x "/\" z = 1) by Z7;
+        hence thesis by B1,Z8;
+      end;
+      suppose
+B1:     x "/\" (y "\/" z) = 3;
+        then (y "\/" z) = 3 by Z7;
+        then x "/\" y = 3 by Z7,Z8;
+        hence thesis by B1,Z8;
+      end;
+    end;
+    then
+C2: L is distributive;
+    for x,y,z being Element of L
+    holds x "\/" (y "/\" z) = (x "\/" y) "/\" (x "\/" z)
+    proof
+      let x,y,z be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "\/" (y "/\" z) = 2;
+        then x = 2 & (y "/\" z = 2 or y "/\" z = 3) by Z8;
+        then x = 2 & ((z = 2 or (z = 1 & (y = 2 or y = 3))) or z = 3) by Z7;
+        then x "\/" z = 2 or (x "\/" z = 1 & (x "\/" y = 2 or x "\/" y = 3))
+        by Z8;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "\/" (y "/\" z) = 1;
+        then x = 1 or (x = 2 & y "/\" z = 1) by Z8;
+        then x = 1 or (x = 2 & y = 1 & z = 1) by Z7;
+        then x "\/" y = 1 & x "\/" z = 1 by Z8;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     x "\/" (y "/\" z) = 3;
+        then x = 3 by Z8;
+        then x "\/" z = 3 by Z8;
+        hence thesis by B1,Z7;
+      end;
+    end;
+    then
+C3: L is left-Distributive;
+    for x,y being Element of L holds x "/\" (x "\/" y) = x
+    proof
+      let x,y  be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     x "/\" (x "\/" y) = 2;
+        then x "\/" y = 2 or (x "\/" y = 1 & (x = 2 or x = 3)) by Z7;
+        hence thesis by B1,Z8;
+      end;
+      suppose x "/\" (x "\/" y) = 1; hence thesis by Z7; end;
+      suppose
+B1:     x "/\" (x "\/" y) = 3;
+        then x "\/" y = 3 by Z7;
+        hence thesis by B1,Z8;
+      end;
+    end;
+    then
+C4: L is join-absorbing;
+    for x, y being Element of L holds (x "\/" y) "/\" x = x
+    proof
+      let x,y  be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     (x "\/" y) "/\" x = 2;
+        then x = 2 or (x = 1 & (x "\/" y = 2 or x "\/" y = 3)) by Z7;
+        hence thesis by B1,Z8;
+      end;
+      suppose (x "\/" y) "/\" x = 1; hence thesis by Z7; end;
+      suppose (x "\/" y) "/\" x = 3; hence thesis by Z7; end;
+    end;
+    then
+C5: L is Meet-Absorbing;
+    for x,y being Element of L holds (x "/\" y) "\/" y = y
+    proof
+      let x,y  be Element of L;
+      per cases by ENUMSET1:def 1;
+      suppose
+B1:     (x "/\" y) "\/" y = 2;
+        then x "/\" y = 2 & (y = 2 or y = 3) by Z8;
+        hence thesis by B1,Z7;
+      end;
+      suppose
+B1:     (x "/\" y) "\/" y = 1;
+        then x "/\" y = 1 or (x "/\" y = 2 & y = 1) by Z8;
+        hence thesis by Z7,B1;
+      end;
+      suppose
+B1:     (x "/\" y) "\/" y = 3;
+        then x "/\" y = 3 by Z8;
+        hence thesis by B1,Z7;
+      end;
+    end;
+    then L is meet-absorbing;
+    hence thesis by C1,C2,C3,C4,C5;
+  end;
+
+:: like NAT_LAT ::
+definition
+  let L be non empty LattStr;
+  mode SubLattStr of L -> LattStr means :Defx1:
+    the carrier of it c= the carrier of L &
+    the L_join of it = (the L_join of L)||the carrier of it &
+    the L_meet of it = (the L_meet of L)||the carrier of it;
+  existence
+  proof
+    take L;
+    thus thesis;
+  end;
+end;
+
+registration
+  let L be non empty LattStr;
+  cluster strict for SubLattStr of L;
+  correctness
+  proof
+    set S = LattStr(# the carrier of L, the L_join of L, the L_meet of L #);
+    the L_join of S = (the L_join of L)||the carrier of S &
+    the L_meet of S = (the L_meet of L)||the carrier of S;
+    then S is SubLattStr of L by Defx1;
+    hence thesis;
+  end;
+end;
+
+definition
+::$CD 2
+end;
+
+registration
+  let L be non empty LattStr;
+  cluster meet-closed join-closed non empty for Subset of L;
+  existence
+  proof
+    take [#]L;
+    thus thesis;
+  end;
+end;
+
+definition
+  let L be non empty LattStr;
+  mode ClosedSubset of L is meet-closed join-closed Subset of L;
+end;
+
+definition
+  let L be non empty LattStr;
+  let P be ClosedSubset of L;
+  func latt(L,P) -> strict SubLattStr of L means :Defx4:
+  the carrier of it = P;
+  existence
+  proof
+    for o being set st o in [:P,P:] holds (the L_join of L).o in P
+    proof
+      let o be set;
+      assume o in [:P,P:];
+      then consider x,y be object such that
+B1:   x in P & y in P & o = [x,y] by ZFMISC_1:def 2;
+      reconsider x,y as Element of L by B1;
+      (the L_join of L).o = x "\/" y by B1;
+      hence (the L_join of L).o in P by B1,LATTICES:def 25;
+    end;
+    then P is Preserv of the L_join of L by REALSET1:def 1;
+    then reconsider lj = (the L_join of L)||P as BinOp of P by REALSET1:2;
+    for o being set st o in [:P,P:] holds (the L_meet of L).o in P
+    proof
+      let o be set;
+      assume o in [:P,P:];
+      then consider x,y be object such that
+B1:   x in P & y in P & o = [x,y] by ZFMISC_1:def 2;
+      reconsider x,y as Element of L by B1;
+      (the L_meet of L).o = x "/\" y by B1;
+      hence (the L_meet of L).o in P by B1,LATTICES:def 24;
+    end;
+    then P is Preserv of the L_meet of L by REALSET1:def 1;
+    then reconsider lm = (the L_meet of L)||P as BinOp of P by REALSET1:2;
+    reconsider S = LattStr(# P, lj, lm #) as strict SubLattStr of L by Defx1;
+    take S;
+    thus thesis;
+  end;
+  uniqueness
+  proof
+    let S1,S2 be strict SubLattStr of L;
+    assume
+A1: the carrier of S1 = P & the carrier of S2 = P;
+A2: the L_join of S1 = (the L_join of L)||the carrier of S1 by Defx1
+    .= the L_join of S2 by A1,Defx1;
+    the L_meet of S1 = (the L_meet of L)||the carrier of S1 by Defx1
+    .= the L_meet of S2 by A1,Defx1;
+    hence thesis by A1,A2;
+  end;
+end;
+
+registration
+  let L be non empty LattStr;
+  let S be non empty ClosedSubset of L;
+  cluster latt(L,S) -> non empty;
+  correctness by Defx4;
+end;
+
+registration
+  let L be non empty LattStr;
+  cluster non empty for SubLattStr of L;
+  correctness
+  proof
+    take latt(L,the non empty ClosedSubset of L);
+    thus thesis;
+  end;
+end;
+
+theorem Thx3:
+  for L be non empty LattStr, S be non empty SubLattStr of L,
+      x1,x2 be Element of L, y1,y2 be Element of S
+  st x1 = y1 & x2 = y2 holds x1 "\/" x2 = y1 "\/" y2
+  proof
+    let L be non empty LattStr;
+    let S be non empty SubLattStr of L;
+    let x1,x2 be Element of L;
+    let y1,y2 be Element of S;
+    assume
+Z4: x1 = y1 & x2 = y2;
+Z5: the L_join of S = (the L_join of L)||the carrier of S by Defx1
+    .= (the L_join of L)|[:the carrier of S,the carrier of S:];
+    [y1,y2] in [:the carrier of S,the carrier of S:] by ZFMISC_1:def 2;
+    hence x1 "\/" x2 = y1 "\/" y2 by Z4,Z5,FUNCT_1:49;
+  end;
+
+theorem Thx4:
+  for L be non empty LattStr, S be non empty SubLattStr of L,
+      x1,x2 be Element of L, y1,y2 be Element of S
+  st x1 = y1 & x2 = y2 holds x1 "/\" x2 = y1 "/\" y2
+  proof
+    let L be non empty LattStr;
+    let S be non empty SubLattStr of L;
+    let x1,x2 be Element of L;
+    let y1,y2 be Element of S;
+    assume
+Z4: x1 = y1 & x2 = y2;
+Z5: the L_meet of S = (the L_meet of L)||the carrier of S by Defx1
+    .= (the L_meet of L)|[:the carrier of S,the carrier of S:];
+    [y1,y2] in [:the carrier of S,the carrier of S:] by ZFMISC_1:def 2;
+    hence x1 "/\" x2 = y1 "/\" y2 by Z4,Z5,FUNCT_1:49;
+  end;
+
+theorem Thx1:
+  for L being non empty LattStr, S being non empty ClosedSubset of L holds
+  (L is meet-associative implies latt(L,S) is meet-associative) &
+  (L is meet-absorbing implies latt(L,S) is meet-absorbing) &
+  (L is meet-commutative implies latt(L,S) is meet-commutative) &
+  (L is join-associative implies latt(L,S) is join-associative) &
+  (L is join-absorbing implies latt(L,S) is join-absorbing) &
+  (L is join-commutative implies latt(L,S) is join-commutative) &
+  (L is Meet-Absorbing implies latt(L,S) is Meet-Absorbing) &
+  (L is distributive implies latt(L,S) is distributive) &
+  (L is left-Distributive implies latt(L,S) is left-Distributive)
+  proof
+    let L be non empty LattStr;
+    let S be non empty ClosedSubset of L;
+    thus L is meet-associative implies latt(L,S) is meet-associative
+    proof
+    assume
+Z2:   L is meet-associative;
+      let a,b,c be Element of latt(L,S);
+      reconsider x=a,y=b,z=c as Element of L by Defx1,TARSKI:def 3;
+      b "/\" c = y "/\" z & a "/\" b = x "/\" y  by Thx4;
+      then a "/\" (b "/\" c) = x "/\" (y "/\" z) &
+      (a "/\" b) "/\" c = (x "/\" y) "/\" z by Thx4;
+      hence a "/\" (b "/\" c) = (a "/\" b) "/\" c by Z2;
+    end;
+    thus L is meet-absorbing implies latt(L,S) is meet-absorbing
+    proof
+      assume
+Z3:   L is meet-absorbing;
+      let a,b be Element of latt(L,S);
+      reconsider x=a,y=b as Element of L by Defx1,TARSKI:def 3;
+      a "/\" b = x "/\" y  by Thx4;
+      then (a "/\" b) "\/" b = (x "/\" y) "\/" y by Thx3;
+      hence (a "/\" b) "\/" b = b by Z3;
+    end;
+    thus L is meet-commutative implies latt(L,S) is meet-commutative
+    proof
+      assume
+Z3:   L is meet-commutative;
+      let a,b be Element of latt(L,S);
+      reconsider x=a,y=b as Element of L by Defx1,TARSKI:def 3;
+      a "/\" b = x "/\" y & b "/\" a = y "/\" x  by Thx4;
+      hence a "/\" b = b "/\" a by Z3;
+    end;
+    thus L is join-associative implies latt(L,S) is join-associative
+    proof
+      assume
+Z3:   L is join-associative;
+      let a,b,c be Element of latt(L,S);
+      reconsider x=a,y=b,z=c as Element of L by Defx1,TARSKI:def 3;
+      b "\/" c = y "\/" z & a "\/" b = x "\/" y  by Thx3;
+      then a "\/" (b "\/" c) = x "\/" (y "\/" z) &
+      (a "\/" b) "\/" c = (x "\/" y) "\/" z by Thx3;
+      hence a "\/" (b "\/" c) = (a "\/" b) "\/" c by Z3;
+    end;
+    thus L is join-absorbing implies latt(L,S) is join-absorbing
+    proof
+      assume
+Z3:   L is join-absorbing;
+      let a,b be Element of latt(L,S);
+      reconsider x=a,y=b as Element of L by Defx1,TARSKI:def 3;
+      a "\/" b = x "\/" y  by Thx3;
+      then a "/\" (a "\/" b) = x "/\" (x "\/" y) by Thx4;
+      hence a "/\" (a "\/" b) = a by Z3;
+    end;
+    thus L is join-commutative implies latt(L,S) is join-commutative
+    proof
+      assume
+Z3:   L is join-commutative;
+      let a,b be Element of latt(L,S);
+      reconsider x=a,y=b as Element of L by Defx1,TARSKI:def 3;
+      a "\/" b = x "\/" y & b "\/" a = y "\/" x  by Thx3;
+      hence a "\/" b = b "\/" a by Z3;
+    end;
+    thus L is Meet-Absorbing implies latt(L,S) is Meet-Absorbing
+    proof
+      assume
+Z3:   L is Meet-Absorbing;
+      let a,b be Element of latt(L,S);
+      reconsider x=a,y=b as Element of L by Defx1,TARSKI:def 3;
+      a "\/" b = x "\/" y  by Thx3;
+      then (a "\/" b) "/\" a  = (x "\/" y) "/\" x by Thx4;
+      hence (a "\/" b) "/\" a = a by Z3;
+    end;
+    thus L is distributive implies latt(L,S) is distributive
+    proof
+      assume
+Z3:   L is distributive;
+      let a,b,c be Element of latt(L,S);
+      reconsider x=a,y=b,z=c as Element of L by Defx1,TARSKI:def 3;
+      b "\/" c = y "\/" z & a "/\" b = x "/\" y & a "/\" c = x "/\" z
+      by Thx3,Thx4;
+      then a "/\" (b "\/" c) = x "/\" (y "\/" z) &
+      (a "/\" b) "\/" (a "/\" c) = (x "/\" y) "\/" (x "/\" z) by Thx3,Thx4;
+      hence a "/\" (b "\/" c) = (a "/\" b) "\/" (a "/\" c) by Z3;
+    end;
+    thus L is left-Distributive implies latt(L,S) is left-Distributive
+    proof
+      assume
+Z3:   L is left-Distributive;
+      let a,b,c be Element of latt(L,S);
+      reconsider x=a,y=b,z=c as Element of L by Defx1,TARSKI:def 3;
+      b "/\" c = y "/\" z & a "\/" b = x "\/" y & a "\/" c = x "\/" z
+      by Thx3,Thx4;
+      then a "\/" (b "/\" c) = x "\/" (y "/\" z) &
+      (a "\/" b) "/\" (a "\/" c) = (x "\/" y) "/\" (x "\/" z) by Thx3,Thx4;
+      hence a "\/" (b "/\" c) = (a "\/" b) "/\" (a "\/" c) by Z3;
+    end;
+  end;
+
+theorem :: Corollary 3.12
+  for a being Element of L, X being set st
+    X = the set of all x "/\" a where x is Element of L
+  holds
+    X = {x where x is Element of L: x [= a} & X is ClosedSubset of L
+  proof
+    let a be Element of L;
+    let X be set;
+    assume
+B1: X = the set of all x "/\" a where x is Element of L;
+B2: for o being object holds
+    o in the set of all x "/\" a where x is Element of L iff
+    o in {x where x is Element of L: x [= a}
+    proof
+      let o be object;
+      hereby
+        assume o in the set of all x "/\" a where x is Element of L;
+        then consider x be Element of L such that
+A1:     o = x "/\" a;
+        set y = x "/\" a;
+        L is meet-absorbing;
+        then y [= a;
+        hence o in {y where y is Element of L: y [= a} by A1;
+      end;
+      assume o in {x where x is Element of L: x [= a};
+      then consider x be Element of L such that
+A1:   o = x & x [= a;
+      x "/\" a = x by A1,LATTICES:def 9;
+      hence o in the set of all x "/\" a where x is Element of L by A1;
+    end;
+    now
+      let o be object;
+      assume o in X;
+      then consider x be Element of L such that
+B3:   o = x "/\" a by B1;
+      thus o in the carrier of L by B3;
+    end;
+    then reconsider S = X as Subset of L by TARSKI:def 3;
+    for p,q being Element of L st p in S & q in S holds p "/\" q in S
+    proof
+      let p,q be Element of L;
+      assume p in S;
+      then consider x be Element of L such that
+B5:   p = x "/\" a by B1;
+      assume q in S;
+      then consider y be Element of L such that
+B6:   q = y "/\" a by B1;
+      p "/\" q = x "/\" (a "/\" (y "/\" a)) by B5,B6,LATTICES:def 7
+      .= x "/\" ((a "/\" y) "/\" a) by LATTICES:def 7
+      .= (x "/\" (a "/\" y)) "/\" a by LATTICES:def 7;
+      hence p "/\" q in S by B1;
+    end;
+    then
+B4: S is meet-closed;
+    for p,q being Element of L st p in S & q in S holds p "\/" q in S
+    proof
+      let p,q be Element of L;
+      assume p in S;
+      then consider x be Element of L such that
+B5:   p = x "/\" a by B1;
+      assume q in S;
+      then consider y be Element of L such that
+B6:   q = y "/\" a by B1;
+      p "\/" q = ((x "/\" a) "\/" y) "/\" ((x "/\" a) "\/" a) by B5,B6,DefLDS
+      .= ((x "/\" a) "\/" y) "/\" a by LATTICES:def 8;
+      hence p "\/" q in S by B1;
+    end;
+    then S is join-closed;
+    hence thesis by B1,B2,B4,TARSKI:2;
+  end;
+
+theorem :: Corollary 3.12
+ for a being Element of L, S being non empty ClosedSubset of L,
+     b being Element of latt(L,S) st b = a &
+    S = the set of all x "/\" a where x is Element of L
+  holds latt(L,S) is Lattice-like distributive &
+  (for c being Element of latt(L,S) holds b "\/" c = b & c "\/" b = b & c [= b)
+  proof
+    let a be Element of L;
+    let S be non empty ClosedSubset of L;
+    let b be Element of latt(L,S);
+    assume
+Z5: b = a;
+    assume
+Z2: S = the set of all x "/\" a where x is Element of L;
+    for y1,y2 being Element of latt(L,S) holds y1 "/\" y2 = y2 "/\" y1
+    proof
+      let y1,y2 be Element of latt(L,S);
+      y1 in the carrier of latt(L,S);
+      then y1 in S by Defx4;
+      then consider x1 be Element of L such that
+B1:   y1 = x1 "/\" a by Z2;
+      y2 in the carrier of latt(L,S);
+      then y2 in S by Defx4;
+      then consider x2 be Element of L such that
+B2:   y2 = x2 "/\" a by Z2;
+      thus y1 "/\" y2 = x1 "/\" a "/\" (x2 "/\" a) by B1,B2,Thx4
+      .= a "/\" x1 "/\" (x2 "/\" a) by Lem310
+      .= a "/\" (x1 "/\" (x2 "/\" a)) by LATTICES:def 7
+      .= a "/\" (x1 "/\" x2 "/\" a) by LATTICES:def 7
+      .= a "/\" (x2 "/\" x1 "/\" a) by Lem310
+      .= a "/\" (x2 "/\" (x1 "/\" a)) by LATTICES:def 7
+      .= a "/\" x2 "/\" (x1 "/\" a) by LATTICES:def 7
+      .= x2 "/\" a "/\" (x1 "/\" a) by Lem310
+      .= y2 "/\" y1 by B1,B2,Thx4;
+    end;
+    then
+Z12: latt(L,S) is meet-commutative;
+    latt(L,S) is GAD_Lattice by Thx1;
+    hence latt(L,S) is Lattice-like distributive by Z12,Th31141;
+    let c be Element of latt(L,S);
+    c in the carrier of latt(L,S);
+    then c in S by Defx4;
+    then consider x be Element of L such that
+A1: c = x "/\" a by Z2;
+    reconsider d = c as Element of L by A1;
+    thus b "\/" c = a "\/" (x "/\" a) by A1,Z5,Thx3 .= b by Z5,ThA5;
+    thus
+A2: c "\/" b = (x "/\" a) "\/" a by A1,Z5,Thx3 .= b by Z5,LATTICES:def 8;
+    thus c [= b by A2;
+  end;
+

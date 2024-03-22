@@ -1,0 +1,2181 @@
+:: Introduction to Stopping Time in Stochastic Finance Theory: Part {II}
+::  by Peter Jaeger
+:: 
+:: Received November 29, 2017
+:: Copyright (c) 2017-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies SETFAM_1, XCMPLX_0, CARD_3, ZFMISC_1, EQREL_1, NUMBERS, XBOOLE_0,
+      PROB_1, SUBSET_1, RELAT_1, FUNCT_1, TARSKI, ARYTM_3, XXREAL_0, CARD_1,
+      RPR_1, FINANCE3, FUNCOP_1, FINANCE4, FINANCE5, RANDOM_3, FINANCE1,
+      XXREAL_1, NAT_1, MEMBERED, ARYTM_1, REAL_1, VALUED_0, PARTFUN1, INT_1,
+      FUNCT_7, ORDINAL1;
+ notations TARSKI, XBOOLE_0, SETFAM_1, SUBSET_1, ORDINAL1, NUMBERS, XXREAL_0,
+      XXREAL_3, XREAL_0, RELAT_1, FUNCT_1, RELSET_1, PARTFUN1, FUNCT_2, PROB_1,
+      FUNCOP_1, MEMBERED, XXREAL_1, VALUED_0, NAT_1, INT_1, RANDOM_3, FINANCE1,
+      FINANCE3, FINANCE4, RCOMP_1, XCMPLX_0;
+ constructors DYNKIN, RELSET_1, FINANCE3, SUPINF_1, FINANCE4, RCOMP_1,
+      PARTFUN3, ORDINAL1, XXREAL_3, FINSUB_1;
+ registrations XCMPLX_0, RELAT_1, PROB_1, SUBSET_1, MEMBERED, ORDINAL1,
+      FUNCT_2, NUMBERS, RELSET_1, XBOOLE_0, XXREAL_0, FINANCE4, NAT_1, XREAL_0,
+      XXREAL_1, VALUED_0, CARD_1, INT_1;
+ requirements REAL, BOOLE, SUBSET, NUMERALS, ARITHM;
+ definitions TARSKI, XBOOLE_0, VALUED_0, PROB_1;
+ equalities PROB_1, SUBSET_1, FINANCE3, FINANCE4;
+ expansions FUNCT_1, FUNCT_2, MEMBERED, TARSKI, PROB_1;
+ theorems TARSKI, XBOOLE_0, PROB_1, ORDINAL1, FUNCT_2, FUNCT_1, FUNCOP_1,
+      KOLMOG01, XXREAL_0, FINANCE4, PROB_4, FINANCE1, RANDOM_3, XXREAL_1,
+      ZFMISC_1, NUMBERS, NAT_1, XREAL_1, XBOOLE_1, XCMPLX_1, SEQ_4, MEMBERED,
+      XREAL_0, SUBSET_1, RELSET_1, VALUED_0, PARTFUN1, INT_1, XXREAL_3,
+      FINANCE3;
+ schemes FUNCT_1, FUNCT_2, RECDEF_1, NAT_1;
+
+begin :: Preliminaries
+
+reserve Omega for non empty set;
+reserve Sigma for SigmaField of Omega;
+reserve S for non empty Subset of REAL;
+reserve r for Real;
+reserve T for Nat;
+
+definition
+  let A be non empty set;
+  let I be ext-real-membered set;
+  let k1, k2 be Function of A, I;
+  pred k1 <= k2 means ::: ordinary ordering of functions
+    for w being Element of A holds k1.w <= k2.w;
+end;
+
+registration
+  let f be ext-real-valued Function;
+  let x be object;
+  cluster f.x -> ext-real;
+  coherence;
+end;
+
+definition
+  let f1,f2 be ext-real-valued Function;
+  deffunc F(object) = f1.$1 + f2.$1;
+  set X = dom f1 /\ dom f2;
+  func f1 + f2 -> Function means  :Def888:
+  dom it = dom f1 /\ dom f2 &
+  for x being object st x in dom it holds it.x = f1.x + f2.x;
+existence
+proof
+  ex f being Function st dom f = X &
+   for x being object st x in X holds f.x = F(x) from FUNCT_1:sch 3;
+  hence thesis;
+end;
+uniqueness
+proof
+    let f, g be Function such that
+A1: dom f = X and
+A2: for c being object st c in dom f holds f.c = F(c) and
+A3: dom g = X and
+A4: for c being object st c in dom g holds g.c = F(c);
+    now
+      let x be object;
+      assume
+A5:   x in dom f;
+      hence f.x = F(x) by A2
+        .= g.x by A1,A3,A4,A5;
+    end;
+    hence thesis by A1,A3;
+  end;
+  commutativity;
+end;
+
+registration
+  let f1,f2 be ext-real-valued Function;
+  cluster f1+f2 -> ext-real-valued;
+  coherence
+  proof
+    let x be object;
+    assume x in dom (f1+f2);
+    then (f1+f2).x = f1.x + f2.x by Def888;
+    hence thesis;
+  end;
+end;
+
+registration
+  let C be set;
+  let D1,D2 be ext-real-membered non empty set;
+  let f1 be Function of C,D1;
+  let f2 be Function of C,D2;
+  cluster f1+f2 -> total for PartFunc of C,ExtREAL;
+  coherence
+  proof
+    dom f1 = C & dom f2 = C by FUNCT_2:def 1;
+    then dom(f1+f2) = C /\ C by Def888;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+definition
+  let C be set;
+  let D1,D2 be ext-real-membered set;
+  let f1 be PartFunc of C,D1;
+  let f2 be PartFunc of C,D2;
+  redefine func f1+f2 -> PartFunc of C,ExtREAL;
+  coherence
+  proof
+    dom (f1+f2) = dom f1 /\ dom f2 & rng (f1+f2) c= ExtREAL
+    by Def888,VALUED_0:def 2;
+    hence thesis by RELSET_1:4;
+  end;
+end;
+
+theorem
+  for A, I, y being non empty set
+  for F being Function of A,I holds
+   { z where z is Element of A : F.z in y } = F"y
+   proof
+    let A, I, y be non empty set;
+    let F be Function of A,I;
+    for x being object holds
+    x in { z where z is Element of A : F.z in y }
+     iff x in F"y
+    proof
+    let x be object;
+    hereby
+     assume x in { z where z is Element of A : F.z in y };
+     then consider z being Element of A such that
+     A1: x = z & F.z in y;
+     z in A;
+     then z in dom F by FUNCT_2:def 1;
+     hence x in F"y by FUNCT_1:def 7,A1;
+    end;
+    assume x in F"y;
+    then x in dom F & F.x in y by FUNCT_1:def 7;
+    hence x in { z where z is Element of A : F.z in y };
+    end;
+    hence thesis by TARSKI:2;
+   end;
+
+XX: for b being Real holds [.b,+infty.] c= ].b-1,+infty.]
+  proof
+    let b be Real;
+    b - 1 < b by XREAL_1:44;
+    hence thesis by XXREAL_1:39;
+  end;
+
+Lemma2:
+  for b being Real, n being Nat st n > 0 holds
+   [.b,+infty.] c= ].b-1/n,+infty.]
+  proof
+    let b be Real, n be Nat;
+    assume n > 0; then
+    b-1/n<b by XREAL_1:44;
+    hence thesis by XXREAL_1:39;
+  end;
+
+theorem PP:
+  for r being Real st r>0 ex n being Nat st 1/n < r & n > 0 ::: by FRECHET:36;
+  proof
+    let r be Real;
+    assume A1: r > 0;
+    consider n being Nat such that
+A2: 1 / r < n by SEQ_4:3;
+    take n;
+SS: r" = 1 / r & n" = 1 / n by XCMPLX_1:215;
+    (r")" > n" by A2,SS,A1,XREAL_1:88;
+    hence 1/n < r by XCMPLX_1:215;
+    thus thesis by A1,A2;
+  end;
+
+theorem CrossTh:
+  for a,b being Real holds [.-infty,a.] /\ [.b,+infty.] = [.b,a.]
+proof
+  let a,b be Real;
+   thus [.-infty,a.] /\ [.b,+infty.] c= [.b,a.]
+   proof
+    let x be object;
+    assume x in [.-infty,a.] /\ [.b,+infty.];
+    then x in [.-infty,a.] & x in [.b,+infty.] by XBOOLE_0:def 4; then
+B1: x in {c where c is Element of ExtREAL: -infty<= c & c <=a} &
+         x in {c where c is Element of ExtREAL:
+                 b<= c & c <=+infty} by XXREAL_1:def 1;
+    consider c being Element of ExtREAL such that
+B2: x= c & -infty <= c & c <= a by B1;
+    ex d being Element of ExtREAL st x= d & b<=d & d<=+infty by B1;
+    hence thesis by XXREAL_1:1,B2;
+   end;
+    let x be object;
+    assume x in [.b,a.];
+    then x in {c where c is Element of ExtREAL: b<= c & c <= a}
+     by XXREAL_1:def 1;
+    then consider c being Element of ExtREAL such that
+B1: x=c & b<= c & c <=a;
+    reconsider x as Element of ExtREAL by B1;
+B2: -infty<=x & x<=+infty by XXREAL_0:3,XXREAL_0:5; then
+F1: x in [.-infty,a.] by XXREAL_1:1,B1;
+    x in [.b,+infty.] by XXREAL_1:1,B2,B1;
+    hence thesis by XBOOLE_0:def 4,F1;
+end;
+
+theorem
+  for r being Real st r >= 0 holds [.0,+infty.] \ [.0,r.[ = [.r,+infty.]
+  proof
+   let r be Real;
+   assume A0: r >= 0;
+   for x being object holds x in [.0,+infty.] \ [.0,r.[ iff x in [.r,+infty.]
+   proof
+    let x be object;
+    thus x in [.0,+infty.] \ [.0,r.[ implies x in [.r,+infty.]
+    proof
+     assume x in [.0,+infty.] \ [.0,r.[;
+     then G1: x in [.0,+infty.] & (not x in [.0,r.[) by XBOOLE_0:def 5;
+     then x in {w where w is Element of ExtREAL: 0<=w & w<=+infty}
+      by XXREAL_1:def 1;
+     then consider w being Element of ExtREAL such that
+G2:  x=w & 0<=w & w<=+infty;
+G3:  not w in {w where w is Element of ExtREAL: 0<=w & w<r}
+      by XXREAL_1:def 2,G1,G2;
+     0>w or w>=r by G3;
+     hence thesis by XXREAL_1:1,G2;
+    end;
+     assume x in [.r,+infty.];
+     then x in {w where w is Element of ExtREAL: r<=w & w<=+infty}
+      by XXREAL_1:def 1;
+     then consider w being Element of ExtREAL such that
+      H1: w=x & w>=r & w<=+infty;
+     reconsider x as Element of ExtREAL by H1;
+     H2: x in [.0,+infty.] by A0,XXREAL_1:1,H1;
+     not x in [.0,r.[ by XXREAL_1:3,H1;
+    hence thesis by H2,XBOOLE_0:def 5;
+   end;
+  hence thesis;
+  end;
+
+registration let r be ExtReal;
+  cluster [.r,+infty.] -> non empty;
+  coherence
+  proof
+    r <= +infty by XXREAL_0:3;
+    hence thesis by XXREAL_1:1;
+  end;
+end;
+
+theorem Th2:
+  for k being ExtReal holds ExtREAL \ [.-infty,k.] = ].k,+infty.]
+ proof
+ let k be ExtReal;
+ for x being object holds x in ExtREAL \ [.-infty,k.] iff x in ].k,+infty.]
+ proof
+  let x be object;
+  hereby assume A2: x in ExtREAL \ [.-infty,k.];
+ A3: x in [.-infty,+infty.] & not x in [.-infty,k.]
+      by A2,XBOOLE_0:def 5,XXREAL_1:209;
+     consider y being Element of ExtREAL such that A4:x=y by A2;
+     y in [.-infty,+infty.] & not (-infty <= y & y <= k) by A4,A3,XXREAL_1:1;
+     hence x in ].k,+infty.] by XXREAL_1:2,A4,XXREAL_0:3,5;
+     end;
+     assume A6: x in ].k,+infty.];
+     then k in ExtREAL & x in ].k,+infty.] &
+       x in {a where a is Element of ExtREAL:
+         k < a & a <= +infty} by XXREAL_0:def 1,XXREAL_1:def 3; then
+     consider a being Element of ExtREAL such that
+ A7: a=x & k < a & a <= +infty;
+     consider y being Element of ExtREAL such that A8: x=y by A7;
+     reconsider y as Element of ExtREAL;
+     y>k by A6,A8,XXREAL_1:2;
+     then y in ExtREAL & not y in [.-infty,k.] by XXREAL_1:1;
+    hence thesis by A8,XBOOLE_0:def 5;
+  end;
+ hence thesis;
+ end;
+
+registration let a be Real;
+  cluster ].a,+infty.] -> non empty;
+  coherence
+  proof
+    a < a+1 by XREAL_1:29;
+    hence thesis by XXREAL_0:3,XXREAL_1:2;
+  end;
+end;
+
+begin :: Theory for Stopping Time in Discrete Time
+
+definition
+  let Omega, Sigma, T;
+  let Filt be Filtration of StoppingSet(T),Sigma;
+  let k be Function of Omega,StoppingSetExt(T);
+  attr k is Filt-StoppingTime-like means :Def1:
+  k is_StoppingTime_wrt Filt,T;
+end;
+
+registration
+  let Omega, Sigma, T;
+  let MyFunc be Filtration of StoppingSet(T),Sigma;
+  cluster MyFunc-StoppingTime-like for Function of Omega, StoppingSetExt(T);
+  existence
+  proof
+   0 in StoppingSet(T) or 0 in {+infty}; then
+   reconsider My1 = 0 as Element of StoppingSetExt(T) by XBOOLE_0:def 3;
+   Omega --> My1 is_StoppingTime_wrt MyFunc,T by FINANCE4:3;
+   hence thesis by Def1;
+  end;
+end;
+
+definition
+  let Omega, Sigma, T;
+  let MyFunc be Filtration of StoppingSet(T),Sigma;
+  mode StoppingTime_Func of MyFunc is
+    MyFunc-StoppingTime-like Function of Omega,StoppingSetExt(T);
+end;
+
+theorem
+for T be non zero Nat,
+    MyFunc be Filtration of StoppingSet(T),Sigma holds
+ not for k1,k2 be StoppingTime_Func of MyFunc holds
+         k1+k2 is StoppingTime_Func of MyFunc
+proof
+  let T be non zero Nat;
+  let MyFunc be Filtration of StoppingSet(T),Sigma;
+  T in NAT by ORDINAL1:def 12;
+  then T in StoppingSet(T) or T in {+infty}; then
+  reconsider MyT = T as Element of StoppingSetExt(T) by XBOOLE_0:def 3;
+  consider k1 being Function of Omega,StoppingSetExt(T) such that
+A1: k1=Omega-->MyT & k1 is_StoppingTime_wrt MyFunc,T by FINANCE4:3;
+  reconsider k1 as StoppingTime_Func of MyFunc by A1,Def1;
+  consider k2 being Function of Omega,StoppingSetExt(T) such that
+A2: k2=Omega-->MyT & k2 is_StoppingTime_wrt MyFunc,T by FINANCE4:3;
+  reconsider k2 as StoppingTime_Func of MyFunc by A2,Def1;
+  take k1,k2;
+F1: not (T+T) in {+infty} by TARSKI:def 1;
+  ex w being Element of dom(k1+k2) st
+   w in dom(k1+k2) & not (k1+k2).w in StoppingSetExt(T)
+   proof
+    consider w2 being object such that
+C1: w2 in dom(k1+k2) by XBOOLE_0:def 1;
+    reconsider w2 as Element of Omega by C1;
+e3: k1.w2=T & k2.w2=T by A1,FUNCOP_1:7,A2;
+XX: T + T = k1.w2+(k2.w2) by e3,XXREAL_3:def 2
+         .= (k1+k2).w2 by C1,Def888;
+    not (k1+k2).w2 in StoppingSetExt(T)
+    proof
+     not (T+T) in StoppingSetExt(T)
+     proof
+      not (T+T) in {t where t is Element of NAT: 0<=t<=T}
+       proof
+        not ex t2 being Element of NAT st t2=T+T & 0<=t2<=T by NAT_1:16;
+        hence thesis;
+      end;
+     hence thesis by F1,XBOOLE_0:def 3;
+     end;
+    hence thesis by XX;
+    end;
+   hence thesis by C1;
+   end;
+   hence thesis by FUNCT_2:5;
+ end;
+
+begin :: Theory for Stopping Time in Continuous Time
+
+:: Using REAL, but a process, that never stops, can't be consider in this case
+
+definition let r be Real;
+  mode TheEvent of r -> Subset of REAL means  :Def555:
+    it = [.0,+infty.[ if r <= 0 otherwise it = [.0,r.];
+  correctness;
+end;
+
+registration let r be Real;
+  cluster -> non empty for TheEvent of r;
+  coherence
+  proof
+    let e be TheEvent of r;
+    per cases;
+    suppose r <= 0;
+      then e = [.0,+infty.[ by Def555;
+      hence thesis by XXREAL_1:3;
+    end;
+    suppose
+A1:   r > 0;
+      then e = [.0,r.] by Def555;
+      hence thesis by A1,XXREAL_1:1;
+    end;
+  end;
+end;
+
+reserve I for TheEvent of r;
+
+theorem
+  I is Event of Borel_Sets
+proof
+ per cases;
+ suppose S1: r<=0;
+   [.0,+infty.[ is Element of Borel_Sets by FINANCE1:3;
+   hence thesis by S1,Def555;
+ end;
+ suppose S1: r>0;
+   [.0,r.] is Element of Borel_Sets by FINANCE1:8;
+   hence thesis by S1,Def555;
+ end;
+end;
+
+begin :: Borel-Sets
+
+definition let r, I;
+  let A be Element of Borel_Sets;
+  func Borelsubsets_help(A,I) -> Element of Borel_Sets equals
+    A /\ I;
+  coherence
+  proof
+    (r<=0 implies I=[.0,+infty.[) & (r>0 implies I=[.0,r.]) by Def555;
+    then reconsider I as Element of Borel_Sets by FINANCE1:3,FINANCE1:8;
+    A is Event of Borel_Sets & I is Event of Borel_Sets;
+    hence thesis by PROB_1:19;
+  end;
+end;
+
+definition let r, I;
+  func BorelSubsets I -> SigmaField of I equals
+    the set of all Borelsubsets_help(A,I) where
+      A is Element of Borel_Sets;
+  coherence
+proof
+ set BS=the set of all Borelsubsets_help(A,I) where A is Element of Borel_Sets;
+ BS is non empty Subset-Family of I
+ proof
+  reconsider RE = REAL as Element of Borel_Sets by PROB_1:5;
+d1:  Borelsubsets_help(RE,I) in BS;
+   BS c= bool I
+   proof
+     let x be object;
+     assume x in BS;
+     then consider A being Element of Borel_Sets such that
+ D1: x=Borelsubsets_help(A,I);
+     reconsider x as set by D1;
+     x c= I by D1,XBOOLE_0:def 4;
+    hence thesis;
+    end;
+ hence thesis by d1;
+ end; then
+ reconsider BS as non empty Subset-Family of I;
+A1: BS is compl-closed
+ proof
+  for A being Subset of I st A in BS holds A` in BS
+  proof
+   let A be Subset of I;
+   assume A in BS;
+   then consider A2 being Element of Borel_Sets such that
+AF1: A=Borelsubsets_help(A2,I);
+F2: I\A=A2`/\I
+   proof
+    for x being object holds x in I\A iff x in A2`/\I
+    proof
+     let x be object;
+     thus x in I\A implies x in A2`/\I
+     proof
+      assume ASS0: x in I\A;
+      reconsider I as Subset of REAL;
+      x in I & not x in A by ASS0,XBOOLE_0:def 5;
+      then x in I & (not (x in A2 & x in I)) by XBOOLE_0:def 4,AF1;
+      then x in I & x in REAL\A2 by XBOOLE_0:def 5;
+      hence thesis by XBOOLE_0:def 4;
+     end;
+      assume x in A2`/\I;
+      then x in A2` & x in I by XBOOLE_0:def 4;
+      then x in I & x in REAL & not x in A2 by XBOOLE_0:def 5;
+      then x in I & not x in A2/\I by XBOOLE_0:def 4;
+     hence thesis by XBOOLE_0:def 5,AF1;
+    end;
+   hence thesis;
+   end;
+   reconsider CA2 = A2` as Element of Borel_Sets by PROB_1:20;
+   CA2/\I=Borelsubsets_help(CA2,I);
+  hence thesis by F2;
+  end;
+ hence thesis;
+ end;
+ BS is sigma-multiplicative
+ proof
+  for A1 being SetSequence of I st rng A1 c= BS holds Intersection A1 in BS
+  proof
+   let A1 be SetSequence of I;
+   assume G1: rng A1 c= BS;
+   TT1: for n being Nat holds
+    A1.n in BS &
+     (ex A2 being Element of Borel_Sets st A1.n=Borelsubsets_help(A2,I))
+   proof
+    let n be Nat;
+    A1.n in rng A1 by FUNCT_2:4,ORDINAL1:def 12;
+    then A1.n in BS by G1;
+   hence thesis;
+   end;
+   rng A1 c= bool REAL
+   proof
+     let x be object;
+     assume d1: x in rng A1;
+     bool I c= bool REAL by ZFMISC_1:67;
+     hence thesis by d1;
+   end;
+   then reconsider A10 = A1 as SetSequence of REAL by FUNCT_2:6;
+   for n being Nat holds A10.n is Event of Borel_Sets
+   proof
+    let n be Nat;
+    ex A2 being Element of Borel_Sets st A10.n=Borelsubsets_help(A2,I) by TT1;
+    hence thesis;
+   end;
+   then reconsider A10 as SetSequence of Borel_Sets by PROB_1:25;
+   set UA1=Union Complement A10;
+   for n being Nat holds (Complement A10).n is Event of Borel_Sets
+   proof
+    let n be Nat;
+    consider A2 being Element of Borel_Sets such that
+P1: A10.n=Borelsubsets_help(A2,I) by TT1;
+    reconsider A1n = A10.n as Element of Borel_Sets by P1;
+    A1n` is Element of Borel_Sets by PROB_1:20;
+    hence thesis by PROB_1:def 2;
+   end; then
+   Complement A10 is SetSequence of Borel_Sets by PROB_1:25;
+   then reconsider UA1 as Event of Borel_Sets by PROB_1:26;
+k1:UA1` is Event of Borel_Sets by PROB_1:20;
+   reconsider IA1 = Intersection A10 as Element of Borel_Sets by k1;
+s0:IA1 in BS & IA1=Borelsubsets_help(IA1,I)
+   proof
+    for x being object holds x in IA1 iff x in Borelsubsets_help(IA1,I)
+    proof
+     let x be object;
+     thus x in IA1 implies x in Borelsubsets_help(IA1,I)
+     proof
+      assume x in IA1;
+      then x in IA1 & x in A1.0 by PROB_1:13;
+      hence thesis by XBOOLE_0:def 4;
+     end;
+    thus thesis by XBOOLE_0:def 4;
+    end;
+   then IA1=Borelsubsets_help(IA1,I) by TARSKI:2;
+   hence thesis;
+   end;
+   Intersection A10 = Intersection A1
+   proof
+    for x being object holds x in Intersection A10 iff x in Intersection A1
+    proof
+     let x be object;
+     x in Intersection A10 iff for n being Nat holds x in A10.n by PROB_1:13;
+     then x in Intersection A10 iff for n being Nat holds x in A1.n;
+    hence thesis by PROB_1:13;
+    end;
+   hence thesis;
+   end;
+  hence thesis by s0;
+  end;
+ hence thesis;
+ end;
+hence thesis by A1;
+end;
+end;
+
+definition
+  let Omega, Sigma, r, I;
+  let MyFunc be Function;
+  let k be random_variable of Sigma,BorelSubsets I;
+  pred k is_StoppingTime_wrt MyFunc means
+  for t being Element of I holds
+    {w where w is Element of Omega: k.w<=t} in MyFunc.t;
+end;
+
+theorem Th1:
+ for MyFunc be Filtration of I,Sigma,
+     t2 being Element of I holds
+     ex q being random_variable of Sigma,BorelSubsets I st
+      q=Omega-->t2 & q is_StoppingTime_wrt MyFunc
+proof
+ let MyFunc be Filtration of I,Sigma;
+ let t2 be Element of I;
+ set Sigma2 = BorelSubsets I;
+  Fin1: for t being Element of I holds
+  {w where w is Element of Omega: (Omega-->t2).w<=t} in MyFunc.t
+  proof
+   let t be Element of I;
+   set WW = {w where w is Element of Omega: (Omega-->t2).w<=t};
+   reconsider MyFt = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+   per cases;
+   suppose S1: t2<=t;
+    H1: for x being object st x in WW holds x in Omega
+    proof
+     let x be object;
+     assume x in WW;
+     then ex w3 being Element of Omega st w3=x & (Omega-->t2).w3<=t;
+     hence thesis;
+    end;
+   WW = Omega
+   proof
+    for x being object holds x in Omega implies x in WW
+    proof
+     let x be object;
+     assume x in Omega; then
+     reconsider x as Element of Omega;
+     (Omega-->t2).x=t2 by FUNCOP_1:7;
+     hence thesis by S1;
+    end;
+   hence thesis by H1,TARSKI:2;
+   end; then
+   WW in MyFt by PROB_1:5;
+   hence thesis;
+   end;
+   suppose S1: t2>t;
+    WW c= {}
+    proof
+     let x be object;
+     assume x in WW;
+     then ex w3 being Element of Omega st w3=x & (Omega-->t2).w3<=t;
+    hence thesis by S1,FUNCOP_1:7;
+    end;
+   then WW={}; then
+   WW in MyFt by PROB_1:4;
+   hence thesis;
+   end;
+ end;
+  set OC=Omega-->t2;
+  OC is random_variable of Sigma,Sigma2 by FINANCE3:10;
+  then reconsider OC as random_variable of Sigma,Sigma2;
+  OC is_StoppingTime_wrt MyFunc by Fin1;
+  hence thesis;
+end;
+
+definition
+  let Omega, Sigma, r, I;
+  let Filt be Filtration of I,Sigma;
+  let k be random_variable of Sigma,BorelSubsets I;
+  attr k is Filt-StoppingTime-like means :Def1111:
+  k is_StoppingTime_wrt Filt;
+end;
+
+registration
+  let Omega, Sigma, r, I;
+  let MyFunc be Filtration of I,Sigma;
+  cluster MyFunc-StoppingTime-like for random_variable of Sigma,BorelSubsets I;
+  existence
+  proof
+   consider t2 being object such that A0: t2 in I by XBOOLE_0:def 1;
+   reconsider t2 as Element of I by A0;
+   ex q being random_variable of Sigma,BorelSubsets I st
+   q=Omega-->t2 & q is_StoppingTime_wrt MyFunc by Th1;
+   hence thesis by Def1111;
+  end;
+end;
+
+definition
+  let Omega, Sigma, r, I;
+  let MyFunc be Filtration of I,Sigma;
+  mode StoppingTime_Func of MyFunc is
+    MyFunc-StoppingTime-like random_variable of Sigma,BorelSubsets I;
+end;
+
+begin :: $\sigma$-Algebra of the $\tau$-past
+
+definition
+  let Omega, Sigma, r, I;
+  let MyFunc be Filtration of I,Sigma;
+  let tau be StoppingTime_Func of MyFunc;
+  let A1 be SetSequence of Omega such that
+   LOC1: rng(A1) c= {A where A is Element of Sigma:
+                for t2 being Element of I holds
+                A /\ {w where w is Element of Omega: tau.w<=t2} in MyFunc.t2};
+  let t be Element of I;
+  let n be Nat;
+  func Sigma_tauhelp2(tau,A1,n,t) ->
+    Element of El_Filtration(t,MyFunc) equals :Def8869:
+    (Complement A1).n /\ {w where w is Element of Omega: tau.w<=t};
+correctness
+proof
+ reconsider n as Element of NAT by ORDINAL1:def 12;
+ set MySigmatau = {A where A is Element of Sigma:
+                for t2 being Element of I holds
+                A /\ {w where w is Element of Omega: tau.w<=t2} in MyFunc.t2};
+  A1.n in rng A1 by FUNCT_2:4;
+  then A1.n in MySigmatau by LOC1; then
+  consider B being Element of Sigma such that
+  GW1: A1.n=B &
+       for t2 being Element of I holds
+        B /\ {w where w is Element of Omega: tau.w<=t2} in MyFunc.t2;
+     reconsider A1n = A1.n as Element of Sigma by GW1;
+  GW2: for t being Element of I holds
+       (A1.n)` /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t
+     proof
+      let t be Element of I;
+      reconsider MyFt2 = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+      E1: {w where w is Element of Omega: tau.w<=t} \
+       (A1.n /\ {w where w is Element of Omega: tau.w<=t}) =
+      (A1.n)` /\ {w where w is Element of Omega: tau.w<=t}
+      proof
+       WW0: for j being object holds
+        j in {w where w is Element of Omega: tau.w<=t} \
+         (A1.n /\ {w where w is Element of Omega: tau.w<=t}) implies
+          j in (A1.n)` /\ {w where w is Element of Omega: tau.w<=t}
+       proof
+        let j be object;
+        assume h: j in {w where w is Element of Omega: tau.w<=t} \
+         (A1.n /\ {w where w is Element of Omega: tau.w<=t}); then
+        Help0: j in {w where w is Element of Omega: tau.w<=t};
+        not j in (A1.n /\ {w where w is Element of Omega: tau.w<=t})
+          by h,XBOOLE_0:def 5; then
+         Help2: not j in A1.n by h,XBOOLE_0:def 4;
+        j in (A1.n)`
+        proof
+         ex w2 being Element of Omega st j=w2 & tau.w2<=t by Help0;
+        hence thesis by XBOOLE_0:def 5,Help2;
+        end;
+       hence thesis by XBOOLE_0:def 4,h;
+       end;
+       for j being object holds
+        j in (A1.n)` /\ {w where w is Element of Omega: tau.w<=t} implies
+         j in {w where w is Element of Omega: tau.w<=t} \
+          (A1.n /\ {w where w is Element of Omega: tau.w<=t})
+       proof
+        let j be object;
+        assume j in (A1.n)` /\ {w where w is Element of Omega: tau.w<=t};
+        then
+j:      j in (Omega\A1.n) & j in {w where w is Element of Omega: tau.w<=t}
+         by XBOOLE_0:def 4;
+        then j in Omega & not j in A1.n &
+         j in {w where w is Element of Omega: tau.w<=t} by XBOOLE_0:def 5;
+         then not j in A1.n /\ {w where w is Element of Omega: tau.w<=t}
+         by XBOOLE_0:def 4;
+       hence thesis by j,XBOOLE_0:def 5;
+       end;
+      hence thesis by WW0,TARSKI:2;
+      end;
+  W2: A1.n /\ {w where w is Element of Omega: tau.w<=t} is Event of MyFt2
+       by GW1;
+      tau is_StoppingTime_wrt MyFunc by Def1111; then
+      {w where w is Element of Omega: tau.w<=t} is Event of MyFt2; then
+      {w where w is Element of Omega: tau.w<=t} \
+       (A1.n /\ {w where w is Element of Omega: tau.w<=t}) is Event of MyFt2
+        by W2,PROB_1:24;
+      hence thesis by E1;
+     end;
+     (A1.n)` = (Complement A1).n by PROB_1:def 2;
+  hence thesis by GW2;
+ end;
+end;
+
+definition
+  let Omega, Sigma, r, I;
+  let MyFunc be Filtration of I,Sigma;
+  let tau be StoppingTime_Func of MyFunc;
+  let A be SetSequence of Omega;
+  let t be Element of I;
+  func Sigma_tauhelp3(tau,A,t) ->
+     SetSequence of El_Filtration(t,MyFunc) means :Def8868:
+  for n being Nat holds it.n=Sigma_tauhelp2(tau,A,n,t);
+existence
+proof
+ deffunc U(Nat) = Sigma_tauhelp2(tau,A,$1,t);
+ consider f being sequence of El_Filtration(t,MyFunc) such that
+  A1:for d being Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+ reconsider f as SetSequence of El_Filtration(t,MyFunc) by PROB_4:2;
+ take f;
+ let n be Nat;
+ n in NAT by ORDINAL1:def 12;
+ hence thesis by A1;
+end;
+uniqueness
+proof
+ let f1,f2 be SetSequence of El_Filtration(t,MyFunc);
+ assume that
+A1: for d being Nat holds f1.d=Sigma_tauhelp2(tau,A,d,t) and
+A2: for d being Nat holds f2.d=Sigma_tauhelp2(tau,A,d,t);
+ for d being Nat holds f1.d=f2.d
+ proof
+  let d be Nat;
+  f1.d=Sigma_tauhelp2(tau,A,d,t) by A1;
+ hence thesis by A2;
+ end;
+hence thesis;
+end;
+end;
+
+definition
+  let Omega, Sigma, r, I;
+  let MyFunc be Filtration of I,Sigma;
+  let tau be StoppingTime_Func of MyFunc;
+  func Sigma_tau(tau) -> SigmaField of Omega equals
+   {A where A is Element of Sigma:
+     for t being Element of I holds
+       A /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t};
+correctness
+proof
+  set MySigmatau={A where A is Element of Sigma:
+     for t being Element of I holds
+       A /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t};
+  MySigmatau c= bool Omega
+  proof
+    let x be object;
+    assume x in MySigmatau; then
+    ex A being Element of Sigma st x=A &
+     for t being Element of I holds
+       A /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t;
+    hence thesis;
+  end;
+  then reconsider MySigmatau as Subset-Family of Omega;
+A1: MySigmatau is compl-closed
+   proof
+    for A being Subset of Omega st A in MySigmatau holds A` in MySigmatau
+    proof
+     let A be Subset of Omega;
+     assume A in MySigmatau; then
+     consider B being Element of Sigma such that
+GW1: A=B & for t being Element of I holds
+        B /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t;
+     reconsider A as Element of Sigma by GW1;
+GW2: for t being Element of I holds
+       A` /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t
+     proof
+      let t be Element of I;
+      reconsider MyFt2 = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+ WW0: for j being object holds
+        j in {w where w is Element of Omega: tau.w<=t} \
+         (A /\ {w where w is Element of Omega: tau.w<=t}) implies
+          j in A` /\ {w where w is Element of Omega: tau.w<=t}
+       proof
+        let j be object;
+        assume h: j in {w where w is Element of Omega: tau.w<=t} \
+         (A /\ {w where w is Element of Omega: tau.w<=t}); then
+Help00: j in {w where w is Element of Omega: tau.w<=t} & not
+         j in (A /\ {w where w is Element of Omega: tau.w<=t})
+          by XBOOLE_0:def 5; then
+ Help2: not j in A by XBOOLE_0:def 4;
+        j in A`
+        proof
+         ex w2 being Element of Omega st j=w2 & tau.w2<=t by Help00;
+         hence thesis by XBOOLE_0:def 5,Help2;
+        end;
+       hence thesis by XBOOLE_0:def 4,h;
+       end;
+  E1: {w where w is Element of Omega: tau.w<=t} \
+       (A /\ {w where w is Element of Omega: tau.w<=t}) =
+      A` /\ {w where w is Element of Omega: tau.w<=t}
+      proof
+       for j being object holds
+        j in A` /\ {w where w is Element of Omega: tau.w<=t} implies
+         j in {w where w is Element of Omega: tau.w<=t} \
+          (A /\ {w where w is Element of Omega: tau.w<=t})
+       proof
+        let j be object;
+        assume j in A` /\ {w where w is Element of Omega: tau.w<=t}; then
+hh:     j in (Omega\A) & j in {w where w is Element of Omega: tau.w<=t}
+         by XBOOLE_0:def 4;
+        then j in Omega & not j in A &
+         j in {w where w is Element of Omega: tau.w<=t} by XBOOLE_0:def 5;
+         then not j in A /\ {w where w is Element of Omega: tau.w<=t}
+           by XBOOLE_0:def 4;
+       hence thesis by hh,XBOOLE_0:def 5;
+       end;
+      hence thesis by WW0,TARSKI:2;
+      end;
+  W2: A /\ {w where w is Element of Omega: tau.w<=t} is Event of MyFt2 by GW1;
+      tau is_StoppingTime_wrt MyFunc by Def1111; then
+      {w where w is Element of Omega: tau.w<=t} is Event of MyFt2; then
+      {w where w is Element of Omega: tau.w<=t} \
+       (A /\ {w where w is Element of Omega: tau.w<=t}) is Event of MyFt2
+        by W2,PROB_1:24;
+      hence thesis by E1;
+     end;
+     Omega in Sigma & A in Sigma by PROB_1:5;
+     then Omega\A in Sigma by PROB_1:6;
+     hence thesis by GW2;
+    end;
+   hence thesis;
+   end;
+A2: MySigmatau is sigma-multiplicative
+   proof
+     let A1 be SetSequence of Omega;
+     assume ASSJ: rng(A1) c= MySigmatau;
+TT1: for n being Nat holds A1.n in MySigmatau
+     proof
+      let n be Nat;
+      A1.n in rng A1 by FUNCT_2:4,ORDINAL1:def 12;
+      hence thesis by ASSJ;
+     end;
+QQ1: for t being Element of I holds (Union Complement A1) /\
+         {w where w is Element of Omega: tau.w<=t} in MyFunc.t
+        proof
+         let t be Element of I;
+     X1: for x being object holds
+           x in Union Sigma_tauhelp3(tau,A1,t) implies
+            x in (Union Complement A1) /\
+                  {w where w is Element of Omega: tau.w<=t}
+          proof
+           let x be object;
+           assume x in Union Sigma_tauhelp3(tau,A1,t);
+           then consider n being Nat such that
+       V1: x in Sigma_tauhelp3(tau,A1,t).n by PROB_1:12;
+           x in Sigma_tauhelp2(tau,A1,n,t) by V1,Def8868; then
+           x in (Complement A1).n /\ {w where w is Element of Omega: tau.w<=t}
+             by ASSJ,Def8869; then
+     ZWJ1: x in (Complement A1).n &
+            x in {w where w is Element of Omega: tau.w<=t} by XBOOLE_0:def 4;
+           x in Union Complement A1 by PROB_1:12,ZWJ1;
+           hence thesis by XBOOLE_0:def 4,ZWJ1;
+          end;
+H:        for x being object holds
+           x in (Union Complement A1) /\
+                  {w where w is Element of Omega: tau.w<=t} implies
+            x in Union Sigma_tauhelp3(tau,A1,t)
+          proof
+           let x be object;
+           assume x in (Union Complement A1) /\
+              {w where w is Element of Omega: tau.w<=t}; then
+     ZWJ1: x in Union Complement A1 &
+            x in {w where w is Element of Omega: tau.w<=t} by XBOOLE_0:def 4;
+           then consider n being Nat such that ZWJ2: x in (Complement A1).n
+            by PROB_1:12;
+           x in (Complement A1).n /\ {w where w is Element of Omega: tau.w<=t}
+              by XBOOLE_0:def 4,ZWJ1,ZWJ2; then
+     ZWJ2: x in Sigma_tauhelp2(tau,A1,n,t) by ASSJ,Def8869;
+           x in Sigma_tauhelp3(tau,A1,t).n by ZWJ2,Def8868;
+           hence thesis by PROB_1:12;
+          end;
+         Union Sigma_tauhelp3(tau,A1,t) =
+          (Union Complement A1) /\ {w where w is Element of Omega: tau.w<=t}
+            by H,X1,TARSKI:2;
+         hence thesis by PROB_1:17;
+        end;
+        for n being Nat holds A1.n is Event of Sigma
+        proof
+          let n be Nat;
+          A1.n in MySigmatau by TT1; then
+          ex AJ being Element of Sigma st
+          AJ=A1.n & (for t being Element of I holds
+          AJ /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t);
+         hence thesis;
+        end;
+        then reconsider A1 as SetSequence of Sigma by PROB_1:25;
+        set CA=Complement A1;
+        for n being Nat holds CA.n is Event of Sigma
+        proof
+          let n be Nat;
+          A1.n in MySigmatau by TT1; then
+          consider AJ being Element of Sigma such that
+     AB1: AJ=A1.n & (for t being Element of I holds
+          AJ /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t);
+          A1.n is Event of Sigma & Sigma is compl-closed by AB1;
+          then (A1.n)` is Event of Sigma;
+         hence thesis by PROB_1:def 2;
+        end;
+    then reconsider CA as SetSequence of Sigma by PROB_1:25;
+    reconsider UCA = Union CA as Event of Sigma by PROB_1:26;
+    UCA in MySigmatau by QQ1;
+    hence thesis by A1;
+   end;
+  K1: for t being Element of I holds
+       Omega /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t
+      proof
+       let t be Element of I;
+       tau is MyFunc-StoppingTime-like; then
+       tau is_StoppingTime_wrt MyFunc; then
+   N1: {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t;
+       reconsider MyFt = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+       Omega is Event of MyFt by PROB_1:5; then
+       Omega /\ {w2 where w2 is Element of Omega: tau.w2<=t} is Event of MyFt
+         by PROB_1:19,N1;
+       hence thesis;
+      end;
+      Omega is Element of Sigma &
+      for t being Element of I holds
+      Omega /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t
+        by PROB_1:5,K1; then
+      Omega in MySigmatau;
+      hence thesis by A1,A2;
+  end;
+end;
+
+theorem
+for MyFunc being Filtration of I,Sigma,
+    k1,k2 be StoppingTime_Func of MyFunc
+     st k1<=k2 holds
+      Sigma_tau(k1) c= Sigma_tau(k2)
+proof
+ let MyFunc be Filtration of I,Sigma;
+ let k1,k2 be StoppingTime_Func of MyFunc;
+ assume ASS0: k1<=k2;
+ set Jsigk1 = Sigma_tau(k1);
+ set Jsigk2 = Sigma_tau(k2);
+   let x be object;
+   assume x in Jsigk1; then
+   consider A being Element of Sigma such that
+Z1:  x=A & for t being Element of I holds
+     A /\ {w2 where w2 is Element of Omega: k1.w2<=t} in MyFunc.t;
+   reconsider x as Element of Sigma by Z1;
+    x in {A where A is Element of Sigma:
+      for t being Element of I holds
+     A /\ {w2 where w2 is Element of Omega: k2.w2<=t} in MyFunc.t}
+    proof
+     for t being Element of I holds
+     x /\ {w2 where w2 is Element of Omega: k2.w2<=t} in MyFunc.t
+     proof
+      let t be Element of I;
+      reconsider MyFt = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+        set Imp0={w2 where w2 is Element of Omega: k2.w2<=t};
+        set Imp1=x /\ Imp0;
+        set Imp2=x /\ {w2 where w2 is Element of Omega: k1.w2<=t} /\ Imp0;
+BU2:    x /\ {w where w is Element of Omega: k1.w<=t} is Event of MyFt by Z1;
+L1:      Imp1 c= Imp2
+         proof
+          let y be object;
+          assume zw1: y in Imp1; then
+     ZW1: y in x & y in {w where w is Element of Omega: k2.w<=t}
+            by XBOOLE_0:def 4; then
+          consider w2 being Element of Omega such that
+     ZW2: y=w2 & k2.w2<=t;
+          k1.w2<=k2.w2 & k2.w2<=t by ZW2,ASS0; then
+          k1.w2<=t by XXREAL_0:2; then
+          y in x & y in {w where w is Element of Omega: k1.w<=t}
+            by ZW2,zw1,XBOOLE_0:def 4;
+          then y in (x /\ {w where w is Element of Omega: k1.w<=t})
+            by XBOOLE_0:def 4;
+          hence thesis by ZW1,XBOOLE_0:def 4;
+         end;
+    P1: Imp1 = Imp2
+        proof
+         Imp2 c= Imp1
+         proof
+          let y be object;
+          assume y in Imp2;
+          then y in x /\ {w where w is Element of Omega: k1.w<=t} & y in
+           Imp0 by XBOOLE_0:def 4; then
+          y in x & y in {w where w is Element of Omega: k1.w<=t} & y in
+           {w where w is Element of Omega: k2.w<=t} by XBOOLE_0:def 4;
+         hence thesis by XBOOLE_0:def 4;
+         end;
+        hence thesis by L1,TARSKI:2;
+        end;
+       Imp1 is Event of MyFt
+       proof
+        k2 is_StoppingTime_wrt MyFunc by Def1111; then
+        {w where w is Element of Omega: k2.w<=t} is Event of MyFt;
+       hence thesis by P1,BU2,PROB_1:19;
+       end;
+     hence thesis;
+    end;
+  hence thesis;
+  end;
+ hence thesis;
+end;
+
+:: Theory for Stopping time in continuous time
+
+definition
+  func Ext_Family_of_halflines -> Subset-Family of ExtREAL equals
+    the set of all [.-infty,r.] where r is Real;
+  coherence
+  proof
+    the set of all [.-infty,r.] where r is Real c= bool ExtREAL
+    proof
+      let p be object;
+      assume p in the set of all [.-infty,r.] where r is Real;
+      then consider r being Real such that
+A1:   p = [.-infty,r.];
+      reconsider pp = p as set by A1;
+      pp c= ExtREAL by A1,MEMBERED:2;
+      hence p in bool ExtREAL;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  func Ext_Borel_Sets -> SigmaField of ExtREAL equals
+  sigma Ext_Family_of_halflines;
+  correctness;
+end;
+
+theorem Th3:
+  for k being Real holds
+  ].k,+infty.] is Element of Ext_Borel_Sets &
+  [.-infty,k.] is Element of Ext_Borel_Sets
+proof
+ let k be Real;
+A3: [.-infty,k.] in Ext_Family_of_halflines;
+a2: Ext_Family_of_halflines c= sigma(Ext_Family_of_halflines) by PROB_1:def 9;
+ ExtREAL in Ext_Borel_Sets by PROB_1:5;
+ then ExtREAL\[.-infty,k.] in Ext_Borel_Sets by a2,PROB_1:6,A3;
+ hence thesis by Th2,a2,A3;
+end;
+
+definition
+  let b be Real;
+  func ext_half_open_sets(b) -> SetSequence of ExtREAL means :Def300:
+  it.0 = ].b-1,+infty.] &
+  for n being Nat holds it.(n+1) = ].b-1/(n+1),+infty.];
+existence
+proof
+  defpred P[set,set,set] means
+   for x,y being Subset of ExtREAL,s being Nat holds
+   s = $1 & x = $2 & y = $3 implies y = ].b-1/(s+1),+infty.];
+A1: for n being Nat for x being Subset of ExtREAL
+  ex y being Subset of ExtREAL st P[n,x,y]
+  proof
+    let n be Nat;
+    let x be Subset of ExtREAL;
+    reconsider AA = ].b-1/(n+1),+infty.] as Subset of ExtREAL by MEMBERED:2;
+    take AA;
+    thus thesis;
+  end;
+  reconsider AB = ].b-1,+infty.] as Subset of ExtREAL by MEMBERED:2;
+  consider F being SetSequence of ExtREAL such that
+A2: F.0 = AB and
+A3: for n being Nat holds P[n,F.n,F.(n+1)] from RECDEF_1:sch 2(A1);
+  take F;
+  thus F.0 = ].b-1,+infty.] by A2;
+  let n be Nat;
+  reconsider n as Element of NAT by ORDINAL1:def 12;
+  P[n,F.n,F.(n+1)] by A3;
+  hence thesis;
+end;
+uniqueness
+proof
+ let S1,S2 be SetSequence of ExtREAL such that
+A4: S1.0 = ].b-1,+infty.] & for n being Nat holds
+    S1.(n+1) = ].b-1/(n+1),+infty.] and
+A5: S2.0 = ].b-1,+infty.] & for n being Nat holds
+    S2.(n+1) = ].b-1/(n+1),+infty.];
+    defpred P[object] means S1.$1 = S2.$1;
+    for n being object holds n in NAT implies P[n]
+    proof
+      let n be object;
+      assume n in NAT;
+      then reconsider n as Element of NAT;
+A6:   P[0] by A4,A5;
+A7:   for k being Nat st P[k] holds P[k+1]
+      proof
+        let k be Nat;
+        assume S1.k = S2.k;
+        thus S1.(k+1) = ].(b-1/(k+1)),+infty.] by A4
+          .= S2.(k+1) by A5;
+      end;
+      for k being Nat holds P[k] from NAT_1:sch 2(A6,A7);
+      then S1.n = S2.n;
+      hence thesis;
+    end;
+    hence thesis;
+end;
+end;
+
+theorem Th50:
+  for b being Real holds
+    Intersection ext_half_open_sets(b) is Element of Ext_Borel_Sets
+proof
+  let b be Real;
+  for n being Nat holds
+    (Complement ext_half_open_sets(b)).n is Element of Ext_Borel_Sets
+  proof
+   let n be Nat;
+    reconsider nn=n as Element of NAT by ORDINAL1:def 12;
+   ((ext_half_open_sets(b)).nn)` is Element of Ext_Borel_Sets
+   proof
+     (ext_half_open_sets(b)).n is Element of Ext_Borel_Sets
+     proof
+      per cases by NAT_1:6;
+      suppose A1: n=0;
+        (ext_half_open_sets(b)).0=].b-1,+infty.] by Def300;
+        hence thesis by A1,Th3;
+      end;
+      suppose ex k being Nat st n = k + 1; then
+        consider k being Nat such that A2: n=k+1;
+        reconsider k as Element of NAT by ORDINAL1:def 12;
+        (ext_half_open_sets(b)).(k+1) = ].b-(1/(k+1)),+infty.] by Def300;
+        hence thesis by A2,Th3;
+      end;
+      end;
+     hence thesis by PROB_1:def 1;
+     end;
+     hence thesis by PROB_1:def 2;
+  end; then
+  Complement ext_half_open_sets(b)
+    is SetSequence of Ext_Borel_Sets by PROB_1:25; then
+  Union Complement ext_half_open_sets(b)
+    is Element of Ext_Borel_Sets by PROB_1:26;
+  hence thesis by PROB_1:def 1;
+end;
+
+theorem Th60:
+  for b being Real holds
+    Intersection ext_half_open_sets(b) = [.b,+infty.]
+proof
+  let b be Real;
+  for c being object holds c in Intersection ext_half_open_sets(b) iff
+    c in [.b,+infty.]
+ proof
+  let c be object;
+  A1: not c in [.b,+infty.] implies not c in Intersection ext_half_open_sets(b)
+  proof
+   assume A2: not c in [.b,+infty.];
+   per cases by A2;
+   suppose not c in ExtREAL;
+    hence thesis;
+   end;
+   suppose c in ExtREAL & not c in [.b,+infty.];
+   then reconsider c as ExtReal;
+W:  c <> +infty
+    proof
+     reconsider b as Element of REAL by XREAL_0:def 1;
+     not b > +infty by XXREAL_0:9;
+     hence thesis by A2,XXREAL_1:1;
+    end;
+   per cases by W,XXREAL_0:14;
+   suppose S1: c =-infty;
+    not c in Intersection ext_half_open_sets(b)
+    proof
+      c in ].b-1,+infty.] iff (c > b-1 & c <=+infty) by XXREAL_1:2; then
+      not c in (ext_half_open_sets(b)).0 by Def300,S1,XXREAL_0:5;
+     hence thesis by PROB_1:13;
+    end;
+   hence thesis;
+   end;
+   suppose c in REAL;
+    then reconsider c as Element of REAL;
+    not for n being Element of NAT holds c in (ext_half_open_sets(b)).n
+    proof
+      set bc=b-c;
+KK:   bc > 0
+      proof
+       c>=b implies c in [.b,+infty.]
+       proof
+         assume ASS0: c>=b;
+         reconsider c as Element of ExtREAL by NUMBERS:31;
+         b<=c & c <=+infty by XXREAL_0:3,ASS0;
+         then c in {a where a is Element of ExtREAL: b<=a & a<=+infty};
+         hence thesis by XXREAL_1:def 1;
+       end;
+       then c-b < 0 by XREAL_1:49,A2;
+       then (-1)*(c+(-b))>0;
+       hence thesis;
+      end;
+      consider n being Nat such that
+  W1: 1/n<bc & n > 0 by KK,PP;
+      reconsider spec = 1 / n as Real;
+  F0: c <= b-1/n by XREAL_1:11,W1;
+      n<n+1 by NAT_1:13;
+      then (n+1)" < n" by W1,XREAL_1:88;
+      then 1/(n+1)< n" by XCMPLX_1:215;
+      then 1/(n+1) < 1/n by XCMPLX_1:215; then
+f:     b-(1/n) < b-(1/(n+1)) by XREAL_1:10;
+f1:    not c in ].b-1/(n+1),+infty.]
+       proof
+        c in ].b-1/(n+1),+infty.] implies c >= b-(1/(n+1))
+        proof
+         assume c in ].b-1/(n+1),+infty.]; then
+         c in {e where e is Element of ExtREAL:
+           b-1/(n+1) < e & e <= +infty} by XXREAL_1:def 3;
+         then consider e being Element of ExtREAL such that
+     E1: e = c & ((b-1/(n+1)) < e & e <= +infty);
+         thus thesis by E1;
+        end;
+        hence thesis by f,F0,XXREAL_0:2;
+       end;
+       ex n being Element of NAT st not c in (ext_half_open_sets(b)).n
+       proof
+         take nn = n+1;
+         thus thesis by ORDINAL1:def 12,f1,Def300;
+       end;
+       hence thesis;
+    end;
+   hence thesis by PROB_1:13;
+   end;
+  end;
+  end;
+  c in [.b,+infty.] implies c in Intersection ext_half_open_sets(b)
+  proof
+   assume A12: c in [.b,+infty.];
+   for n being Nat holds c in (ext_half_open_sets(b)).n
+   proof
+    let n be Nat;
+    per cases;
+    suppose n=0; then
+s2:  (ext_half_open_sets(b)).n=].b-1,+infty.] by Def300;
+     [.b,+infty.] c= ].b-1,+infty.] by XX;
+     hence thesis by A12,s2;
+    end;
+    suppose S1: n>0; then
+     reconsider nminus1 = n - 1 as Nat by NAT_1:20;
+s2:  (ext_half_open_sets(b)).(nminus1+1)=].(b-1/(nminus1+1)),+infty.]
+      by Def300;
+     [.b,+infty.] c= ].b-1/n,+infty.] by S1,Lemma2;
+     hence thesis by A12,s2;
+   end;
+   end;
+  hence thesis by PROB_1:13;
+  end;
+ hence thesis by A1;
+ end;
+hence thesis;
+end;
+
+theorem Th70:
+  for a,b being Real holds [.b,a.] is Element of Ext_Borel_Sets
+proof
+ let a,b be Real;
+ B1: [.-infty,a.] is Element of Ext_Borel_Sets by Th3;
+ [.-infty,a.] /\ [.b,+infty.] is Element of Ext_Borel_Sets
+ proof
+  Intersection ext_half_open_sets(b) = [.b,+infty.] by Th60;
+  then [.b,+infty.] is Element of Ext_Borel_Sets by Th50;
+ hence thesis by B1,PROB_1:19;
+ end;
+ hence thesis by CrossTh;
+end;
+
+theorem Th71:
+  for a being Real holds {a} is Element of Ext_Borel_Sets
+proof
+  let a be Real;
+  [.a,a.] is Element of Ext_Borel_Sets by Th70;
+  hence thesis by XXREAL_1:17;
+end;
+
+theorem Th72:
+  for r being Real holds [.r,+infty.] is Event of Ext_Borel_Sets
+proof
+  let r be Real;
+  Intersection ext_half_open_sets(r) is Element of Ext_Borel_Sets by Th50;
+  hence thesis by Th60;
+end;
+
+definition let b be Real;
+  func ext_right_closed_sets(b) -> SetSequence of ExtREAL means  :Def3000:
+  for n being Nat holds it.n = [.-infty,b-n.];
+existence
+proof
+  deffunc F(Element of NAT) = In([.-infty,b-$1.],bool ExtREAL);
+  consider F being SetSequence of ExtREAL such that
+A3: for n being Element of NAT holds F.n = F(n) from FUNCT_2:sch 4;
+  take F;
+  let n be Nat;
+  reconsider nn = n as Element of NAT by ORDINAL1:def 12;
+A1: [.-infty,b-nn.] c= ExtREAL by MEMBERED:2;
+  F.nn = F(nn) by A3 .= [.-infty,b-nn.] by SUBSET_1:def 8,A1;
+  hence thesis;
+end;
+uniqueness
+proof
+ let S1,S2 be SetSequence of ExtREAL such that
+A4: for n being Nat holds S1.n = [.-infty,b-n.] and
+A5: for n being Nat holds S2.n = [.-infty,b-n.];
+    for n being Element of NAT holds S1.n = S2.n
+    proof
+      let n be Element of NAT;
+      S1.n = [.-infty,b-n.] by A4
+          .= S2.n by A5;
+      hence thesis;
+    end;
+    hence thesis;
+end;
+end;
+
+theorem Th500:
+  for b being Real holds
+    Intersection ext_right_closed_sets(b) is Element of Ext_Borel_Sets
+proof
+  let b be Real;
+  for n being Nat holds
+    (Complement ext_right_closed_sets(b)).n is Element of Ext_Borel_Sets
+  proof
+   let n be Nat;
+    reconsider nn=n as Element of NAT by ORDINAL1:def 12;
+   ((ext_right_closed_sets(b)).nn)` is Element of Ext_Borel_Sets
+   proof
+     (ext_right_closed_sets(b)).n is Element of Ext_Borel_Sets
+     proof
+      (ext_right_closed_sets(b)).n = [.-infty,b-n.] by Def3000;
+      hence thesis by Th3;
+     end;
+     hence thesis by PROB_1:def 1;
+     end;
+     hence thesis by PROB_1:def 2;
+  end; then
+  Complement ext_right_closed_sets(b)
+    is SetSequence of Ext_Borel_Sets by PROB_1:25; then
+  Union Complement ext_right_closed_sets(b)
+    is Element of Ext_Borel_Sets by PROB_1:26;
+  hence thesis by PROB_1:def 1;
+end;
+
+theorem Th600:
+  Intersection ext_right_closed_sets(0) = {-infty}
+proof
+ for c being object holds c in Intersection ext_right_closed_sets(0) iff
+  c in {-infty}
+ proof
+  let c be object;
+  thus c in Intersection ext_right_closed_sets(0) implies c in {-infty}
+proof
+ assume
+Y: c in Intersection ext_right_closed_sets(0);
+ assume not c in {-infty};
+ then WW: c <> -infty by TARSKI:def 1;
+ reconsider c as Element of ExtREAL by Y;
+ per cases by XXREAL_0:14,WW;
+  suppose c = +infty; then
+   not c in [.-infty,0-0.] by XXREAL_1:1; then
+   not c in (ext_right_closed_sets(0)).(0+0) by Def3000;
+  hence thesis by Y,PROB_1:13;
+  end;
+  suppose c in REAL;
+   then reconsider c as Element of REAL;
+   per cases;
+   suppose c >= 0; then
+    not c in [.-infty,0-(0+1).] by XXREAL_1:1; then
+    not c in (ext_right_closed_sets(0)).(0+1) by Def3000;
+    hence thesis by Y,PROB_1:13;
+   end;
+   suppose S1: c < 0;
+    set finerg=[\ ((-1)*c)+1 /];
+ WQ: finerg > 0
+     proof
+      ((-1)*c)+1-1>0 by S1;
+      hence thesis by INT_1:def 6;
+     end;
+    finerg is Nat
+    proof
+     finerg in INT by INT_1:def 2;
+     then consider k being Nat such that
+ ZZ: finerg = k or finerg = -k by INT_1:def 1;
+     thus thesis by ZZ,WQ;
+    end;
+    then reconsider finerg as Nat;
+    not c in (ext_right_closed_sets(0)).(finerg+1)
+    proof
+z0:  (((-1)*c)+1)-1 < finerg by INT_1:def 6;
+     finerg < finerg+1 by XREAL_1:29;
+     then (((-1)*c)+0)<(finerg+1) by z0,XXREAL_0:2;
+     then -(((-1)*c)+0) > -(finerg+1) by XREAL_1:24; then
+     not c in [.-infty,0 - (finerg+1).] by XXREAL_1:1;
+     hence thesis by Def3000;
+    end;
+   hence thesis by Y,PROB_1:13;
+   end;
+  end;
+end;
+   assume A12: c in {-infty};
+   for n being Nat holds c in (ext_right_closed_sets(0)).n
+   proof
+    let n be Nat;
+s2:  (ext_right_closed_sets(0)).n=[.-infty,0-n.] by Def3000;
+     [.-infty,0-n.] = {-infty} \/ ].-infty,0-n.] by XXREAL_1:421; then
+     {-infty} c= [.-infty,0-n.] by XBOOLE_1:7;
+     hence thesis by A12,s2;
+   end;
+  hence thesis by PROB_1:13;
+  end;
+  hence thesis;
+end;
+
+theorem
+  {-infty} is Element of Ext_Borel_Sets by Th500,Th600;
+
+definition let b be Real;
+  func ext_left_closed_sets(b) -> SetSequence of ExtREAL means    :Def4000:
+  for n being Nat holds it.n = [.b+n,+infty.];
+existence
+proof
+  deffunc F(Element of NAT) = In([.b+$1,+infty.],bool ExtREAL);
+  consider F being SetSequence of ExtREAL such that
+A3: for n being Element of NAT holds F.n = F(n) from FUNCT_2:sch 4;
+  take F;
+  let n be Nat;
+  reconsider nn = n as Element of NAT by ORDINAL1:def 12;
+A1: [.b+nn,+infty.] c= ExtREAL by MEMBERED:2;
+  F.nn = F(nn) by A3 .= [.b+nn,+infty.] by SUBSET_1:def 8,A1;
+  hence thesis;
+end;
+uniqueness
+proof
+ let S1,S2 be SetSequence of ExtREAL such that
+A4: for n being Nat holds S1.n = [.b+n,+infty.] and
+A5: for n being Nat holds S2.n = [.b+n,+infty.];
+    for n being Element of NAT holds S1.n = S2.n
+    proof
+      let n be Element of NAT;
+      thus S1.n = [.b+n,+infty.] by A4
+          .= S2.n by A5;
+    end;
+    hence thesis;
+end;
+end;
+
+theorem Th5000:
+  for b being Real holds
+    Intersection ext_left_closed_sets(b) is Element of Ext_Borel_Sets
+proof
+  let b be Real;
+  for n being Nat holds
+    (Complement ext_left_closed_sets(b)).n is Element of Ext_Borel_Sets
+  proof
+   let n be Nat;
+   reconsider nn=n as Element of NAT by ORDINAL1:def 12;
+   ((ext_left_closed_sets(b)).nn)` is Element of Ext_Borel_Sets
+   proof
+     (ext_left_closed_sets(b)).n is Element of Ext_Borel_Sets
+     proof
+      (ext_left_closed_sets(b)).n = [.b+n,+infty.] by Def4000;
+      hence thesis by Th72;
+     end;
+     hence thesis by PROB_1:def 1;
+     end;
+     hence thesis by PROB_1:def 2;
+  end; then
+  Complement ext_left_closed_sets(b)
+    is SetSequence of Ext_Borel_Sets by PROB_1:25; then
+  Union Complement ext_left_closed_sets(b)
+    is Element of Ext_Borel_Sets by PROB_1:26;
+  hence thesis by PROB_1:def 1;
+end;
+
+theorem Th6000:
+  Intersection ext_left_closed_sets(0) = {+infty}
+proof
+ for c being object holds c in Intersection ext_left_closed_sets(0) iff
+  c in {+infty}
+ proof
+  let c be object;
+  thus c in Intersection ext_left_closed_sets(0) implies c in {+infty}
+proof
+ assume
+Y: c in Intersection ext_left_closed_sets(0);
+ assume not c in {+infty};
+ then WW: c <> +infty by TARSKI:def 1;
+ reconsider c as Element of ExtREAL by Y;
+ per cases by XXREAL_0:14,WW;
+  suppose c = -infty; then
+   not c in [.0+0,+infty.] by XXREAL_1:1; then
+   not c in (ext_left_closed_sets(0)).0 by Def4000;
+  hence thesis by Y,PROB_1:13;
+  end;
+  suppose c in REAL;
+   then reconsider c as Element of REAL;
+   per cases;
+   suppose c < 0; then
+    not c in [.0+1,+infty.] by XXREAL_1:1; then
+    not c in (ext_left_closed_sets(0)).1 by Def4000;
+    hence thesis by Y,PROB_1:13;
+   end;
+   suppose S1: c >= 0;
+    set finerg=[\ c+2*1 /];
+     WQ1: (c+2*1)-1 < finerg by INT_1:def 6;
+     WQ: finerg > 0
+     proof
+      c+(1+1-1)>0 by S1;
+      hence thesis by WQ1;
+     end;
+    finerg is Nat
+    proof
+     finerg in INT by INT_1:def 2;
+     then consider k being Nat such that
+      ZZ: finerg = k or finerg = -k by INT_1:def 1;
+    thus thesis by ZZ,WQ;
+    end;
+    then reconsider finerg as Nat;
+W0: (c+2*1)-1 < finerg by INT_1:def 6;
+    (c+2*1)-1 = c+1; then
+W1: c < (c+2*1)-1 by XREAL_1:29;
+W2: finerg < 0+(finerg+1) by XREAL_1:29;
+    c < finerg by W0,W1,XXREAL_0:2; then
+    c < 0+(finerg+1) by W2,XXREAL_0:2; then
+    not c in [.0 + (finerg+1),+infty.] by XXREAL_1:1; then
+    not c in (ext_left_closed_sets(0)).(finerg+1) by Def4000;
+    hence thesis by Y,PROB_1:13;
+   end;
+  end;
+end;
+   assume A12: c in {+infty};
+   for n being Nat holds c in (ext_left_closed_sets(0)).n
+   proof
+    let n be Nat;
+s2:  (ext_left_closed_sets(0)).n=[.0+n,+infty.] by Def4000;
+     0+n<=+infty by XXREAL_0:3; then
+     {+infty} c= [.0+n,+infty.] by ZFMISC_1:31,XXREAL_1:1;
+     hence thesis by A12,s2;
+   end;
+  hence thesis by PROB_1:13;
+  end;
+ hence thesis;
+end;
+
+theorem
+  {+infty} is Element of Ext_Borel_Sets by Th5000,Th6000;
+
+theorem
+  REAL is Element of Ext_Borel_Sets
+proof
+ reconsider Set1 = ExtREAL as Element of Ext_Borel_Sets by PROB_1:23;
+ reconsider Set2 = {+infty} as Element of Ext_Borel_Sets by Th5000,Th6000;
+ reconsider Set3 = {-infty} as Element of Ext_Borel_Sets by Th500,Th600;
+ reconsider Set4 = Set1 \ Set2 as Element of Ext_Borel_Sets;
+ Set4 = [.-infty,+infty.[ \/ ].+infty,+infty.] by XXREAL_1:388,209
+     .= [.-infty,+infty.[; then
+PP: Set4 \ Set3 = [.-infty,-infty.[ \/ ].-infty,+infty.[ by XXREAL_1:387
+     .= ].-infty,+infty.[;
+ reconsider Set5 = Set4 \ Set3 as Element of Ext_Borel_Sets;
+ thus thesis by XXREAL_1:224,PP;
+end;
+
+theorem
+  Family_of_halflines c= Ext_Borel_Sets
+proof
+  let x be object;
+  assume x in Family_of_halflines;
+  then consider r being Element of REAL such that
+   A1: x = halfline(r);
+  reconsider Set1 = [.-infty,r.] as Element of Ext_Borel_Sets by Th3;
+  reconsider Set2 = {r} as Element of Ext_Borel_Sets by Th71;
+  reconsider Set3 = Set1 \ Set2 as Element of Ext_Borel_Sets;
+  A3: Set3=[.-infty,r.[ by XXREAL_1:135,XXREAL_0:5;
+  reconsider Set4 = {-infty} as Element of Ext_Borel_Sets by Th500,Th600;
+  reconsider Set5 = Set3 \ Set4 as Element of Ext_Borel_Sets;
+  Set5 = ].-infty,r.[ by XXREAL_1:136,A3,XXREAL_0:12;
+  hence thesis by A1;
+end;
+
+:: Ext-Borel-Sets
+
+definition
+  let A be Element of Ext_Borel_Sets;
+  func Ext_Borelsubsets_help(A) -> Element of Ext_Borel_Sets equals
+    A /\ [.0,+infty.];
+  coherence
+  proof
+    Intersection ext_half_open_sets(0) = [.0,+infty.] by Th60;
+    then [.0,+infty.] is Element of Ext_Borel_Sets by Th50;
+    hence thesis by PROB_1:19;
+  end;
+end;
+
+definition
+  func ExtBorelsubsets -> SigmaField of [.0,+infty.] equals
+    the set of all Ext_Borelsubsets_help(A) where
+      A is Element of Ext_Borel_Sets;
+  coherence
+proof
+ set BS=the set of all Ext_Borelsubsets_help(A)
+  where A is Element of Ext_Borel_Sets;
+  reconsider I = [.0,+infty.] as Subset of ExtREAL by MEMBERED:2;
+ BS is non empty Subset-Family of I
+ proof
+  reconsider RE = ExtREAL as Element of Ext_Borel_Sets by PROB_1:5;
+d1:  Ext_Borelsubsets_help(RE) in BS;
+   BS c= bool I
+   proof
+     let x be object;
+     assume x in BS;
+     then consider A being Element of Ext_Borel_Sets such that
+ D1: x=Ext_Borelsubsets_help(A);
+     reconsider x as set by D1;
+     x c= I by D1,XBOOLE_0:def 4;
+     hence thesis;
+    end;
+   hence thesis by d1;
+ end; then
+ reconsider BS as non empty Subset-Family of I;
+ A1: BS is compl-closed
+ proof
+   let A be Subset of I;
+   assume A in BS;
+   then consider A2 being Element of Ext_Borel_Sets such that
+AF1: A=Ext_Borelsubsets_help(A2);
+F2:I \ A = I \ A2 by AF1,XBOOLE_1:47 .= A2` /\ I by SUBSET_1:13;
+   reconsider CA2 = A2` as Element of Ext_Borel_Sets by PROB_1:20;
+   CA2/\I=Ext_Borelsubsets_help(CA2);
+   hence thesis by F2;
+ end;
+ BS is sigma-multiplicative
+ proof
+   let A1 be SetSequence of I;
+   assume G1: rng A1 c= BS;
+TT1: for n being Nat holds
+    A1.n in BS &
+    (ex A2 being Element of Ext_Borel_Sets st A1.n=Ext_Borelsubsets_help(A2))
+   proof
+    let n be Nat;
+    reconsider n as Element of NAT by ORDINAL1:def 12;
+    A1.n in rng A1 by FUNCT_2:4;
+    then A1.n in BS by G1;
+   hence thesis;
+   end;
+   rng A1 c= bool ExtREAL
+   proof
+     let x be object;
+     assume d1: x in rng A1;
+     bool I c= bool ExtREAL by ZFMISC_1:67;
+     hence thesis by d1;
+   end; then
+   reconsider A10 = A1 as SetSequence of ExtREAL by FUNCT_2:6;
+   for n being Nat holds A10.n is Event of Ext_Borel_Sets
+   proof
+    let n be Nat;
+    ex A2 being Element of Ext_Borel_Sets st
+    A10.n=Ext_Borelsubsets_help(A2) by TT1;
+    hence thesis;
+   end;
+   then reconsider A10 as SetSequence of Ext_Borel_Sets by PROB_1:25;
+   set UA1=Union Complement A10;
+   for n being Nat holds (Complement A10).n is Event of Ext_Borel_Sets
+   proof
+    let n be Nat;
+    consider A2 being Element of Ext_Borel_Sets such that
+P1: A10.n=Ext_Borelsubsets_help(A2) by TT1;
+    reconsider A1n = A10.n as Element of Ext_Borel_Sets by P1;
+    A1n` is Element of Ext_Borel_Sets by PROB_1:20;
+    hence thesis by PROB_1:def 2;
+   end; then
+   Complement A10 is SetSequence of Ext_Borel_Sets by PROB_1:25;
+   then reconsider UA1 as Event of Ext_Borel_Sets by PROB_1:26;
+k1:UA1` is Event of Ext_Borel_Sets by PROB_1:20;
+   reconsider IA1 = Intersection A10 as Element of Ext_Borel_Sets by k1;
+    for x being object holds x in IA1 iff x in Ext_Borelsubsets_help(IA1)
+    proof
+     let x be object;
+     thus x in IA1 implies x in Ext_Borelsubsets_help(IA1)
+     proof
+      assume x in IA1;
+      then x in IA1 & x in A1.0 by PROB_1:13;
+      hence thesis by XBOOLE_0:def 4;
+     end;
+    thus thesis by XBOOLE_0:def 4;
+    end; then
+s0: IA1=Ext_Borelsubsets_help(IA1) by TARSKI:2;
+   Intersection A10 = Intersection A1
+   proof
+    for x being object holds x in Intersection A10 iff x in Intersection A1
+    proof
+     let x be object;
+     x in Intersection A10 iff for n being Nat holds x in A10.n by PROB_1:13;
+     then x in Intersection A10 iff for n being Nat holds x in A1.n;
+    hence thesis by PROB_1:13;
+    end;
+   hence thesis;
+   end;
+  hence thesis by s0;
+ end;
+ hence thesis by A1;
+end;
+end;
+
+definition
+  let Omega, Sigma;
+  let MyFunc be Function;
+  let S be non empty ext-real-membered set;
+  let k be random_variable of Sigma,ExtBorelsubsets;
+  pred k is_StoppingTime_wrt MyFunc,S means
+  for t being Element of S holds
+    {w where w is Element of Omega: k.w<=t} in MyFunc.t;
+end;
+
+theorem Th1:
+ for MyFunc be Filtration of S,Sigma,
+     t2 being Element of [.0,+infty.] holds
+     ex q being random_variable of Sigma,ExtBorelsubsets st
+      q=Omega-->t2 & q is_StoppingTime_wrt MyFunc,S
+proof
+ let MyFunc be Filtration of S,Sigma;
+ let t2 be Element of [.0,+infty.];
+  Fin1: for t being Element of S holds
+  {w where w is Element of Omega: (Omega-->t2).w<=t} in MyFunc.t
+  proof
+   let t be Element of S;
+   reconsider MyFt = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+   set R = {w where w is Element of Omega: (Omega-->t2).w<=t};
+H1: for x being object st x in R holds x in Omega
+    proof
+     let x be object;
+     assume x in R;
+     then ex w3 being Element of Omega st w3=x & (Omega-->t2).w3<=t;
+     hence thesis;
+    end;
+   per cases;
+   suppose S1: t2<=t;
+   R = Omega
+   proof
+    for x being object st x in Omega holds x in R
+    proof
+     let x be object;
+     assume x in Omega; then
+     reconsider x as Element of Omega;
+     (Omega-->t2).x=t2 by FUNCOP_1:7;
+     hence thesis by S1;
+    end;
+    hence thesis by H1,TARSKI:2;
+   end; then
+   R in MyFt by PROB_1:5;
+   hence thesis;
+   end;
+   suppose S1: t2>t;
+    R c= {}
+    proof
+     let x be object;
+     assume x in R;
+     then ex w3 being Element of Omega st w3=x & (Omega-->t2).w3<=t;
+    hence thesis by S1,FUNCOP_1:7;
+    end;
+   then R={}; then
+   R in MyFt by PROB_1:4;
+   hence thesis;
+   end;
+ end;
+  set OC=Omega-->t2;
+  OC is random_variable of Sigma,ExtBorelsubsets by FINANCE3:10;
+  then reconsider OC as random_variable of Sigma,ExtBorelsubsets;
+  OC is_StoppingTime_wrt MyFunc,S by Fin1;
+  hence thesis;
+end;
+
+definition
+  let Omega, Sigma, S;
+  let Filt be Filtration of S,Sigma;
+  let k be random_variable of Sigma,ExtBorelsubsets;
+  attr k is Filt-StoppingTime-like means :Def11111:
+    k is_StoppingTime_wrt Filt,S;
+end;
+
+registration
+  let Omega, Sigma, S;
+  let MyFunc be Filtration of S,Sigma;
+  cluster MyFunc-StoppingTime-like for
+     random_variable of Sigma,ExtBorelsubsets;
+  existence
+  proof
+   set t2 = the Element of [.0,+infty.];
+   ex q being random_variable of Sigma,ExtBorelsubsets st
+   q=Omega-->t2 & q is_StoppingTime_wrt MyFunc,S by Th1;
+   hence thesis by Def11111;
+  end;
+end;
+
+definition
+  let Omega, Sigma, S;
+  let MyFunc be Filtration of S,Sigma;
+  mode StoppingTime_Func of Sigma,MyFunc is
+    MyFunc-StoppingTime-like random_variable of Sigma,ExtBorelsubsets;
+end;
+
+:: $\sigma$-Algebra of the $\tau$-past
+
+definition
+  let Omega, Sigma, S;
+  let MyFunc be Filtration of S,Sigma;
+  let tau be StoppingTime_Func of Sigma,MyFunc;
+  let A1 be SetSequence of Omega such that
+LOC1: rng(A1) c= {A where A is Element of Sigma:
+                for t2 being Element of S holds
+                A /\ {w where w is Element of Omega: tau.w<=t2} in MyFunc.t2};
+  let t be Element of S;
+  let n be Nat;
+  func Sigma_tauhelp2(MyFunc,tau,A1,n,t) ->
+    Element of El_Filtration(t,MyFunc) equals :Def8869:
+    (Complement A1).n /\ {w where w is Element of Omega: tau.w<=t};
+correctness
+proof
+  set MySigmatau = {A where A is Element of Sigma:
+                for t2 being Element of S holds
+                A /\ {w where w is Element of Omega: tau.w<=t2} in MyFunc.t2};
+  A1.n in rng A1 by FUNCT_2:4,ORDINAL1:def 12;
+  then A1.n in MySigmatau by LOC1; then
+  consider B being Element of Sigma such that
+GW1: A1.n=B & for t2 being Element of S holds
+        B /\ {w where w is Element of Omega: tau.w<=t2} in MyFunc.t2;
+     reconsider A1n = A1.n as Element of Sigma by GW1;
+GW2: for t being Element of S holds
+       (A1.n)` /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t
+     proof
+      let t be Element of S;
+      reconsider MyFt2 = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+      set F = {w where w is Element of Omega: tau.w<=t};
+J1:   F c= Omega
+      proof
+        let b be object; assume b in F; then
+        consider ww being Element of Omega such that
+L1:     ww = b & tau.ww <= t;
+        thus thesis by L1;
+      end;
+E1:   F \ (A1.n /\ F) = F \ (A1.n) by XBOOLE_1:47
+      .= F /\ (A1.n)` by J1,SUBSET_1:13;
+  W2: A1.n /\ F is Event of MyFt2 by GW1;
+      tau is_StoppingTime_wrt MyFunc,S by Def11111; then
+      F is Event of MyFt2; then
+      F \ (A1.n /\ F) is Event of MyFt2 by W2,PROB_1:24;
+      hence thesis by E1;
+     end;
+     (A1.n)` = (Complement A1).n by PROB_1:def 2;
+     hence thesis by GW2;
+ end;
+end;
+
+definition
+  let Omega, Sigma, S;
+  let MyFunc be Filtration of S,Sigma;
+  let tau be StoppingTime_Func of Sigma,MyFunc;
+  let A1 be SetSequence of Omega;
+  let t be Element of S;
+  func Sigma_tauhelp3(MyFunc,tau,A1,t) ->
+     SetSequence of El_Filtration(t,MyFunc) means :Def8868:
+  for n being Nat holds it.n=Sigma_tauhelp2(MyFunc,tau,A1,n,t);
+  existence
+  proof
+    deffunc U(Nat) = Sigma_tauhelp2(MyFunc,tau,A1,$1,t);
+    consider f being sequence of El_Filtration(t,MyFunc) such that
+A1: for d being Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+    reconsider f as SetSequence of El_Filtration(t,MyFunc) by PROB_4:2;
+    take f;
+    let n be Nat;
+    n in NAT by ORDINAL1:def 12;
+    hence thesis by A1;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be SetSequence of El_Filtration(t,MyFunc);
+    assume that
+A1: for d being Nat holds f1.d=Sigma_tauhelp2(MyFunc,tau,A1,d,t) and
+A2: for d being Nat holds f2.d=Sigma_tauhelp2(MyFunc,tau,A1,d,t);
+    for d being Nat holds f1.d=f2.d
+    proof
+      let d be Nat;
+      f1.d=Sigma_tauhelp2(MyFunc,tau,A1,d,t) by A1;
+      hence thesis by A2;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let Omega, Sigma, S;
+  let MyFunc be Filtration of S,Sigma;
+  let tau be StoppingTime_Func of Sigma,MyFunc;
+  func Sigma_tau(MyFunc,tau) -> SigmaField of Omega equals
+   {A where A is Element of Sigma:
+     for t being Element of S holds
+       A /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t};
+coherence
+proof
+  set MySigmatau={A where A is Element of Sigma:
+     for t being Element of S holds
+       A /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t};
+  MySigmatau c= bool Omega
+  proof
+    let x be object;
+    assume x in MySigmatau; then
+    ex A being Element of Sigma st x=A &
+     for t being Element of S holds
+       A /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t;
+    hence thesis;
+  end;
+  then reconsider MySigmatau as Subset-Family of Omega;
+A1: MySigmatau is compl-closed
+   proof
+     let A be Subset of Omega;
+     assume A in MySigmatau; then
+     consider B being Element of Sigma such that
+GW1: A=B & for t being Element of S holds
+        B /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t;
+     reconsider A as Element of Sigma by GW1;
+GW2: for t being Element of S holds
+       A` /\ {w where w is Element of Omega: tau.w<=t} in MyFunc.t
+     proof
+      let t be Element of S;
+      set F = {w where w is Element of Omega: tau.w<=t};
+      reconsider MyFt2 = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+LL:   F c= Omega
+      proof
+        let b be object; assume b in F; then
+        ex ww being Element of Omega st ww = b & tau.ww <= t;
+        hence thesis;
+      end;
+  E1: F \ (A /\ F) = F \ A by XBOOLE_1:47
+                  .= F /\ A` by SUBSET_1:13,LL;
+  W2: A /\ F is Event of MyFt2 by GW1;
+      tau is_StoppingTime_wrt MyFunc,S by Def11111; then
+      F is Event of MyFt2; then
+      F \ (A /\ F) is Event of MyFt2 by W2,PROB_1:24;
+      hence thesis by E1;
+     end;
+     Omega in Sigma & A in Sigma by PROB_1:5;
+     then Omega \ A in Sigma by PROB_1:6;
+     hence thesis by GW2;
+   end;
+A2: MySigmatau is sigma-multiplicative
+   proof
+     let A1 be SetSequence of Omega;
+     assume ASSJ: rng(A1) c= MySigmatau;
+TT1: for n being Nat holds A1.n in MySigmatau
+     proof
+      let n be Nat;
+      A1.n in rng A1 by FUNCT_2:4,ORDINAL1:def 12;
+      hence thesis by ASSJ;
+     end;
+     for n being Nat holds A1.n is Event of Sigma
+     proof
+       let n be Nat;
+       A1.n in MySigmatau by TT1; then
+       ex AJ being Element of Sigma st
+        AJ=A1.n & (for t being Element of S holds
+         AJ /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t);
+       hence thesis;
+      end; then
+      reconsider A1 as SetSequence of Sigma by PROB_1:25;
+      set CA=Complement A1;
+      for n being Nat holds CA.n is Event of Sigma
+      proof
+       let n be Nat;
+        A1.n in MySigmatau by TT1; then
+        ex AJ being Element of Sigma st
+         AJ=A1.n & (for t being Element of S holds
+          AJ /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t);
+        then A1.n is Event of Sigma & Sigma is compl-closed;
+        then (A1.n)` is Event of Sigma;
+        hence thesis by PROB_1:def 2;
+      end;
+      then reconsider CA as SetSequence of Sigma by PROB_1:25;
+  QQ1:for t being Element of S holds
+         (Union Complement A1) /\
+            {w where w is Element of Omega: tau.w<=t} in MyFunc.t
+        proof
+         let t be Element of S;
+         set R = {w where w is Element of Omega: tau.w<=t};
+         Union Sigma_tauhelp3(MyFunc,tau,A1,t) =
+          (Union Complement A1) /\ R
+         proof
+          thus Union Sigma_tauhelp3(MyFunc,tau,A1,t) c=
+            (Union Complement A1) /\ R
+         proof
+           let x be object;
+           assume x in Union Sigma_tauhelp3(MyFunc,tau,A1,t);
+           then consider n being Nat such that
+       V1: x in Sigma_tauhelp3(MyFunc,tau,A1,t).n by PROB_1:12;
+           x in Sigma_tauhelp2(MyFunc,tau,A1,n,t) by V1,Def8868; then
+           x in (Complement A1).n /\ {w where w is Element of Omega: tau.w<=t}
+             by ASSJ,Def8869; then
+     ZWJ1: x in (Complement A1).n &
+           x in {w where w is Element of Omega: tau.w<=t} by XBOOLE_0:def 4;
+           then x in Union Complement A1 by PROB_1:12;
+           hence thesis by XBOOLE_0:def 4,ZWJ1;
+         end;
+           let x be object;
+           assume x in (Union Complement A1) /\ R; then
+     ZWJ1: x in Union Complement A1 &
+            x in R by XBOOLE_0:def 4;
+           then consider n being Nat such that ZWJ2: x in (Complement A1).n
+            by PROB_1:12;
+           x in (Complement A1).n /\ R by XBOOLE_0:def 4,ZWJ1,ZWJ2; then
+           x in Sigma_tauhelp2(MyFunc,tau,A1,n,t) by ASSJ,Def8869;
+           then x in Sigma_tauhelp3(MyFunc,tau,A1,t).n by Def8868;
+           hence thesis by PROB_1:12;
+         end;
+        hence thesis by PROB_1:17;
+        end;
+        set CA=Complement A1;
+        for n being Nat holds CA.n is Event of Sigma
+        proof
+          let n be Nat;
+          A1.n in MySigmatau by TT1; then
+          consider AJ being Element of Sigma such that
+     AB1: AJ=A1.n & (for t being Element of S holds
+          AJ /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t);
+          A1.n is Event of Sigma & Sigma is compl-closed by AB1;
+          then (A1.n)` is Event of Sigma;
+          hence thesis by PROB_1:def 2;
+        end;
+        then reconsider CA as SetSequence of Sigma by PROB_1:25;
+        reconsider UCA = Union CA as Event of Sigma by PROB_1:26;
+        UCA in MySigmatau by QQ1;
+        hence thesis by A1;
+     end;
+  K0: for t being Element of S holds
+       {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t
+      proof
+       let t be Element of S;
+       tau is MyFunc-StoppingTime-like; then
+       tau is_StoppingTime_wrt MyFunc,S;
+       hence thesis;
+      end;
+  K1: for t being Element of S holds
+       Omega /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t
+      proof
+       let t be Element of S;
+   N1: {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t by K0;
+       reconsider MyFt = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+       Omega is Event of MyFt by PROB_1:5; then
+       Omega /\ {w2 where w2 is Element of Omega: tau.w2<=t} is Event of MyFt
+         by PROB_1:19,N1;
+       hence thesis;
+      end;
+      Omega is Element of Sigma &
+      for t being Element of S holds
+      Omega /\ {w2 where w2 is Element of Omega: tau.w2<=t} in MyFunc.t
+         by PROB_1:5,K1; then
+      Omega in MySigmatau;
+      hence thesis by A1,A2;
+  end;
+end;
+
+theorem
+for MyFunc being Filtration of S,Sigma,
+    k1,k2 be StoppingTime_Func of Sigma,MyFunc
+     st k1<=k2 holds
+      Sigma_tau(MyFunc,k1) c= Sigma_tau(MyFunc,k2)
+proof
+ let MyFunc be Filtration of S,Sigma;
+ let k1,k2 be StoppingTime_Func of Sigma,MyFunc;
+ assume ASS0: k1<=k2;
+   let x be object;
+   assume x in Sigma_tau(MyFunc,k1); then
+   consider A being Element of Sigma such that
+Z1:x=A & for t being Element of S holds
+     A /\ {w2 where w2 is Element of Omega: k1.w2<=t} in MyFunc.t;
+   reconsider x as Element of Sigma by Z1;
+   for t being Element of S holds
+     x /\ {w2 where w2 is Element of Omega: k2.w2<=t} in MyFunc.t
+     proof
+      let t be Element of S;
+      reconsider MyFt = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+        set Imp0={w2 where w2 is Element of Omega: k2.w2<=t};
+        set Imp1=x /\ Imp0;
+        set Imp2=x /\ {w2 where w2 is Element of Omega: k1.w2<=t} /\ Imp0;
+BU2:    x /\ {w where w is Element of Omega: k1.w<=t} is Event of MyFt by Z1;
+    P1: Imp1 = Imp2
+        proof
+         thus Imp1 c= Imp2
+         proof
+          let y be object;
+          assume zw1: y in Imp1; then
+     ZW1: y in x & y in {w where w is Element of Omega: k2.w<=t}
+            by XBOOLE_0:def 4; then
+          consider w2 being Element of Omega such that
+     ZW2: y=w2 & k2.w2<=t;
+          k1.w2<=k2.w2 & k2.w2<=t by ZW2,ASS0; then
+          k1.w2<=t by XXREAL_0:2; then
+          y in x & y in {w where w is Element of Omega: k1.w<=t}
+            by ZW2,zw1,XBOOLE_0:def 4;
+          then y in (x /\ {w where w is Element of Omega: k1.w<=t})
+            by XBOOLE_0:def 4;
+          hence thesis by ZW1,XBOOLE_0:def 4;
+         end;
+         let y be object;
+         assume y in Imp2;
+         then y in x /\ {w where w is Element of Omega: k1.w<=t} & y in
+           Imp0 by XBOOLE_0:def 4; then
+         y in x & y in {w where w is Element of Omega: k1.w<=t} & y in
+           {w where w is Element of Omega: k2.w<=t} by XBOOLE_0:def 4;
+         hence thesis by XBOOLE_0:def 4;
+        end;
+       Imp1 is Event of MyFt
+       proof
+        k2 is_StoppingTime_wrt MyFunc,S by Def11111; then
+        {w where w is Element of Omega: k2.w<=t} is Event of MyFt;
+        hence thesis by P1,BU2,PROB_1:19;
+       end;
+     hence thesis;
+   end;
+  hence thesis;
+end;

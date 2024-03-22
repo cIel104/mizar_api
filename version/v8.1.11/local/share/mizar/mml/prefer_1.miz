@@ -1,0 +1,1994 @@
+:: Introduction to Formal Preference Spaces
+::  by Eliza Niewiadomska and Adam Grabowski
+::
+:: Received October 7, 2013
+:: Copyright (c) 2013-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies PREFER_1, PCS_0, ORDERS_1, WELLORD1, WAYBEL_4, CARD_1, SUBSET_1,
+      RELAT_1, XBOOLE_0, PARTFUN1, RELAT_2, STRUCT_0, ZFMISC_1, TARSKI,
+      ORDERS_2, EQREL_1;
+ notations TARSKI, XBOOLE_0, XTUPLE_0, SUBSET_1, ZFMISC_1, MCART_1, DOMAIN_1,
+      CARD_1, NAT_1, RELAT_1, FUNCT_1, PARTFUN1, RELSET_1, RELAT_2, EQREL_1,
+      CARD_3, PARTIT_2, FUNCT_4, ORDINAL1, NUMBERS, FUNCOP_1, WELLORD1,
+      STRUCT_0, ORDERS_1, ORDERS_2, YELLOW_3, ENUMSET1, PCS_0, XCMPLX_0,
+      FUNCT_2, VALUED_0;
+ constructors PRALG_1, PARTIT_2, TSEP_1, YELLOW16, YELLOW_3, DOMAIN_1,
+      RELSET_1, FUNCT_4, AFINSQ_1, XTUPLE_0, NUMBERS, PARTFUN2, NAT_1,
+      ORDERS_1, PCS_0, WELLORD1, WELLORD2, FUNCOP_1, XXREAL_0, XREAL_0, CARD_1,
+      XCMPLX_0, INT_1, VALUED_0;
+ registrations EQREL_1, PARTFUN1, SUBSET_1, XBOOLE_0, RELAT_1, WELLORD1,
+      STRUCT_0, YELLOW_3, RELSET_1, RELAT_2, ORDINAL1, PARTIT_2, ZFMISC_1,
+      NAT_1, REWRITE2, CARD_1;
+ requirements BOOLE, SUBSET, NUMERALS;
+ equalities EQREL_1, SUBSET_1, RELAT_1;
+ theorems XBOOLE_0, SYSREL, ZFMISC_1, XBOOLE_1, RELAT_1, CARD_2, RELAT_2,
+      ENUMSET1, CARD_1, TARSKI, XTUPLE_0, NECKLA_3, SUBSET_1, PARTFUN1,
+      ORDERS_1, PRE_POLY, WELLSET1, ROUGHS_1;
+
+begin :: Preliminaries
+
+definition let X, Y, Z be set;
+  pred X, Y, Z are_mutually_disjoint means
+    X misses Y & Y misses Z & X misses Z;
+end;
+
+theorem Lemma1:
+  for A being set holds
+    {}, A, {} are_mutually_disjoint
+  proof
+    let A be set;
+a1: {} /\ A = {};
+    {} /\ {} = {};
+    hence {}, A, {} are_mutually_disjoint by a1,XBOOLE_0:def 7;
+  end;
+
+registration
+  cluster 2-element -> non empty for set;
+  coherence;
+end;
+
+theorem
+  for a, b being set st a <> b holds
+    {[a, a], [b, b]} <> {[a, a], [a, b], [b, a], [b, b]}
+  proof
+    let a, b be set;
+    assume
+AA: a <> b;
+    set x1 = [a, a], x2 = [a, b], x3 = [b, a], x4 = [b, b];
+A0: x2 <> x1 & x2 <> x4 by AA,XTUPLE_0:1;
+    [a, b] in {[a, a], [a, b], [b, a], [b, b]} by ENUMSET1:def 2;
+    hence thesis by A0,TARSKI:def 2;
+  end;
+
+theorem Lemma3:
+  for A being 2-element set, a, b being Element of A st
+    a <> b holds A = {a, b}
+  proof
+    let A be 2-element set, a, b be Element of A;
+    assume
+A0: a <> b;
+    card A = 2 by CARD_1:def 7; then
+    consider c, d being object such that
+A1: c <> d & A = {c, d} by CARD_2:60;
+    a = c or a = d by TARSKI:def 2,A1;
+    hence thesis by A0,TARSKI:def 2,A1;
+  end;
+
+theorem
+  for A being 2-element set holds
+    ex a, b being Element of A st a <> b & A = {a, b}
+  proof
+    let A be 2-element set;
+    card A = 2 by CARD_1:def 7; then
+    consider c, d being object such that
+A1: c <> d & A = {c, d} by CARD_2:60;
+    c in A & d in A by A1,TARSKI:def 2;
+    hence thesis by A1;
+  end;
+
+theorem
+  for A being non trivial set holds
+    ex a, b being Element of A st a <> b
+  proof
+    let A be non trivial set;
+    set x = the Element of A;
+    consider d1 being object such that
+A1: d1 in A & d1 <> x by SUBSET_1:48;
+    thus thesis by A1;
+  end;
+
+theorem Lemma6:
+  for x1, x2, x3, x4 being set holds
+    {x1} \/ {x2} \/ {x3, x4} = {x3, x1, x2, x4}
+  proof
+    let x1, x2, x3, x4 be set;
+    {x1} \/ {x2} \/ {x3, x4} = {x1, x2} \/ {x3, x4} by ENUMSET1:1
+      .= {x1, x2, x3, x4} by ENUMSET1:5
+      .= {x3, x2, x1, x4} by ENUMSET1:71
+      .= {x3} \/ {x2, x1, x4} by ENUMSET1:4
+      .= {x3} \/ {x1, x2, x4} by ENUMSET1:58
+      .= {x3, x1, x2, x4} by ENUMSET1:4;
+    hence thesis;
+  end;
+
+Lemma10:
+  for a,b,c,d being object holds
+    {a, d} \/ {b, c} = {a, b, c, d}
+  proof
+    let a,b,c,d be object;
+    set x1 = a, x2 = d, x3 = b, x4 = c;
+    {x1, x2} \/ {x3, x4} = {x1, x2, x3, x4} by ENUMSET1:5
+      .= {x1, x3, x4, x2} by ENUMSET1:63;
+    hence thesis;
+  end;
+
+theorem Lemma11:
+  for a, b being set st a <> b holds
+    {[a, a], [b, b]} misses {[a, b], [b, a]}
+  proof
+    let a, b be set;
+    assume a <> b; then
+A0: [a,b] <> [a,a] & [a,b] <> [b,b] & [a,b] <> [b,a] & [a,a] <> [b,a]
+      & [b,b] <> [b,a] by XTUPLE_0:1;
+    set A = {[a, a], [b, b]}, B = {[a, b], [b, a]};
+    assume A meets B; then
+    consider x being object such that
+A1: x in A & x in B by XBOOLE_0:3;
+    x = [a,a] or x = [b,b] by A1,TARSKI:def 2;
+    hence thesis by A0,A1,TARSKI:def 2;
+  end;
+
+theorem Lemma4:
+  for A being 2-element set, a, b being Element of A st a <> b holds
+    id A = {[a, a], [b, b]}
+  proof
+    let A be 2-element set, a, b be Element of A;
+    assume
+A0: a <> b;
+    set c = a, d = b;
+    set x1 = [a,a], x2 = [b,b];
+T0: A = {a, b} by Lemma3, A0;
+T2: id {a,b,c,d} = id {a,a,b,b} by ENUMSET1:62
+      .= id {a,b,b} by ENUMSET1:31
+      .= id {b,b,a} by ENUMSET1:59
+      .= id {a,b} by ENUMSET1:30;
+    {[a,a],[b,b],[c,c],[d,d]} = {x1, x1, x2, x2} by ENUMSET1:62
+      .= {x1, x2, x2} by ENUMSET1:31
+      .= {x2, x2, x1} by ENUMSET1:59
+      .= {x1, x2} by ENUMSET1:30;
+    hence thesis by NECKLA_3:2,T2,T0;
+  end;
+
+theorem Lemma7:
+  for a, b being object,
+      R being Relation st R = {[a, b]} holds
+    R~ = {[b, a]}
+  proof
+    let a, b be object, R be Relation;
+    assume R = {[a, b]}; then
+    dom R = {a} & rng R = {b} by RELAT_1:9; then
+    dom (R~) = {b} & rng (R~) = {a} by RELAT_1:20;
+    hence thesis by RELAT_1:189;
+  end;
+
+theorem Lemma8:
+  for a, b being set holds
+    a <> b iff {[a, b]} misses {[a, a], [b, b]}
+  proof
+    let a, b be set;
+    thus a <> b implies {[a, b]} misses {[a, a], [b, b]}
+    proof
+      assume
+A0:   a <> b; then
+A1:   [a,b] <> [a,a] by XTUPLE_0:1;
+A2:   [a,b] <> [b,b] by A0,XTUPLE_0:1;
+      set A = {[a, b]}, B = {[a, a], [b, b]};
+      assume A meets B; then
+      consider x being object such that
+A4:   x in A & x in B by XBOOLE_0:3;
+      x = [a, b] by TARSKI:def 1,A4;
+      hence thesis by A1, A2,A4, TARSKI:def 2;
+    end;
+    assume
+A0: {[a, b]} misses {[a, a], [b, b]};
+    assume a = b; then
+    not [a,a] in {[a, a], [b, b]} by ZFMISC_1:48,A0;
+    hence thesis by TARSKI:def 2;
+  end;
+
+theorem Lemma12b:
+  for X being non empty set,
+      R being (Relation of X),
+      x,y being Element of X holds
+    not [x,y] in R` implies [x,y] in R
+  proof
+    let X be non empty set,
+        R be (Relation of X),
+        x,y be Element of X;
+    assume
+A2: not [x,y] in R`;
+    R \/ R` = [#][:X, X:] by SUBSET_1:10;
+    hence thesis by A2, XBOOLE_0:def 3;
+  end;
+
+theorem
+  for X being non empty set,
+      R being Relation of X holds
+    R /\ (R~)`, R /\ R~, R` /\ (R~)` are_mutually_disjoint
+  proof
+    let X be non empty set;
+    let R be Relation of X;
+    set C = R` /\ R~`;
+z1: (R /\ (R~)`) /\ (R /\ R~) = R /\ (R~` /\ R~) by XBOOLE_1:116
+      .= R /\ {} by XBOOLE_0:def 7,SUBSET_1:23
+      .= {};
+z2: (R /\ R~`) /\ (R` /\ R~`) = R~` /\ (R /\ R`) by XBOOLE_1:116
+      .= R~` /\ {} by XBOOLE_0:def 7,SUBSET_1:23
+      .= {};
+X0: R /\ R` = {} by XBOOLE_0:def 7,SUBSET_1:23;
+    (R /\ R~) /\ (R` /\ R~`) = (R /\ C) /\ R~ by XBOOLE_1:16
+      .= ((R /\ R`) /\ R~`) /\ R~ by XBOOLE_1:16
+      .= {} by X0;
+    hence thesis by z1,z2,XBOOLE_0:def 7;
+  end;
+
+theorem LemmaAuxIrr:
+  for P,R being Relation st P misses R holds
+    P~ misses R~
+  proof
+    let P,R be Relation;
+    assume P misses R; then
+    P /\ R = {} by XBOOLE_0:def 7; then
+A1: (P /\ R)~ = {};
+    (P /\ R)~ = P~ /\ R~ by RELAT_1:22;
+    hence thesis by XBOOLE_0:def 7,A1;
+  end;
+
+theorem Tilde1:
+  for X being non empty set,
+      R being Relation of X holds
+    R = R~`~`
+  proof
+    let X be non empty set,
+        R be Relation of X;
+    for x,y being object st [x,y] in R holds [x,y] in R~`~`
+    proof
+      let x,y be object;
+      assume
+X0:   [x,y] in R; then
+x1:   x in field R & y in field R by RELAT_1:15;
+      [y,x] in R~ by X0,RELAT_1:def 7; then
+      not [y,x] in R~` by XBOOLE_0:def 5; then
+      not [x,y] in R~`~ by RELAT_1:def 7;
+      hence thesis by x1,Lemma12b;
+    end; then
+n1: R c= R~`~` by RELAT_1:def 3;
+    for x,y being object st [x,y] in R~`~` holds [x,y] in R
+    proof
+      let x,y be object;
+      assume
+X0:   [x,y] in R~`~`; then
+x1:   x in field (R~`~`) & y in field (R~`~`) by RELAT_1:15;
+      not [x,y] in R~`~ by XBOOLE_0:def 5,X0; then
+      not [y,x] in R~` by RELAT_1:def 7; then
+      [y,x] in R~ by Lemma12b,x1;
+      hence thesis by RELAT_1:def 7;
+    end; then
+    R~`~` c= R by RELAT_1:def 3;
+    hence thesis by n1,XBOOLE_0:def 10;
+  end;
+
+theorem
+  for X being non empty set,
+      R being Relation of X holds
+    R~ = R`~`
+  proof
+    let X be non empty set,
+        R be Relation of X;
+    R = R~`~` by Tilde1;
+    hence thesis;
+  end;
+
+theorem Tilde3:
+  for X being non empty set,
+      R being Relation of X holds
+    R~`~ = R`
+  proof
+    let X be non empty set,
+        R be Relation of X;
+    R = R~`~` by Tilde1;
+    hence thesis;
+  end;
+
+Lemma19:
+  for X,Y being set st X c= Y & X misses Y holds X = {} by XBOOLE_1:68;
+
+begin :: Properties of Binary Relations
+
+registration let X be set;
+  cluster connected being_linear-order for Order of X;
+  existence
+  proof
+    consider R being Relation such that
+A1: R is well-ordering and
+A2: field R = X by WELLSET1:6;
+    reconsider R as Relation of X by A2,PRE_POLY:18;
+    R is_reflexive_in X by A1,A2,RELAT_2:def 9;
+    then dom R = X by ORDERS_1:13;
+    then reconsider R as Order of X by A1,PARTFUN1:def 2;
+    take R;
+    thus thesis by A1,ORDERS_1:def 6;
+  end;
+end;
+
+theorem
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    R~ is total
+  proof
+    let X be non empty set,
+        R be total reflexive Relation of X;
+    dom R = X by PARTFUN1:def 2; then
+    dom (R~) = X by RELAT_2:12;
+    hence thesis by PARTFUN1:def 2;
+  end;
+
+theorem FieldTot:
+  for X being non empty set,
+      R being total Relation of X holds
+    field R = X
+  proof
+    let X be non empty set,
+        R be total Relation of X;
+    field R = X \/ rng R by PARTFUN1:def 2;
+    hence thesis by XBOOLE_1:12;
+  end;
+
+theorem
+  for R being Relation holds
+    R is irreflexive iff
+      for x being object st x in field R holds not [x, x] in R
+      by RELAT_2:def 10,RELAT_2:def 2;
+
+theorem LemSym:
+  for R being Relation holds
+    R is symmetric iff
+      for x, y being object st [x,y] in R holds [y,x] in R
+  proof
+    let R be Relation;
+    thus R is symmetric implies
+      for x, y being object st [x,y] in R holds [y,x] in R
+    proof
+      assume
+  A0: R is symmetric;
+      let x, y be object;
+      assume A1: [x, y] in R; then
+      x in field R & y in field R by RELAT_1:15;
+      hence [y, x] in R by A0, A1, RELAT_2:def 3,def 11;
+    end;
+    assume
+A1: for x, y being object st [x,y] in R holds [y,x] in R;
+    set X = field R;
+    for x,y being object st
+      x in X & y in X & [x,y] in R holds [y,x] in R by A1;
+    hence R is symmetric by RELAT_2:def 11,RELAT_2:def 3;
+  end;
+
+theorem LEM2a:
+  for X being set, R being Relation of X holds
+    R /\ R~ is symmetric
+  proof
+    let X be set, R be Relation of X;
+    (R /\ R~)~ = R~ /\ R~~ by RELAT_1:22
+      .= R~ /\ R;
+    hence thesis by RELAT_2:13;
+  end;
+
+theorem LemAsym:
+  for R being Relation holds
+    R is asymmetric iff
+      for x, y being object st [x,y] in R holds not [y,x] in R
+  proof
+    let R be Relation;
+A1: R is asymmetric implies
+      for x, y being object st [x,y] in R holds not [y,x] in R
+    proof
+      assume
+Z0:   R is asymmetric;
+      let x, y be object;
+      assume
+B1:   [x,y] in R; then
+      x in field R & y in field R by RELAT_1:15;
+      hence not [y,x] in R by Z0, RELAT_2:def 5,def 13,B1;
+    end;
+    (for x, y being object st [x,y] in R holds not [y,x] in R) implies
+      R is asymmetric
+    proof
+      assume
+Z1:   for x, y being object st [x,y] in R holds not [y,x] in R;
+      set X = field R;
+      for x,y being object st
+        x in X & y in X & [x,y] in R holds not [y,x] in R by Z1;
+      hence thesis by RELAT_2:def 13,RELAT_2:def 5;
+    end;
+    hence thesis by A1;
+  end;
+
+theorem Lemma5:
+  for a, b being object st a <> b holds
+    {[a, b]} is asymmetric
+  proof
+    let a, b be object;
+    assume
+A0: a <> b;
+    set R = {[a, b]};
+    for x, y being object st [x, y] in R holds not [y, x] in R
+    proof
+      let x, y be object;
+      assume [x, y] in R; then
+      [x, y] = [a, b] by TARSKI:def 1; then
+A1:   x = a & y = b by XTUPLE_0:1;
+      assume [y, x] in R; then
+      [y, x] = [a, b] by TARSKI:def 1;
+      hence contradiction by A0, A1,XTUPLE_0:1;
+    end;
+    hence thesis by LemAsym;
+  end;
+
+theorem LEM1:
+  for X being non empty set,
+      R being Relation of X holds
+    R /\ (R~)` is asymmetric
+  proof
+    let X be non empty set,
+        R be Relation of X;
+    set P = R /\ (R~)`;
+    assume not P is asymmetric; then
+    consider x, y being object such that
+A1: [x,y] in P & [y,x] in P by LemAsym;
+    [x,y] in R & [x,y] in (R~)` by A1,XBOOLE_0:def 4; then
+    not [x,y] in R~ by XBOOLE_0:def 5; then
+    not [y,x] in R by RELAT_1:def 7;
+    hence thesis by A1,XBOOLE_0:def 4;
+  end;
+
+theorem
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    R /\ R~ is reflexive;
+
+theorem LEM3b:
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    R /\ R~ is total
+  proof
+    let X be non empty set,
+        R be total reflexive Relation of X;
+A4: field R = X by FieldTot; then
+A5: field (R~) = X by RELAT_1:21;
+A6: id X c= R by A4,RELAT_2:1;
+    id field (R~) c= R~ by RELAT_2:1; then
+    id X c= R /\ R~ by XBOOLE_1:19, A6,A5; then
+    dom (id X) c= dom (R /\ R~) by RELAT_1:11;
+    hence thesis by PARTFUN1:def 2,XBOOLE_0:def 10;
+  end;
+
+theorem Lemma9:
+  for a, b being object st a <> b holds
+    {[a, b], [b, a]} is irreflexive symmetric
+  proof
+    let a, b be object;
+    assume
+A0: a <> b;
+    reconsider R = {[a, b], [b, a]} as Relation;
+a1: for x, y being object st [x,y] in R holds [y,x] in R
+    proof
+      let x, y be object;
+      assume [x,y] in R; then
+      [x,y] = [a,b] or [x,y] = [b,a] by TARSKI:def 2; then
+      x = a & y = b or x = b & y = a by XTUPLE_0:1;
+      hence thesis by TARSKI:def 2;
+    end;
+    for x being object st x in field R holds not [x, x] in R
+    proof
+      let x be object;
+      assume x in field R & [x, x] in R; then
+      [x, x] = [a, b] or [x, x] = [b, a] by TARSKI:def 2; then
+      x = a & x = b or x = b & x = a by XTUPLE_0:1;
+      hence contradiction by A0;
+    end;
+    hence thesis by a1,RELAT_2:def 10,RELAT_2:def 2,LemSym;
+  end;
+
+theorem
+  for X being non empty set,
+      R being total Relation of X holds
+  for S being Relation of X holds
+    R \/ S is total
+  proof
+    let X be non empty set,
+        R be total Relation of X;
+    let S be Relation of X;
+A1: dom R = X by PARTFUN1:def 2;
+    dom (R \/ S) = X \/ dom S by A1,XTUPLE_0:23;
+    hence thesis by PARTFUN1:def 2,XBOOLE_1:12;
+  end;
+
+theorem
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    R` /\ R~` is irreflexive symmetric
+  proof
+    let X be non empty set,
+        R be total reflexive Relation of X;
+A0: id field R c= R by RELAT_2:1;
+A1: dom R = X by PARTFUN1:def 2; then
+    dom (R~) = X by RELAT_2:12; then
+    rng R = X by RELAT_1:20; then
+A3: id X /\ R` = {} by XBOOLE_0:def 7,SUBSET_1:24,A0,A1;
+    id X /\ (R` /\ R~`) = (id X /\ R`) /\ R~` by XBOOLE_1:16; then
+    id X misses (R` /\ R~`) by XBOOLE_0:def 7,A3; then
+z1: id field (R` /\ R~`) misses R` /\ R~` by XBOOLE_1:63,SYSREL:15;
+    for x, y being object st [x,y] in R` /\ R~` holds [y,x] in R` /\ R~`
+    proof
+      let x, y be object;
+      assume
+B0:   [x,y] in R` /\ R~`; then
+B1:   x is Element of X & y is Element of X by ZFMISC_1:87;
+      [x,y] in R` & [x,y] in R~` by XBOOLE_0:def 4,B0; then
+      not [x,y] in R & not [x,y] in R~ by XBOOLE_0:def 5; then
+      not [y,x] in R~ & not [y,x] in R by RELAT_1:def 7; then
+      [y,x] in R~` & [y,x] in R` by Lemma12b,B1;
+      hence [y,x] in R` /\ R~` by XBOOLE_0:def 4;
+    end;
+    hence thesis by z1,LemSym,RELAT_2:2;
+  end;
+
+theorem
+  for X being set, R being Relation of X st R is symmetric holds
+    R` is symmetric
+  proof
+    let X be set, R be Relation of X;
+    assume
+A1: R is symmetric;
+    for x, y being object st [x,y] in R` holds [y,x] in R`
+    proof
+      let x,y be object;
+      assume
+Z0:   [x,y] in R`; then
+xx:   x in field R` & y in field R` by RELAT_1:15;
+      R /\ R` = {} by XBOOLE_0:def 7,SUBSET_1:23; then
+Z1:   not ([x,y] in R & [x,y] in R`) by XBOOLE_0:def 4;
+      assume not [y,x] in R`; then
+      [y,x] in R by Lemma12b,xx;
+      hence contradiction by Z0,Z1,LemSym,A1;
+    end;
+    hence R` is symmetric by LemSym;
+  end;
+
+theorem LemAntisym:
+  for X being object, R being Relation holds
+    R is antisymmetric iff
+      for x, y being object st [x,y] in R & [y,x] in R holds x = y
+  proof
+    let X be object, R be Relation;
+    thus R is antisymmetric implies
+      for x, y being object st [x,y] in R & [y,x] in R holds x = y
+    proof
+      assume
+A0:   R is antisymmetric;
+      let x, y be object;
+      assume A1: [x,y] in R & [y,x] in R; then
+      x in field R & y in field R by RELAT_1:15;
+      hence x = y by A0, A1, RELAT_2:def 4,def 12;
+    end;
+    assume
+A1: for x, y being object st [x,y] in R & [y,x] in R holds x = y;
+    set X = field R;
+    for x,y being object st
+      x in X & y in X & [x,y] in R & [y,x] in R holds x = y by A1;
+    hence R is antisymmetric by RELAT_2:def 12,def 4;
+  end;
+
+theorem Lemma16:
+  for A being set,
+      R being asymmetric Relation of A holds
+    R \/ id A is antisymmetric
+  proof
+    let A be set, R be asymmetric Relation of A;
+    for x, y being object st [x,y] in R \/ (id A) &
+      [y,x] in R \/ (id A) holds x = y
+    proof
+      let x,y be object;
+      assume
+A1:   [x,y] in R \/ (id A) & [y,x] in R \/ (id A); then
+Z0:   [x,y] in R or [x,y] in id A by XBOOLE_0:def 3;
+Z1:   [y,x] in R or [y,x] in id A by XBOOLE_0:def 3,A1;
+      assume x <> y;
+      hence thesis by Z1,RELAT_1:def 10,LemAsym,Z0;
+    end;
+    hence thesis by LemAntisym;
+  end;
+
+theorem LemCon:
+  for X being object, R being Relation holds
+    R is connected iff
+      for x, y being object st x <> y & x in field R & y in field R
+      holds [x,y] in R or [y,x] in R
+  proof
+    let X be object, R be Relation;
+    thus R is connected implies
+      for x, y being object st x <> y & x in field R & y in field R
+      holds [x,y] in R or [y,x] in R by RELAT_2:def 6,def 14;
+    assume
+A1: for x, y being object st x <> y & x in field R & y in field R
+      holds [x,y] in R or [y,x] in R;
+    set X = field R;
+    for x,y being object st x in X & y in X & x <> y
+      holds [x,y] in R or [y,x] in R by A1;
+    hence R is connected by RELAT_2:def 14,def 6;
+  end;
+
+theorem ConField:
+  for R being Relation holds
+    R is connected iff [:field R,field R:] = R \/ R~ \/ id (field R)
+  proof
+    let R be Relation;
+    hereby assume
+      R is connected; then
+      [:field R,field R:] \ id (field R) c= R \/ R~ by RELAT_2:28; then
+Z0:   [:field R,field R:] c= R \/ R~ \/ id (field R) by XBOOLE_1:44;
+C1:   R c= [:dom R, rng R:] by RELAT_1:7;
+      dom (R~) = rng R & rng (R~) = dom R by RELAT_1:20; then
+C2:   R~ c= [:rng R, dom R:] by RELAT_1:7;
+      set GG = [:rng R,rng R:] \/ [:dom R,dom R:];
+      set D = [:dom R,dom R:];
+      set RR = [:rng R,rng R:], DR = [:dom R,rng R:];
+      set RI = R \/ R~ \/ id field R;
+      R \/ R~ c= DR \/ [:rng R, dom R:] by XBOOLE_1:13,C1,C2; then
+C4:   RI c= DR \/ [:rng R, dom R:]
+        \/ [:field R, field R:] by XBOOLE_1:13;
+Z1:   [:field R, field R:] = D \/ [:dom R,rng R:] \/
+        [:rng R,dom R:] \/ RR by ZFMISC_1:98; then
+      RI c= DR \/ [:rng R, dom R:]
+        \/ (DR \/ D \/ ([:rng R,dom R:] \/
+          RR)) by C4,XBOOLE_1:4; then
+      RI c= [:rng R, dom R:] \/ (DR
+        \/ (DR \/ D \/ ([:rng R,dom R:] \/
+          RR))) by XBOOLE_1:4; then
+      RI c= [:rng R, dom R:] \/ (DR \/ (DR \/ (D \/ ([:rng R,dom R:] \/
+          RR)))) by XBOOLE_1:4; then
+      RI c= [:rng R, dom R:] \/ (DR
+        \/ DR \/ (D \/ ([:rng R,dom R:] \/ RR))) by XBOOLE_1:4; then
+      RI c= [:rng R, dom R:] \/ (
+        ([:rng R,dom R:] \/ GG) \/ DR) by XBOOLE_1:4; then
+      RI c= [:rng R, dom R:] \/ (
+        [:rng R,dom R:] \/ (GG \/ DR)) by XBOOLE_1:4; then
+      RI c= [:rng R, dom R:] \/
+        [:rng R,dom R:] \/ (GG \/ DR) by XBOOLE_1:4; then
+      RI c= GG
+        \/ (DR \/ [:rng R,dom R:]) by XBOOLE_1:4; then
+      RI c= D \/ (DR \/ [:rng R,dom R:])
+        \/ RR by XBOOLE_1:4; then
+      RI c= [:field R,field R:] by Z1,XBOOLE_1:4;
+      hence [:field R,field R:] = R \/ R~ \/ id field R
+        by Z0, XBOOLE_0:def 10;
+    end;
+    assume [:field R,field R:] = R \/ R~ \/ id (field R); then
+    [:field R,field R:] \ id (field R) c= R \/ R~ \ id field R
+      by XBOOLE_1:40;
+    hence thesis by RELAT_2:28,XBOOLE_1:1;
+  end;
+
+theorem Lemma17:
+  for A being set,
+      R being asymmetric Relation of A holds
+    R misses R~
+  proof
+    let A be set;
+    let R be asymmetric Relation of A;
+    for x,y being object holds not [x,y] in R /\ R~
+    proof
+      let x,y be object;
+      assume [x,y] in R /\ R~; then
+      [x,y] in R & [x,y] in R~ by XBOOLE_0:def 4; then
+      [x,y] in R & [y,x] in R by RELAT_1:def 7;
+      hence contradiction by LemAsym;
+    end;
+    hence thesis by RELAT_1:37,XBOOLE_0:def 7;
+  end;
+
+theorem Lemma20:
+  for R,P being Relation st R misses P & P is symmetric holds
+    R~ misses P
+  proof
+    let R,P be Relation;
+    assume R misses P; then
+A0: R~ misses P~ by LemmaAuxIrr;
+    assume P is symmetric;
+    hence R~ misses P by A0,RELAT_2:13;
+  end;
+
+theorem Lemma21:
+  for X being set, R being asymmetric Relation of X holds
+    R misses id X
+  proof
+    let X be set, R be asymmetric Relation of X;
+    for x,y being object holds not [x,y] in R /\ id X
+    proof
+      let x,y be object;
+A0:   x in field R implies not [x,x] in R by RELAT_2:def 2,def 10;
+      assume [x,y] in R /\ id X; then
+      [x,y] in R & [x,y] in id X by XBOOLE_0:def 4;
+      hence contradiction by A0,RELAT_1:def 10,RELAT_1:15;
+    end;
+    hence thesis by XBOOLE_0:def 7,RELAT_1:37;
+  end;
+
+theorem Lemma22:
+  for X being set, R being asymmetric Relation of X holds
+    R * R misses id X
+  proof
+    let X be set, R be asymmetric Relation of X;
+    for x,y being object holds not [x,y] in R*R /\ id X
+    proof
+      let x,y be object;
+      assume [x,y] in R*R /\ id X; then
+A1:   [x,y] in R*R & [x,y] in id X by XBOOLE_0:def 4; then
+      consider z being object such that
+A2:   [x,z] in R & [z,y] in R by RELAT_1:def 8;
+      x = y by RELAT_1:def 10,A1;
+      hence contradiction by LemAsym,A2;
+    end;
+    hence thesis by XBOOLE_0:def 7,RELAT_1:37;
+  end;
+
+definition let X be set, R be Relation of X;
+  func SymCl R -> Relation of X equals
+    R \/ R~;
+  coherence;
+end;
+
+registration let X be set, R be total Relation of X;
+  cluster SymCl R -> total;
+  coherence
+  proof
+    dom SymCl R = dom R \/ dom (R~) by XTUPLE_0:23
+       .= X \/ dom (R~) by PARTFUN1:def 2
+       .= X by XBOOLE_1:12;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+registration let X be set,
+                 R be Relation of X;
+  cluster SymCl R -> symmetric;
+  coherence;
+end;
+
+begin :: Preference Structures
+
+definition
+  struct (1-sorted) PrefStr
+      (# carrier -> set,
+         PrefRel -> Relation of the carrier
+       #);
+end;
+
+definition
+  struct (PrefStr, TolStr) PIStr
+      (# carrier -> set,
+         PrefRel,
+    ToleranceRel -> Relation of the carrier
+       #);
+end;
+
+definition
+  struct (PIStr, RelStr, PrefStr) PreferenceStr
+      (# carrier -> set,
+         PrefRel,
+    ToleranceRel,
+     InternalRel -> (Relation of the carrier)
+       #);
+end;
+
+registration
+  cluster non empty strict for PIStr;
+  existence
+  proof
+    take PIStr(#{{}},{}({{}},{{}}),{}({{}},{{}})#);
+    thus thesis;
+  end;
+  cluster empty strict for PIStr;
+  existence
+  proof
+    take PIStr(#{},{}({},{}),{}({},{})#);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster non empty strict for PrefStr;
+  existence
+  proof
+    take PrefStr(#{{}},{}({{}},{{}})#);
+    thus thesis;
+  end;
+  cluster empty strict for PrefStr;
+  existence
+  proof
+    take PrefStr(#{},{}({},{})#);
+    thus thesis;
+  end;
+  cluster non empty strict for PIStr;
+  existence
+  proof
+    take PIStr(#{{}},{}({{}},{{}}),{}({{}},{{}})#);
+    thus thesis;
+  end;
+  cluster non empty strict for PreferenceStr;
+  existence
+  proof
+    take PreferenceStr(#{{}},{}({{}},{{}}),{}({{}},{{}}),{}({{}},{{}})#);
+    thus thesis;
+  end;
+end;
+
+definition let X be PreferenceStr;
+  attr X is preference-like means :PrefDef:
+    the PrefRel of X is asymmetric &
+    the ToleranceRel of X is Tolerance of the carrier of X &
+    the InternalRel of X is irreflexive symmetric &
+    the PrefRel of X, the ToleranceRel of X,
+      the InternalRel of X are_mutually_disjoint &
+    (the PrefRel of X) \/ (the PrefRel of X)~ \/
+      (the ToleranceRel of X) \/
+       (the InternalRel of X) = nabla the carrier of X;
+end;
+
+definition let X be set;
+  func PrefSpace X -> strict PreferenceStr equals
+    PreferenceStr (# X, {}(X,X), nabla X, {}(X,X) #);
+  coherence;
+end;
+
+Lemma1A:
+  for A being non empty set holds
+    PrefSpace A is non empty preference-like
+  proof
+    let A be non empty set;
+    set X = PrefSpace A;
+    (the PrefRel of X) \/ (the ToleranceRel of X) \/
+      (the InternalRel of X) = nabla the carrier of X;
+    hence thesis by Lemma1;
+  end;
+
+registration
+  let A be non empty set;
+  cluster PrefSpace A -> non empty preference-like;
+  coherence by Lemma1A;
+end;
+
+registration
+  cluster non empty strict preference-like for PreferenceStr;
+  existence
+  proof
+    set A = the non empty set;
+    take PrefSpace A;
+    thus thesis;
+  end;
+end;
+
+definition
+  mode PreferenceSpace is preference-like PreferenceStr;
+end;
+
+registration
+  cluster empty -> preference-like for PreferenceStr;
+  coherence
+  proof
+    let X be PreferenceStr;
+    assume
+A1: X is empty; then
+    (the PrefRel of X) /\ (the InternalRel of X) = {}; then
+    (the PrefRel of X) misses (the InternalRel of X) by XBOOLE_0:def 7; then
+A3: the PrefRel of X, the ToleranceRel of X, the InternalRel of X
+      are_mutually_disjoint by A1;
+s1: the PrefRel of X = {} by A1;
+s2: (the PrefRel of X)~ = {} by A1;
+    (the InternalRel of X) = {} by A1;
+    hence X is preference-like by A1,A3,s1,s2;
+  end;
+end;
+
+registration
+  cluster PrefSpace {} -> empty preference-like;
+  coherence
+  proof
+    set X = PrefSpace {};
+    (the ToleranceRel of X) /\ (the InternalRel of X) = {}; then
+    the PrefRel of X, the ToleranceRel of X, the InternalRel of X
+      are_mutually_disjoint by XBOOLE_0:def 7;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster empty for PreferenceSpace;
+  existence
+  proof
+    take PrefSpace {};
+    thus thesis;
+  end;
+end;
+
+registration
+  let A be trivial non empty set;
+  cluster PrefSpace A -> trivial;
+  coherence;
+end;
+
+registration
+  let A be trivial non empty set;
+  cluster PrefSpace A -> non empty preference-like;
+  coherence;
+end;
+
+begin :: Constructing Examples
+
+definition
+  let A be set;
+  func IdPrefSpace A -> strict PreferenceStr means :Def5:
+  the carrier of it = A &
+   the PrefRel of it = {} &
+   the ToleranceRel of it = id A &
+   the InternalRel of it = {};
+  existence
+  proof
+    reconsider R2 = id A as Relation of A;
+    take PreferenceStr (# A, {}(A,A), R2, {}(A,A) #);
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+IdPrefNot2:
+  for A be non trivial set holds
+    IdPrefSpace A is non preference-like
+  proof
+    let A be non trivial set;
+    set X = IdPrefSpace A;
+A1: the PrefRel of X = {} by Def5;
+A3: the ToleranceRel of X = id A by Def5;
+A5: the InternalRel of X = {} by Def5;
+S1: (the PrefRel of X) \/ (the PrefRel of X)~ \/
+      (the ToleranceRel of X) \/
+      (the InternalRel of X) = {}(A,A) \/ {}(A,A) \/
+      id A \/ {}(A,A) by A1, A3, A5
+      .= id A;
+    A = the carrier of X by Def5;
+    hence thesis by ROUGHS_1:1,S1;
+  end;
+
+registration
+  let A be non trivial set;
+  cluster IdPrefSpace A -> non preference-like;
+  coherence by IdPrefNot2;
+end;
+
+definition
+  let A be 2-element set, a, b be Element of A;
+  func PrefSpace (A,a,b) -> strict PreferenceStr means :Def3:
+  the carrier of it = A &
+   the PrefRel of it = {[a, b]} &
+   the ToleranceRel of it = {[a, a], [b, b]} &
+   the InternalRel of it = {};
+  existence
+  proof
+    reconsider R1 = {[a, b]} as Relation of A;
+    reconsider R2 = {[a, a], [b, b]} as Relation of A;
+    take PreferenceStr (# A, R1, R2, {}(A,A) #);
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+theorem
+  for A be 2-element set, a, b be Element of A st a <> b holds
+    PrefSpace (A,a,b) is preference-like
+  proof
+    let A be 2-element set, a, b be Element of A;
+    assume
+Z1: a <> b;
+    set X = PrefSpace (A,a,b);
+a2: the PrefRel of X = {[a, b]} by Def3;
+a3: the ToleranceRel of X = {[a, a], [b, b]} by Def3
+    .= id A by Lemma4,Z1
+    .= id (the carrier of X) by Def3;
+    the PrefRel of X = {[a, b]} & the ToleranceRel of X = {[a, a], [b, b]} &
+      the InternalRel of X = {}(A,A) by Def3; then
+    (the PrefRel of X) /\ (the InternalRel of X) = {} &
+      (the ToleranceRel of X) /\ (the InternalRel of X) = {} &
+      (the PrefRel of X) /\ (the ToleranceRel of X) = {}
+        by XBOOLE_0:def 7,Z1,Lemma8; then
+A5: the PrefRel of X, the ToleranceRel of X, the InternalRel of X
+      are_mutually_disjoint by XBOOLE_0:def 7;
+C4: the PrefRel of X = {[a, b]} by Def3; then
+C5: (the PrefRel of X)~ = {[b, a]} by Lemma7;
+C6: the ToleranceRel of X = {[a, a], [b, b]} by Def3;
+C1: the carrier of X = A by Def3;
+D1: A = {a,b} by Z1,Lemma3;
+    (the PrefRel of X) \/ (the PrefRel of X)~ \/
+      (the ToleranceRel of X) \/
+      (the InternalRel of X) = {[a, b]} \/ {[b, a]} \/ {[a, a], [b, b]} \/
+        {}(A,A) by Def3, C4, C5, C6
+      .= {[a, a], [a, b], [b, a], [b, b]} by Lemma6
+      .= nabla the carrier of X by C1,D1,ZFMISC_1:122;
+    hence thesis by a2, a3, A5,Def3,Lemma5,Z1;
+  end;
+
+definition
+  let A be non empty set, a, b be Element of A;
+  func IntPrefSpace (A,a,b) -> strict PreferenceStr means :Def4:
+    the carrier of it = A &
+    the PrefRel of it = {} &
+    the ToleranceRel of it = {[a, a], [b, b]} &
+    the InternalRel of it = {[a, b], [b, a]};
+  existence
+  proof
+    reconsider R1 = {[a, a], [b, b]},
+               R2 = {[a, b], [b, a]} as Relation of A;
+    take PreferenceStr (# A, {}(A,A), R1, R2 #);
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+theorem
+  for A be 2-element set, a, b be Element of A st a <> b holds
+    IntPrefSpace (A,a,b) is non empty preference-like
+  proof
+    let A be 2-element set, a, b be Element of A;
+    assume
+Z1: a <> b;
+    set X = IntPrefSpace (A,a,b);
+a3: the ToleranceRel of X = {[a, a], [b, b]} by Def4
+    .= id A by Lemma4,Z1
+    .= id (the carrier of X) by Def4;
+a4: the InternalRel of X = {[a, b], [b, a]} by Def4;
+    the PrefRel of X = {}(A, A) & the ToleranceRel of X = {[a, a], [b, b]} &
+      the InternalRel of X = {[a, b], [b, a]} by Def4; then
+    (the PrefRel of X) /\ (the InternalRel of X) = {} &
+      (the ToleranceRel of X) /\ (the InternalRel of X) = {} &
+      (the PrefRel of X) /\ (the ToleranceRel of X) = {}
+        by Z1,Lemma11,XBOOLE_0:def 7; then
+A5: the PrefRel of X, the ToleranceRel of X, the InternalRel of X
+      are_mutually_disjoint by XBOOLE_0:def 7;
+C4: the PrefRel of X = {}(A, A) by Def4;
+C6: the ToleranceRel of X = {[a, a], [b, b]} by Def4;
+C1: the carrier of X = A by Def4;
+C2: the InternalRel of X = {[a, b], [b, a]} by Def4;
+D1: A = {a,b} by Z1,Lemma3;
+    (the PrefRel of X) \/ (the PrefRel of X)~ \/
+      (the ToleranceRel of X) \/
+      (the InternalRel of X) = {}(A, A) \/ {}(A, A) \/ {[a, a], [b, b]} \/
+        {[a, b], [b, a]} by C2, C4, C6
+      .= {[a, a], [a, b], [b, a], [b, b]} by Lemma10
+      .= nabla the carrier of X by C1,D1,ZFMISC_1:122;
+    hence thesis by Def4,a3,a4,A5,Lemma9,Z1;
+  end;
+
+begin :: Characteristic Relation of a Preference Space
+
+definition let P be PIStr;
+  func CharRel P -> Relation of the carrier of P equals
+    (the PrefRel of P) \/ (the ToleranceRel of P);
+  coherence;
+end;
+
+definition let P be PIStr;
+  attr P is PI-preference-like means
+    the PrefRel of P is asymmetric &
+    the ToleranceRel of P is Tolerance of the carrier of P &
+    (the PrefRel of P) /\ (the ToleranceRel of P) = {} &
+    (the PrefRel of P) \/ (the PrefRel of P)~ \/
+      (the ToleranceRel of P) = nabla the carrier of P;
+end;
+
+registration
+  cluster PI-preference-like for non empty strict PIStr;
+  existence
+  proof
+    set P = PIStr(#{{}},{}({{}},{{}}),id {{}}#);
+    reconsider P as non empty strict PIStr;
+    take P;
+AB: the ToleranceRel of P = {[{},{}]} by SYSREL:13;
+    (the PrefRel of P) \/ ((the PrefRel of P) qua Relation)~ = {};
+    hence thesis by ZFMISC_1:29,AB;
+  end;
+  cluster PI-preference-like for empty strict PIStr;
+  existence
+  proof
+    set P = PIStr(#{},{}({},{}),{}({},{})#);
+    reconsider P as empty strict PIStr;
+    take P;
+    thus thesis;
+  end;
+end;
+
+theorem
+  for P being non empty PIStr st P is PI-preference-like holds
+    the PrefRel of P = CharRel P /\ ((CharRel P)~)`
+  proof
+    let P be non empty PIStr;
+    assume
+A1: P is PI-preference-like;
+    set R = the PrefRel of P, T = the ToleranceRel of P, C = CharRel P;
+    for x, y being object holds [x,y] in R iff [x,y] in C /\ (C~)`
+    proof
+      let x, y be object;
+B1:   [x,y] in R implies [x,y] in C /\ (C~)`
+      proof
+        assume
+Z0:     [x,y] in R; then
+k1:     x in field R & y in field R by RELAT_1:15;
+Z1:     not [x,y] in T by Z0, XBOOLE_0:def 4,A1;
+        ([x,y] in R or [x,y] in T) & not [y,x] in R & not [y,x] in T
+          by LemAsym,Z0,A1,Z1,LemSym; then
+cc:     [x,y] in (R \/ T) & not [y,x] in (R \/ T) by XBOOLE_0:def 3; then
+        [x,y] in C & not [x,y] in C~ by RELAT_1:def 7; then
+        [x,y] in (C~)` by Lemma12b,k1;
+        hence thesis by XBOOLE_0:def 4,cc;
+      end;
+      [x,y] in C /\ (C~)` implies [x,y] in R
+      proof
+        assume
+cc:     [x,y] in C /\ (C~)`; then
+        [x,y] in C & [x,y] in (C~)` by XBOOLE_0:def 4; then
+        not [x,y] in C~ by XBOOLE_0:def 5; then
+        [x,y] in C & not [y,x] in C by RELAT_1:def 7,cc,XBOOLE_0:def 4; then
+        [x,y] in R & not [y,x] in R & not [y,x] in T or [x,y] in T &
+          not [y,x] in R & not [y,x] in T by XBOOLE_0:def 3;
+        hence thesis by LemSym,A1;
+      end;
+      hence thesis by B1;
+    end;
+    hence thesis by RELAT_1:def 2;
+  end;
+
+theorem
+  for P being non empty PIStr st P is PI-preference-like holds
+    the ToleranceRel of P = CharRel P /\ (CharRel P)~
+  proof
+    let P be non empty PIStr;
+    assume
+A1: P is PI-preference-like;
+    set R = the PrefRel of P, T = the ToleranceRel of P, C = CharRel P;
+    for x, y being object holds [x,y] in T iff [x,y] in C /\ C~
+    proof
+      let x, y be object;
+Z1:   [x,y] in T implies [x,y] in C /\ C~
+      proof
+        assume
+    A3: [x,y] in T; then
+    A2: x in field T & y in field T by RELAT_1:15;
+        [x,y] in T & [y,x] in T by A1,A3, A2, RELAT_2:def 3,def 11; then
+        [x,y] in R \/ T & [y,x] in R \/ T by XBOOLE_0:def 3; then
+        [x,y] in C & [x,y] in C~ by RELAT_1:def 7;
+        hence thesis by XBOOLE_0:def 4;
+      end;
+      [x,y] in C /\ C~ implies [x,y] in T
+      proof
+        assume [x,y] in C /\ C~; then
+        [x,y] in C & [x,y] in C~ by XBOOLE_0:def 4; then
+        [x,y] in R \/ T & [y,x] in R \/ T by RELAT_1:def 7; then
+        ([x,y] in R & [y,x] in R) or ([x,y] in R & [y,x] in T) or
+          ([x,y] in T & [y,x] in R) or ([x,y] in T & [y,x] in T)
+           by XBOOLE_0:def 3;
+        hence [x,y] in T by LemSym,A1,LemAsym;
+      end;
+      hence thesis by Z1;
+    end;
+    hence thesis by RELAT_1:def 2;
+  end;
+
+theorem
+  for P being non empty PreferenceStr st P is preference-like holds
+    the PrefRel of P = CharRel P /\ ((CharRel P)~)`
+  proof
+    let P be non empty PreferenceStr;
+    assume
+A1: P is preference-like;
+    set R = the PrefRel of P, T = the ToleranceRel of P, C = CharRel P;
+    for x, y being object holds [x,y] in R iff [x,y] in C /\ (C~)`
+    proof
+      let x, y be object;
+B1:   [x,y] in R implies [x,y] in C /\ (C~)`
+      proof
+        assume
+Z0:     [x,y] in R; then
+k1:     x in field R & y in field R by RELAT_1:15;
+        R, T, the InternalRel of P are_mutually_disjoint by A1; then
+        R /\ T = {} by XBOOLE_0:def 7; then
+        not [x,y] in T by Z0,XBOOLE_0:def 4; then
+        ([x,y] in R or [x,y] in T) & not [y,x] in R & not [y,x] in T
+          by LemAsym,A1,Z0,LemSym; then
+cc:     [x,y] in (R \/ T) & not [y,x] in (R \/ T) by XBOOLE_0:def 3; then
+        [x,y] in C & not [x,y] in C~ by RELAT_1:def 7; then
+        [x,y] in (C~)` by Lemma12b,k1;
+        hence thesis by XBOOLE_0:def 4,cc;
+      end;
+      [x,y] in C /\ (C~)` implies [x,y] in R
+      proof
+        assume
+cc:     [x,y] in C /\ (C~)`; then
+        [x,y] in C & [x,y] in (C~)` by XBOOLE_0:def 4; then
+        not [x,y] in C~ by XBOOLE_0:def 5; then
+        [x,y] in C & not [y,x] in C by RELAT_1:def 7,cc,XBOOLE_0:def 4; then
+        [x,y] in R & not [y,x] in R & not [y,x] in T or [x,y] in T &
+          not [y,x] in R & not [y,x] in T by XBOOLE_0:def 3;
+        hence thesis by LemSym,A1;
+      end;
+      hence thesis by B1;
+    end;
+    hence thesis by RELAT_1:def 2;
+  end;
+
+theorem
+  for P being non empty PreferenceStr st P is preference-like holds
+    the ToleranceRel of P = CharRel P /\ (CharRel P)~
+  proof
+    let P be non empty PreferenceStr;
+    assume
+A1: P is preference-like;
+    set R = the PrefRel of P, T = the ToleranceRel of P, C = CharRel P;
+    for x, y being object holds [x,y] in T iff [x,y] in C /\ C~
+    proof
+      let x, y be object;
+Z1:   [x,y] in T implies [x,y] in C /\ C~
+      proof
+        assume
+A3:     [x,y] in T; then
+    A2: x in field T & y in field T by RELAT_1:15;
+        [x,y] in T & [y,x] in T by A1,A3, A2, RELAT_2:def 3,def 11; then
+        [x,y] in R \/ T & [y,x] in R \/ T by XBOOLE_0:def 3; then
+        [x,y] in C & [x,y] in C~ by RELAT_1:def 7;
+        hence thesis by XBOOLE_0:def 4;
+      end;
+      [x,y] in C /\ C~ implies [x,y] in T
+      proof
+        assume [x,y] in C /\ C~; then
+        [x,y] in C & [x,y] in C~ by XBOOLE_0:def 4; then
+        [x,y] in R \/ T & [y,x] in R \/ T by RELAT_1:def 7; then
+        ([x,y] in R & [y,x] in R) or ([x,y] in R & [y,x] in T) or
+          ([x,y] in T & [y,x] in R) or ([x,y] in T & [y,x] in T)
+          by XBOOLE_0:def 3;
+        hence [x,y] in T by LemSym,A1,LemAsym;
+      end;
+      hence thesis by Z1;
+    end;
+    hence thesis by RELAT_1:def 2;
+  end;
+
+theorem Th2:
+  for P being non empty PreferenceStr st P is preference-like holds
+    the InternalRel of P = (CharRel P)` /\ ((CharRel P)~)`
+  proof
+    let P be non empty PreferenceStr;
+    assume
+A1: P is preference-like;
+    set R = the PrefRel of P, T = the ToleranceRel of P,
+      I = the InternalRel of P, C = CharRel P;
+    for x, y being object holds [x,y] in I iff [x,y] in C` /\ (C~)`
+    proof
+      let x, y be object;
+Z1:   [x,y] in I implies [x,y] in C` /\ (C~)`
+      proof
+        assume
+A3:     [x,y] in I; then
+k1:     x in field I & y in field I by RELAT_1:15;
+        R, T, I are_mutually_disjoint by A1; then
+B1:     I /\ T = {} & I /\ R = {} by XBOOLE_0:def 7; then
+        (not [x,y] in I or not [x,y] in T) &
+          (not [x,y] in I or not [x,y] in R) by XBOOLE_0:def 4; then
+        not [x,y] in R \/ T by A3,XBOOLE_0:def 3; then
+B3:     [x,y] in C` by Lemma12b, k1;
+        [y,x] in I by A3,LemSym,A1; then
+        not [y,x] in T & not [y,x] in R by B1,XBOOLE_0:def 4; then
+        not [y,x] in R \/ T by XBOOLE_0:def 3; then
+        not [x,y] in C~ by RELAT_1:def 7; then
+        [x,y] in (C~)` by Lemma12b, k1;
+        hence thesis by B3, XBOOLE_0:def 4;
+      end;
+      [x,y] in C` /\ (C~)` implies [x,y] in I
+      proof
+        assume
+c0:     [x,y] in C` /\ (C~)`; then
+c1:     [x,y] in C` & [x,y] in (C~)` by XBOOLE_0:def 4; then
+        not [x,y] in C by XBOOLE_0:def 5; then
+J2:     not [x,y] in R & not [x,y] in T by XBOOLE_0:def 3;
+J3:     not [x,y] in C~ by XBOOLE_0:def 5,c1;
+        C~ = (R~) \/ (T~) by RELAT_1:23; then
+        not [x,y] in R~ & not [x,y] in T~ by J3,XBOOLE_0:def 3; then
+        not [x,y] in R \/ R~ by XBOOLE_0:def 3,J2; then
+        not [x,y] in R \/ R~ \/ T by J2,XBOOLE_0:def 3;
+        hence thesis by XBOOLE_0:def 3, c0,A1;
+      end;
+      hence thesis by Z1;
+    end;
+    hence thesis by RELAT_1:def 2;
+  end;
+
+begin :: Generating Preference Space from Arbitrary (Characteristic) Relation
+
+definition let X be set,
+               R be Relation of X;
+  func Aux R -> Relation of X equals
+    SymCl (((R /\ R~`) \/ (R /\ R~`)~ \/ (R /\ R~))`);
+  coherence;
+end;
+
+theorem SumNabla2:
+  for X being non empty set,
+      R being Relation of X holds
+    (R /\ (R~)`) \/ (R /\ (R~)`)~ \/ (R /\ R~) \/ Aux R = nabla X
+  proof
+    let X be non empty set,
+        R be Relation of X;
+    set P = R /\ (R~)`;
+    set J = R /\ R~;
+    (P \/ P~ \/ J)` c= Aux R by XBOOLE_1:7; then
+    P \/ P~ \/ J \/ (P \/ P~ \/ J)` c= P \/ P~ \/ J \/ Aux R
+      by XBOOLE_1:13; then
+    [#][:X,X:] c= P \/ P~ \/ J \/ Aux R by SUBSET_1:10;
+    hence thesis by XBOOLE_0:def 10;
+  end;
+
+theorem AuxEq:
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    Aux R = (R~` /\ R`) \/ (R`~ /\ (R` \/ R~))
+  proof
+    let X be non empty set;
+    let R be total reflexive Relation of X;
+    set Z1 = ((R /\ R~`) \/ (R /\ R~`)~ \/ (R /\ R~))`;
+z1: Z1 = ((R /\ R~`) \/ (R /\ R~`)~)` /\ (R /\ R~)` by XBOOLE_1:53
+    .= ((R /\ R~`) \/ (R /\ R~`)~)` /\ (R` \/ R~`) by XBOOLE_1:54
+    .= ((R /\ R~`)` /\ (R /\ R~`)~`) /\ (R` \/ R~`) by XBOOLE_1:53
+    .= ((R` \/ R~``) /\ (R /\ R~`)~`) /\ (R` \/ R~`) by XBOOLE_1:54
+    .= ((R` \/ R~``) /\ (R~ /\ R~`~)`) /\ (R` \/ R~`) by RELAT_1:22
+    .= (R~` \/ R~`~`) /\ (R` \/ R~) /\ (R` \/ R~`) by XBOOLE_1:54
+    .= (R~` \/ R~`~`) /\ ((R` \/ R~) /\ (R` \/ R~`)) by XBOOLE_1:16
+    .= (R~` \/ R~`~`) /\ (R` \/ (R~ /\ R~`)) by XBOOLE_1:24
+    .= (R~` \/ R~`~`) /\ (R` \/ {}) by XBOOLE_0:def 7,SUBSET_1:23
+    .= (R~` \/ R) /\ R` by Tilde1;
+    set Z2 = ((R /\ R~`) \/ (R /\ R~`)~ \/ (R /\ R~))`~;
+z2: Z2 = (((R /\ R~`) \/ (R /\ R~`)~)` /\ (R /\ R~)`)~ by XBOOLE_1:53
+    .= (((R /\ R~`)` /\ (R /\ R~`)~`) /\ (R /\ R~)`)~ by XBOOLE_1:53
+    .= (((R` \/ R~``) /\ (R /\ R~`)~`) /\ (R /\ R~)`)~ by XBOOLE_1:54
+    .= (((R` \/ R~) /\ (R /\ R~`)~`))~ /\ (R /\ R~)`~ by RELAT_1:22
+    .= ((R` \/ R~)~ /\ (R /\ R~`)~`~) /\ (R /\ R~)`~ by RELAT_1:22
+    .= (R`~ \/ R~~) /\ (R /\ R~`)~`~ /\ (R /\ R~)`~ by RELAT_1:23
+    .= (R`~ \/ R) /\ (R /\ R~`)~`~ /\ (R` \/ R~`)~ by XBOOLE_1:54
+    .= (R`~ \/ R) /\ (R /\ R~`)~`~ /\ (R`~ \/ R~`~) by RELAT_1:23
+    .= (R`~ \/ R) /\ (R~ /\ R~`~)`~ /\ (R`~ \/ R~`~) by RELAT_1:22
+    .= (R`~ \/ R) /\ (R~` \/ R~`~`)~ /\ (R`~ \/ R~`~) by XBOOLE_1:54
+    .= (R`~ \/ R) /\ (R~`~ \/ R~`~`~) /\ (R`~ \/ R~`~) by RELAT_1:23
+    .= (R`~ \/ R) /\ (R~`~ \/ R~) /\ (R`~ \/ R~`~) by Tilde1
+    .= (R`~ \/ R) /\ (R` \/ R~) /\ (R`~ \/ R~`~) by Tilde3
+    .= (R`~ \/ R) /\ (R` \/ R~) /\ (R`~ \/ R`) by Tilde3
+    .= (R`~ \/ R`) /\ (R`~ \/ R) /\ (R` \/ R~) by XBOOLE_1:16
+    .= (R`~ \/ (R` /\ R)) /\ (R` \/ R~) by XBOOLE_1:24
+    .= (R`~ \/ {}) /\ (R` \/ R~) by XBOOLE_0:def 7,SUBSET_1:23
+    .= R`~ /\ (R` \/ R~);
+    Aux R = ((R~` /\ R`) \/ (R /\ R`)) \/ (R`~ /\ (R` \/ R~))
+        by z1,z2,XBOOLE_1:23
+      .= ((R~` /\ R`) \/ {}) \/ (R`~ /\ (R` \/ R~))
+        by XBOOLE_0:def 7,SUBSET_1:23
+      .= (R~` /\ R`) \/ (R`~ /\ (R` \/ R~));
+    hence thesis;
+  end;
+
+theorem AuxEq2:
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    (R /\ R~`) misses Aux R
+  proof
+    let X be non empty set;
+    let R be total reflexive Relation of X;
+    set A = R /\ (R~)`;
+    A /\ Aux R = R /\ R~` /\ ((R~` /\ R`) \/ (R`~ /\ (R` \/ R~))) by AuxEq
+    .= (R /\ R~` /\ (R~` /\ R`)) \/
+     (R /\ R~` /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:23
+    .= (R /\ R~` /\ R~` /\ R`) \/
+     (R /\ R~` /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:16
+    .= (R /\ (R~` /\ R~`) /\ R`) \/
+     (R /\ R~` /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:16
+    .= (R` /\ R /\ R~`) \/
+     (R /\ R~` /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:16
+    .= ({} /\ R~`) \/ (R /\ R~` /\ (R`~ /\ (R` \/ R~)))
+      by XBOOLE_0:def 7,SUBSET_1:23
+    .= R /\ R~` /\ ((R`~ /\ R`) \/ (R`~ /\ R~)) by XBOOLE_1:23
+    .= ((R`~ /\ R`) /\ (R /\ R~`)) \/
+     (R /\ R~` /\ (R`~ /\ R~)) by XBOOLE_1:23
+    .= (R`~ /\ R` /\ R /\ R~`) \/
+     (R /\ R~` /\ (R`~ /\ R~)) by XBOOLE_1:16
+    .= (R`~ /\ (R` /\ R) /\ R~`) \/
+     (R /\ R~` /\ (R`~ /\ R~)) by XBOOLE_1:16
+    .= (R`~ /\ {} /\ R~`) \/ (R /\ R~` /\ (R`~ /\ R~))
+      by XBOOLE_0:def 7,SUBSET_1:23
+    .= R /\ (R~` /\ (R~ /\ R`~)) by XBOOLE_1:16
+    .= R /\ (R~` /\ R~ /\ R`~) by XBOOLE_1:16
+    .= R /\ ({} /\ R`~) by XBOOLE_0:def 7,SUBSET_1:23
+    .= {};
+    hence thesis by XBOOLE_0:def 7;
+  end;
+
+theorem AuxIrr:
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    Aux R is irreflexive symmetric
+  proof
+    let X be non empty set;
+    let R be total reflexive Relation of X;
+    set P = R /\ R~`,
+        T = R /\ R~,
+        C = ((R /\ R~`) \/ (R /\ R~`)~ \/ (R /\ R~))`;
+    set Y = field Aux R;
+    for x,y being object st [x,y] in id Y holds [x,y] in T
+    proof
+      let x,y be object;
+      assume [x,y] in id Y; then
+A0:   x in Y & x = y by RELAT_1:def 10;
+      field R = X by ORDERS_1:12; then
+A1:   [x,x] in R by A0,RELAT_2:def 1,def 9; then
+      [x,x] in R~ by RELAT_1:def 7;
+      hence thesis by A0,A1,XBOOLE_0:def 4;
+    end; then
+x4: id Y c= P \/ P~ \/ T by XBOOLE_1:10,RELAT_1:def 3; then
+Y2: id Y /\ (P \/ P~ \/ T)` = {} by XBOOLE_0:def 7,XBOOLE_1:85;
+    (id Y qua Relation)~ misses (P \/ P~ \/ T)`~
+      by x4,LemmaAuxIrr,XBOOLE_1:85; then
+Y3: (id Y qua Relation) /\ (P \/ P~ \/ T)`~ = {} by XBOOLE_0:def 7;
+    id Y /\ Aux R = {} \/ {} by Y2,Y3,XBOOLE_1:23;
+    hence thesis by RELAT_2:2,XBOOLE_0:def 7;
+  end;
+
+registration
+  let X be non empty set,
+      R be total reflexive Relation of X;
+  cluster Aux R -> irreflexive symmetric;
+  coherence by AuxIrr;
+end;
+
+theorem AuxEq3:
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    (R /\ R~) misses Aux R
+  proof
+    let X be non empty set;
+    let R be total reflexive Relation of X;
+    set A = R /\ R~;
+    A /\ Aux R = R /\ R~ /\ ((R~` /\ R`) \/ (R`~ /\ (R` \/ R~))) by AuxEq
+    .= (R /\ R~ /\ (R~` /\ R`)) \/
+     (R /\ R~ /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:23
+    .= (R /\ R~ /\ R~` /\ R`) \/
+     (R /\ R~ /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:16
+    .= (R /\ (R~ /\ R~`) /\ R`) \/
+     (R /\ R~ /\ (R`~ /\ (R` \/ R~))) by XBOOLE_1:16
+    .= (R /\ {} /\ R`) \/
+     (R /\ R~ /\ (R`~ /\ (R` \/ R~))) by XBOOLE_0:def 7,SUBSET_1:23
+    .= (R /\ (R~ /\ (R`~ /\ (R` \/ R~)))) by XBOOLE_1:16
+    .= (R /\ (R~ /\ R`~ /\ (R` \/ R~))) by XBOOLE_1:16
+    .= (R /\ (R~ /\ R`~) /\ (R` \/ R~)) by XBOOLE_1:16
+    .= (R /\ (R~ /\ R`~) /\ R`) \/
+         (R /\ (R~ /\ R`~) /\ R~) by XBOOLE_1:23
+    .= (R` /\ R /\ (R~ /\ R`~)) \/
+         (R /\ (R~ /\ R`~) /\ R~) by XBOOLE_1:16
+    .= ({} /\ (R~ /\ R`~)) \/
+         (R /\ (R~ /\ R`~) /\ R~) by XBOOLE_0:def 7,SUBSET_1:23
+    .= (R /\ ((R`~ /\ R~) /\ R~)) by XBOOLE_1:16
+    .= (R /\ (R`~ /\ (R~ /\ R~))) by XBOOLE_1:16
+    .= R /\ (R` /\ R)~ by RELAT_1:22
+    .= R /\ ({} qua Relation)~ by XBOOLE_0:def 7,SUBSET_1:23
+    .= {};
+    hence thesis by XBOOLE_0:def 7;
+  end;
+
+theorem MutuDis2:
+  for X being non empty set,
+      R being total reflexive Relation of X holds
+    R /\ (R~)`, R /\ R~, Aux R are_mutually_disjoint
+  proof
+    let X be non empty set;
+    let R be total reflexive Relation of X;
+    set A = R /\ (R~)`,
+        B = R /\ R~,
+        C = Aux R;
+    (R /\ (R~)`) /\ (R /\ R~) = R /\ (R~` /\ R~) by XBOOLE_1:116
+      .= R /\ {} by XBOOLE_0:def 7,SUBSET_1:23
+      .= {};
+    hence thesis by AuxEq3,XBOOLE_0:def 7,AuxEq2;
+  end;
+
+definition
+  let X be set;
+  let P be Relation of X;
+  func CharPrefSpace P -> strict PreferenceStr means :Def55:
+  the carrier of it = X &
+   the PrefRel of it = P /\ (P~)` &
+   the ToleranceRel of it = P /\ P~ &
+   the InternalRel of it = Aux P;
+  existence
+  proof
+    reconsider R1 = P /\ (P~)`,
+               R2 = P /\ P~,
+               R3 = Aux P as Relation of X;
+    take PreferenceStr (# X, R1, R2, R3 #);
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+theorem CharIsPref:
+  for A being non empty set,
+      R being total reflexive Relation of A holds
+    CharPrefSpace R is preference-like
+  proof
+    let A be non empty set,
+        R be total reflexive Relation of A;
+    set X = CharPrefSpace R;
+    set P = X;
+XX: the carrier of P = A &
+     the PrefRel of P = R /\ (R~)` &
+     the ToleranceRel of P = R /\ R~ &
+     the InternalRel of P = Aux R by Def55;
+    thus thesis by LEM1,XX,SumNabla2,MutuDis2,LEM3b,LEM2a;
+  end;
+
+registration
+  let X be non empty set;
+  let P be Relation of X;
+  cluster CharPrefSpace P -> non empty;
+  coherence by Def55;
+end;
+
+registration
+  let X be non empty set;
+  let P be total reflexive Relation of X;
+  cluster CharPrefSpace P -> preference-like;
+  coherence by CharIsPref;
+end;
+
+begin :: Flat Preference Spaces
+
+definition let P be PreferenceStr;
+  attr P is flat means
+    the ToleranceRel of P = id the carrier of P &
+      ex a being Element of P st
+       the PrefRel of P = [:{a}, (the carrier of P) \ {a}:] &
+       the InternalRel of P =
+         [:(the carrier of P) \ {a}, (the carrier of P) \ {a}:];
+end;
+
+Lemma1C:
+  for A being trivial non empty set holds
+    the ToleranceRel of PrefSpace A = id the carrier of PrefSpace A
+  proof
+    let A be trivial non empty set;
+    set a = the Element of A;
+    set X = PrefSpace A;
+    reconsider C = {a} as Subset of A;
+    the ToleranceRel of X = {[a, a]} by ZFMISC_1:132; then
+    the ToleranceRel of X = id {a} by SYSREL:13;
+    hence thesis by ZFMISC_1:132;
+end;
+
+ZZ:
+  for A being empty set holds
+    IdPrefSpace A = PrefSpace A
+  proof
+    let A be empty set;
+A1: the carrier of IdPrefSpace A = the carrier of PrefSpace A by Def5;
+A2: the ToleranceRel of IdPrefSpace A = id the carrier of PrefSpace A by Def5
+      .= the ToleranceRel of PrefSpace A;
+    the InternalRel of IdPrefSpace A = the InternalRel of PrefSpace A by Def5;
+    hence thesis by A1,A2;
+  end;
+
+theorem
+  for A being trivial set holds
+    IdPrefSpace A = PrefSpace A
+  proof
+    let A be trivial set;
+    per cases;
+    suppose
+A0:   A is non empty;
+A1:   the carrier of IdPrefSpace A = the carrier of PrefSpace A by Def5;
+A2:   the ToleranceRel of IdPrefSpace A = id the carrier of PrefSpace A
+        by Def5
+        .= the ToleranceRel of PrefSpace A by Lemma1C,A0;
+      the InternalRel of IdPrefSpace A = the InternalRel of PrefSpace A
+        by Def5;
+      hence thesis by A1,A2,Def5;
+    end;
+    suppose A is empty;
+      hence thesis by ZZ;
+    end;
+  end;
+
+registration
+  let A be trivial non empty set;
+  cluster IdPrefSpace A -> non empty preference-like;
+  coherence
+  proof
+    set X = IdPrefSpace A;
+    set a = the Element of A;
+    reconsider C = {a} as Subset of A;
+s:  A = {a} by ZFMISC_1:132; then
+B1: the ToleranceRel of X = id {a} by Def5;
+B2: C = the carrier of X by Def5,s;
+a5: the PrefRel of X = {}(A,A) & the InternalRel of X = {}(A,A) by Def5;
+Z0: (the PrefRel of X) = {}(A,A) by Def5;
+Z1: the ToleranceRel of X = {[the Element of A, the Element of A]}
+      by B1,SYSREL:13
+         .= [:{a},{a}:] by ZFMISC_1:29;
+Z2: the InternalRel of X = {}(A,A) by Def5;
+    (the PrefRel of X) \/ (the PrefRel of X)~ \/
+      (the ToleranceRel of X) \/
+      (the InternalRel of X) = {}(A,A) \/ {}(A,A) \/ [:{a},{a}:] \/ {}(A,A)
+        by Z2,Z0,Z1
+      .= nabla the carrier of X by B2;
+    hence thesis by B1,B2,a5,Lemma1;
+  end;
+end;
+
+registration
+  let A be trivial non empty set;
+  cluster IdPrefSpace A -> flat;
+  coherence
+  proof
+    set P = IdPrefSpace A;
+    set a = the Element of A;
+B3: A = {a} by ZFMISC_1:132;
+B2: A = the carrier of P by Def5;
+    ex a being Element of P st
+     the PrefRel of P = [:{a}, ((the carrier of P) \ {a}):] &
+       the InternalRel of P =
+         [:(the carrier of P) \ {a},((the carrier of P) \ {a}):]
+    proof
+      reconsider b = a as Element of P by Def5;
+      take b;
+B4:   (the carrier of P) \ {a} = {} by XBOOLE_1:37,B2,B3;
+s1:   the PrefRel of P = {}(A,A) by Def5;
+      the InternalRel of P = {}(A,A) by Def5;
+      hence thesis by s1,B4;
+    end;
+    hence thesis by B2,Def5;
+  end;
+end;
+
+begin :: Tournament Preference Spaces
+
+definition let P be PreferenceStr;
+  attr P is tournament-like means
+   the ToleranceRel of P = id the carrier of P &
+   the InternalRel of P = {};
+end;
+
+registration
+  cluster empty -> tournament-like for PreferenceStr;
+  coherence;
+end;
+
+registration
+  cluster tournament-like -> void for PreferenceStr;
+  coherence;
+end;
+
+registration
+  cluster tournament-like for empty PreferenceSpace;
+  existence
+  proof
+    take PrefSpace {};
+    thus thesis;
+  end;
+  cluster tournament-like for non empty PreferenceSpace;
+  existence
+  proof
+    set A = the trivial non empty set;
+    reconsider P = PrefSpace A as non empty PreferenceSpace;
+    take P;
+    thus thesis by Lemma1C;
+  end;
+end;
+
+theorem :: The Connection Between Tournament Spaces and Orders
+  for P being non empty PreferenceSpace holds
+    P is tournament-like iff
+      CharRel P is connected antisymmetric total
+    proof
+      let P be non empty PreferenceSpace;
+A1:   P is tournament-like implies CharRel P is connected antisymmetric
+        total
+      proof
+        assume
+Z0:     P is tournament-like;
+w0:     the PrefRel of P is asymmetric by PrefDef;
+        for x, y being object st x <> y & x in field (CharRel P) &
+          y in field (CharRel P) holds [x,y] in CharRel P or [y,x] in CharRel P
+        proof
+          let x,y be object;
+          assume
+W1:       x <> y;
+t1:       (the PrefRel of P) \/ (the PrefRel of P)~ \/
+            (id the carrier of P) \/ {}
+            = nabla the carrier of P by Z0,PrefDef;
+T2:       not [x,y] in id the carrier of P & not [y,x] in id the carrier of P
+            by W1, RELAT_1:def 10;
+          assume x in field (CharRel P) & y in field (CharRel P); then
+          [x,y] in [:the carrier of P, the carrier of P:] &
+            [y,x] in [:the carrier of P, the carrier of P:]
+              by ZFMISC_1:87; then
+          [x,y] in (the PrefRel of P) \/ (the PrefRel of P)~ &
+            [y,x] in (the PrefRel of P) \/ (the PrefRel of P)~
+              by t1,T2, XBOOLE_0:def 3; then
+          [x,y] in the PrefRel of P or [x,y] in (the PrefRel of P)~ &
+            [y,x] in the PrefRel of P or [y,x] in (the PrefRel of P)~
+              by XBOOLE_0:def 3; then
+          [x,y] in the PrefRel of P or [y,x] in the PrefRel of P
+            by RELAT_1:def 7;
+          hence thesis by XBOOLE_0:def 3;
+        end;
+        hence CharRel P is connected by LemCon;
+        dom CharRel P = dom (the PrefRel of P) \/ dom (the ToleranceRel of P)
+            by XTUPLE_0:23
+          .= the carrier of P by XBOOLE_1:12,Z0;
+        hence thesis by w0,PARTFUN1:def 2,Z0,Lemma16;
+      end;
+      CharRel P is connected total antisymmetric implies
+        P is tournament-like
+      proof
+        assume
+S1:     CharRel P is connected;
+        assume
+S3:     CharRel P is total;
+        assume
+S2:     CharRel P is antisymmetric;
+        set PP = the PrefRel of P, J = the ToleranceRel of P,
+          X = the carrier of P, I = the InternalRel of P;
+        set RT = PP \/ J;
+KK:     RT = CharRel P;
+kk:     dom RT = X by PARTFUN1:def 2,S3; then
+k1:     dom RT \/ rng RT = X by XBOOLE_1:12;
+B0:     (PP \/ J) /\ (PP \/ J)~ c= id dom RT by RELAT_2:22,S2;
+        for x,y being object holds
+          [x,y] in id X implies [x,y] in (PP \/ J) /\ (PP \/ J)~
+        proof
+          let x,y be object;
+          assume
+n1:       [x,y] in id X; then
+N1:       x in X & x = y by RELAT_1:def 10;
+          assume not [x,y] in (PP \/ J) /\ (PP \/ J)~; then
+          not ([x,y] in (PP \/ J) & [x,y] in (PP \/ J)~)
+            by XBOOLE_0:def 4; then
+          not ([x,y] in (PP \/ J) & [x,y] in (PP~ \/ J~)) by RELAT_1:23; then
+          not (([x,y] in PP or [x,y] in J) & ([x,y] in PP~ or [x,y] in J~))
+            by XBOOLE_0:def 3; then
+N2:       not [x,x] in J by N1,RELAT_1:def 7;
+          J is total by PrefDef; then
+N3:       dom J = X by PARTFUN1:def 2;
+          field J = dom J \/ rng J
+            .= X by N3,XBOOLE_1:12; then
+N4:       x in field J by n1,RELAT_1:def 10;
+          J is reflexive by PrefDef;
+          hence contradiction by N2,N4,RELAT_2:def 1,def 9;
+        end; then
+        id X c= (PP \/ J) /\ (PP \/ J)~ by RELAT_1:def 3; then
+B1:     (PP \/ J) /\ (PP \/ J)~ = id X by B0,XBOOLE_0:def 10,kk;
+Y1:     (PP \/ J)~ = PP~ \/ J~ by RELAT_1:23;
+        J is symmetric by PrefDef; then
+        (PP \/ J) /\ (PP~ \/ J) = id X by B1,Y1,RELAT_2:13; then
+Y3:     PP /\ PP~ \/ J = id X by XBOOLE_1:24;
+        PP is asymmetric by PrefDef; then
+a3:     PP /\ PP~ = {} by Lemma17,XBOOLE_0:def 7;
+        [:field RT,field RT:] = RT \/ RT~ \/ id field RT by S1,ConField; then
+df:     [:X,X:] = J \/ (J \/ (PP \/ RT~)) by XBOOLE_1:4,a3,k1,Y3
+               .= (J \/ J) \/ (PP \/ RT~) by XBOOLE_1:4
+               .= RT \/ RT~ by XBOOLE_1:4;
+        I = RT` /\ (RT~)` by KK,Th2; then
+        I = ({}[:X,X:])`` by df,XBOOLE_1:53
+         .= {}[:X,X:];
+        hence thesis by a3,Y3;
+      end;
+      hence thesis by A1;
+    end;
+
+begin :: Total Preference Spaces
+
+definition let P be PreferenceStr;
+  attr P is total means
+    the PrefRel of P is transitive &
+    the ToleranceRel of P = id the carrier of P &
+    the InternalRel of P = {};
+end;
+
+registration
+  cluster total -> void for PreferenceStr;
+  coherence;
+end;
+
+registration
+  cluster total -> tournament-like for PreferenceStr;
+  coherence;
+end;
+
+registration
+  cluster PrefSpace {} -> total;
+  coherence;
+end;
+
+registration
+  let A be set;
+  cluster IdPrefSpace A -> total;
+  coherence
+  proof
+    set P = IdPrefSpace A;
+    the carrier of P = A by Def5;
+    hence thesis by Def5;
+  end;
+end;
+
+registration
+  let A be trivial non empty set;
+  cluster PrefSpace A -> total;
+  coherence
+  proof
+    set P = PrefSpace A;
+    set a = the Element of A;
+    the ToleranceRel of P = {[a, a]} by ZFMISC_1:132
+      .= id {a} by SYSREL:13
+      .= id the carrier of P by ZFMISC_1:132;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster total for empty PreferenceSpace;
+  existence
+  proof
+    take PrefSpace {};
+    thus thesis;
+  end;
+  cluster total for non empty PreferenceSpace;
+  existence
+  proof
+    set A = the trivial non empty set;
+    reconsider P = PrefSpace A as non empty PreferenceSpace;
+    take P;
+    thus thesis;
+  end;
+end;
+
+theorem
+  for P being non empty PreferenceSpace holds
+    P is total iff
+      CharRel P is connected Order of the carrier of P
+  proof
+    let P be non empty PreferenceSpace;
+Z1: P is total implies CharRel P is connected Order of the carrier of P
+    proof
+      assume
+A1:   P is total;
+      set R = the PrefRel of P,
+          T = the ToleranceRel of P,
+          X = the carrier of P,
+          I = the InternalRel of P,
+          C = CharRel P;
+k2:   R \/ R~ \/ T \/ I = nabla X by PrefDef;
+      T is total by PrefDef; then
+A5:   field T = X by ORDERS_1:12;
+      T is symmetric by PrefDef; then
+Y5:   T = T~ by RELAT_2:13;
+      R is asymmetric by PrefDef; then
+Y6:   R /\ R~ = {} by Lemma17,XBOOLE_0:def 7;
+a4:   field (R \/ T) = field R \/ field T by RELAT_1:18
+        .= X by A5,XBOOLE_1:12;
+      C \/ C~ = (R \/ T) \/ (R~ \/ T~) by RELAT_1:23
+        .= [:X,X:] by A1,k2,XBOOLE_1:5; then
+ss:   CharRel P is strongly_connected by RELAT_2:30,a4;
+      C is_reflexive_in X by a4,ss,RELAT_2:def 9; then
+A3:   dom C = X by ORDERS_1:13;
+y1:   C /\ C~ = (R \/ T) /\ (R~ \/ T~) by RELAT_1:23
+        .= T \/ (R /\ R~) by XBOOLE_1:24,Y5
+        .= id X by Y6,A1;
+Y9:   (R*R) \/ (R \/ id X) c= R \/ (R \/ id X) by XBOOLE_1:9,A1,RELAT_2:27;
+y7:   R \/ (R \/ id X) c= R \/ id X \/ (R \/ id X) by XBOOLE_1:7,XBOOLE_1:9;
+B9:   dom R c= X;
+B10:  rng R c= X;
+B11:  dom (id X) c= X;
+B13:  (R \/ id X) * id X = (R * id X) \/ (id X * id X) by SYSREL:6;
+W2:   id X * R = R by RELAT_1:51,B9;
+W3:   R * id X = R by RELAT_1:53,B10;
+W4:   id X * id X = id X by RELAT_1:51,B11;
+      C * C = ((R \/ id X) * R) \/ ((R \/ id X) * id X) by RELAT_1:32,A1
+        .= ((R * R) \/ (id X * R)) \/ ((R * id X) \/ (id X * id X))
+          by SYSREL:6,B13
+        .= (R * R) \/ (R \/ (R \/ id X)) by XBOOLE_1:4,W2,W3,W4
+        .= (R * R) \/ (R \/ id X) by XBOOLE_1:6;
+      hence thesis by y1,ss,A3,RELAT_2:27,XBOOLE_1:1,
+        Y9,A1,y7,PARTFUN1:def 2,RELAT_2:22;
+    end;
+    CharRel P is connected Order of the carrier of P implies
+      P is total
+    proof
+      assume
+B1:   CharRel P is connected Order of the carrier of P;
+      set R = the PrefRel of P,
+          T = the ToleranceRel of P,
+          I = the InternalRel of P,
+          X = the carrier of P;
+S1:   field (R \/ T) = X by B1,ORDERS_1:12;
+B5:   dom (R \/ T) = X by PARTFUN1:def 2,B1;
+      T is symmetric by PrefDef; then
+S0:   T = T~ by RELAT_2:13;
+B7:   R is asymmetric by PrefDef; then
+B6:   R /\ R~ = {} by Lemma17,XBOOLE_0:def 7;
+B9:   dom R c= X;
+B10:  rng R c= X;
+S6:   id X misses R by Lemma21,B7;
+X1:   T = id X
+      proof
+W1:     id X c= T by XBOOLE_1:73,S6,RELAT_2:1,S1,B1;
+S5:     (R \/ T) /\ (R \/ T)~ c= id X by B5,RELAT_2:22,B1;
+        (R \/ T) /\ (R \/ T)~ = (R \/ T) /\ (R~ \/ T~) by RELAT_1:23
+          .= T \/ (R /\ R~) by XBOOLE_1:24,S0
+          .= T by B6;
+        hence thesis by W1,XBOOLE_0:def 10,S5;
+      end;
+x2:   R * R c= R
+      proof
+B11:    dom (id X) c= X;
+W2:     id X * R = R by RELAT_1:51,B9;
+W3:     R * id X = R by RELAT_1:53,B10;
+W4:     id X * id X = id X by RELAT_1:51,B11;
+B14:    (R \/ id X) * R = (R * R) \/ (id X * R) by SYSREL:6;
+B13:    (R \/ id X) * id X = (R * id X) \/ (id X * id X) by SYSREL:6;
+        (R \/ id X) * (R \/ id X) = ((R \/ id X) * R) \/ ((R \/ id X) * id X)
+          by RELAT_1:32
+          .= (R * R) \/ (R \/ (R \/ id X)) by XBOOLE_1:4,W2,W3,W4,B14,B13
+          .= (R * R) \/ (R \/ id X) by XBOOLE_1:6; then
+        R * R c= R \/ id X by RELAT_2:27,B1,X1,XBOOLE_1:11;
+        hence thesis by Lemma22,B7,XBOOLE_1:73;
+      end;
+      I = {}
+      proof
+        set Z = (R \/ R~) \/ T;
+        R \/ T is_connected_in X & R \/ T is_reflexive_in X
+          by S1,B1,RELAT_2:def 14,def 9; then
+        R \/ T is strongly_connected by RELAT_2:def 15,S1,ORDERS_1:7; then
+        [:X,X:] c= (R \/ T) \/ (R \/ T)~ by RELAT_2:30,S1; then
+        [:X,X:] c= (R \/ T) \/ (R~ \/ T~) by RELAT_1:23; then
+S2:     [:X,X:] c= (R \/ R~) \/ T by XBOOLE_1:5,S0;
+s3:     Z \/ I = nabla X by PrefDef;
+s4:     R, T, I are_mutually_disjoint by PrefDef;
+        I is symmetric by PrefDef; then
+        R~ misses I by s4,Lemma20; then
+        I misses Z by s4,XBOOLE_1:114;
+        hence thesis by XBOOLE_1:11,S2,Lemma19,s3;
+      end;
+      hence thesis by X1,x2,RELAT_2:27;
+    end;
+    hence thesis by Z1;
+  end;
+

@@ -1,0 +1,1937 @@
+:: Partial Correctness of a Fibonacci Algorithm
+::  by Artur Korni{\l}owicz
+:: 
+:: Received May 31, 2020
+:: Copyright (c) 2020-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NOMIN_1, NUMBERS, ZFMISC_1, SUBSET_1, XBOOLE_0, RELAT_1, FUNCT_1,
+      FINSEQ_1, NAT_1, ARYTM_3, PARTFUN1, XBOOLEAN, TARSKI, NOMIN_3, NOMIN_4,
+      XCMPLX_0, NOMIN_2, PARTPR_1, PARTPR_2, NOMIN_5, CARD_1, PRE_FF, NOMIN_7,
+      XXREAL_0, ARYTM_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ENUMSET1, ORDINAL1, NUMBERS,
+      MARGREL1, RELAT_1, FUNCT_1, RELSET_1, PARTFUN1, FUNCT_2, CARD_1,
+      FINSEQ_1, BINOP_1, XXREAL_0, XCMPLX_0, FUNCT_3, NEWTON, PRE_FF, NOMIN_1,
+      PARTPR_1, PARTPR_2, NOMIN_2, NOMIN_3, NOMIN_4, NOMIN_5, NOMIN_6;
+ constructors RELSET_1, INT_2, BINOP_1, FUNCT_3, NEWTON, ENUMSET1, PRE_FF,
+      NOMIN_2, NOMIN_3, NOMIN_4, NOMIN_5, NOMIN_6;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, ORDINAL1, RELSET_1, INT_1, NOMIN_1,
+      NOMIN_2, NAT_1, XXREAL_0, XREAL_0, CARD_1, FINSEQ_1, NEWTON04, NOMIN_4,
+      PARTFUN1;
+ requirements NUMERALS, BOOLE, SUBSET, REAL, ARITHM;
+ definitions TARSKI, NOMIN_3;
+ equalities NOMIN_1, PARTPR_1, PARTPR_2, NOMIN_2, NOMIN_4, XBOOLEAN, BINOP_1,
+      NOMIN_5, NOMIN_6;
+ expansions TARSKI, PARTFUN1, NOMIN_4;
+ theorems XBOOLE_0, NOMIN_1, PARTPR_1, NOMIN_2, NOMIN_3, NOMIN_4, FUNCT_1,
+      FUNCT_3, PARTFUN1, TARSKI, PARTPR_2, ENUMSET1, NOMIN_5, XBOOLE_1,
+      NOMIN_6, PRE_FF, INT_1, XREAL_1, XXREAL_0, FINSEQ_3, NAT_1, FINSEQ_1,
+      RELAT_1, ZFMISC_1, FUNCT_2;
+ schemes PARTPR_2, RECDEF_1, NAT_1;
+
+begin :: Introduction
+
+reserve D for non empty set;
+reserve m,n,N for Nat;
+reserve size for non zero Nat;
+reserve f1,f2,f3,f4,f5,f6 for BinominativeFunction of D;
+reserve p1,p2,p3,p4,p5,p6,p7 for PartialPredicate of D;
+reserve d,v for object;
+reserve V,A for set;
+reserve z for Element of V;
+reserve val for Function;
+reserve loc for V-valued Function;
+reserve d1 for NonatomicND of V,A;
+reserve T for TypeSCNominativeData of V,A;
+
+definition
+  let R1,R2 be Relation;
+  pred R1 is_valid_wrt R2 means :Def1:
+  rng R1 c= dom R2;
+end;
+
+definition
+  let V,loc,val,N;
+  pred loc,val are_different_wrt N means
+  for m,n being Nat st 1 <= m <= N & 1 <= n <= N holds
+  val.m <> loc/.n;
+end;
+
+theorem Th1:
+  loc|Seg N is one-to-one & Seg N c= dom loc implies
+  for i,j being Nat st 1 <= i <= N & 1 <= j <= N & i <> j holds
+  loc/.i <> loc/.j
+  proof
+    set f = loc|Seg N;
+    assume that
+A1: f is one-to-one and
+A2: Seg N c= dom loc;
+    let i,j be Nat such that
+A3: 1 <= i <= N and
+A4: 1 <= j <= N and
+A5: i <> j;
+A6: i in Seg N by A3,FINSEQ_1:1;
+    then
+A7: i in dom f by A2,RELAT_1:57;
+A8: j in Seg N by A4,FINSEQ_1:1;
+    then
+A9: j in dom f by A2,RELAT_1:57;
+A10: loc/.i = loc.i by A2,A6,PARTFUN1:def 6;
+A11: f.i = loc.i by A7,FUNCT_1:47;
+    f.j = loc.j by A9,FUNCT_1:47;
+    hence loc/.i <> loc/.j
+    by A1,A5,A7,A9,A10,A2,A8,A11,FUNCT_1:def 4,PARTFUN1:def 6;
+  end;
+
+theorem Th2:
+  V is non empty & v in dom d1 implies
+  local_overlapping(V,A,d1,denaming(V,A,v).d1,z).z = d1.v
+  proof
+    assume
+A1: V is non empty;
+    set Dj = denaming(V,A,v);
+    assume that
+A2: v in dom d1;
+    dom Dj = {d where d is NonatomicND of V,A: v in dom d}
+    by NOMIN_1:def 18;
+    then
+A3: d1 in dom Dj by A2;
+    then Dj.d1 is TypeSCNominativeData of V,A by PARTFUN1:4,NOMIN_1:39;
+    hence local_overlapping(V,A,d1,Dj.d1,z).z = Dj.d1 by A1,NOMIN_2:10
+    .= denaming(v,d1) by A3,NOMIN_1:def 18
+    .= d1.v by A2,NOMIN_1:def 12;
+  end;
+
+definition
+  let D,f1,f2,f3,f4,f5,f6;
+  func PP_composition(f1,f2,f3,f4,f5,f6) -> BinominativeFunction of D equals
+  PP_composition(PP_composition(f1,f2,f3,f4,f5),f6);
+  coherence;
+end;
+
+::$N Unconditional composition rule for 6 programs
+theorem Th3:
+  <*p1,f1,p2*> is SFHT of D & <*p2,f2,p3*> is SFHT of D &
+  <*p3,f3,p4*> is SFHT of D & <*p4,f4,p5*> is SFHT of D &
+  <*p5,f5,p6*> is SFHT of D & <*p6,f6,p7*> is SFHT of D &
+  <*PP_inversion(p2),f2,p3*> is SFHT of D &
+  <*PP_inversion(p3),f3,p4*> is SFHT of D &
+  <*PP_inversion(p4),f4,p5*> is SFHT of D &
+  <*PP_inversion(p5),f5,p6*> is SFHT of D &
+  <*PP_inversion(p6),f6,p7*> is SFHT of D
+  implies <*p1,PP_composition(f1,f2,f3,f4,f5,f6),p7*> is SFHT of D
+  proof
+    assume that
+A1: <*p1,f1,p2*> is SFHT of D and
+A2: <*p2,f2,p3*> is SFHT of D and
+A3: <*p3,f3,p4*> is SFHT of D and
+A4: <*p4,f4,p5*> is SFHT of D and
+A5: <*p5,f5,p6*> is SFHT of D and
+A6: <*p6,f6,p7*> is SFHT of D and
+A7: <*PP_inversion(p2),f2,p3*> is SFHT of D and
+A8: <*PP_inversion(p3),f3,p4*> is SFHT of D and
+A9: <*PP_inversion(p4),f4,p5*> is SFHT of D and
+A10: <*PP_inversion(p5),f5,p6*> is SFHT of D and
+A11: <*PP_inversion(p6),f6,p7*> is SFHT of D;
+    <*p1,PP_composition(f1,f2,f3,f4,f5),p6*>
+    is SFHT of D by A1,A2,A3,A4,A5,A7,A8,A9,A10,NOMIN_6:1;
+    hence thesis by A6,A11,NOMIN_3:25;
+  end;
+
+definition
+  let V,A,loc,val,d1;
+  let size be Nat such that
+A1: size > 0;
+  defpred P[Nat,object,object] means
+  $3 = local_overlapping(V,A,$2,denaming(V,A,val.($1+1)).$2,loc/.($1+1));
+  set X = local_overlapping(V,A,d1,denaming(V,A,val.1).d1,loc/.1);
+  func LocalOverlapSeq(A,loc,val,d1,size) -> FinSequence of ND(V,A) means
+  :Def4:
+  len it = size &
+  it.1 = local_overlapping(V,A,d1,denaming(V,A,val.1).d1,loc/.1) &
+  for n being Nat st 1 <= n < len it holds
+    it.(n+1) =
+       local_overlapping(V,A,it.n,denaming(V,A,val.(n+1)).(it.n),loc/.(n+1));
+  existence
+  proof
+A2: for n being Nat st 1 <= n & n < size
+    for x being Element of ND(V,A)
+    ex y being Element of ND(V,A) st P[n,x,y]
+    proof
+      let n be Nat;
+      assume 1 <= n & n < size;
+      let x be Element of ND(V,A);
+      set y = local_overlapping(V,A,x,denaming(V,A,val.(n+1)).x,loc/.(n+1));
+      y in ND(V,A);
+      then reconsider y as Element of ND(V,A);
+      take y;
+      thus P[n,x,y];
+    end;
+    X in ND(V,A);
+    then reconsider X as Element of ND(V,A);
+    ex p being FinSequence of ND(V,A) st len p = size & (p.1 = X or size = 0) &
+    for n st 1 <= n & n < size holds P[n,p.n,p.(n+1)]
+    from RECDEF_1:sch 4(A2);
+    hence thesis by A1;
+  end;
+  uniqueness
+  proof
+    let F,G be FinSequence of ND(V,A) such that
+A3: len F = size and
+A4: F.1 = X and
+A5: for n being Nat st 1 <= n < len F holds
+    F.(n+1) =
+       local_overlapping(V,A,F.n,denaming(V,A,val.(n+1)).(F.n),loc/.(n+1)) and
+A6: len G = size and
+A7: G.1 = X and
+A8: for n being Nat st 1 <= n < len G holds
+    G.(n+1) =
+       local_overlapping(V,A,G.n,denaming(V,A,val.(n+1)).(G.n),loc/.(n+1));
+A9: for n st 1 <= n & n < size for x,y1,y2 being set st P[n,x,y1] & P[n,x,y2]
+    holds y1 = y2;
+A10: len F = size & (F.1 = X or size = 0) & for n st 1 <= n & n < size
+    holds P[n,F.n,F.(n+1)] by A3,A4,A5;
+A11: len G = size & (G.1 = X or size = 0) &
+    for n st 1 <= n & n < size holds P[n,G.n,G.(n+1)] by A6,A7,A8;
+    thus thesis from RECDEF_1:sch 7(A9,A10,A11);
+  end;
+end;
+
+definition
+  let V,A;
+  let f be Function;
+  attr f is (V,A)-NonatomicND-yielding means
+  for n being object st n in dom f holds f.n is NonatomicND of V,A;
+end;
+
+definition
+  let V,A;
+  let f be FinSequence;
+  redefine attr f is (V,A)-NonatomicND-yielding means :Def6:
+  for n being Nat st 1 <= n <= len f holds f.n is NonatomicND of V,A;
+  compatibility
+  proof
+    thus f is (V,A)-NonatomicND-yielding implies
+    for n being Nat st 1 <= n <= len f holds f.n is NonatomicND of V,A
+    by FINSEQ_3:25;
+    assume
+A1: for n being Nat st 1 <= n <= len f holds f.n is NonatomicND of V,A;
+    let n be object such that
+A2: n in dom f;
+    reconsider n as Element of NAT by A2;
+    1 <= n <= len f by A2,FINSEQ_3:25;
+    hence thesis by A1;
+  end;
+end;
+
+registration
+  let V,A,d1;
+  cluster <*d1*> -> (V,A)-NonatomicND-yielding;
+  coherence
+  proof
+    set f = <*d1*>;
+    let n be Nat such that
+A1: 1 <= n <= len f;
+    len f = 1 by FINSEQ_1:39;
+    then n = 1 by A1,XXREAL_0:1;
+    hence thesis;
+  end;
+end;
+
+registration
+  let V,A;
+  cluster (V,A)-NonatomicND-yielding for FinSequence;
+  existence
+  proof
+    take <*the NonatomicND of V,A*>;
+    thus thesis;
+  end;
+end;
+
+theorem
+  for f being (V,A)-NonatomicND-yielding FinSequence holds
+  n in dom f implies f.n is NonatomicND of V,A
+  proof
+    let f be (V,A)-NonatomicND-yielding FinSequence;
+    assume n in dom f;
+    then 1 <= n <= len f by FINSEQ_3:25;
+    hence thesis by Def6;
+  end;
+
+registration
+  let V,A,loc,val,d1,size;
+  cluster LocalOverlapSeq(A,loc,val,d1,size) -> (V,A)-NonatomicND-yielding;
+  coherence
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    let n such that
+A1: 1 <= n <= len F;
+    set X = local_overlapping(V,A,d1,denaming(V,A,val.1).d1,loc/.1);
+    defpred P[Nat] means
+    1 <= $1 & $1 <= len F implies F.$1 is NonatomicND of V,A;
+A2: P[0];
+A3: for n st P[n] holds P[n+1]
+    proof
+      let n;
+      assume that
+A4:   P[n] and
+      1 <= n+1 and
+A5:   n+1 <= len F;
+      per cases;
+      suppose
+A6:     n = 0;
+        F.1 = X by Def4;
+        hence F.(n+1) is NonatomicND of V,A by A6,NOMIN_2:9;
+      end;
+      suppose 0 < n;
+        then
+A7:     0+1 <= n by NAT_1:13;
+A8:     n+0 < n+1 by XREAL_1:8;
+        then n < len F by A5,XXREAL_0:2;
+        then F.(n+1) =
+        local_overlapping(V,A,F.n,denaming(V,A,val.(n+1)).(F.n),loc/.(n+1))
+        by A7,Def4;
+        hence thesis by A4,A5,A7,A8,NOMIN_2:9,XXREAL_0:2;
+      end;
+    end;
+    for n holds P[n] from NAT_1:sch 2(A2,A3);
+    hence thesis by A1;
+  end;
+end;
+
+registration
+  let V,A,loc,val,d1,size,n;
+  cluster LocalOverlapSeq(A,loc,val,d1,size).n -> Function-like Relation-like;
+  coherence
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    per cases;
+    suppose n in dom F;
+      then 1 <= n <= len F by FINSEQ_3:25;
+      hence thesis by Def6;
+    end;
+    suppose not n in dom F;
+      hence thesis by FUNCT_1:def 2;
+    end;
+  end;
+end;
+
+theorem Th5:
+  V is non empty & A is_without_nonatomicND_wrt V implies
+  for n being Nat st 1 <= n & n < size &
+  val.(n+1) in dom(LocalOverlapSeq(A,loc,val,d1,size).n) holds
+  dom(LocalOverlapSeq(A,loc,val,d1,size).(n+1)) =
+  { loc/.(n+1) } \/ dom(LocalOverlapSeq(A,loc,val,d1,size).n)
+  proof
+    assume that
+A1: V is non empty and
+A2: A is_without_nonatomicND_wrt V;
+    let n be Nat;
+    assume that
+A3: 1 <= n and
+A4: n < size;
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    set X1 = F.n;
+    set X2 = F.(n+1);
+    assume
+A5: val.(n+1) in dom X1;
+A6: len F = size by Def4;
+    set v = loc/.(n+1);
+    set D = denaming(V,A,val.(n+1));
+A7: dom D = {d where d is NonatomicND of V,A: val.(n+1) in dom d}
+    by NOMIN_1:def 18;
+    reconsider X1 as NonatomicND of V,A by A3,A4,A6,Def6;
+    X1 in dom D by A5,A7;
+    then reconsider d2 = D.X1 as TypeSCNominativeData of V,A
+    by PARTFUN1:4,NOMIN_1:39;
+    X2 = local_overlapping(V,A,X1,d2,v) by A3,A4,A6,Def4;
+    hence thesis by A1,A2,NOMIN_4:4;
+  end;
+
+theorem Th6:
+  V is non empty & A is_without_nonatomicND_wrt V implies
+  for n being Nat st 1 <= n & n < size &
+  val.(n+1) in dom(LocalOverlapSeq(A,loc,val,d1,size).n) holds
+  dom(LocalOverlapSeq(A,loc,val,d1,size).n) c=
+  dom(LocalOverlapSeq(A,loc,val,d1,size).(n+1))
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume
+A1: V is non empty & A is_without_nonatomicND_wrt V;
+    let n be Nat;
+    assume 1 <= n & n < size & val.(n+1) in dom(F.n);
+    then dom(F.(n+1)) = {loc/.(n+1)} \/ dom(F.n) by A1,Th5;
+    hence thesis by XBOOLE_1:7;
+  end;
+
+definition
+  let V,A,loc,val,d1,size;
+  pred loc,val,size are_correct_wrt d1 means
+  V is non empty & A is_without_nonatomicND_wrt V &
+  val is_valid_wrt d1 & dom LocalOverlapSeq(A,loc,val,d1,size) c= dom val;
+end;
+
+theorem Th7:
+  loc,val,size are_correct_wrt d1 implies
+  for n being Nat st 1 <= n <= size holds
+  dom(d1) c= dom(LocalOverlapSeq(A,loc,val,d1,size).n)
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume that
+A1: V is non empty and
+A2: A is_without_nonatomicND_wrt V and
+A3: val is_valid_wrt d1 and
+A4: dom F c= dom val;
+    let n be Nat;
+    assume that
+A5: 1 <= n and
+A6: n <= size;
+    defpred P[Nat] means 1 <= $1 <= size implies dom(d1) c= dom(F.$1);
+A7: P[0];
+A8: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A9:   P[k] and
+A10:  1 <= k+1 and
+A11:  k+1 <= size;
+A12:  len F = size by Def4;
+      per cases;
+      suppose
+A13:    k = 0;
+        set v = loc/.1;
+        set D = denaming(V,A,val.1);
+A14:    dom D = {d where d is NonatomicND of V,A: val.1 in dom d}
+        by NOMIN_1:def 18;
+        1 <= len F by A10,A11,A12,XXREAL_0:2;
+        then 1 in dom F by FINSEQ_3:25;
+        then val.1 in rng val by A4,FUNCT_1:def 3;
+        then d1 in dom D by A3,A14;
+        then reconsider d2 = D.d1 as TypeSCNominativeData of V,A
+        by PARTFUN1:4,NOMIN_1:39;
+A15:    F.1 = local_overlapping(V,A,d1,d2,v) by Def4;
+        dom local_overlapping(V,A,d1,d2,v) = {v} \/ dom d1 by A1,A2,NOMIN_4:4;
+        hence thesis by A13,A15,XBOOLE_1:7;
+      end;
+      suppose k > 0;
+        then
+A16:    0+1 <= k by NAT_1:13;
+A17:    k <= k+1 by NAT_1:12;
+        then
+A18:    dom(d1) c= dom(F.k) by A9,A11,A16,XXREAL_0:2;
+        k+0 < k+1 by XREAL_1:8;
+        then
+A19:    k < size by A11,XXREAL_0:2;
+        k+1 in dom F by A11,A12,FINSEQ_3:25,NAT_1:12;
+        then val.(k+1) in rng val by A4,FUNCT_1:def 3;
+        then dom(F.k) c= dom(F.(k+1)) by A1,A2,A3,A16,A18,A19,Th6;
+        hence thesis by A17,A9,A11,A16,XXREAL_0:2;
+      end;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A7,A8);
+    hence thesis by A5,A6;
+  end;
+
+theorem Th8:
+  loc,val,size are_correct_wrt d1 implies
+  for m,n being Nat st 1 <= n <= m <= size holds
+  dom(LocalOverlapSeq(A,loc,val,d1,size).n) c=
+  dom(LocalOverlapSeq(A,loc,val,d1,size).m)
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume
+A1: loc,val,size are_correct_wrt d1;
+    let m,n be Nat;
+    assume that
+A2: 1 <= n and
+A3: n <= m and
+A4: m <= size;
+    per cases by A3,XXREAL_0:1;
+    suppose n = m;
+      hence thesis;
+    end;
+    suppose
+A5:   n < m;
+      defpred P[Nat] means n < $1 <= size implies dom(F.n) c= dom(F.$1);
+A6:   P[0];
+A7:   for k being Nat st P[k] holds P[k+1]
+      proof
+        let k be Nat such that
+A8:     P[k] and
+A9:     n < k+1 and
+A10:    k+1 <= size;
+A11:    n <= k by A9,NAT_1:13;
+        then
+A12:    1 <= k by A2,XXREAL_0:2;
+        k+0 < k+1 by XREAL_1:8;
+        then
+A13:    k < size by A10,XXREAL_0:2;
+        len F = size by Def4;
+        then k+1 in dom F by A10,FINSEQ_3:25,NAT_1:12;
+        then
+A14:    val.(k+1) in rng val by A1,FUNCT_1:def 3;
+A15:    val is_valid_wrt d1 by A1;
+        dom d1 c= dom(F.k) by A1,A12,A13,Th7;
+        then dom(F.(k)) c= dom(F.(k+1)) by A1,A15,A12,A13,A14,Th6;
+        hence dom(F.n) c= dom(F.(k+1)) by A8,A11,A10,NAT_1:13,XXREAL_0:1;
+      end;
+      for k being Nat holds P[k] from NAT_1:sch 2(A6,A7);
+      hence thesis by A4,A5;
+    end;
+  end;
+
+theorem Th9:
+  loc,val,size are_correct_wrt d1 implies
+  for m,n being Nat st 1 <= n <= m <= size holds
+  loc/.n in dom(LocalOverlapSeq(A,loc,val,d1,size).m)
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume
+A1: loc,val,size are_correct_wrt d1;
+    then
+A2: val is_valid_wrt d1;
+    let m,n be Nat such that
+A3: 1 <= n and
+A4: n <= m and
+A5: m <= size;
+A6: 1 <= m by A3,A4,XXREAL_0:2;
+A7: n <= size by A4,A5,XXREAL_0:2;
+A8: len F = size by Def4;
+    reconsider i1 = n-1 as Element of NAT by A3,INT_1:5;
+    set v = loc/.n;
+    set D = denaming(V,A,val.n);
+A9:dom D = {d where d is NonatomicND of V,A: val.n in dom d}
+    by NOMIN_1:def 18;
+A10: v in {v} by TARSKI:def 1;
+    n in dom F by A3,A7,A8,FINSEQ_3:25;
+    then
+A11: val.n in rng val by A1,FUNCT_1:def 3;
+    then
+A12: val.n in dom d1 by A2;
+    per cases;
+    suppose
+A13:  i1 = 0;
+      d1 in dom D by A2,A9,A11;
+      then reconsider d2 = D.d1 as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+A14:  F.1 = local_overlapping(V,A,d1,d2,v) by A13,Def4;
+A15:  dom local_overlapping(V,A,d1,d2,v) = {v} \/ dom(d1) by A1,NOMIN_4:4;
+A16:  dom(F.1) c= dom(F.m) by A1,A5,A6,Th8;
+      v in {v} \/ dom(d1) by A10,XBOOLE_0:def 3;
+      hence v in dom(F.m) by A14,A15,A16;
+    end;
+    suppose i1 > 0;
+      then
+A17:  0+1 <= i1 by NAT_1:13;
+      n-1 < n-0 by XREAL_1:15;
+      then
+A18:  i1 < size by A7,XXREAL_0:2;
+      then reconsider dd = F.i1 as NonatomicND of V,A by A17,A8,Def6;
+      dom(d1) c= dom(dd) by A1,A17,A18,Th7;
+      then dd in dom D by A12,A9;
+      then reconsider d2 = D.dd as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+A19:  F.n = local_overlapping(V,A,dd,d2,loc/.(i1+1)) by A8,A17,A18,Def4;
+A20:  dom local_overlapping(V,A,dd,d2,v) = {v} \/ dom(dd) by A1,NOMIN_4:4;
+A21:  v in {v} \/ dom(dd) by A10,XBOOLE_0:def 3;
+      dom(F.n) c= dom(F.m) by A1,A3,A4,A5,Th8;
+      hence v in dom(F.m) by A21,A19,A20;
+    end;
+  end;
+
+theorem Th10:
+  loc,val,size are_correct_wrt d1 implies
+  for m,n being Nat st (n in dom val or 1 <= n <= size) & 1 <= m <= size holds
+  val.n in dom(LocalOverlapSeq(A,loc,val,d1,size).m)
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume
+A1: loc,val,size are_correct_wrt d1;
+    then
+A2: val is_valid_wrt d1;
+    let m,n be Nat;
+    assume
+A3: n in dom val or 1 <= n <= size;
+    now
+      assume
+A4:   1 <= n <= size;
+A5:   dom F c= dom val by A1;
+      len F = size by Def4;
+      hence n in dom val by A5,A4,FINSEQ_3:25;
+    end;
+    then
+A6: val.n in rng val by A3,FUNCT_1:def 3;
+    assume 1 <= m <= size;
+    then dom(d1) c= dom(F.m) by A1,Th7;
+    hence thesis by A2,A6;
+  end;
+
+theorem Th11:
+  loc,val,size are_correct_wrt d1 & loc,val are_different_wrt size
+  implies
+  for j,m,n being Nat st 1 <= n <= m < j <= size holds
+  (LocalOverlapSeq(A,loc,val,d1,size).n).(val.j) =
+   (LocalOverlapSeq(A,loc,val,d1,size).m).(val.j)
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume
+A1: loc,val,size are_correct_wrt d1;
+    assume
+A2: loc,val are_different_wrt size;
+    let j,m,n be Nat;
+    assume that
+A3: 1 <= n and
+A4: n <= m and
+A5: m < j and
+A6: j <= size;
+A7: 1 <= m by A3,A4,XXREAL_0:2;
+    set lo = val.j;
+    defpred P[Nat] means n <= $1 < j <= size implies (F.n).lo = (F.$1).lo;
+A8: P[0];
+A9: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A10:  P[k] and
+A11:  n <= k+1 and
+A12:  k+1 < j and
+A13:  j <= size;
+      per cases by A11,NAT_1:8;
+      suppose
+A14:    n <= k;
+        then
+A15:    1 <= k by A3,XXREAL_0:2;
+A16:    k+1 < size by A12,A13,XXREAL_0:2;
+        then
+A17:    k < size by NAT_1:13;
+A18:    len F = size by Def4;
+        set D = denaming(V,A,val.(k+1));
+        reconsider d2 = F.k as NonatomicND of V,A by A15,A17,A18,Def6;
+A19:    dom D = {d where d is NonatomicND of V,A: val.(k+1) in dom d}
+        by NOMIN_1:def 18;
+A20:    1 <= k+1 by NAT_1:12;
+        val.(k+1) in dom d2 by A1,A15,A17,A20,A16,Th10;
+        then d2 in dom D by A19;
+        then reconsider Dd2 = D.d2 as TypeSCNominativeData of V,A
+        by PARTFUN1:4,NOMIN_1:39;
+A21:    F.(k+1) = local_overlapping(V,A,d2,Dd2,loc/.(k+1))
+        by A15,A17,A18,Def4;
+A22:    k+0 < k+1 by XREAL_1:8;
+A23:    1 <= j by A5,A7,XXREAL_0:2;
+        then
+A24:    loc/.(k+1) <> lo by A2,A13,A20,A16;
+        lo in dom d2 by A1,A15,A17,A23,A13,Th10;
+        hence thesis by A10,A14,A13,A22,A12,A1,A21,A24,NOMIN_5:3,XXREAL_0:2;
+      end;
+      suppose n = k+1;
+        hence thesis;
+      end;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A8,A9);
+    hence thesis by A4,A5,A6;
+  end;
+
+theorem Th12:
+  loc,val,size are_correct_wrt d1 &
+  Seg size c= dom loc & loc|Seg size is one-to-one
+  implies
+  for j,m,n being Nat st 1 <= j <= n <= m <= size holds
+  (LocalOverlapSeq(A,loc,val,d1,size).n).(loc/.j) =
+   (LocalOverlapSeq(A,loc,val,d1,size).m).(loc/.j)
+  proof
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    assume
+A1: loc,val,size are_correct_wrt d1;
+    assume
+A2: Seg size c= dom loc & loc|Seg size is one-to-one;
+    let j,m,n be Nat;
+    assume that
+A3: 1 <= j and
+A4: j <= n and
+A5: n <= m and
+A6: m <= size;
+A7: 1 <= n by A3,A4,XXREAL_0:2;
+    set lo = loc/.j;
+    defpred P[Nat] means n <= $1 <= size implies (F.n).lo = (F.$1).lo;
+A8: P[0];
+A9: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A10:  P[k] and
+A11:  n <= k+1 and
+A12:  k+1 <= size;
+      per cases by A11,NAT_1:8;
+      suppose
+A13:    n <= k;
+        then
+A14:    1 <= k by A7,XXREAL_0:2;
+A15:    k+0 < k+1 by XREAL_1:8;
+        then
+A16:    k < size by A12,XXREAL_0:2;
+A17:    len F = size by Def4;
+        set D = denaming(V,A,val.(k+1));
+        reconsider d2 = F.k as NonatomicND of V,A by A14,A16,A17,Def6;
+A18:    dom D = {d where d is NonatomicND of V,A: val.(k+1) in dom d}
+        by NOMIN_1:def 18;
+A19:    1 <= k+1 by NAT_1:12;
+        then val.(k+1) in dom d2 by A1,A12,A14,A16,Th10;
+        then d2 in dom D by A18;
+        then reconsider Dd2 = D.d2 as TypeSCNominativeData of V,A
+        by PARTFUN1:4,NOMIN_1:39;
+A20:    F.(k+1) = local_overlapping(V,A,d2,Dd2,loc/.(k+1))
+        by A14,A16,A17,Def4;
+A21:    j <= k+0 by A4,A13,XXREAL_0:2;
+        j <= m by A4,A5,XXREAL_0:2;
+        then
+A22:    j <= size by A6,XXREAL_0:2;
+        lo in dom d2 by A1,A3,A16,A21,Th9;
+        hence thesis by A10,A13,A15,A1,A20,A22,A2,Th1,A3,A12,A21,A19,
+        NOMIN_5:3,XXREAL_0:2;
+      end;
+      suppose n = k+1;
+        hence thesis;
+      end;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A8,A9);
+    hence thesis by A6,A5;
+  end;
+
+theorem Th13:
+  for val being size-element FinSequence holds
+  Seg size c= dom loc & loc|Seg size is one-to-one &
+  loc,val are_different_wrt size & loc,val,size are_correct_wrt d1
+  implies
+  for m,n st 1 <= n <= m <= size holds
+  LocalOverlapSeq(A,loc,val,d1,size).m.(loc/.n) = d1.(val.n)
+  proof
+    let val be size-element FinSequence;
+    assume that
+A1: Seg size c= dom loc and
+A2: loc|Seg size is one-to-one and
+A3: loc,val are_different_wrt size and
+A4: loc,val,size are_correct_wrt d1;
+    let m,n such that
+A5: 1 <= n and
+A6: n <= m and
+A7: m <= size;
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+A8: Seg size = dom val by FINSEQ_1:89;
+A9: len F = size by Def4;
+A10: 0+1 <= size by NAT_1:13;
+A11: n <= size by A6,A7,XXREAL_0:2;
+    defpred P[Nat] means
+    n <= $1 <= size implies F.$1.(loc/.n) = d1.(val.n);
+A12: P[0] by A5;
+A13: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A14:  P[k] and
+A15:  n <= k+1 and
+A16:  k+1 <= size;
+      set D1 = denaming(V,A,val.1);
+A17:  dom D1 = {d where d is NonatomicND of V,A: val.1 in dom d}
+      by NOMIN_1:def 18;
+A18:  rng val c= dom d1 by A4,Def1;
+      1 in Seg size by A10,FINSEQ_1:1;
+      then
+A19:  val.1 in rng val by A8,FUNCT_1:def 3;
+      then d1 in dom D1 by A18,A17;
+      then reconsider T1 = D1.d1 as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+A20:  F.1 = local_overlapping(V,A,d1,T1,loc/.1) by Def4;
+      n in Seg size by A5,A11,FINSEQ_1:1;
+      then
+A21:  val.n in rng val by A8,FUNCT_1:def 3;
+      per cases;
+      suppose
+A22:    k = 0;
+        then n = 1 by A5,A15,XXREAL_0:1;
+        hence F.(k+1).(loc/.n) = d1.(val.n) by A4,A19,A18,A20,A22,Th2;
+      end;
+      suppose k > 0;
+       then
+A23:   0+1 <= k by NAT_1:13;
+A24:   1 <= k+1 by NAT_1:11;
+A25:   k < size by A16,NAT_1:13;
+       set D = denaming(V,A,val.(k+1));
+       reconsider d2 = F.k as NonatomicND of V,A by A23,A9,A25,Def6;
+A26:   dom D = {d where d is NonatomicND of V,A: val.(k+1) in dom d}
+       by NOMIN_1:def 18;
+A27:   val.(k+1) in dom d2 by A4,A24,A16,A23,A25,Th10;
+       then d2 in dom D by A26;
+       then reconsider T = D.d2 as TypeSCNominativeData of V,A
+       by PARTFUN1:4,NOMIN_1:39;
+A28:   F.(k+1) = local_overlapping(V,A,d2,T,loc/.(k+1)) by A23,A9,A25,Def4;
+       per cases;
+       suppose
+A29:     k+1 = n;
+         then
+A30:     k < n by NAT_1:13;
+         1 < n by A23,A29,NAT_1:13;
+         then
+A31:     loc/.1 <> val.n by A3,A10,A11;
+         thus F.(k+1).(loc/.n) = d2.(val.n) by A4,A29,A27,A28,Th2
+         .= F.1.(val.n) by A4,A3,A11,A23,A30,Th11
+         .= d1.(val.n) by A4,A18,A20,A31,A21,NOMIN_5:3;
+       end;
+       suppose k+1 <> n;
+         then
+A32:     n < k+1 by A15,XXREAL_0:1;
+         then n <= k by NAT_1:13;
+         then loc/.n in dom d2 by A4,A5,A25,Th9;
+         hence thesis
+         by A1,A2,A5,A4,A11,A14,A16,A24,A28,A32,Th1,NAT_1:13,NOMIN_5:3;
+       end;
+     end;
+   end;
+   for k being Nat holds P[k] from NAT_1:sch 2(A12,A13);
+   hence thesis by A6,A7;
+ end;
+
+theorem Th14:
+  for val being size-element FinSequence holds
+  loc,val are_different_wrt size & loc,val,size are_correct_wrt d1
+  implies
+  for m,n being Nat st 1 <= m <= size & 1 <= n <= size holds
+  LocalOverlapSeq(A,loc,val,d1,size).m.(val.n) = d1.(val.n)
+  proof
+    let val be size-element FinSequence;
+    assume that
+A1: loc,val are_different_wrt size and
+A2: loc,val,size are_correct_wrt d1;
+    let m,n such that
+A3: 1 <= m and
+A4: m <= size and
+A5: 1 <= n and
+A6: n <= size;
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+A7: Seg size = dom val by FINSEQ_1:89;
+A8: len F = size by Def4;
+A9: 0+1 <= size by NAT_1:13;
+    defpred P[Nat] means
+    1 <= $1 <= size implies F.$1.(val.n) = d1.(val.n);
+A10: P[0];
+A11: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A12:  P[k] and
+A13:  1 <= k+1 and
+A14:  k+1 <= size;
+      set D1 = denaming(V,A,val.1);
+A15:  dom D1 = {d where d is NonatomicND of V,A: val.1 in dom d}
+      by NOMIN_1:def 18;
+A16:  rng val c= dom d1 by A2,Def1;
+      1 in Seg size by A9,FINSEQ_1:1;
+      then val.1 in rng val by A7,FUNCT_1:def 3;
+      then d1 in dom D1 by A16,A15;
+      then reconsider T1 = D1.d1 as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+A17:  F.1 = local_overlapping(V,A,d1,T1,loc/.1) by Def4;
+      n in Seg size by A5,A6,FINSEQ_1:1;
+      then
+A18:  val.n in rng val by A7,FUNCT_1:def 3;
+      per cases;
+      suppose
+A19:    k = 0;
+        val.n <> loc/.1 by A1,A5,A6,A9;
+        hence F.(k+1).(val.n) = d1.(val.n) by A2,A16,A17,A18,A19,NOMIN_5:3;
+      end;
+      suppose k > 0;
+       then
+A20:   0+1 <= k by NAT_1:13;
+A21:   k < size by A14,NAT_1:13;
+       set D = denaming(V,A,val.(k+1));
+       reconsider d2 = F.k as NonatomicND of V,A by A20,A8,A21,Def6;
+A22:   dom D = {d where d is NonatomicND of V,A: val.(k+1) in dom d}
+       by NOMIN_1:def 18;
+       val.(k+1) in dom d2 by A2,A13,A14,A20,A21,Th10;
+       then d2 in dom D by A22;
+       then reconsider T = D.d2 as TypeSCNominativeData of V,A
+       by PARTFUN1:4,NOMIN_1:39;
+A23:   F.(k+1) = local_overlapping(V,A,d2,T,loc/.(k+1)) by A20,A8,A21,Def4;
+A24:   loc/.(k+1) <> val.n by A1,A5,A6,A13,A14;
+       val.n in dom d2 by A2,A5,A6,A20,A21,Th10;
+       hence F.(k+1).(val.n) = d1.(val.n)
+       by A2,A24,A23,A12,A20,A14,NAT_1:13,NOMIN_5:3;
+     end;
+   end;
+   for k being Nat holds P[k] from NAT_1:sch 2(A10,A11);
+   hence thesis by A3,A4;
+ end;
+
+theorem
+  for val being size-element FinSequence holds
+  loc,val,size are_correct_wrt d1 &
+  Seg size c= dom loc & loc|Seg size is one-to-one &
+  loc,val are_different_wrt size
+  implies
+  for j,m,n being Nat st 1 <= j < m <= n <= size holds
+  LocalOverlapSeq(A,loc,val,d1,size).n.(loc/.m) =
+  LocalOverlapSeq(A,loc,val,d1,size).j.(val.m)
+  proof
+    let val be size-element FinSequence;
+    assume that
+A1: loc,val,size are_correct_wrt d1 and
+A2: Seg size c= dom loc and
+A3: loc|Seg size is one-to-one and
+A4: loc,val are_different_wrt size;
+    set F = LocalOverlapSeq(A,loc,val,d1,size);
+    let j,m,n be Nat such that
+A5: 1 <= j and
+A6: j < m and
+A7: m <= n and
+A8: n <= size;
+    defpred P[Nat] means
+    m <= $1 <= size implies F.$1.(loc/.m) = F.j.(val.m);
+A9: P[0] by A6;
+A10: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A11:   P[k] and
+A12:  m <= k+1 and
+A13:  k+1 <= size;
+      set D = denaming(V,A,val.(k+1));
+A14:  1 <= m by A5,A6,XXREAL_0:2;
+A15:  now
+        assume k < 1;
+        then k+1 <= 1 by NAT_1:13;
+        then m <= 1 by A12,XXREAL_0:2;
+        hence contradiction by A5,A6,XXREAL_0:2;
+      end;
+A16:  len F = size by Def4;
+A17:  k <= k+1 by NAT_1:11;
+A18:  k <= size by A13,A17,XXREAL_0:2;
+      then reconsider d2 = F.k as NonatomicND of V,A by A15,A16,Def6;
+A19:  dom D = {d where d is NonatomicND of V,A: val.(k+1) in dom d}
+      by NOMIN_1:def 18;
+      1 <= k+1 by NAT_1:11;
+      then val.(k+1) in dom d2 by A1,A13,A15,A18,Th10;
+      then d2 in dom D by A19;
+      then reconsider T = D.d2 as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+      set L = local_overlapping(V,A,d2,T,loc/.(k+1));
+      per cases;
+      suppose m <= k;
+        hence F.(k+1).(loc/.m) = F.j.(val.m)
+        by A1,A2,A3,A11,A13,A17,A14,Th12,XXREAL_0:2;
+      end;
+      suppose m > k;
+        then k+1 <= m by NAT_1:13;
+        then
+A20:    m = k+1 by A12,XXREAL_0:1;
+A21:    m <= size by A7,A8,XXREAL_0:2;
+        j <= size by A6,A21,XXREAL_0:2;
+        hence F.j.(val.m) = d1.(val.m) by A1,A5,A4,A14,A21,Th14
+        .= F.(k+1).(loc/.m) by A1,A2,A3,A4,A14,A20,A21,Th13;
+      end;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A9,A10);
+    hence F.n.(loc/.m) = F.j.(val.m) by A7,A8;
+  end;
+
+definition
+  let V,A,loc,val;
+  let size be Nat such that
+A1: 0 < size;
+  set D = PFuncs(ND(V,A),ND(V,A));
+  reconsider X = SC_assignment(denaming(V,A,val.1),loc/.1) as Element of D
+  by PARTFUN1:45;
+  defpred P[Nat,object,object] means
+  ex f being PartFunc of ND(V,A),ND(V,A) st f = $2 &
+  $3 = PP_composition(f,SC_assignment(denaming(V,A,val.($1+1)),loc/.($1+1)));
+  func initial_assignments_Seq(A,loc,val,size)
+       -> FinSequence of PFuncs(ND(V,A),ND(V,A)) means :Def8:
+  len it = size &
+  it.1 = SC_assignment(denaming(V,A,val.1),loc/.1) &
+  for n being Nat st 1 <= n < size holds
+   it.(n+1) =
+    PP_composition(it.n,SC_assignment(denaming(V,A,val.(n+1)),loc/.(n+1)));
+  existence
+  proof
+A2: for n st 1 <= n & n < size
+    for x being Element of D ex y being Element of D st P[n,x,y]
+    proof
+      let n;
+      assume 1 <= n & n < size;
+      let x be Element of D;
+      reconsider f = x as PartFunc of ND(V,A),ND(V,A) by PARTFUN1:46;
+      reconsider y =
+      PP_composition(f,SC_assignment(denaming(V,A,val.(n+1)),loc/.(n+1)))
+      as Element of D by PARTFUN1:45;
+      take y;
+      thus thesis;
+    end;
+    consider F being FinSequence of D such that
+A3: len F = size and
+A4: (F.1 = X or size = 0) and
+A5: for n st 1 <= n & n < size holds P[n,F.n,F.(n+1)] from RECDEF_1:sch 4(A2);
+    take F;
+    thus len F = size by A3;
+    thus F.1 = SC_assignment(denaming(V,A,val.1),loc/.1) by A1,A4;
+    let n be Nat;
+    assume 1 <= n < size;
+    then P[n,F.n,F.(n+1)] by A5;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let F1,F2 being FinSequence of PFuncs(ND(V,A),ND(V,A)) such that
+A6: len F1 = size and
+A7: F1.1 = SC_assignment(denaming(V,A,val.1),loc/.1) and
+A8: for n being Nat st 1 <= n < size holds F1.(n+1) =
+    PP_composition(F1.n,SC_assignment(denaming(V,A,val.(n+1)),loc/.(n+1))) and
+A9: len F2 = size and
+A10: F2.1 = SC_assignment(denaming(V,A,val.1),loc/.1) and
+A11: for n being Nat st 1 <= n < size holds F2.(n+1) =
+    PP_composition(F2.n,SC_assignment(denaming(V,A,val.(n+1)),loc/.(n+1)));
+A12: for n st 1 <= n & n < size
+    for x,y1,y2 being Element of D st P[n,x,y1] & P[n,x,y2] holds y1 = y2;
+A13: len F1 = size & (F1.1 = X or size = 0) &
+    for n st 1 <= n & n < size holds P[n,F1.n,F1.(n+1)]
+    proof
+      thus len F1 = size by A6;
+      thus (F1.1 = X or size = 0) by A7;
+      let n;
+      assume 1 <= n & n < size;
+      then F1.(n+1) =
+      PP_composition(F1.n,SC_assignment(denaming(V,A,val.(n+1)),loc/.(n+1)))
+      by A8;
+      hence P[n,F1.n,F1.(n+1)];
+    end;
+A14: len F2 = size & (F2.1 = X or size = 0) &
+    for n st 1 <= n & n < size holds P[n,F2.n,F2.(n+1)]
+    proof
+      thus len F2 = size by A9;
+      thus (F2.1 = X or size = 0) by A10;
+      let n;
+      assume 1 <= n & n < size;
+      then F2.(n+1) =
+      PP_composition(F2.n,SC_assignment(denaming(V,A,val.(n+1)),loc/.(n+1)))
+      by A11;
+      hence P[n,F2.n,F2.(n+1)];
+    end;
+    thus F1 = F2 from RECDEF_1:sch 8(A12,A13,A14);
+  end;
+end;
+
+definition
+  let V,A,loc,val;
+  let size be Nat;
+  func initial_assignments(A,loc,val,size)
+       -> SCBinominativeFunction of V,A equals
+  initial_assignments_Seq(A,loc,val,size).size;
+  coherence;
+end;
+
+begin :: Main algorithm
+
+:: Pseudocode of Fibonacci(n)
+::
+:: i := val.1 :: counter
+:: j := val.2 :: constant 1
+:: n := val.3 :: input
+:: s := val.4 :: result
+:: b := val.5
+:: c := val.6
+::   { s == Fibonacci(i) && b == Fibonacci(i+1) }
+:: while ( i <> n )
+::  c := s
+::  s := b
+::  b := c + s
+::  i := i + j
+:: return s
+::   { n == i && s == Fibonacci(i) && b == Fibonacci(i+1) }
+::
+:: where
+::   val.1 = 0,
+::   val.2 = 1,
+::   val.3 - the number n the Fibonacci of which we compute,
+::   val.4 = 0
+::   val.5 = 1
+::   val.6 = 0
+:: are input data from the environment,
+:: and loc/.1 = i, loc/.2 = j, loc/.3 = n, loc/.4 = s, loc/.5 = b, loc/.6 = c
+
+definition
+  let V,A,loc;
+  func Fibonacci_loop_body(A,loc) -> SCBinominativeFunction of V,A equals
+    PP_composition(
+      SC_assignment(denaming(V,A,loc/.4),loc/.6),
+      SC_assignment(denaming(V,A,loc/.5),loc/.4),
+      SC_assignment(addition(A,loc/.6,loc/.4),loc/.5),
+      SC_assignment(addition(A,loc/.1,loc/.2),loc/.1)
+    );
+  coherence;
+end;
+
+definition
+  let V,A,loc;
+  func Fibonacci_main_loop(A,loc) -> SCBinominativeFunction of V,A equals
+  PP_while(PP_not(Equality(A,loc/.1,loc/.3)),Fibonacci_loop_body(A,loc));
+  coherence;
+end;
+
+definition
+  let V,A,loc,val;
+  func Fibonacci_main_part(A,loc,val)
+       -> SCBinominativeFunction of V,A equals
+    PP_composition(
+       initial_assignments(A,loc,val,6),
+       Fibonacci_main_loop(A,loc)
+    );
+  coherence;
+end;
+
+definition
+  let V,A,loc,val,z;
+  func Fibonacci_program(A,loc,val,z)
+       -> SCBinominativeFunction of V,A equals
+    PP_composition(
+      Fibonacci_main_part(A,loc,val),
+      SC_assignment(denaming(V,A,loc/.4),z)
+    );
+  coherence;
+end;
+
+reserve n0 for Nat;
+
+definition
+  let V,A,val,n0,d;
+  pred valid_Fibonacci_input_pred V,A,val,n0,d means
+  ex d1 being NonatomicND of V,A st d = d1 &
+   { val.1, val.2, val.3, val.4, val.5, val.6 } c= dom d1 &
+    d1.(val.1) = 0 & d1.(val.2) = 1 & d1.(val.3) = n0 &
+    d1.(val.4) = 0 & d1.(val.5) = 1 & d1.(val.6) = 0;
+end;
+
+definition
+  let V,A,val,n0;
+  defpred P[object] means valid_Fibonacci_input_pred V,A,val,n0,$1;
+  func valid_Fibonacci_input(V,A,val,n0)
+       -> SCPartialNominativePredicate of V,A
+  means :Def15:
+  dom it = ND(V,A) &
+  for d being object st d in dom it holds
+   (valid_Fibonacci_input_pred V,A,val,n0,d implies it.d = TRUE) &
+   (not valid_Fibonacci_input_pred V,A,val,n0,d
+    implies it.d = FALSE);
+  existence
+  proof
+A1: ND(V,A) c= ND(V,A);
+    consider p being SCPartialNominativePredicate of V,A such that
+A2: dom p = ND(V,A) & (for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))
+      from PARTPR_2:sch 1(A1);
+    take p;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    for p,q being SCPartialNominativePredicate of V,A st
+      (dom p = ND(V,A) & (for d being object st d in dom p holds
+      (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))) &
+      (dom q = ND(V,A) & (for d being object st d in dom q holds
+      (P[d] implies q.d = TRUE) & (not P[d] implies q.d = FALSE)))
+      holds p = q from PARTPR_2:sch 2;
+    hence thesis;
+  end;
+end;
+
+registration
+  let V,A,val,n0;
+  cluster valid_Fibonacci_input(V,A,val,n0) -> total;
+  coherence by Def15;
+end;
+
+definition
+  let V,A,z,n0,d;
+  pred valid_Fibonacci_output_pred A,z,n0,d means
+  ex d1 being NonatomicND of V,A st d = d1 & z in dom d1 & d1.z = Fib(n0);
+end;
+
+definition
+  let V,A,z,n0;
+  set D = {d where d is TypeSCNominativeData of V,A: d in dom denaming(V,A,z)};
+  defpred P[object] means valid_Fibonacci_output_pred A,z,n0,$1;
+  func valid_Fibonacci_output(A,z,n0) -> SCPartialNominativePredicate of V,A
+  means :Def17:
+  dom it = {d where d is TypeSCNominativeData of V,A:
+       d in dom denaming(V,A,z)} &
+   for d being object st d in dom it holds
+    (valid_Fibonacci_output_pred A,z,n0,d implies it.d = TRUE) &
+    (not valid_Fibonacci_output_pred A,z,n0,d implies it.d = FALSE);
+  existence
+  proof
+A1: D c= ND(V,A)
+    proof
+      let v;
+      assume v in D;
+      then ex d being TypeSCNominativeData of V,A st v = d &
+      d in dom denaming(V,A,z);
+      hence thesis;
+    end;
+    consider p being SCPartialNominativePredicate of V,A such that
+A2: dom p = D & (for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))
+       from PARTPR_2:sch 1(A1);
+    take p;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    for p,q being SCPartialNominativePredicate of V,A st
+      (dom p = D & (for d being object st d in dom p holds
+      (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))) &
+      (dom q = D & (for d being object st d in dom q holds
+      (P[d] implies q.d = TRUE) & (not P[d] implies q.d = FALSE)))
+      holds p = q from PARTPR_2:sch 2;
+    hence thesis;
+  end;
+end;
+
+definition
+  let V,A,loc,n0,d;
+  pred Fibonacci_inv_pred A,loc,n0,d means
+  ex d1 being NonatomicND of V,A st
+   d = d1 & { loc/.1, loc/.2, loc/.3, loc/.4, loc/.5, loc/.6 } c= dom d1 &
+   d1.(loc/.2) = 1 & d1.(loc/.3) = n0 &
+    ex I being Nat st I = d1.(loc/.1) &
+     d1.(loc/.4) = Fib(I) & d1.(loc/.5) = Fib(I+1);
+end;
+
+definition
+  let V,A,loc,n0;
+  defpred P[object] means Fibonacci_inv_pred A,loc,n0,$1;
+  func Fibonacci_inv(A,loc,n0) -> SCPartialNominativePredicate of V,A means
+  :Def19:
+  dom it = ND(V,A) &
+  for d being object st d in dom it holds
+   (Fibonacci_inv_pred A,loc,n0,d implies it.d = TRUE) &
+   (not Fibonacci_inv_pred A,loc,n0,d implies it.d = FALSE);
+  existence
+  proof
+A1: ND(V,A) c= ND(V,A);
+    consider p being SCPartialNominativePredicate of V,A such that
+A2: dom p = ND(V,A) & (for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))
+    from PARTPR_2:sch 1(A1);
+    take p;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    for p,q being SCPartialNominativePredicate of V,A st
+      (dom p = ND(V,A) & (for d being object st d in dom p holds
+      (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))) &
+      (dom q = ND(V,A) & (for d being object st d in dom q holds
+      (P[d] implies q.d = TRUE) & (not P[d] implies q.d = FALSE)))
+      holds p = q from PARTPR_2:sch 2;
+    hence thesis;
+  end;
+end;
+
+registration
+  let V,A,loc,n0;
+  cluster Fibonacci_inv(A,loc,n0) -> total;
+  coherence by Def19;
+end;
+
+theorem Th16:
+  for val being 6-element FinSequence holds
+  V is non empty & A is_without_nonatomicND_wrt V &
+  Seg 6 c= dom loc & loc|Seg 6 is one-to-one & loc,val are_different_wrt 6
+  implies
+  <* valid_Fibonacci_input(V,A,val,n0),
+     initial_assignments(A,loc,val,6),
+     Fibonacci_inv(A,loc,n0) *> is SFHT of ND(V,A)
+  proof
+    let val be 6-element FinSequence;
+    set size = 6;
+    set G = initial_assignments_Seq(A,loc,val,size);
+A1: G.1 = SC_assignment(denaming(V,A,val.1),loc/.1) by Def8;
+    set i = loc/.1, j = loc/.2, n = loc/.3, s = loc/.4, b = loc/.5, c = loc/.6;
+    set i1 = val.1, j1 = val.2, n1 = val.3, s1 = val.4, b1 = val.5, c1 = val.6;
+    set EN = {i1,j1,n1,s1,b1,c1};
+    set D = ND(V,A);
+    set I = valid_Fibonacci_input(V,A,val,n0);
+    set inv = Fibonacci_inv(A,loc,n0);
+    set Di = denaming(V,A,i1);
+    set Dj = denaming(V,A,j1);
+    set Dn = denaming(V,A,n1);
+    set Ds = denaming(V,A,s1);
+    set Db = denaming(V,A,b1);
+    set Dc = denaming(V,A,c1);
+    set asi = SC_assignment(Di,i);
+    set asj = SC_assignment(Dj,j);
+    set asn = SC_assignment(Dn,n);
+    set ass = SC_assignment(Ds,s);
+    set asb = SC_assignment(Db,b);
+    set asc = SC_assignment(Dc,c);
+    set U1 = SC_Psuperpos(inv,Dc,c);
+    set T1 = SC_Psuperpos(U1,Db,b);
+    set S1 = SC_Psuperpos(T1,Ds,s);
+    set R1 = SC_Psuperpos(S1,Dn,n);
+    set Q1 = SC_Psuperpos(R1,Dj,j);
+    set P1 = SC_Psuperpos(Q1,Di,i);
+    assume that
+A2: V is non empty and
+A3: A is_without_nonatomicND_wrt V and
+A4: Seg 6 c= dom loc and
+A5: loc|Seg 6 is one-to-one and
+A6: loc,val are_different_wrt 6;
+A7: Seg 6 = dom val by FINSEQ_1:89;
+A8: <*U1,asc,inv*> is SFHT of D by NOMIN_3:29;
+A9: <*T1,asb,U1*> is SFHT of D by NOMIN_3:29;
+A10: <*S1,ass,T1*> is SFHT of D by NOMIN_3:29;
+A11: <*R1,asn,S1*> is SFHT of D by NOMIN_3:29;
+A12: <*Q1,asj,R1*> is SFHT of D by NOMIN_3:29;
+A13: <*P1,asi,Q1*> is SFHT of D by NOMIN_3:29;
+    2 = 1+1; then
+A14: G.2 = PP_composition(asi,asj) by A1,Def8;
+    3 = 2+1; then
+A15: G.3 = PP_composition(G.2,asn) by Def8;
+    4 = 3+1; then
+A16: G.4 = PP_composition(G.3,ass) by Def8;
+    5 = 4+1; then
+A17: G.5 = PP_composition(G.4,asb) by Def8;
+    6 = 5+1;
+    then
+A18: initial_assignments(A,loc,val,6) =
+    PP_composition(asi,asj,asn,ass,asb,asc) by A14,A15,A16,A17,Def8;
+    I ||= P1
+    proof
+      let d be Element of D;
+      assume d in dom I & I.d = TRUE;
+      then valid_Fibonacci_input_pred V,A,val,n0,d by Def15;
+      then consider d1 being NonatomicND of V,A such that
+A19:  d = d1 and
+A20:  EN c= dom d1 and
+A21:  d1.i1 = 0 and
+A22:  d1.j1 = 1 and
+A23:  d1.n1 = n0 and
+A24:  d1.s1 = 0 and
+A25:  d1.b1 = 1 and
+      d1.c1 = 0;
+      set F = LocalOverlapSeq(A,loc,val,d1,size);
+A26:  len F = size by Def4;
+      rng val c= EN
+      proof
+        let y be object;
+        assume y in rng val;
+        then consider x being object such that
+A27:    x in dom val and
+A28:    y = val.x by FUNCT_1:def 3;
+        x = 1 or ... or x = 6 by A7,A27,FINSEQ_1:91;
+        hence thesis by A28,ENUMSET1:def 4;
+      end;
+      then rng val c= dom d1 by A20;
+      then val is_valid_wrt d1;
+      then
+A29:  loc,val,size are_correct_wrt d1 by A2,A3,A7,A26,FINSEQ_1:def 3;
+A30:  i1 in EN by ENUMSET1:def 4;
+A31:  s1 in EN by ENUMSET1:def 4;
+A32:  b1 in EN by ENUMSET1:def 4;
+A33:  dom Di = {d where d is NonatomicND of V,A: i1 in dom d}
+      by NOMIN_1:def 18;
+A34:  dom Dj = {d where d is NonatomicND of V,A: j1 in dom d}
+      by NOMIN_1:def 18;
+A35:  dom Dn = {d where d is NonatomicND of V,A: n1 in dom d}
+      by NOMIN_1:def 18;
+A36:  dom Ds = {d where d is NonatomicND of V,A: s1 in dom d}
+      by NOMIN_1:def 18;
+A37:  dom Db = {d where d is NonatomicND of V,A: b1 in dom d}
+      by NOMIN_1:def 18;
+A38:  dom Dc = {d where d is NonatomicND of V,A: c1 in dom d}
+      by NOMIN_1:def 18;
+A39:  dom P1 = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Di.d,i) in dom Q1 & d in dom Di}
+      by NOMIN_2:def 11;
+A40:  dom Q1 = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Dj.d,j) in dom R1 & d in dom Dj}
+      by NOMIN_2:def 11;
+A41:  dom R1 = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Dn.d,n) in dom S1 & d in dom Dn}
+      by NOMIN_2:def 11;
+A42:  dom S1 = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Ds.d,s) in dom T1 & d in dom Ds}
+      by NOMIN_2:def 11;
+A43:  dom T1 = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Db.d,b) in dom U1 & d in dom Db}
+      by NOMIN_2:def 11;
+A44:  dom U1 = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Dc.d,c) in dom inv & d in dom Dc}
+      by NOMIN_2:def 11;
+A45:  d1 in dom Di by A20,A30,A33;
+      then
+A46:  Di.d1 is TypeSCNominativeData of V,A by PARTFUN1:4,NOMIN_1:39;
+      reconsider Li = F.1 as NonatomicND of V,A by A26,Def6;
+      reconsider Lj = F.2 as NonatomicND of V,A by A26,Def6;
+      reconsider Ln = F.3 as NonatomicND of V,A by A26,Def6;
+      reconsider Ls = F.4 as NonatomicND of V,A by A26,Def6;
+      reconsider Lb = F.5 as NonatomicND of V,A by A26,Def6;
+      reconsider Lc = F.6 as NonatomicND of V,A by A26,Def6;
+A47:  F.1 = local_overlapping(V,A,d1,Di.d1,i) by Def4;
+A48:  F.(1+1) = local_overlapping(V,A,Li,Dj.Li,j) by A26,Def4;
+A49:  F.(2+1) = local_overlapping(V,A,Lj,Dn.Lj,n) by A26,Def4;
+A50:  F.(3+1) = local_overlapping(V,A,Ln,Ds.Ln,s) by A26,Def4;
+A51:  F.(4+1) = local_overlapping(V,A,Ls,Db.Ls,b) by A26,Def4;
+A52:  F.(5+1) = local_overlapping(V,A,Lb,Dc.Lb,c) by A26,Def4;
+      j1 in dom Li by A29,Th10;
+      then
+A53:  Li in dom Dj by A34;
+      n1 in dom Lj by A29,Th10;
+      then
+A54:  Lj in dom Dn by A35;
+A55:  s1 in dom Ln by A29,Th10;
+      then
+A56:  Ln in dom Ds by A36;
+A57:  b1 in dom Ls by A29,Th10;
+      then
+A58:  Ls in dom Db by A37;
+      dom inv = D by Def19;
+      then
+A59:  Lc in dom inv;
+      c1 in dom Lb by A29,Th10;
+      then Lb in dom Dc by A38;
+      then
+A60:  Lb in dom U1 by A44,A52,A59;
+A61:  Ls in dom T1 by A43,A51,A60,A58;
+      then
+A62:  Ln in dom S1 by A42,A56,A50;
+      then
+A63:  Lj in dom R1 by A41,A54,A49;
+      then
+A64:  Li in dom Q1 by A40,A53,A48;
+      hence
+A65:  d in dom P1 by A19,A39,A45,A47;
+A66:  Fibonacci_inv_pred A,loc,n0,Lc
+      proof
+        take Lc;
+        thus Lc = Lc;
+A67:    i in dom Lc by A29,Th9;
+A68:    j in dom Lc by A29,Th9;
+A69:    n in dom Lc by A29,Th9;
+A70:    s in dom Lc by A29,Th9;
+A71:    b in dom Lc by A29,Th9;
+        c in dom Lc by A29,Th9;
+        hence {i,j,n,s,b,c} c= dom Lc by A67,A68,A69,A70,A71,ENUMSET1:def 4;
+A72:    i <> s1 by A6;
+A73:    i <> b1 by A6;
+        thus Lc.j = 1 by A4,A5,A6,A22,A29,Th13;
+        thus Lc.n = n0 by A4,A5,A6,A23,A29,Th13;
+A74:    Ln.s1 = Li.s1 by A6,A29,Th11
+        .= 0 by A2,A3,A20,A24,A31,A46,A47,A72,NOMIN_5:3;
+A75:    Ls.b1 = Li.b1 by A6,A29,Th11
+        .= 1 by A2,A3,A20,A25,A32,A46,A47,A73,NOMIN_5:3;
+        take 0;
+        thus Lc.i = 0 by A4,A5,A6,A21,A29,Th13;
+        thus Lc.s = Ls.s by A4,A5,A29,Th12
+        .= Fib(0) by A2,A55,A50,A74,Th2,PRE_FF:1;
+        thus Lc.b = Lb.b by A4,A5,A29,Th12
+        .= Fib(0+1) by A2,A51,A57,A75,Th2,PRE_FF:1;
+      end;
+      thus P1.d = Q1.(F.1) by A19,A47,A65,NOMIN_2:35
+      .= R1.(F.2) by A48,A64,NOMIN_2:35
+      .= S1.(F.3) by A49,A63,NOMIN_2:35
+      .= T1.(F.4) by A50,A62,NOMIN_2:35
+      .= U1.(F.5) by A51,A61,NOMIN_2:35
+      .= inv.(F.6) by A52,A60,NOMIN_2:35
+      .= TRUE by A59,A66,Def19;
+    end;
+    then
+A76: <*I,asi,Q1*> is SFHT of D by A13,NOMIN_3:15;
+A77: <*PP_inversion(Q1),asj,R1*> is SFHT of D by NOMIN_4:16;
+A78: <*PP_inversion(R1),asn,S1*> is SFHT of D by NOMIN_4:16;
+A79: <*PP_inversion(S1),ass,T1*> is SFHT of D by NOMIN_4:16;
+A80: <*PP_inversion(T1),asb,U1*> is SFHT of D by NOMIN_4:16;
+     <*PP_inversion(U1),asc,inv*> is SFHT of D by NOMIN_4:16;
+     hence thesis by A18,A8,A9,A10,A12,A11,A76,A77,A78,A79,A80,Th3;
+   end;
+
+theorem Th17:
+  V is non empty & A is complex-containing & A is_without_nonatomicND_wrt V &
+  (for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.4 is_a_value_on T & loc/.6 is_a_value_on T) &
+  Seg 6 c= dom loc & loc|Seg 6 is one-to-one
+  implies
+  <* Fibonacci_inv(A,loc,n0),
+     Fibonacci_loop_body(A,loc),
+     Fibonacci_inv(A,loc,n0) *> is SFHT of ND(V,A)
+  proof
+    set i = loc/.1, j = loc/.2, n = loc/.3, s = loc/.4, b = loc/.5, c = loc/.6;
+    assume that
+A1: V is non empty and
+A2: A is complex-containing and
+A3: A is_without_nonatomicND_wrt V and
+A4: for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.4 is_a_value_on T & loc/.6 is_a_value_on T;
+    assume that
+A5: Seg 6 c= dom loc and
+A6: loc|Seg 6 is one-to-one;
+    set D = ND(V,A);
+    set EN = {i,j,n,s,b,c};
+    set inv = Fibonacci_inv(A,loc,n0);
+    set B = Fibonacci_loop_body(A,loc);
+    set Di = denaming(V,A,i);
+    set Dj = denaming(V,A,j);
+    set Dn = denaming(V,A,n);
+    set Ds = denaming(V,A,s);
+    set Db = denaming(V,A,b);
+    set Dc = denaming(V,A,c);
+    set Acs = addition(A,c,s);
+    set Aij = addition(A,i,j);
+    set AS1 = SC_assignment(Ds,c);
+    set AS2 = SC_assignment(Db,s);
+    set AS3 = SC_assignment(Acs,b);
+    set AS4 = SC_assignment(Aij,i);
+    now
+      let d be TypeSCNominativeData of V,A such that
+A7:   d in dom inv and
+A8:   inv.d = TRUE and
+A9:   d in dom B and
+A10:   B.d in dom inv;
+      Fibonacci_inv_pred A,loc,n0,d by A7,A8,Def19;
+      then consider d1 being NonatomicND of V,A such that
+A11:  d = d1 and
+A12:  EN c= dom d1 and
+A13:  d1.j = 1 and
+A14:  d1.n = n0 and
+A15:  ex I being Nat st I = d1.i & d1.s = Fib(I) & d1.b = Fib(I+1);
+A16:  i in EN by ENUMSET1:def 4;
+A17:  j in EN by ENUMSET1:def 4;
+A18:  n in EN by ENUMSET1:def 4;
+A19:  s in EN by ENUMSET1:def 4;
+A20:  b in EN by ENUMSET1:def 4;
+      consider I being Nat such that
+A21:  I = d1.i and
+A22:  d1.s = Fib(I) and
+A23:  d1.b = Fib(I+1) by A15;
+A24:  dom AS1 = dom Ds by NOMIN_2:def 7;
+A25:  dom AS2 = dom Db by NOMIN_2:def 7;
+      PP_composition(PP_composition(AS1,AS2),AS3) = PP_composition(AS2*AS1,AS3)
+        by PARTPR_2:def 1
+      .= AS3*(AS2*AS1) by PARTPR_2:def 1;
+      then
+A26:  B = AS4*(AS3*(AS2*AS1)) by PARTPR_2:def 1;
+A27:  AS3*AS2*AS1 = AS3*(AS2*AS1) by RELAT_1:36;
+A28:  B = AS4*(AS3*AS2*AS1) by A26,RELAT_1:36;
+      then
+A29:  d in dom(AS3*AS2*AS1) by A9,FUNCT_1:11;
+      then
+A30:  d in dom(AS2*AS1) by A27,FUNCT_1:11;
+      then
+A31:  (AS2*AS1).d = AS2.(AS1.d) by FUNCT_1:12;
+A32:  dom Di = {d where d is NonatomicND of V,A: i in dom d}
+      by NOMIN_1:def 18;
+A33:  dom Dj = {d where d is NonatomicND of V,A: j in dom d}
+      by NOMIN_1:def 18;
+A34:  dom Ds = {d where d is NonatomicND of V,A: s in dom d}
+      by NOMIN_1:def 18;
+A35:  dom Dc = {d where d is NonatomicND of V,A: c in dom d}
+      by NOMIN_1:def 18;
+A36:  d in dom AS1 by A29,FUNCT_1:11;
+      then reconsider Ad = Ds.d1 as TypeSCNominativeData of V,A
+      by A24,A11,PARTFUN1:4,NOMIN_1:39;
+      reconsider L1 = local_overlapping(V,A,d1,Ad,c) as NonatomicND of V,A
+      by NOMIN_2:9;
+A37:  AS1.d = L1 by A11,A36,NOMIN_2:def 7;
+      then
+A38:  L1 in dom AS2 by A30,FUNCT_1:11;
+      reconsider DbL1 = Db.L1 as TypeSCNominativeData of V,A
+      by A25,A38,PARTFUN1:4,NOMIN_1:39;
+      reconsider L2 = local_overlapping(V,A,L1,DbL1,s) as NonatomicND of V,A
+      by NOMIN_2:9;
+A39:  AS2.L1 = L2 by A38,NOMIN_2:def 7;
+A40:  dom L1 = {c} \/ dom d1 by A3,A1,NOMIN_4:4;
+A41:  dom L2 = dom L1 \/ {s} by A3,A1,A25,A38,A39,NOMIN_4:5;
+      c in {c} by TARSKI:def 1;
+      then
+A42:  c in dom L1 by A40,XBOOLE_0:def 3;
+      then
+A43:  c in dom L2 by A41,XBOOLE_0:def 3;
+      then
+A44:  L2 in dom Dc by A35;
+A45:  dom(addition(A)) = [:A,A:] by A2,FUNCT_2:def 1;
+      s in {s} by TARSKI:def 1;
+      then
+A46:  s in dom L2 by A41,XBOOLE_0:def 3;
+      then L2 in dom Ds by A34;
+      then L2 in dom Dc /\ dom Ds by A44,XBOOLE_0:def 4;
+      then
+A47:  L2 in dom <:Dc,Ds:> by FUNCT_3:def 7;
+      then
+A48:  <:Dc,Ds:>.L2 = [Dc.L2,Ds.L2] by FUNCT_3:def 7;
+      c is_a_value_on L2 & s is_a_value_on L2 by A4;
+      then [Dc.L2,Ds.L2] in [:A,A:] by ZFMISC_1:87;
+      then
+A49:  L2 in dom Acs by A47,A45,A48,FUNCT_1:11;
+      then reconsider AcsL2 = Acs.L2 as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+      reconsider L3 = local_overlapping(V,A,L2,AcsL2,b) as NonatomicND of V,A
+      by NOMIN_2:9;
+A50:  dom L3 = {b} \/ dom L2 by A1,A3,NOMIN_4:4;
+A51:  dom L2 = {s} \/ dom L1 by A1,A3,NOMIN_4:4;
+A52:  i in dom L1 by A12,A16,A40,XBOOLE_0:def 3;
+      then
+A53:  i in dom L2 by A51,XBOOLE_0:def 3;
+      then
+A54:  i in dom L3 by A50,XBOOLE_0:def 3;
+      then
+A55:  L3 in dom Di by A32;
+A56:  j in dom L1 by A12,A17,A40,XBOOLE_0:def 3;
+      then
+A57:  j in dom L2 by A51,XBOOLE_0:def 3;
+      then
+A58:  j in dom L3 by A50,XBOOLE_0:def 3;
+      then
+A59:  L3 in dom Dj by A33;
+      L3 in dom Di /\ dom Dj by A55,A59,XBOOLE_0:def 4;
+      then
+A60:  L3 in dom <:Di,Dj:> by FUNCT_3:def 7;
+      then
+A61:  <:Di,Dj:>.L3 = [Di.L3,Dj.L3] by FUNCT_3:def 7;
+      i is_a_value_on L3 & j is_a_value_on L3 by A4;
+      then [Di.L3,Dj.L3] in [:A,A:] by ZFMISC_1:87;
+      then
+A62:  L3 in dom Aij by A45,A60,A61,FUNCT_1:11;
+      then reconsider AijL3 = Aij.L3 as TypeSCNominativeData of V,A
+      by PARTFUN1:4,NOMIN_1:39;
+      reconsider L4 = local_overlapping(V,A,L3,AijL3,i) as NonatomicND of V,A
+      by NOMIN_2:9;
+A63:  dom L4 = {i} \/ dom L3 by A1,A3,NOMIN_4:4;
+A64:  d in dom(AS3*(AS2*AS1)) by A9,A26,FUNCT_1:11;
+      then L2 in dom AS3 by A31,A37,A39,FUNCT_1:11;
+      then
+A65:  AS3.L2 = L3 by NOMIN_2:def 7;
+A66:  (AS3*(AS2*AS1)).d = AS3.((AS2*AS1).d) by A64,FUNCT_1:12;
+      B = AS4*(AS3*AS2)*AS1 by A28,RELAT_1:36
+      .= AS4*AS3*AS2*AS1 by RELAT_1:36;
+      then AS1.d in dom(AS4*AS3*AS2) by A9,FUNCT_1:11;
+      then AS2.L1 in dom(AS4*AS3) by A37,FUNCT_1:11;
+      then AS3.L2 in dom AS4 by A39,FUNCT_1:11;
+      then
+A67:  L4 = AS4.L3 by A65,NOMIN_2:def 7
+      .= B.d by A65,A39,A37,A31,A66,A9,A26,FUNCT_1:12;
+      Fibonacci_inv_pred A,loc,n0,L4
+      proof
+        take L4;
+        thus L4 = L4;
+        i in {i} by TARSKI:def 1;
+        then
+A68:    i in dom L4 by A63,XBOOLE_0:def 3;
+A69:    j in dom L4 by A58,A63,XBOOLE_0:def 3;
+A70:    n in dom L1 by A12,A18,A40,XBOOLE_0:def 3;
+        then
+A71:    n in dom L2 by A51,XBOOLE_0:def 3;
+        then
+A72:    n in dom L3 by A50,XBOOLE_0:def 3;
+        then
+A73:    n in dom L4 by A63,XBOOLE_0:def 3;
+A74:    s in dom L3 by A46,A50,XBOOLE_0:def 3;
+        then
+A75:    s in dom L4 by A63,XBOOLE_0:def 3;
+A76:    b in dom L1 by A12,A20,A40,XBOOLE_0:def 3;
+        then b in dom L2 by A51,XBOOLE_0:def 3;
+        then
+A77:    b in dom L3 by A50,XBOOLE_0:def 3;
+        then
+A78:    b in dom L4 by A63,XBOOLE_0:def 3;
+        c in dom L3 by A43,A50,XBOOLE_0:def 3;
+        then c in dom L4 by A63,XBOOLE_0:def 3;
+        hence EN c= dom L4 by A68,A69,A73,A75,A78,ENUMSET1:def 4;
+A79:    L3.j = L2.j by A1,A3,A6,A57,A5,Th1,NOMIN_5:3
+        .= L1.j by A1,A3,A56,A5,A6,Th1,NOMIN_5:3
+        .= 1 by A1,A3,A12,A13,A17,A5,A6,Th1,NOMIN_5:3;
+        hence L4.j = 1 by A1,A3,A58,A5,A6,Th1,NOMIN_5:3;
+        thus L4.n = L3.n by A1,A3,A72,A5,A6,Th1,NOMIN_5:3
+        .= L2.n by A1,A3,A71,A5,A6,Th1,NOMIN_5:3
+        .= L1.n by A1,A3,A70,A5,A6,Th1,NOMIN_5:3
+        .= n0 by A1,A3,A12,A14,A18,A5,A6,Th1,NOMIN_5:3;
+        take I1 = I+1;
+A80:    L3.i = L2.i by A1,A3,A53,A5,A6,Th1,NOMIN_5:3
+        .= L1.i by A1,A3,A52,A5,A6,Th1,NOMIN_5:3
+        .= I by A1,A3,A12,A16,A21,A5,A6,Th1,NOMIN_5:3;
+        thus L4.i = Aij.L3 by A1,NOMIN_2:10
+        .= I1 by A2,A62,A54,A58,A79,A80,NOMIN_5:4;
+A81:    L2.s = L1.b by A1,A76,Th2
+        .= Fib(I1) by A1,A3,A23,A12,A20,A5,A6,Th1,NOMIN_5:3;
+        thus L4.s = L3.s by A1,A3,A74,A5,A6,Th1,NOMIN_5:3
+        .= Fib(I1) by A1,A3,A46,A81,A5,A6,Th1,NOMIN_5:3;
+A82:    L2.c = L1.c by A1,A3,A42,A5,A6,Th1,NOMIN_5:3
+        .= Fib(I) by A1,A12,A19,A22,Th2;
+        thus L4.b = L3.b by A1,A3,A77,A5,A6,Th1,NOMIN_5:3
+        .= Acs.L2 by A1,NOMIN_2:10
+        .= Fib(I)+Fib(I1) by A2,A49,A46,A81,A43,A82,NOMIN_5:4
+        .= Fib(I1+1) by PRE_FF:1;
+      end;
+      hence inv.(B.d) = TRUE by A10,A67,Def19;
+    end;
+    hence thesis by NOMIN_3:28;
+  end;
+
+theorem Th18:
+  V is non empty & A is complex-containing & A is_without_nonatomicND_wrt V &
+  (for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.4 is_a_value_on T & loc/.6 is_a_value_on T) &
+  Seg 6 c= dom loc & loc|Seg 6 is one-to-one
+  implies
+  <* Fibonacci_inv(A,loc,n0),
+     Fibonacci_main_loop(A,loc),
+     PP_and(Equality(A,loc/.1,loc/.3),Fibonacci_inv(A,loc,n0)) *>
+  is SFHT of ND(V,A)
+  proof
+    set i = loc/.1, j = loc/.2, n = loc/.3, s = loc/.4, b = loc/.5, c = loc/.6;
+    set D = ND(V,A);
+    set inv = Fibonacci_inv(A,loc,n0);
+    set B = Fibonacci_loop_body(A,loc);
+    set E = Equality(A,i,n);
+    set N = PP_inversion(inv);
+    assume that
+A1: V is non empty & A is complex-containing &
+    A is_without_nonatomicND_wrt V &
+    (for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.4 is_a_value_on T & loc/.6 is_a_value_on T) and
+A2: Seg 6 c= dom loc and
+A3: loc|Seg 6 is one-to-one;
+    <*inv,B,inv*> is SFHT of D by A1,A2,A3,Th17;
+    then
+A4: <*PP_and(PP_not(E),inv),B,inv*> is SFHT of D by NOMIN_3:3,15;
+    <*N,B,inv*> is SFHT of D by NOMIN_3:19;
+    then <*PP_and(PP_not(E),N),B,inv*> is SFHT of D by NOMIN_3:3,15;
+    hence thesis by A4,NOMIN_3:26;
+  end;
+
+theorem Th19:
+  for val being 6-element FinSequence holds
+  V is non empty & A is complex-containing & A is_without_nonatomicND_wrt V &
+   (for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.4 is_a_value_on T & loc/.6 is_a_value_on T) &
+   Seg 6 c= dom loc & loc|Seg 6 is one-to-one & loc,val are_different_wrt 6
+  implies
+  <* valid_Fibonacci_input(V,A,val,n0),
+     Fibonacci_main_part(A,loc,val),
+     PP_and(Equality(A,loc/.1,loc/.3),Fibonacci_inv(A,loc,n0)) *>
+  is SFHT of ND(V,A)
+  proof
+    let val be 6-element FinSequence;
+    set i = loc/.1, j = loc/.2, n = loc/.3, s = loc/.4, b = loc/.5, c = loc/.6;
+    set i1 = val.1, j1 = val.2, n1 = val.3, s1 = val.4, b1 = val.5, c1 = val.6;
+    set D = ND(V,A);
+    set p = valid_Fibonacci_input(V,A,val,n0);
+    set f = initial_assignments(A,loc,val,6);
+    set g = Fibonacci_main_loop(A,loc);
+    set q = Fibonacci_inv(A,loc,n0);
+    set r = PP_and(Equality(A,i,n),Fibonacci_inv(A,loc,n0));
+    assume that
+A1: V is non empty & A is complex-containing & A is_without_nonatomicND_wrt V &
+    (for T holds i is_a_value_on T & j is_a_value_on T &
+    s is_a_value_on T & c is_a_value_on T) and
+A2: Seg 6 c= dom loc and
+A3: loc|Seg 6 is one-to-one and
+A4: loc,val are_different_wrt 6;
+A5: <*p,f,q*> is SFHT of D by A1,A2,A3,A4,Th16;
+A6: <*q,g,r*> is SFHT of D by A1,A2,A3,Th18;
+    <*PP_inversion(q),g,r*> is SFHT of D by NOMIN_3:19;
+    hence thesis by A5,A6,NOMIN_3:25;
+  end;
+
+theorem Th20:
+  V is non empty & A is_without_nonatomicND_wrt V &
+  (for T holds loc/.1 is_a_value_on T & loc/.3 is_a_value_on T)
+  implies
+  PP_and(Equality(A,loc/.1,loc/.3),Fibonacci_inv(A,loc,n0))
+  ||=
+  SC_Psuperpos(valid_Fibonacci_output(A,z,n0),denaming(V,A,loc/.4),z)
+  proof
+    set i = loc/.1, j = loc/.2, n = loc/.3, s = loc/.4, b = loc/.5, c = loc/.6;
+    set D = ND(V,A);
+    set inv = Fibonacci_inv(A,loc,n0);
+    set Di = denaming(V,A,i);
+    set Dn = denaming(V,A,n);
+    set Ds = denaming(V,A,s);
+    set Dz = denaming(V,A,z);
+    set ass = SC_assignment(Ds,z);
+    set out = valid_Fibonacci_output(A,z,n0);
+    set p = SC_Psuperpos(out,Ds,z);
+    set E = Equality(A,i,n);
+    set EM = {i,j,n,s,b,c};
+    assume that
+A1: V is non empty & A is_without_nonatomicND_wrt V and
+A2: for T holds i is_a_value_on T & n is_a_value_on T;
+    let d be Element of D such that
+A3: d in dom PP_and(E,inv) and
+A4: (PP_and(E,inv)).d = TRUE;
+A5: dom p = {d where d is TypeSCNominativeData of V,A:
+      local_overlapping(V,A,d,Ds.d,z) in dom out & d in dom Ds}
+      by NOMIN_2:def 11;
+A6: dom out = {d where d is TypeSCNominativeData of V,A: d in dom Dz}
+    by Def17;
+A7: dom Ds = {d where d is NonatomicND of V,A: s in dom d} by NOMIN_1:def 18;
+A8: dom Dz = {d where d is NonatomicND of V,A: z in dom d} by NOMIN_1:def 18;
+A9: d in dom E by A3,A4,PARTPR_1:23;
+A10: d in dom inv by A3,A4,PARTPR_1:23;
+A11: dom E = dom Di /\ dom Dn by A2,NOMIN_4:11;
+     then
+A12: d in dom Di by A9,XBOOLE_0:def 4;
+     inv.d = TRUE by A3,A4,PARTPR_1:23;
+     then Fibonacci_inv_pred A,loc,n0,d by A10,Def19;
+     then consider d1 being NonatomicND of V,A such that
+A13: d = d1 and
+A14: EM c= dom d1 and
+     d1.j = 1 and
+A15: d1.n = n0 and
+A16: ex I being Nat st I = d1.i & d1.s = Fib(I) & d1.b = Fib(I+1);
+A17: i in EM by ENUMSET1:def 4;
+A18: n in EM by ENUMSET1:def 4;
+A19: s in EM by ENUMSET1:def 4;
+     reconsider dd = d as TypeSCNominativeData of V,A by NOMIN_1:39;
+     set L = local_overlapping(V,A,dd,Ds.dd,z);
+A20: dd in dom Ds by A7,A13,A14,A19;
+     then Ds.d1 in D by A13,PARTFUN1:4;
+     then
+A21: ex d2 being TypeSCNominativeData of V,A st Ds.d1 = d2;
+     then
+A22: L in dom Dz by A1,A13,NOMIN_4:6;
+     then
+A23: L in dom out by A6;
+     hence
+A24: d in dom p by A5,A20;
+     valid_Fibonacci_output_pred A,z,n0,L
+     proof
+       consider I being Nat such that
+A25:   I = d1.i and
+A26:   d1.s = Fib(I) and
+       d1.b = Fib(I+1) by A16;
+A27:   ex d being NonatomicND of V,A st L = d & z in dom d by A8,A22;
+       then reconsider dlo = L as NonatomicND of V,A;
+       take dlo;
+       thus L = dlo;
+       thus z in dom dlo by A27;
+A28:   i is_a_value_on dd by A2;
+A29:   n is_a_value_on dd by A2;
+A30:   dom <:Di,Dn:> = dom Di /\ dom Dn by FUNCT_3:def 7;
+       d in dom <:Di,Dn:> by A9,A11,FUNCT_3:def 7;
+       then
+A31:   E.d = (Equality(A)).(<:Di,Dn:>.d) by FUNCT_1:13;
+A32:   d in dom Dn by A9,A11,XBOOLE_0:def 4;
+A33:   <:Di,Dn:>.d = [Di.d,Dn.d] by A9,A11,A30,FUNCT_3:def 7;
+A34:   Di.d = denaming(i,d1) by A13,A12,NOMIN_1:def 18
+       .= d1.i by A14,A17,NOMIN_1:def 12;
+A35:   Dn.d = denaming(n,d1) by A13,A32,NOMIN_1:def 18
+       .= d1.n by A14,A18,NOMIN_1:def 12;
+A36:   Ds.d = denaming(s,d1) by A20,A13,NOMIN_1:def 18
+       .= d1.s by A14,A19,NOMIN_1:def 12;
+       (Equality(A)).(Di.d,Dn.d) <> FALSE by A3,A4,A31,A33,PARTPR_1:23;
+       then Di.d = Dn.d by A28,A29,NOMIN_4:def 9;
+       hence dlo.z = Fib(n0) by A1,A13,A15,A21,A25,A26,A34,A35,A36,NOMIN_2:10;
+     end;
+     hence TRUE = out.L by A23,Def17
+     .= p.d by A24,NOMIN_2:35;
+   end;
+
+theorem Th21:
+  V is non empty & A is_without_nonatomicND_wrt V &
+  (for T holds loc/.1 is_a_value_on T & loc/.3 is_a_value_on T)
+  implies
+  <* PP_and(Equality(A,loc/.1,loc/.3),Fibonacci_inv(A,loc,n0)),
+     SC_assignment(denaming(V,A,loc/.4),z),
+     valid_Fibonacci_output(A,z,n0) *> is SFHT of ND(V,A)
+  proof
+    <*SC_Psuperpos(valid_Fibonacci_output(A,z,n0),denaming(V,A,loc/.4),z),
+      SC_assignment(denaming(V,A,loc/.4),z),
+      valid_Fibonacci_output(A,z,n0)*> is SFHT of ND(V,A) by NOMIN_3:29;
+    hence thesis by Th20,NOMIN_3:15;
+  end;
+
+theorem Th22:
+  (for T holds loc/.1 is_a_value_on T & loc/.3 is_a_value_on T)
+  implies
+  <* PP_inversion(PP_and(Equality(A,loc/.1,loc/.3),Fibonacci_inv(A,loc,n0))),
+     SC_assignment(denaming(V,A,loc/.4),z),
+     valid_Fibonacci_output(A,z,n0) *> is SFHT of ND(V,A)
+  proof
+    set i = loc/.1, j = loc/.2, n = loc/.3, s = loc/.4, b = loc/.5, c = loc/.6;
+    set D = ND(V,A);
+    set inv = Fibonacci_inv(A,loc,n0);
+    set O = valid_Fibonacci_output(A,z,n0);
+    set Di = denaming(V,A,i);
+    set Dn = denaming(V,A,n);
+    set Ds = denaming(V,A,s);
+    set g = SC_assignment(Ds,z);
+    set E = Equality(A,i,n);
+    set q = PP_and(E,inv);
+    set N = PP_inversion(q);
+    assume
+A1: for T holds i is_a_value_on T & n is_a_value_on T;
+    now
+      let d be TypeSCNominativeData of V,A such that
+A2:   d in dom N and
+      N.d = TRUE and
+      d in dom g and
+      g.d in dom O;
+A3:   dom q = {d where d is Element of D:
+      d in dom E & E.d = FALSE or d in dom inv & inv.d = FALSE
+      or d in dom E & E.d = TRUE & d in dom inv & inv.d = TRUE} by PARTPR_1:16;
+A4:   dom Di = {d where d is NonatomicND of V,A: i in dom d} by NOMIN_1:def 18;
+A5:   dom Dn = {d where d is NonatomicND of V,A: n in dom d} by NOMIN_1:def 18;
+A6:   dom E = dom Di /\ dom Dn by A1,NOMIN_4:11;
+A7:   not d in dom q by A2,PARTPR_2:9;
+      dom E c= dom q by PARTPR_2:3;
+      then not d in dom E by A2,PARTPR_2:9;
+      then
+A8:   not d in dom Di or not d in dom Dn by A6,XBOOLE_0:def 4;
+      dom inv = D by Def19;
+      then
+A9:   d in dom inv;
+      then inv.d <> FALSE by A3,A7;
+      then
+A10:  Fibonacci_inv_pred A,loc,n0,d by A9,Def19;
+      i in {i,j,n,s,b,c} & n in {i,j,n,s,b,c} by ENUMSET1:def 4;
+      hence O.(g.d) = TRUE by A4,A5,A8,A10;
+    end;
+    hence thesis by NOMIN_3:28;
+  end;
+
+::$N Partial correctness of a Fibonacci algorithm
+theorem
+  for val being 6-element FinSequence holds
+  V is non empty & A is complex-containing & A is_without_nonatomicND_wrt V &
+   (for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.3 is_a_value_on T & loc/.4 is_a_value_on T & loc/.6 is_a_value_on T) &
+   Seg 6 c= dom loc & loc|Seg 6 is one-to-one &
+   loc,val are_different_wrt 6
+  implies
+  <* valid_Fibonacci_input(V,A,val,n0),
+     Fibonacci_program(A,loc,val,z),
+     valid_Fibonacci_output(A,z,n0) *>
+  is SFHT of ND(V,A)
+  proof
+    let val be 6-element FinSequence;
+    set D = ND(V,A);
+    set p = valid_Fibonacci_input(V,A,val,n0);
+    set f = Fibonacci_main_part(A,loc,val);
+    set g = SC_assignment(denaming(V,A,loc/.4),z);
+    set q = valid_Fibonacci_output(A,z,n0);
+    set inv = Fibonacci_inv(A,loc,n0);
+    set E = Equality(A,loc/.1,loc/.3);
+    assume that
+A1: V is non empty & A is complex-containing & A is_without_nonatomicND_wrt V
+    and
+A2: (for T holds loc/.1 is_a_value_on T & loc/.2 is_a_value_on T &
+    loc/.3 is_a_value_on T & loc/.4 is_a_value_on T & loc/.6 is_a_value_on T);
+    assume that
+A3: Seg 6 c= dom loc and
+A4: loc|Seg 6 is one-to-one and
+A5: loc,val are_different_wrt 6;
+A6: <*p,f,PP_and(E,inv)*> is SFHT of D by A1,A2,A3,A4,A5,Th19;
+A7: <*PP_and(E,inv),g,q*> is SFHT of D by A1,A2,Th21;
+    <*PP_inversion(PP_and(E,inv)),g,q*> is SFHT of D by A2,Th22;
+    hence thesis by A6,A7,NOMIN_3:25;
+  end;

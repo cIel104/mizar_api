@@ -1,0 +1,1048 @@
+:: Pseudo-canonical Formulae are Classical
+::  by Marco B. Caminati and Artur Korni{\l}owicz
+:: 
+:: Received May 25, 2014
+:: Copyright (c) 2014-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, NUMBERS, NAT_1, RELAT_1,
+      FUNCT_1, XCMPLX_0, PARTFUN1, PBOOLE, FUNCT_4, OPOSET_1, FUNCOP_1,
+      FOMODEL0, MCART_1, ABIAN, HILBERT1, HILBERT2, HILBERT3, XBOOLEAN,
+      QC_LANG1, FUNCT_2, CARD_1, RELAT_2, HILBERT4;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ZFMISC_1, ORDINAL1, NUMBERS, RELAT_1,
+      FUNCT_1, RELSET_1, PARTFUN1, XXREAL_0, PBOOLE, FUNCT_4, PARTIT_2,
+      XTUPLE_0, HILBERT1, HILBERT2, FUNCT_2, ABIAN, HILBERT3, FUNCT_3,
+      DOMAIN_1, RELAT_2, XCMPLX_0, FUNCOP_1, BINOP_1, FOMODEL0;
+ constructors SETFAM_1, FUNCT_4, PARTIT_2, BORSUK_7, ABIAN, HILBERT1, HILBERT2,
+      FUNCT_2, MSUALG_3, RELAT_2, HILBERT3, FOMODEL0, NAT_D, FUNCT_3, RELSET_1,
+      BINOP_1;
+ registrations FOMODEL0, HILBERT3, FUNCT_1, FUNCT_2, FUNCT_4, ORDINAL1,
+      RELAT_1, RELAT_2, RELSET_1, SUBSET_1, XBOOLE_0, XTUPLE_0, ZFMISC_1,
+      CARD_1;
+ requirements NUMERALS, SUBSET, BOOLE;
+ definitions TARSKI, ABIAN, PARTIT_2, FUNCT_1;
+ equalities BINOP_1, RELAT_1, FOMODEL0, FUNCOP_1, FUNCT_4, HILBERT3;
+ expansions RELAT_1;
+ theorems TARSKI, FUNCT_1, FUNCT_2, RELAT_1, ZFMISC_1, XBOOLE_1, XBOOLE_0,
+      XTUPLE_0, PARTFUN1, FUNCOP_1, PARTIT_2, ABIAN, HILBERT3, CARD_1, FUNCT_3,
+      GRFUNC_1, FUNCT_4, ORDINAL1, PBOOLE, FOMODEL0;
+ schemes ALTCAT_2, HILBERT2, FOMODEL0;
+
+begin ::# Preliminaries about injectivity, involutiveness, fixpoints
+
+set sw = (0,1)-->(1,0);
+set I = id 1;
+
+reserve
+   a,b,c,x,y,z,A,B,C,X,Y for set,
+   f,g for Function,
+   V for SetValuation,
+   P for Permutation of V,
+   p,q,r,s for Element of HP-WFF,
+   n for Element of NAT;
+
+registration
+  let X,Y;
+  let f be Relation of X,Y;
+  reduce (id X) * f to f;
+  reducibility
+  proof
+    dom f c= X;
+    hence (id X)*f = f by RELAT_1:51;
+  end;
+  reduce f * (id Y) to f;
+  reducibility
+  proof
+    rng f c= Y;
+    hence thesis by RELAT_1:53;
+  end;
+end;
+
+theorem Th4:
+  for f,g being one-to-one Function st f" = g" holds f = g
+  proof
+    let f,g be one-to-one Function;
+    f"" = f & g"" = g by FUNCT_1:43;
+    hence thesis;
+  end;
+
+registration
+  cluster involutive for Function;
+  existence
+  proof
+    take id 1;
+    thus thesis;
+  end;
+  let A;
+  cluster involutive for Permutation of A;
+  existence
+  proof
+    take id A;
+    thus thesis;
+  end;
+end;
+
+theorem Th7:
+  for f being involutive Function st rng f c= dom f holds
+  f*f = id dom f
+  proof
+    let f be involutive Function;
+    assume rng f c= dom f;
+    then
+A1: dom(f*f) = dom id dom f by RELAT_1:27;
+    now
+      let x be object;
+      assume
+A2:   x in dom(f*f);
+      hence (f*f).x = f.(f.x) by FUNCT_1:12
+      .= x by A1,A2,PARTIT_2:def 2
+      .= (id dom f).x by A1,A2,FUNCT_1:18;
+    end;
+    hence thesis by A1, FUNCT_1:2;
+  end;
+
+theorem Th8:
+  for f being Function st f*f = id dom f holds f is involutive
+  proof
+    let f be Function such that
+A1: f*f = id dom f;
+    let x be set;
+    assume
+A2: x in dom f;
+    hence f.(f.x) = (f*f).x by FUNCT_1:13
+    .= x by A1,A2,FUNCT_1:18;
+  end;
+
+theorem Th9:
+  for f being involutive Function of A,A holds f*f = id A
+  proof
+    let f be involutive Function of A,A;
+A1: dom f = A by FUNCT_2:52;
+    then rng f c= dom f;
+    hence thesis by A1,Th7;
+  end;
+
+theorem Th10:
+  for f being Function of A,A st f*f = id A holds f is involutive
+  proof
+    let f be Function of A,A;
+    dom f = A by FUNCT_2:52;
+    hence thesis by Th8;
+  end;
+
+registration
+  cluster involutive -> one-to-one for Function;
+  coherence
+  proof
+    let f be Function;
+    assume
+A1: f is involutive;
+    let x1,x2 be object;
+    assume x1 in dom f & x2 in dom f;
+    then f.(f.x1) = x1 & f.(f.x2) = x2 by A1,PARTIT_2:def 2;
+    hence thesis;
+  end;
+end;
+
+registration
+  let A;
+  let f be involutive Permutation of A;
+  cluster f" -> involutive;
+  coherence
+  proof
+    set h = f";
+    h" = f by FUNCT_1:43;
+    then (h*h)" = f*f by FUNCT_1:44
+    .= id A by Th9
+    .= (id A)" by FUNCT_1:45;
+    hence thesis by Th4,Th10;
+  end;
+end;
+
+registration
+  let n be non zero Nat;
+  cluster (0,n) --> (n,0) -> without_fixpoints;
+  coherence
+  proof
+    set f = (0,n) --> (n,0);
+    assume f is with_fixpoint;
+    then consider x being object such that
+A1: x is_a_fixpoint_of f by ABIAN:def 5;
+A2: x in dom f by A1,ABIAN:def 3;
+A3: f.x = x by A1,ABIAN:def 3;
+    dom f = {0,n} by FUNCT_4:62;
+    then x = 0 or x = n by A2,TARSKI:def 2;
+    hence contradiction by A3,FUNCT_4:63;
+  end;
+end;
+
+registration
+  let n be non zero Nat, z be zero Nat;
+  cluster fixpoints ((z,n) --> (n,z)) -> empty;
+  coherence;
+end;
+
+registration
+  let X be non empty set;
+  cluster non empty involutive for Permutation of X;
+  existence proof take id X; thus thesis; end;
+end;
+
+registration
+  let A,B;
+  let f be involutive Function of A,A;
+  let g be involutive Function of B,B;
+  cluster [:f,g:] -> involutive;
+  coherence
+  proof
+    let x;
+    set h = [:f,g:];
+A1: dom h = [:dom f,dom g:] by FUNCT_3:def 8;
+    assume x in dom h;
+    then consider a,b being object such that
+A2: a in dom f and
+A3: b in dom g and
+A4: x = [a,b] by A1,ZFMISC_1:def 2;
+A5: f.(f.a) = a & g.(g.b) = b by A2,A3,PARTIT_2:def 2;
+A6: dom f = A & dom g = B by FUNCT_2:52;
+A7: f.a in rng f & g.b in rng g by A2,A3,FUNCT_1:def 3;
+    h.(a,b) = [f.a,g.b] by A2,A3,FUNCT_3:def 8;
+    hence h.(h.x) = h.(f.a,g.b) by A4
+    .= x by A4,A5,A6,A7,FUNCT_3:def 8;
+  end;
+end;
+
+registration
+  let A,B be non empty set;
+  let f be involutive Permutation of A, g be involutive Permutation of B;
+  cluster f => g -> involutive;
+  coherence
+  proof
+    set h = f=>g;
+    let x be Element of Funcs(A,B);
+A1: f"*f" = id A & g*g = id B by Th9;
+    thus h.(h.x) = h.(g*x*f") by HILBERT3:def 1
+    .= g*(g*x*f")*f" by HILBERT3:def 1
+    .= g*(g*x)*f"*f" by RELAT_1:36
+    .= g*g*x*f"*f" by RELAT_1:36
+    .= x*id A by A1,RELAT_1:36
+    .= x;
+  end;
+end;
+
+begin ::# Facts about Perm's fixed points
+
+theorem Th14:
+  x is_a_fixpoint_of Perm(P,q) implies
+  SetVal(V,p) --> x is_a_fixpoint_of Perm(P,p=>q)
+  proof
+    assume
+A1: x is_a_fixpoint_of Perm(P,q);
+    set F = SetVal(V,p) --> x;
+A2: dom Perm(P,p=>q) = SetVal(V,p=>q) by FUNCT_2:def 1;
+A3: SetVal(V,p=>q) = Funcs(SetVal(V,p),SetVal(V,q)) by HILBERT3:32;
+    x in dom Perm(P,q) by A1,ABIAN:def 3;
+    then
+A4: F is Function of SetVal(V,p),SetVal(V,q) by FUNCOP_1:46;
+    hence
+A5: F in dom Perm(P,p=>q) by A2,A3,FUNCT_2:8;
+A6: Perm(P,p=>q) = Perm(P,p)=>Perm(P,q) by HILBERT3:36;
+    Perm(P,p=>q).F in SetVal(V,p=>q) by A5,FUNCT_2:5;
+    then
+A7: dom (Perm(P,p=>q).F) = SetVal(V,p) by A3,FUNCT_2:92;
+    now
+      let z be object such that
+A8:   z in dom (Perm(P,p=>q).F);
+      (Perm(P,p)=>Perm(P,q)).F =
+      Perm(P,q)*F*Perm(P,p)" by A4,HILBERT3:def 1;
+      hence Perm(P,p=>q).F.z = (Perm(P,q)*F).((Perm(P,p)").z)
+      by A6,A8,FUNCT_1:12
+      .= Perm(P,q).(F.(Perm(P,p)".z)) by A7,A8,FUNCT_2:5,15
+      .= Perm(P,q).x by A7,A8,FUNCT_2:5,FUNCOP_1:7
+      .= x by A1,ABIAN:def 3;
+    end;
+    hence thesis by A7,FUNCOP_1:11;
+  end;
+
+theorem Lm2:
+  Perm(P,q) is with_fixpoint implies Perm(P,p=>q) is with_fixpoint
+  proof
+    given x being object such that
+A1: x is_a_fixpoint_of Perm(P,q);
+    reconsider xx=x as set by TARSKI:1;
+    take SetVal(V,p) --> xx;
+    thus thesis by A1,Th14;
+  end;
+
+theorem Lm3:
+  Perm(P,p) is with_fixpoint & Perm(P,q) is without_fixpoints implies
+  Perm(P,p=>q) is without_fixpoints
+  proof
+    given x1 being object such that
+A1: x1 is_a_fixpoint_of Perm(P,p);
+    reconsider xx1=x1 as set by TARSKI:1;
+    assume
+A2: for x2 being object holds not x2 is_a_fixpoint_of Perm(P,q);
+    let x be object;
+    assume
+A3: x is_a_fixpoint_of Perm(P,p=>q);
+A4: x in dom Perm(P,p=>q) by A3,ABIAN:def 3;
+    SetVal(V,p=>q) = Funcs(SetVal(V,p),SetVal(V,q)) by HILBERT3:32;
+    then consider f being Function such that
+A5: x = f and
+    dom f = SetVal(V,p) & rng f c= SetVal(V,q) by A4,FUNCT_2:def 2;
+    f.xx1 is_a_fixpoint_of Perm(P,q) by A3,A1,A5,HILBERT3:40;
+    hence contradiction by A2;
+  end;
+
+begin
+::# Axiom of choice in functional form via Fr\{ae}nkel operator
+::# It is used to arbitrarily partition the field of a function f
+::# into three parts, one of which is made of the fixpoints.
+::# We will use this construction in Lm100 for the case of f
+::# being a permutation, hence some elementary properties are shown
+::# for that case.
+
+definition
+  let X be set;
+  func ChoiceOn X -> set equals
+  {[x, the Element of x] where x is Element of X\{{}}: x in X\{{}}};
+  coherence;
+end;
+
+registration
+  let X be set;
+  cluster ChoiceOn X -> Relation-like Function-like;
+  coherence
+  proof
+    deffunc F(set) = the Element of $1;
+    defpred P[set] means $1 in X\{{}};
+    {[x,F(x)] where x is Element of X\{{}}:P[x]} is Function
+    from FOMODEL0:sch 3;
+    hence thesis;
+  end;
+end;
+
+Lm9: (a in dom ChoiceOn X implies (ChoiceOn X).a in a)
+& dom ChoiceOn X = X\{{}}
+proof
+set f=ChoiceOn X, E={{}}, LH=dom f, RH=X\E;
+A1: x in LH implies (x in RH & f.x in x)
+proof
+  assume x in LH; then
+  [x,f.x] in f by FUNCT_1:def 2; then
+  consider x1 being Element of RH such that
+  B0: [x,f.x]=[x1,the Element of x1] & x1 in RH;
+  B1: x= [x1,the Element of x1]`1 by B0 .= x1;
+  hence x in RH by B0; not x1 in {{}} by B0, XBOOLE_0:def 5; then
+  reconsider xx1=x1 as non empty set by TARSKI:def 1;
+  f.x=[x1,the Element of x1]`2 by B0 .= the Element of xx1;
+  hence thesis by B1;
+end;
+hence a in LH implies f.a in a;
+for x being object holds x in LH implies x in RH by A1; then
+A2: LH c= RH by TARSKI:def 3;
+now
+  let x be object; assume AA: x in RH;
+  reconsider xx = x as set by TARSKI:1;
+  [x,the Element of xx] in f by AA;
+  hence x in LH by XTUPLE_0:def 12;
+end; then
+RH c= LH by TARSKI:def 3; hence
+LH=RH by XBOOLE_0:def 10, A2;
+end;
+
+definition
+::# When f is a permutation, call each {x, f.x} a switchpair.
+::# In that case, FieldCover
+::# covers the permuted set with the set of (unordered) switchpairs.
+  let f;
+  func FieldCover f -> set equals
+  {{x,f.x} where x is Element of dom f: x in dom f};
+  coherence;
+end;
+
+definition
+::# When f is a permutation, we arbitrarily choose one element of the
+::# switchpair.
+::# Except that we are avoiding fixpoints:
+::# switchpairs become singletons
+::# exactly in the case of fixpoints,
+::# hence the latter never belong to SomePoints.
+  let f;
+  func SomePoints f -> set equals
+  (field f) \ rng ChoiceOn FieldCover f;
+  coherence;
+end;
+
+definition
+::# Again, we restrict our comments to the case of f being a permutation.
+::# Then, by construction, we are splitting its domain into three subsets:
+::# that of fixpoints, and two arbitrary "halves"
+::# (called SomePoints and OtherPoints) of the remaining points.
+  let f;
+  func OtherPoints f -> set equals
+  ((field f) \ (fixpoints f)) \ (SomePoints f);
+  coherence;
+end;
+
+registration
+let g;
+cluster (OtherPoints g) /\ SomePoints g -> empty;
+coherence
+proof
+  set S=SomePoints g;
+  ((field g\fixpoints g)\S)/\(S/\S)={}; hence thesis;
+end;
+end;
+
+Lm23: f is involutive implies f.:SomePoints f c= OtherPoints f
+proof
+set F=FieldCover f,
+A1=SomePoints f,
+A2=OtherPoints f,
+B1=f.:A1,
+ch=ChoiceOn F,
+A=dom f,
+FP=fixpoints f;
+B1 \ rng f = {} &
+  A2 \+\ ((field f \FP qua Subset of field f) /\ rng ch)={}; then
+B4: B1 c= rng f & A2= (field f \ FP) /\ rng ch by FOMODEL0:29;
+assume
+B2: f is involutive;
+let y be object; assume
+B3: y in B1; then
+consider x being object such that
+B0: x in A & x in A1 & y=f.x by FUNCT_1:def 6;
+set X={x,f.x};
+X in F & not X in {{}} by B0; then
+X in F\{{}} by XBOOLE_0:def 5; then
+B1: X in dom ch by Lm9; then
+ch.X in rng ch & not x in rng ch by B0, XBOOLE_0:def 5, FUNCT_1:def 3;
+then ch.X <> x & ch.X in X by B1, Lm9; then
+ch.X=y & x<>f.x & f.y=x by B0, B2, TARSKI:def 2, PARTIT_2:def 2; then
+y in rng ch & not y is_a_fixpoint_of f by B1, FUNCT_1:def 3, ABIAN:def 3; then
+y in rng ch & y in rng f null dom f & not y in FP by FOMODEL0:69, B3, B4; then
+y in (field f \ FP) & y in rng ch by XBOOLE_0:def 5;
+hence y in A2 by B4, XBOOLE_0:def 4;
+end;
+
+Lm24: f is involutive implies f.:OtherPoints f c= SomePoints f
+proof
+set F=FieldCover f,
+S=SomePoints f,
+O=OtherPoints f,
+ch=ChoiceOn F,
+A=field f,
+FP=fixpoints f,
+E={{}};
+assume
+B5: f is involutive;
+let y be object;
+assume
+B7: y in f.:O; then
+consider x being object such that
+B0: x in dom f & x in O & y=f.x by FUNCT_1:def 6;
+reconsider xx=x as set by TARSKI:1;
+f.:O \ rng f = {}; then
+f.:O c= rng f & rng f null dom f c= A by FOMODEL0:29; then
+B8: y in A by B7, TARSKI:def 3;
+O \+\ (A\FP)/\rng ch={}; then
+B66: x in (A\FP) /\ rng ch by B0, FOMODEL0:29;
+consider X1 being object such that
+B1: X1 in dom ch & x=ch.X1 by B66, FUNCT_1:def 3;
+X1 in F\E by B1, Lm9; then
+X1 in F; then
+consider x1 being Element of dom f such that
+B2: X1={x1,f.x1} & x1 in dom f;
+B3: {x,f.x}={x1,f.x1} by FOMODEL0:70, B5, B2,B1,Lm9;
+f.x in rng ch implies x in FP
+proof
+  assume f.x in rng ch; then
+  consider X2 being object such that
+  C0: X2 in dom ch & f.x=ch.X2 by FUNCT_1:def 3;
+  reconsider X22=X2 as set by TARSKI:1;
+  X2 in F\E by C0, Lm9; then
+  X2 in F; then
+  consider x2 being Element of dom f such that
+  C1: X2={x2,f.x2} & x2 in dom f;
+  f.x in X22 by C0,Lm9; then
+  ch.X1=ch.X2 by B3,B2,C1,FOMODEL0:71,B5,B0; then
+  xx is_a_fixpoint_of f by C0, B0, B1, ABIAN:def 3; hence
+  thesis by FOMODEL0:69;
+end;
+hence y in S by B0, B8, XBOOLE_0:def 5;
+end;
+
+Lm30: f is involutive & rng f c= dom f implies
+(f.:OtherPoints f = SomePoints f & f.:SomePoints f = OtherPoints f)
+proof
+assume f is involutive; then
+reconsider ff=f as involutive Function;
+set D=dom ff,
+C=rng ff,
+S=SomePoints ff,
+O=OtherPoints ff,
+F=fixpoints ff,
+I=id D;
+reconsider g=ff*ff as Function-like Relation-like Subset of I by FOMODEL0:72;
+assume rng f c= dom f; then
+reconsider C as Subset of D;
+C c= D & D null C c= field f; then
+reconsider CC=C as Subset of field f;
+set D2=dom g;
+field ff=D null C; then
+reconsider SS=S, OO=O as Subset of D;
+C c= D; then
+reconsider SSS=SS, OOO=OO as Subset of D2 by RELAT_1:27;
+g=I|D2 by GRFUNC_1:23; then
+g | SS = I | (SSS null D2) by RELAT_1:71; then
+B0: g .: SS = I .: SS .= S;
+g|OO = I|D2|OO by GRFUNC_1:23; then
+g|OO = I|(OOO null D2) by RELAT_1:71; then
+B1: g.:OO = I.:OO .= O;
+ff.:(ff.:S) c= ff.:O by Lm23, RELAT_1:123; then
+S c= ff.:O & ff.:O c= S by B0, Lm24, RELAT_1:126;
+hence f.:OtherPoints f = SomePoints f by XBOOLE_0:def 10;
+ff.:(ff.:O) c= ff.:S by Lm24, RELAT_1:123; then
+O c= ff.:S & ff.:S c= O by B1, Lm23, RELAT_1:126;
+hence thesis by XBOOLE_0:def 10;
+end;
+
+Lm25: g is involutive & field g \ fixpoints g<>{} &
+rng g c= dom g implies SomePoints g <> {}
+proof
+assume g is involutive;
+then reconsider gg=g as involutive Function;
+set G=field gg,
+F=fixpoints gg,
+S=SomePoints gg,
+O=OtherPoints gg;
+assume
+B0:field g\fixpoints g<>{}; then
+reconsider G as non empty set;
+reconsider X=G\F as non empty Subset of G by B0; assume
+B2: rng g c= dom g;
+assume SomePoints g={}; then
+reconsider S as empty Subset of G; X\S<>{}; then
+reconsider O as non empty Subset of G; gg.:S=O by B2, Lm30;
+hence contradiction;
+end;
+
+Lm26: rng g \ dom g={} & g is involutive & field g \ fixpoints g<>{}
+implies (SomePoints g <> {} & OtherPoints g <> {})
+proof
+assume rng g \ dom g={}; then
+B0: rng g c= dom g by FOMODEL0:29; assume
+B1: g is involutive & field g \ fixpoints g<>{}; hence
+SomePoints g <> {} by Lm25, B0; then
+g.:(OtherPoints g) <> {} by Lm30, B0, B1; hence
+thesis;
+end;
+
+begin
+::# Building the needed SetValuation (tohilbval), and the
+::# needed permutation of it, called tohilbperm.
+::# They are specifically built so to enjoy the right fixpoints properties
+::# in order to prove the main theorem (Lm100).
+
+definition
+  let x;
+  ::# Constructive definition of the object uniquely described by Lm17 & Lm18
+  func x tohilb -> set equals
+  (id 1) +*
+  ([:1, Funcs(x,{}):] * [:Funcs(x,{}),{1}:]) +*
+  ([:{1}, Funcs(x,{}):] * [:Funcs(x,{}),{0}:]);
+  coherence;
+end;
+
+registration
+let x;
+cluster x tohilb -> Function-like Relation-like;
+coherence;
+end;
+
+theorem Lm18: x<>{} implies x tohilb=id 1
+proof
+assume x<>{}; then
+reconsider xx=x as non empty set;
+xx tohilb=id 1;
+hence thesis;
+end;
+
+theorem Lm17: {} tohilb = (0,1) --> (1,0)
+proof
+reconsider X=Funcs({},{}) as non empty set;
+reconsider I=id 1 as 1-defined Function;
+set f=[:1,X:]*[:X,{1}:],
+g=[:{1},X:]*[:X,{0}:],
+ff=1-->1,
+gg={1}-->0;
+B0: ff=f & gg=g by FOMODEL0:73;
+I +* ff +* gg = sw by CARD_1:49;
+hence thesis by B0;
+end;
+
+definition
+  let v be Function;
+  func v tohilbperm -> set equals
+  the set of all [n, v.n tohilb] where n is Element of NAT;
+  coherence;
+end;
+
+definition
+  let v be Function;
+  func v tohilbval -> set equals
+  the set of all [n, dom (v.n tohilb)] where n is Element of NAT;
+  coherence;
+end;
+
+defpred P [set] means not contradiction;
+
+Lm15: for v being Function holds
+v tohilbval is Function & v tohilbperm is Function &
+(proj1 (v tohilbval)=NAT & proj1 (v tohilbperm)=NAT)
+proof
+let v be Function; set f=v tohilbval, g=v tohilbperm;
+deffunc Ff (set)= dom (v.$1 tohilb); deffunc Fg (set) = v.$1 tohilb;
+set ff={[n, Ff(n)] where n is Element of NAT:P[n]},
+gg={[n, Fg(n)] where n is Element of NAT:P[n]},
+N={n where n is Element of NAT:P[n]};
+B10: ff is Function from FOMODEL0:sch 3; hence f is Function;
+reconsider f as Function by B10;
+B11: gg is Function from FOMODEL0:sch 3; hence g is Function;
+reconsider g as Function by B11;
+B0: f=ff;
+BB2: dom f=N from ALTCAT_2:sch 2(B0);
+B1: g=gg; dom g=N from ALTCAT_2:sch 2(B1);
+hence thesis by BB2, FOMODEL0:74;
+end;
+
+registration let v be Function;
+  cluster v tohilbval -> Function-like Relation-like;
+  coherence by Lm15;
+  cluster v tohilbperm -> Function-like Relation-like;
+  coherence by Lm15;
+  cluster v tohilbval -> NAT-defined;
+  coherence by Lm15;
+  cluster v tohilbval -> total;
+  coherence
+  proof
+    dom (v tohilbval) = NAT by Lm15;
+    hence thesis by PARTFUN1:def 2;
+  end;
+  cluster v tohilbperm -> NAT-defined;
+  coherence by Lm15;
+  cluster v tohilbperm -> total;
+  coherence
+  proof
+    dom (v tohilbperm) = NAT by Lm15;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+Lm34: x is Nat implies
+(g tohilbperm.x=g.x tohilb & (g tohilbval).x=dom (g.x tohilb))
+proof
+set fv=g tohilbval,
+fp=g tohilbperm;
+assume x is Nat; then
+reconsider n=x as Element of NAT by ORDINAL1:def 12;
+deffunc F(set)=(g.$1) tohilb;
+B0: P[n];
+B1: fp={[o,F(o)] where o is Element of NAT:P[o]};
+fp.n=F(n) from ALTCAT_2:sch 3(B1,B0);
+hence fp.x=g.x tohilb;
+deffunc G(set)=dom F($1);
+B2: fv={[o,G(o)] where o is Element of NAT:P[o]};
+fv.n=G(n) from ALTCAT_2:sch 3(B2,B0);
+hence thesis;
+end;
+
+registration
+  let v be Function;
+  cluster v tohilbval -> non-empty;
+  coherence
+proof
+  set f=v tohilbval, D=dom f, C=rng f;
+  assume not f is non-empty;
+  then consider x being object such that
+B0: x in D & {}=f.x by FUNCT_1:def 3;
+  reconsider n=x as Element of NAT by B0;
+  f.n=dom ((v.n)tohilb) by Lm34;
+  hence contradiction by CARD_1:49, B0;
+end;
+end;
+
+Lm37: x tohilb is symmetric & dom (x tohilb) = rng (x tohilb)
+proof
+set g=x tohilb;
+per cases;
+suppose
+  C00: x<>{};
+  then
+  C0: g=I by Lm18;
+  thus g is symmetric by C00;
+  thus thesis by C0;
+end;
+suppose
+  C1: x={};
+  thus g is symmetric by C1, Lm17;
+  dom sw={0,1} & rng sw={0,1} by FUNCT_4:62,64;
+  hence thesis by C1, Lm17;
+end;
+end;
+
+registration let x;
+  cluster x tohilb -> symmetric;
+  coherence by Lm37;
+end;
+
+definition
+let v be Function;
+redefine func v tohilbperm -> Permutation of v tohilbval;
+coherence
+proof
+set fP=v tohilbperm,
+fV=v tohilbval;
+B0: now
+  dom fP \+\ NAT={};
+  hence dom fP=NAT by FOMODEL0:29;
+end;
+now
+  let n be Element of NAT;
+  D0: fP.n=v.n tohilb & fV.n=dom (v.n tohilb) by Lm34; then
+  reconsider y=fP.n as symmetric Function;
+  dom y=fV.n & rng y=dom y by D0, Lm37; then
+  y is onto Function of fV.n, fV.n by FOMODEL0:75;
+  hence fP.n is Permutation of fV.n;
+end;
+hence thesis by HILBERT3:def 4, B0;
+end;
+end;
+
+definition
+  mode SetValuation0 is ManySortedSet of NAT;
+end;
+
+reserve v for SetValuation0;
+
+registration
+let p,v;
+cluster Perm (v tohilbperm,p) -> involutive;
+coherence
+proof
+set P=v tohilbperm,
+V=v tohilbval,
+fP=Perm P;
+defpred P[set] means
+for f being Function st f=fP.$1 holds f is involutive;
+A0: P[VERUM] by HILBERT3:def 5;
+A1: for n being Element of NAT holds P[prop n]
+proof
+  let n be Element of NAT;
+  let f be Function;
+  assume f=fP.prop n;
+  then f=P.n by HILBERT3:def 5 .= v.n tohilb by Lm34;
+  hence thesis;
+end;
+A2: for r,s st P[r] & P[s] holds P[r '&' s] & P[r => s]
+proof
+  let r, s;
+  set a=r '&' s,
+  i=r => s,
+  f=Perm(P,r),
+  h=Perm(P,s),
+  F=SetVal(V,r),
+  H=SetVal(V,s);
+  assume
+  B1: P[r] & P[s];
+  reconsider f as involutive Permutation of F by B1;
+  reconsider h as involutive Permutation of H by B1;
+  thus P[a]
+  proof
+    let g;
+    assume g=fP.a; then
+    g=Perm(P,a) .= [:f,h:] by HILBERT3:35;
+    hence thesis;
+  end;
+  let F be Function;
+  assume F=fP.i; then
+  F=Perm(P,i) .= f => h by HILBERT3:36;
+  hence thesis;
+end;
+for p holds P[p] from HILBERT2:sch 2(A0,A1,A2);
+hence thesis;
+end;
+end;
+
+begin
+::# Classical semantics via SetVal0, an extension of SetVal.
+::# Thus, we can state and prove the main result:
+::# pseudo-canonical implies classical.
+
+definition
+  let V be SetValuation0;
+  func SetVal0 V -> ManySortedSet of HP-WFF means
+  :Def2:
+  it.VERUM = 1 & (for n holds it.prop n = V.n) &
+  for p,q holds
+    it.(p '&' q) = [:it.p, it.q:] & it.(p =>q) = Funcs(it.p,it.q);
+  existence
+  proof
+    deffunc F(Element of NAT)=V.$1;
+    consider M being ManySortedSet of HP-WFF such that
+A1: ( M.VERUM = 1 & for n holds M.prop n = F(n) ) &
+    for p,q holds M.(p '&' q) = [:M.p,M.q:] &
+    M.(p => q) = Funcs(M.p,M.q)
+    from HILBERT2:sch 4;
+    take M;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    let M1,M2 be ManySortedSet of HP-WFF such that
+A2: M1.VERUM = 1 and
+A3: for n holds M1.prop n = V.n and
+A4: for p,q holds
+    M1.(p '&' q) = [:M1.p, M1.q:] & M1.(p => q) = Funcs(M1.p,M1.q) and
+A5: M2.VERUM = 1 and
+A6: for n holds M2.prop n = V.n and
+A7: for p,q holds
+    M2.(p '&' q) = [:M2.p, M2.q:] & M2.(p => q) = Funcs(M2.p,M2.q);
+    defpred P[Element of HP-WFF] means M1.$1 = M2.$1;
+A8: for r,s st P[r] & P[s] holds P[r '&' s] & P[r => s]
+    proof
+      let r,s such that
+A9:   M1.r=M2.r & M1.s = M2.s;
+      thus M1.(r '&' s) = [:M2.r, M2.s:] by A4,A9
+        .= M2.(r '&' s) by A7;
+      thus M1.(r => s) = Funcs(M2.r,M2.s) by A4,A9
+        .= M2.(r => s) by A7;
+    end;
+A10: for n holds P[prop n]
+    proof
+      let n;
+      thus M1.prop n = V.n by A3
+        .= M2.prop n by A6;
+    end;
+A11: P[VERUM] by A2,A5;
+    for r holds P[r] from HILBERT2:sch 2(A11,A10,A8);
+    then for r being object st r in HP-WFF holds M1.r = M2.r;
+    hence M1 = M2 by PBOOLE:3;
+  end;
+end;
+
+definition
+  let v,p;
+  func SetVal0(v,p) -> set equals
+  (SetVal0 v).p;
+  correctness;
+end;
+
+Lm100: fixpoints Perm(v tohilbperm,p) <> {} iff SetVal0(v,p) <> {}
+proof
+set V=v tohilbval,
+P=v tohilbperm,
+fP=Perm P,
+fv=SetVal0 v,
+fV=SetVal V,
+I=id 1;
+defpred Z[set] means fv.$1={} iff fixpoints (fP.$1)={};
+A1: Z[VERUM]
+proof
+  fixpoints (fP.VERUM)=fixpoints I by HILBERT3:def 5 .= 1;
+  hence thesis by Def2;
+end;
+A2: for n being Element of NAT holds Z[prop n]
+proof
+  let n be Element of NAT;
+  set l=prop n,
+  x=fv.n,
+  X=fV.n;
+  B0: fP.l=P.n & fv.l=v.n by Def2, HILBERT3:def 5;
+  thus fv.l={} implies fixpoints (fP.l)={}
+  proof
+    assume fv.l={}; then
+    P.n=sw by B0, Lm34, Lm17;
+    hence thesis by B0;
+  end;
+  assume
+  B1: fixpoints (fP.l)={};
+  assume fv.l<>{}; then
+  v.n<>{} & P.n=v.n tohilb by Def2, Lm34; then
+  P.n=I by Lm18;
+  hence contradiction by CARD_1:49,B1,B0;
+end;
+A3: for r, s st Z[r] & Z[s] holds Z[r '&' s] & Z[r => s]
+proof
+  let r,s;
+  set a=r '&' s,
+  i=r=>s;
+  set F=SetVal(V,r),
+  H=SetVal(V,s);
+  set f=Perm(P,r),
+  h=Perm(P,s);
+  reconsider h as non empty involutive Permutation of H;
+  reconsider ff=f" as non empty involutive Permutation of F;
+  set S=SomePoints ff, O=OtherPoints ff;
+  reconsider S,O as Subset of field ff;
+  set f1=ff|S,
+  f2=ff|O; assume
+  B0: Z[r] & Z[s];
+  reconsider Sr = SetVal0(v,r), Ss = SetVal0(v,s) as set;
+  SetVal0(v,a)=[:Sr, Ss:] by Def2; then
+  SetVal0(v,a)={} iff [:fixpoints Perm(P,r), fixpoints Perm(P,s):]={}
+  by B0; then
+  SetVal0(v,a)={} iff fixpoints [:Perm(P,r), Perm(P,s):]={}
+  by FOMODEL0:76; then
+  SetVal0(v,a)={} iff fixpoints Perm(P,a)={} by HILBERT3:35; hence
+  fv.a={} iff fixpoints fP.a={};
+  thus fv.i={} implies fixpoints(fP.i)={}
+  proof
+    assume fv.i={}; then
+    {} = Funcs(fv.r, fv.s) by Def2; then
+    f is with_fixpoint & h is without_fixpoints by B0; then
+    Perm(P,i) is without_fixpoints by Lm3;
+    hence thesis;
+  end;
+  assume
+  B2: fixpoints (fP.i)={};
+  assume
+  B3: fv.i<>{};
+  per cases;
+  suppose
+    fv.s<>{};then
+    h is with_fixpoint by B0; then
+    Perm(P,i) is with_fixpoint by Lm2;
+    hence contradiction by B2;
+  end;
+  suppose
+    CCCC20: fv.s={}; then
+    Funcs(fv.r, fv.s)<>{} & fv.s={} by B3, Def2;
+    then
+    CC20: fv.s={} & fv.r={} & fixpoints ff \+\ fixpoints f ={};
+    C00: dom ff=F & dom h=H & rng h c= H & rng ff c= F by PARTFUN1:def 2;
+    C01: field ff=F null rng ff & field h=H null rng h by PARTFUN1:def 2;
+    C0: dom ff=F & dom h=H & rng h c= H & rng ff c= F &
+    field ff=F & field h=H & dom f1=S & dom f2=O &
+    ff.:O=S & ff.:S=O & rng f1=ff.:S & rng f2=ff.:O by C00, C01, Lm30; then
+    C2: rng f1 /\ rng f2={} & rng f1 = dom f2 & rng f2=dom f1;
+    reconsider S,O as Subset of dom ff by PARTFUN1:def 2, C01;
+    rng h \ dom h={} & field h \ fixpoints h<>{} by CCCC20, B0;
+    then reconsider SH=SomePoints h, OH=OtherPoints h as non empty Subset
+      of dom h by PARTFUN1:def 2, C01, Lm26;
+    set b1=the Element of SH, b2=h.b1;
+    b2 in h.:SH & h.:SH c= OH by Lm23, FUNCT_1:108; then
+    b2 in OH & not b2 in OH/\SH; then
+    C21: b1<>b2 by XBOOLE_0:def 4;
+    reconsider b1 as Element of dom h;
+    set b2=h.b1, ha=(b1,b2)-->(b2,b1), hb=h\ha,
+    g1=[:rng f1,{b2}:], g2=[:rng f2,{b1}:],
+    g=g1\/g2, h1=b1.-->b2, h2=b2.-->b1;
+    h.b2=b1 & b2 in dom h by C00; then
+    reconsider h1,h2 as Function-like Relation-like Subset of h
+    by FUNCT_4:85;
+    h1\/h2 c= h & h1 +*1 h2 c= h1\/h2; then
+    reconsider hha=ha as Function-like Relation-like Subset of h
+    by XBOOLE_1:1;
+    h=h/\ha\/hb; then
+    C14: (f1\/f2)*g*h = ((f1\/f2)*g*(hha null h)) \/ ((f1\/f2)*g*hb)
+    by RELAT_1:32;
+    CC13: dom ha={b1,b2} &
+    dom(h\hha)=dom h \ dom ha by FOMODEL0:78, FUNCT_4:62;
+    rng g1 c= {b2} & {b2}\{b1,b2}={}; then
+    rng g1 c= {b2} & {b2} c= {b1,b2} by FOMODEL0:29; then
+    reconsider rg1=rng g1 as Subset of {b1,b2} by XBOOLE_1:1;
+    rng g2 c= {b1} & {b1}\{b1,b2}={}; then
+    rng g2 c= {b1} & {b1} c= {b1,b2} by FOMODEL0:29; then
+    reconsider rg2=rng g2 as Subset of {b1,b2} by XBOOLE_1:1;
+    rg1\/rg2 \+\ rng g = {} & rg1\/rg2 \ {b1,b2} = {}; then
+    reconsider rg=rng g as Subset of {b1,b2} by FOMODEL0:29;
+    rng ((f1\/f2) >*> g) c= rg by RELAT_1:26; then
+    reconsider R=rng((f1\/f2) >*> g) as Subset of {b1,b2} by XBOOLE_1:1;
+    dom hb /\R ={} by CC13; then
+    (f1\/f2)>*>g>*>hb={} by XBOOLE_0:def 7, RELAT_1:44; then
+    C15: g c= (f1\/f2)>*>g>*>h by C14, C2, FOMODEL0:77, C21;
+    CC3: S/\O={};
+    CC8: dom g1 \ dom g2=dom g1 & dom f1 \ dom f2=dom f1
+    by C0, CC3, XBOOLE_0:def 7, XBOOLE_1:83;
+    reconsider rff=rng ff as Subset of F;
+    C10: F=field ff\S \/ (field ff/\S) by C01 .=
+    field ff\S \/ (dom ff/\S) by C01, PARTFUN1:def 2 .=
+    O null dom ff \/ S by CC20, B0;
+    f1\/f2 \ ff={} & dom f1 \/ dom f2 \+\ dom (f1\/f2)={}; then
+    f1\/f2 c= ff & dom (f1\/f2)=F by C10, FOMODEL0:29; then
+    f1\/f2=ff by C00, FOMODEL0:68; then
+    C12: g1+*g2 c= h * (g1+*g2) * ff by CC8, C15, RELAT_1:36;
+    dom g1 \/ dom g2 \+\ dom (g1\/g2)={}; then
+    C11: dom (g1+*g2) = F by C0, C10, CC8, FOMODEL0:29;
+    dom (h *(g1+*g2)*ff) c= dom (g1+*g2) by C11; then
+    C17: g1+*g2 = h*(g1+*g2)*ff by C12, FOMODEL0:68;
+    reconsider bb1=b1, bb2=b2 as Element of H;
+    reconsider B={bb1,bb2} as non empty Subset of H;
+    rg c= {b1,b2}; then
+    reconsider gg=g1+*g2 as Element of Funcs(F,B) by CC8, C11, FUNCT_2:def 2;
+    gg is H-valued; then
+    {gg} \ Funcs(F,H)={}; then
+    reconsider gg as Element of Funcs(F,H) by FOMODEL0:29;
+    (Perm(P,i)).gg=gg & gg<>{} by C17, HILBERT3:37; then
+    Perm(P,i).gg=gg & gg in dom Perm(P,i) by FUNCT_1:def 2; then
+    gg is_a_fixpoint_of Perm(P,i) by ABIAN:def 3;
+    hence contradiction by B2, FOMODEL0:69;
+  end;
+end;
+for r holds Z[r] from HILBERT2:sch 2(A1,A2,A3);
+hence thesis;
+end;
+
+definition
+  let p;
+  attr p is classical means :DefClassical:
+  SetVal0 (v,p) <> {};
+::# The idea is that the three set-theoretical entities
+::# {}, [:,:], Funcs
+::# behave respectively like
+::# 0, AND, =>
+::# of classical logic.
+::# For example Funcs(x,y)={} iff (x<>{}, y={}). And so on...
+::# To enforce this scheme, a slight modification of SetValuation into
+::# the ancestor mode SetValuation0, allowing empty truth values, was needed.
+::# Initially, the immaterial restriction of 2-valuedness was considered
+::# to ease the work; however, upon rethinking tohilb definition, it
+::# was no longer needed.
+end;
+
+registration
+  cluster pseudo-canonical -> classical for Element of HP-WFF;
+  coherence
+  proof
+    let p;
+    assume
+AA: p is pseudo-canonical;
+    defpred IT[Function] means
+    ex x being set st x is_a_fixpoint_of $1;
+    assume not p is classical; then consider v such that
+B0: SetVal0(v,p)={};
+    set P=v tohilbperm, V=v tohilbval;
+    fixpoints Perm(P,p)={} by Lm100, B0; then
+    not IT[Perm(P,p)] by FOMODEL0:69;
+    hence thesis by AA,HILBERT3:def 8;
+  end;
+end;
+
+registration
+  let v;
+  let p be classical Element of HP-WFF;
+  cluster SetVal0 (v,p) -> non empty;
+  coherence by DefClassical;
+end;

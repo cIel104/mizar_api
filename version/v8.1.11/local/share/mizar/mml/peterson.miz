@@ -1,0 +1,1301 @@
+:: Event-based Proof of the Mutual Exclusion Property of {P}eterson's
+:: Algorithm
+::  by Ievgen Ivanov , Mykola Nikitchenko and Uri Abraham
+::
+:: Received August 14, 2015
+:: Copyright (c) 2015-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies PETERSON, ABCMIZ_0, WAYBEL_3, RPR_1, MEMSTR_0, SUBSET_1,
+      XBOOLE_0, RELAT_1, FUNCT_1, XXREAL_0, ARYTM_3, CARD_1, PARTFUN1, TARSKI,
+      ZFMISC_1, ORDERS_1, ORDERS_2, RELAT_2, STRUCT_0;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, RELAT_1, RELSET_1, FUNCT_1,
+      SETFAM_1, FUNCT_2, PARTFUN1, STRUCT_0, BINOP_1, ORDERS_1, ORDERS_2,
+      RELAT_2;
+ constructors BINOP_1, BINOP_2, STRUCT_0, ORDERS_1, ORDERS_2, DICKSON, RELAT_1,
+      RELAT_2;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, CARD_1, STRUCT_0, NECKLA_3;
+ requirements NUMERALS, BOOLE, SUBSET;
+ definitions TARSKI, ORDERS_2;
+ theorems ZFMISC_1, RELAT_2, SUBSET_1, ORDERS_1, ORDERS_2;
+ schemes FUNCT_2;
+
+begin
+
+:: --------------------- Preliminaries ------------------------
+
+definition
+  struct (1-sorted) Values_with_TF
+  (#
+      carrier -> set,
+      True -> Element of the carrier,
+      False -> Element of the carrier
+  #);
+end;
+
+definition
+  let A be Values_with_TF;
+  attr
+      A is consistent
+  means
+      the True of A <> the False of A;
+end;
+
+registration
+  cluster consistent for Values_with_TF;
+  existence
+  proof
+    set A = {0,1};
+    0 in A by ZFMISC_1:32;
+    then consider a be Element of A such that C1: a = 0;
+    1 in A by ZFMISC_1:32;
+    then consider b be Element of A such that C2: b = 1;
+    take L = Values_with_TF(# A, a, b #);
+    thus thesis by C1,C2;
+  end;
+end;
+
+definition
+  mode
+      Values_with_Bool
+  is
+      consistent Values_with_TF;
+end;
+
+definition
+  let A be RelStr;
+  attr
+      A is strongly_connected
+  means
+      the InternalRel of A is_strongly_connected_in the carrier of A;
+end;
+
+registration
+  cluster non empty reflexive transitive strongly_connected for RelStr;
+  existence
+  proof
+    set R = the Order of {{}};
+    take L = RelStr(# {{}}, the Order of {{}} #);
+    A1: field the Order of {{}} = the carrier of L by ORDERS_1:12;
+    thus L is non empty;
+    thus the InternalRel of L is_reflexive_in the carrier of L
+        by A1,RELAT_2:def 9;
+    thus the InternalRel of L is_transitive_in the carrier of L
+        by A1, RELAT_2:def 16;
+    thus the InternalRel of L is_strongly_connected_in the carrier of L
+        by A1, RELAT_2:def 15;
+  end;
+end;
+
+definition
+  mode
+      LinearPreorder
+  is
+      reflexive transitive strongly_connected RelStr;
+end;
+
+:: ---------------------- Main structure -----------------------
+
+definition
+  let Values be Values_with_Bool;
+  struct Events_structure over Values
+  (#
+    events -> non empty LinearPreorder,
+    processes -> non empty set,
+    locations -> non empty set,
+    traces -> non empty set,
+    procE -> Function of
+                 the processes,
+                 bool the carrier of the events,
+    traceE -> Function of
+                 the traces,
+                 bool the carrier of the events,
+    readE -> Function of
+                 the locations,
+                 bool the carrier of the events,
+    writeE -> Function of
+                 the locations,
+                 bool the carrier of the events,
+    val_of -> PartFunc of
+                 the carrier of the events,
+                 the carrier of Values
+  #);
+end;
+
+:: ---------------------- Modes ---------------------------
+
+definition
+  let Values be Values_with_Bool,
+      S be Events_structure over Values;
+
+  mode
+      Process of S
+  is
+      Element of the processes of S;
+
+  mode
+      Event of S
+  is
+      Element of the carrier of the events of S;
+
+  mode
+      EventSet of S
+  is
+      Subset of the carrier of the events of S;
+
+  mode
+      Location of S
+  is
+      Element of the locations of S;
+
+  mode
+      trace of S
+  is
+      Element of the traces of S;
+end;
+
+:: ------------------ Reserve ----------------------------------
+
+reserve Values for Values_with_Bool;
+reserve a, a1, a2 for Element of the carrier of Values;
+reserve S for Events_structure over Values;
+reserve p, p1, p2 for Process of S;
+reserve x, x1, x2 for Location of S;
+reserve tr, tr1, tr2 for trace of S;
+reserve e, e0, e1, e2, e3, e4, e5 for Event of S;
+reserve E for EventSet of S;
+
+:: ----------------Predicates, functors, notation ---------------
+
+definition
+  let Values, S, e, x;
+
+  pred
+      e reads x
+  means
+      e in (the readE of S) . x;
+
+  pred
+      e writesto x
+  means
+      e in (the writeE of S) . x;
+end;
+
+definition
+  let Values, S, x, E;
+
+  pred
+      E reads x
+  means
+      ex e st e in E & e reads x;
+
+  pred
+      E writesto x
+  means
+      ex e st e in E & e writesto x;
+end;
+
+definition
+  let Values, S, e, tr;
+  pred
+      e in tr
+  means
+      e in (the traceE of S) . tr;
+end;
+
+definition
+  let Values, S, e, p;
+  pred
+      e in p
+  means
+      e in (the procE of S) . p;
+end;
+
+definition
+  let Values, S, e;
+  func
+      val e
+  equals
+      (the val_of of S) . e;
+  correctness;
+end;
+
+definition
+  let Values, S, e, p, tr;
+  pred
+      e in p,tr
+  means
+      e in p & e in tr;
+end;
+
+definition
+  let Values, S, e, x, a;
+  pred
+      e writesto x,a
+  means
+      e writesto x & val e = a;
+
+  pred
+      e reads x,a
+  means
+      e reads x & val e = a;
+end;
+
+::------------------ Attributes -----------------------
+
+definition
+  let Values, S;
+
+  attr
+      S is pr-complete
+  means
+      for tr, e st
+          e in tr
+      holds
+          ex p st e in p;
+
+  attr
+      S is pr-ordered
+  means
+      for p, e1, e2 st
+          e1 in p &
+          e2 in p
+      holds
+          (e1 <= e2 & e2 <= e1 implies e1 = e2);
+
+  attr
+      S is rw-ordered
+  means
+      for x, e1, e2 st
+          (e1 reads x or e1 writesto x) &
+          (e2 reads x or e2 writesto x)
+      holds
+          (e1 <= e2 & e2 <= e1 implies e1 = e2);
+
+  attr
+      S is rw-consistent
+  means
+      for tr, x, e, a st
+          e in tr & e reads x & val e = a
+      holds
+          ex e0 st
+             e0 in tr & e0 < e & e0 writesto x & val e0 = a &
+             for e1 st
+                 e1 in tr & e1 <= e & e1 writesto x
+             holds
+                 e1 <= e0;
+
+  attr
+      S is rw-exclusive
+  means
+      for e, x1, x2 holds
+          not (e reads x1 & e writesto x2);
+end;
+
+definition
+  let Values, S;
+  attr
+      S is consistent
+  means
+      S is pr-complete pr-ordered rw-ordered
+           rw-consistent rw-exclusive;
+end;
+
+registration
+  let Values;
+  cluster consistent for Events_structure over Values;
+  existence
+  proof
+    {} is Element of bool the carrier of the non empty LinearPreorder
+        by SUBSET_1:1;
+    then consider E0 being
+        Element of bool the carrier of the non empty LinearPreorder
+        such that E0def: E0={};
+    deffunc ProcE0(Element of the non empty set) = E0;
+    consider procE0 be Function of the non empty set,
+             bool the carrier of the non empty LinearPreorder
+    such that procE0def:
+        for p being Element of the non empty set holds
+            procE0 . p = ProcE0(p) from FUNCT_2:sch 4;
+
+    deffunc TraceE0(Element of the non empty set) = E0;
+    consider traceE0 be Function of the non empty set,
+             bool the carrier of the non empty LinearPreorder
+    such that traceE0def:
+        for tr being Element of the non empty set holds
+            traceE0 . tr = TraceE0(tr) from FUNCT_2:sch 4;
+
+    deffunc ReadE0(Element of the non empty set) = E0;
+    consider readE0 be Function of the non empty set,
+             bool the carrier of the non empty LinearPreorder
+    such that readE0def:
+        for x being Element of the non empty set holds
+            readE0 . x = ReadE0(x) from FUNCT_2:sch 4;
+
+    deffunc WriteE0(Element of the non empty set) = E0;
+    consider writeE0 be Function of the non empty set,
+             bool the carrier of the non empty LinearPreorder
+    such that writeE0def:
+        for x being Element of the non empty set holds
+            writeE0 . x = WriteE0(x) from FUNCT_2:sch 4;
+
+    take Se = Events_structure(#
+                  the non empty LinearPreorder,
+                  the non empty set,
+                  the non empty set,
+                  the non empty set,
+                  procE0,
+                  traceE0,
+                  readE0,
+                  writeE0,
+                  the PartFunc of the carrier of the non empty LinearPreorder,
+                  the carrier of Values
+              #);
+    C1: Se is pr-complete
+    proof
+      let tr be trace of Se;
+      let e be Event of Se such that U1: e in tr;
+      take the Process of Se;
+      thus e in the Process of Se by U1, E0def, traceE0def;
+    end;
+    C2: Se is pr-ordered
+    proof
+      let p be Process of Se;
+      let e1, e2 be Event of Se such that U1: e1 in p & e2 in p;
+      thus thesis by U1, E0def, procE0def;
+    end;
+    C3: Se is rw-ordered
+    proof
+      let x be Location of Se;
+      let e1, e2 be Event of Se such that
+          U1: (e1 reads x or e1 writesto x) & (e2 reads x or e2 writesto x);
+      thus thesis by U1, E0def, readE0def, writeE0def;
+    end;
+    C4: Se is rw-consistent
+    proof
+      let tr be trace of Se;
+      let x be Location of Se;
+      let e be Event of Se;
+      let a be Element of the carrier of Values such that
+          U1: e in tr & e reads x & val e = a;
+      thus thesis by U1, E0def, traceE0def;
+    end;
+    Se is rw-exclusive
+    proof
+      let e be Event of Se;
+      let x1, x2 be Location of Se;
+      thus thesis by E0def, readE0def;
+    end;
+    hence thesis by C1,C2,C3,C4;
+  end;
+end;
+
+definition
+  let Values;
+  mode
+      DistributedSysWithSharedMem of Values
+  is
+      consistent Events_structure over Values;
+end;
+
+:: -------------------------- Peterson's algorithm ---------------------------
+
+reserve DS for DistributedSysWithSharedMem of Values;
+reserve p, p1, p2 for Process of DS;
+reserve x, x1, x2, flag1, flag2, turn for Location of DS;
+reserve tr, tr1, tr2 for trace of DS;
+reserve e, e0, e1, e2, e3, e4, e5 for Event of DS;
+reserve E for EventSet of DS;
+
+definition
+  let Values, DS, e1, e2;
+  pred e1 << e2 means
+    e1 <= e2 & not (e2 <= e1);
+end;
+
+definition
+  let Values, DS, e1, e2;
+  func
+      (e1,e2) inter -> EventSet of DS
+  equals
+      { e : e1 < e & e < e2 };
+  correctness
+  proof
+      defpred P[Event of DS] means e1 < $1 & $1 < e2;
+      {e: P[e]} c= the carrier of the events of DS
+      proof
+        let o be object such that O1: o in {e: P[e]};
+        consider e such that O2: e = o & P[e] by O1;
+        thus thesis by O2;
+      end;
+      hence thesis;
+  end;
+end;
+
+definition
+  let Values, DS, e1, e2, p, tr;
+  func
+      (e1,e2) interval_in (p,tr) -> EventSet of DS
+  equals
+      { e : e1 < e & e < e2 & e in p,tr };
+  correctness
+  proof
+      defpred P[Event of DS] means e1 < $1 & $1 < e2 & $1 in p,tr;
+      {e: P[e]} c= the carrier of the events of DS
+      proof
+        let o be object such that O1: o in {e: P[e]};
+        consider e such that O2: e = o & P[e] by O1;
+        thus thesis by O2;
+      end;
+      hence thesis;
+  end;
+end;
+
+theorem
+  (e1,e2) interval_in (p,tr) c= (e1,e2) inter
+proof
+  let o be object such that O1: o in (e1,e2) interval_in (p,tr);
+  consider e such that O2: e = o & e1 < e & e < e2 & e in p,tr by O1;
+  thus thesis by O2;
+end;
+
+theorem thLinPreordEvents:
+  e1 <= e2 or e2 <= e1
+proof
+  the events of DS is strongly_connected;
+  then [e1,e2] in the InternalRel of the events of DS or
+       [e2,e1] in the InternalRel of the events of DS by RELAT_2:def 7;
+  hence e1 <= e2 or e2 <= e1 by ORDERS_2:def 5;
+end;
+
+theorem
+  e in p,tr & e1 < e & e < e2 implies e in (e1,e2) interval_in (p,tr);
+
+theorem
+  e1 < e2 implies e1 <= e2 by ORDERS_2:def 6;
+
+theorem thEvStrictPrec:
+  e1 in p & e2 in p & e1 < e2 implies e1 << e2
+proof
+  assume A1: e1 in p & e2 in p;
+  assume A2: e1 < e2;
+  DS is consistent;
+  then DS is pr-ordered;
+  then not e1 <= e2 or not e2 <= e1 by A1, A2;
+  hence thesis by A2, ORDERS_2:def 6;
+end;
+
+theorem
+  e1 in p,tr & e2 in p,tr & e1 < e2 implies e1 << e2 by thEvStrictPrec;
+
+theorem
+  e1 << e2 implies e1 < e2 by ORDERS_2:def 6;
+
+theorem
+  e1 in p & e2 in p implies e1 = e2 or e1 << e2 or e2 << e1
+  by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+
+theorem thEvTrans:
+  e1 <= e2 & e2 <= e3 implies e1 <= e3
+proof
+  [e1,e2] in the InternalRel of the events of DS &
+  [e2,e3] in the InternalRel of the events of DS
+  implies
+  [e1,e3] in the InternalRel of the events of DS
+    by ORDERS_2:def 3, RELAT_2:def 8;
+  hence thesis by ORDERS_2:def 5;
+end;
+
+theorem thEvStrictTrans1:
+  e1 <= e2 & e2 << e3 implies e1 << e3 by thEvTrans;
+
+theorem thEvStrictTrans2:
+  e1 << e2 & e2 <= e3 implies e1 << e3 by thEvTrans;
+
+theorem
+  e1 << e2 & e2 << e3 implies e1 << e3 by thEvTrans;
+
+definition
+  let Values, DS, e1, e2;
+  :: simultaneous events
+  pred simultev e1, e2 means e1 <= e2 & e2 <= e1;
+end;
+
+theorem
+  not simultev e1, e2 implies e1 << e2 or e2 << e1 by thLinPreordEvents;
+
+definition
+  let Values, DS, p, tr, e, x1, x2, turn, a1, a2;
+  pred e has_Peterson_mutex_in p,x1,x2,turn,a1,a2,tr means
+      ex e1, e2, e3 st
+          e1 in p,tr & e2 in p,tr & e3 in p,tr &
+          e1 < e2 & e2 < e3 & e3 < e &
+          e1 writesto x1,the True of Values &
+             not (e1,e) interval_in (p,tr) writesto x1 &
+          e2 writesto turn,a2 &
+             not (e2,e) interval_in (p,tr) writesto turn &
+         (e3 reads x2,the False of Values or e3 reads turn,a1);
+end;
+
+definition
+  let Values, DS, tr;
+  let Es be set;
+  pred Es has_Peterson_mutex_in tr means
+       ex p1, p2 st
+         ((for p being Process of DS holds p = p1 or p = p2) &
+           ex flag1, flag2, turn st
+             (for e st e in p1,tr holds
+               not e writesto flag2 &
+               not e writesto turn,the False of Values) &
+             (for e st e in p2,tr holds
+               not e writesto flag1 &
+               not e writesto turn, the True of Values) &
+             for e st e in Es holds
+                 e has_Peterson_mutex_in p1, flag1, flag2, turn,
+                     the False of Values, the True of Values, tr &
+                 e has_Peterson_mutex_in p2, flag2, flag1, turn,
+                     the True of Values, the False of Values, tr);
+end;
+
+theorem lemwbefr:
+  e1 in tr & e2 in tr &
+  e1 reads x,a1 & e2 reads x,a2 & e1<=e2 & a1<>a2
+implies
+  ex e st
+    e in tr & e1 << e & e << e2 & e writesto x,a2
+proof
+  assume A0: e1 in tr & e2 in tr;
+  assume A1: e1 reads x,a1 & e2 reads x,a2 & e1<=e2 & a1<>a2;
+  DS is consistent;
+  then DS is rw-consistent;
+  then consider e2w being Event of DS such that
+  B1: e2w in tr & e2w < e2 & e2w writesto x & val e2w = a2 &
+      for e st e in tr & e <= e2 & e writesto x
+      holds e <= e2w by A0,A1;
+  DS is consistent;
+  then JJ0: DS is rw-ordered;
+  C1: not e2w << e1
+  proof
+    assume D1: e2w << e1;
+    DS is consistent;
+    then DS is rw-consistent;
+    then consider e1w being Event of DS such that
+    D2: e1w in tr & e1w < e1 & e1w writesto x & val e1w = a1 &
+      for e st e in tr & e <= e1 & e writesto x
+      holds e <= e1w by A0,A1;
+    D3: e2w <= e1w by D1,D2,B1;
+    e1w <= e1 & e1 <= e2 by A1, D2, ORDERS_2:def 6;
+    then e1w <= e2 by thEvTrans;
+    then D4: e1w <= e2w by B1,D2;
+    DS is consistent;
+    then DS is rw-ordered;
+    hence contradiction by B1,D2,A1,D3,D4;
+  end;
+  C2: not e2 << e2w by B1,ORDERS_2:def 6;
+  e1 << e2w & e2w << e2 & e2w writesto x,a2
+    by thLinPreordEvents,JJ0,A1,C1,C2,B1;
+  hence thesis by B1;
+end;
+
+::$N Main result: Mutual exclusion property of Peterson's algorithm
+
+theorem
+  e1 in tr & e2 in tr & {e1, e2} has_Peterson_mutex_in tr
+implies
+  e1 = e2 or e1 << e2 or e2 << e1
+proof
+  assume U0: e1 in tr & e2 in tr;
+  assume {e1, e2} has_Peterson_mutex_in tr;
+  then consider p1, p2 such that
+       U1: for p being Process of DS holds p = p1 or p = p2
+  and
+       U2: ex flag1, flag2, turn st
+             (for e st e in p1,tr holds
+               not e writesto flag2 &
+               not e writesto turn,the False of Values) &
+             (for e st e in p2,tr holds
+               not e writesto flag1 &
+               not e writesto turn,the True of Values) &
+             for e st e in {e1,e2} holds
+                 e has_Peterson_mutex_in p1, flag1, flag2, turn,
+                     the False of Values, the True of Values, tr &
+                 e has_Peterson_mutex_in p2, flag2, flag1, turn,
+                     the True of Values, the False of Values, tr;
+  consider flag1, flag2, turn such that
+       U3nw: (for e st e in p1,tr holds
+               not e writesto flag2 & not e writesto turn,the False of Values)
+             & (for e st e in p2,tr holds
+               not e writesto flag1 & not e writesto turn,the True of Values)
+              and
+       U3:   for e st e in {e1,e2} holds
+                 e has_Peterson_mutex_in p1, flag1, flag2, turn,
+                     the False of Values, the True of Values, tr &
+                 e has_Peterson_mutex_in p2, flag2, flag1, turn,
+                     the True of Values, the False of Values, tr by U2;
+
+  {e1} c= {e1,e2} & {e2} c= {e1,e2} by ZFMISC_1:36;
+  then e1 in {e1,e2} & e2 in {e1,e2} by ZFMISC_1:31;
+  then U4:
+      e1 has_Peterson_mutex_in p1, flag1, flag2, turn,
+                               the False of Values, the True of Values, tr &
+      e1 has_Peterson_mutex_in p2, flag2, flag1, turn,
+                               the True of Values, the False of Values, tr &
+      e2 has_Peterson_mutex_in p1, flag1, flag2, turn,
+                               the False of Values, the True of Values, tr &
+      e2 has_Peterson_mutex_in p2, flag2, flag1, turn,
+                               the True of Values, the False of Values, tr
+  by U3;
+
+  assume Aneq: not e1 = e2;
+  W1: (e1 in p1 & e2 in p1) or (e1 in p2 & e2 in p2)
+      implies
+      e1 << e2 or e2 << e1
+        by Aneq,thLinPreordEvents,thEvStrictPrec,ORDERS_2:def 6;
+  DS is consistent;
+  then DS is pr-complete;
+  then W2: (ex p being Process of DS st e1 in p) &
+           (ex p being Process of DS st e2 in p) by U0;
+
+  W3: not (e1 in p1 & e2 in p2 & simultev e1, e2)
+  proof
+    assume A0: e1 in p1 & e2 in p2;
+    assume A0s: simultev e1, e2;
+    consider u1 being Event of DS, w1 being Event of DS, r1 being Event of DS
+    such that
+      V1: u1 in p1,tr & w1 in p1,tr & r1 in p1,tr &
+          u1 < w1 & w1 < r1 & r1 < e1 &
+          u1 writesto flag1,the True of Values &
+               not (u1,e1) interval_in (p1,tr) writesto flag1 &
+          w1 writesto turn,the True of Values &
+               not (w1,e1) interval_in (p1,tr) writesto turn &
+         (r1 reads flag2,the False of Values or
+          r1 reads turn,the False of Values) by U4;
+    V1o: u1 << w1 & w1 << r1 & r1 << e1 by V1, A0, thEvStrictPrec;
+    consider u2 being Event of DS, w2 being Event of DS, r2 being Event of DS
+    such that
+      V2: u2 in p2,tr & w2 in p2,tr & r2 in p2,tr &
+          u2 < w2 & w2 < r2 & r2 < e2 &
+          u2 writesto flag2,the True of Values &
+               not (u2,e2) interval_in (p2,tr) writesto flag2 &
+          w2 writesto turn,the False of Values &
+               not (w2,e2) interval_in (p2,tr) writesto turn &
+         (r2 reads flag1,the False of Values or
+          r2 reads turn,the True of Values) by U4;
+    V2o: u2 << w2 & w2 << r2 & r2 << e2 by V2, A0, thEvStrictPrec;
+    RR1: not r1 <= r2
+    proof
+      assume D0: r1 <= r2;
+      D01: u1 << r2 & r2 << e1
+        by V1o,thEvTrans,D0,A0s,V2,A0,thEvStrictPrec,thEvStrictTrans2;
+
+      D1: r2 in tr & r2 reads turn,the True of Values
+      proof
+        not r2 reads flag1,the False of Values
+        proof
+          assume Y1: r2 reads flag1,the False of Values;
+          DS is consistent;
+          then DS is rw-consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r2w < r2 & r2w writesto flag1 &
+              val r2w = the False of Values &
+              for e st e in tr & e <= r2 & e writesto flag1
+              holds e <= r2w by Y1,V2;
+          u1 = r2w
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then TA01: r2w in p1,tr or r2w in p2,tr by U1,Y2;
+            TA02: u1 < r2w & r2w < e1
+                  implies
+                  r2w in (u1,e1) interval_in (p1,tr) by U3nw,Y2,TA01;
+            TB01: r2w << e1 by D01,thEvStrictTrans1,ORDERS_2:def 6,Y2;
+            u1 in p1,tr & r2w in p1,tr & not (u1 << r2w)
+                by TB01,Y2,TA02,TA01,U3nw,V1,ORDERS_2:def 6;
+            then u1 = r2w or r2w << u1
+                by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+            hence thesis by Y2,V1,D01;
+          end;
+          then val r2w = the True of Values & Values is consistent by V1;
+          hence contradiction by Y2;
+        end;
+        hence thesis by V2;
+      end;
+      D2: r1 reads flag2,the False of Values
+      proof
+        not r1 reads turn,the False of Values
+        proof
+          assume Y1: r1 reads turn,the False of Values;
+          Values is consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r1 << r2w & r2w << r2 &
+              r2w writesto turn,the True of Values by lemwbefr,V1,D1,D0,Y1;
+          Y3: r2w in p1,tr
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then (r2w in p1,tr or r2w in p2,tr) &
+                 r2w writesto turn,the True of Values &
+                 Values is consistent by U1,Y2;
+            hence thesis by U3nw;
+          end;
+          r2w << r2 & r2 <= e2 by ORDERS_2:def 6,Y2,V2;
+          then IA0: r2w << e2 by thEvTrans;
+          IB0: w1 <= r1 & r1 << r2w by Y2, V1, ORDERS_2:def 6;
+          w1 < r2w & r2w < e1 by thEvTrans,A0s,IA0,IB0,ORDERS_2:def 6;
+          then r2w in (w1,e1) interval_in (p1,tr) by Y3;
+          hence contradiction by V1,Y2;
+        end;
+        hence thesis by V1;
+      end;
+
+      DS is consistent;
+      then DS is rw-consistent;
+      then consider wr2 be Event of DS such that
+        H1:  wr2 in tr & wr2 < r2 & wr2 writesto turn &
+             val wr2 = the True of Values &
+             for e1 st
+                 e1 in tr & e1 <= r2 & e1 writesto turn
+             holds
+                 e1 <= wr2 by D1;
+
+      H2: wr2 in p1,tr
+      proof
+        DS is consistent;
+        then DS is pr-complete;
+        then ex p st wr2 in p by H1;
+        then (wr2 in p1,tr or wr2 in p2,tr) &
+            wr2 writesto turn,the True of Values &
+            Values is consistent by U1,H1;
+        hence thesis by U3nw;
+      end;
+      M1: wr2 << r1
+      proof
+        r2 << e1 by V2,A0,thEvStrictPrec,A0s,thEvStrictTrans2;
+        then J1: wr2 << e1 by ORDERS_2:def 6,H1,thEvStrictTrans1;
+        J2: not r1 << wr2
+        proof
+          assume r1 << wr2;
+          then w1 << wr2 & wr2 < e1 by ORDERS_2:def 6,J1,V1,thEvStrictTrans1;
+          then w1 < wr2 & wr2 < e1 by ORDERS_2:def 6;
+          then wr2 in (w1,e1) interval_in (p1,tr) by H2;
+          hence contradiction by V1,H1;
+        end;
+        DS is consistent;
+        then J30: DS is pr-ordered;
+        DS is consistent;
+        then DS is rw-exclusive;
+        then not r1 = wr2 by D2,H1;
+        hence wr2 << r1 by J2,H2,V1,thLinPreordEvents,J30;
+      end;
+
+      Q0: not (u2 <= r1 & r1 <= e2)
+      proof
+        assume Q0a: u2 <= r1 & r1 <= e2;
+        DS is consistent;
+        then DS is rw-consistent;
+        then consider r1w being Event of DS such that
+        Y2: r1w in tr & r1w < r1 & r1w writesto flag2 &
+            val r1w = the False of Values &
+            for e st e in tr & e <= r1 & e writesto flag2
+            holds e <= r1w by V1,D2;
+        u2 = r1w
+        proof
+          DS is consistent;
+          then DS is pr-complete;
+          then ex p st r1w in p by Y2;
+          then TA01: r1w in p1,tr or r1w in p2,tr by U1,Y2;
+          TA02: u2 < r1w & r1w < e2
+            implies
+            r1w in (u2,e2) interval_in (p2,tr) by TA01,U3nw,Y2;
+          r1w <= r1 & r1 << e1 by V1,A0,thEvStrictPrec,Y2,ORDERS_2:def 6;
+          then r1w <= r1 & r1 << e2 by A0s, thEvTrans;
+          then u2 in p2,tr & r1w in p2,tr & not (u2 << r1w)
+            by Y2,TA01,U3nw,V2,TA02,thEvTrans,ORDERS_2:def 6;
+          then u2 = r1w or r1w << u2
+            by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+          hence thesis by Y2,V2,Q0a;
+        end;
+        then val r1w = the True of Values & Values is consistent by V2;
+        hence contradiction by Y2;
+      end;
+      M20: r1 << e1 by V1,A0,thEvStrictPrec;
+      u2 << w2 & w2 <= wr2 & wr2 << r1
+        by M1, V2, thEvStrictPrec, H1,ORDERS_2:def 6;
+      then u2 << wr2 & wr2 << r1 by thEvTrans;
+      hence contradiction by M20,Q0,A0s,thEvTrans;
+    end;
+
+    not r2 <= r1
+    proof
+      assume D0: r2 <= r1;
+      D01: u2 << r1 & r1 << e2
+           by V2o,thEvTrans,D0,A0s,V1,A0,thEvStrictPrec,thEvStrictTrans2;
+      D1: r1 in tr & r1 reads turn,the False of Values
+      proof
+        not r1 reads flag2,the False of Values
+        proof
+          assume Y1: r1 reads flag2,the False of Values;
+          DS is consistent;
+          then DS is rw-consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r2w < r1 & r2w writesto flag2 &
+              val r2w = the False of Values &
+              for e st e in tr & e <= r1 & e writesto flag2
+              holds e <= r2w by Y1,V1;
+          u2 = r2w
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then TA01: r2w in p2,tr or r2w in p1,tr by U1,Y2;
+            TA02: u2 < r2w & r2w < e2
+                implies
+                r2w in (u2,e2) interval_in (p2,tr) by U3nw,Y2,TA01;
+            TB01: r2w << e2 by D01,thEvStrictTrans1,ORDERS_2:def 6,Y2;
+            u2 in p2,tr & r2w in p2,tr & not (u2 << r2w)
+                by TB01,Y2,TA02,TA01,U3nw,V2,ORDERS_2:def 6;
+            then u2 = r2w or r2w << u2
+                by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+            hence thesis by Y2,V2,D01;
+          end;
+          then val r2w = the True of Values & Values is consistent by V2;
+          hence contradiction by Y2;
+        end;
+        hence thesis by V1;
+      end;
+      D2: r2 reads flag1,the False of Values
+      proof
+        not r2 reads turn,the True of Values
+        proof
+          assume Y1: r2 reads turn,the True of Values;
+          Values is consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r2 << r2w & r2w << r1 &
+              r2w writesto turn,the False of Values by lemwbefr,V2,D1,D0,Y1;
+          Y3: r2w in p2,tr
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then (r2w in p2,tr or r2w in p1,tr) &
+                 r2w writesto turn,the False of Values &
+                 Values is consistent by U1,Y2;
+            hence thesis by U3nw;
+          end;
+          r2w << r1 & r1 <= e1 by ORDERS_2:def 6,Y2,V1;
+          then IA0: r2w << e1 by thEvTrans;
+          IB0: w2 <= r2 & r2 << r2w by Y2, V2, ORDERS_2:def 6;
+          w2 < r2w & r2w < e2 by thEvTrans,A0s,IA0,IB0,ORDERS_2:def 6;
+          then r2w in (w2,e2) interval_in (p2,tr) by Y3;
+          hence contradiction by V2,Y2;
+        end;
+        hence thesis by V2;
+      end;
+
+      DS is consistent;
+      then DS is rw-consistent;
+      then consider wr2 be Event of DS such that
+        H1:  wr2 in tr & wr2 < r1 & wr2 writesto turn &
+             val wr2 = the False of Values &
+             for e2 st
+                 e2 in tr & e2 <= r1 & e2 writesto turn
+             holds
+                 e2 <= wr2 by D1;
+
+      H2: wr2 in p2,tr
+      proof
+        DS is consistent;
+        then DS is pr-complete;
+        then ex p st wr2 in p by H1;
+        then (wr2 in p2,tr or wr2 in p1,tr) &
+            wr2 writesto turn,the False of Values &
+            Values is consistent by U1,H1;
+        hence thesis by U3nw;
+      end;
+      M1: wr2 << r2
+      proof
+        r1 << e2 by V1,A0,thEvStrictPrec,A0s,thEvStrictTrans2;
+        then J1: wr2 << e2 by ORDERS_2:def 6,H1,thEvStrictTrans1;
+        J2: not r2 << wr2
+        proof
+          assume r2 << wr2;
+          then w2 << wr2 & wr2 < e2 by ORDERS_2:def 6,J1,V2,thEvStrictTrans1;
+          then w2 < wr2 & wr2 < e2 by ORDERS_2:def 6;
+          then wr2 in (w2,e2) interval_in (p2,tr) by H2;
+          hence contradiction by V2,H1;
+        end;
+        DS is consistent;
+        then J30: DS is pr-ordered;
+        DS is consistent;
+        then DS is rw-exclusive;
+        then not r2 = wr2 by D2,H1;
+        hence wr2 << r2 by J2,H2,V2,thLinPreordEvents,J30;
+      end;
+
+      Q0: not (u1 <= r2 & r2 <= e1)
+      proof
+        assume Q0a: u1 <= r2 & r2 <= e1;
+        DS is consistent;
+        then DS is rw-consistent;
+        then consider r1w being Event of DS such that
+        Y2: r1w in tr & r1w < r2 & r1w writesto flag1 &
+            val r1w = the False of Values &
+            for e st e in tr & e <= r2 & e writesto flag1
+            holds e <= r1w by V2,D2;
+        u1 = r1w
+        proof
+          DS is consistent;
+          then DS is pr-complete;
+          then ex p st r1w in p by Y2;
+          then TA01: r1w in p2,tr or r1w in p1,tr by U1,Y2;
+          TA02: u1 < r1w & r1w < e1 implies
+            r1w in (u1,e1) interval_in (p1,tr) by TA01,U3nw,Y2;
+          r1w <= r2 & r2 << e2 by V2,A0,thEvStrictPrec,Y2,ORDERS_2:def 6;
+          then r1w <= r2 & r2 << e1 by A0s, thEvTrans;
+          then u1 in p1,tr & r1w in p1,tr & not (u1 << r1w)
+            by Y2,TA01,U3nw,V1,TA02,thEvTrans,ORDERS_2:def 6;
+          then u1 = r1w or r1w << u1
+            by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+          hence thesis by Y2,V1,Q0a;
+        end;
+        then val r1w = the True of Values & Values is consistent by V1;
+        hence contradiction by Y2;
+      end;
+      M20: r2 << e1 by V2, A0s, A0, thEvStrictPrec, thEvStrictTrans2;
+      u1 << w1 & w1 <= wr2 & wr2 << r2
+        by M1,thEvStrictPrec,V1,H1,ORDERS_2:def 6;
+      then u1 << wr2 & wr2 << r2 by thEvTrans;
+      hence contradiction by M20,Q0,thEvTrans;
+    end;
+    hence contradiction by thLinPreordEvents, RR1;
+  end;
+
+  not (e1 in p2 & e2 in p1 & simultev e1, e2)
+  proof
+    assume A0: e1 in p2 & e2 in p1;
+    assume A0s: simultev e1, e2;
+    consider u1 being Event of DS, w1 being Event of DS, r1 being Event of DS
+    such that
+      V1: u1 in p2,tr & w1 in p2,tr & r1 in p2,tr &
+          u1 < w1 & w1 < r1 & r1 < e1 &
+          u1 writesto flag2,the True of Values &
+               not (u1,e1) interval_in (p2,tr) writesto flag2 &
+          w1 writesto turn,the False of Values &
+               not (w1,e1) interval_in (p2,tr) writesto turn &
+         (r1 reads flag1,the False of Values or
+          r1 reads turn,the True of Values) by U4;
+    V1o: u1 << w1 & w1 << r1 & r1 << e1 by V1, A0, thEvStrictPrec;
+    consider u2 being Event of DS, w2 being Event of DS, r2 being Event of DS
+    such that
+      V2: u2 in p1,tr & w2 in p1,tr & r2 in p1,tr &
+          u2 < w2 & w2 < r2 & r2 < e2 &
+          u2 writesto flag1,the True of Values &
+               not (u2,e2) interval_in (p1,tr) writesto flag1 &
+          w2 writesto turn,the True of Values &
+               not (w2,e2) interval_in (p1,tr) writesto turn &
+         (r2 reads flag2,the False of Values or
+          r2 reads turn,the False of Values)
+    by U4;
+    V2o: u2 << w2 & w2 << r2 & r2 << e2 by V2, A0, thEvStrictPrec;
+    RR1: not r1 <= r2
+    proof
+      assume D0: r1 <= r2;
+      D01: u1 << r2 & r2 << e1
+        by V1o,thEvTrans,D0,A0s,V2,A0,thEvStrictPrec,thEvStrictTrans2;
+      D1: r2 in tr & r2 reads turn,the False of Values
+      proof
+        not r2 reads flag2,the False of Values
+        proof
+          assume Y1: r2 reads flag2,the False of Values;
+          DS is consistent;
+          then DS is rw-consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r2w < r2 & r2w writesto flag2 &
+              val r2w = the False of Values &
+              for e st e in tr & e <= r2 & e writesto flag2
+              holds e <= r2w by Y1,V2;
+          u1 = r2w
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then TA01: r2w in p2,tr or r2w in p1,tr by U1,Y2;
+            TA02: u1 < r2w & r2w < e1
+                implies
+                r2w in (u1,e1) interval_in (p2,tr) by U3nw,Y2,TA01;
+            TB01: r2w << e1 by D01,thEvStrictTrans1,ORDERS_2:def 6,Y2;
+            u1 in p2,tr & r2w in p2,tr & not (u1 << r2w)
+                by TB01,Y2,TA02,TA01,U3nw,V1,ORDERS_2:def 6;
+            then u1 = r2w or r2w << u1
+                by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+            hence thesis by Y2,V1,D01;
+          end;
+          then val r2w = the True of Values & Values is consistent by V1;
+          hence contradiction by Y2;
+        end;
+        hence thesis by V2;
+      end;
+      D2: r1 reads flag1,the False of Values
+      proof
+        not r1 reads turn,the True of Values
+        proof
+          assume Y1: r1 reads turn,the True of Values;
+          Values is consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r1 << r2w & r2w << r2 &
+              r2w writesto turn,the False of Values by lemwbefr,V1,D1,D0,Y1;
+          Y3: r2w in p2,tr
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then (r2w in p2,tr or r2w in p1,tr) &
+                 r2w writesto turn,the False of Values &
+                 Values is consistent by U1,Y2;
+            hence thesis by U3nw;
+          end;
+          r2w << r2 & r2 <= e2 by ORDERS_2:def 6,Y2,V2;
+          then IA0: r2w << e2 by thEvTrans;
+          IB0: w1 <= r1 & r1 << r2w by Y2, V1, ORDERS_2:def 6;
+          w1 < r2w & r2w < e1 by thEvTrans,A0s,IA0,IB0,ORDERS_2:def 6;
+          then r2w in (w1,e1) interval_in (p2,tr) by Y3;
+          hence contradiction by V1,Y2;
+        end;
+        hence thesis by V1;
+      end;
+
+      DS is consistent;
+      then DS is rw-consistent;
+      then consider wr2 be Event of DS such that
+        H1:  wr2 in tr & wr2 < r2 & wr2 writesto turn &
+             val wr2 = the False of Values &
+             for e1 st
+                 e1 in tr & e1 <= r2 & e1 writesto turn
+             holds
+                 e1 <= wr2 by D1;
+
+      H2: wr2 in p2,tr
+      proof
+        DS is consistent;
+        then DS is pr-complete;
+        then ex p st wr2 in p by H1;
+        then (wr2 in p2,tr or wr2 in p1,tr) &
+            wr2 writesto turn,the False of Values &
+            Values is consistent by U1,H1;
+        hence thesis by U3nw;
+      end;
+      M1: wr2 << r1
+      proof
+        r2 << e1 by V2,A0,thEvStrictPrec,A0s,thEvStrictTrans2;
+        then J1: wr2 << e1 by ORDERS_2:def 6,H1,thEvStrictTrans1;
+        J2: not r1 << wr2
+        proof
+          assume r1 << wr2;
+          then w1 << wr2 & wr2 < e1 by ORDERS_2:def 6,J1,V1,thEvStrictTrans1;
+          then w1 < wr2 & wr2 < e1 by ORDERS_2:def 6;
+          then wr2 in (w1,e1) interval_in (p2,tr) by H2;
+          hence contradiction by V1,H1;
+        end;
+        DS is consistent;
+        then J30: DS is pr-ordered;
+        DS is consistent;
+        then DS is rw-exclusive;
+        then not r1 = wr2 by D2,H1;
+        hence wr2 << r1 by J2,H2,V1,thLinPreordEvents,J30;
+      end;
+
+      Q0: not (u2 <= r1 & r1 <= e2)
+      proof
+        assume Q0a: u2 <= r1 & r1 <= e2;
+        DS is consistent;
+        then DS is rw-consistent;
+        then consider r1w being Event of DS such that
+        Y2: r1w in tr & r1w < r1 & r1w writesto flag1 &
+            val r1w = the False of Values &
+            for e st e in tr & e <= r1 & e writesto flag1
+            holds e <= r1w by V1,D2;
+        u2 = r1w
+        proof
+          DS is consistent;
+          then DS is pr-complete;
+          then ex p st r1w in p by Y2;
+          then TA01: r1w in p2,tr or r1w in p1,tr by U1,Y2;
+          TA02: u2 < r1w & r1w < e2
+            implies
+            r1w in (u2,e2) interval_in (p1,tr) by TA01,U3nw,Y2;
+          r1w <= r1 & r1 << e1 by V1,A0,thEvStrictPrec,Y2,ORDERS_2:def 6;
+          then r1w <= r1 & r1 << e2 by A0s, thEvTrans;
+          then u2 in p1,tr & r1w in p1,tr & not (u2 << r1w)
+            by Y2,TA01,U3nw,V2,TA02,thEvTrans,ORDERS_2:def 6;
+          then u2 = r1w or r1w << u2
+            by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+          hence thesis by Y2,V2,Q0a;
+        end;
+        then val r1w = the True of Values & Values is consistent by V2;
+        hence contradiction by Y2;
+      end;
+      M20: r1 << e1 by V1,A0,thEvStrictPrec;
+      u2 << w2 & w2 <= wr2 & wr2 << r1
+        by M1, V2, thEvStrictPrec, H1,ORDERS_2:def 6;
+      then u2 << wr2 & wr2 << r1 by thEvTrans;
+      hence contradiction by M20,Q0,A0s,thEvTrans;
+    end;
+
+    not r2 <= r1
+    proof
+      assume D0: r2 <= r1;
+      D01: u2 << r1 & r1 << e2
+           by V2o,thEvTrans,D0,A0s,V1,A0,thEvStrictPrec,thEvStrictTrans2;
+      D1: r1 in tr & r1 reads turn,the True of Values
+      proof
+        not r1 reads flag1,the False of Values
+        proof
+          assume Y1: r1 reads flag1,the False of Values;
+          DS is consistent;
+          then DS is rw-consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r2w < r1 & r2w writesto flag1 &
+              val r2w = the False of Values &
+              for e st e in tr & e <= r1 & e writesto flag1
+              holds e <= r2w by Y1,V1;
+          u2 = r2w
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then TA01: r2w in p1,tr or r2w in p2,tr by U1,Y2;
+            TA02: u2 < r2w & r2w < e2
+                implies
+                r2w in (u2,e2) interval_in (p1,tr) by U3nw,Y2,TA01;
+            TB01: r2w << e2 by D01,thEvStrictTrans1,ORDERS_2:def 6,Y2;
+            u2 in p1,tr & r2w in p1,tr & not (u2 << r2w)
+                by TB01,Y2,TA02,TA01,U3nw,V2,ORDERS_2:def 6;
+            then u2 = r2w or r2w << u2
+                by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+            hence thesis by Y2,V2,D01;
+          end;
+          then val r2w = the True of Values & Values is consistent by V2;
+          hence contradiction by Y2;
+        end;
+        hence thesis by V1;
+      end;
+      D2: r2 reads flag2,the False of Values
+      proof
+        not r2 reads turn,the False of Values
+        proof
+          assume Y1: r2 reads turn,the False of Values;
+          Values is consistent;
+          then consider r2w being Event of DS such that
+          Y2: r2w in tr & r2 << r2w & r2w << r1 &
+              r2w writesto turn,the True of Values by lemwbefr,V2,D1,D0,Y1;
+          Y3: r2w in p1,tr
+          proof
+            DS is consistent;
+            then DS is pr-complete;
+            then ex p st r2w in p by Y2;
+            then (r2w in p1,tr or r2w in p2,tr) &
+                 r2w writesto turn,the True of Values &
+                 Values is consistent by U1,Y2;
+            hence thesis by U3nw;
+          end;
+          r2w << r1 & r1 <= e1 by ORDERS_2:def 6,Y2,V1;
+          then IA0: r2w << e1 by thEvTrans;
+          IB0: w2 <= r2 & r2 << r2w by Y2, V2, ORDERS_2:def 6;
+          w2 < r2w & r2w < e2 by thEvTrans,A0s,IA0,IB0,ORDERS_2:def 6;
+          then r2w in (w2,e2) interval_in (p1,tr) by Y3;
+          hence contradiction by V2,Y2;
+        end;
+        hence thesis by V2;
+      end;
+
+      DS is consistent;
+      then DS is rw-consistent;
+      then consider wr2 be Event of DS such that
+        H1:  wr2 in tr & wr2 < r1 & wr2 writesto turn &
+             val wr2 = the True of Values &
+             for e2 st
+                 e2 in tr & e2 <= r1 & e2 writesto turn
+             holds
+                 e2 <= wr2 by D1;
+
+      H2: wr2 in p1,tr
+      proof
+        DS is consistent;
+        then DS is pr-complete;
+        then ex p st wr2 in p by H1;
+        then (wr2 in p1,tr or wr2 in p2,tr) &
+            wr2 writesto turn,the True of Values &
+            Values is consistent by U1,H1;
+        hence thesis by U3nw;
+      end;
+      M1: wr2 << r2
+      proof
+        r1 << e2 by V1,A0,thEvStrictPrec,A0s,thEvStrictTrans2;
+        then J1: wr2 << e2 by ORDERS_2:def 6,H1,thEvStrictTrans1;
+        J2: not r2 << wr2
+        proof
+          assume r2 << wr2;
+          then w2 << wr2 & wr2 < e2 by ORDERS_2:def 6,J1,V2,thEvStrictTrans1;
+          then w2 < wr2 & wr2 < e2 by ORDERS_2:def 6;
+          then wr2 in (w2,e2) interval_in (p1,tr) by H2;
+          hence contradiction by V2,H1;
+        end;
+        DS is consistent;
+        then J30: DS is pr-ordered;
+        DS is consistent;
+        then DS is rw-exclusive;
+        then not r2 = wr2 by D2,H1;
+        hence wr2 << r2 by J2,H2,V2,thLinPreordEvents,J30;
+      end;
+
+      Q0: not (u1 <= r2 & r2 <= e1)
+      proof
+        assume Q0a: u1 <= r2 & r2 <= e1;
+        DS is consistent;
+        then DS is rw-consistent;
+        then consider r1w being Event of DS such that
+        Y2: r1w in tr & r1w < r2 & r1w writesto flag2 &
+            val r1w = the False of Values &
+            for e st e in tr & e <= r2 & e writesto flag2
+            holds e <= r1w by V2,D2;
+        u1 = r1w
+        proof
+          DS is consistent;
+          then DS is pr-complete;
+          then ex p st r1w in p by Y2;
+          then TA01: r1w in p1,tr or r1w in p2,tr by U1,Y2;
+          TA02: u1 < r1w & r1w < e1
+            implies
+            r1w in (u1,e1) interval_in (p2,tr) by TA01,U3nw,Y2;
+          r1w <= r2 & r2 << e2 by V2,A0,thEvStrictPrec,Y2,ORDERS_2:def 6;
+          then r1w <= r2 & r2 << e1 by A0s, thEvTrans;
+          then u1 in p2,tr & r1w in p2,tr & not (u1 << r1w)
+            by Y2,TA01,U3nw,V1,TA02,thEvTrans,ORDERS_2:def 6;
+          then u1 = r1w or r1w << u1
+            by thLinPreordEvents, thEvStrictPrec, ORDERS_2:def 6;
+          hence thesis by Y2,V1,Q0a;
+        end;
+        then val r1w = the True of Values & Values is consistent by V1;
+        hence contradiction by Y2;
+      end;
+      M20: r2 << e1 by V2, A0s, A0, thEvStrictPrec, thEvStrictTrans2;
+      u1 << w1 & w1 <= wr2 & wr2 << r2
+        by M1,thEvStrictPrec,V1,H1,ORDERS_2:def 6;
+      then u1 << wr2 & wr2 << r2 by thEvTrans;
+      hence contradiction by M20,Q0,thEvTrans;
+    end;
+    hence contradiction by thLinPreordEvents, RR1;
+  end;
+  hence thesis by thLinPreordEvents, W1, W2, U1, W3;
+end;

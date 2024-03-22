@@ -1,0 +1,2182 @@
+:: Formulation of Cell Petri Nets
+::  by Mitsuru Jitsukawa , Pauline N. Kawamoto and Yasunari Shidama
+:: 
+:: Received December 8, 2013
+:: Copyright (c) 2013-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies TARSKI, RELAT_1, ARYTM_3, PETRI, PETRI_2, FUNCT_7, FUNCT_1,
+      FINSET_1, FUNCOP_1, ZFMISC_1, SUBSET_1, BOOLMARK, NUMBERS, XBOOLE_0,
+      FUNCT_2, FUNCT_4, PBOOLE, SETLIM_2, XXREAL_0, PETRI_3, PROB_2, MCART_1,
+      CARD_1, CARD_3, STRUCT_0, ARYTM_1;
+ notations TARSKI, XBOOLE_0, XTUPLE_0, ZFMISC_1, XCMPLX_0, SUBSET_1, RELAT_1,
+      FUNCT_1, RELSET_1, FUNCT_2, DOMAIN_1, MSAFREE4, FUNCOP_1, FUNCT_4,
+      FINSET_1, NUMBERS, NAT_1, XXREAL_0, PBOOLE, RELSET_2, STRUCT_0, PETRI,
+      PETRI_2, CARD_3;
+ constructors RELSET_1, DOMAIN_1, VALUED_1, PETRI_2, RELSET_2, FUNCT_4,
+      MSAFREE4;
+ registrations SUBSET_1, ORDINAL1, RELAT_1, RELSET_1, XBOOLE_0, XREAL_0,
+      PBOOLE, NAT_1, FUNCT_2, FINSET_1, PETRI, PETRI_2, XTUPLE_0, STRUCT_0,
+      INT_1, CHAIN_1;
+ requirements REAL, NUMERALS, SUBSET, BOOLE, ARITHM;
+ definitions TARSKI;
+ equalities PETRI, PETRI_2;
+ expansions PETRI, PETRI_2, TARSKI;
+ theorems PARTFUN1, TARSKI, ZFMISC_1, RELAT_1, XBOOLE_0, PETRI, FINSET_1,
+      FUNCT_1, FUNCT_2, XBOOLE_1, PBOOLE, FUNCT_4, FUNCOP_1, PETRI_2, XTUPLE_0,
+      CARD_3, MSAFREE4, RELSET_2, XREAL_1, INT_1, SUBSET_1;
+ schemes FUNCT_2, FUNCT_1, PBOOLE;
+
+begin  ::  Preliminaries
+
+definition
+  let I be non empty set;
+  let CPNTS be ManySortedSet of I;
+  attr CPNTS is Colored-PT-net-Family-like means
+  :Def11a:
+  for i be Element of I holds CPNTS.i is Colored-PT-net;
+end;
+
+registration
+  let I be non empty set;
+  cluster Colored-PT-net-Family-like for ManySortedSet of I;
+  existence
+  proof
+    deffunc F(set) = the Colored-PT-net;
+    consider X being ManySortedSet of I such that
+A1: for d be Element of I holds X.d = F(d) from PBOOLE:sch 5;
+    take X;
+    thus thesis by A1;
+  end;
+end;
+
+definition
+  let I be non empty set;
+  mode Colored-PT-net-Family of I
+    is Colored-PT-net-Family-like ManySortedSet of I;
+end;
+
+definition
+  let I be non empty set;
+  let CPNTS be Colored-PT-net-Family of I;
+  let i be Element of I;
+  redefine func CPNTS.i -> Colored-PT-net;
+  correctness by Def11a;
+end;
+
+definition
+  let I be non empty set;
+  let CPNT be Colored-PT-net-Family of I;
+  attr CPNT is disjoint_valued means
+  for i, j be Element of I st i <> j holds
+  the carrier of (CPNT.i) misses the carrier of (CPNT.j) &
+  the carrier' of (CPNT.i) misses the carrier' of (CPNT.j);
+end;
+
+theorem LM01:
+  for I be set, F, D, R be ManySortedSet of I st
+  (for i be object st i in I holds
+  ex f be Function st f = F.i & dom f = D.i & rng f = R.i) &
+  (for i,j be object, f,g be Function st i in I & j in I &
+  i <> j & f = F.i & g = F.j holds dom(f) misses dom(g)) holds
+  ex G be Function st G = union rng F &
+  dom G = union rng D & rng G = union rng R &
+  for i, x be object, f be Function st i in I &
+  f = F.i & x in dom f
+  holds G.x = f.x
+proof
+  let I be set, F, D, R be ManySortedSet of I;
+  assume
+A1: for i be object st i in I holds
+  ex f be Function st f = F.i &
+  dom f = D.i & rng f = R.i;
+  assume
+A2: for i, j be object, f, g be Function st i in I &
+  j in I & i <> j & f = F.i & g =F.j
+  holds dom(f) misses dom(g);
+P0: dom F = I by PARTFUN1:def 2;
+R0: dom R = I by PARTFUN1:def 2;
+Q0: dom D = I by PARTFUN1:def 2;
+P1: for z be object st z in union rng F
+  holds ex x, y, i be object st z = [x, y] & z in F.i & i in I
+  proof
+    let z be object;
+    assume z in union rng F;
+    then consider Z be set such that
+P02:  z in Z & Z in (rng F) by TARSKI:def 4;
+    consider i be object such that
+P03:  i in dom F & Z=F.i by P02, FUNCT_1:def 3;
+    consider f be Function such that
+P05:  f = F.i & dom f = D.i & rng f = R.i by P03, A1;
+    ex x, y be object st z = [x, y] by P02, P03, P05, RELAT_1:def 1;
+    hence thesis by P02, P03;
+  end;
+  for z be object st z in union rng F
+  holds ex x, y be object st z = [x, y]
+  proof
+    let z be object;
+    assume z in union rng F; then
+    ex x, y, i be object st z = [x, y] & z in F.i & i in I by P1;
+    hence thesis;
+  end;
+  then
+  reconsider G = union rng F as Relation by RELAT_1:def 1;
+  G is Function
+  proof
+    for x, y1, y2 be object st [x, y1] in G & [x, y2] in G holds y1 = y2
+    proof
+      let x, y1, y2 be object;
+      assume
+P01:  [x, y1] in G & [x, y2] in G;
+      then
+      consider a1, b1, i be object such that
+P02:  [x, y1] = [a1, b1] & [x, y1] in F.i & i in I by P1;
+      consider a2, b2, j be object such that
+P03:  [x, y2] = [a2, b2] & [x, y2] in F.j & j in I by P1, P01;
+      consider f be Function such that
+P04:  f = F.i & dom f = D.i & rng f = R.i by A1, P02;
+      consider g be Function such that
+P05:  g = F.j & dom g = D.j & rng g = R.j by A1, P03;
+      i = j
+      proof
+        assume
+Q04:    i <> j;
+P041:   x in D.i by P02, P04, XTUPLE_0:def 12;
+P042:   x in D.j by P03, P05, XTUPLE_0:def 12;
+        D.i /\ D.j = {}
+        by P02, P03, P04, P05, Q04, A2, XBOOLE_0:def 7;
+        hence contradiction by P041, P042, XBOOLE_0:def 4;
+      end;
+      hence y1 = y2 by P02, P03, P04, FUNCT_1:def 1;
+    end;
+    hence thesis by FUNCT_1:def 1;
+  end;
+  then
+  reconsider G as Function;
+  take G;
+  thus G = union rng F;
+  for x be object holds x in dom G iff x in union rng D
+  proof
+    let x be object;
+    hereby
+      assume x in dom G;
+      then
+      consider y be object such that
+S2:   [x, y] in G by XTUPLE_0:def 12;
+      consider a, b, i be object such that
+S3:   [x, y] = [a, b] & [x, y] in F.i & i in I by P1, S2;
+      consider f be Function such that
+S4:   f = F.i & dom f = D.i & rng f = R.i by A1, S3;
+S5:   x in D.i by S3, S4, XTUPLE_0:def 12;
+      D.i in rng D by Q0, S3, FUNCT_1:3;
+      hence x in union rng D by S5, TARSKI:def 4;
+    end;
+    assume x in union rng D;
+    then consider Z be set such that
+S6: x in Z & Z in rng D by TARSKI:def 4;
+    consider i be object such that
+S7: i in dom D & Z=D.i by S6, FUNCT_1:def 3;
+    consider f be Function such that
+S9: f = F.i & dom f = D.i & rng f = R.i by S7, A1;
+    consider y be object such that
+S11: [x, y] in f by S6, S7, S9, XTUPLE_0:def 12;
+    F.i in rng F by FUNCT_1:3, P0, S7;
+    then
+    [x, y] in G by S9, S11, TARSKI:def 4;
+    hence x in dom G by XTUPLE_0:def 12;
+  end;
+hence dom G = union rng D by TARSKI:2;
+for x be object holds x in rng G iff x in union rng R
+  proof
+    let x be object;
+    hereby
+      assume x in rng G;
+      then
+      consider y be object such that S2: [y, x] in G by XTUPLE_0:def 13;
+      consider a, b, i be object such that
+S3:   [y, x] = [a, b] & [y, x] in F.i & i in I by P1,S2;
+      consider f be Function such that
+S4:   f = F.i & dom f = D.i & rng f = R.i by A1, S3;
+S5:   x in R.i by S3, S4, XTUPLE_0:def 13;
+      R.i in rng R by R0, S3, FUNCT_1:3;
+      hence x in union rng R by S5,TARSKI:def 4;
+    end;
+    assume x in union rng R;
+    then consider Z be set such that
+S6: x in Z & Z in rng R by TARSKI:def 4;
+    consider i be object such that
+S7: i in dom R & Z=R.i by S6,FUNCT_1:def 3;
+    consider f be Function such that
+S9: f = F.i & dom f = D.i & rng f = R.i by S7, A1;
+    consider y be object such that
+S11: [y, x] in f by S6, S7, S9, XTUPLE_0:def 13;
+    F.i in rng F by FUNCT_1:3, P0, S7; then
+    [y, x] in G by S9, S11, TARSKI:def 4;
+    hence x in rng G by XTUPLE_0:def 13;
+  end;
+  hence rng G = union rng R by TARSKI:2;
+  thus for i, x be object, f be Function st i in I & f = F.i &
+  x in dom f holds G.x = f.x
+  proof
+    let i, x be object, f be Function;
+    assume
+A1: i in I & f = F.i & x in dom f; then
+P2: [x, f.x] in F.i by FUNCT_1:1;
+    F.i in rng F by FUNCT_1:3, A1, P0; then
+    [x, f.x] in G by P2, TARSKI:def 4;
+    hence G.x = f.x by FUNCT_1:1;
+  end;
+end;
+
+theorem LM03:
+  for I be set, Y, Z be ManySortedSet of I st
+  (for i, j be object st i in I & j in I &
+  i <> j holds Y. i /\ Z.j = {})
+  holds Union (Y (\) Z) = (Union Y) \ (Union Z)
+proof
+  let I be set, Y, Z be ManySortedSet of I;
+  set X = Y (\) Z;
+  assume
+A2: for i, j be object st i in I & j in I & i <> j
+  holds  Y.i /\ Z.j = {};
+P0: dom X = I by PARTFUN1:def 2;
+R0: dom Y = I by PARTFUN1:def 2;
+Q0: dom Z = I by PARTFUN1:def 2;
+x: for x be object
+  holds x in union rng X iff x in (union rng Y) \ (union rng Z)
+  proof
+    let x be object;
+    hereby
+      assume x in union rng X; then
+      consider K be set such that
+S61:  x in K and
+S62:  K in rng X by TARSKI:def 4;
+      consider i be object such that
+S7:   i in dom X and
+S71:  K = X.i by FUNCT_1:def 3, S62;
+      set W = Y.i;
+V1:   X.i = Y.i \ Z.i by PBOOLE:def 6, S7;
+S82:  W in rng Y by FUNCT_1:3, R0, S7;
+S9:   x in union rng Y by TARSKI:def 4, S71, S61, V1, S82;
+      not x in union rng Z
+      proof
+        assume x in union rng Z;
+        then consider L be set such that
+S101:   x in L and
+S102:   L in rng Z by TARSKI:def 4;
+        consider j be object such that
+S112:   j in dom Z and
+S113:   L = Z.j by S102, FUNCT_1:def 3;
+        per cases;
+        suppose
+          i = j;
+          hence contradiction by V1, S61, S71, XBOOLE_0:def 5, S101, S113;
+        end;
+        suppose i <> j;
+          then Y.i /\ Z.j = {} by A2, S7, S112;
+          hence contradiction by XBOOLE_0:def 4, S113, S101, S71, S61, V1;
+        end;
+      end;
+      hence x in (union rng Y) \ (union rng Z) by S9, XBOOLE_0:def 5;
+    end;
+    assume
+A03: x in (union rng Y) \ (union rng Z);
+    then
+A3:  x in (union rng Y) & not x in union rng Z by XBOOLE_0:def 5;
+    consider K be set such that
+S6:  x in K & K in rng Y by TARSKI:def 4, A03;
+    consider i be object such that
+S7:  i in dom Y & K=Y.i by S6, FUNCT_1:def 3;
+    not x in Z.i
+    proof
+      assume
+S81:  x in Z.i;
+      Z.i in rng Z by S7, Q0, FUNCT_1:3;
+      hence contradiction by A3, S81, TARSKI:def 4;
+    end;
+    then
+S9:  x in Y.i \ Z.i by S6,S7,XBOOLE_0:def 5;
+S10: x in X.i by S7, S9, PBOOLE:def 6;
+    X.i in rng X by S7, P0, FUNCT_1:3;
+    hence x in union rng X by S10, TARSKI:def 4;
+  end;
+  Union X = union rng X & Union Y = union rng Y &
+  Union Z = union rng Z by CARD_3:def 4;
+  hence thesis by x,TARSKI:2;
+end;
+
+theorem LM04:
+  for I be set, X, Y, Z be ManySortedSet of I st (X c= (Y (\) Z) &
+  (for i, j be object st i in I & j in I &
+  i <> j holds Y.i /\ Z.j = {}))
+  holds Union(X) c= (Union Y) \ (Union Z)
+proof
+  let I be set, X, Y, Z be ManySortedSet of I;
+  assume X c= Y (\) Z; then
+B1: Union X c= Union (Y (\) Z) by MSAFREE4:1;
+  assume for i, j be object st i in I & j in I & i <> j
+  holds Y.i /\ Z.j = {};
+  hence thesis by LM03, B1;
+end;
+
+begin  ::  Synthesis of CPNT, I
+
+LMXorDelta:
+  for I be non trivial set ex i, j be Element of I st i <> j
+proof
+  let I be non trivial set;
+  ex x, y be object st x in I & y in I & x <> y by ZFMISC_1:def 10;
+  hence thesis;
+end;
+
+definition
+  let I be non trivial set;
+  func XorDelta(I) -> non empty set equals
+  {[i, j] where i,j is Element of I : i <> j};
+  correctness
+  proof
+    consider i, j be Element of I such that
+A1: i <> j by LMXorDelta;
+    [i, j] in {[i, j] where i, j is Element of I:i <> j} by A1;
+    hence thesis;
+  end;
+end;
+
+theorem SYLM2:
+  for I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I holds
+  union {Funcs(Outbds(CPNT.i), the carrier of CPNT.j)
+  where i, j is Element of I : i <> j} is non empty
+proof
+  let I be non trivial finite set;
+  let CPNT be Colored-PT-net-Family of I;
+  deffunc F(Element of I, Element of I) =
+  Funcs(Outbds(CPNT.$1), the carrier of CPNT.$2);
+  consider i0, j0 be Element of I such that
+I0J0: i0 <> j0 by LMXorDelta;
+  set O12 = the Function of Outbds(CPNT.i0), the carrier of CPNT.j0;
+  F(i0, j0) in {F(i, j) where i, j is Element of I:i <> j} by I0J0;
+  then F(i0, j0) c= union
+  {F(i, j) where i, j is Element of I:i <> j} by ZFMISC_1:74;
+  hence thesis;
+end;
+
+definition
+  let I be non trivial finite set;
+  let CPNT be Colored-PT-net-Family of I;
+  mode connecting-mapping of CPNT -> ManySortedSet of XorDelta(I) means
+  :Defcntmap:
+  rng it c= union
+  {Funcs(Outbds(CPNT.i), the carrier of CPNT.j)
+  where i, j is Element of I : i <> j} &
+  for i,j be Element of I st i <> j
+  holds it.[i, j] is Function of Outbds(CPNT.i), the carrier of CPNT.j;
+  existence
+  proof
+    deffunc F(Element of I,Element of I) =
+    Funcs(Outbds(CPNT.$1), the carrier of CPNT.$2);
+    set X = XorDelta(I);
+    set Y = union {F(i, j) where i, j is Element of I:i <> j};
+    defpred P[object,object] means
+    ex i, j be Element of I st
+    $1=[i, j] & $2 is Function of Outbds(CPNT.i),
+    the carrier of CPNT.j;
+P1: for x being object st x in X ex y being object st
+    y in Y & P[x, y]
+    proof
+      let x be object;
+      assume x in X; then
+      consider i, j be Element of I such that
+P11:  x = [i, j] & i <> j;
+      set O12 = the Function of
+      Outbds(CPNT. i), the carrier of CPNT.j;
+P12:  O12 in F(i, j) by FUNCT_2:8;
+      F(i, j) in {F(i, j) where i, j is Element of I:i <> j} by P11;
+      then
+      O12 in Y by TARSKI:def 4, P12;
+      hence thesis by P11;
+    end;
+    consider f being Function of X,Y such that
+P2:  for x being object st x in X holds P[x, f.x] from FUNCT_2:sch 1(P1);
+X2:  Y <> {} by SYLM2;
+    then reconsider f as ManySortedSet of XorDelta(I);
+    take f;
+    f in Funcs(X, Y) by X2,FUNCT_2:8;
+    then
+    ex f0 being Function st f = f0 & dom f0 = X & rng f0 c= Y
+    by FUNCT_2:def 2;
+    hence rng f c= Y;
+    thus for i, j be Element of I st i <> j
+    holds f.[i, j] is Function of Outbds(CPNT.i), the carrier of CPNT.j
+    proof
+      let i, j be Element of I;
+      assume
+ASIJ: i <> j;
+      [i, j] in X by ASIJ; then
+      consider i1, j1 be Element of I such that
+P4:   [i, j]=[i1, j1] & f.[i, j] is Function of
+      Outbds(CPNT.i1), the carrier of CPNT.j1 by P2;
+      i = i1 & j = j1 by XTUPLE_0:1,P4;
+      hence thesis by P4;
+    end;
+  end;
+end;
+
+theorem SYLM3:
+  for CPNT1, CPNT2 be Colored-PT-net,
+  O12 be Function of Outbds(CPNT1), the carrier of CPNT2,
+  q12 be Function st
+  dom q12=Outbds(CPNT1) &
+  for t01 be transition of CPNT1 st t01 is outbound
+  holds q12.t01 is Function of thin_cylinders(the ColoredSet of CPNT1,
+  *'{t01}), thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01)) holds
+  q12 in Funcs(Outbds(CPNT1),
+  union {Funcs(thin_cylinders(the ColoredSet of CPNT1,*'{t01}),
+  thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01)))
+  where t01 is transition of CPNT1:t01 is outbound})
+proof
+  let CPNT1, CPNT2 be Colored-PT-net,
+  O12 be Function of Outbds(CPNT1), the carrier of CPNT2,
+  q12 be Function;
+  assume
+P1: dom q12=Outbds(CPNT1);
+  assume
+P2: for t01 be transition of CPNT1 st t01 is outbound
+  holds q12.t01 is
+  Function of thin_cylinders(the ColoredSet of CPNT1,
+  *'{t01}), thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01));
+  now let y be object;
+    assume y in rng q12; then
+    consider t01 being object such that
+P11: t01 in dom q12 & y = q12.t01 by FUNCT_1:def 3;
+    reconsider t01 as transition of CPNT1 by P1, P11;
+p12: ex x be transition of CPNT1
+    st x = t01 & x is outbound by P1,P11;
+    q12.t01 is Function of thin_cylinders(the ColoredSet of CPNT1,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT1, Im(O12, t01))
+    by P2, p12; then
+P13: q12.t01 in Funcs(thin_cylinders(the ColoredSet of CPNT1,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01)))
+    by FUNCT_2:8;
+    Funcs(thin_cylinders(the ColoredSet of CPNT1,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01))) in
+    {Funcs(thin_cylinders(the ColoredSet of CPNT1,*'{t01}),
+    thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01)))
+    where t01 is transition of CPNT1 : t01 is outbound } by p12;
+    hence y in
+    union {Funcs(thin_cylinders(the ColoredSet of CPNT1,*'{t01}),
+    thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01)))
+    where t01 is transition of CPNT1 : t01 is outbound }
+    by P11, P13, TARSKI:def 4;
+  end;
+  then rng q12 c= union {
+  Funcs(thin_cylinders( the ColoredSet of CPNT1,*'{t01}),
+  thin_cylinders(the ColoredSet of CPNT1, Im(O12,t01)))
+  where t01 is transition of CPNT1 : t01 is outbound };
+  hence thesis by FUNCT_2:def 2, P1;
+end;
+
+definition
+  let I be non trivial finite set;
+  let CPNT be Colored-PT-net-Family of I;
+  let O be connecting-mapping of CPNT;
+  mode connecting-firing-rule of O -> ManySortedSet of XorDelta(I) means
+  :Defcntfir:
+  for i, j be Element of I st i <> j holds
+  ex Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+  qij be Function st qij =it.[i, j] & Oij = O.[i, j] &
+  dom (qij)=Outbds(CPNT.i) &
+  for t01 be transition of CPNT.i
+  st t01 is outbound holds qij.t01 is
+  Function of thin_cylinders(the ColoredSet of CPNT.i,
+  *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01));
+  existence
+  proof
+    deffunc X(Element of I,Element of I) =
+    {Funcs(Outbds(CPNT.$1),
+    union {Funcs(thin_cylinders(the ColoredSet of CPNT.$1,*'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.$1, Im(O12, t01)))
+    where t01 is transition of CPNT.$1 : t01 is outbound })
+    where O12 is Function of Outbds(CPNT.$1), the carrier of CPNT.$2:
+    O.[$1,$2] =O12};
+R1: for i, j be Element of I,
+    Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+    q be Function st Oij = O.[i, j] & dom q =Outbds(CPNT.i) &
+    for t01 be transition of CPNT.i st t01 is outbound
+    holds q.t01 is Function of
+    thin_cylinders(the ColoredSet of CPNT.i, *'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01))
+    holds q in union X(i,j)
+    proof
+      let i, j be Element of I,
+      Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+      q be Function;
+      assume A1: Oij = O.[i, j] & dom q =Outbds(CPNT.i) &
+      for t01 be transition of CPNT.i st t01 is outbound holds q.t01 is
+      Function of thin_cylinders(the ColoredSet of CPNT.i,
+      *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(Oij, t01));
+P1:   q in Funcs(Outbds(CPNT.i),
+      union {Funcs(thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+      thin_cylinders(the ColoredSet of CPNT.i, Im(Oij, t01)))
+      where t01 is transition of CPNT.i:t01 is outbound}) by SYLM3, A1;
+      Funcs(Outbds(CPNT.i),
+      union {Funcs(thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+      thin_cylinders(the ColoredSet of CPNT.i, Im(Oij, t01)))
+      where t01 is transition of CPNT.i:t01 is outbound})
+      in X(i, j) by A1;
+      hence q in union X(i, j) by P1,TARSKI:def 4;
+    end;
+    consider i0, j0 be Element of I such that
+I0J0: i0 <> j0 by LMXorDelta;
+    reconsider Oi0j0 = O.[i0, j0] as
+    Function of Outbds(CPNT.i0), the carrier of CPNT.j0 by I0J0, Defcntmap;
+    reconsider Oj0i0 = O.[j0, i0] as
+    Function of Outbds(CPNT.j0), the carrier of CPNT.i0
+    by I0J0, Defcntmap;
+    reconsider O0= [Oi0j0,Oj0i0] as
+    connecting-mapping of CPNT.i0, CPNT.j0 by PETRI_2:def 13;
+    set q0 = the connecting-firing-rule of CPNT.i0, CPNT.j0, O0;
+    consider q12, q21 be Function,
+    O12 be Function of Outbds(CPNT.i0), the carrier of CPNT.j0,
+    O21 be Function of Outbds(CPNT.j0), the carrier of CPNT.i0 such that
+X0:   O0=[O12, O21] &
+    dom q12=Outbds(CPNT.i0) & dom q21=Outbds(CPNT.j0) &
+    (for t01 be transition of CPNT.i0 st t01 is outbound holds
+    q12.t01 is Function of
+    thin_cylinders(the ColoredSet of CPNT.i0,*'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i0, Im(O12,t01))) &
+    (for t02 be transition of CPNT.j0 st t02 is outbound holds
+    q21.t02 is Function of
+    thin_cylinders(the ColoredSet of CPNT.j0, *'{t02}),
+    thin_cylinders(the ColoredSet of CPNT.j0, Im(O21,t02))) &
+    q0=[q12, q21] by PETRI_2:def 14;
+x1: Oi0j0 =O0`1
+      .= O12 by X0;
+    union X(i0,j0) in
+    {union X(i, j) where i, j is Element of I:i <> j} by I0J0;
+    then union X(i0, j0) c= union
+    {union X(i, j) where i, j is Element of I:i <> j} by ZFMISC_1:74;
+    then
+    reconsider Y = union {union X(i, j) where i, j is Element of I:i <> j}
+    as non empty set by x1,X0, R1;
+R2:   for i, j be Element of I,
+    Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+    q be Function st i <> j & Oij = O.[i, j] &
+    dom q =Outbds(CPNT.i) &
+    for t01 be transition of CPNT.i st t01 is outbound
+    holds q.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01))
+    holds q in Y
+    proof
+      let i, j be Element of I,
+      Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+      q be Function;
+      assume
+A1:   i <> j & Oij = O.[i, j] &
+      dom q =Outbds(CPNT.i) &
+      for t01 be transition of CPNT.i st t01 is outbound
+      holds q.t01 is
+      Function of thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+      thin_cylinders(the ColoredSet of CPNT.i, Im(Oij, t01));
+      then
+A2:   q in union X(i, j) by R1;
+      union X(i, j) in
+      {union X(i, j) where i, j is Element of I:i <> j} by A1;
+      hence thesis by A2, TARSKI:def 4;
+    end;
+    defpred P[object, object] means
+    ex i, j be Element of I,
+    Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+    qij be Function st $1=[i, j] & Oij = O.[i, j] & qij=$2 & i <> j &
+    dom qij = Outbds(CPNT.i) &
+    for t01 be transition of CPNT.i st t01 is outbound
+    holds qij.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i, *'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i, Im(Oij, t01));
+P1: for x being object st x in XorDelta(I)
+    ex y being object st y in Y & P[x, y]
+    proof
+      let x be object;
+      assume x in XorDelta(I);
+      then consider i, j be Element of I such that
+P11:  x = [i, j] & i <> j;
+      reconsider Oij = O.[i, j] as
+      Function of Outbds(CPNT.i), the carrier of CPNT.j by P11, Defcntmap;
+      reconsider Oji = O.[j, i] as
+      Function of Outbds(CPNT.j), the carrier of CPNT.i by P11, Defcntmap;
+      reconsider O0= [Oij, Oji] as connecting-mapping of CPNT.i,CPNT.j
+      by PETRI_2:def 13;
+      set q0 = the connecting-firing-rule of CPNT.i, CPNT.j, O0;
+      consider q12, q21 be Function,
+      O12 be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+      O21 be Function of Outbds(CPNT.j), the carrier of CPNT.i such that
+X0:   O0=[O12, O21] &
+      dom q12 = Outbds(CPNT.i) & dom q21 = Outbds(CPNT.j) &
+      (for t01 be transition of CPNT.i st t01 is outbound holds
+      q12.t01 is Function of
+      thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+      thin_cylinders(the ColoredSet of CPNT.i, Im(O12, t01))) &
+      (for t02 be transition of CPNT.j
+      st t02 is outbound holds q21.t02 is Function of
+      thin_cylinders(the ColoredSet of CPNT.j, *'{t02}),
+      thin_cylinders(the ColoredSet of CPNT.j, Im(O21, t02))) &
+      q0=[q12, q21] by PETRI_2:def 14;
+      Oij =O0`1
+        .= O12 by X0;
+      hence thesis by X0, P11, R2;
+    end;
+    consider f being Function of XorDelta(I), Y such that
+P2:  for x being object st x in XorDelta(I) holds P[x, f.x]
+    from FUNCT_2:sch 1(P1);
+    reconsider f as ManySortedSet of XorDelta(I);
+    take f;
+    thus for i, j be Element of I st i <> j holds
+    ex Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+    qij be Function st
+    qij = f.[i,j] &
+    Oij = O.[i,j] &
+    dom (qij)=Outbds(CPNT.i) &
+    for t01 be transition of CPNT.i st t01 is outbound
+    holds qij.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01))
+    proof
+      let i, j be Element of I;
+      assume i <> j; then
+p04:  [i, j] in XorDelta(I);
+      consider i1, j1 be Element of I,
+      Oij be Function of Outbds(CPNT.i1), the carrier of CPNT.j1,
+      qij be Function such that
+P4:   [i, j] = [i1, j1] &
+      Oij = O.[i1, j1] &
+      qij = f.[i, j] &
+      i1 <> j1 &
+      dom qij = Outbds(CPNT.i1) &
+      for t01 be transition of CPNT.i1
+      st t01 is outbound holds qij.t01 is
+      Function of thin_cylinders(the ColoredSet of CPNT.i1,*'{t01}),
+      thin_cylinders(the ColoredSet of CPNT.i1, Im(Oij,t01)) by p04,P2;
+      i = i1 & j = j1 by XTUPLE_0:1, P4;
+      hence thesis by P4;
+    end;
+  end;
+end;
+
+LMQ1:
+  for I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I
+  st CPNT is disjoint_valued holds
+  for O be connecting-mapping of CPNT
+  for q be connecting-firing-rule of O st
+  for i, j1, j2 be Element of I st i <> j1 & i <> j2 &
+  (ex x,y1, y2 be object st
+  [x, y1] in q.[i, j1] & [x, y2] in q.[i, j2]) holds j1 = j2
+  holds
+  union rng q is Function &
+  for z be object st z in union rng q
+  holds ex i, j be Element of I,
+  q12 be Function,
+  O12 be Function of Outbds(CPNT.i), the carrier of CPNT.j
+  st i <> j &
+  ( for t01 be transition of CPNT.i
+  st t01 is outbound holds q12.t01 is
+  Function of thin_cylinders(the ColoredSet of CPNT.i,
+  *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01))) &
+  q12 in Funcs(Outbds(CPNT.i),
+  union {Funcs(thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+  thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01)))
+  where t01 is transition of CPNT.i : t01 is outbound }) &
+  q12 = q.[i, j] &
+  O12 = O.[i, j] &
+  z in q12
+proof
+  let I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I;
+  assume
+AS0: CPNT is disjoint_valued;
+  let O be connecting-mapping of CPNT;
+  let q be connecting-firing-rule of O;
+  assume
+AS1: for i, j1, j2 be Element of I st i <> j1 & i <> j2 &
+  (ex x, y1, y2 be object st
+  [x, y1] in q.[i, j1] & [x, y2] in q.[i, j2] )
+  holds j1 = j2;
+E1: for RQ be object st RQ in rng q holds
+  ex i, j be Element of I,
+  Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+  qij be Function st
+  i <> j &
+  ( for t01 be transition of CPNT.i st t01 is outbound
+  holds qij.t01 is Function of thin_cylinders(the ColoredSet of CPNT.i,
+  *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01))) &
+  qij in Funcs(Outbds(CPNT.i),
+  union {Funcs(thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+  thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01)))
+  where t01 is transition of CPNT.i:t01 is outbound}) &
+  RQ = q.[i,j] &
+  q.[i, j] = qij &
+  O.[i, j] = Oij
+  proof
+    let RQ be object;
+    assume RQ in rng q; then
+    consider z be object such that
+E2:  z in dom q & RQ=q.z by FUNCT_1:def 3;
+    z in XorDelta(I) by E2; then
+    consider i, j be Element of I such that
+E3:  z = [i, j] & i <> j;
+    consider Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+    qij be Function such that
+E4:  qij =q.[i, j] &
+    Oij = O.[i, j] &
+    dom (qij)=Outbds(CPNT.i) &
+    for t01 be transition of CPNT.i
+    st t01 is outbound holds qij.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(Oij, t01))
+    by E3, Defcntfir;
+    qij in Funcs(Outbds(CPNT.i),
+    union {Funcs(thin_cylinders(the ColoredSet of CPNT.i, *'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01) ) )
+    where t01 is transition of CPNT.i:t01 is outbound}) by SYLM3, E4;
+    hence thesis by E2, E3, E4;
+  end;
+E5: for z be object st z in union rng q
+  holds ex i,j be Element of I,
+  q12 be Function,
+  O12 be Function of Outbds(CPNT.i), the carrier of CPNT.j
+  st i <> j &
+  (for t01 be transition of CPNT.i
+  st t01 is outbound holds q12.t01 is
+  Function of thin_cylinders(the ColoredSet of CPNT.i,
+  *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01))) &
+  q12 in Funcs(Outbds(CPNT.i),
+  union {Funcs(thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+  thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01)))
+  where t01 is transition of CPNT.i:t01 is outbound}) &
+  q12 = q.[i, j] &
+  O12 = O.[i, j] &
+  z in q12
+  proof
+    let z be object;
+    assume z in union rng q; then
+    consider Z be set such that
+E6:  z in Z & Z in rng q by TARSKI:def 4;
+    consider i, j be Element of I,
+    Oij be Function of Outbds(CPNT.i), the carrier of CPNT.j,
+    qij be Function such that
+E8:  i <> j &
+    (for t01 be transition of CPNT.i st t01 is outbound holds qij.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01))) &
+    qij in Funcs(Outbds(CPNT.i),
+    union {Funcs(thin_cylinders(the ColoredSet of CPNT.i, *'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i, Im(Oij,t01)))
+    where t01 is transition of CPNT.i:t01 is outbound }) &
+    Z = q.[i, j] &
+    q.[i, j] = qij &
+    O.[i, j] = Oij by E1, E6;
+    thus thesis by E6, E8;
+  end;
+  for z be object
+  st z in union rng q holds ex x, y be object st z = [x, y]
+  proof
+    let z be object;
+    assume z in union rng q;
+    then
+    consider i, j be Element of I,
+    q12 be Function,
+    O12 be Function of Outbds(CPNT.i), the carrier of CPNT.j such that
+U1:  i <> j &
+    (for t01 be transition of CPNT.i st t01 is outbound holds q12.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(O12, t01))) &
+    q12 in Funcs(Outbds(CPNT.i),
+    union {Funcs(thin_cylinders( the ColoredSet of CPNT.i, *'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01) ) )
+    where t01 is transition of CPNT.i:t01 is outbound}) &
+    q12 = q.[i, j] &
+    O12 = O.[i, j] &
+    z in q12 by E5;
+    thus ex x, y be object st z = [x, y] by U1, RELAT_1:def 1;
+  end;
+  then reconsider G1 = union rng q as Relation by RELAT_1:def 1;
+  for x, y1, y2 be object st [x,y1] in G1 &
+  [x, y2] in G1 holds y1 = y2
+  proof
+    let x, y1, y2 be object;
+    assume
+P01: [x, y1] in G1 &
+    [x, y2] in G1;
+    then consider i1, j1 be Element of I,
+    q121 be Function,
+    O121 be Function of Outbds(CPNT.i1), the carrier of CPNT.j1 such that
+U11: i1 <> j1 &
+    (for t01 be transition of CPNT.i1
+    st t01 is outbound holds q121.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i1,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT.i1, Im(O121,t01))) &
+    q121 in Funcs(Outbds(CPNT.i1),
+    union {Funcs(thin_cylinders( the ColoredSet of CPNT.i1,*'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i1, Im(O121,t01)))
+    where t01 is transition of CPNT.i1:t01 is outbound}) &
+    q121 = q.[i1,j1] &
+    O121 = O.[i1,j1] &
+    [x,y1] in q121 by E5;
+    consider i2, j2 be Element of I,
+    q122 be Function,
+    O122 be Function of Outbds(CPNT.i2), the carrier of CPNT.j2 such that
+U12: i2 <> j2 &
+    ( for t01 be transition of CPNT.i2
+    st t01 is outbound holds q122.t01 is
+    Function of thin_cylinders(the ColoredSet of CPNT.i2,
+    *'{t01}), thin_cylinders(the ColoredSet of CPNT.i2, Im(O122, t01))) &
+    q122 in Funcs(Outbds(CPNT.i2),
+    union {Funcs(thin_cylinders(the ColoredSet of CPNT.i2, *'{t01}),
+    thin_cylinders(the ColoredSet of CPNT.i2, Im(O122,t01)))
+    where t01 is transition of CPNT.i2:t01 is outbound}) &
+    q122 = q.[i2, j2] &
+    O122 = O.[i2, j2] &
+    [x, y2] in q122 by E5, P01;
+    x in dom q121 by U11, XTUPLE_0:def 12;
+    then
+s1: x in Outbds(CPNT.i1) by U11, FUNCT_2:92;
+    x in dom q122 by U12, XTUPLE_0:def 12; then
+s2: x in Outbds(CPNT.i2) by U12, FUNCT_2:92;
+    i1 = i2
+    proof
+      assume i1 <> i2; then
+      (the carrier' of CPNT.i1) /\ (the carrier' of CPNT.i2) = {}
+      by AS0,XBOOLE_0:def 7;
+      hence contradiction by XBOOLE_0:def 4, s1, s2;
+    end;
+    then
+    [x, y2] in q121 by U12, U11, AS1;
+    hence y1=y2 by U11,FUNCT_1:def 1;
+  end;
+  hence thesis by E5, FUNCT_1:def 1;
+end;
+
+LMQ1A:
+  for I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I holds
+  for O be connecting-mapping of CPNT
+  for q be connecting-firing-rule of O
+  for F be Function st F = union rng q holds
+  for g be Function, x be object, i, j be Element of I
+  st i <> j & g = q.[i, j] & x in dom g
+  holds F.x = g.x
+proof
+  let I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I;
+  let O be connecting-mapping of CPNT;
+  let q be connecting-firing-rule of O;
+  let F be Function;
+  assume
+AS2: F = union rng q;
+  let g be Function, x be object, i, j be Element of I;
+  assume
+A41: i <> j & g= q.[i, j] & x in dom g;
+A42: [x, g.x ] in q.[i, j] by A41, FUNCT_1:def 2;
+  [i, j] in XorDelta(I) by A41; then
+  [i, j] in dom q by PARTFUN1:def 2; then
+  q.[i, j] in rng q by FUNCT_1:3; then
+A43: [x, g.x] in F by AS2, A42, TARSKI:def 4; then
+  x in dom F by XTUPLE_0:def 12;
+  hence g.x = F.x by A43, FUNCT_1:def 2;
+end;
+
+begin  ::  Extension to a family of colored Petri nets
+
+definition
+  let I be non trivial finite set;
+  let CPNT be Colored-PT-net-Family of I;
+  let O be connecting-mapping of CPNT;
+  let q be connecting-firing-rule of O;
+  assume
+AS: CPNT is disjoint_valued &
+  for i, j1, j2 be Element of I st i <> j1 & i <> j2 &
+  (ex x, y1, y2 be object st
+  [x, y1] in q.[i, j1] & [x, y2] in q.[i, j2]) holds j1 = j2;
+  func synthesis(q) -> strict Colored-PT-net means
+  ex P, T, ST, TS, CS, F be ManySortedSet of I,
+  UF, UQ be Function st
+  ( for i be Element of I holds
+  P.i = the carrier of CPNT.i &
+  T.i = the carrier' of CPNT.i &
+  ST.i = the S-T_Arcs of CPNT.i &
+  TS.i = the T-S_Arcs of CPNT.i &
+  CS.i = the ColoredSet of CPNT.i &
+  F.i = the firing-rule of CPNT.i ) &
+  UF = union rng F &
+  UQ = union rng q &
+  the carrier of it = union rng P &
+  the carrier' of it = union rng T &
+  the S-T_Arcs of it = union rng ST &
+  the T-S_Arcs of it = (union rng TS ) \/ (union rng O ) &
+  the ColoredSet of it = union rng CS &
+  the firing-rule of it = UF +* UQ;
+  existence
+  proof
+    deffunc F1(Element of I) = the carrier of (CPNT.$1);
+    consider P be ManySortedSet of I such that
+AS1: for i be Element of I holds P.i = F1(i) from PBOOLE:sch 5;
+    deffunc F2(Element of I) = the carrier' of CPNT.$1;
+    consider T be ManySortedSet of I such that
+AS2: for i be Element of I holds T.i = F2(i) from PBOOLE:sch 5;
+    deffunc F3(Element of I)=the S-T_Arcs of CPNT.$1;
+    consider ST be ManySortedSet of I such that
+AS3: for i be Element of I holds ST.i = F3(i) from PBOOLE:sch 5;
+    deffunc F4(Element of I)=the T-S_Arcs of CPNT.$1;
+    consider TS be ManySortedSet of I such that
+AS4: for i be Element of I holds TS.i = F4(i) from PBOOLE:sch 5;
+    deffunc F5(Element of I)=the ColoredSet of CPNT.$1;
+    consider CS be ManySortedSet of I such that
+AS5: for i be Element of I holds CS.i = F5(i) from PBOOLE:sch 5;
+    deffunc G1(Element of I)=the firing-rule of CPNT.$1;
+    consider F be ManySortedSet of I such that
+AS6: for i be Element of I holds F.i = G1(i) from PBOOLE:sch 5;
+    deffunc G2(Element of I)=dom(the firing-rule of CPNT.$1);
+    consider DM be ManySortedSet of I such that
+DM1: for i be Element of I holds DM.i = G2(i) from PBOOLE:sch 5;
+    deffunc G3(Element of I)=rng(the firing-rule of CPNT.$1);
+    consider RG be ManySortedSet of I such that
+RG1: for i be Element of I holds RG.i = G3(i) from PBOOLE:sch 5;
+    set i = the Element of I;
+    P.i = the carrier of (CPNT.i) by AS1;
+    then
+    consider x be object such that
+    S1: x in (P.i) by XBOOLE_0:def 1;
+    reconsider P0 = union rng P as non empty set by S1, TARSKI:def 4;
+    set i = the Element of I;
+    T.i = the carrier' of (CPNT.i) by AS2;
+    then
+    consider x be object such that
+S2: x in (T.i) by XBOOLE_0:def 1;
+    reconsider T0 = union rng T as non empty set by S2, TARSKI:def 4;
+s:  for X be set st X in rng ST holds X c= [:P0, T0:]
+    proof
+      let X be set;
+      assume X in rng ST; then
+      consider i be object such that
+L1:   i in dom ST & X = ST.i by FUNCT_1:def 3;
+      reconsider i as Element of I by L1;
+l2:   X = the S-T_Arcs of CPNT.i by L1, AS3;
+l3:   the carrier' of (CPNT.i) = T.i &
+      the carrier of (CPNT.i) = P.i by AS1,AS2;
+L4:   T.i c= T0 by ZFMISC_1:74;
+      P.i c= P0 by ZFMISC_1:74;
+      then
+      [:P.i, T.i:] c= [:P0, T0:] by L4,ZFMISC_1:96;
+      hence X c= [:P0, T0:] by l3,l2;
+    end;
+    set i = the Element of I;
+    ST.i = the S-T_Arcs of (CPNT.i) by AS3;
+    then
+    consider x be object such that
+S1: x in ST.i by XBOOLE_0:def 1;
+    reconsider ST0 = union rng ST as non empty Relation of P0, T0
+    by S1, TARSKI:def 4, s,ZFMISC_1:76;
+    for X be set st X in rng TS holds X c= [:T0, P0:]
+    proof
+      let X be set;
+      assume X in rng TS;
+      then
+      consider i be object such that
+L1:   i in dom TS & X = TS.i by FUNCT_1:def 3;
+      reconsider i as Element of I by L1;
+l2:   X = the T-S_Arcs of CPNT.i by L1, AS4;
+l3:   the carrier' of (CPNT.i) = T.i &
+      the carrier of (CPNT.i) = P.i by AS1, AS2;
+L4:   T.i c= T0 by ZFMISC_1:74;
+      P.i c= P0 by ZFMISC_1:74;
+      then
+      [:T.i, P.i:] c= [:T0, P0:] by L4, ZFMISC_1:96;
+      hence X c= [:T0, P0:] by l3,l2;
+    end;
+    then
+PTS0: union rng TS c= [:T0, P0:] by ZFMISC_1:76;
+    for X be set st X in (rng O) holds X c= [:T0, P0:]
+    proof
+      let X be set;
+      assume X in rng O;
+      then
+      consider z be object such that
+L1:   z in dom O & X =O.z by FUNCT_1:def 3;
+      z in XorDelta(I) by L1;
+      then
+      consider i, j be Element of I such that
+L11:  z=[i, j] & i <> j;
+l12:  O.[i, j] is Function of Outbds(CPNT.i), the carrier of CPNT.j
+      by L11, Defcntmap;
+L14:  the carrier' of (CPNT.i) = T.i &
+      the carrier of (CPNT.j) = P.j by AS1, AS2;
+L4:   T.i c= T0 by ZFMISC_1:74;
+      P.j c= P0 by ZFMISC_1:74;
+      then
+L13:  [:T.i, P.j:] c= [:T0, P0:] by L4, ZFMISC_1:96;
+      [:Outbds(CPNT.i), the carrier of CPNT.j:] c=
+      [:T.i, P.j:] by L14, ZFMISC_1:96;
+      hence X c= [:T0, P0:] by L13,l12,L11,L1;
+    end;
+    then
+t:  union rng O c= [:T0, P0:] by ZFMISC_1:76;
+    set i = the Element of I;
+    TS.i = the T-S_Arcs of (CPNT.i) by AS4;
+    then consider x be object such that
+S1: x in TS.i by XBOOLE_0:def 1;
+    x in union rng TS by S1, TARSKI:def 4;
+    then
+    reconsider TS0 = (union rng TS) \/ (union rng O)
+    as non empty Relation of T0, P0 by t,PTS0, XBOOLE_1:8;
+LL0: for X be set st X in rng CS holds X is finite
+    proof
+      let X be set;
+      assume X in rng CS;
+      then
+      consider i be object such that
+LL1:  i in dom CS & X = CS.i by FUNCT_1:def 3;
+      reconsider i as Element of I by LL1;
+      X = the ColoredSet of CPNT.i by LL1, AS5;
+      hence X is finite;
+    end;
+ll3:dom CS is finite;
+    set i = the Element of I;
+    CS.i = the ColoredSet of (CPNT.i) by AS5;
+    then
+    consider x be object such that
+S5: x in (CS.i) by XBOOLE_0:def 1;
+    reconsider CS0 = union rng CS as non empty finite set
+    by S5, TARSKI:def 4, LL0, ll3, FINSET_1:7,FINSET_1:8;
+LL41: for i be object st i in I holds
+    ex f be Function st f = F.i & dom f = DM.i & rng f = RG.i
+    proof
+      let i be object;
+      assume i in I;
+      then reconsider i0=i as Element of I;
+P04:  F.i0 = the firing-rule of CPNT.i0 by AS6;
+      then reconsider f = F.i as Function;
+      take f;
+      thus f = F.i;
+      thus dom f = DM.i by P04, DM1;
+      thus rng f = RG.i by P04, RG1;
+    end;
+    for i, j be object, f, g be Function st i in I & j in I &
+    i <> j & f = F.i & g = F.j holds dom(f) misses dom(g)
+    proof
+      let i0, j0 be object, f, g be Function;
+      assume
+AA1:  i0 in I & j0 in I &
+      i0 <> j0 & f = F.i0 & g = F.j0; then
+      reconsider i = i0, j = j0 as Element of I;
+AA4:  dom f = dom (the firing-rule of CPNT.i) by AA1, AS6;
+AA5:  dom g = dom (the firing-rule of CPNT.j) by AA1, AS6;
+AA6:  dom (the firing-rule of CPNT.i)
+      c= (the carrier' of CPNT.i) \ Outbds(CPNT.i) &
+      dom (the firing-rule of CPNT.j)
+      c= (the carrier' of CPNT.j) \ Outbds(CPNT.j) by PETRI_2:def 11;
+      thus dom(f) misses dom(g)
+      proof
+        assume not dom(f) misses dom(g); then
+        dom(f) /\ dom(g) <> {} by XBOOLE_0:def 7;
+        then consider x be object such that
+AA8:    x in dom(f) /\ dom(g) by XBOOLE_0:def 1;
+        x in dom(f) by AA8, XBOOLE_0:def 4; then
+a9:     x in (the carrier' of CPNT.i) \ Outbds(CPNT.i) by AA4, AA6;
+        x in dom(g) by XBOOLE_0:def 4, AA8; then
+        x in (the carrier' of CPNT.j) \ Outbds(CPNT.j) by AA5, AA6; then
+        (the carrier' of CPNT.i) /\ (the carrier' of CPNT.j)
+        <> {} by a9, XBOOLE_0:def 4;
+        hence contradiction by AS, AA1, XBOOLE_0:def 7;
+      end;
+    end;
+    then
+    consider F0 be Function such that
+LL43: F0 = union rng F &
+    dom F0 = union rng DM &
+    rng F0 = union rng RG &
+    for i, x be object, f be Function st i in I &
+    f = F.i & x in dom f
+    holds F0.x = f.x by LM01,LL41;
+    reconsider UQ = union rng q as Function by LMQ1, AS;
+    set UF0 = F0 +* UQ;
+    reconsider SCPNT = Colored_PT_net_Str (# P0,T0,ST0,TS0,CS0,UF0 #)
+    as strict Colored_Petri_net by PETRI:def 1, PETRI:def 2;
+    deffunc G5(Element of I) = Outbds(CPNT.$1);
+    consider OU be Function such that
+OU1: dom OU=I &
+    for i be Element of I holds OU.i = G5(i) from FUNCT_1:sch 4;
+    reconsider OU as I-defined Function by OU1, RELAT_1:def 18;
+    reconsider OU as ManySortedSet of I by OU1, PARTFUN1:def 2;
+    for x0 be object st x0 in Outbds(SCPNT) holds x0 in union rng OU
+    proof
+      let x0 be object;
+      assume x0 in Outbds(SCPNT);
+      then consider x1 be transition of SCPNT such that
+OU2:  x0 = x1 & x1 is outbound;
+      consider Z be set such that
+OU3:  x1 in Z & Z in rng T by TARSKI:def 4;
+      consider i be object such that
+OU4:  i in dom T & Z = T.i by OU3, FUNCT_1:def 3;
+      reconsider i as Element of I by OU4;
+      reconsider xi = x1 as transitions of (CPNT.i) by AS2, OU3, OU4;
+      {xi}*' = {}
+      proof
+        assume {xi}*' <> {};
+        then consider z be object such that
+OU61:   z in {xi}*' by XBOOLE_0:def 1;
+        consider si be place of (CPNT.i) such that
+OU62:   z = si & ex fi being T-S_arc of (CPNT.i),
+        ti being transition of (CPNT.i) st ti in {xi} &
+        fi = [ti, si] by OU61;
+        consider fi being T-S_arc of (CPNT.i),
+        ti being transition of (CPNT.i) such that
+OU63:   ti in {xi} & fi = [ti, si] by OU62;
+SS0:    P.i = the carrier of (CPNT.i) by AS1;
+        reconsider ss = si as place of SCPNT by SS0, TARSKI:def 4;
+TS0:    TS.i = the T-S_Arcs of (CPNT.i)by AS4;
+        fi in (union rng TS) by TS0, TARSKI:def 4;
+        then
+        reconsider ff = fi as T-S_arc of SCPNT by XBOOLE_0:def 3;
+TT0:    T.i = the carrier' of (CPNT.i) by AS2;
+        reconsider tt = ti as transition of SCPNT by TT0, TARSKI:def 4;
+        ff = [tt, ss] by OU63;
+        then ss in {s where s is place of SCPNT:
+        ex f being T-S_arc of SCPNT,
+        t being transition of SCPNT st t in {x1} & f = [t, s]} by OU63;
+        hence contradiction by OU2;
+      end;
+      then
+      xi is outbound;
+      then
+OU6:  xi in Outbds(CPNT.i);
+      OU.i = Outbds(CPNT.i) by OU1;
+      hence x0 in union (rng OU) by OU2, OU6, TARSKI:def 4;
+    end;
+    then
+OU2: Outbds(SCPNT) c= union rng OU;
+XX3: for i, j be object st i in I & j in I &
+    i <> j holds T.i /\ OU.j = {}
+    proof
+      let i0, j0 be object;
+      assume
+XXX:  i0 in I & j0 in I & i0 <> j0;
+      then
+      reconsider i = i0, j = j0 as Element of I;
+P1:   (the carrier' of CPNT.i) /\ Outbds(CPNT.j)
+      c= (the carrier' of CPNT.i) /\ (the carrier' of CPNT.j)
+      by XBOOLE_1:26;
+p2:   (the carrier' of CPNT.i) /\ Outbds(CPNT.j) c= {}
+      by P1, XBOOLE_0:def 7, AS, XXX;
+      the carrier' of CPNT.i = T.i by AS2;
+      hence thesis by p2, OU1;
+    end;
+v:  for i be object st i in I holds DM.i c= (T (\) OU).i
+    proof
+      let i0 be object;
+      assume i0 in I;
+      then
+      reconsider i = i0 as Element of I;
+P1:   DM.i = dom(the firing-rule of CPNT.i) by DM1;
+P2:   dom(the firing-rule of CPNT.i)
+      c= (the carrier' of CPNT.i) \ Outbds(CPNT.i) by PETRI_2:def 11;
+P3:   the carrier' of CPNT.i = T.i by AS2;
+      (T (\) OU).i = (T.i) \ OU.i by PBOOLE:def 6;
+      hence thesis by P1, P2, P3, OU1;
+    end;
+XXX2: union rng DM = Union DM & union rng T = Union T &
+    union rng OU = Union OU by CARD_3:def 4;
+    then
+XXX3A: dom F0 c= (the carrier' of SCPNT) \ (Union OU)
+      by LL43,v,LM04, XX3, PBOOLE:def 2;
+xx: (the carrier' of SCPNT) \ (union rng OU)
+    c= (the carrier' of SCPNT) \ Outbds(SCPNT) by OU2, XBOOLE_1:34;
+    for x be object
+    st x in dom (the firing-rule of SCPNT)
+    holds x in (the carrier' of SCPNT) \ Outbds(SCPNT)
+    proof
+      let x be object;
+      assume x in dom the firing-rule of SCPNT; then
+      per cases by FUNCT_4:12;
+      suppose x in dom F0;
+        hence x in (the carrier' of SCPNT) \ Outbds(SCPNT) by xx,XXX3A,XXX2;
+      end;
+      suppose
+AG1:    x in dom UQ;
+        consider s be object such that
+D2:     [x,s] in UQ by AG1,XTUPLE_0:def 12;
+        consider i, j be Element of I,
+        q12 be Function,
+        O12 be Function of Outbds(CPNT.i), the carrier of CPNT.j such that
+D3:     i <> j &
+        (for t01 be transition of CPNT.i st t01 is outbound
+        holds q12.t01 is
+        Function of thin_cylinders(the ColoredSet of CPNT.i,
+        *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01))) &
+        q12 in Funcs(Outbds(CPNT.i),
+        union {Funcs(thin_cylinders(the ColoredSet of CPNT.i, *'{t01}),
+        thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01)))
+        where t01 is transition of CPNT.i:t01 is outbound}) &
+        q12 = q.[i, j] &
+        O12 = O.[i, j] &
+        [x, s] in q12 by LMQ1, AS, D2;
+CT1:    the carrier' of (CPNT.i) = T.i &
+        the carrier of (CPNT.j) = P.j by AS1, AS2;
+        x in dom q12 by D3, XTUPLE_0:def 12; then
+S0:     x in Outbds(CPNT.i) by D3, FUNCT_2:92;
+w:      T.i c= T0 by ZFMISC_1:74; then
+S2:     x in (the carrier' of SCPNT) by S0, CT1;
+        reconsider t=x as transition of SCPNT by w,S0,CT1;
+        t in dom (O12) by S0, FUNCT_2:def 1;
+        then consider s be object such that
+A65:    [t, s] in O12 by XTUPLE_0:def 12;
+        [i, j] in XorDelta(I) by D3; then
+        [i, j] in dom O by PARTFUN1:def 2; then
+        O.[i, j] in rng O by FUNCT_1:3; then
+        [t, s] in union rng O by D3, A65, TARSKI:def 4; then
+        reconsider f= [t, s] as T-S_arc of SCPNT by XBOOLE_0:def 3;
+A68:    f = [t, s];
+A69:    t in {t} by TARSKI:def 1;
+U2:     s in (the carrier of CPNT.j) by A65, ZFMISC_1:87;
+        P.j c= P0 by ZFMISC_1:74;
+        then
+        s in {t}*' by A69, A68, U2, CT1;
+        then not ex w be transition of SCPNT st t = w & w is outbound;
+        then not x in Outbds(SCPNT);
+        hence x in (the carrier' of SCPNT) \ Outbds(SCPNT)
+          by S2, XBOOLE_0:def 5;
+      end;
+    end;
+    then
+CP1: dom (the firing-rule of SCPNT)
+    c= (the carrier' of SCPNT) \ Outbds(SCPNT);
+    for t being transition of SCPNT st
+    t in dom (the firing-rule of SCPNT) holds
+    ex CS be non empty Subset of the
+    ColoredSet of SCPNT, I be Subset of *'{t},
+    O be Subset of {t}*' st (the firing-rule of SCPNT).t is
+    Function of thin_cylinders(CS, I),
+    thin_cylinders(CS, O)
+    proof
+      let t be transition of SCPNT;
+      assume
+d:    t in dom the firing-rule of SCPNT;
+      per cases;
+      suppose
+AG01:   not t in dom UQ;
+        then
+AG0:    t in dom F0 by d,FUNCT_4:12;
+        consider Z be set such that
+XOU3:   t in Z & Z in rng T by TARSKI:def 4;
+        consider i be object such that
+XOU4:   i in dom T & Z = T.i by XOU3, FUNCT_1:def 3;
+        reconsider i as Element of I by XOU4;
+        reconsider ti=t as transitions of (CPNT.i) by XOU3, XOU4, AS2;
+        consider Z be set such that
+POU3:   t in Z & Z in rng DM by LL43, AG0, TARSKI:def 4;
+        consider j be object such that
+POU4:   j in dom DM & Z = DM.j by POU3, FUNCT_1:def 3;
+        reconsider j as Element of I by POU4;
+OU6:    DM.j = dom(the firing-rule of CPNT.j) by DM1;
+        i = j
+        proof
+          assume
+OU71:     i <> j;
+OU72:     t in the carrier' of (CPNT.i) by XOU3, XOU4, AS2;
+          dom(the firing-rule of CPNT.j)
+          c= (the carrier' of CPNT.j) \ Outbds(CPNT.j)
+          by PETRI_2:def 11;
+          then
+          t in (the carrier' of CPNT.j) \ Outbds(CPNT.j) by POU3, POU4, OU6;
+          then
+          (the carrier' of CPNT.i) /\ (the carrier' of CPNT.j) <> {}
+          by OU72, XBOOLE_0:def 4;
+          hence contradiction by AS, OU71, XBOOLE_0:def 7;
+        end;
+        then
+OU8:    ti in dom(the firing-rule of CPNT.i) by POU3, POU4, DM1;
+        consider CSi be non empty Subset of the
+        ColoredSet of CPNT.i, Ii be Subset of *'{ti},
+        Oi be Subset of {ti}*' such that
+OU9:    (the firing-rule of CPNT.i ).ti is
+        Function of thin_cylinders(CSi,Ii),
+        thin_cylinders(CSi,Oi) by PETRI_2:def 11, OU8;
+CC1:    CS.i c= union rng CS by ZFMISC_1:74;
+        CS.i = the ColoredSet of CPNT.i by AS5;
+        then
+        reconsider CS = CSi as non empty Subset of the
+        ColoredSet of SCPNT by CC1, XBOOLE_1:1;
+        Ii c= *'{t}
+        proof
+          let x be object;
+          assume x in Ii;
+          then
+          x in *'{ti};
+          then
+          consider ssi be place of CPNT.i such that
+XX1:      x= ssi &
+          ex ffi being S-T_arc of CPNT.i,
+          tti being transition of CPNT.i
+          st tti in {ti} & ffi = [ssi,tti];
+          consider ffi being S-T_arc of CPNT.i,
+          tti being transition of CPNT.i such that
+XX2:      tti in {ti} & ffi = [ssi, tti] by XX1;
+SS0:      P.i = the carrier of (CPNT.i) by AS1;
+          reconsider ss=ssi as place of SCPNT by SS0, TARSKI:def 4;
+ST0:      ST.i = the S-T_Arcs of (CPNT.i) by AS3;
+          reconsider ff=ffi as S-T_arc of SCPNT by ST0, TARSKI:def 4;
+          tti = t by XX2, TARSKI:def 1;
+          then reconsider tt=tti as transition of SCPNT;
+          ff = [ss,tt] by XX2;
+          hence x in *'{t} by XX1, XX2;
+        end;
+        then
+        reconsider I0 = Ii as Subset of *'{t};
+        Oi c= {t}*'
+        proof
+          let x be object;
+          assume x in Oi;
+          then x in {ti}*';
+          then
+          consider ssi be place of CPNT.i such that
+XX1:      x= ssi &
+          ex ffi being T-S_arc of CPNT.i,
+          tti being transition of CPNT.i
+          st tti in {ti} & ffi = [tti, ssi];
+          consider ffi being T-S_arc of CPNT.i,
+          tti being transition of CPNT.i such that
+XX2:      tti in {ti} & ffi = [tti, ssi] by XX1;
+SS0:      P.i = the carrier of (CPNT.i) by AS1;
+          reconsider ss=ssi as place of SCPNT
+          by SS0, TARSKI:def 4;
+TS0:      TS.i = the T-S_Arcs of (CPNT.i) by AS4;
+          ffi in (union rng TS) by TS0, TARSKI:def 4;
+          then
+          reconsider ff=ffi as T-S_arc of SCPNT
+          by XBOOLE_0:def 3;
+          tti = t by XX2, TARSKI:def 1;
+          then reconsider tt = tti as transition of SCPNT;
+          ff = [tt, ss] by XX2;
+          hence x in {t}*' by XX1, XX2;
+        end;
+        then
+        reconsider O = Oi as Subset of {t}*';
+Y1:     F.i = the firing-rule of CPNT.i by AS6;
+        (the firing-rule of SCPNT).t = F0.t by AG01, FUNCT_4:11
+         .= (the firing-rule of CPNT.i).ti by Y1, OU8, LL43;
+        then (the firing-rule of SCPNT).t is
+        Function of thin_cylinders(CS, I0),
+        thin_cylinders(CS, O) by OU9;
+        hence ex CS be non empty Subset of the
+        ColoredSet of SCPNT, I be Subset of *'{t},
+        O be Subset of {t}*' st (the firing-rule of SCPNT).t is
+        Function of thin_cylinders(CS, I), thin_cylinders(CS, O);
+      end;
+      suppose
+AG1:    t in dom UQ;
+        then
+        consider s be object such that
+D2:     [t, s] in UQ by XTUPLE_0:def 12;
+        consider i,j be Element of I,
+        q12 be Function,
+        O12 be Function of Outbds(CPNT.i), the carrier of CPNT.j such that
+D3:     i <> j &
+        (for t01 be transition of CPNT.i st t01 is outbound holds q12.t01 is
+        Function of thin_cylinders(the ColoredSet of CPNT.i,
+        *'{t01}), thin_cylinders(the ColoredSet of CPNT.i, Im(O12,t01))) &
+        q12 in Funcs(Outbds(CPNT.i),
+        union {Funcs(thin_cylinders(the ColoredSet of CPNT.i,*'{t01}),
+        thin_cylinders(the ColoredSet of CPNT.i, Im(O12, t01)))
+        where t01 is transition of CPNT.i:t01 is outbound}) &
+        q12 = q.[i, j] &
+        O12 = O.[i, j] &
+        [t,s] in q12 by LMQ1, AS, D2;
+CT1:    the ColoredSet of CPNT.i = CS.i by AS5;
+DF1:    t in dom q12 by D3, XTUPLE_0:def 12;
+        then
+S0:     t in Outbds(CPNT.i) by D3, FUNCT_2:92;
+        then
+        reconsider ti = t as transition of CPNT.i;
+v8:     ex x be transition of CPNT.i st ti = x & x is outbound by S0;
+        CS.i = the ColoredSet of CPNT.i by AS5; then
+        reconsider CS0 = CS.i as non empty Subset of the
+        ColoredSet of SCPNT by ZFMISC_1:74;
+        *'{ti} c= *'{t}
+        proof
+          let x be object;
+          assume x in *'{ti}; then
+          consider ssi be place of CPNT.i such that
+XX1:      x= ssi &
+          ex ffi being S-T_arc of CPNT.i,
+          tti being transition of CPNT.i
+          st tti in {ti} & ffi = [ssi, tti];
+          consider ffi being S-T_arc of CPNT.i,
+          tti being transition of CPNT.i such that
+XX2:      tti in {ti} & ffi = [ssi, tti] by XX1;
+SS0:      P.i = the carrier of (CPNT.i) by AS1;
+          reconsider ss=ssi as place of SCPNT by SS0, TARSKI:def 4;
+ST0:      ST.i = the S-T_Arcs of (CPNT.i) by AS3;
+          reconsider ff=ffi as S-T_arc of SCPNT by ST0, TARSKI:def 4;
+          tti = t by XX2,TARSKI:def 1;
+          then
+          reconsider tt=tti as transition of SCPNT;
+          ff = [ss, tt] by XX2;
+          hence x in *'{t} by XX1, XX2;
+        end;
+        then
+        reconsider I0 = *'{ti} as Subset of *'{t};
+        Im(O12,ti) c= {t}*'
+        proof
+          let x be object;
+          assume
+A41:      x in Im(O12, ti);
+          then reconsider sj = x as place of CPNT.j;
+A42:      [ti, sj] in O12 by A41,RELSET_2:9;
+          [i, j] in XorDelta(I) by D3; then
+          [i, j] in dom O by PARTFUN1:def 2; then
+          O.[i, j] in rng O by FUNCT_1:3;
+          then
+          [ti, sj] in (union rng O) by D3, A42, TARSKI:def 4;
+          then reconsider f= [t, sj] as T-S_arc of SCPNT by XBOOLE_0:def 3;
+CT1:      the carrier of CPNT.j = P.j by AS1;
+          P.j c= P0 by ZFMISC_1:74; then
+          reconsider s = sj as place of SCPNT by CT1;
+A44:      f=[t, s];
+          t in {t} by TARSKI:def 1;
+          hence thesis by A44;
+        end;
+        then
+        reconsider O0 = Im(O12,ti) as Subset of {t}*';
+        (the firing-rule of SCPNT).t = UQ.t by AG1, FUNCT_4:13
+          .= q12.ti by DF1, D3, LMQ1A;
+        then
+        (the firing-rule of SCPNT).t is
+        Function of thin_cylinders(CS0, I0), thin_cylinders(CS0, O0)
+        by v8, CT1,D3;
+        hence ex CS be non empty Subset of the
+        ColoredSet of SCPNT, I be Subset of *'{t}, O be Subset of {t}*' st
+        (the firing-rule of SCPNT).t is Function of thin_cylinders(CS, I),
+        thin_cylinders(CS, O);
+      end;
+    end;
+    then
+    reconsider SCPNT =
+    Colored_PT_net_Str (# P0, T0, ST0, TS0, CS0, UF0 #)
+    as strict Colored-PT-net by PETRI_2:def 11, CP1;
+    take SCPNT;
+    thus thesis by AS1, AS2, AS3, AS4, AS5, AS6, LL43;
+  end;
+  uniqueness
+  proof
+    let XP1, XP2 be strict Colored-PT-net;
+    assume
+AS1: ex P1, T1, ST1, TS1, CS1, F1 be ManySortedSet of I,
+    UF1, UQ1 be Function st
+    (for i be Element of I holds
+    P1.i = the carrier of CPNT.i &
+    T1.i = the carrier' of CPNT.i &
+    ST1.i = the S-T_Arcs of CPNT.i &
+    TS1.i = the T-S_Arcs of CPNT.i &
+    CS1.i = the ColoredSet of CPNT.i &
+    F1.i = the firing-rule of CPNT.i) &
+    UF1 = union rng F1 &
+    UQ1 = union rng q &
+    the carrier of XP1 = union rng P1 &
+    the carrier' of XP1 = union rng T1 &
+    the S-T_Arcs of XP1 = union rng ST1 &
+    the T-S_Arcs of XP1 = (union rng TS1 ) \/ (union rng O) &
+    the ColoredSet of XP1 = union rng CS1 &
+    the firing-rule of XP1 = UF1 +* UQ1;
+    assume
+AS2: ex P2, T2, ST2, TS2, CS2, F2 be ManySortedSet of I,
+    UF2, UQ2 be Function st
+    (for i be Element of I holds
+    P2.i = the carrier of CPNT.i &
+    T2.i = the carrier' of CPNT.i &
+    ST2.i = the S-T_Arcs of CPNT.i &
+    TS2.i = the T-S_Arcs of CPNT.i &
+    CS2.i = the ColoredSet of CPNT.i &
+    F2.i = the firing-rule of CPNT.i) &
+    UF2 = union rng F2 &
+    UQ2 = union rng q &
+    the carrier of XP2 = union rng P2 &
+    the carrier' of XP2 = union rng T2 &
+    the S-T_Arcs of XP2 = union rng ST2 &
+    the T-S_Arcs of XP2 = (union rng TS2) \/ (union rng O) &
+    the ColoredSet of XP2 = union rng CS2 &
+    the firing-rule of XP2 = UF2 +* UQ2;
+    consider P1, T1, ST1, TS1, CS1, F1 be ManySortedSet of I,
+    UF1, UQ1 be Function such that
+D1: (for i be Element of I holds
+    P1.i = the carrier of CPNT.i &
+    T1.i = the carrier' of CPNT.i &
+    ST1.i = the S-T_Arcs of CPNT.i &
+    TS1.i = the T-S_Arcs of CPNT.i &
+    CS1.i = the ColoredSet of CPNT.i &
+    F1.i = the firing-rule of CPNT.i) &
+    UF1 = union rng F1 & UQ1 = union rng q &
+    the carrier of XP1 = union rng P1 &
+    the carrier' of XP1 = union rng T1 &
+    the S-T_Arcs of XP1 = union rng ST1 &
+    the T-S_Arcs of XP1 = (union rng TS1) \/ (union rng O) &
+    the ColoredSet of XP1 = union rng CS1 &
+    the firing-rule of XP1 = UF1 +* UQ1 by AS1;
+    consider P2, T2, ST2, TS2, CS2, F2 be ManySortedSet of I,
+    UF2, UQ2 be Function such that
+D2: (for i be Element of I holds
+    P2.i = the carrier of CPNT.i &
+    T2.i = the carrier' of CPNT.i &
+    ST2.i = the S-T_Arcs of CPNT.i &
+    TS2.i = the T-S_Arcs of CPNT.i &
+    CS2.i = the ColoredSet of CPNT.i &
+    F2.i = the firing-rule of CPNT.i) &
+    UF2 = union rng F2 &
+    UQ2 = union rng q &
+    the carrier of XP2 = union rng P2 &
+    the carrier' of XP2 = union rng T2 &
+    the S-T_Arcs of XP2 = union rng ST2 &
+    the T-S_Arcs of XP2 = (union rng TS2 ) \/ (union rng O) &
+    the ColoredSet of XP2 =union rng CS2 &
+    the firing-rule of XP2 = UF2 +* UQ2 by AS2;
+X1: dom P1 = I by PARTFUN1:def 2
+        .= dom P2 by PARTFUN1:def 2;
+A1: P1 = P2
+    proof
+      now let i be object;
+        assume i in dom P1; then
+        reconsider i0 = i as Element of I;
+        thus P1.i = the carrier of CPNT.i0 by D1
+          .= P2.i by D2;
+      end;
+      hence thesis by FUNCT_1:2, X1;
+    end;
+X3: dom T1 = I by PARTFUN1:def 2
+        .= dom T2 by PARTFUN1:def 2;
+A2: T1 = T2
+    proof
+      now let i be object;
+        assume i in dom T1;
+        then reconsider i0 = i as Element of I;
+        thus T1.i = the carrier' of CPNT.i0 by D1
+          .= T2.i by D2;
+      end;
+      hence thesis by FUNCT_1:2, X3;
+    end;
+X5: dom ST1= I by PARTFUN1:def 2
+        .= dom ST2 by PARTFUN1:def 2;
+A3: ST1 = ST2
+    proof
+      now let i be object;
+        assume i in dom ST1; then
+        reconsider i0 = i as Element of I;
+        thus ST1.i= the S-T_Arcs of CPNT.i0 by D1
+          .= ST2.i by D2;
+      end;
+      hence thesis by FUNCT_1:2, X5;
+    end;
+X7: dom TS1 = I by PARTFUN1:def 2
+        .= dom TS2 by PARTFUN1:def 2;
+A4: TS1 = TS2
+    proof
+      now let i be object;
+        assume i in dom TS1; then
+        reconsider i0 = i as Element of I;
+        thus TS1.i= the T-S_Arcs of CPNT.i0 by D1
+          .= TS2.i by D2;
+      end;
+      hence thesis by FUNCT_1:2, X7;
+    end;
+X9: dom CS1 = I by PARTFUN1:def 2
+        .= dom CS2 by PARTFUN1:def 2;
+A5: CS1 = CS2
+    proof
+      now let i be object;
+        assume i in dom CS1;
+        then reconsider i0 = i as Element of I;
+        thus CS1.i = the ColoredSet of CPNT.i0 by D1
+          .= CS2.i by D2;
+      end;
+      hence thesis by FUNCT_1:2, X9;
+    end;
+X11:dom F1 = I by PARTFUN1:def 2
+        .= dom F2 by PARTFUN1:def 2;
+    F1 = F2
+    proof
+      now let i be object;
+        assume i in dom F1; then
+        reconsider i0 = i as Element of I;
+        thus F1.i = the firing-rule of CPNT.i0 by D1
+          .= F2.i by D2;
+      end;
+      hence thesis by FUNCT_1:2, X11;
+    end;
+    hence XP1 = XP2 by A1, A2, A3, A4, A5, D1, D2;
+  end;
+end;
+
+begin :: Definition of Cell Petri nets
+
+definition
+  let I be non empty finite set;
+  let CPNT be Colored-PT-net-Family of I;
+  attr CPNT is Cell-Petri-nets means
+  ex N be Function of I, bool rng CPNT st
+  for i be Element of I holds
+  N.i = {CPNT.j where j is Element of I:j <> i};
+end;
+
+definition
+  let I be non trivial finite set;
+  let CPNT be Colored-PT-net-Family of I;
+  let N be Function of I,bool (rng CPNT);
+  let O be connecting-mapping of CPNT;
+  pred N, O is_Cell-Petri-nets means
+  for i be Element of I holds
+  N.i = {CPNT.j where j is Element of I:j <> i &
+  ex t be transition of CPNT.i,
+  s be object st [t, s] in O.[i, j]};
+end;
+
+theorem
+::Th3:
+  for I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I,
+  N be Function of I, bool rng CPNT,
+  O be connecting-mapping of CPNT st CPNT is one-to-one &
+  N, O is_Cell-Petri-nets holds
+  for i be Element of I holds not CPNT.i in N.i
+proof
+  let I be non trivial finite set,
+  CPNT be Colored-PT-net-Family of I,
+  N be Function of I, bool rng CPNT,
+  O be connecting-mapping of CPNT;
+  assume
+A1: CPNT is one-to-one;
+  assume
+A2: N, O is_Cell-Petri-nets;
+  let i be Element of I;
+  assume
+A3: CPNT.i in N.i;
+  N.i = {CPNT.j where j is Element of I:j <> i &
+  ex t be transition of CPNT.i,
+  s be object st [t, s] in O.[i, j]} by A2; then
+  consider j be Element of I such that
+A4: CPNT.i = CPNT.j & j <> i &
+  ex t be transition of CPNT.i,
+  s be object st [t, s] in O.[i, j] by A3;
+  dom CPNT = I by PARTFUN1:def 2;
+  hence contradiction by A1, A4, FUNCT_1:def 4;
+end;
+
+begin  ::  Activation of Petri nets
+:: non empty non void with_S-T_arc with_T-S_arc Colored_PT_net_Str;
+
+definition let CPN be Colored_PT_net_Str;
+  attr CPN is with-nontrivial-ColoredSet means :defnontrivial:
+  the ColoredSet of CPN is non trivial;
+end;
+
+registration
+  cluster with-nontrivial-ColoredSet for
+  strict Colored-PT-net-like Colored_Petri_net;
+  existence
+  proof
+    set PLA={0};
+    set a = 1, b = 2;
+    set TRA = {a};
+    set TSA = [:TRA, PLA:];
+    TSA c= TSA;
+    then reconsider TSA as non empty Relation of TRA, PLA;
+    set STA = [:PLA, TRA:];
+    STA c= STA;
+    then reconsider STA as non empty Relation of PLA, TRA;
+    set CS = {a, b};
+    set CS0 = {a};
+    set fa = the Function of thin_cylinders(CS0, {0}),
+    thin_cylinders(CS0, {0});
+    set f= ({a} --> fa);
+    set CPNT = Colored_PT_net_Str(# PLA, TRA, STA, TSA, CS, f #);
+A1: CPNT is with_S-T_arc;
+    CPNT is with_T-S_arc;
+    then reconsider CPNT as Colored_Petri_net by A1;
+a0: a in CS & b in CS & a <> b by TARSKI:def 2;
+A2: now
+      CS0 c= CS
+      proof
+        let x be object;
+        assume x in CS0; then
+        x = a by TARSKI:def 1;
+        hence x in CS by TARSKI:def 2;
+      end; then
+      reconsider CS1= CS0 as non empty Subset of the ColoredSet of CPNT;
+      let t be transition of CPNT;
+      assume t in dom the firing-rule of CPNT;
+A3:   t= a by TARSKI:def 1;
+A4:   a in TRA by TARSKI:def 1;
+A5:   0 in PLA by TARSKI:def 1; then
+      [a, 0] in TSA by A4, ZFMISC_1:87; then
+      reconsider O = {0} as Subset of {t} *'
+      by ZFMISC_1:31, A3, PETRI:8;
+      [0, a] in STA by A5,A4,ZFMISC_1:87; then
+      reconsider I = {0} as Subset of *'{t} by ZFMISC_1:31, A3, PETRI:6;
+A6:   fa is Function of thin_cylinders(CS1, I), thin_cylinders(CS1, O);
+      f.t = fa by FUNCOP_1:7;
+      hence ex CS1 be non empty Subset of the ColoredSet of CPNT,
+      I be Subset of *'{t}, O be Subset of {t}*' st
+      (the firing-rule of CPNT).t is Function of
+      thin_cylinders(CS1, I), thin_cylinders(CS1, O) by A6;
+    end;
+A7: dom f = {a} by FUNCOP_1:13;
+    now
+      reconsider a1=a as transition of CPNT by TARSKI:def 1;
+      let x be object;
+      0 in PLA by TARSKI:def 1;
+      then
+a8:   [a1, 0] in TSA by ZFMISC_1:87;
+A9:   not a1 in Outbds CPNT
+      proof
+        assume a1 in Outbds CPNT;
+        then ex x be transition of CPNT st a1=x & x is outbound;
+        hence contradiction by a8,PETRI:8;
+      end;
+      assume x in dom the firing-rule of CPNT;
+      then x=a by A7,TARSKI:def 1;
+      hence x in (the carrier' of CPNT) \ Outbds(CPNT)
+      by A9, XBOOLE_0:def 5;
+    end;
+    then
+    dom (the firing-rule of CPNT) c= (the carrier' of CPNT) \ Outbds(CPNT);
+    then
+    reconsider CPNT as strict Colored-PT-net-like Colored_Petri_net
+      by A2, PETRI_2:def 11;
+    take CPNT;
+    thus thesis by a0,ZFMISC_1:def 10;
+  end;
+end;
+
+registration
+  let CPNT be with-nontrivial-ColoredSet Colored-PT-net;
+  cluster the ColoredSet of CPNT -> non trivial;
+  correctness by defnontrivial;
+end;
+
+::Def13:: color-threshold
+definition
+  let CPN be with-nontrivial-ColoredSet Colored-PT-net;
+  let S be Subset of the carrier of CPN;
+  let D be thin_cylinder of the ColoredSet of CPN, S;
+  mode color-threshold of D is Function of loc(D), the ColoredSet of CPN;
+end;
+
+:: color-count of CPN
+definition
+  let CPN be Colored-PT-net;
+  mode color-count of CPN is Function of the ColoredSet of CPN, NAT;
+end;
+
+:: Colored-states of CPN
+definition
+  let CPN be Colored-PT-net;
+  func Colored-states(CPN) -> non empty set equals
+  the set of all e where e is color-count of CPN;
+  coherence
+  proof
+    (the ColoredSet of CPN) --> 1 in
+    the set of all e where e is color-count of CPN;
+    hence thesis;
+  end;
+end;
+
+:: colored-state of CPN
+definition
+  let CPN be Colored-PT-net;
+  mode colored-state of CPN is Function of CPN, Colored-states(CPN);
+end;
+
+ reserve CPN for with-nontrivial-ColoredSet Colored-PT-net;
+ reserve m for colored-state of CPN;
+ reserve t for Element of the carrier' of CPN;
+
+definition
+  let CPN be with-nontrivial-ColoredSet Colored-PT-net,
+      m be colored-state of CPN;
+  let p be place of CPN;
+  redefine func m.p -> color-count of CPN;
+  correctness
+  proof
+    m.p in Colored-states(CPN) by FUNCT_2:5;
+    then ex e be color-count of CPN st e = m.p;
+    hence thesis;
+  end;
+end;
+
+definition
+  let CPN be with-nontrivial-ColoredSet Colored-PT-net;
+  let mp be color-count of CPN;
+  let x be object;
+  redefine func mp.x -> Element of NAT;
+  correctness
+  proof
+    per cases;
+    suppose x in the ColoredSet of CPN;
+      hence thesis by FUNCT_2:5;
+    end;
+    suppose not x in the ColoredSet of CPN;
+      then not x in dom mp;
+      then mp.x = 0 by FUNCT_1:def 2;
+      hence thesis;
+    end;
+  end;
+end;
+
+:: q-firable on m
+definition
+  let CPN, m, t;
+  let D being thin_cylinder of the ColoredSet of CPN, *'{t};
+  let ColD being color-threshold of D;
+  pred t is_firable_on m,ColD means
+  :: :Def14:
+  (the firing-rule of CPN). [t, D] <> {} &
+  for p being place of CPN st p in loc(D) holds 1 <= (m.p).(ColD.p);
+end;
+
+:: q-firable set on t
+definition
+  let CPN,m,t;
+  func firable_set_on(m,t) -> set equals
+  :: :Def15:
+  {D where D is thin_cylinder of the ColoredSet of CPN, *'{t}:
+  ex ColD being color-threshold of D st t is_firable_on m, ColD};
+  coherence;
+end;
+
+:: t is q-firable on m iff q-firable set on t, m
+theorem
+:: Th4:
+  for D being thin_cylinder of the ColoredSet of CPN, *'{t} holds
+  (ex ColD being color-threshold of D st t is_firable_on m, ColD)
+  iff
+  D in firable_set_on(m, t)
+proof
+  let D be thin_cylinder of the ColoredSet of CPN, *'{t};
+  thus (ex ColD being color-threshold of D st t is_firable_on m, ColD) implies
+  D in firable_set_on(m, t);
+  assume D in firable_set_on(m, t); then
+  ex D0 be thin_cylinder of the ColoredSet of CPN, *'{t} st D=D0 &
+  ex ColD being color-threshold of D0 st t is_firable_on m, ColD;
+  hence thesis;
+end;
+
+:: The definition of mapping Ptr_Sub
+definition
+  let CPN, m, t;
+  let D be thin_cylinder of the ColoredSet of CPN, *'{t};
+  let ColD be color-threshold of D;
+  let p be Element of CPN;
+  assume
+AS1: t is_firable_on m, ColD;
+  func Ptr_Sub(ColD, m, p) ->
+    Function of the ColoredSet of CPN, NAT means :Def16Sub:
+  for x be Element of the ColoredSet of CPN holds
+  ((p in loc(D) & x = ColD.p) implies it.x = (m.p).x - 1) &
+  (not (p in loc(D) & x = ColD.p) implies it.x = (m.p).x);
+  existence
+  proof
+    defpred C[object] means p in loc(D) & $1 = ColD.p;
+    deffunc F(object) = (m.p).(In($1,the ColoredSet of CPN)) - 1;
+    deffunc G(object) = (m.p).(In($1,the ColoredSet of CPN));
+P1: for x being object st x in the ColoredSet of CPN
+    holds (C[x] implies F(x) in NAT) & (not C[x] implies G(x) in NAT)
+    proof
+      let x be object;
+      assume
+P10:  x in the ColoredSet of CPN;
+      C[x] implies F(x) in NAT
+      proof
+        assume p: C[x];
+        x = In(x,the ColoredSet of CPN) by P10, SUBSET_1:def 8; then
+        1 - 1 <= (m.p).(In(x,the ColoredSet of CPN)) - 1 by AS1, p, XREAL_1:9;
+        hence F(x) in NAT by INT_1:3;
+      end;
+      hence thesis;
+    end;
+    consider f be Function of the ColoredSet of CPN, NAT such that
+P2: for x being object st x in the ColoredSet of CPN
+    holds (C[x] implies f.x = F(x)) &
+    (not C[x] implies f.x = G(x)) from FUNCT_2:sch 5(P1);
+    take f;
+    thus for x be Element of the ColoredSet of CPN holds
+    ((p in loc(D) & x = ColD.p) implies f.x = (m.p).x - 1) &
+    (not (p in loc(D) & x = ColD.p) implies f.x = (m.p).x)
+    proof
+      let x be Element of the ColoredSet of CPN;
+      x = In(x,the ColoredSet of CPN);
+      hence thesis by P2;
+    end;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be Function of the ColoredSet of CPN, NAT;
+    assume
+A1: for x be Element of the ColoredSet of CPN holds
+    ((p in loc(D) & x = ColD.p) implies f1.x = (m.p).x - 1) &
+    (not (p in loc(D) & x = ColD.p) implies f1.x = (m.p).x);
+    assume
+A2: for x be Element of the ColoredSet of CPN holds
+    ((p in loc(D) & x = ColD.p) implies f2.x = (m.p).x - 1) &
+    (not (p in loc(D) & x = ColD.p) implies f2.x = (m.p).x);
+    for x be Element of the ColoredSet of CPN holds f1.x = f2.x
+    proof
+      let x be Element of the ColoredSet of CPN;
+      per cases;
+      suppose
+P1:     p in loc(D) & x = ColD.p;
+        hence f1.x = (m.p).x - 1 by A1
+          .= f2.x by A2, P1;
+      end;
+      suppose
+P2:     not (p in loc(D) & x = ColD.p);
+        hence f1.x = (m.p).x by A1
+          .= f2.x by A2, P2;
+      end;
+    end;
+    hence f1 = f2 by FUNCT_2:def 7;
+  end;
+end;
+
+:: The definition of mapping Ptr_Add
+definition
+  let CPN, m, t;
+  let D be thin_cylinder of the ColoredSet of CPN, {t}*';
+  let ColD be color-threshold of D;
+  let p be Element of CPN;
+  func Ptr_Add(ColD, m, p) -> Function of the ColoredSet of CPN, NAT means
+  :Def16Add:
+  for x be Element of the ColoredSet of CPN holds
+  ((p in loc(D) & x = ColD.p) implies it.x = (m.p).x + 1) &
+  (not (p in loc(D) & x = ColD.p) implies it.x = (m.p).x);
+  existence
+  proof
+    defpred C[object] means p in loc(D) & $1 = ColD.p;
+    deffunc F(object) = (m.p).(In($1,the ColoredSet of CPN)) + 1;
+    deffunc G(object) = (m.p).(In($1,the ColoredSet of CPN));
+P1: for x being object st x in the ColoredSet of CPN
+    holds (C[x] implies F(x) in NAT) & (not C[x]
+    implies G(x) in NAT);
+    consider f be Function of the ColoredSet of CPN, NAT such that
+P2: for x being object st x in the ColoredSet of CPN
+    holds (C[x] implies f.x = F(x)) &
+    (not C[x] implies f.x = G(x)) from FUNCT_2:sch 5(P1);
+    take f;
+    thus for x be Element of the ColoredSet of CPN holds
+    ((p in loc(D) & x = ColD.p) implies
+    f.x = (m.p).x + 1) & (not (p in loc(D) & x = ColD.p) implies
+    f.x = (m.p).x)
+    proof
+      let x be Element of the ColoredSet of CPN;
+      (C[x] implies f.x = F(x)) &
+      (not C[x] implies f.x = G(x)) by P2;
+      hence thesis;
+    end;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be Function of the ColoredSet of CPN, NAT;
+    assume
+A1: for x be Element of the ColoredSet of CPN holds
+    ((p in loc(D) & x = ColD.p) implies f1.x = (m.p).x + 1) &
+    (not (p in loc(D) & x = ColD.p) implies f1.x = (m.p).x);
+    assume
+A2: for x be Element of the ColoredSet of CPN holds
+    ((p in loc(D) & x = ColD.p) implies f2.x = (m.p).x + 1) &
+    (not (p in loc(D) & x = ColD.p) implies f2.x = (m.p).x);
+    for x be Element of the ColoredSet of CPN holds f1.x = f2.x
+    proof
+      let x be Element of the ColoredSet of CPN;
+      per cases;
+      suppose
+P1:     p in loc(D) & x = ColD.p;
+        hence f1.x = (m.p).x + 1 by A1
+          .= f2.x by A2, P1;
+      end;
+      suppose
+P2:     not (p in loc(D) & x = ColD.p);
+        hence f1.x = (m.p).x by A1
+          .= f2.x by A2, P2;
+      end;
+    end;
+    hence f1 = f2 by FUNCT_2:def 7;
+  end;
+end;
+
+::  The definition of firing_result
+definition
+  let CPN, m, t;
+  let D be thin_cylinder of the ColoredSet of CPN, *'{t};
+  let E be thin_cylinder of the ColoredSet of CPN, {t}*';
+  let ColD be color-threshold of D;
+  let ColE be color-threshold of E;
+  let p be Element of CPN;
+  func firing_result(ColD, ColE, m, p) ->
+    Function of the ColoredSet of CPN, NAT equals
+  :Def16:
+  Ptr_Sub(ColD,m,p) if t is_firable_on m,ColD &
+  p in loc(D) \ loc(E),
+  Ptr_Add(ColE,m,p) if t is_firable_on m,ColD &
+  p in loc(E)\loc(D)
+  otherwise m.p;
+  coherence;
+  consistency
+  proof
+    (t is_firable_on m, ColD & p in loc(D) \ loc(E)) &
+    (t is_firable_on m, ColD & p in loc(E) \ loc(D))
+    implies Ptr_Sub(ColD,m,p) = Ptr_Add(ColE,m,p)
+    proof
+      assume
+      (t is_firable_on m, ColD & p in loc(D) \ loc(E)) &
+      (t is_firable_on m, ColD & p in loc(E) \ loc(D));
+      then p in loc(D) & not p in loc(D) by XBOOLE_0:def 5;
+      hence Ptr_Sub(ColD, m, p) = Ptr_Add(ColE, m, p);
+    end;
+    hence thesis;
+  end;
+end;
+
+:: The definition of the range of firing_result
+
+theorem
+:::Th5A:
+  for D0 being thin_cylinder of the ColoredSet of CPN, *'{t},
+  D1 being thin_cylinder of the ColoredSet of CPN, {t}*',
+  ColD0 be color-threshold of D0,
+  ColD1 be color-threshold of D1,
+  x be Element of the ColoredSet of CPN,
+  p be Element of CPN holds
+  (m.p).x - 1 <= (firing_result(ColD0, ColD1, m, p)).x &
+  (firing_result(ColD0, ColD1, m, p)).x <= (m.p).x + 1
+proof
+  let D0 be thin_cylinder of the ColoredSet of CPN, *'{t},
+  D1 be thin_cylinder of the ColoredSet of CPN, {t}*',
+  ColD0 be color-threshold of D0,
+  ColD1 be color-threshold of D1,
+  x be Element of the ColoredSet of CPN,
+  p be Element of CPN;
+  per cases;
+  suppose
+A1:   (p in loc(D0) \ loc(D1) & t is_firable_on m, ColD0);
+    then
+A11:  firing_result(ColD0, ColD1, m, p) = Ptr_Sub(ColD0, m, p)
+    by Def16;
+A12:  p in loc(D0) by XBOOLE_0:def 5, A1;
+    per cases;
+    suppose
+a:    x = ColD0.p;
+      (m.p). x - 1 + 0 <= ((m.p). x -1) +2 by XREAL_1:7;
+      hence thesis by a,A11, A12, Def16Sub, A1;
+    end;
+    suppose
+a:    x <> ColD0.p; then
+A122: (firing_result(ColD0, ColD1, m, p)).x
+      = (m.p). x by A11, Def16Sub,A1;
+A123: (m.p).x - 1 <= (firing_result(ColD0, ColD1, m, p)).x - 0
+      by A122, XREAL_1:13;
+      (m.p). x + 0 <= (m.p). x + 1 by XREAL_1:7;
+      hence thesis by a,A123,A11, Def16Sub,A1;
+    end;
+  end;
+  suppose
+A2: (p in loc(D1) \ loc(D0) & t is_firable_on m, ColD0);
+    then
+A11: firing_result(ColD0,ColD1,m,p) = Ptr_Add(ColD1,m,p) by Def16;
+A12: p in loc(D1) by XBOOLE_0:def 5, A2;
+    per cases;
+    suppose
+      x = ColD1.p; then
+A122: (firing_result(ColD0, ColD1, m, p)).x
+      = (m.p). x + 1 by A11,A12,Def16Add;
+      (m.p). x -1  + 0 <= ((m.p). x -1) + 2 by XREAL_1:7;
+      hence thesis by A122;
+    end;
+    suppose
+a:    x <> ColD1.p; then
+A122: (firing_result(ColD0, ColD1, m, p)).x
+      = (m.p). x by A11, Def16Add;
+A123: (m.p).x - 1 <= (firing_result(ColD0, ColD1, m, p)).x - 0
+      by A122, XREAL_1:13;
+      (m.p). x + 0 <= (m.p). x + 1 by XREAL_1:7;
+      hence thesis by A123,a,A11,Def16Add;
+    end;
+  end;
+  suppose
+a:  not(p in loc(D0) \ loc(D1) & t is_firable_on m,ColD0) &
+    not(p in loc(D1) \ loc(D0) & t is_firable_on m,ColD0); then
+A122: (firing_result(ColD0, ColD1, m, p)).x = (m.p). x by Def16;
+A123: (m.p).x - 1 <= (firing_result(ColD0, ColD1, m, p)).x - 0
+    by A122, XREAL_1:13;
+    (m.p). x + 0 <= (m.p). x + 1 by XREAL_1:7;
+    hence thesis by a,A123,Def16;
+  end;
+end;
+
+theorem
+:: :Th5B:
+  for D0 being thin_cylinder of the ColoredSet of CPN, *'{t},
+  D1 being thin_cylinder of the ColoredSet of CPN, {t}*',
+  ColD0 be color-threshold of D0,
+  ColD1 be color-threshold of D1,
+  x be Element of the ColoredSet of CPN,
+  p be Element of CPN st
+  t is outbound holds
+  (m.p).x - 1 <= (firing_result(ColD0, ColD1, m, p)).x &
+  (firing_result(ColD0, ColD1, m, p)).x <= (m.p).x
+proof
+  let D0 be thin_cylinder of the ColoredSet of CPN, *'{t},
+  D1 be thin_cylinder of the ColoredSet of CPN, {t}*',
+  ColD0 be color-threshold of D0,
+  ColD1 be color-threshold of D1,
+  x be Element of the ColoredSet of CPN,
+  p be Element of CPN;
+  assume
+a: t is outbound;
+  per cases;
+  suppose
+A1:  (p in loc(D0) \ loc(D1) & t is_firable_on m, ColD0); then
+A11: firing_result(ColD0, ColD1, m, p) = Ptr_Sub(ColD0, m, p) by Def16;
+A12: p in loc(D0) by XBOOLE_0:def 5, A1;
+    per cases;
+    suppose
+a:    x = ColD0.p;
+      (m.p).x  - 1 + 0 <= ((m.p). x - 1) + 1 by XREAL_1:7;
+      hence thesis by a,A1, A11, A12, Def16Sub;
+    end;
+    suppose
+a:    x <> ColD0.p; then
+A122: (firing_result(ColD0, ColD1, m, p)).x = (m.p).x by A1, A11, Def16Sub;
+      (m.p).x - 1 <=
+      (firing_result(ColD0, ColD1, m, p)).x - 0 by A122, XREAL_1:13;
+      hence thesis by a,A1, A11, Def16Sub;
+    end;
+  end;
+  suppose
+     (p in loc(D1) \ loc(D0) & t is_firable_on m, ColD0);
+     hence thesis by a;
+  end;
+  suppose
+a:  not(p in loc(D0) \ loc(D1) & t is_firable_on m, ColD0) &
+    not(p in loc(D1) \ loc(D0) & t is_firable_on m, ColD0); then
+A122:  (firing_result(ColD0, ColD1, m, p)).x = (m.p).x by Def16;
+    (m.p).x - 1 <=
+    (firing_result(ColD0, ColD1, m, p)).x - 0 by A122, XREAL_1:13;
+    hence thesis by a,Def16;
+  end;
+end;
+

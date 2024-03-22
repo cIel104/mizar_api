@@ -1,0 +1,1667 @@
+:: A Simple Example for Linear Partial Differential Equations and Its 
+:: Solution Using the Method of Separation of Variables
+::  by Sora Otsuki , Pauline N. Kawamoto and Hiroshi Yamazaki
+:: 
+:: Received February 27, 2019
+:: Copyright (c) 2019-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FUNCT_1, ARYTM_3, ARYTM_1, FINSEQ_1, FINSEQ_2, RELAT_1, COMPLEX1,
+      SQUARE_1, RCOMP_1, XBOOLE_0, PARTFUN1, XXREAL_1, ORDINAL4, FDIFF_1,
+      PDIFF_1, AFINSQ_1, NUMBERS, REAL_1, SUBSET_1, CARD_1, TARSKI, XXREAL_0,
+      CARD_3, NAT_1, VALUED_1, SEQFUNC, PDIFF_9, XCMPLX_0, SIN_COS, SERIES_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, FUNCT_1, ORDINAL1, RELSET_1, PARTFUN1,
+      FUNCT_2, NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, REAL_1, SQUARE_1,
+      FINSEQ_1, VALUED_1, FINSEQ_2, RCOMP_1, FDIFF_1, SEQFUNC, SIN_COS,
+      FINSEQ_7, EUCLID, TAYLOR_1, PDIFF_1, PDIFF_7, PDIFF_9, MESFUN9C;
+ constructors REAL_1, SQUARE_1, FINSEQ_7, FINSEQ_4, SIN_COS, FDIFF_1, PDIFF_1,
+      MONOID_0, INTEGR15, RELSET_1, PDIFF_7, TAYLOR_1, SEQFUNC, PDIFF_9,
+      MESFUNC5, MESFUN9C;
+ registrations XBOOLE_0, FUNCT_1, ORDINAL1, RELSET_1, FUNCT_2, NUMBERS,
+      XXREAL_0, XREAL_0, NAT_1, MEMBERED, VALUED_0, FINSEQ_1, EUCLID, VALUED_1,
+      SQUARE_1, RCOMP_1;
+ requirements SUBSET, REAL, BOOLE, NUMERALS, ARITHM;
+ definitions TARSKI;
+ equalities EUCLID, PDIFF_1, SIN_COS, PDIFF_9, SUBSET_1;
+ expansions TARSKI, PDIFF_1, PDIFF_9, TAYLOR_1;
+ theorems TARSKI, XBOOLE_1, FINSEQ_1, FINSEQ_2, NAT_1, FINSEQ_7, RELAT_1,
+      FUNCT_1, FUNCT_2, SQUARE_1, PARTFUN1, FDIFF_1, FDIFF_2, VALUED_1,
+      PDIFF_1, PDIFF_7, RCOMP_1, INT_1, XREAL_0, SIN_COS, TAYLOR_1, PDIFF_9,
+      ZFMISC_1, MESFUN9C;
+ schemes NAT_1, PARTFUN1, FUNCT_2;
+
+begin :: 1. Preliminaries
+
+reserve m, n for non zero Element of NAT;
+reserve i, j, k for Element of NAT;
+reserve Z for Subset of REAL 2;
+reserve c for Real;
+reserve I for non empty FinSequence of NAT;
+reserve d1, d2 for Element of REAL;
+
+LMSIN1:
+for n be Nat holds sin.(n*PI) = 0
+proof
+  defpred P[Nat] means sin.($1*PI) = 0;
+  A1: P[0] by SIN_COS:30;
+  A2: for n be Nat st P[n] holds P[n+1]
+  proof
+    let n be Nat;
+    assume A3: P[n];
+    sin.((n+1)*PI) = sin.(n*PI+PI)
+    .=0*cos.PI + cos.(n*PI)*sin.(PI) by SIN_COS:74, A3
+    .= 0 by SIN_COS:77;
+    hence P[n+1];
+  end;
+  for n be Nat holds P[n] from NAT_1:sch 2(A1, A2);
+  hence thesis;
+end;
+
+theorem DOMP1:
+  for m being non zero Element of NAT,
+      X being Subset of (REAL m),
+      I being non empty FinSequence of NAT,
+      f being PartFunc of (REAL m), REAL st
+      f is_partial_differentiable_on X, I
+    holds dom(f`partial| (X,I)) = X
+  proof
+    let m be non zero Element of NAT,
+    Z be Subset of (REAL m),
+    I be non empty FinSequence of NAT,
+    f be PartFunc of (REAL m), REAL;
+    reconsider k=(len I)-1 as Element of NAT by INT_1:5,FINSEQ_1:20;
+    assume f is_partial_differentiable_on Z, I; then
+    A1:(PartDiffSeq(f,Z,I)).k is_partial_differentiable_on Z,I/.(k+1);
+    dom((PartDiffSeq(f,Z,I)).(k+1))
+    = dom(((PartDiffSeq(f,Z,I)).k)`partial|(Z,I/.(k+1))) by PDIFF_9:def 7;
+    hence thesis by A1, PDIFF_9:def 6;
+  end;
+
+registration
+  cluster [#]REAL -> open;
+  coherence
+  proof
+    now
+      let r be Element of REAL;
+      assume r in [#]REAL;
+      ].(r - 1),(r + 1).[ is Neighbourhood of r by RCOMP_1:def 6;
+      hence ex N being Neighbourhood of r st N c= [#]REAL;
+    end;
+    hence thesis by RCOMP_1:20;
+  end;
+  cluster [#]REAL 2 -> open;
+  coherence
+proof
+  for x being Element of REAL 2 st x in [#]REAL 2
+  holds ex r being Real
+  st r > 0 & {y where y is Element of REAL 2: |.(y - x).|<r} c= [#]REAL 2
+  proof
+    let x be Element of REAL 2;
+    assume x in [#]REAL 2;
+    take 1;
+    thus 0 < 1;
+    now
+      let s be object;
+      assume s in {y where y is Element of REAL 2: |.(y - x).| < 1 };
+      then ex y be Element of REAL 2 st s=y & |.(y - x).| < 1;
+      hence s in [#]REAL 2;
+    end;
+    hence {y where y is Element of REAL 2: |.(y - x).|<1} c= [#]REAL 2;
+  end;
+  hence thesis by PDIFF_7:31;
+end;
+end;
+
+LMOP3:
+[#](REAL 2) = {<*x, t*> where x, t is Real : x in [#]REAL & t in [#]REAL}
+proof
+  set S = {<*x, t*> where x, t is Real : x in [#]REAL & t in [#]REAL};
+  for z be object holds (z in [#](REAL 2) iff z in S)
+  proof
+    let z be object;
+    hereby
+      assume z in [#](REAL 2);
+      then z in the set of all <*d1, d2*> where d1, d2 is Element of REAL
+        by FINSEQ_2:99;
+      then ex d1, d2 be Element of REAL st z = <*d1, d2*>;
+      hence z in S;
+    end;
+    assume z in S;
+    then ex x, t be Real st z = <*x, t*> & x in [#]REAL & t in [#]REAL;
+    then z in the set of all <*d1, d2*> where d1, d2 is Element of REAL;
+    hence z in [#](REAL 2) by FINSEQ_2:99;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+LM001:
+for f be PartFunc of REAL,REAL, Z be Subset of REAL, x0 be Real
+st Z is open & x0 in Z & f is_differentiable_in x0
+holds (f|Z) is_differentiable_in x0 & diff(f, x0) = diff(f|Z, x0)
+proof
+  let f be PartFunc of REAL, REAL, Z be Subset of REAL, x0 be Real;
+  assume that
+  AS1: Z is open and
+  AS3: x0 in Z and
+  AS4: f is_differentiable_in x0;
+  consider N1 being Neighbourhood of x0 such that
+  A10: N1 c= Z by AS1, AS3,RCOMP_1:18;
+  consider N being Neighbourhood of x0 such that
+  A11: N c= dom f and
+  A12: ex L being LinearFunc,R being RestFunc st for x being Real st x in N
+  holds (f.x) - (f.x0) = (L.(x - x0)) + (R.(x - x0)) by AS4, FDIFF_1:def 4;
+  consider N2 being Neighbourhood of x0 such that
+  A13: N2 c= N1 and
+  A14: N2 c= N by RCOMP_1:17;
+  A15: N2 c= Z by A10, A13;
+  N2 c= dom f by A11, A14;
+  then N2 c= (dom f) /\ Z by A15, XBOOLE_1:19; then
+  A16: N2 c= dom(f | Z) by RELAT_1:61;
+  consider L being LinearFunc, R being RestFunc such that
+  A17: for x being Real st x in N
+  holds (f.x) - (f.x0) = (L.(x - x0)) + (R.(x - x0)) by A12;
+  A18: x0 in N2 by RCOMP_1:16;
+  Y1:
+  now let x be Real;
+    assume A19: x in N2;
+    then (f.x) - (f.x0) = (L.(x - x0)) + (R.(x - x0)) by A14, A17;
+    then ((f|Z).x) - (f.x0) = (L.(x - x0)) + (R.(x - x0))
+    by A16, A19, FUNCT_1:47;
+    hence ((f|Z).x) - ((f|Z).x0) = (L.(x - x0)) + (R.(x - x0))
+    by A16, A18, FUNCT_1:47;
+  end;
+  hence (f|Z) is_differentiable_in x0 by A16, FDIFF_1:def 4;
+  hence diff((f|Z), x0) = L.1 by A16, Y1,FDIFF_1:def 5
+  .= diff(f, x0) by AS4, A11, A17,FDIFF_1:def 5;
+end;
+
+theorem LM002:
+  for f be PartFunc of REAL,REAL, Z be Subset of REAL, x0 be Real
+  st Z is open & x0 in Z holds
+  (f is_differentiable_in x0 iff (f|Z) is_differentiable_in x0)
+  & (f is_differentiable_in x0 implies diff(f, x0) = diff(f|Z, x0))
+  proof
+    let f be PartFunc of REAL, REAL, Z be Subset of REAL, x0 be Real;
+    assume that
+    AS1: Z is open and
+    AS3: x0 in Z;
+    thus f is_differentiable_in x0 iff (f|Z) is_differentiable_in x0
+    proof
+      thus f is_differentiable_in x0 implies (f|Z) is_differentiable_in x0
+      by LM001, AS1, AS3;
+      thus (f|Z) is_differentiable_in x0 implies f is_differentiable_in x0
+      proof assume (f|Z) is_differentiable_in x0; then
+      consider N being Neighbourhood of x0 such that
+      A11: N c= dom(f|Z) and
+      A12: ex L being LinearFunc,R being RestFunc
+      st for x being Real st x in N holds
+      ((f|Z).x) - ((f|Z).x0) = (L.(x - x0)) + (R.(x - x0)) by FDIFF_1:def 4;
+      consider L being LinearFunc, R being RestFunc such that
+      A17: for x being Real st x in N holds
+      ((f|Z).x) - ((f|Z).x0) = (L.(x - x0)) + (R.(x - x0)) by A12;
+      Y0: dom(f|Z) c= dom f by RELAT_1:60;
+      now let x be Real;
+        assume A19: x in N; then
+        A20: x in Z by RELAT_1:58, A11, TARSKI:def 3;
+        ((f|Z).x) - ((f|Z).x0) = (L.(x - x0)) + (R.(x - x0)) by A17,A19;
+        then ((f|Z).x) - (f.x0) = (L.(x - x0)) + (R.(x - x0))
+        by AS3, FUNCT_1:49;
+        hence (f.x) - (f.x0) = (L.(x - x0)) + (R.(x - x0)) by A20, FUNCT_1:49;
+      end;
+      hence f is_differentiable_in x0 by Y0, A11, XBOOLE_1:1, FDIFF_1:def 4;
+    end;
+  end;
+  thus (f is_differentiable_in x0 implies diff(f, x0) = diff(f|Z, x0))
+  by AS1, AS3, LM001;
+  end;
+
+theorem LM003:
+  for f be PartFunc of REAL, REAL, X be Subset of REAL
+  st X is open & X c= dom f
+  holds f is_differentiable_on X iff (f|X) is_differentiable_on X
+  proof
+    let f be PartFunc of REAL, REAL, X be Subset of REAL;
+    assume that
+    AS1: X is open and
+    AS2: X c= dom f;
+    hereby
+      assume
+      A1: f is_differentiable_on X;
+      A3: dom(f|X) = X by RELAT_1:62, AS2;
+      now
+        let x be Real;
+        assume
+        A4: x in X;
+        then f is_differentiable_in x by A1, AS1, FDIFF_1:9;
+        hence (f|X) is_differentiable_in x by LM002, AS1, A4;
+      end;
+      hence (f|X) is_differentiable_on X by AS1, A3, FDIFF_1:9;
+    end;
+    assume
+    A1: (f|X) is_differentiable_on X;
+    now
+      let x be Real;
+      assume
+      A4: x in X;
+      then (f|X) is_differentiable_in x by A1, AS1, FDIFF_1:9;
+      hence f is_differentiable_in x by LM002, AS1, A4;
+    end;
+    hence f is_differentiable_on X by AS1, AS2, FDIFF_1:9;
+  end;
+
+theorem LM00:
+  for f be PartFunc of REAL, REAL, X be Subset of REAL
+  st X is open & X c= dom f & f is_differentiable_on X
+  holds (f|X) `| X = f `| X
+  proof
+    let f be PartFunc of REAL,REAL, X be Subset of REAL;
+    assume that
+    AS1: X is open and
+    AS2: X c= dom f and
+    AS3: f is_differentiable_on X;
+    A1: (f|X) is_differentiable_on X by AS1, AS2, AS3, LM003;
+    A2: dom(f `| X) = X & for x being Real st x in X holds
+    (f `| X).x = diff(f,x) by FDIFF_1:def 7, AS3;
+    A3: dom((f|X) `| X) = X & for x being Real st x in X holds
+    ((f|X) `| X). x = diff((f|X), x) by FDIFF_1:def 7, A1;
+    now
+      let x be object;
+      assume
+      A4: x in dom((f|X) `| X); then
+      A5: x in X by FDIFF_1:def 7, A1;
+      reconsider x0=x as Real by A4;
+      A6: f is_differentiable_in x0 by AS1, AS3, A5, FDIFF_1:9;
+      thus ((f|X) `| X).x = diff((f|X), x0) by FDIFF_1:def 7, A1, A5
+      .= diff(f, x0) by A6, AS1, A5, LM002
+      .= (f `| X).x by FDIFF_1:def 7, AS3, A5;
+    end;
+    hence (f|X) `| X = f `| X by FUNCT_1:2, A2, A3;
+  end;
+
+theorem DIFF1:
+  for f be PartFunc of REAL,REAL, Z be Subset of REAL
+  st Z c= dom f & Z is open & f is_differentiable_on 1,Z holds
+  f is_differentiable_on Z & ((diff(f,Z)).1) = f`| Z
+  proof
+    let f be PartFunc of REAL,REAL, Z be Subset of REAL;
+    assume
+    AS: Z c= dom f & Z is open & f is_differentiable_on 1, Z; then
+    (diff(f,Z)).0 is_differentiable_on Z;
+    then (f|Z) is_differentiable_on Z by TAYLOR_1:def 5;
+    hence
+    X1: f is_differentiable_on Z by LM003, AS;
+    thus (diff(f,Z)).1 = (diff(f,Z)).(0+1)
+    .= ((diff(f,Z)).0) `| Z by TAYLOR_1:def 5
+    .= ((f|Z)) `| Z by TAYLOR_1:def 5
+    .= f `| Z by AS, X1, LM00;
+  end;
+
+theorem DIFF2:
+  for f be PartFunc of REAL, REAL, Z be Subset of REAL
+  st Z c= dom f & Z is open & f is_differentiable_on 2,Z holds
+  f is_differentiable_on Z & ((diff(f,Z)).1) = f`| Z
+  & f`| Z is_differentiable_on Z & ((diff(f,Z)).2) = (f`| Z)`| Z
+  proof
+    let f be PartFunc of REAL, REAL, Z be Subset of REAL;
+    assume
+    AS: Z c= dom f & Z is open & f is_differentiable_on 2, Z;
+    f is_differentiable_on 1,Z by AS, TAYLOR_1:23; then
+    A3: f is_differentiable_on Z & ((diff(f,Z)).1) = f`| Z by AS, DIFF1;
+    (diff(f,Z)).2 = (diff(f,Z)).(1+1)
+    .= (f`| Z)`| Z by TAYLOR_1:def 5, A3;
+    hence thesis by AS, A3;
+  end;
+
+LM02: for x, t be Real holds <*x, t*> in REAL 2
+proof
+  let x, t be Real;
+  P1: 2 -tuples_on REAL = the set of all <*d1, d2*> by FINSEQ_2:99;
+  x in REAL & t in REAL by XREAL_0:def 1;
+  hence <*x, t*> in REAL 2 by P1;
+end;
+
+LM03: for x, t be Real, z be Element of REAL 2 st z = <*x, t*>
+holds ((proj(1,2)).z) = x & ((proj(2,2)).z) = t
+proof
+  let x, t be Real, z be Element of REAL 2;
+  assume
+  AS: z = <*x, t*>;
+  thus (proj(1,2)).z = z.1 by PDIFF_1:def 1
+  .= x by AS, FINSEQ_1:44;
+  thus (proj(2,2)).z = z.2 by PDIFF_1:def 1
+  .= t by AS,FINSEQ_1:44;
+end;
+
+theorem LM10:
+  for X, T be Subset of REAL, f be PartFunc of REAL,REAL,
+  g be PartFunc of REAL,REAL
+  st X c= dom f & T c= dom g
+  ex u be PartFunc of REAL 2,REAL
+  st dom u = {<*x, t*> where x, t is Real: x in X & t in T}
+  & for x, t be Real st x in X & t in T
+  holds u/.<*x, t*> = f/.x*g/.t
+  proof
+    let X, T be Subset of REAL, f be PartFunc of REAL,REAL,
+    g be PartFunc of REAL,REAL;
+    assume X c= dom f & T c= dom g;
+    defpred P1[object, object] means
+    ex x, t be Real st x in X & t in T & $1 = <*x, t*> & $2 = f/.x*g/.t;
+    P1: for z, w being object st z in REAL 2 & P1[z,w] holds w in REAL;
+    P2: for z, w1, w2 being object st z in REAL 2 & P1[z,w1] & P1[z,w2]
+    holds w1 = w2
+    proof
+      let z, w1, w2 be object;
+      assume that
+      z in REAL 2 and
+      P21: P1[z,w1] and
+      P22: P1[z,w2];
+      consider x1,t1 be Real such that
+      P23: z=<*x1,t1*> & w1=f/.x1*g/.t1 by P21;
+      consider x2,t2 be Real such that
+      P24: z=<*x2,t2*> & w2=f/.x2*g/.t2 by P22;
+      x1 = x2 & t1 = t2 by P23, P24, FINSEQ_1:77;
+      hence w1=w2 by P23, P24;
+    end;
+    consider u being PartFunc of REAL 2,REAL such that
+    P3: for z being object holds
+    (z in dom u iff (z in REAL 2 & ex w being object st P1[z,w])) and
+    P4: for z being object st z in dom u holds P1[z, u.z]
+    from PARTFUN1:sch 2(P1,P2);
+    take u;
+    for z being object holds
+    (z in dom u iff z in {<*x, t*> where x, t is Real: x in X & t in T})
+    proof
+      let z be object;
+      hereby
+        assume z in dom u;
+        then z in REAL 2 & ex w being object st P1[z,w] by P3;
+        hence z in {<*x, t*> where x, t is Real: x in X & t in T};
+      end;
+      assume z in {<*x, t*> where x, t is Real: x in X & t in T};
+      then consider x, t be Real such that
+      P51: z = <*x, t*> & x in X & t in T;
+      f/.x*g/.t in REAL;
+      hence z in dom u by P3,P51,LM02;
+    end;
+    hence
+    P5: dom u = {<*x, t*> where x, t is Real: x in X & t in T} by TARSKI:2;
+    let x, t be Real;
+    assume x in X & t in T; then
+    P7: <*x, t*> in dom u by P5;
+    then consider x1, t1 be Real such that
+    x1 in X & t1 in T and
+    P9: <*x, t*> = <*x1,t1*> and
+    P10: u.<*x, t*> = f/.x1*g/.t1 by P4;
+    x = x1 & t = t1 by P9, FINSEQ_1:77;
+    hence u/. <*x, t*> = f/.x*g/.t by P10, P7, PARTFUN1:def 6;
+  end;
+
+theorem LM11:
+  for f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+  u be PartFunc of REAL 2,REAL, x0, t0 be Real, z be Element of REAL 2
+  st dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g}
+  & (for x, t be Real st x in dom f & t in dom g holds u/.<*x, t*> = f/.x*g/.t)
+  & z=<*x0,t0*> & x0 in dom f & t0 in dom g
+  holds
+  u*(reproj(1,z)) = (g/.t0)(#)f & u*(reproj(2,z)) = (f/.x0)(#)g
+  proof
+    let f be PartFunc of REAL, REAL, g be PartFunc of REAL, REAL,
+    u be PartFunc of REAL 2,REAL, x0, t0 be Real, z be Element of REAL 2;
+    assume that
+    AS1: dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g} and
+    AS2: for x, t be Real st x in dom f & t in dom g
+    holds u/.<*x, t*> = f/.x*g/.t and
+    AS3: z = <*x0, t0*> & x0 in dom f & t0 in dom g;
+    P21: for s be object holds s in dom (u*(reproj(1,z))) iff s in dom f
+    proof
+      let s be object;
+      hereby
+        assume
+        P10: s in dom(u*(reproj(1,z))); then
+        reconsider r = s as Real;
+        A4a: r is Element of REAL by XREAL_0:def 1;
+        (reproj(1, z)).r = Replace(z,1,r) by PDIFF_1:def 5, A4a
+        .= <*r, t0*> by AS3, FINSEQ_7:13, A4a; then
+        <*r,t0*> in {<*x, t*> where x, t is Real: x in dom f & t in dom g}
+        by P10, FUNCT_1:11, AS1; then
+        ex x, t be Real st <*r,t0*> = <*x, t*> & x in dom f & t in dom g;
+        hence s in dom f by FINSEQ_1:77;
+      end;
+      assume
+      P12: s in dom f;
+      then reconsider r = s as Real;
+      P13: s in REAL by P12;
+      P14: (reproj(1, z)).r = Replace (z, 1, r) by PDIFF_1:def 5, P12
+      .= <*r,t0*> by AS3,FINSEQ_7:13, P12;
+      P15: (reproj(1, z)).s in dom u by P12, P14, AS1, AS3;
+      s in dom(reproj(1, z)) by P13,FUNCT_2:def 1;
+      hence s in dom(u*(reproj(1, z))) by P15,FUNCT_1:11;
+    end; then
+    P2: dom(u*(reproj(1,z))) = dom f by TARSKI:2;
+    P31: for s be object holds (s in dom(u*(reproj(2,z))) iff s in dom g)
+    proof
+      let s be object;
+      hereby
+        assume
+        P10: s in dom(u*(reproj(2,z))); then
+        reconsider r = s as Real;
+        A4: r is Element of REAL by XREAL_0:def 1;
+        (reproj(2,z)).r = Replace (z,2,r) by PDIFF_1:def 5, A4
+        .= <*x0,r*> by AS3,FINSEQ_7:14, A4;
+        then <*x0, r*> in {<*x, t*>
+        where x, t is Real: x in dom f & t in dom g} by P10, FUNCT_1:11, AS1;
+        then ex x, t be Real st <*x0,r*> = <*x, t*> & x in dom f & t in dom g;
+        hence s in dom g by FINSEQ_1:77;
+      end;
+      assume
+      P12: s in dom g; then
+      reconsider r = s as Real;
+      P14: (reproj(2,z)).r = Replace (z,2,r) by PDIFF_1:def 5, P12
+      .= <*x0,r*> by AS3,FINSEQ_7:14, P12;
+      P15: <*x0, r*> in {<*x, t*> where x, t is Real: x in dom f & t in dom g}
+        by P12, AS3;
+      s in REAL by P12; then
+      s in dom(reproj(2,z)) by FUNCT_2:def 1;
+      hence s in dom(u*(reproj(2,z))) by P15, P14, AS1, FUNCT_1:11;
+    end;
+    P4: dom((g/.t0)(#)f) = dom f by VALUED_1:def 5;
+    P5: dom((f/.x0)(#)g) = dom g by VALUED_1:def 5;
+    for s be object st s in dom(u*(reproj(1,z)))
+    holds (u*(reproj(1,z))).s = ((g/.t0)(#)f).s
+    proof
+      let s be object;
+      assume
+      A1: s in dom(u*(reproj(1, z))); then
+      reconsider r = s as Real;
+      A3: <*r,t0*> in dom u by P2, A1, AS3, AS1;
+      A4a: r is Element of REAL by XREAL_0:def 1;
+      thus (u*(reproj(1, z))).s = u.((reproj(1, z)).r) by FUNCT_1:12, A1
+      .= u.(Replace (z,1,r)) by PDIFF_1:def 5, A4a
+      .= u.<*r, t0*> by AS3, FINSEQ_7:13, A4a
+      .= u/.<*r, t0*> by A3, PARTFUN1:def 6
+      .= f/.r*g/.t0 by A1, AS3, AS2, P21
+      .= (f.r)*g/.t0 by PARTFUN1:def 6, A1, P21
+      .= ((g/.t0)(#)f).s by VALUED_1:def 5, A1, P21, P4;
+    end;
+    hence u*(reproj(1, z)) = (g/.t0)(#)f by FUNCT_1:2, P21, TARSKI:2, P4;
+    for s be object st s in dom(u*(reproj(2,z)))
+    holds (u*(reproj(2,z))).s = ((f/.x0)(#)g).s
+    proof
+      let s be object;
+      assume A1:s in dom(u*(reproj(2, z)));
+      then reconsider r = s as Real;
+      s in dom g by P31, A1; then
+      A3: <*x0, r*> in dom u by AS3, AS1;
+      A4a: r is Element of REAL by XREAL_0:def 1;
+      thus (u*(reproj(2,z))).s = u.((reproj(2,z)).r) by FUNCT_1:12, A1
+      .=u.(Replace (z,2,r)) by PDIFF_1:def 5, A4a
+      .=u.<*x0,r*> by AS3, FINSEQ_7:14, A4a
+      .=u/.<*x0,r*> by A3, PARTFUN1:def 6
+      .= f/.x0*g/.r by P31, A1, AS3, AS2
+      .= (g.r)*f/.x0 by PARTFUN1:def 6, P31, A1
+      .= ((f/.x0)(#)g).s by VALUED_1:def 5, P31, A1, P5;
+    end;
+    hence u*(reproj(2,z)) = (f/.x0)(#)g by FUNCT_1:2, P31, TARSKI:2, P5;
+  end;
+
+theorem :: LM201:
+  for f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+  u be PartFunc of REAL 2,REAL, x0, t0 be Real, z be Element of REAL 2
+  st x0 in dom f & t0 in dom g & z = <*x0,t0*> &
+  dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g} &
+  f is_differentiable_in x0 &
+  (for x, t be Real st x in dom f & t in dom g holds u/.<*x, t*> = f/.x*g/.t)
+  holds
+  u is_partial_differentiable_in z, 1 & partdiff(u, z, 1) = diff(f, x0)*g/.t0
+  proof
+    let f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+    u be PartFunc of REAL 2,REAL, x0, t0 be Real, z be Element of REAL 2;
+    assume that
+    A0: x0 in dom f & t0 in dom g & z = <*x0,t0*> and
+    A4: dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g} and
+    A5: f is_differentiable_in x0 and
+    A7: for x, t be Real st x in dom f & t in dom g
+    holds u/.<*x, t*> = f/.x*g/.t;
+    P51: u*(reproj(1,z)) = (g/.t0)(#)f by LM11, A0, A4, A7;
+    ((proj(1,2)).z) = x0 by A0, LM03;
+    hence u is_partial_differentiable_in z,1 by A5, FDIFF_1:15, P51;
+    thus partdiff(u,z,1) = diff((g/.t0)(#)f, x0) by A0, LM03,P51
+    .= diff(f, x0)*g/.t0 by A5, FDIFF_1:15;
+  end;
+
+theorem :: LM202:
+  for f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+  u be PartFunc of REAL 2,REAL, x0, t0 be Real, z be Element of REAL 2
+  st x0 in dom f & t0 in dom g & z = <*x0,t0*>
+  & dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g}
+  & g is_differentiable_in t0
+  & (for x, t be Real st x in dom f & t in dom g holds u/.<*x, t*> = f/.x*g/.t)
+  holds
+  u is_partial_differentiable_in z,2 & partdiff(u,z,2) = f/.x0*diff(g, t0)
+  proof
+    let f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+    u be PartFunc of REAL 2,REAL, x0, t0 be Real, z be Element of REAL 2;
+    assume that
+    A0: x0 in dom f & t0 in dom g & z = <*x0, t0*> and
+    A4: dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g} and
+    A5: g is_differentiable_in t0 and
+    A7: for x, t be Real st x in dom f & t in dom g
+    holds u/.<*x, t*> = f/.x*g/.t;
+    P52: ((proj(2,2)).z) = t0 by A0, LM03;
+    (f/.x0)(#)g is_differentiable_in t0 by A5, FDIFF_1:15;
+    hence u is_partial_differentiable_in z, 2 by LM11, A0, A4, A7, P52;
+    thus partdiff(u, z, 2) = diff((f/.x0)(#)g, t0) by A0, LM11, A4, A7, P52
+    .= (f/.x0)*diff(g,t0) by A5, FDIFF_1:15;
+  end;
+
+theorem LM20:
+  for X, T be Subset of REAL, Z be Subset of REAL 2,
+  f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+  u be PartFunc of REAL 2,REAL st X c= dom f & T c= dom g
+  & X is open & T is open & Z is open
+  & Z = {<*x, t*> where x, t is Real : x in X & t in T }
+  & dom u = {<*x, t*> where x, t is Real : x in dom f & t in dom g }
+  & f is_differentiable_on X
+  & g is_differentiable_on T
+  & (for x, t be Real st x in dom f & t in dom g holds u/.<*x, t*> = f/.x*g/.t)
+  holds
+  u is_partial_differentiable_on Z,<*1*>
+  & (for x, t be Real st x in X & t in T
+  holds u `partial| (Z,<*1*>)/.<*x, t*> = diff(f,x) *g/.t)
+  & u is_partial_differentiable_on Z,<*2*>
+  & (for x, t be Real st x in X & t in T
+  holds u `partial| (Z,<*2*>)/.<*x, t*> = f/.x*diff(g,t))
+  proof
+    let X, T be Subset of REAL, Z be Subset of REAL 2,
+    f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+    u be PartFunc of REAL 2,REAL;
+    assume that
+    A1: X c= dom f & T c= dom g and
+    A2: X is open & T is open & Z is open and
+    A3: Z = {<*x, t*> where x, t is Real: x in X & t in T} and
+    A4: dom u = {<*x, t*> where x, t is Real : x in dom f & t in dom g} and
+    A5: f is_differentiable_on X and
+    A6: g is_differentiable_on T and
+    A7: for x, t be Real st x in dom f & t in dom g
+    holds u/.<*x, t*> = f/.x*g/.t;
+A8: Z c= dom u
+    proof
+      let z be object;
+      assume z in Z;
+      then consider x, t be Real such that
+      A80: z=<*x, t*> & x in X & t in T by A3;
+      thus z in dom u by A80, A1, A4;
+    end;
+    for z being Element of REAL 2 st z in Z
+    holds u is_partial_differentiable_in z,1
+    proof
+      let z be Element of REAL 2;
+      assume z in Z;
+      then consider x, t be Real such that
+      P01: z=<*x, t*> & x in X & t in T by A3;
+      P51: u*(reproj(1,z)) = (g/.t)(#)f by A1, P01, LM11, A4, A7;
+      P52: ((proj(1,2)).z) = x by P01, LM03;
+      f is_differentiable_in x by P01, A2, A5, FDIFF_1:9;
+      hence u is_partial_differentiable_in z,1 by P51, P52, FDIFF_1:15;
+    end; then
+    P1: u is_partial_differentiable_on Z,1 by A2, A8, PDIFF_9:60;
+    hence u is_partial_differentiable_on Z,<*1*>;
+    P3: u `partial| (Z,<*1*>) = u `partial| (Z,1) by A2, PDIFF_9:82, P1;
+    P5: for x, t be Real, z be Element of REAL 2
+    st x in X & t in T & z= <*x, t*>
+    holds partdiff(u,z,1) = diff(f,x) *g/.t
+    proof
+      let x, t be Real, z be Element of REAL 2;
+      assume
+      P50: x in X & t in T & z= <*x, t*>; then
+      P51: u*(reproj(1,z)) = (g/.t)(#)f by A1,LM11, A4, A7;
+      P52: ((proj(1,2)).z) = x by P50, LM03;
+      f is_differentiable_in x by P50, A2, A5, FDIFF_1:9;
+      hence thesis by P51, P52, FDIFF_1:15;
+    end;
+    thus for x, t be Real st x in X & t in T
+    holds u `partial| (Z,<*1*>)/.<*x, t*> = diff(f,x) *g/.t
+    proof
+      let x, t be Real;
+      assume
+      P6: x in X & t in T;
+      reconsider z= <*x, t*> as Element of REAL 2 by LM02;
+      <*x, t*> in Z by A3,P6;
+      hence u `partial| (Z,<*1*>)/.<*x, t*> = partdiff(u, z, 1)
+      by P3, PDIFF_9:def 6, P1
+      .= diff(f,x)*g/.t by P5, P6;
+    end;
+    for z being Element of REAL 2 st z in Z
+    holds u is_partial_differentiable_in z,2
+    proof
+      let z be Element of REAL 2;
+      assume z in Z;
+      then consider x, t be Real such that
+      P01: z=<*x, t*> & x in X & t in T by A3;
+      P51: u*(reproj(2,z)) = (f/.x)(#)g by A1, LM11, P01, A4, A7;
+      P52: ((proj(2,2)).z) = t by P01, LM03;
+      g is_differentiable_in t by P01, A2, A6, FDIFF_1:9;
+      hence u is_partial_differentiable_in z,2 by FDIFF_1:15, P51, P52;
+    end; then
+    P1: u is_partial_differentiable_on Z,2 by A2, A8, PDIFF_9:60;
+    hence u is_partial_differentiable_on Z,<*2*>;
+    P3: u `partial|(Z, <*2*>) = u `partial|(Z, 2) by A2, PDIFF_9:82, P1;
+    P5: for x, t be Real, z be Element of REAL 2
+    st x in X & t in T & z= <*x, t*>
+    holds partdiff(u,z,2) = f/.x*diff(g,t)
+    proof
+      let x, t be Real, z be Element of REAL 2;
+      assume
+      P50: x in X & t in T & z= <*x, t*>; then
+      P51: u*(reproj(2,z)) = (f/.x)(#)g by A1, LM11, A4, A7;
+      P52: ((proj(2,2)).z) = t by P50,LM03;
+      g is_differentiable_in t by P50, A2, A6, FDIFF_1:9;
+      hence thesis by FDIFF_1:15, P51, P52;
+    end;
+    let x, t be Real;
+    assume
+    P6: x in X & t in T;
+    reconsider z = <*x, t*> as Element of REAL 2 by LM02;
+    <*x, t*> in Z by A3,P6;
+    hence u `partial| (Z,<*2*>)/.<*x, t*> = partdiff(u, z, 2)
+    by P3, PDIFF_9:def 6, P1
+    .= f/.x*diff(g,t) by P5, P6;
+  end;
+
+theorem LM30:
+  for X, T be Subset of REAL, Z be Subset of REAL 2,
+  f be PartFunc of REAL,REAL,
+  g be PartFunc of REAL,REAL, u be PartFunc of REAL 2,REAL
+  st X c= dom f & T c= dom g & X is open & T is open & Z is open
+  & Z = {<*x, t*> where x, t is Real : x in X & t in T}
+  & dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g}
+  & f is_differentiable_on 2,X
+  & g is_differentiable_on 2,T
+  & (for x, t be Real st x in dom f & t in dom g holds u/.<*x, t*> = f/.x*g/.t)
+  holds u is_partial_differentiable_on Z,<*1*> ^ <*1*>
+  & (for x, t be Real st x in X & t in T
+  holds u `partial| (Z,<*1*> ^ <*1*>)/.<*x, t*> = (diff(f,X).2)/.x*g/.t)
+  & u is_partial_differentiable_on Z,<*2*> ^ <*2*>
+  & (for x, t be Real st x in X & t in T
+  holds u `partial| (Z, <*2*>^<*2*>)/.<*x, t*> = f/.x*((diff(g,T).2)/.t))
+  proof
+    let X, T be Subset of REAL, Z be Subset of REAL 2,
+    f be PartFunc of REAL,REAL, g be PartFunc of REAL,REAL,
+    u be PartFunc of REAL 2,REAL;
+    assume that
+    A1: X c= dom f & T c= dom g and
+    A2: X is open & T is open & Z is open and
+    A3: Z = {<*x, t*> where x, t is Real: x in X & t in T} and
+    A4: dom u = {<*x, t*> where x, t is Real: x in dom f & t in dom g} and
+    A5: f is_differentiable_on 2,X and
+    A6: g is_differentiable_on 2,T and
+    A7: for x, t be Real st x in dom f
+    & t in dom g holds u/.<*x, t*> = f/.x*g/.t;
+    (diff(f,X)).0 is_differentiable_on X by A5; then
+    D6: f|X is_differentiable_on X by TAYLOR_1:def 5; then
+    B50: X c= dom(f|X) &
+    (for x being Real st x in X holds (f|X) | X is_differentiable_in x)
+    by FDIFF_1:def 6;
+    B51: (f|X) | X = f|X by RELAT_1:72; then
+    B5: f is_differentiable_on X by B50, FDIFF_1:def 6, A1;
+    (diff(g,T)).0 is_differentiable_on T by A6; then
+    C6: g|T is_differentiable_on T by TAYLOR_1:def 5; then
+    B60: T c= dom(g|T) &
+    (for x being Real st x in T holds (g|T) | T is_differentiable_in x)
+    by FDIFF_1:def 6;
+    B61: (g|T)|T = g|T by RELAT_1:72; then
+    B6: g is_differentiable_on T by B60, FDIFF_1:def 6, A1;
+    B7: u is_partial_differentiable_on Z,<*1*> &
+    (for x, t be Real st x in X & t in T holds
+    u `partial| (Z,<*1*>)/.<*x, t*> = diff(f,x) *g/.t) &
+    u is_partial_differentiable_on Z,<*2*> &
+    (for x, t be Real st x in X & t in T
+    holds u `partial| (Z,<*2*>)/.<*x, t*> = f/.x*diff(g,t))
+    by LM20, A1, A2, A3, A4, B5, B6, A7;
+    C0: u is_partial_differentiable_on Z,1
+    by LM20, A1, A3, A4, B5, B6, A7, A2;
+    C1: X = dom(f `| X) by FDIFF_1:def 7, B5;
+    C3: T = dom(g|T) by A1, RELAT_1:62;
+    u `partial| (Z,<*1*>) = u `partial| (Z,1) by C0, PDIFF_9:82, A2; then
+    C4: dom(u `partial| (Z,<*1*>))
+    = {<*x, t*> where x, t is Real : x in dom(f `| X)
+    & t in dom(g|T)} by PDIFF_9:def 6, C0, C1, A3, C3;
+    X5: (diff(f,X)) .(0 + 1) = ((diff(f,X)).0) `| X by TAYLOR_1:def 5
+    .= (f | X) `| X by TAYLOR_1:def 5
+    .= f `| X by LM00, A1, A2, B51, B50, FDIFF_1:def 6; then
+    C5: (f `| X) is_differentiable_on X by A5;
+    C7: for x, t be Real st x in dom(f `| X) & t in dom(g|T)
+    holds (u `partial| (Z,<*1*>))/.<*x, t*> = (f `| X)/.x*(g|T) /.t
+    proof
+      let x, t be Real;
+      assume
+      C70: x in dom(f `| X) & t in dom(g|T); then
+      C71: x in X & t in T by FDIFF_1:def 7, B5, A1, RELAT_1:62;
+      C72:diff(f,x) = (f `| X).x by C71, B5, FDIFF_1:def 7
+      .= (f `| X)/.x by C70, PARTFUN1:def 6;
+      (g|T)/.t = (g|T).t by PARTFUN1:def 6, C70
+      .= g.t by C70, C3, FUNCT_1:49
+      .= g/.t by PARTFUN1:def 6, C70, C3, A1;
+      hence u `partial| (Z,<*1*>)/.<*x, t*> = (f `| X)/.x*(g|T)/.t
+        by LM20, A1, A2, A3, A4, B5, B6, A7, C71, C72;
+    end; then
+    (u `partial| (Z,<*1*>)) is_partial_differentiable_on Z, <*1*>
+    & (for x, t be Real st x in X & t in T
+    holds ((u `partial| (Z,<*1*>))) `partial| (Z, <*1*>)/.<*x, t*>
+    = diff((f `| X),x) *(g|T)/.t) by LM20, A2, A3, C1, C3, C4, C5, C6;
+    hence u is_partial_differentiable_on Z,<*1*> ^ <*1*> by B7, PDIFF_9:80;
+    thus for x, t be Real st x in X & t in T
+    holds u `partial| (Z,<*1*> ^ <*1*>)/.<*x, t*> = (diff(f,X).2)/.x*g/.t
+    proof
+      let x, t be Real;
+      assume F1: x in X & t in T; then
+      F2: (u `partial| (Z,<*1*>)) `partial| (Z,<*1*>)/.<*x, t*>
+      = diff((f `| X),x) *(g|T)/.t by LM20, A2, A3, C1, C3, C4, C5, C6, C7;
+      G3: x in dom((f `| X) `| X) by C5,F1,FDIFF_1:def 7;
+      (diff(f,X)) .(1 + 1) = (f `| X) `| X by TAYLOR_1:def 5, X5; then
+      F4: (diff(f,X).2)/.x = ((f `| X) `| X).x by G3, PARTFUN1:def 6
+      .= diff((f `| X),x) by F1, C5, FDIFF_1:def 7;
+      (g|T)/.t = (g|T).t by PARTFUN1:def 6, F1, B60
+      .= g.t by F1,FUNCT_1:49
+      .= g/.t by PARTFUN1:def 6, F1, A1;
+      hence thesis by F2, PDIFF_9:88, B7, F4;
+    end;
+    C0: u is_partial_differentiable_on Z, 2
+      by LM20, A1, A2, A3, A4, B5, B6, A7;
+    C1: T = dom(g `| T) by FDIFF_1:def 7, B6;
+    C3: X = dom(f|X) by A1, RELAT_1:62;
+    u `partial| (Z,<*2*>) = u `partial| (Z,2) by C0,PDIFF_9:82, A2; then
+    C4: dom(u `partial| (Z,<*2*>))
+    = {<*x, t*> where x, t is Real: x in dom(f|X) & t in dom(g `| T)}
+    by PDIFF_9:def 6, C0, C1, A3, C3;
+    X5: (diff(g,T)) .(0 + 1) = ((diff(g,T)).0) `| T by TAYLOR_1:def 5
+    .= (g | T) `| T by TAYLOR_1:def 5
+    .= g `| T by LM00, A1, A2, B60, B61, FDIFF_1:def 6; then
+    C5: (g `| T) is_differentiable_on T by A6;
+    C7: for x, t be Real st x in dom(f| X) & t in dom(g `|T)
+    holds (u `partial| (Z,<*2*>))/.<*x, t*> = (f| X)/.x*(g `|T)/.t
+    proof
+      let x, t be Real;
+      assume
+      C70: x in dom(f| X) & t in dom(g `|T); then
+      C71: x in X & t in T by FDIFF_1:def 7, B6, A1, RELAT_1:62;
+      C72: diff(g,t) = (g `| T).t by C71, B6, FDIFF_1:def 7
+      .= (g `| T)/.t by C70, PARTFUN1:def 6;
+      (f|X)/.x = (f|X).x by PARTFUN1:def 6, C70
+      .= f.x by C71, FUNCT_1:49
+      .= f/.x by PARTFUN1:def 6, C71, A1;
+      hence u `partial| (Z,<*2*>)/.<*x, t*>
+      = (f|X)/.x*(g `| T)/.t by LM20, A1, A2, A3, A4, B5, B6, A7, C71, C72;
+    end; then
+    (u `partial| (Z,<*2*>)) is_partial_differentiable_on Z,<*2*>
+    & (for x, t be Real st x in X & t in T
+    holds ((u `partial| (Z,<*2*>))) `partial| (Z,<*2*>)/.<*x, t*>
+    = (f|X)/.x*diff((g `| T),t)) by LM20, A2, A3, C1, C3, C4, C5, D6;
+    hence u is_partial_differentiable_on Z,<*2*> ^ <*2*> by B7, PDIFF_9:80;
+    let x, t be Real;
+    assume
+    F1: x in X & t in T;
+    F3: u `partial| (Z,<*2*> ^ <*2*>)
+    = (u `partial| (Z,<*2*>)) `partial| (Z,<*2*>) by PDIFF_9:88,B7;
+    G3: t in dom((g `| T) `| T) by C5, F1, FDIFF_1:def 7;
+    (diff(g,T)) .(1 + 1) = (g `| T) `| T by TAYLOR_1:def 5, X5; then
+    F4: (diff(g,T).2)/.t = ((g `| T) `| T).t by G3, PARTFUN1:def 6
+    .= diff((g `| T),t) by F1, C5, FDIFF_1:def 7;
+    (f|X)/.x = (f|X).x by PARTFUN1:def 6, F1, B50
+    .= f.x by F1,FUNCT_1:49
+    .= f/.x by PARTFUN1:def 6, F1, A1;
+    hence thesis by F1, F3, F4, LM20, A2, A3, C1, C3, C4, C5, D6, C7;
+  end;
+
+theorem LM40:
+  for f, g be Function of REAL,REAL, u be PartFunc of REAL 2,REAL,
+  c be Real st f is_differentiable_on 2,[#]REAL &
+  g is_differentiable_on 2,[#]REAL & dom u = [#](REAL 2) &
+  (for x, t be Real holds u/.<*x, t*> = f/.x*g/.t) &
+  for x, t be Real holds
+  f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x*g/.t
+  holds
+  u is_partial_differentiable_on [#](REAL 2),<*1*> ^ <*1*> &
+  (for x, t be Real st x in [#]REAL & t in [#]REAL holds
+  u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+  = (diff(f,[#]REAL).2)/.x*g/.t) &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> ^ <*2*> &
+  (for x, t be Real st x in [#]REAL & t in [#]REAL holds
+  u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+  = f/.x*((diff(g,[#]REAL).2)/.t)) &
+  for x, t be Real holds
+  u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/.<*x, t*>)
+  proof
+    let f, g be Function of REAL,REAL, u be PartFunc of REAL 2,REAL,
+    c be Real;
+    assume that
+    AS1: f is_differentiable_on 2,[#]REAL and
+    AS2: g is_differentiable_on 2,[#]REAL and
+    AS3: dom u = [#](REAL 2) and
+    AS4: for x, t be Real holds u/.<*x, t*> = f/.x*g/.t and
+    AS5: for x, t be Real holds
+    f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x*g/.t;
+    P1: [#]REAL = dom f & [#]REAL = dom g by FUNCT_2:def 1;
+    P4: for x, t be Real st x in dom f & t in dom g holds
+    u/.<*x, t*> = f/.x*g/.t by AS4;
+    for x, t be Real holds
+    u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+    = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/.<*x, t*>)
+    proof
+      let x, t be Real;
+      X1: f/.x*((diff(g,[#]REAL).2)/.t)
+      = c^2*(diff(f,[#]REAL).2)/.x*g/.t by AS5;
+      X3: x in [#]REAL & t in [#]REAL by XREAL_0:def 1; then
+      u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+      = (diff(f,[#]REAL).2)/.x *g/.t
+      by LM30, AS1, AS2, AS3, P1, LMOP3, P4;
+      hence thesis
+      by LM30, AS1, AS2, AS3, P1, LMOP3, P4, X1, X3;
+    end;
+    hence thesis by LM30, AS1, AS2, AS3, P1, LMOP3, P4;
+  end;
+
+LM410:
+for A, e be Real, f be PartFunc of REAL,REAL
+st f = A(#)(cos*(e(#)(id [#]REAL))) holds
+f is_differentiable_on [#]REAL &
+for x being Real st x in [#]REAL holds (f `| [#]REAL).x = - A*e*sin.(e*x)
+proof
+  let A, e be Real, f be PartFunc of REAL,REAL;
+  assume
+  AS1: f = A(#)(cos*(e(#)(id [#]REAL)));
+  reconsider Z = [#]REAL as open Subset of REAL;
+  reconsider E = e(#)(id [#]REAL) as Function of REAL,REAL;
+  P2: [#]REAL = dom E & rng E c= [#]REAL by FUNCT_2:def 1;
+  P3: for x being Real st x in Z  holds E.x = (e*x) + (0 qua Real)
+  proof
+    let x be Real;
+    assume
+    AS2: x in Z;
+    hence E.x = e*(id [#]REAL).x by VALUED_1:def 5, P2
+    .= (e*x) + (0 qua Real) by AS2, FUNCT_1:18;
+  end;
+  P4: E is_differentiable_on Z & for x being Real st x in Z holds
+  (E `| Z).x = e by P2, P3, FDIFF_1:23;
+  P5: dom(cos*E) = [#]REAL by FUNCT_2:def 1;
+  P6: dom(A(#)(cos*E)) = [#]REAL by FUNCT_2:def 1;
+  P7: for x being Real st x in Z holds
+  (cos*E) is_differentiable_in x & diff(cos*E,x) = -e*sin.(E.x)
+  proof
+    let x be Real;
+    assume
+    P70:x in Z; then
+    P71: E is_differentiable_in x by P4, FDIFF_1:9;
+    P73: cos is_differentiable_in E.x & diff(cos,E.x) = -sin.(E.x)
+    by SIN_COS:63; then
+    diff(cos*E,x) = (-sin.(E.x))*diff(E,x) by FDIFF_2:13, P71
+    .= (-sin.(E.x))*(E `| Z).x by FDIFF_1:def 7, P4, P70
+    .= (-sin.(E.x))*e by P2, P3, FDIFF_1:23, P70
+    .= -e*sin.(E.x);
+    hence thesis by P73, FDIFF_2:13, P71;
+  end;
+  then for x being Real st x in Z holds (cos*E) is_differentiable_in x; then
+  P8: cos*E is_differentiable_on Z by P5,FDIFF_1:9;
+  for x being Real st x in Z holds ((A (#) (cos*E)) `| Z).x = -A*e*sin.(e*x)
+  proof
+    let x be Real;
+    assume
+    P90: x in Z; then
+    P91: E.x = (e*x)+(0 qua Real) by P3;
+    thus ((A (#) (cos*E)) `| Z).x = A*(diff((cos*E),x))
+    by P90, P8, P6, FDIFF_1:20
+    .= A*(-e*sin.(E.x)) by P7,P90
+    .= -A*e*sin.(e*x) by P91;
+  end;
+  hence thesis by AS1, P8, P6, FDIFF_1:20;
+end;
+
+LM411:
+for A, e be Real, f be PartFunc of REAL, REAL
+st f = A(#)(sin* (e(#)(id [#]REAL))) holds
+f is_differentiable_on [#]REAL &
+for x being Real st x in [#]REAL holds (f `| [#]REAL).x = A*e *cos.(e*x)
+proof
+  let A, e be Real, f be PartFunc of REAL, REAL;
+  assume
+  AS1: f = A(#)(sin* (e(#)(id [#]REAL)));
+  reconsider Z = [#]REAL as open Subset of REAL;
+  reconsider E=e(#)(id [#]REAL) as Function of REAL, REAL;
+  P2: [#]REAL = dom E & rng E c= [#]REAL by FUNCT_2:def 1;
+  P3: for x being Real st x in Z holds E.x = (e*x) + (0 qua Real)
+  proof
+    let x be Real;
+    assume
+    AS2: x in Z;
+    hence E.x = e*(id [#]REAL).x by VALUED_1:def 5, P2
+    .= (e*x) + (0 qua Real) by AS2, FUNCT_1:18;
+  end;
+  P4: E is_differentiable_on Z &
+  for x being Real st x in Z holds (E `| Z).x = e by P2, P3, FDIFF_1:23;
+  P5: dom(sin*E) = [#]REAL by FUNCT_2:def 1;
+  P6: dom(A(#)(sin*E)) = [#]REAL by FUNCT_2:def 1;
+  P7: for x being Real st x in Z holds
+  (sin*E) is_differentiable_in x & diff(sin*E,x) = e*cos.(E.x)
+  proof
+    let x be Real;
+    assume
+    P70:x in Z; then
+    P71: E is_differentiable_in x by P4,FDIFF_1:9;
+    P73: sin is_differentiable_in E.x &
+    diff(sin, E.x) = cos.(E.x) by SIN_COS:64; then
+    diff(sin*E,x) = (cos.(E.x))*diff(E,x) by FDIFF_2:13, P71
+    .= (cos.(E.x))*(E `| Z).x by FDIFF_1:def 7, P4, P70
+    .= e*cos.(E.x) by P2, P3, FDIFF_1:23, P70;
+    hence thesis by P73, FDIFF_2:13, P71;
+  end;
+  then for x being Real st x in Z holds (sin*E) is_differentiable_in x;
+  then
+  P8: sin*E is_differentiable_on Z by P5,FDIFF_1:9;
+  for x being Real st x in Z holds ((A (#) (sin*E)) `| Z).x = A*e*cos.(e*x)
+  proof
+    let x be Real;
+    assume
+    P90: x in Z; then
+    P91: E.x = (e*x)+(0 qua Real) by P3;
+    thus ((A (#) (sin*E)) `| Z).x = A*(diff((sin*E),x))
+    by P90, P8, P6, FDIFF_1:20
+    .= A*(e*cos.(E.x)) by P7, P90
+    .= A*e*cos.(e*x) by P91;
+  end;
+  hence thesis by AS1, P8, P6, FDIFF_1:20;
+end;
+
+theorem LM412:
+  for A, B, e be Real, f be Function of REAL,REAL
+  st for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x)
+  holds f is_differentiable_on [#]REAL &
+  for x be Real holds (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x))
+  proof
+    let A, B, e be Real, f be Function of REAL,REAL;
+    assume
+    AS1: for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x);
+    reconsider
+    f1 = A(#)(cos*(e(#)(id [#]REAL))), f2 = B(#)(sin*(e(#)(id [#]REAL)))
+    as PartFunc of REAL,REAL;
+    reconsider Z = [#]REAL as open Subset of REAL;
+    reconsider E = e(#)(id [#]REAL) as Function of REAL,REAL;
+    P00: [#]REAL = dom E & rng E c= [#]REAL by FUNCT_2:def 1;
+    E01: for x being Real st x in Z holds E.x = e*x
+    proof
+      let x be Real;
+      assume
+      AS2: x in Z;
+      hence E.x = e*(id [#]REAL).x by VALUED_1:def 5, P00
+      .=e*x by AS2, FUNCT_1:18;
+    end;
+    P4: dom(f1 + f2) = Z by FUNCT_2:def 1;
+    P01: dom f1 = Z by FUNCT_2:def 1;
+    dom f2 = Z by FUNCT_2:def 1;
+    then
+    P6: dom f = dom f1 /\ dom f2 by FUNCT_2:def 1, P01;
+    for x be object st x in dom f holds f.x = (f1.x) + (f2.x)
+    proof
+      let x be object;
+      assume P50: x in dom f;
+      then reconsider r=x as Real;
+      thus f.x = A*cos.(e*r) + B*sin.(e*r) by AS1
+      .= A*cos.(E.r) + B*sin.(e*r) by E01, P50
+      .= A*cos.(E.r) + B*sin.(E.r) by E01, P50
+      .= A*(cos*E).r + B*sin.(E.r) by FUNCT_1:13, P50, P00
+      .= A*(cos*E).r + B*(sin*E).r by FUNCT_1:13, P50, P00
+      .= f1.r + B*(sin*E).r by VALUED_1:6
+      .= f1.x + f2.x by VALUED_1:6;
+    end; then
+    P1: f = f1+f2 by P6,VALUED_1:def 1;
+    P2: f1 is_differentiable_on [#]REAL &
+    for x being Real st x in [#]REAL holds
+    (f1 `| [#]REAL).x = - A*e *sin.(e*x) by LM410;
+    P3: f2 is_differentiable_on [#]REAL &
+    for x being Real st x in [#]REAL holds (f2 `| [#]REAL).x = B*e *cos.(e*x)
+    by LM411;
+    for x be Real holds (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x))
+    proof
+      let x be Real;
+      P60: x in Z by XREAL_0:def 1;
+      (f `| Z).x = (diff(f1,x)) + (diff(f2,x))
+      by XREAL_0:def 1, FDIFF_1:18, P1, P2, P3, P4
+      .= (f1 `| [#]REAL).x + (diff(f2,x)) by P2, P60, FDIFF_1:def 7
+      .= (f1 `| [#]REAL).x + (f2 `| [#]REAL).x by P3, P60, FDIFF_1:def 7
+      .= -e*A*sin.(e*x) + (f2 `| [#]REAL).x by LM410, XREAL_0:def 1
+      .= -e*(A*sin.(e*x)) + B*e*cos.(e*x) by LM411, XREAL_0:def 1
+      .= -e*(A*sin.(e*x) - B*cos.(e*x));
+      hence thesis;
+    end;
+    hence thesis by FDIFF_1:18, P1, P2, P3, P4;
+end;
+
+begin :: 2. The method of separation of variables for one-dimensional wave equation.
+
+theorem LM41:
+  for A, B, e be Real, f be Function of REAL,REAL
+  st for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x) holds
+  f is_differentiable_on 2,[#]REAL &
+  for x be Real holds (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x)) &
+  ((f`| [#]REAL)`| [#]REAL).x = -e^2*(A*cos.(e*x) + B*sin.(e*x)) &
+  (diff(f,[#]REAL).2)/.x + e^2*f/.x = 0
+  proof
+    let A, B, e be Real, f be Function of REAL,REAL;
+    assume
+    AS1: for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x);then
+    P1: f is_differentiable_on [#]REAL &
+    for x be Real holds (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x))
+    by LM412;
+    P2: for x be Real holds
+      (f`| [#]REAL).x = (e*B)*cos.(e*x) + (-e*A)*sin.(e*x)
+    proof
+      let x be Real;
+      thus (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x)) by AS1, LM412
+      .= (e*B)*cos.(e*x)+(-e*A)*sin.(e*x);
+    end;
+    P4: rng (f`| [#]REAL) c= REAL;
+    D0: dom f = REAL by FUNCT_2:def 1;
+    dom(f`| [#]REAL) = [#] REAL by FDIFF_1:def 7, P1; then
+    P30: (f`| [#]REAL) is Function of REAL,REAL by P4,FUNCT_2:2;
+    X1: for i being Nat st i <= 2 - 1 holds
+    (diff(f,[#]REAL)).i is_differentiable_on [#]REAL
+    proof
+      let i be Nat;
+      assume i <= 2 - 1; then
+      i <= 0 + 1; then
+      per cases by NAT_1:8;
+      suppose i = 0;
+        then (diff(f,[#]REAL)).i = f| [#]REAL by TAYLOR_1:def 5
+        .= f by D0, RELAT_1:69;
+        hence (diff(f,[#]REAL)).i is_differentiable_on [#]REAL by AS1, LM412;
+      end;
+      suppose i = 1;
+        then (diff(f,[#]REAL)).i = (diff(f,[#]REAL)).(0 + 1)
+        .= ((diff(f,[#]REAL)).0) `| [#]REAL by TAYLOR_1:def 5
+        .= (f| [#]REAL) `| [#]REAL by TAYLOR_1:def 5
+        .= f`| [#]REAL by D0,RELAT_1:69;
+        hence (diff(f,[#]REAL)).i is_differentiable_on [#]REAL
+        by P30, LM412, P2;
+      end;
+    end;
+    hence f is_differentiable_on 2,[#]REAL;
+    let x be Real;
+    thus (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x)) by AS1, LM412;
+    thus
+    P90: ((f`| [#]REAL) `| [#]REAL).x
+    = -e*((e*B)*sin.(e*x) - (-e*A)*cos.(e*x)) by P30, LM412, P2
+    .= -e*e*(A*cos.(e*x) + B*sin.(e*x))
+    .= -e^2*(A*cos.(e*x) + B*sin.(e*x)) by SQUARE_1:def 1;
+    P92: diff(f,[#]REAL).(1 + 1) = ((diff(f,[#]REAL)).1) `| [#]REAL
+    by TAYLOR_1:def 5;
+    P93: (diff(f,[#]REAL)).1 = (diff(f,[#]REAL)).(0 + 1)
+    .= ((diff(f,[#]REAL)).0) `| [#]REAL by TAYLOR_1:def 5
+    .= (f| [#]REAL) `| [#]REAL by TAYLOR_1:def 5
+    .= f`| [#]REAL by D0, RELAT_1:69;
+    (diff(f,[#]REAL)).1 is_differentiable_on [#]REAL by X1; then
+    dom(diff(f,[#]REAL).2) = [#]REAL by P92, FDIFF_1:def 7; then
+    P91: (diff(f,[#]REAL).2)/.x = -e^2*(A*cos.(e*x) + B*sin.(e*x))
+    by XREAL_0:def 1, PARTFUN1:def 6, P92, P93, P90;
+    f/.x = f.x by D0, XREAL_0:def 1, PARTFUN1:def 6;
+    then e^2*f/.x =e^2*(A*cos.(e*x) + B*sin.(e*x)) by AS1;
+    hence thesis by P91;
+  end;
+
+theorem LM42:
+  for A, B, e be Real ex f be Function of REAL,REAL st
+  for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x)
+  proof
+    let A, B, e be Real;
+    defpred P[object, object]
+    means ex t be Real st $1=t & $2= A*cos.(e*t) + B*sin.(e*t);
+    A0: for x being object st x in REAL ex y being object st y in REAL & P[x,y]
+    proof
+      let x be object;
+      assume x in REAL;
+      then reconsider t=x as Real;
+      A*cos.(e*t) + B*sin.(e*t) in REAL by XREAL_0:def 1;
+      hence thesis;
+    end;
+    consider f being Function of REAL,REAL such that
+    A1: for x being object st x in REAL holds P[x,f.x] from FUNCT_2:sch 1(A0);
+    take f;
+    let x be Real;
+    ex t be Real st x=t & f.x
+      = A*cos.(e*t) + B*sin.(e*t) by XREAL_0:def 1, A1;
+    hence thesis;
+  end;
+
+theorem LM43:
+  for A, B, C, d, c, e be Real, f, g be Function of REAL,REAL st
+  (for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x)) &
+  (for t be Real holds g.t = C*cos.((e*c)*t) + d*sin.((e*c)*t))
+  holds
+  for x, t be Real holds
+  f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x *g/.t
+  proof
+    let A, B, C, d, c, e be Real, f, g be Function of REAL,REAL;
+    assume
+    AS: (for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x)) &
+    (for t be Real holds g.t = C*cos.((e*c)*t) + d*sin.((e*c)*t));
+    let x, t be Real;
+    (diff(f,[#]REAL).2)/.x + e^2*f/.x = 0 by AS, LM41; then
+    Q3: c^2*(diff(f,[#]REAL).2)/.x *g/.t = c^2 *(-e^2*f/.x)*g/.t
+    .= - c^2 *e^2*f/.x*g/.t;
+    (diff(g,[#]REAL).2)/.t + (e*c)^2*g/.t = 0 by AS, LM41;
+    then f/.x*((diff(g,[#]REAL).2)/.t) = f/.x*(-(e*c)^2*g/.t)
+    .=f/.x*(-((e*c)*(e*c))*g/.t) by SQUARE_1:def 1
+    .=f/.x*(-((e*e)*(c*c))*g/.t)
+    .=f/.x*(-(e^2*(c*c))*g/.t) by SQUARE_1:def 1
+    .=f/.x*(-(e^2*c^2)*g/.t) by SQUARE_1:def 1
+    .= - c^2 *e^2*f/.x*g/.t;
+    hence thesis by Q3;
+  end;
+
+theorem LM50:
+  for f, g be Function of REAL,REAL, u be Function of REAL 2,REAL st
+  f is_differentiable_on 2,[#]REAL &
+  g is_differentiable_on 2,[#]REAL &
+  (for x, t be Real holds
+  f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x *g/.t) &
+  (for x, t be Real holds u/.<*x, t*> = f/.x*g/.t)
+  holds
+  u is_partial_differentiable_on [#](REAL 2),<*1*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*1*>)/.<*x, t*> = diff(f,x)*g/.t) &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*2*>)/.<*x, t*> = f/.x*diff(g,t)) &
+  f is_differentiable_on 2,[#]REAL &
+  g is_differentiable_on 2,[#]REAL &
+  u is_partial_differentiable_on [#](REAL 2),<*1*> ^ <*1*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+  = (diff(f,[#]REAL).2)/.x *g/.t) &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> ^ <*2*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+  = f/.x*((diff(g,[#]REAL).2)/.t)) &
+  for x, t be Real holds
+  u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/.<*x, t*>)
+  proof
+    let f, g be Function of REAL,REAL, u be Function of REAL 2,REAL;
+    assume that
+    XP1: f is_differentiable_on 2,[#]REAL and
+    XP2: g is_differentiable_on 2,[#]REAL and
+    XP3: for x, t be Real holds
+    f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x *g/.t and
+    AS4: for x, t be Real holds u/.<*x, t*> = f/.x*g/.t;
+    P0: dom u = [#](REAL 2) by FUNCT_2:def 1;
+    P1: [#]REAL = dom f & [#]REAL = dom g by FUNCT_2:def 1;
+    P4: for x, t be Real st x in dom f & t in dom g holds
+    u/.<*x, t*> = f/.x*g/.t by AS4;
+    (diff(f,[#]REAL)).0 is_differentiable_on [#]REAL by XP1;
+    then f| [#]REAL is_differentiable_on [#]REAL by TAYLOR_1:def 5;
+    then
+    B50: [#]REAL c= dom(f| [#]REAL) &
+    (for x being Real st x in [#]REAL holds
+    (f| [#]REAL) | [#]REAL is_differentiable_in x) by FDIFF_1:def 6;
+    (f| [#]REAL) | [#]REAL = f| [#]REAL by RELAT_1:72; then
+    Q1: f is_differentiable_on [#]REAL by B50, FDIFF_1:def 6, P1;
+    (diff(g,[#]REAL)).0 is_differentiable_on [#]REAL by XP2; then
+    g| [#]REAL is_differentiable_on [#]REAL by TAYLOR_1:def 5; then
+    B50: [#]REAL c= dom(g| [#]REAL) &
+    (for x being Real st x in [#]REAL holds
+    (g| [#]REAL) | [#]REAL is_differentiable_in x) by FDIFF_1:def 6;
+    (g| [#]REAL) | [#]REAL = g| [#]REAL by RELAT_1:72; then
+    Q2: g is_differentiable_on [#]REAL by B50, FDIFF_1:def 6, P1;
+    Y1: for x, t be Real holds
+    u `partial| ([#](REAL 2), <*1*>)/.<*x, t*> = diff(f,x) *g/.t
+    proof
+      let x, t be Real;
+      x in [#]REAL & t in [#]REAL by XREAL_0:def 1;
+      hence thesis by Q1, Q2, LM20,P4, P0, P1, LMOP3;
+    end;
+    Y2: for x, t be Real holds
+    u `partial| ([#](REAL 2), <*2*>)/.<*x, t*> = f/.x*diff(g,t)
+    proof
+      let x, t be Real;
+      x in [#]REAL & t in [#]REAL by XREAL_0:def 1;
+      hence thesis by Q1, Q2, LM20,P4, P0, P1,LMOP3;
+    end;
+    Y3: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+    = (diff(f,[#]REAL).2)/.x *g/.t
+    proof
+      let x, t be Real;
+      x in [#]REAL & t in [#]REAL by XREAL_0:def 1;
+      hence thesis by LM40, AS4, P0, XP1, XP2, XP3;
+    end;
+    for x, t be Real holds
+    u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+    = f/.x*((diff(g,[#]REAL).2)/.t)
+    proof
+      let x, t be Real;
+      x in [#]REAL & t in [#]REAL by XREAL_0:def 1;
+      hence thesis by LM40, AS4, P0, XP1, XP2, XP3;
+    end;
+    hence thesis by AS4,Q1, Q2, LM20,
+    P4, P0, P1, LMOP3, Y1, Y2, Y3, XP1, XP2, XP3,LM40;
+  end;
+
+theorem Th10:
+  for A, B, C, d, e, c be Real, u be Function  of REAL 2,REAL st
+  for x, t be Real holds u/.<*x, t*>
+  = (A*cos.(e*x) + B*sin.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+  holds
+  u is_partial_differentiable_on [#](REAL 2),<*1*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*1*>)/.<*x, t*>
+  = (-A*e*sin.(e*x) + B*e*cos.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))) &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*2*>)/.<*x, t*>
+  = (A*cos.(e*x) + B*sin.(e*x))*(-C*(e*c)*sin.((e*c)*t)
+  + d*(e*c)*cos.((e*c)*t))) &
+  u is_partial_differentiable_on [#](REAL 2), <*1*> ^ <*1*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+  = -e^2*(A*cos.(e*x) + B*sin. (e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t)) &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> ^ <*2*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+  = -(e*c)^2*(A*cos.(e*x) +
+    B*sin.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t)))) &
+  for x, t be Real holds
+  u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/.<*x, t*>)
+  proof
+    let A, B, C, d, e, c be Real, u be Function of REAL 2,REAL;
+    assume
+    AS: for x, t be Real holds u/.<*x, t*>
+    = (A*cos.(e*x) + B*sin.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t));
+    consider f be Function of REAL,REAL such that
+    A1: for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x) by LM42;
+    consider g be Function of REAL,REAL such that
+    A2: for t be Real holds g.t = C*cos.((e*c)*t) + d*sin.((e*c)*t) by LM42;
+    D0: dom f = REAL & dom g = REAL by FUNCT_2:def 1;
+    A3: for x, t be Real holds u/.<*x, t*> = f/.x*g/.t
+    proof
+      let x, t be Real;
+      A31: f/.x = f.x by PARTFUN1:def 6, D0, XREAL_0:def 1
+      .= A*cos.(e*x) + B*sin.(e*x) by A1;
+      g/.t =g.t by PARTFUN1:def 6, D0, XREAL_0:def 1
+      .= C*cos.((e*c)*t) + d*sin.((e*c)*t) by A2;
+      hence thesis by AS, A31;
+    end;
+    X1: f is_differentiable_on 2,[#]REAL by LM41, A1;
+    X2: g is_differentiable_on 2,[#]REAL by LM41, A2;
+    X3: for x, t be Real holds
+    f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x *g/.t
+    by LM43, A1, A2;
+    Y1: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*1*>)/.<*x, t*>
+    = (-A*e*sin.(e*x) + B*e*cos.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+    proof
+      let x, t be Real;
+      Y11: u `partial| ([#](REAL 2),<*1*>)/.<*x, t*> = diff(f,x) *g/.t
+      by X1, X2, X3, LM50, A3;
+      Y12: (f`| [#]REAL).x = -e*(A*sin.(e*x) - B*cos.(e*x)) by LM41, A1;
+      Y13: f is_differentiable_on [#]REAL by D0, X1,DIFF2;
+      Y14: x in [#]REAL by XREAL_0:def 1;
+      g/.t =g.t by PARTFUN1:def 6, D0, XREAL_0:def 1
+      .= C*cos.((e*c)*t) + d*sin.((e*c)*t) by A2;
+      hence thesis by Y11, Y12, Y13, Y14, FDIFF_1:def 7;
+    end;
+    Y2: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*2*>)/.<*x, t*>
+    = (A*cos.(e*x) + B*sin.(e*x))*(-C*(e*c)*sin.((e*c)*t)
+    + d*(e*c)*cos.((e*c)*t))
+    proof
+      let x, t be Real;
+      Y12: (g`| [#]REAL).t = -(e*c)*(C*sin.((e*c)*t) - d*cos.((e*c)*t))
+      by LM41, A2;
+      Y13: g is_differentiable_on [#]REAL by D0, X2,DIFF2;
+      t in [#]REAL by XREAL_0:def 1; then
+      Y14: diff(g,t) = (g`| [#]REAL).t by Y13,FDIFF_1:def 7;
+      f/.x =f.x by PARTFUN1:def 6, D0, XREAL_0:def 1
+      .= A*cos.(e* x) + B*sin.(e*x) by A1;
+      hence thesis by X1, X2, X3, LM50, A3, Y12, Y14;
+    end;
+    Y3: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+    = -e^2*(A*cos.(e*x) + B*sin. (e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+    proof
+      let x, t be Real;
+      Y11: u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+      = (diff(f,[#]REAL).2)/.x *g/.t by X1, X2, X3, LM50, A3;
+      R1: [#]REAL = dom f by FUNCT_2:def 1;
+      R2: f`| [#]REAL is_differentiable_on [#]REAL by R1, X1, DIFF2;
+      x in [#]REAL by XREAL_0:def 1; then
+      Y13: x in dom((f`| [#]REAL)`| [#]REAL) by R2, FDIFF_1:def 7;
+      Y15: (diff(f,[#]REAL).2)/.x = ((f`| [#]REAL)`| [#]REAL)/.x
+      by D0, X1, DIFF2
+      .= ((f`| [#]REAL)`| [#]REAL).x by Y13,PARTFUN1:def 6
+      .= -e^2*(A*cos.(e*x) + B*sin.(e*x)) by LM41, A1;
+      g/.t =g.t by PARTFUN1:def 6, D0, XREAL_0:def 1
+      .= C*cos.((e*c)*t) + d*sin.((e*c)*t) by A2;
+      hence thesis by Y11, Y15;
+    end;
+    for x, t be Real holds
+    u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+    = -(e*c)^2*(A*cos.(e*x) + B*sin. (e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+    proof
+      let x, t be Real;
+      Y11: u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+      = f/.x*((diff(g,[#]REAL).2)/.t) by X1, X2, X3, LM50, A3;
+      R1: [#]REAL = dom g by FUNCT_2:def 1;
+      R2: g`| [#]REAL is_differentiable_on [#]REAL by R1,X2,DIFF2;
+      t in [#]REAL by XREAL_0:def 1; then
+      Y13: t in dom((g`| [#]REAL)`| [#]REAL) by R2,FDIFF_1:def 7;
+      Y15: (diff(g,[#]REAL).2)/.t = ((g`| [#]REAL)`| [#]REAL)/.t
+      by D0, X2, DIFF2
+      .= ((g`| [#]REAL)`| [#]REAL).t by Y13, PARTFUN1:def 6
+      .= -(e*c)^2*(C*cos.((e*c) *t) + d*sin.((e*c)*t)) by LM41, A2;
+      f/.x =f.x by PARTFUN1:def 6, D0, XREAL_0:def 1
+      .= A*cos.(e*x) + B*sin.(e*x) by A1;
+      hence thesis by Y11, Y15;
+    end;
+    hence thesis by X1, X2, X3, LM50, A3, Y1, Y2, Y3;
+  end;
+
+theorem :: Th20:
+  for c be Real ex u be PartFunc of REAL 2, REAL st
+  u is_partial_differentiable_on [#](REAL 2),<*1*> ^ <*1*> &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> ^ <*2*> &
+  for x, t be Real
+  holds u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/.<*x, t*>)
+  proof
+    let c be Real;
+    set A = the Real;
+    set B = the Real;
+    set C = the Real;
+    set D = the Real;
+    set e = the Real;
+    consider f be Function of REAL,REAL such that
+    A1: for x be Real holds f.x = A*cos.(e*x) + B*sin.(e*x) by LM42;
+    consider g be Function of REAL,REAL such that
+    A2: for t be Real holds g.t = C*cos.((e*c)*t) + D*sin.((e*c)*t) by LM42;
+    F1: dom f = [#]REAL & dom g = [#]REAL by FUNCT_2:def 1;
+    consider u be PartFunc of REAL 2,REAL such that
+    F2: dom u = {<*x, t*> where x, t is Real: x in [#]REAL & t in [#]REAL} &
+    for x, t be Real st x in [#]REAL & t in [#]REAL holds
+    u/.<*x, t*> = f/.x*g/.t by LM10, F1;
+    u is total by PARTFUN1:def 2,F2, LMOP3;
+    then reconsider u as Function of REAL 2,REAL;
+    take u;
+    A3: for x, t be Real holds u/.<*x, t*> = f/.x*g/.t
+    proof
+      let x, t be Real;
+      x in [#]REAL & t in [#]REAL by XREAL_0:def 1;
+      hence u/.<*x, t*> = f/.x*g/.t by F2;
+    end;
+    X1: f is_differentiable_on 2,[#]REAL by LM41, A1;
+    X2: g is_differentiable_on 2,[#]REAL by LM41, A2;
+    for x, t be Real holds
+    f/.x*((diff(g,[#]REAL).2)/.t) = c^2*(diff(f,[#]REAL).2)/.x *g/.t
+    by LM43, A1, A2;
+    hence u is_partial_differentiable_on [#](REAL 2), <*1*> ^ <*1*> &
+    u is_partial_differentiable_on [#](REAL 2),<*2*> ^ <*2*> &
+    for x, t be Real holds
+    u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+    = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/. <*x, t*>)
+    by X1, X2, LM50, A3;
+  end;
+
+begin :: 3. The superposition principle.
+
+theorem :: Th30X:
+  for C, d, c be Real, n be Nat, u be Function of REAL 2, REAL st
+  for x, t be Real holds
+  u/.<*x, t*> = sin.((n*PI)*x)*(C*cos.(((n*PI)*c)*t) + d*sin.(((n*PI)*c)*t))
+  holds
+  u is_partial_differentiable_on [#](REAL 2),<*1*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*1*>)/.<*x, t*>
+  = ((n*PI)*cos.((n*PI)*x))*(C*cos.(((n*PI)*c)*t) + d*sin.(((n*PI)*c)*t))) &
+  u is_partial_differentiable_on [#](REAL 2), <*2*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*2*>)/.<*x, t*>
+  = (sin.((n*PI)*x))*(-C*((n*PI)*c)*sin.(((n*PI)*c)*t)
+  + d*((n*PI)*c)*cos.(((n*PI)*c)*t))) &
+  u is_partial_differentiable_on [#](REAL 2),<*1*> ^ <*1*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+  = -(n*PI)^2*(sin.((n*PI)*x))*(C*cos.(((n*PI)*c)*t)
+  + d*sin.(((n*PI)*c)*t)) &
+  u is_partial_differentiable_on [#](REAL 2),<*2*> ^ <*2*> &
+  (for x, t be Real holds
+  u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+  = -((n*PI)*c)^2*(sin.((n*PI)*x))*(C*cos.(((n*PI)*c)*t)
+  + d*sin.(((n*PI)*c)*t)))) &
+  (for t be Real holds u/.<*0,t*> = 0 & u/.<*1,t*> = 0) &
+  for x, t be Real holds
+  u`partial|([#](REAL 2), <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(u`partial|([#](REAL 2), <*1*>^<*1*>)/. <*x, t*>)
+  proof
+    let C, d, c be Real, n be Nat, u be Function of REAL 2, REAL;
+    assume
+    AS: for x, t be Real holds
+    u/.<*x, t*> = sin.((n*PI)*x)*(C*cos.(((n*PI)*c)*t) + d*sin.(((n*PI)*c)*t));
+    set A = 0;
+    set B = 1;
+    set e = n*PI;
+    AS1: for x, t be Real holds
+    u/.<*x, t*>
+    = (A*cos.(e*x) + B*sin.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t)) by AS;
+    Y1: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*1*>)/.<*x, t*>
+    = (e*cos.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+    proof
+      let x, t be Real;
+      u `partial| ([#](REAL 2),<*1*>)/.<*x, t*>
+      = (-A*e*sin.(e*x) + B*e*cos.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+      by AS1, Th10;
+      hence thesis;
+    end;
+    Y2: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*2*>)/.<*x, t*>
+    = (sin.(e*x))*(-C*(e*c)*sin.((e*c)*t) + d*(e*c)*cos.((e*c)*t))
+    proof
+      let x, t be Real;
+      u `partial| ([#](REAL 2),<*2*>)/.<*x, t*>
+      = (A*cos.(e*x) + B*sin.(e*x))
+      *(-C*(e*c)*sin.((e*c)*t) + d*(e*c)*cos.((e*c)*t)) by AS1, Th10;
+      hence thesis;
+    end;
+    Y3: for x, t be Real holds
+    u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+    = -e^2*(sin.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+    proof
+      let x, t be Real;
+      u `partial| ([#](REAL 2),<*1*> ^ <*1*>)/.<*x, t*>
+      = -e^2*(A*cos.(e*x) + B*sin.(e*x))
+      *(C*cos.((e*c)*t) + d*sin.((e*c)*t)) by AS1, Th10;
+      hence thesis;
+    end;
+    Y4: for x, t be Real
+    holds u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+    = -(e*c)^2*(sin.(e*x))*(C*cos.((e*c)*t) + d*sin.((e*c)*t))
+    proof
+      let x, t be Real;
+      u `partial| ([#](REAL 2),<*2*>^<*2*>)/.<*x, t*>
+      = -(e*c)^2*(A*cos.(e*x) + B*sin.(e*x))*(C*cos.((e*c)*t)
+      + d*sin.((e*c)*t)) by AS1, Th10;
+      hence thesis;
+    end;
+    for t be Real holds u/.<*0,t*> = 0 & u/.<*1,t*> = 0
+    proof
+      let t be Real;
+      thus u/.<*0,t*>
+      = sin.((n*PI)*0)*(C*cos.(((n*PI)*c)*t) + d*sin.(((n*PI)*c)*t)) by AS
+      .= 0 by SIN_COS:30;
+      thus u/.<*1,t*>
+      = sin.((n*PI)*1)*(C*cos.(((n*PI)*c)*t) + d*sin.(((n*PI)*c)*t)) by AS
+      .= 0 *(C*cos.(((n*PI)*c)*t) + d*sin.(((n*PI)*c)*t)) by LMSIN1
+      .= 0;
+    end;
+    hence thesis by AS1, Th10, Y1, Y2, Y3, Y4;
+  end;
+
+theorem Th30Y:
+  for u, v be PartFunc of REAL 2,REAL, Z be Subset of REAL 2, c be Real
+  st Z is open & Z c= dom u & Z c= dom v
+  & u is_partial_differentiable_on Z,<*1*> ^ <*1*>
+  & u is_partial_differentiable_on Z,<*2*> ^ <*2*>
+  & (for x, t be Real st <*x, t*> in Z holds
+  u`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(u`partial|(Z, <*1*>^<*1*>)/.<*x, t*>))
+  & v is_partial_differentiable_on Z,<*1*> ^ <*1*>
+  & v is_partial_differentiable_on Z,<*2*> ^ <*2*>
+  & (for x, t be Real st <*x, t*> in Z holds
+  v`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+  = c^2*(v`partial|(Z, <*1*>^<*1*>)/.<*x, t*>))
+  holds
+  Z c= dom(u+v)
+  & u+v is_partial_differentiable_on Z,<*1*> ^ <*1*>
+  & u+v is_partial_differentiable_on Z,<*2*> ^ <*2*>
+  & (for x, t be Real st <*x, t*> in Z holds
+  (u+v)`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+  = c^2*((u+v)`partial|(Z, <*1*>^<*1*>)/.<*x, t*>))
+  proof
+    let u, v be PartFunc of REAL 2,REAL, Z be Subset of REAL 2, c be Real;
+    assume that
+    A0: Z is open & Z c= dom u & Z c= dom v and
+    A1: u is_partial_differentiable_on Z,<*1*> ^ <*1*> and
+    A2: u is_partial_differentiable_on Z,<*2*> ^ <*2*> and
+    A3: (for x, t be Real st <*x, t*> in Z holds
+    u`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+    = c^2*(u`partial|(Z, <*1*>^<*1*>)/.<*x, t*>)) and
+    B1: v is_partial_differentiable_on Z,<*1*> ^ <*1*> and
+    B2: v is_partial_differentiable_on Z,<*2*> ^ <*2*> and
+    B3: (for x, t be Real st <*x, t*> in Z holds
+    v`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+    = c^2*(v`partial|(Z, <*1*>^<*1*>)/.<*x, t*>));
+    Z c= (dom u) /\ (dom v) by A0, XBOOLE_1:19;
+    hence Z c= dom(u+v) by VALUED_1:def 1;
+    rng (<*1*>^<*1*>) = rng(<*1*>) \/ rng(<*1*>) by FINSEQ_1:31
+    .= {1} by FINSEQ_1:38; then
+    C1: rng (<*1*>^<*1*>) c= Seg 2 by ZFMISC_1:7, FINSEQ_1:2;
+    rng (<*2*>^<*2*>) = rng(<*2*>) \/ rng (<*2*>) by FINSEQ_1:31
+    .= {2} by FINSEQ_1:38; then
+    C2: rng (<*2*>^<*2*>) c= Seg 2 by ZFMISC_1:7, FINSEQ_1:2;
+    X2: (u+v) is_partial_differentiable_on Z, <*1*> ^ <*1*>
+    & (u+v) `partial| (Z,<*1*> ^ <*1*>)
+    = (u `partial| (Z,<*1*> ^ <*1*>)) + (v `partial| (Z,<*1*> ^ <*1*>))
+    by PDIFF_9:75, A0, A1, B1, C1;
+    X3: (u+v) is_partial_differentiable_on Z,<*2*> ^ <*2*>
+    & (u + v) `partial| (Z,<*2*> ^ <*2*>)
+    = (u `partial| (Z,<*2*> ^ <*2*>)) + (v `partial| (Z,<*2*> ^ <*2*>))
+    by PDIFF_9:75, A0, A2, B2, C2;
+    (for x, t be Real st <*x, t*> in Z holds
+    (u+v)`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+    = c^2*((u+v)`partial|(Z, <*1*>^<*1*>)/. <*x, t*>))
+    proof
+      let x, t be Real;
+      assume
+      X4: <*x, t*> in Z; then
+      X9: v`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+      = c^2*(v`partial|(Z, <*1*>^<*1*>)/.<*x, t*>) by B3;
+      Y1: dom((u+v)`partial|(Z, <*2*>^<*2*>)) = Z
+        by DOMP1, A0,PDIFF_9:75, A2, B2, C2;
+      Y2: dom((u+v)`partial|(Z, <*1*>^<*1*>)) = Z
+        by A0,DOMP1,C1,PDIFF_9:75, A1, B1;
+      Y3: dom(u`partial|(Z, <*2*>^<*2*>)) = Z by DOMP1,A2;
+      Y4: dom(v`partial|(Z, <*2*>^<*2*>)) = Z by DOMP1,B2;
+      Y5: dom(u`partial|(Z, <*1*>^<*1*>)) = Z by DOMP1,A1;
+      Y6: dom(v`partial|(Z, <*1*>^<*1*>)) = Z by DOMP1,B1;
+      thus (u+v)`partial|(Z, <*2*>^<*2*>) /.<*x, t*>
+      = (u+v)`partial|(Z, <*2*>^<*2*>).<*x, t*> by X4, Y1, PARTFUN1:def 6
+      .= (u `partial| (Z,<*2*> ^ <*2*>)).<*x, t*>
+      + (v `partial| (Z,<*2*> ^ <*2*>)).<*x, t*> by X3, X4, Y1, VALUED_1:def 1
+      .= (u `partial| (Z,<*2*> ^ <*2*>))/.<*x, t*>
+      + (v `partial| (Z,<*2*> ^ <*2*>)).<*x, t*> by X4, Y3, PARTFUN1:def 6
+      .= (u `partial| (Z,<*2*> ^ <*2*>))/.<*x, t*>
+      + (v `partial| (Z,<*2*> ^ <*2*>))/.<*x, t*> by X4, Y4, PARTFUN1:def 6
+      .= c^2*(u`partial|(Z, <*1*>^<*1*>)/. <*x, t*>)
+      + c^2*(v`partial|(Z, <*1*>^<*1*>)/. <*x, t*>) by X4, A3, X9
+      .= c^2*(u`partial|(Z, <*1*>^<*1*>)/. <*x, t*>
+      + v`partial|(Z, <*1*>^<*1*>)/. <*x, t*>)
+      .= c^2*(u`partial|(Z, <*1*>^<*1*>). <*x, t*>
+      + v`partial|(Z, <*1*>^<*1*>)/. <*x, t*>) by Y5,X4,PARTFUN1:def 6
+      .= c^2*(u`partial|(Z, <*1*>^<*1*>). <*x, t*>
+      + v`partial|(Z, <*1*>^<*1*>). <*x, t*>) by Y6,X4,PARTFUN1:def 6
+      .= c^2*((u+v)`partial|(Z, <*1*>^<*1*>)).<*x, t*>
+      by X2, X4, Y2, VALUED_1:def 1
+      .= c^2*((u+v)`partial|(Z, <*1*>^<*1*>))/.<*x, t*>
+      by X4, Y2, PARTFUN1:def 6;
+    end;
+    hence thesis by PDIFF_9:75, A1, B1, C1, A0, A2, B2, C2;
+  end;
+
+theorem :: Th30Z:
+  for u be Functional_Sequence of REAL 2, REAL, Z be Subset of REAL 2,
+  c be Real st Z is open
+  & for i be Nat holds (Z c= dom(u.i) & dom(u.i) = dom(u.0)
+  & u.i is_partial_differentiable_on Z,<*1*> ^ <*1*>
+  & u.i is_partial_differentiable_on Z,<*2*> ^ <*2*>
+  & (for x, t be Real st <*x, t*> in Z holds
+  (u.i)`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+  = c^2*((u.i)`partial|(Z, <*1*>^<*1*>)/. <*x, t*>)))
+  holds
+  for i be Nat holds (Z c= dom(Partial_Sums(u).i)
+  & Partial_Sums(u).i is_partial_differentiable_on Z,<*1*> ^ <*1*>
+  & Partial_Sums(u).i is_partial_differentiable_on Z,<*2*> ^ <*2*>
+  & (for x, t be Real st <*x, t*> in Z holds
+  (Partial_Sums(u).i)`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+  = c^2*((Partial_Sums(u).i)`partial|(Z, <*1*>^<*1*>)/.<*x, t*>)))
+  proof
+    let u be Functional_Sequence of REAL 2,REAL,
+        Z be Subset of REAL 2, c be Real;
+    assume that
+    AS1: Z is open and
+    AS2: for i be Nat holds (Z c= dom(u.i) & dom(u.i) = dom(u.0)
+    & u.i is_partial_differentiable_on Z,<*1*> ^ <*1*>
+    & u.i is_partial_differentiable_on Z,<*2*> ^ <*2*>
+    & (for x, t be Real st <*x, t*> in Z holds
+    (u.i)`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+    = c^2*((u.i)`partial|(Z, <*1*>^<*1*>)/. <*x, t*>)));
+    defpred X[Nat] means (Z c= dom(Partial_Sums(u).$1)
+    & Partial_Sums(u).$1 is_partial_differentiable_on Z,<*1*> ^ <*1*>
+    & Partial_Sums(u).$1 is_partial_differentiable_on Z,<*2*> ^ <*2*>
+    & (for x, t be Real st <*x, t*> in Z holds
+    (Partial_Sums(u).$1)`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+    = c^2*((Partial_Sums(u).$1)`partial|(Z, <*1*>^<*1*>)/. <*x, t*>)));
+    A9: for i being Nat st X[i] holds X[i+1]
+    proof
+      let i be Nat;
+      set s = Partial_Sums(u).i;
+      set v = u.(i+1);
+      assume that
+      A11: Z c= dom(s) and
+      A12: s is_partial_differentiable_on Z,<*1*> ^ <*1*> and
+      A13: s is_partial_differentiable_on Z,<*2*> ^ <*2*> and
+      A14: for x, t be Real st <*x, t*> in Z holds
+      s`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+      = c^2*(s`partial|(Z, <*1*>^<*1*>)/. <*x, t*>);
+      A15: Partial_Sums(u).(i+1) = s + v by MESFUN9C:def 2;
+      Z c= dom(v)
+      & dom v = dom(u.0)
+      & v is_partial_differentiable_on Z,<*1*> ^ <*1*>
+      & v is_partial_differentiable_on Z,<*2*> ^ <*2*>
+      & (for x, t be Real st <*x, t*> in Z
+      holds v`partial|(Z, <*2*>^<*2*>)/.<*x, t*>
+      = c^2*(v`partial|(Z, <*1*>^<*1*>)/. <*x, t*>)) by AS2;
+      hence thesis by Th30Y, A11, A12, A13, A14, AS1, A15;
+    end;
+    Partial_Sums(u).0 = u.0 by MESFUN9C:def 2; then
+    A10: X[0] by AS2;
+    for n being Nat holds X[n] from NAT_1:sch 2(A10, A9);
+    hence thesis;
+  end;

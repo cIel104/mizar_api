@@ -1,0 +1,1452 @@
+:: Relocatability
+::  by Yasushi Tanaka
+::
+:: Received June 16, 1994
+:: Copyright (c) 1994-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies SUBSET_1, NUMBERS, AMI_1, AMI_3, AMISTD_2, ARYTM_3, GRAPHSP,
+      CARD_1, RELAT_1, FUNCT_1, TARSKI, FUNCT_4, XBOOLE_0, FSM_1, CIRCUIT2,
+      EXTPRO_1, ARYTM_1, INT_1, XXREAL_0, STRUCT_0, RELOC, FINSET_1, FINSEQ_1,
+      NAT_1, AMISTD_5, COMPOS_1;
+ notations TARSKI, XBOOLE_0, XTUPLE_0, SUBSET_1, FINSET_1, ORDINAL1, NUMBERS,
+      XCMPLX_0, INT_1, NAT_1, VALUED_1, RELAT_1, FUNCT_1, PARTFUN1, FUNCT_4,
+      PBOOLE, FINSEQ_1, NAT_D, STRUCT_0, MEMSTR_0, COMPOS_0, COMPOS_1,
+      EXTPRO_1, AMI_3, XXREAL_0, AMISTD_2, AMISTD_5;
+ constructors DOMAIN_1, XXREAL_0, AMI_3, NAT_D, PRE_POLY, AMISTD_2, VALUED_1,
+      AMI_2, AMISTD_1, AMISTD_5, PBOOLE, MEMSTR_0, RELSET_1, XTUPLE_0;
+ registrations FUNCT_1, ORDINAL1, XREAL_0, INT_1, AMI_3, FUNCT_4, AMI_6,
+      VALUED_0, AMISTD_2, COMPOS_1, EXTPRO_1, NAT_1, FINSEQ_1, AMI_5, MEMSTR_0,
+      COMPOS_0, XTUPLE_0;
+ requirements NUMERALS, SUBSET, BOOLE, ARITHM, REAL;
+ definitions FUNCT_1, AMISTD_5;
+ equalities EXTPRO_1, AMI_3, MEMSTR_0;
+ expansions AMISTD_5;
+ theorems AMI_3, GRFUNC_1, TARSKI, FUNCT_4, FUNCT_1, AMI_5, RELAT_1, XBOOLE_1,
+      PARTFUN1, VALUED_1, FINSEQ_1, COMPOS_1, EXTPRO_1, ORDINAL1, AMISTD_2,
+      AMISTD_5, STRUCT_0, MEMSTR_0, AMI_2, COMPOS_0;
+ schemes NAT_1;
+
+begin  :: Relocatability
+
+reserve j, k, m for Nat;
+
+registration
+ let a,b be Data-Location;
+ cluster a:=b -> ins-loc-free;
+ coherence;
+ cluster AddTo(a,b) -> ins-loc-free;
+ coherence;
+ cluster SubFrom(a,b) -> ins-loc-free;
+ coherence;
+ cluster MultBy(a,b) -> ins-loc-free;
+ coherence;
+ cluster Divide(a,b) -> ins-loc-free;
+ coherence;
+end;
+
+theorem Th1:
+  for k,loc being Nat
+  holds IncAddr(SCM-goto loc,k) = SCM-goto (loc + k)
+proof
+  let k,loc be Nat;
+A1: InsCode IncAddr(SCM-goto loc,k) = InsCode SCM-goto loc by COMPOS_0:def 9
+     .= 6
+     .= InsCode SCM-goto (loc + k);
+A2: AddressPart IncAddr(SCM-goto loc,k) = AddressPart SCM-goto loc
+           by COMPOS_0:def 9
+     .= {}
+     .= AddressPart SCM-goto (loc + k);
+A3: JumpPart IncAddr(SCM-goto loc,k) = k + JumpPart SCM-goto loc
+                   by COMPOS_0:def 9;
+  JumpPart IncAddr(SCM-goto loc,k) = JumpPart SCM-goto (loc + k)
+   proof
+    thus
+A4:   dom JumpPart IncAddr(SCM-goto loc,k)
+     = dom JumpPart SCM-goto (loc + k) by A1,COMPOS_0:def 5;
+    let x be object;
+    assume
+A5:   x in dom JumpPart IncAddr(SCM-goto loc,k);
+     dom <*loc+k*> = {1} by FINSEQ_1:2,38;
+     then
+A6:   x = 1 by A5,A4,TARSKI:def 1;
+    thus (JumpPart IncAddr(SCM-goto loc,k)).x
+      = k + (JumpPart SCM-goto loc).x by A3,A5,VALUED_1:def 2
+     .= loc + k by A6,FINSEQ_1:40
+     .= (JumpPart SCM-goto(loc + k)).x by A6,FINSEQ_1:40;
+   end;
+ hence thesis by A1,A2,COMPOS_0:1;
+end;
+
+theorem Th2:
+  for k,loc being Nat, a being Data-Location
+   holds IncAddr(a=0_goto loc,k) = a=0_goto (loc + k)
+proof
+  let k,loc be Nat, a be Data-Location;
+A1: InsCode IncAddr(a=0_goto loc,k) = InsCode(a=0_goto loc) by COMPOS_0:def 9
+     .= 7
+     .= InsCode(a=0_goto(loc + k));
+A2: AddressPart IncAddr(a=0_goto loc,k) = AddressPart(a=0_goto loc)
+           by COMPOS_0:def 9
+     .= <*a*>
+     .= AddressPart(a=0_goto (loc + k));
+A3: JumpPart IncAddr(a=0_goto loc,k) = k + JumpPart(a=0_goto loc)
+                   by COMPOS_0:def 9;
+  JumpPart IncAddr(a=0_goto loc,k) = JumpPart(a=0_goto (loc + k))
+   proof
+    thus
+A4:   dom JumpPart IncAddr(a=0_goto loc,k)
+     = dom JumpPart(a=0_goto (loc + k)) by A1,COMPOS_0:def 5;
+    let x be object;
+    assume
+A5:   x in dom JumpPart IncAddr(a=0_goto loc,k);
+     dom <*loc+k*> = {1} by FINSEQ_1:2,38;
+     then
+A6:   x = 1 by A5,A4,TARSKI:def 1;
+    thus (JumpPart IncAddr(a=0_goto loc,k)).x
+      = k + (JumpPart(a=0_goto loc)).x by A3,A5,VALUED_1:def 2
+     .= loc + k by A6,FINSEQ_1:40
+     .= (JumpPart(a=0_goto(loc + k))).x by A6,FINSEQ_1:40;
+   end;
+ hence thesis by A1,A2,COMPOS_0:1;
+end;
+
+theorem Th3:
+  for k,loc being Nat, a being Data-Location
+   holds IncAddr(a>0_goto loc,k) = a>0_goto (loc + k)
+proof
+  let k,loc be Nat, a be Data-Location;
+A1: InsCode IncAddr(a>0_goto loc,k) = InsCode(a>0_goto loc) by COMPOS_0:def 9
+     .= 8
+     .= InsCode(a>0_goto(loc + k));
+A2: AddressPart IncAddr(a>0_goto loc,k) = AddressPart(a>0_goto loc)
+           by COMPOS_0:def 9
+     .= <*a*>
+     .= AddressPart(a>0_goto (loc + k));
+A3: JumpPart IncAddr(a>0_goto loc,k) = k + JumpPart(a>0_goto loc)
+                   by COMPOS_0:def 9;
+  JumpPart IncAddr(a>0_goto loc,k) = JumpPart(a>0_goto (loc + k))
+   proof
+    thus
+A4:   dom JumpPart IncAddr(a>0_goto loc,k)
+     = dom JumpPart(a>0_goto (loc + k)) by A1,COMPOS_0:def 5;
+    let x be object;
+    assume
+A5:   x in dom JumpPart IncAddr(a>0_goto loc,k);
+     dom <*loc+k*> = {1} by FINSEQ_1:2,38;
+     then
+A6:   x = 1 by A5,A4,TARSKI:def 1;
+    thus (JumpPart IncAddr(a>0_goto loc,k)).x
+      = k + (JumpPart(a>0_goto loc)).x by A3,A5,VALUED_1:def 2
+     .= loc + k by A6,FINSEQ_1:40
+     .= (JumpPart(a>0_goto(loc + k))).x by A6,FINSEQ_1:40;
+   end;
+ hence thesis by A1,A2,COMPOS_0:1;
+end;
+
+theorem Th4:
+  for I being Instruction of SCM, k being Element of NAT st
+InsCode I = 0 or ... or InsCode I = 5 holds IncAddr (I, k) = I
+proof
+  let I be Instruction of SCM, k be Element of NAT;
+  assume that
+A1: InsCode I = 0 or ... or InsCode I = 5;
+  per cases by A1;
+  suppose InsCode I = 0;
+   then I = halt SCM by AMI_5:7;
+  hence thesis by COMPOS_0:4;
+  end;
+  suppose InsCode I = 1;
+   then ex da,db being Data-Location st I = da:=db by AMI_5:8;
+  hence IncAddr(I,k) = I by COMPOS_0:4;
+  end;
+  suppose InsCode I = 2;
+   then ex da,db being Data-Location st I = AddTo(da,db) by AMI_5:9;
+   hence IncAddr(I,k) = I by COMPOS_0:4;
+  end;
+  suppose InsCode I = 3;
+   then ex da,db being Data-Location st I = SubFrom(da,db) by AMI_5:10;
+  hence IncAddr(I,k) = I by COMPOS_0:4;
+  end;
+  suppose InsCode I = 4;
+   then ex da,db being Data-Location st I = MultBy(da,db) by AMI_5:11;
+   hence IncAddr(I,k) = I by COMPOS_0:4;
+  end;
+  suppose InsCode I = 5;
+   then ex da,db being Data-Location st I = Divide(da,db) by AMI_5:12;
+   hence IncAddr(I,k) = I by COMPOS_0:4;
+  end;
+end;
+
+theorem
+  for II, I being Instruction of SCM, k being Element of NAT st (
+InsCode I = 0 or ... or InsCode I = 5) & IncAddr (II, k) = I holds II = I
+proof
+  let II, I be Instruction of SCM, k be Element of NAT;
+  assume that
+A1: InsCode I = 0 or ... or InsCode I = 5 and
+A2: IncAddr (II, k) = I;
+   IncAddr(I,k) = I by A1,Th4;
+  hence thesis by A2,COMPOS_0:6;
+end;
+
+registration
+ cluster SCM -> relocable;
+ coherence
+ proof let INS be Instruction of SCM, j,k be Nat;
+   reconsider k as Element of NAT by ORDINAL1:def 12;
+  let s be State of SCM;
+A1: IC IncIC(Exec(IncAddr(INS,j),s),k)
+       = IC Exec(IncAddr(INS,j),s) + k by MEMSTR_0:53
+      .= IC Exec(IncAddr(INS,j+k),IncIC(s,k)) by AMISTD_2:def 3;
+  InsCode INS = 0 or ... or InsCode INS = 8 by AMI_5:5;
+  then per cases;
+  suppose InsCode INS = 0;
+    then
+A2: INS = halt SCM by AMI_5:7;
+    Exec(IncAddr(INS,j+k),IncIC(s,k))
+       = Exec(INS,IncIC(s,k)) by A2,COMPOS_0:4
+      .= IncIC(s,k) by A2,EXTPRO_1:def 3
+      .= IncIC(Exec(IncAddr(INS,j),s),k) by A2,EXTPRO_1:def 3;
+   hence thesis;
+  end;
+  suppose InsCode INS = 1;
+    then consider da,db being Data-Location such that
+A3: INS = da := db by AMI_5:8;
+    now
+      let d be Data-Location;
+      per cases;
+      suppose
+A4:     da = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A3,COMPOS_0:4
+          .= IncIC(s,k).db by A3,A4,AMI_3:2
+          .= s.db by AMI_5:16
+          .= Exec(INS, s).d by A3,A4,AMI_3:2
+          .= Exec(IncAddr(INS,j), s).d by A3,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+      suppose
+A5:     da <> d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A3,COMPOS_0:4
+          .= IncIC(s,k).d by A3,A5,AMI_3:2
+          .= s.d by AMI_5:16
+          .= Exec(INS, s).d by A3,A5,AMI_3:2
+          .= Exec(IncAddr(INS,j), s).d by A3,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+    end;
+   hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 2;
+    then consider da,db being Data-Location such that
+A6: INS = AddTo(da, db) by AMI_5:9;
+    now let d be Data-Location;
+      per cases;
+      suppose
+A7:     da = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A6,COMPOS_0:4
+          .= IncIC(s,k).da + IncIC(s,k).db by A7,A6,AMI_3:3
+          .= s.da + IncIC(s,k).db by AMI_5:16
+          .= s.da + s.db by AMI_5:16
+          .= Exec(INS, s).d by A6,A7,AMI_3:3
+          .= Exec(IncAddr(INS,j), s).d by A6,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+      suppose
+A8:     da <> d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A6,COMPOS_0:4
+          .= IncIC(s,k).d by A6,A8,AMI_3:3
+          .= s.d by AMI_5:16
+          .= Exec(INS, s).d by A6,A8,AMI_3:3
+          .= Exec(IncAddr(INS,j), s).d by A6,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+    end;
+   hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 3;
+    then consider da,db being Data-Location such that
+A9: INS = SubFrom(da, db) by AMI_5:10;
+    now let d be Data-Location;
+      per cases;
+      suppose
+A10:     da = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A9,COMPOS_0:4
+          .= IncIC(s,k).da - IncIC(s,k).db by A10,A9,AMI_3:4
+          .= s.da - IncIC(s,k).db by AMI_5:16
+          .= s.da - s.db by AMI_5:16
+          .= Exec(INS, s).d by A9,A10,AMI_3:4
+          .= Exec(IncAddr(INS,j), s).d by A9,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+      suppose
+A11:     da <> d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A9,COMPOS_0:4
+          .= IncIC(s,k).d by A9,A11,AMI_3:4
+          .= s.d by AMI_5:16
+          .= Exec(INS, s).d by A9,A11,AMI_3:4
+          .= Exec(IncAddr(INS,j), s).d by A9,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+    end;
+    hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 4;
+    then consider da,db being Data-Location such that
+A12: INS = MultBy(da, db) by AMI_5:11;
+    now let d be Data-Location;
+      per cases;
+      suppose
+A13:     da = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A12,COMPOS_0:4
+          .= IncIC(s,k).da * IncIC(s,k).db by A13,A12,AMI_3:5
+          .= s.da * IncIC(s,k).db by AMI_5:16
+          .= s.da * s.db by AMI_5:16
+          .= Exec(INS, s).d by A12,A13,AMI_3:5
+          .= Exec(IncAddr(INS,j), s).d by A12,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+      suppose
+A14:     da <> d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A12,COMPOS_0:4
+          .= IncIC(s,k).d by A12,A14,AMI_3:5
+          .= s.d by AMI_5:16
+          .= Exec(INS, s).d by A12,A14,AMI_3:5
+          .= Exec(IncAddr(INS,j), s).d by A12,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+      end;
+    end;
+    hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 5;
+    then consider da,db being Data-Location such that
+A15: INS = Divide(da, db) by AMI_5:12;
+     now
+      let d be Data-Location;
+      per cases;
+      suppose
+A16:    da <> db;
+        hereby
+          per cases;
+          suppose
+A17:        da = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A15,COMPOS_0:4
+          .= IncIC(s,k).da div IncIC(s,k).db by A16,A17,A15,AMI_3:6
+          .= s.da div IncIC(s,k).db by AMI_5:16
+          .= s.da div s.db by AMI_5:16
+          .= Exec(INS, s).d by A15,A16,A17,AMI_3:6
+          .= Exec(IncAddr(INS,j), s).d by A15,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+          end;
+          suppose
+A18:        db = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A15,COMPOS_0:4
+          .= IncIC(s,k).da mod IncIC(s,k).db by A18,A15,AMI_3:6
+          .= s.da mod IncIC(s,k).db by AMI_5:16
+          .= s.da mod s.db by AMI_5:16
+          .= Exec(INS, s).d by A15,A18,AMI_3:6
+          .= Exec(IncAddr(INS,j), s).d by A15,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+          end;
+          suppose
+A19:        da <> d & db <> d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A15,COMPOS_0:4
+          .= IncIC(s,k).d by A15,A19,AMI_3:6
+          .= s.d by AMI_5:16
+          .= Exec(INS, s).d by A15,A19,AMI_3:6
+          .= Exec(IncAddr(INS,j), s).d by A15,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+          end;
+        end;
+      end;
+      suppose
+A20:    da = db;
+          per cases;
+          suppose
+A21:        da = d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A15,COMPOS_0:4
+          .= IncIC(s,k).da mod IncIC(s,k).db by A20,A21,A15,AMI_3:6
+          .= s.da mod IncIC(s,k).db by AMI_5:16
+          .= s.da mod s.db by AMI_5:16
+          .= Exec(INS, s).d by A15,A20,A21,AMI_3:6
+          .= Exec(IncAddr(INS,j), s).d by A15,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+          end;
+       suppose
+A22:        da <> d;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = Exec(INS,IncIC(s,k)).d by A15,COMPOS_0:4
+          .= IncIC(s,k).d by A15,A20,A22,AMI_3:6
+          .= s.d by AMI_5:16
+          .= Exec(INS, s).d by A15,A20,A22,AMI_3:6
+          .= Exec(IncAddr(INS,j), s).d by A15,COMPOS_0:4
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+        end;
+      end;
+    end;
+    hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 6;
+    then consider loc being Nat such that
+A23: INS = SCM-goto loc by AMI_5:13;
+A24: IncAddr(INS, j+k) = SCM-goto (loc + (j+k)) by A23,Th1;
+A25: IncAddr(INS, j) = SCM-goto (loc + j) by A23,Th1;
+    now let d be Data-Location;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = IncIC(s,k).d by A24,AMI_3:7
+          .= s.d by AMI_5:16
+          .= Exec(IncAddr(INS,j), s).d by A25,AMI_3:7
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+    end;
+    hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 7;
+    then consider loc being Nat, da being Data-Location such that
+A26: INS = da=0_goto loc by AMI_5:14;
+A27: IncAddr(INS, j+k) = da=0_goto (loc + (j+k)) by A26,Th2;
+A28: IncAddr(INS, j) = da=0_goto (loc + j) by A26,Th2;
+    now let d be Data-Location;
+     thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = IncIC(s,k).d by A27,AMI_3:8
+          .= s.d by AMI_5:16
+          .= Exec(IncAddr(INS,j), s).d by A28,AMI_3:8
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+    end;
+   hence thesis by A1,AMI_5:25;
+  end;
+  suppose InsCode INS = 8;
+    then consider loc being Nat, da being Data-Location such that
+A29: INS = da>0_goto loc by AMI_5:15;
+A30: IncAddr(INS, j+k) = da>0_goto (loc + (j+k)) by A29,Th3;
+A31: IncAddr(INS, j) = da>0_goto (loc + j) by A29,Th3;
+    now let d be Data-Location;
+       thus Exec(IncAddr(INS,j+k),IncIC(s,k)).d
+           = IncIC(s,k).d by A30,AMI_3:9
+          .= s.d by AMI_5:16
+          .= Exec(IncAddr(INS,j), s).d by A31,AMI_3:9
+          .= IncIC(Exec(IncAddr(INS,j),s),k).d by AMI_5:16;
+     end;
+   hence thesis by A1,AMI_5:25;
+  end;
+ end;
+end;
+
+begin :: Main theorems of Relocatability
+
+Lm1: for k being Nat
+   for q being non halt-free finite
+      (the InstructionsF of SCM)-valued NAT-defined Function,
+    p being q-autonomic non empty FinPartState of SCM , s1,
+s2 being State of SCM st
+   p c= s1 & IncIC( p,k) c= s2
+for P1,P2 being Instruction-Sequence of SCM
+  st q c= P1 & Reloc(q,k) c= P2
+for i being Nat holds
+ IC Comput(P1,s1,i) + k = IC Comput(P2,s2,i) &
+IncAddr(CurInstr(P1,Comput(P1,s1,i)), k)
+ = CurInstr(P2,Comput(P2,s2,i)) &
+ Comput(P1,s1,i)|dom DataPart p = Comput(P2,s2,i)|dom DataPart p &
+ DataPart Comput(P1,s1 +* DataPart s2,i) = DataPart Comput(P2,s2,i)
+proof
+  let k be Nat;
+  let q be non halt-free finite
+      (the InstructionsF of SCM)-valued NAT-defined Function,
+   p be q-autonomic non empty FinPartState of SCM,
+      s1,s2 be State
+  of SCM such that
+A1:  p c= s1 and
+A2: IncIC( p,k) c= s2;
+A3: IC SCM in dom  p by AMISTD_5:6;
+A4:  p c= s1 by A1;
+ let P1,P2 being Instruction-Sequence of SCM
+  such that
+A5: q c= P1 & Reloc(q,k) c= P2;
+A6: Reloc(q,k) c= P2 by A5;
+A7: q c= P1 by A5;
+  set s3 = s1 +* DataPart s2;
+  defpred Z[Nat] means
+   IC Comput(P1,s1,$1) + k = IC Comput(P2,s2,$1) &
+ IncAddr(CurInstr(P1,Comput(P1,s1,$1)), k)
+ = CurInstr(P2,Comput(P2,s2,$1)) &
+  Comput(P1,s1,$1)|dom DataPart p = Comput(P2,s2,$1)|dom DataPart p &
+   DataPart Comput(P1,s3,$1) = DataPart Comput(P2,s2,$1);
+A8:  p c= s3 by A1,A2,MEMSTR_0:61;
+A9: for i be Nat st Z[i] holds Z[i+1]
+  proof
+    set DPp = DataPart p;
+    let i be Nat such that
+A10: IC Comput(P1,s1,i) + k = IC Comput(P2,s2,i) and
+
+A11: IncAddr (CurInstr(P1,Comput(P1,s1,i)), k)
+ = CurInstr(P2,Comput(P2,s2,i)) and
+A12: Comput(P1,s1,i)|dom DataPart p = Comput(P2,s2,i)|dom DataPart p and
+A13: DataPart Comput(P1,s3,i) = DataPart Comput(P2,s2,i);
+    set Cs2i1 = Comput(P2,s2,i+1);
+    set Cs3i = Comput(P1,s3,i);
+    set Cs2i = Comput(P2,s2,i);
+    dom Cs2i1 = the carrier of SCM by PARTFUN1:def 2;
+    then
+A14: dom Cs2i1 = {IC SCM} \/ Data-Locations SCM by STRUCT_0:4;
+    set Cs3i1 = Comput(P1,s3,i+1);
+A15: dom DataPart Cs2i = Data-Locations SCM by MEMSTR_0:9;
+A16: dom DataPart Cs3i1 = Data-Locations SCM by MEMSTR_0:9;
+A17: dom DataPart Cs2i1 = Data-Locations SCM by MEMSTR_0:9;
+A18: now
+      let x be set;
+      assume that
+A19:  x in dom DataPart Cs3i1 and
+A20:  Cs3i1.x = Cs2i1.x;
+      thus (DataPart Cs3i1).x = Cs2i1.x by A19,A20,FUNCT_1:47
+        .= (DataPart Cs2i1).x by A16,A17,A19,FUNCT_1:47;
+    end;
+A21: dom DataPart Cs3i = Data-Locations SCM by MEMSTR_0:9;
+A22: now
+      let x be set;
+      assume that
+A23:  x in dom DataPart Cs3i1 and
+A24:  Cs3i1.x = Cs3i.x & Cs2i1.x = Cs2i.x;
+      (DataPart Cs3i).x = Cs3i.x by A21,A16,A23,FUNCT_1:47;
+
+      hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A13,A15,A16,A18,A23,A24,
+FUNCT_1:47;
+
+    end;
+A25: now
+      let s be State of SCM, d be Data-Location;
+      d in Data-Locations SCM by AMI_2:def 16,AMI_3:27;
+      hence d in dom DataPart s by MEMSTR_0:9;
+    end;
+A26: now
+      let d be Data-Location;
+A27:  d in dom DataPart Cs3i by A25;
+      hence Cs3i.d = (DataPart Cs3i).d by FUNCT_1:47
+        .= Cs2i.d by A13,A27,FUNCT_1:47;
+    end;
+    set Cs1i1 = Comput(P1,s1,i+1);
+    set Cs1i = Comput(P1,s1,i);
+    dom Cs1i1 = the carrier of SCM by PARTFUN1:def 2;
+    then
+A28: dom Cs1i1 = {IC SCM} \/ Data-Locations SCM by STRUCT_0:4;
+    dom DPp = dom p /\ Data-Locations SCM by RELAT_1:61;
+    then
+A29: dom DPp c= {IC SCM} \/ Data-Locations SCM by XBOOLE_1:10,17;
+A30: dom (Cs1i1|dom DPp) = dom Cs1i1 /\ dom DPp by RELAT_1:61
+      .= dom DPp by A28,A29,XBOOLE_1:28;
+A31: now
+      reconsider loc = IC Cs1i1 as Element of NAT;
+      assume
+A32:  IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,i+1);
+      reconsider kk = loc as Element of NAT;
+A33:  loc in dom q by A7,A4,AMISTD_5:def 4;
+A34:  loc + k in dom Reloc(q, k) by A33,COMPOS_1:46;
+A35:   dom P2 = NAT by PARTFUN1:def 2;
+      dom P1 = NAT by PARTFUN1:def 2;
+      then CurInstr(P1, Cs1i1) = P1.loc by PARTFUN1:def 6
+        .= (q).loc by A33,A5,GRFUNC_1:2
+        .= (q).loc;
+      hence
+      IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = Reloc(q,k).(loc+k) by A33,COMPOS_1:35
+      .= P2.IC Comput(P2,s2,i+1) by A32,A34,A6,GRFUNC_1:2
+      .= CurInstr(P2,Comput(P2,s2,i+1)) by A35,PARTFUN1:def 6;
+
+    end;
+    set I = CurInstr(P1, Cs1i);
+A36: Cs2i1 = Following(P2,Cs2i) by EXTPRO_1:3
+      .= Exec (CurInstr(P2, Cs2i), Cs2i);
+    dom Cs2i = the carrier of SCM by PARTFUN1:def 2;
+    then
+A37: dom Cs2i = {IC SCM} \/ Data-Locations SCM by STRUCT_0:4;
+    dom Cs1i = the carrier of SCM by PARTFUN1:def 2;
+    then
+A38: dom Cs1i = {IC SCM} \/ Data-Locations SCM by STRUCT_0:4;
+A39: dom (Cs1i|dom DPp) = dom Cs1i /\ dom DPp by RELAT_1:61
+      .= dom DPp by A38,A29,XBOOLE_1:28;
+A40: Cs3i1 = Following(P1,Cs3i) by EXTPRO_1:3
+      .= Exec (CurInstr(P1, Cs1i), Cs3i) by A1,A8,A5,AMISTD_5:7;
+A41: dom (Cs2i1|dom DataPart p) = dom Cs2i1 /\ dom DPp by RELAT_1:61
+
+      .= dom DPp by A14,A29,XBOOLE_1:28;
+A42: now
+      let x be set, d be Data-Location such that
+A43:  d = x & d in dom DPp and
+A44:  Cs1i1.d = Cs2i1.d;
+      thus (Cs1i1|dom DPp).x = Cs2i1.d by A30,A43,A44,FUNCT_1:47
+        .= (Cs2i1|dom DPp).x by A41,A43,FUNCT_1:47;
+    end;
+
+A45: dom (Cs2i|dom DataPart p) = dom Cs2i /\ dom DPp by RELAT_1:61
+
+      .= dom DPp by A37,A29,XBOOLE_1:28;
+A46: now
+      let x be set, d be Data-Location such that
+A47:  d = x and
+A48:  d in dom DPp and
+A49:  Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d;
+
+      (Cs1i|dom DPp).d = Cs1i.d & (Cs2i|dom DPp).d = Cs2i.d by A39,A45,A48,
+FUNCT_1:47;
+
+      hence (Cs1i1|dom DPp).x = Cs2i1.d by A12,A30,A47,A48,A49,FUNCT_1:47
+
+        .= (Cs2i1|dom DPp).x by A41,A47,A48,FUNCT_1:47;
+    end;
+    reconsider j = IC Cs1i as Element of NAT;
+A50: Cs1i1 = Following(P1,Cs1i) by EXTPRO_1:3
+      .= Exec (CurInstr(P1, Cs1i), Cs1i);
+A51: (IC Cs1i +k) + 1 = (j+k+1)
+      .= j + 1 + k;
+    InsCode I = 0 or ... or InsCode I = 8 by AMI_5:5;
+    then per cases;
+    suppose
+      InsCode I = 0;
+      then
+A52:  I = halt SCM by AMI_5:7;
+
+      thus IC Comput(P1,s1,i+1) + k = IC Cs1i + k by A50,A52,EXTPRO_1:def 3
+
+        .= IC Comput(P2,s2,i+1)
+         by A10,A36,A52,A11,EXTPRO_1:def 3;
+
+      hence
+      IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1)) by A31;
+
+A53:  Cs2i1 = Cs2i by A36,A52,A11,EXTPRO_1:def 3;
+      hence Comput(P1,s1,i+1)|dom DataPart p
+       = Comput(P2,s2,i+1)|dom DataPart p by A12,A50,A52,EXTPRO_1:def 3;
+      thus DataPart Cs3i1 = DataPart Cs2i1 by A13,A40,A52,A53,EXTPRO_1:def 3;
+    end;
+    suppose
+      InsCode I = 1;
+      then consider da, db being Data-Location such that
+A54:  I = da := db by AMI_5:8;
+A55:  IncAddr(I, k) = da := db by A54,COMPOS_0:4;
+A56:  Exec(I, Cs1i).IC SCM = IC Cs1i + 1 by A54,AMI_3:2;
+
+      hence
+      IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,i+1)
+       by A10,A11,A50,A36,A51,A55,AMI_3:2;
+
+      thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1))
+        by A10,A11,A31,A50,A36,A51,A55,A56,AMI_3:2;
+
+A57:  Cs3i.db = Cs2i.db by A26;
+      now
+        DPp c= p by RELAT_1:59;
+        then
+A58:    dom DPp c= dom p by GRFUNC_1:2;
+        let x be object;
+        assume
+A59:    x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A59;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+A60:      da = d;
+          then Cs1i1.d = Cs1i.db & Cs2i1.d = Cs2i.db by A11,A50,A36,A54,A55,
+AMI_3:2;
+          hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A1,A8,A30,A42,A54,A57
+,A59,A58,A60,A5,AMI_5:17;
+        end;
+        suppose
+          da <> d;
+          then Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A11,A50,A36,A54,A55,
+AMI_3:2;
+          hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A59;
+        end;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+      hence Comput(P1,s1,i+1)|dom DataPart p
+          = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+      now
+        let x be object;
+        assume
+A61:    x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+          da = d;
+          then Cs2i1.d = Cs2i.db & Cs3i1.d=Cs3i.db by A11,A36,A40,A54,A55,
+AMI_3:2;
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A26,A18,A61;
+        end;
+        suppose
+          da <> d;
+
+          then
+          Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A11,A36,A40,A54,A55,AMI_3:2;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A61;
+        end;
+      end;
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1)
+          by A16,A17,GRFUNC_1:3;
+    end;
+    suppose
+      InsCode I = 2;
+      then consider da, db being Data-Location such that
+A62:  I = AddTo(da, db) by AMI_5:9;
+A63:  IncAddr(I, k) = AddTo(da, db) by A62,COMPOS_0:4;
+A64:  Exec(I, Cs1i).IC SCM = IC Cs1i + 1 by A62,AMI_3:3;
+
+      hence
+      IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,i+1)
+by A10,A11,A50,A36,A51,A63,AMI_3:3;
+
+      thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1))
+        by A10,A11,A31,A50,A36,A51,A63,A64,AMI_3:3;
+
+A65:  Cs3i.da = Cs2i.da & Cs3i.db = Cs2i.db by A26;
+      now
+        DPp c= p by RELAT_1:59;
+        then
+A66:    dom DPp c= dom p by GRFUNC_1:2;
+        let x be object such that
+A67:    x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A67;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+A68:      da = d;
+          then Cs1i1.d = Cs1i.da + Cs1i.db & Cs2i1.d = Cs2i.da + Cs2i.db by A11
+,A50,A36,A62,A63,AMI_3:3;
+
+          hence
+          (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A1,A8,A30,A42,A62,A65,A67
+,A66,A68,A5,AMI_5:18;
+
+        end;
+        suppose
+          da <> d;
+          then Cs1i1.d=Cs1i.d & Cs2i1.d = Cs2i.d by A11,A50,A36,A62,A63,AMI_3:3
+;
+          hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A67;
+        end;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+      hence Comput(P1,s1,i+1)|dom DataPart p
+         = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+      now
+        let x be object;
+        assume
+A69:    x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+          da = d;
+          then Cs2i1.d = Cs2i.da + Cs2i.db & Cs3i1.d = Cs3i.da + Cs3i.db by A11
+,A36,A40,A62,A63,AMI_3:3;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A18,A65,A69;
+        end;
+        suppose
+          da <> d;
+
+          then Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A11,A36,A40,A62,A63,
+AMI_3:3;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A69;
+        end;
+      end;
+
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:3;
+
+    end;
+    suppose
+      InsCode I = 3;
+      then consider da, db being Data-Location such that
+A70:  I = SubFrom(da, db) by AMI_5:10;
+A71:  IncAddr(I, k) = SubFrom(da, db) by A70,COMPOS_0:4;
+A72:  Exec(I, Cs1i).IC SCM = IC Cs1i + 1 by A70,AMI_3:4;
+
+      hence
+      IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,i+1)
+by A10,A11,A50,A36,A51,A71,AMI_3:4;
+
+      thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1))
+        by A10,A11,A31,A50,A36,A51,A71,A72,AMI_3:4;
+
+A73:  Cs3i.da = Cs2i.da & Cs3i.db = Cs2i.db by A26;
+      now
+        DPp c= p by RELAT_1:59;
+        then
+A74:    dom DPp c= dom p by GRFUNC_1:2;
+        let x be object such that
+A75:    x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A75;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+A76:      da = d;
+
+          then Cs1i1.d = Cs1i.da - Cs1i.db & Cs2i1.d = Cs2i.da - Cs2i.db by A11
+,A50,A36,A70,A71,AMI_3:4;
+
+          hence
+          (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A1,A8,A30,A42,A70,A73,A75
+,A74,A76,A5,AMI_5:19;
+
+        end;
+        suppose
+          da <> d;
+
+          then Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A11,A50,A36,A70,A71,
+AMI_3:4;
+
+          hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A75;
+        end;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+      hence Comput(P1,s1,i+1)|dom (DataPart p)
+       = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+      now
+        let x be object;
+        assume
+A77:    x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+          da = d;
+
+          then Cs2i1.d = Cs2i.da - Cs2i.db & Cs3i1.d = Cs3i.da - Cs3i.db by A11
+,A36,A40,A70,A71,AMI_3:4;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A18,A73,A77;
+        end;
+        suppose
+          da <> d;
+
+          then Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A11,A36,A40,A70,A71,
+AMI_3:4;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A77;
+        end;
+      end;
+
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:3;
+
+    end;
+    suppose
+      InsCode I = 4;
+      then consider da, db being Data-Location such that
+A78:  I = MultBy(da, db) by AMI_5:11;
+A79:  IncAddr(I, k) = MultBy(da, db) by A78,COMPOS_0:4;
+A80:  Exec(I, Cs1i).IC SCM = IC Cs1i + 1 by A78,AMI_3:5;
+
+      hence
+      IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,i+1)
+by A10,A11,A50,A36,A51,A79,AMI_3:5;
+
+      thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1))
+        by A10,A11,A31,A50,A36,A51,A79,A80,AMI_3:5;
+
+A81:  Cs3i.da = Cs2i.da & Cs3i.db = Cs2i.db by A26;
+      now
+        DPp c= p by RELAT_1:59;
+        then
+A82:    dom DPp c= dom p by GRFUNC_1:2;
+        let x be object such that
+A83:    x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A83;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+A84:      da = d;
+
+          then Cs1i1.d = Cs1i.da * Cs1i.db & Cs2i1.d = Cs2i.da * Cs2i.db by A11
+,A50,A36,A78,A79,AMI_3:5;
+
+          hence
+          (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A1,A8,A30,A42,A78,A81,A83
+,A82,A84,A5,AMI_5:20;
+        end;
+        suppose
+          da <> d;
+
+          then Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A11,A50,A36,A78,A79,
+AMI_3:5;
+
+          hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A83;
+        end;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+      hence Comput(P1,s1,i+1)|dom (DataPart p)
+        = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+      now
+        let x be object;
+        assume
+A85:    x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+        per cases;
+        suppose
+          da = d;
+
+          then Cs2i1.d = Cs2i.da * Cs2i.db & Cs3i1.d = Cs3i.da * Cs3i.db by A11
+,A36,A40,A78,A79,AMI_3:5;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A18,A81,A85;
+        end;
+        suppose
+          da <> d;
+
+          then Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A11,A36,A40,A78,A79,
+AMI_3:5;
+
+          hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A85;
+        end;
+      end;
+
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:3;
+
+    end;
+    suppose
+      InsCode I = 5;
+      then consider da, db being Data-Location such that
+A86:  I = Divide(da, db) by AMI_5:12;
+A87:  IncAddr(I, k) = Divide(da, db) by A86,COMPOS_0:4;
+A88:  Cs3i.da = Cs2i.da & Cs3i.db = Cs2i.db by A26;
+        per cases;
+        suppose
+A89:      da <> db;
+A90:      Exec(I, Cs1i).IC SCM = IC Cs1i + 1 by A86,AMI_3:6;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,
+i+1) by A10,A11,A50,A36,A51,A87,AMI_3:6;
+
+        thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)),k)
+           = CurInstr(P2,Comput(P2,s2,i+1))
+            by A10,A11,A31,A50,A36,A51,A87,A90,AMI_3:6;
+
+          now
+            DPp c= p by RELAT_1:59;
+            then
+A91:        dom DPp c= dom p by GRFUNC_1:2;
+            let x be object such that
+A92:        x in dom (Cs1i1|dom DPp);
+            dom DPp c= Data-Locations SCM by RELAT_1:58;
+            then x in Data-Locations SCM by A30,A92;
+            then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+            per cases;
+            suppose
+A93:          da = d;
+
+              then
+A94:          Cs1i1.d = Cs1i.da div Cs1i.db & Cs2i1.d = Cs2i.da div Cs2i
+              .db by A11,A50,A36,A86,A87,A89,AMI_3:6;
+
+              Cs3i.da div Cs3i.db = Cs1i.da div Cs1i.db by A1,A8,A30,A86,A89
+,A92,A91,A93,A5,AMI_5:21;
+
+              hence (Cs1i1|dom DPp).x = Cs2i1.d by A88,A92,A94,FUNCT_1:47
+
+                .= (Cs2i1|dom DPp).x by A30,A41,A92,FUNCT_1:47;
+            end;
+            suppose
+A95:          db = d;
+
+              then Cs1i1.d = Cs1i.da mod Cs1i.db & Cs2i1.d = Cs2i.da mod Cs2i
+              .db by A11,A50,A36,A86,A87,AMI_3:6;
+
+              hence
+              (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A1,A8,A30,A42,A86,A88
+,A92,A91,A95,A5,AMI_5:22;
+
+            end;
+            suppose
+              da <> d & db <> d;
+
+              then Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A11,A50,A36,A86,A87,
+AMI_3:6;
+
+              hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A92;
+            end;
+          end;
+
+          then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+          hence Comput(P1,s1,i+1)|dom (DataPart p)
+           = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+          now
+            let x be object;
+            assume
+A96:        x in dom DataPart Cs3i1;
+            then reconsider d = x as Data-Location
+             by A16,AMI_2:def 16,AMI_3:27;
+            per cases;
+            suppose
+              da = d;
+
+              then Cs2i1.d = Cs2i.da div Cs2i.db & Cs3i1.d = Cs3i.da div Cs3i
+              .db by A11,A36,A40,A86,A87,A89,AMI_3:6;
+
+              hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A18,A88,A96;
+
+            end;
+            suppose
+              db = d;
+
+              then Cs2i1.d = Cs2i.da mod Cs2i.db & Cs3i1.d = Cs3i.da mod Cs3i
+              .db by A11,A36,A40,A86,A87,AMI_3:6;
+
+              hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A18,A88,A96;
+
+            end;
+            suppose
+              da <> d & db <> d;
+
+              then Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A11,A36,A40,A86,A87,
+AMI_3:6;
+
+              hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A96;
+            end;
+          end;
+
+          then
+          DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+          hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,
+GRFUNC_1:3;
+
+        end;
+        suppose
+A97:      da = db;
+A98:      Exec(I, Cs1i).IC SCM = IC Cs1i + 1 by A86,AMI_3:6;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,
+i+1) by A10,A11,A50,A36,A51,A87,AMI_3:6;
+
+          thus IncAddr(CurInstr(P1,
+          Comput(P1,s1,i+1)), k)
+           = CurInstr(P2,Comput(P2,s2,i+1))
+            by A10,A11,A31,A50,A36,A51,A87,A98,AMI_3:6;
+
+          now
+            let x be object such that
+A99:        x in dom (Cs1i1|dom DPp);
+            dom DPp c= Data-Locations SCM by RELAT_1:58;
+            then x in Data-Locations SCM by A30,A99;
+            then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+            per cases;
+            suppose
+A100:          da = d;
+
+A101:          (Cs1i|dom DPp).d = Cs1i.d & (Cs2i|dom DPp).d = Cs2i.d by A30,A39
+,A45,A99,FUNCT_1:47;
+
+A102:         (Cs1i1|dom DPp).d = Cs1i1.d & (Cs2i1|dom DPp).d = Cs2i1.d
+              by A30,A41,A99,FUNCT_1:47;
+
+              Cs2i1.d = Cs2i.da mod Cs2i.db by A11,A36,A87,A97,A100,AMI_3:6;
+
+              hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A12,A50,A86,A97
+,A100,A101,A102,AMI_3:6;
+
+            end;
+            suppose
+              da <> d;
+
+              then Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A11,A50,A36,A86,A87
+,A97,AMI_3:6;
+
+              hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A99;
+            end;
+          end;
+
+          then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+          hence Comput(P1,s1,i+1)|dom (DataPart p)
+           = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+          now
+            let x be object;
+            assume
+A103:       x in dom DataPart Cs3i1;
+            then reconsider d = x as Data-Location
+             by A16,AMI_2:def 16,AMI_3:27;
+            per cases;
+            suppose
+              da = d;
+              then Cs2i1.d = Cs2i.da mod Cs2i.db & Cs3i1.d = Cs3i.da mod Cs3i
+              .db by A11,A36,A40,A86,A87,A97,AMI_3:6;
+
+              hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A18,A88,A103;
+
+            end;
+            suppose
+              da <> d;
+
+              then Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A11,A36,A40,A86,A87
+,A97,AMI_3:6;
+
+              hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A103;
+            end;
+          end;
+
+          then
+          DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+          hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,
+GRFUNC_1:3;
+
+        end;
+    end;
+    suppose
+      InsCode I = 6;
+      then consider loc being Nat such that
+A104: I = SCM-goto loc by AMI_5:13;
+A105: CurInstr(P2, Cs2i) = SCM-goto (loc+k) by A11,A104,Th1;
+      thus IC Comput(P1,s1,i+1) + k = loc + k by A50,A104,AMI_3:7
+        .= IC Comput(P2,s2,i+1) by A36,A105,AMI_3:7;
+
+      hence
+      IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       =
+       CurInstr(P2,Comput(P2,s2,i+1)) by A31;
+
+      now
+        let x be object such that
+A106:   x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A106;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+
+        Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A50,A36,A104,A105,AMI_3:7;
+
+        hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A106;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+      hence Comput(P1,s1,i+1)|dom (DataPart p)
+       = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+      now
+        let x be object;
+        assume
+A107:   x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+
+        Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A36,A40,A104,A105,AMI_3:7;
+
+        hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A107;
+      end;
+
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:3;
+
+    end;
+    suppose
+      InsCode I = 7;
+
+      then consider
+      loc being Nat, da being Data-Location
+      such that
+
+A108: I = da=0_goto loc by AMI_5:14;
+A109: now
+        per cases;
+        case
+          Cs1i.da = 0;
+          hence IC Comput(P1,s1,i+1) + k = loc + k by A50,A108,AMI_3:8;
+        end;
+        case
+          Cs1i.da <> 0;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = (IC Cs2i) + 1 by A10,A50,A51,A108,AMI_3:8;
+
+        end;
+      end;
+A110: CurInstr(P2, Cs2i) = da=0_goto (loc+k) by A11,A108,Th2;
+A111: now
+        per cases;
+        case
+          Cs2i.da = 0;
+          hence IC Comput(P2,s2,i+1) = loc + k by A36,A110,AMI_3:8;
+        end;
+        case
+          Cs2i.da <> 0;
+
+          hence IC Comput(P2,s2,i+1) = IC Cs2i + 1 by A36,A110,AMI_3:8;
+
+        end;
+      end;
+A112: Cs3i.da = Cs2i.da by A26;
+A113: now
+        per cases;
+        suppose
+          loc <> IC Cs1i + 1;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,
+i+1) by A1,A8,A108,A112,A109,A111,A5,AMI_5:23;
+
+        end;
+        suppose
+          loc = IC Cs1i + 1;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,
+i+1) by A10,A109,A111;
+
+        end;
+      end;
+      hence IC Comput(P1,s1,i+1) + k = IC Comput(P2,
+s2,i+1);
+
+      thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1))
+        by A31,A113;
+
+      now
+        let x be object such that
+A114:   x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A114;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+
+        Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A50,A36,A108,A110,AMI_3:8;
+
+        hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A114;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+      hence Comput(P1,s1,i+1)|dom (DataPart p)
+       = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+      now
+        let x be object;
+        assume
+A115:   x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+
+        Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A36,A40,A108,A110,AMI_3:8;
+
+        hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A115;
+      end;
+
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:3;
+
+    end;
+    suppose
+      InsCode I = 8;
+
+      then consider
+      loc being Nat, da being Data-Location
+      such that
+
+A116: I = da>0_goto loc by AMI_5:15;
+A117: now
+        per cases;
+        case
+          Cs1i.da > 0;
+          hence IC Comput(P1,s1,i+1) + k = loc + k by A50,A116,AMI_3:9;
+        end;
+        case
+          Cs1i.da <= 0;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = (IC Cs2i)+1 by A10,A50,A51,A116,AMI_3:9;
+
+        end;
+      end;
+A118: CurInstr(P2, Cs2i) = da>0_goto (loc+k) by A11,A116,Th3;
+A119: now
+        per cases;
+        case
+          Cs2i.da > 0;
+          hence IC Comput(P2,s2,i+1) = loc + k by A36,A118,AMI_3:9;
+        end;
+        case
+          Cs2i.da <= 0;
+
+          hence IC Comput(P2,s2,i+1) = IC Cs2i + 1 by A36,A118,AMI_3:9;
+
+        end;
+      end;
+A120: Cs3i.da = Cs2i.da by A26;
+A121: now
+        per cases;
+        suppose
+          loc <> IC Cs1i + 1;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,
+i+1) by A1,A8,A116,A120,A117,A119,A5,AMI_5:24;
+
+        end;
+        suppose
+          loc = IC Cs1i + 1;
+
+          hence
+          IC Comput(P1,s1,i+1) + k = IC Comput(P2,s2,
+i+1) by A10,A117,A119;
+
+        end;
+      end;
+      hence IC Comput(P1,s1,i+1) + k = IC Comput(P2,
+s2,i+1);
+
+      thus IncAddr(CurInstr(P1,Comput(P1,s1,i+1)), k)
+       = CurInstr(P2,Comput(P2,s2,i+1))
+        by A31,A121;
+
+      now
+        let x be object such that
+A122:   x in dom (Cs1i1|dom DPp);
+        dom DPp c= Data-Locations SCM by RELAT_1:58;
+        then x in Data-Locations SCM by A30,A122;
+        then reconsider d = x as Data-Location by AMI_2:def 16,AMI_3:27;
+
+        Cs1i1.d = Cs1i.d & Cs2i1.d = Cs2i.d by A50,A36,A116,A118,AMI_3:9;
+
+        hence (Cs1i1|dom DPp).x = (Cs2i1|dom DPp).x by A30,A46,A122;
+      end;
+      then (Cs1i1|dom DPp) c= (Cs2i1|dom DPp) by A30,A41,GRFUNC_1:2;
+
+      hence Comput(P1,s1,i+1)|dom (DataPart p)
+       = Comput(P2,s2,i+1)|dom DataPart p by A30,A41,GRFUNC_1:3;
+
+      now
+        let x be object;
+        assume
+A123:   x in dom DataPart Cs3i1;
+        then reconsider d = x as Data-Location by A16,AMI_2:def 16,AMI_3:27;
+
+        Cs3i1.d = Cs3i.d & Cs2i1.d = Cs2i.d by A36,A40,A116,A118,AMI_3:9;
+
+        hence (DataPart Cs3i1).x = (DataPart Cs2i1).x by A22,A123;
+      end;
+      then DataPart Cs3i1 c= DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:2;
+      hence DataPart Cs3i1 = DataPart Comput(P2,s2,i+1) by A16,A17,GRFUNC_1:3;
+    end;
+  end;
+A124: DataPart  p c=  p by RELAT_1:59;
+A125: IC SCM in dom IncIC( p,k) by MEMSTR_0:52;
+  now
+    thus IC Comput(P1,s1,0) + k = IC s1 + k
+      .= IC  p + k by A1,A3,GRFUNC_1:2
+      .= IC p + k
+      .= IC IncIC(p,k) by MEMSTR_0:53
+      .= IC s2 by A2,A125,GRFUNC_1:2
+      .= IC Comput(P2,s2,0);
+    reconsider loc = IC  p as Element of NAT;
+A126: IC  p = IC s1 by A1,A3,GRFUNC_1:2;
+    then IC  p = IC Comput(P1,s1,0);
+    then
+A127: loc in dom q by A7,A4,AMISTD_5:def 4;
+A128: (IC  p) + k in dom Reloc(q,k) by A127,COMPOS_1:46;
+A129: IC SCM in dom IncIC( p,k) by MEMSTR_0:52;
+A130: (q).IC  p = P1.IC s1 by A126,A127,A5,GRFUNC_1:2;
+    dom P2 = NAT by PARTFUN1:def 2;
+    then
+A131:  CurInstr(P2,Comput(P2,s2,0))
+      = P2.IC Comput(P2,s2,0) by PARTFUN1:def 6
+     .= P2.IC s2
+     .= P2.(IC IncIC(p,k)) by A2,A129,GRFUNC_1:2
+      .= P2.((IC p) +k) by MEMSTR_0:53
+      .= P2.((IC  p) +k)
+      .= (Reloc(q, k)).((IC  p) +k) by A128,A5,GRFUNC_1:2;
+A132:  dom P1 = NAT by PARTFUN1:def 2;
+     CurInstr(P1,Comput(P1,s1,0))
+       = CurInstr(P1,s1)
+      .= P1.IC s1 by A132,PARTFUN1:def 6;
+    hence
+    IncAddr(CurInstr(P1,Comput(P1,s1,0)), k)
+     = CurInstr(P2,Comput(P2,s2,0)) by A127,A130,A131,COMPOS_1:35;
+A133: dom DataPart s2 = Data-Locations SCM by MEMSTR_0:9;
+A134: DataPart p c= s1 by A1,A124,XBOOLE_1:1;
+A135: DataPart IncIC(p,k) = DataPart p by MEMSTR_0:51;
+    DataPart p c= IncIC(p,k) by A135,MEMSTR_0:12;
+    then
+A136: DataPart p c= s2 by A2,XBOOLE_1:1;
+    thus Comput(P1,s1,0)|dom DataPart p = s1 | dom (DataPart p)
+      .= DataPart p by A134,GRFUNC_1:23
+      .= s2 | dom (DataPart p) by A136,GRFUNC_1:23
+      .= Comput(P2,s2,0)|dom DataPart p;
+    thus DataPart Comput(P1,s3,0) = DataPart(s1 +* DataPart s2)
+      .= DataPart s2 by A133
+      .= DataPart Comput(P2,s2,0);
+  end;
+  then
+A137: Z[0];
+  thus for i being Nat holds Z[i] from NAT_1:sch 2(A137,A9);
+end;
+
+theorem
+  for k being Element of NAT
+   for q being non halt-free finite
+      (the InstructionsF of SCM)-valued NAT-defined Function,
+      p being q-autonomic non empty FinPartState of SCM , s1
+  , s2 being State of SCM
+  st IC SCM in dom p &  p c= s1 & IncIC( p,k) c= s2
+for P1,P2 being Instruction-Sequence of SCM
+  st q c= P1 & Reloc(q,k) c= P2
+for i being Element of NAT holds IC Comput(P1,s1,i) + k = IC
+Comput(P2,s2,i) by Lm1;
+
+registration
+ cluster SCM -> relocable1 relocable2;
+ coherence
+  by Lm1;
+end;
+
+theorem
+  for k being Element of NAT
+   for q being non halt-free finite
+      (the InstructionsF of SCM)-valued NAT-defined Function,
+      p being q-autonomic non empty FinPartState of SCM , s1
+  , s2, s3 being State of SCM st IC SCM in dom p &
+   p c= s1 & IncIC(p,k) c=
+  s2 & s3 = s1 +* DataPart s2 holds
+  for P1,P2 being Instruction-Sequence of SCM
+  st q c= P1 & Reloc(q,k) c= P2
+  for i being Element of NAT holds DataPart
+  Comput(P1,s3,i) = DataPart Comput(P2,s2,i) by Lm1;
