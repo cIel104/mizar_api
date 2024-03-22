@@ -1,0 +1,4297 @@
+:: Formalization of the Advanced Encryption Standard -- Part {I}
+::  by Kenichi Arai and Hiroyuki Okazaki
+::
+:: Received October 7, 2013
+:: Copyright (c) 2013-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies AESCIP_1, DESCIP_1, TARSKI, XBOOLE_0, FINSEQ_1, RELAT_1, FUNCT_1,
+      ARYTM_1, FUNCT_2, FINSEQ_2, NAT_1, MARGREL1, ZFMISC_1, SUBSET_1, NUMBERS,
+      INT_1, CARD_1, JORDAN3, XXREAL_0, ARYTM_3, ORDINAL4, FINSEQ_5, XCMPLX_0;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, ORDINAL1,
+      RELSET_1, PARTFUN1, FUNCT_2, BINOP_1, CARD_1, NUMBERS, XCMPLX_0,
+      XXREAL_0, NAT_1, INT_1, NAT_D, FINSEQ_1, FINSEQ_2, MARGREL1, FINSEQ_4,
+      FINSEQ_6, DESCIP_1;
+ constructors RELSET_1, FINSEQ_4, NAT_D, FINSEQ_6, DESCIP_1, BINOP_1;
+ registrations FINSEQ_1, RELSET_1, FINSEQ_2, FUNCT_2, ORDINAL1, MARGREL1,
+      INT_1, NAT_1, XXREAL_0, XBOOLE_0, FUNCT_1, XREAL_0, FINSEQ_4;
+ requirements BOOLE, SUBSET, NUMERALS, ARITHM, REAL;
+ equalities FINSEQ_1, FINSEQ_2;
+ theorems TARSKI, FUNCT_1, FUNCT_2, XXREAL_0, XREAL_1, FINSEQ_6, XREAL_0,
+      NAT_1, INT_1, FINSEQ_1, CARD_1, BINOP_1, NAT_D, FINSEQ_2, FINSEQ_4,
+      RFINSEQ, FINSEQ_5, XBOOLE_0, ORDINAL1, DESCIP_1, MARGREL1, NAT_2,
+      WSIERP_1, XCMPLX_1, FINSEQ_3;
+ schemes FUNCT_2, FINSEQ_1, NAT_1, BINOP_1, RECDEF_1;
+
+begin :: Preliminaries
+
+theorem XLMOD02:
+  for k,m be Nat st m <> 0 & (k+1) mod m <> 0
+  holds (k+1) mod m = (k mod m)+1
+proof
+  let k,m be Nat;
+  assume
+C1: m <> 0 & (k+1) mod m <> 0;
+  (k mod m)+1 <= m by NAT_D:1,C1,NAT_1:13;
+  then
+P1: (k mod m)+1-1 <= m-1 by XREAL_1:9;
+P2: (k+1) mod m = ((k mod m)+1) mod m by NAT_D:22;
+  k mod m < m-1
+  proof
+    assume not k mod m < m-1;
+    then (k+1) mod m = (m-1+1) mod m by XXREAL_0:1,P1,P2
+      .= 0 by INT_1:50;
+    hence contradiction by C1;
+  end;
+  then (k mod m)+1 < m-1+1 by XREAL_1:8;
+  hence (k+1) mod m = (k mod m)+1 by NAT_D:24,P2;
+end;
+
+theorem XLMOD01:
+  for k,m be Nat st m <> 0 & (k+1) mod m <> 0 holds (k+1) div m = k div m
+proof
+  let k,m be Nat;
+  assume
+C1: m <> 0 & (k+1) mod m <> 0;
+  k+1 = ((k+1) div m )*m+((k+1) mod m) by INT_1:59,C1
+    .= ((k+1) div m )*m+((k mod m)+1) by XLMOD02,C1;
+  then
+P1: ((k+1) div m)*m+(k mod m)-(k mod m) = (k div m )*m+(k mod m)-(k mod m)
+  by INT_1:59,C1;
+  thus ((k+1) div m) = (k div m)*m / m by XCMPLX_1:89,C1,P1
+    .= (k div m) by XCMPLX_1:89,C1;
+end;
+
+theorem XLMOD02X:
+  for k,m be Nat st m <> 0 & (k+1) mod m = 0 holds m-1 = (k mod m)
+proof
+  let k,m be Nat;
+  assume
+C1: m <> 0 & (k+1) mod m = 0;
+  then (k mod m)+1 <= m by NAT_D:1,NAT_1:13;
+  then
+P1: (k mod m)+1-1 <= m-1 by XREAL_1:9;
+P2: (k+1) mod m = ((k mod m)+1) mod m by NAT_D:22;
+  assume not k mod m = m-1;
+  then k mod m < m-1 by XXREAL_0:1,P1;
+  then k mod m+1 < m-1+1 by XREAL_1:8;
+  hence contradiction by P2,NAT_D:24,C1;
+end;
+
+theorem XLMOD01X:
+  for k,m be Nat st m <> 0 & (k+1) mod m = 0
+  holds (k+1) div m = (k div m)+1
+proof
+  let k,m be Nat;
+  assume
+C1: m <> 0 & (k+1) mod m = 0;
+  then
+P3: k mod m = m-1 by XLMOD02X;
+P4: k+1 = ((k+1) div m)*m+((k+1) mod m) by INT_1:59,C1
+    .= ((k+1) div m)*m by C1;
+P5: k = (k div m )*m+(k mod m) by INT_1:59,C1
+    .= (k div m)*m+m-1 by P3;
+  thus ((k+1) div m) = ((k div m)+1)*m / m by XCMPLX_1:89,C1,P4,P5
+    .= ((k div m)+1) by XCMPLX_1:89,C1;
+end;
+
+theorem XLMOD03:
+  for k,m be Nat holds (k-m) mod m = k mod m
+proof
+  let k,m be Nat;
+  thus (k-m) mod m = (k+m*(-1)) mod m
+    .= k mod m by NAT_D:61;
+end;
+
+theorem XLMOD04:
+  for k,m be Nat st m <> 0 holds (k-m) div m = (k div m)-1
+proof
+  let k,m be Nat;
+  assume
+AS: m <> 0;
+  thus (k-m) div m = (k+m*(-1)) div m
+    .= (k div m)+-1 by AS,NAT_D:61
+    .= (k div m)-1;
+end;
+
+definition
+  let m,n be Nat, X,D be non empty set;
+  let F be Function of X, m-tuples_on(n-tuples_on D);
+  let x be Element of X;
+  redefine func F.x -> Element of m-tuples_on(n-tuples_on D);
+  coherence
+  proof
+    F.x in m-tuples_on(n-tuples_on D);
+    hence thesis;
+  end;
+end;
+
+definition
+  let m be Nat, X,Y,D be non empty set;
+  let F be Function of [:X,Y:], m-tuples_on D;
+  let x be Element of X,y be Element of Y;
+  redefine func F.(x,y) -> Element of m-tuples_on D;
+  coherence
+  proof
+    F.(x,y) in m-tuples_on D;
+    hence thesis;
+  end;
+end;
+
+theorem LM01:
+  for m,n be Nat, D be non empty set,
+  F1,F2 be Element of m-tuples_on (n-tuples_on D) st for i,j be Nat
+  st i in Seg m & j in Seg n
+  holds (F1.i).j = (F2.i).j holds F1 = F2
+  proof
+    let m,n be Nat, D be non empty set,
+    F1,F2 be Element of m-tuples_on (n-tuples_on D);
+    assume
+AS: for i,j be Nat st i in Seg m & j in Seg n
+    holds (F1.i).j = (F2.i).j;
+    F1 in m-tuples_on (n-tuples_on D);
+    then
+P1: ex s be Element of (n-tuples_on D)* st F1 = s & len s = m;
+    F2 in m-tuples_on (n-tuples_on D);
+    then
+P2: ex s be Element of (n-tuples_on D)* st F2 = s & len s = m;
+    now let i be Nat;
+      assume 1 <= i & i <= len F1;
+      then
+P4:   i in Seg m by P1;
+      then i in dom F1 by FINSEQ_1:def 3,P1;
+      then F1.i in rng F1 by FUNCT_1:3;
+      then F1.i in n-tuples_on D;
+      then
+P6:   ex s be Element of D* st F1.i = s & len s = n;
+      then reconsider F1i = F1.i as Element of D*;
+      i in dom F2 by FINSEQ_1:def 3,P2,P4;
+      then F2.i in rng F2 by FUNCT_1:3;
+      then F2.i in n-tuples_on D;
+      then
+R6:   ex s be Element of D* st F2.i = s & len s = n;
+      then reconsider F2i = F2.i as Element of D*;
+      now let j be Nat;
+      assume 1 <= j & j <= len F1i;
+      then j in Seg n by P6;
+      hence F1i.j = F2i.j by AS,P4;
+    end;
+    hence
+    F1.i = F2.i by P6,R6,FINSEQ_1:14;
+  end;
+  hence F1 = F2 by P1,P2,FINSEQ_1:14;
+end;
+
+theorem LMGSEQ4:
+  for D be non empty set, x1,x2,x3,x4 be Element of D
+  holds <* x1,x2,x3,x4 *> is Element of (4-tuples_on D)
+proof
+  let D be non empty set, x1,x2,x3,x4 be Element of D;
+  reconsider x1234 = <* x1,x2,x3,x4 *> as FinSequence of D;
+P1: len x1234 = 4 by FINSEQ_4:76;
+  x1234 in D* by FINSEQ_1:def 11;
+  then x1234 in 4-tuples_on D by P1;
+  hence thesis;
+end;
+
+theorem LMGSEQ5:
+  for D be non empty set,x1,x2,x3,x4,x5 be Element of D
+  holds <* x1,x2,x3,x4,x5 *> is Element of (5-tuples_on D)
+proof
+  let D be non empty set, x1,x2,x3,x4,x5 be Element of D;
+  reconsider x12345 = <* x1,x2,x3,x4,x5 *> as FinSequence of D;
+P1: len x12345 = 5 by FINSEQ_4:78;
+  x12345 in D* by FINSEQ_1:def 11;
+  then x12345 in 5-tuples_on D by P1;
+  hence thesis;
+end;
+
+theorem
+  for D be non empty set, x1,x2,x3,x4,x5,x6,x7,x8 be Element of D
+  holds <* x1,x2,x3,x4 *>^<* x5,x6,x7,x8 *> is Element of (8-tuples_on D)
+proof
+  let D be non empty set,x1,x2,x3,x4,x5,x6,x7,x8 be Element of D;
+  reconsider x1234 = <* x1,x2,x3,x4 *> as Element of 4-tuples_on D
+  by LMGSEQ4;
+  reconsider x5678 = <* x5,x6,x7,x8 *> as Element of 4-tuples_on D
+  by LMGSEQ4;
+  D c= D;
+  hence thesis by FINSEQ_2:109;
+end;
+
+theorem LMGSEQ10:
+  for D be non empty set, x1,x2,x3,x4,x5,x6,x7,x8,x9,x10 be Element of D
+  holds <* x1,x2,x3,x4,x5 *>^<* x6,x7,x8,x9,x10 *> is
+  Element of (10-tuples_on D)
+proof
+  let D be non empty set, x1,x2,x3,x4,x5,x6,x7,x8,x9,x10 be Element of D;
+  reconsider x12345 = <* x1,x2,x3,x4,x5 *> as Element of 5-tuples_on D
+  by LMGSEQ5;
+  reconsider x67890 = <* x6,x7,x8,x9,x10 *> as Element of 5-tuples_on D
+  by LMGSEQ5;
+  D c= D;
+  hence thesis by FINSEQ_2:109;
+end;
+
+theorem LMGSEQ16:
+  for D be non empty set, x1,x2,x3,x4,x5,x6,x7,x8 be Element of (4-tuples_on D)
+  holds <* x1^x5,x2^x6,x3^x7,x4^x8 *> is
+  Element of 4-tuples_on (8-tuples_on D)
+proof
+  let D be non empty set,
+  x1,x2,x3,x4,x5,x6,x7,x8 be Element of (4-tuples_on D);
+X1: D c= D;
+  then
+P1: x1^x5 is Element of 8-tuples_on D by FINSEQ_2:109;
+P2: x2^x6 is Element of 8-tuples_on D by X1,FINSEQ_2:109;
+P3: x3^x7 is Element of 8-tuples_on D by X1,FINSEQ_2:109;
+  x4^x8 is Element of 8-tuples_on D by X1,FINSEQ_2:109;
+  hence thesis by P1,P2,P3,LMGSEQ4;
+end;
+
+theorem
+  for D be non empty set, x be Element of 4-tuples_on(4-tuples_on D),
+  k be Element of NAT st k in Seg 4 holds
+  ex x1,x2,x3,x4 be Element of D st x1 = (x.k).1 & x2 = (x.k).2 &
+  x3 = (x.k).3 & x4 = (x.k).4
+proof
+  let D be non empty set, x be Element of 4-tuples_on(4-tuples_on D),
+  k be Element of NAT;
+  assume
+AS: k in Seg 4;
+  x in 4-tuples_on(4-tuples_on D);
+  then ex s be Element of (4-tuples_on D)* st x = s & len s = 4;
+  then k in dom x by AS,FINSEQ_1:def 3;
+  then x.k in rng x by FUNCT_1:3;
+  then x.k in 4-tuples_on (D);
+  then
+Q13: ex s be Element of D* st x.k = s & len s = 4;
+  then reconsider xk = x.k as Element of D*;
+  1 in Seg 4;
+  then 1 in dom xk by Q13,FINSEQ_1:def 3;
+  then xk.1 in rng xk by FUNCT_1:3;
+  then reconsider x1 = xk.1 as Element of D;
+  2 in Seg 4;
+  then 2 in dom xk by Q13,FINSEQ_1:def 3;
+  then xk.2 in rng xk by FUNCT_1:3;
+  then reconsider x2 = xk.2 as Element of D;
+  3 in Seg 4;
+  then 3 in dom xk by Q13,FINSEQ_1:def 3;
+  then xk.3 in rng xk by FUNCT_1:3;
+  then reconsider x3 = xk.3 as Element of D;
+  4 in Seg 4;
+  then 4 in dom xk by Q13,FINSEQ_1:def 3;
+  then xk.4 in rng xk by FUNCT_1:3;
+  then reconsider x4 = xk.4 as Element of D;
+  take x1,x2,x3,x4;
+  thus thesis;
+end;
+
+theorem INV00:
+  for X,Y be non empty set, f be Function of X,Y, g be Function of Y,X
+  st (for x be Element of X holds g.(f.x) = x) &
+  (for y be Element of Y holds f.(g.y) = y)
+  holds f is one-to-one & f is onto & g is one-to-one & g is onto &
+  g = f" & f = g"
+proof
+  let X,Y be non empty set, f be Function of X,Y, g be Function of Y,X;
+  assume
+A1: for x be Element of X holds g.(f.x) = x;
+  assume
+A2: for y be Element of Y holds f.(g.y) = y;
+  now let x be Element of X;
+    thus (g*f).x = g.(f.x) by FUNCT_2:15
+      .= x by A1;
+  end;
+  then
+P2: g*f = id X by FUNCT_2:124;
+  now let y be Element of Y;
+    thus (f*g).y = f.(g.y) by FUNCT_2:15
+      .= y by A2;
+  end;
+  then
+P4: f*g = id Y by FUNCT_2:124;
+  thus
+P5: f is one-to-one & f is onto by P2,P4,FUNCT_2:23;
+  thus
+P6: g is one-to-one & g is onto by P2,P4,FUNCT_2:23;
+  rng f = Y by P5,FUNCT_2:def 3;
+  hence g = f" by FUNCT_2:30,P2,FUNCT_2:23;
+  rng g = X by P6,FUNCT_2:def 3;
+  hence f = g" by FUNCT_2:30,P4,FUNCT_2:23;
+end;
+
+begin :: State array
+
+definition
+  func AES-Statearray -> Function of 128-tuples_on BOOLEAN,
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :DefStatearray:
+  for input be Element of 128-tuples_on BOOLEAN
+  for i,j be Nat st i in Seg 4 & j in Seg 4
+  holds ((it.input).i).j = mid (input,1+(i-'1)*8+(j-'1)*32,
+  1+(i-'1)*8+(j-'1)*32+7);
+  existence
+  proof
+    defpred P0[Element of 128-tuples_on BOOLEAN,set] means
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st $2 = z & for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds (z.i).j = mid ($1,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7);
+A1: for x being Element of 128-tuples_on BOOLEAN
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[x,z]
+    proof
+      let x be Element of 128-tuples_on BOOLEAN;
+      x in 128-tuples_on BOOLEAN;
+      then
+A01:  ex s be Element of (BOOLEAN)* st x = s & len s = 128;
+      defpred P[Nat,set] means
+      ex zi be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+      st $2 = zi & for j be Nat st j in Seg 4
+      holds zi.j = mid (x,1+($1-'1)*8+(j-'1)*32,1+($1-'1)*8+(j-'1)*32+7);
+Q1:   for k be Nat st k in Seg 4
+      ex x being Element of (4-tuples_on (8-tuples_on BOOLEAN)) st P[k,x]
+      proof
+        let k be Nat;
+        assume k in Seg 4;
+        then
+Q110:   1 <= k & k <= 4 by FINSEQ_1:1;
+        then 1-1 <= k-1 by XREAL_1:9;
+        then k-'1 = k-1 by XREAL_0:def 2;
+        then k-'1 <= 4-1 by Q110,XREAL_1:9;
+        then
+Q112:   (k-'1)*8 <= 3*8 by XREAL_1:64;
+        defpred Pi[Nat,set] means
+        $2 = mid (x,1+(k-'1)*8+($1-'1)*32,1+(k-'1)*8+($1-'1)*32+7);
+Q12:    for j be Nat st j in Seg 4
+        ex xi being Element of (8-tuples_on BOOLEAN) st Pi[j,xi]
+        proof
+          let j be Nat;
+          assume j in Seg 4;
+          then
+Q130:     1 <= j & j <= 4 by FINSEQ_1:1;
+          then 1-1 <= j-1 by XREAL_1:9;
+          then j-'1 = j-1 by XREAL_0:def 2;
+          then j-'1 <= 4-1 by Q130,XREAL_1:9;
+          then
+Q133:     (j-'1)*32 <= 3*32 by XREAL_1:64;
+          (k-'1)*8+(j-'1)*32 <= 24+96 by Q133,Q112,XREAL_1:7;
+          then
+Q134:     1+((k-'1)*8+(j-'1)*32) <= 1+120 by XREAL_1:7;
+Q136:     (1+(k-'1)*8+(j-'1)*32)+7 <= 121+7 by Q134,XREAL_1:7;
+          1+0 <= 1+((k-'1)*8+(j-'1)*32) by XREAL_1:7;
+          then
+Q14:      1 <= 1+(k-'1)*8+(j-'1)*32 & 1+(k-'1)*8+(j-'1)*32 <= len x
+          by Q134,XXREAL_0:2,A01;
+Q150:     1+0 <= 1+(k-'1)*8+(j-'1)*32+7 by XREAL_1:7;
+          reconsider mmd = mid (x,1+(k-'1)*8+(j-'1)*32,
+          1+(k-'1)*8+(j-'1)*32+7) as Element of (BOOLEAN)* by FINSEQ_1:def 11;
+          1+(k-'1)*8+(j-'1)*32+0 <= 1+(k-'1)*8+(j-'1)*32+7 by XREAL_1:6;
+          then len mid (x,1+(k-'1)*8+(j-'1)*32,1+(k-'1)*8+(j-'1)*32+7) =
+          (1+(k-'1)*8+(j-'1)*32+7)-'(1+(k-'1)*8+(j-'1)*32)+1
+          by FINSEQ_6:118,Q14,Q136,A01,Q150
+            .= 7+1 by NAT_D:34
+            .= 8;
+          then mmd in (8-tuples_on BOOLEAN);
+          then reconsider xi = mid (x,1+(k-'1)*8+(j-'1)*32,
+          1+(k-'1)*8+(j-'1)*32+7) as Element of (8-tuples_on BOOLEAN);
+          xi = mid (x,1+(k-'1)*8+(j-'1)*32,1+(k-'1)*8+(j-'1)*32+7);
+          hence thesis;
+        end;
+        consider zi be FinSequence of (8-tuples_on BOOLEAN) such that
+Q13:    dom zi = Seg 4 & for i be Nat st i in Seg 4
+        holds Pi[i,zi.i] from FINSEQ_1:sch 5(Q12);
+Q14:    len zi = 4 by Q13,FINSEQ_1:def 3;
+        reconsider zi as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+        zi in 4-tuples_on (8-tuples_on BOOLEAN) by Q14;
+        then reconsider zi as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        for j be Nat st j in Seg 4
+        holds zi.j = mid (x,1+(k-'1)*8+(j-'1)*32,1+(k-'1)*8+(j-'1)*32+7)
+        by Q13;
+        hence thesis;
+      end;
+      consider z be FinSequence of 4-tuples_on (8-tuples_on BOOLEAN) such that
+Q2:   dom z = Seg 4 &
+      for i be Nat st i in Seg 4 holds P[i,z.i] from FINSEQ_1:sch 5(Q1);
+Q3:   len z = 4 by Q2,FINSEQ_1:def 3;
+      reconsider z as Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      by FINSEQ_1:def 11;
+      z in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))by Q3;
+      then reconsider z as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      for i,j be Nat st i in Seg 4 & j in Seg 4
+      holds (z.i).j = mid (x,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)
+      proof
+        let i,j be Nat;
+        assume
+P11:    i in Seg 4 & j in Seg 4;
+        then consider zi be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+        such that
+P12:    z.i = zi & for j be Nat st j in Seg 4
+        holds zi.j = mid (x,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7) by Q2;
+        thus (z.i).j = mid (x,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)
+        by P11,P12;
+      end;
+      hence ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+      st P0[x,z];
+    end;
+    consider I be Function of 128-tuples_on BOOLEAN,
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2: for x being Element of 128-tuples_on BOOLEAN
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    now let input be Element of 128-tuples_on BOOLEAN;
+      ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+      st I.input = z & for i,j be Nat st i in Seg 4 & j in Seg 4
+      holds (z.i).j = mid (input,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)
+      by A2;
+      hence for i,j be Nat st i in Seg 4 & j in Seg 4
+      holds ((I.input).i).j = mid (input,1+(i-'1)*8+(j-'1)*32,
+      1+(i-'1)*8+(j-'1)*32+7);
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Function of 128-tuples_on BOOLEAN,
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: for input be Element of 128-tuples_on BOOLEAN
+    for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds ((H1.input).i).j = mid (input,1+(i-'1)*8+(j-'1)*32,
+    1+(i-'1)*8+(j-'1)*32+7);
+    assume
+A2: for input be Element of 128-tuples_on BOOLEAN
+    for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds ((H2.input).i).j = mid (input,1+(i-'1)*8+(j-'1)*32,
+    1+(i-'1)*8+(j-'1)*32+7);
+    now let input be Element of 128-tuples_on BOOLEAN;
+      (H1.input) in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+P3:   ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st (H1.input) = s & len s = 4;
+      (H2.input) in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+P4:   ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st (H2.input) = s & len s = 4;
+      now let i be Nat;
+        assume 1 <=i & i <= len (H1.input);
+        then
+P6:     i in Seg 4 by P3;
+        then i in dom(H1.input) by FINSEQ_1:def 3,P3;
+        then (H1.input).i in rng (H1.input) by FUNCT_1:3;
+        then (H1.input).i in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+P8:     ex s be Element of (8-tuples_on BOOLEAN)*
+        st (H1.input).i = s & len s = 4;
+        reconsider H1i = (H1.input).i as
+        Element of (8-tuples_on BOOLEAN)* by P8;
+        i in dom(H2.input) by FINSEQ_1:def 3,P4,P6;
+        then (H2.input).i in rng (H2.input) by FUNCT_1:3;
+        then (H2.input).i in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+P11:    ex s be Element of (8-tuples_on BOOLEAN)*
+        st (H2.input).i = s & len s = 4;
+        reconsider H2i = (H2.input).i as
+        Element of (8-tuples_on BOOLEAN)* by P11;
+        now let j be Nat;
+          assume 1 <=j & j <= len H1i;
+          then
+P14:      j in Seg 4 by P8;
+          then ((H1.input).i).j = mid (input,1+(i-'1)*8+(j-'1)*32,
+          1+(i-'1)*8+(j-'1)*32+7) by A1,P6;
+          hence H1i.j = H2i.j by A2,P6,P14;
+        end;
+        hence (H1.input).i = (H2.input).i by P8,P11,FINSEQ_1:def 17;
+      end;
+      hence H1.input = H2.input by P3,P4,FINSEQ_1:def 17;
+    end;
+    hence H1 = H2 by FUNCT_2:63;
+  end;
+end;
+
+theorem LMStat0:
+  for k be Nat st 1 <= k & k <= 128 ex i,j be Nat st i in Seg 4 & j in Seg 4 &
+  1+(i-'1)*8+(j-'1)*32 <= k & k <= 1+(i-'1)*8+(j-'1)*32+7
+proof
+  let k be Nat;
+  assume
+A1: 1 <= k & k <= 128;
+A3: k = 32*(k div 32)+(k mod 32) by NAT_D:2;
+  reconsider m = k div 32 as Nat;
+  reconsider n = k mod 32 as Nat;
+  k div 32 <= (32*4) div 32 by A1,NAT_2:24;
+  then
+M1: m <= 4 by NAT_D:18;
+  per cases;
+  suppose
+A4: n = 0;
+A5: 1 <= m
+    proof
+      assume not 1 <= m;
+      then m = 0 by NAT_1:14;
+      hence contradiction by A1,A3,A4;
+    end;
+    set j = m;
+A8: j in Seg 4 by M1,A5;
+    set i = 4;
+A10: i in Seg 4;
+A11: j-'1 = j-1 by XREAL_1:233,A5;
+A13: k = 32*(k div 32)+(k mod 32) by NAT_D:2
+      .= 32*(j-'1)+8*((i-1)+1) by A4,A11
+      .= 32*(j-'1)+8*((i-'1)+1) by XREAL_1:233
+      .= 1+(i-'1)*8+(j-'1)*32+7;
+    1+(i-'1)*8+(j-'1)*32+0 <= 1+(i-'1)*8+(j-'1)*32+7 by XREAL_1:7;
+    hence ex i,j be Nat st i in Seg 4 & j in Seg 4 &
+    1+(i-'1)*8+(j-'1)*32 <= k & k <= 1+(i-'1)*8+(j-'1)*32+7 by A8,A10,A13;
+  end;
+  suppose
+A14: n <> 0;
+    then
+XX0: 1 <= n by NAT_1:14;
+XX1: n <= 32 by NAT_D:1;
+    m <> 4
+    proof
+      assume
+U1:   m = 4;
+U2:   k = 32*4+n by NAT_D:2,U1
+        .= 128+n;
+      128+1 <= 128+n by XX0,XREAL_1:7;
+      hence contradiction by U2,XXREAL_0:2,A1;
+    end;
+    then m < 4 by XXREAL_0:1,M1;
+    then
+A15: m+1 <= 4 by NAT_1:13;
+A16: 1 <= m+1 by NAT_1:11;
+    set j = m+1;
+A18: j in Seg 4 by A15,A16;
+A19: j-'1 = j-1 by XREAL_1:233,NAT_1:11
+      .=m;
+A20: k = 32*(j-'1)+n by NAT_D:2,A19;
+A22: n = 8*(n div 8)+(n mod 8) by NAT_D:2;
+    reconsider s = n div 8 as Nat;
+    reconsider t = n mod 8 as Nat;
+    n div 8 <= (8*4) div 8 by XX1,NAT_2:24;
+    then
+M2: n div 8 <= 4 by NAT_D:18;
+    now per cases;
+    suppose
+A23:  t = 0;
+A24:  1 <= s
+      proof
+        assume not 1 <= s;
+        then n = 8*0+0 by NAT_1:14,A22,A23;
+        hence contradiction by A14;
+      end;
+      set i = s;
+A28:  i in Seg 4 by M2,A24;
+A29:  i-'1 = i-1 by XREAL_1:233,A24;
+A30:  n = 8*s+0 by NAT_D:2,A23
+        .= 8*(i-'1)+8*1 by A29;
+      1+(i-'1)*8+(j-'1)*32+0 <= 1+(i-'1)*8+(j-'1)*32+7 by XREAL_1:7;
+      hence ex i,j be Nat st i in Seg 4 & j in Seg 4 &
+      1+(i-'1)*8+(j-'1)*32 <= k & k <= 1+(i-'1)*8+(j-'1)*32+7
+      by A28,A18,A20,A30;
+    end;
+    suppose
+      t <> 0;
+      then
+XX0:  1 <= t by NAT_1:14;
+XXX1: t <= 8 by NAT_D:1;
+      s <> 4
+      proof
+        assume
+U1:     s = 4;
+U2:     n = 8*4+t by NAT_D:2,U1
+          .= 32+t;
+        32+1 <= 32+t by XX0,XREAL_1:7;
+        hence contradiction by U2,XXREAL_0:2,XX1;
+      end;
+      then s < 4 by XXREAL_0:1,M2;
+      then
+B15:  s+1 <= 4 by NAT_1:13;
+B16:  1 <= s+1 by NAT_1:11;
+      set i = s+1;
+B18:  i in Seg 4 by B15,B16;
+B19:  i-'1 = i-1 by XREAL_1:233,NAT_1:11
+        .=s;
+B20:  n = 8*(i-'1)+t by NAT_D:2,B19;
+B220: 32*(j-'1)+8*(i-'1)+1 <= 32*(j-'1)+8*(i-'1)+t by XX0,XREAL_1:7;
+      32*(j-'1)+8*(i-'1)+t <= 32*(j-'1)+8*(i-'1)+8 by XXX1,XREAL_1:7;
+      then k <= 1+8*(i-'1)+32*(j-'1)+7 by A20,B20;
+      hence ex i,j be Nat st i in Seg 4 & j in Seg 4 &
+      1+(i-'1)*8+(j-'1)*32 <= k & k <= 1+(i-'1)*8+(j-'1)*32+7
+      by B220,A20,B20,B18,A18;
+    end;
+  end;
+  hence ex i,j be Nat st i in Seg 4 & j in Seg 4 & 1+(i-'1)*8+(j-'1)*32 <= k &
+  k <= 1+(i-'1)*8+(j-'1)*32+7;
+end;
+end;
+
+theorem LMStat2A:
+  for i,j,i0,j0 be Nat st i in Seg 4 & j in Seg 4 & i0 in Seg 4 &
+  j0 in Seg 4 & not (i = i0 & j = j0)
+  holds {k where k is Nat : 1+(i-'1)*8+(j-'1)*32 <= k &
+  k <= 8+(i-'1)*8+(j-'1)*32} /\ {k where k is Nat :
+  1+(i0-'1)*8+(j0-'1)*32 <= k & k <= 8+(i0-'1)*8+(j0-'1)*32} = {}
+proof
+  let i,j,i0,j0 be Nat;
+  assume
+AS: i in Seg 4 & j in Seg 4 & i0 in Seg 4 &
+  j0 in Seg 4 & not (i = i0 & j = j0);
+  set A = {k where k is Nat : 1+(i-'1)*8+(j-'1)*32 <= k &
+  k <= 8+(i-'1)*8+(j-'1)*32};
+  set B = {k where k is Nat : 1+(i0-'1)*8+(j0-'1)*32 <= k &
+  k <= 8+(i0-'1)*8+(j0-'1)*32};
+A1: 1 <= j & j <= 4 by AS,FINSEQ_1:1;
+A2: 1 <= i & i <= 4 by AS,FINSEQ_1:1;
+B1: 1 <= j0 & j0 <= 4 by AS,FINSEQ_1:1;
+B2: 1 <= i0 & i0 <= 4 by AS,FINSEQ_1:1;
+P1: (j-'1) = j-1 by XREAL_1:233,A1;
+P2: (i-'1) = i-1 by XREAL_1:233,A2;
+P3: (j0-'1) = j0-1 by XREAL_1:233,B1;
+P4: (i0-'1) = i0-1 by XREAL_1:233,B2;
+  i-1 <= 4-1 by A2,XREAL_1:9;
+  then
+R2: i-'1 <= 3 by XREAL_1:233,A2;
+  i0-1 <= 4-1 by B2,XREAL_1:9;
+  then
+R4: i0-'1 <= 3 by XREAL_1:233,B2;
+  per cases;
+  suppose
+A2: j <> j0;
+    now per cases by A2,XXREAL_0:1;
+    suppose
+      j < j0;
+      then (j-'1) < (j0-'1) by XREAL_1:14,P1,P3;
+      then (j-'1)+1 <= (j0-'1) by NAT_1:13;
+      then
+A12:  ((j-'1)+1)*32 <= (j0-'1)*32 by XREAL_1:64;
+      (i-'1)*8 <= 3*8 by R2,XREAL_1:64;
+      then 8+(i-'1)*8 <= 8+24 by XREAL_1:6;
+      then 8+(i-'1)*8+(j-'1)*32 <= 32+(j-'1)*32 by XREAL_1:6;
+      then
+A13:  8+(i-'1)*8+(j-'1)*32 <= (j0-'1)*32 by A12,XXREAL_0:2;
+      0+(j0-'1)*32 <= (i0-'1)*8+(j0-'1)*32 by XREAL_1:6;
+      then (j0-'1)*32+0 < (i0-'1)*8+(j0-'1)*32+1 by XREAL_1:8;
+      then
+A14:  8+(i-'1)*8+(j-'1)*32 < 1+(i0-'1)*8+(j0-'1)*32 by A13,XXREAL_0:2;
+      thus A /\ B = {}
+      proof
+        assume A /\ B <> {};
+        then consider x be object such that
+A150:   x in A /\ B by XBOOLE_0:def 1;
+A15:    x in A & x in B by XBOOLE_0:def 4,A150;
+        consider k1 be Nat such that
+A16:    x = k1 & 1+(i-'1)*8+(j-'1)*32 <= k1 & k1 <= 8+(i-'1)*8+(j-'1)*32
+        by A15;
+        consider k2 be Nat such that
+A17:    x = k2 & 1+(i0-'1)*8+(j0-'1)*32 <= k2 & k2 <= 8+(i0-'1)*8+(j0-'1)*32
+        by A15;
+        reconsider x as Nat by A16;
+        thus contradiction by A17,A14,XXREAL_0:2,A16;
+      end;
+    end;
+    suppose
+      j0 < j;
+      then (j0-'1) < (j-'1) by XREAL_1:14,P1,P3;
+      then (j0-'1)+1 <= (j-'1) by NAT_1:13;
+      then
+A12:  ((j0-'1)+1)*32 <= (j-'1)*32 by XREAL_1:64;
+      (i0-'1)*8 <= 3*8 by R4,XREAL_1:64;
+      then 8+(i0-'1)*8 <= 8+24 by XREAL_1:6;
+      then 8+(i0-'1)*8+(j0-'1)*32 <= 32+(j0-'1)*32 by XREAL_1:6;
+      then
+A13:  8+(i0-'1)*8+(j0-'1)*32 <= (j-'1)*32 by A12,XXREAL_0:2;
+      0+(j-'1)*32 <= (i-'1)*8+(j-'1)*32 by XREAL_1:6;
+      then (j-'1)*32+0 < (i-'1)*8+(j-'1)*32+1 by XREAL_1:8;
+      then
+A14:  8+(i0-'1)*8+(j0-'1)*32 < 1+(i-'1)*8+(j-'1)*32 by A13,XXREAL_0:2;
+      thus A /\ B = {}
+      proof
+        assume A /\ B <> {};
+        then consider x be object such that
+A150:   x in A /\ B by XBOOLE_0:def 1;
+A15:    x in A & x in B by XBOOLE_0:def 4,A150;
+        consider k1 be Nat such that
+A16:    x = k1 & 1+(i-'1)*8+(j-'1)*32 <= k1 & k1 <= 8+(i-'1)*8+(j-'1)*32
+        by A15;
+        consider k2 be Nat such that
+A17:    x = k2 & 1+(i0-'1)*8+(j0-'1)*32 <= k2 & k2 <= 8+(i0-'1)*8+(j0-'1)*32
+        by A15;
+        reconsider x as Nat by A16;
+        thus contradiction by A16,A14,XXREAL_0:2,A17;
+      end;
+    end;
+  end;
+  hence A /\ B = {};
+  end;
+  suppose
+A2: j = j0;
+    now per cases by A2,AS,XXREAL_0:1;
+      suppose i < i0;
+      then (i-'1) < (i0-'1) by XREAL_1:14,P2,P4;
+      then (i-'1)+1 <= (i0-'1) by NAT_1:13;
+      then ((i-'1)+1)*8 <= (i0-'1)*8 by XREAL_1:64;
+      then
+A13:  (i-'1)*8+8+(j-'1)*32 <= (i0-'1)*8+(j0-'1)*32 by A2,XREAL_1:6;
+      (i0-'1)*8+(j0-'1)*32+0 < (i0-'1)*8+(j0-'1)*32+1 by XREAL_1:8;
+      then
+A14:  8+(i-'1)*8+(j-'1)*32 < 1+(i0-'1)*8+(j0-'1)*32 by A13,XXREAL_0:2;
+      thus A /\ B = {}
+      proof
+        assume A /\ B <> {};
+        then consider x be object such that
+A150:   x in A /\ B by XBOOLE_0:def 1;
+A15:    x in A & x in B by XBOOLE_0:def 4,A150;
+        consider k1 be Nat such that
+A16:    x = k1 & 1+(i-'1)*8+(j-'1)*32 <= k1 & k1 <= 8+(i-'1)*8+(j-'1)*32
+        by A15;
+        consider k2 be Nat such that
+A17:    x = k2 & 1+(i0-'1)*8+(j0-'1)*32 <= k2 & k2 <= 8+(i0-'1)*8+(j0-'1)*32
+        by A15;
+        reconsider x as Nat by A16;
+        thus contradiction by A16,A17,A14,XXREAL_0:2;
+      end;
+    end;
+    suppose
+      i0 < i;
+      then (i0-'1) < (i-'1) by XREAL_1:14,P2,P4;
+      then (i0-'1)+1 <= (i-'1) by NAT_1:13;
+      then ((i0-'1)+1)*8 <= (i-'1)*8 by XREAL_1:64;
+      then
+A13:  (i0-'1)*8+8+(j0-'1)*32 <= (i-'1)*8+(j-'1)*32 by A2,XREAL_1:6;
+      (i-'1)*8+(j-'1)*32+0 < (i-'1)*8+(j-'1)*32+1 by XREAL_1:8;
+      then
+A14:  8+(i0-'1)*8+(j0-'1)*32 < 1+(i-'1)*8+(j-'1)*32 by A13,XXREAL_0:2;
+      thus A /\ B = {}
+      proof
+        assume A /\ B <> {};
+        then consider x be object such that
+A150:   x in A /\ B by XBOOLE_0:def 1;
+A15:    x in A & x in B by XBOOLE_0:def 4,A150;
+        consider k1 be Nat such that
+A16:    x = k1 & 1+(i-'1)*8+(j-'1)*32 <= k1 & k1 <= 8+(i-'1)*8+(j-'1)*32
+        by A15;
+        consider k2 be Nat such that
+A17:    x = k2 & 1+(i0-'1)*8+(j0-'1)*32 <= k2 & k2 <= 8+(i0-'1)*8+(j0-'1)*32
+        by A15;
+        reconsider x as Nat by A16;
+        thus contradiction by A16,A14,XXREAL_0:2,A17;
+      end;
+    end;
+  end;
+  hence A /\ B = {};
+end;
+end;
+
+theorem LMStat2:
+  for k,i,j,i0,j0 be Nat st 1 <= k & k <= 128 & i in Seg 4 & j in Seg 4 &
+  i0 in Seg 4 & j0 in Seg 4 & 1+(i-'1)*8+(j-'1)*32 <= k &
+  k <= 1+(i-'1)*8+(j-'1)*32+7 & 1+(i0-'1)*8+(j0-'1)*32 <= k &
+  k <= 1+(i0-'1)*8+(j0-'1)*32+7 holds i = i0 & j = j0
+proof
+  let k,i,j,i0,j0 be Nat;
+  assume
+AS: 1 <= k & k <= 128 & i in Seg 4 & j in Seg 4 & i0 in Seg 4 & j0 in Seg 4 &
+  1+(i-'1)*8+(j-'1)*32 <= k & k <= 1+(i-'1)*8+(j-'1)*32+7 &
+  1+(i0-'1)*8+(j0-'1)*32 <= k & k <= 1+(i0-'1)*8+(j0-'1)*32+7;
+  assume not (i = i0 & j = j0);
+  then
+A2: {n where n is Nat : 1+(i-'1)*8+(j-'1)*32 <= n & n <= 8+(i-'1)*8+(j-'1)*32}
+  /\ {n where n is Nat : 1+(i0-'1)*8+(j0-'1)*32 <= n &
+  n <= 8+(i0-'1)*8+(j0-'1)*32} = {} by LMStat2A,AS;
+A3: k in {n where n is Nat : 1+(i-'1)*8+(j-'1)*32 <= n &
+  n <= 8+(i-'1)*8+(j-'1)*32} by AS;
+  k in {n where n is Nat : 1+(i0-'1)*8+(j0-'1)*32 <= n &
+  n <= 8+(i0-'1)*8+(j0-'1)*32} by AS;
+  hence contradiction by A3,XBOOLE_0:def 4,A2;
+end;
+
+theorem LMStat1:
+  AES-Statearray is one-to-one
+proof
+  for x1,x2 be object st x1 in 128-tuples_on BOOLEAN &
+  x2 in 128-tuples_on BOOLEAN &
+  (AES-Statearray).x1 = (AES-Statearray).x2 holds x1 = x2
+  proof
+    let x1,x2 be object;
+    assume
+A1: x1 in 128-tuples_on BOOLEAN & x2 in 128-tuples_on BOOLEAN &
+    (AES-Statearray).x1 = (AES-Statearray).x2;
+    then reconsider xx1 = x1,xx2 = x2 as Element of 128-tuples_on BOOLEAN;
+P1: ex s be Element of (BOOLEAN)* st xx1 = s & len s = 128 by A1;
+P2: ex s be Element of (BOOLEAN)* st xx2 = s & len s = 128 by A1;
+    now let k be Nat;
+      assume
+P5:   1 <= k & k <= len xx1;
+      consider i,j be Nat such that
+A4:   i in Seg 4 & j in Seg 4 & 1+(i-'1)*8+(j-'1)*32 <= k &
+      k <= 1+(i-'1)*8+(j-'1)*32+7 by LMStat0,P5,P1;
+      mid (xx1,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7) is
+      Element of (BOOLEAN)* by FINSEQ_1:def 11;
+      then reconsider A1ij = (((AES-Statearray).xx1).i).j as
+      FinSequence of (BOOLEAN) by DefStatearray,A4;
+      mid (xx2,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7) is
+      Element of (BOOLEAN)* by FINSEQ_1:def 11;
+      then reconsider A2ij = (((AES-Statearray).xx2).i).j as
+      FinSequence of (BOOLEAN) by DefStatearray,A4;
+A50:  1+(i-'1)*8+(j-'1)*32-((i-'1)*8+(j-'1)*32) <= k-((i-'1)*8+(j-'1)*32)
+      by A4,XREAL_1:9;
+      then reconsider n = k-((i-'1)*8+(j-'1)*32) as Element of NAT by INT_1:3;
+F41:  k-((i-'1)*8+(j-'1)*32) <= 1+(i-'1)*8+(j-'1)*32+7-((i-'1)*8+(j-'1)*32)
+      by A4,XREAL_1:9;
+F1:   1 <= 1+((i-'1)*8+(j-'1)*32) by NAT_1:11;
+F2:   1+(i-'1)*8+(j-'1)*32 <= 1+(i-'1)*8+(j-'1)*32+7 by NAT_1:11;
+Q110: 1 <= i & i <= 4 by A4,FINSEQ_1:1;
+      then 1-1 <= i-1 by XREAL_1:9;
+      then i-'1 = i-1 by XREAL_0:def 2;
+      then i-'1 <= 4-1 by Q110,XREAL_1:9;
+      then
+Q112: (i-'1)*8 <= 3*8 by XREAL_1:64;
+Q130: 1 <= j & j <= 4 by A4,FINSEQ_1:1;
+      then 1-1 <= j-1 by XREAL_1:9;
+      then j-'1 = j-1 by XREAL_0:def 2;
+      then j-'1 <= 4-1 by Q130,XREAL_1:9;
+      then
+Q133: (j-'1)*32 <= 3*32 by XREAL_1:64;
+      (i-'1)*8+(j-'1)*32 <= 24+96 by Q133,Q112,XREAL_1:7;
+      then 1+((i-'1)*8+(j-'1)*32) <= 1+120 by XREAL_1:7;
+      then
+Q135: 1+(i-'1)*8+(j-'1)*32+7 <= 121+7 by XREAL_1:6;
+F5:   n <= (1+(i-'1)*8+(j-'1)*32+7)-(1+(i-'1)*8+(j-'1)*32)+1 by F41;
+A6:   k = n-1+(1+(i-'1)*8+(j-'1)*32);
+      thus xx1.k = (mid (xx1,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)).n
+      by F1,F2,Q135,P1,A50,F5,A6,FINSEQ_6:122
+        .= A2ij.n by DefStatearray,A4,A1
+        .= (mid (xx2,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)).n
+        by DefStatearray,A4
+        .= xx2.k by F1,F2,P2,Q135,A50,F5,A6,FINSEQ_6:122;
+    end;
+  hence thesis by P1,P2,FINSEQ_1:def 17;
+end;
+hence thesis by FUNCT_2:19;
+end;
+
+theorem LMStat3:
+  AES-Statearray is onto
+proof
+  for y be object st y in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  ex x be object st x in 128-tuples_on BOOLEAN & y = AES-Statearray.x
+  proof
+    let y be object;
+    assume y in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+B10:ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+    st y = s & len s = 4;
+    then reconsider z = y as Element of (4-tuples_on (8-tuples_on BOOLEAN))*;
+    defpred PK[Nat,set] means
+    ex i,j,n be Nat, zij be Element of (8-tuples_on BOOLEAN)
+    st i in Seg 4 & j in Seg 4 & n in Seg 8 & 1+(i-'1)*8+(j-'1)*32 <= $1 &
+    $1 <= 1+(i-'1)*8+(j-'1)*32+7 & n = $1-((i-'1)*8+(j-'1)*32) & zij = (z.i).j
+    & $2 = zij.n;
+Q12: for k be Nat st k in Seg 128 ex z being Element of BOOLEAN st PK[k,z]
+    proof
+      let k be Nat;
+      assume k in Seg 128;
+      then 1 <= k & k <= 128 by FINSEQ_1:1;
+      then consider i,j be Nat such that
+A4:   i in Seg 4 & j in Seg 4 & 1+(i-'1)*8+(j-'1)*32 <= k &
+      k <= 1+(i-'1)*8+(j-'1)*32+7 by LMStat0;
+      i in dom z by FINSEQ_1:def 3,A4,B10;
+      then z.i in rng z by FUNCT_1:3;
+      then z.i in 4-tuples_on (8-tuples_on BOOLEAN);
+      then
+B10:  ex s be Element of (8-tuples_on BOOLEAN)* st z.i = s & len s = 4;
+      then reconsider zi = z.i as Element of (8-tuples_on BOOLEAN)*;
+      j in dom zi by B10,FINSEQ_1:def 3,A4;
+      then (zi).j in rng zi by FUNCT_1:3;
+      then reconsider zij = (z.i).j as Element of 8-tuples_on BOOLEAN;
+A50:  1+(i-'1)*8+(j-'1)*32-((i-'1)*8+(j-'1)*32) <= k-((i-'1)*8+(j-'1)*32)
+      by A4,XREAL_1:9;
+      then reconsider n = k-((i-'1)*8+(j-'1)*32) as Element of NAT by INT_1:3;
+      k-((i-'1)*8+(j-'1)*32) <= 1+(i-'1)*8+(j-'1)*32+7-((i-'1)*8+(j-'1)*32)
+      by A4,XREAL_1:9;
+      then
+G4:   n in Seg 8 by A50;
+      reconsider z = zij.n as Element of BOOLEAN;
+      take z;
+      thus thesis by A4,G4;
+    end;
+    consider x be FinSequence of BOOLEAN
+    such that
+Q13: dom x = Seg 128 & for i be Nat st i in Seg 128
+    holds PK[i,x.i] from FINSEQ_1:sch 5(Q12);
+Q14: len x = 128 by Q13,FINSEQ_1:def 3;
+    reconsider x as Element of (BOOLEAN)* by FINSEQ_1:def 11;
+    x in 128-tuples_on BOOLEAN by Q14;
+    then reconsider x as Element of 128-tuples_on BOOLEAN;
+P2: for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds (z.i).j = mid (x,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)
+    proof
+      let i,j be Nat;
+      assume
+P21:  i in Seg 4 & j in Seg 4;
+      then i in dom z by FINSEQ_1:def 3,B10;
+      then z.i in rng z by FUNCT_1:3;
+      then z.i in 4-tuples_on (8-tuples_on BOOLEAN);
+      then
+P8:   ex s be Element of (8-tuples_on BOOLEAN)* st z.i = s & len s = 4;
+      reconsider zi = z.i as Element of (8-tuples_on BOOLEAN)* by P8;
+      j in dom zi by P8,FINSEQ_1:def 3,P21;
+      then zi.j in rng zi by FUNCT_1:3;
+      then zi.j in (8-tuples_on BOOLEAN);
+      then
+P11:  ex s be Element of (BOOLEAN)* st zi.j = s & len s = 8;
+      reconsider zij = zi.j as Element of (BOOLEAN)* by P11;
+Q110: 1 <= i & i <= 4 by P21,FINSEQ_1:1;
+      then 1-1 <= i-1 by XREAL_1:9;
+      then i-'1 = i-1 by XREAL_0:def 2;
+      then i-'1 <= 4-1 by Q110,XREAL_1:9;
+      then
+Q112: (i-'1)*8 <= 3*8 by XREAL_1:64;
+Q130: 1 <= j & j <= 4 by P21,FINSEQ_1:1;
+      then 1-1 <= j-1 by XREAL_1:9;
+      then j-'1 = j-1 by XREAL_0:def 2;
+      then j-'1 <= 4-1 by Q130,XREAL_1:9;
+      then
+Q133: (j-'1)*32 <= 3*32 by XREAL_1:64;
+      (i-'1)*8+(j-'1)*32 <= 24+96 by Q133,Q112,XREAL_1:7;
+      then
+Q134: 1+((i-'1)*8+(j-'1)*32) <= 1+120 by XREAL_1:7;
+      then
+G1:   1+((i-'1)*8+(j-'1)*32) <= len x by XXREAL_0:2,Q14;
+G0:   1 <= 1+((i-'1)*8+(j-'1)*32) by NAT_1:11;
+G2:   1 <= 1+((i-'1)*8+(j-'1)*32+7) by NAT_1:11;
+G3:   1+((i-'1)*8+(j-'1)*32)+0 <= 1+(i-'1)*8+(j-'1)*32+7 by XREAL_1:7;
+Q135: 1+(i-'1)*8+(j-'1)*32+7 <= 121+7 by XREAL_1:6,Q134;
+      then
+F3:   1+(i-'1)*8+(j-'1)*32+7 <= len x by Q13,FINSEQ_1:def 3;
+P13:  len (mid (x,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)) =
+      (1+(i-'1)*8+(j-'1)*32+7)-'(1+(i-'1)*8+(j-'1)*32)+1
+      by G1,G2,G3,G0,F3,FINSEQ_6:118
+        .= (1+(i-'1)*8+(j-'1)*32+7)-(1+(i-'1)*8+(j-'1)*32)+1 by G3,XREAL_1:233
+        .= 8;
+      now let n be Nat;
+        assume
+F40:    1 <= n & n <= len zij;
+F1:     1 <= 1+((i-'1)*8+(j-'1)*32) by NAT_1:11;
+F2:     1+(i-'1)*8+(j-'1)*32 <= 1+(i-'1)*8+(j-'1)*32+7 by NAT_1:11;
+F5:     n <= (1+(i-'1)*8+(j-'1)*32+7)-(1+(i-'1)*8+(j-'1)*32)+1 by F40,P11;
+        reconsider k = n+((i-'1)*8+(j-'1)*32) as Nat;
+A6:     k = n-1+(1+(i-'1)*8+(j-'1)*32);
+        n <= n+((i-'1)*8+(j-'1)*32) by NAT_1:11;
+        then
+H1:     1 <= k by F40,XXREAL_0:2;
+        reconsider k = n+((i-'1)*8+(j-'1)*32) as Nat;
+H3:     k <= 8+((i-'1)*8+(j-'1)*32) by F40,P11,XREAL_1:7;
+        then
+H2:     k <= 128 by Q135,XXREAL_0:2;
+        then k in Seg 128 by H1;
+        then consider i0,j0,n0 be Nat,
+        zi0j0 be Element of (8-tuples_on BOOLEAN) such that
+AA1:    i0 in Seg 4 & j0 in Seg 4 & n0 in Seg 8 & 1+(i0-'1)*8+(j0-'1)*32 <= k &
+        k <= 1+(i0-'1)*8+(j0-'1)*32+7 & n0 = k-((i0-'1)*8+(j0-'1)*32) &
+        zi0j0 = (z.i0).j0 & x.k = zi0j0.n0 by Q13;
+        1+((i-'1)*8+(j-'1)*32) <= n+((i-'1)*8+(j-'1)*32) by F40,XREAL_1:7;
+        then 1+(i-'1)*8+(j-'1)*32 <= k & k <= 1+(i-'1)*8+(j-'1)*32+7 by H3;
+        then i = i0 & j = j0 by LMStat2,AA1,P21,H1,H2;
+        hence zij.n = (mid (x,1+(i-'1)*8+(j-'1)*32,1+(i-'1)*8+(j-'1)*32+7)).n
+        by AA1,F1,F2,F3,F40,F5,A6,FINSEQ_6:122;
+      end;
+      hence thesis by FINSEQ_1:def 17,P11,P13;
+    end;
+    (AES-Statearray.x) in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+P3: ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+    st (AES-Statearray.x) = s & len s = 4;
+    now let i be Nat;
+      assume 1 <= i & i <= len (AES-Statearray.x);
+      then
+P6:   i in Seg 4 by P3;
+      then i in dom(AES-Statearray.x) by FINSEQ_1:def 3,P3;
+      then (AES-Statearray.x).i in rng (AES-Statearray.x) by FUNCT_1:3;
+      then (AES-Statearray.x).i in 4-tuples_on (8-tuples_on BOOLEAN);
+      then
+P8:   ex s be Element of (8-tuples_on BOOLEAN)*
+      st (AES-Statearray.x).i = s & len s = 4;
+      reconsider H1i = (AES-Statearray.x).i as
+      Element of (8-tuples_on BOOLEAN)* by P8;
+      i in dom z by FINSEQ_1:def 3,B10,P6;
+      then z.i in rng z by FUNCT_1:3;
+      then z.i in 4-tuples_on (8-tuples_on BOOLEAN);
+      then
+P11:  ex s be Element of (8-tuples_on BOOLEAN)*
+      st z.i = s & len s = 4;
+      reconsider H2i = z.i as Element of (8-tuples_on BOOLEAN)* by P11;
+      now let j be Nat;
+        assume 1 <= j & j <= len H1i;
+        then
+P14:    j in Seg 4 by P8;
+        then ((AES-Statearray.x).i).j = mid (x,1+(i-'1)*8+(j-'1)*32,
+        1+(i-'1)*8+(j-'1)*32+7) by DefStatearray,P6;
+        hence H1i.j = H2i.j by P2,P6,P14;
+      end;
+      hence (AES-Statearray.x).i = z.i by P8,P11,FINSEQ_1:def 17;
+    end;
+    hence thesis by P3,B10,FINSEQ_1:def 17;
+  end;
+  then 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) =
+  rng AES-Statearray by FUNCT_2:10;
+  hence thesis by FUNCT_2:def 3;
+end;
+
+registration
+  cluster AES-Statearray -> bijective;
+  correctness by LMStat1,LMStat3;
+end;
+
+theorem LMINV1:
+  for cipher be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds AES-Statearray.((AES-Statearray)".(cipher)) = cipher
+proof
+  let cipher be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  set f = AES-Statearray;
+L0: rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  by FUNCT_2:def 3;
+  then reconsider g = f" as Function of
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),128-tuples_on BOOLEAN
+  by FUNCT_2:25;
+L2: (f")*f = id (128-tuples_on BOOLEAN) & f*(f") =
+  id (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) by FUNCT_2:29,L0;
+  then g is one-to-one & rng g = 128-tuples_on BOOLEAN by FUNCT_2:18;
+  then f = g" by FUNCT_2:30,L2;
+  hence thesis by FUNCT_2:26;
+end;
+
+begin :: SubBytes
+
+reserve SBT for Permutation of (8-tuples_on BOOLEAN);
+
+definition
+  let SBT;
+  func SubBytes(SBT) ->
+  Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :DefSubBytes:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds for i,j be Nat st i in Seg 4 & j in Seg 4
+  holds ex inputij be Element of 8-tuples_on BOOLEAN
+  st inputij = (input.i).j & ((it.input).i).j = SBT.(inputij);
+  existence
+  proof
+    defpred P0[Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))] means
+    for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds ex inputij be Element of 8-tuples_on BOOLEAN
+    st inputij = ($1.i).j & ($2.i).j = SBT.(inputij);
+A1: for text being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[text,z]
+    proof
+      let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      text in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+Q01:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st text = s & len s = 4;
+      defpred P[Nat,set] means
+      ex zk be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+      st $2 = zk & for j be Nat st j in Seg 4
+      holds ex textij be Element of 8-tuples_on BOOLEAN
+      st textij = (text.$1).j & zk.j = SBT.(textij);
+Q1:   for k be Nat st k in Seg 4 ex zk being
+      Element of (4-tuples_on (8-tuples_on BOOLEAN)) st P[k,zk]
+      proof
+        let k be Nat;
+        assume k in Seg 4;
+        then k in dom text by Q01,FINSEQ_1:def 3;
+        then text.k in rng text by FUNCT_1:3;
+        then text.k in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+Q13:    ex s be Element of (8-tuples_on BOOLEAN)* st text.k = s & len s = 4;
+        then reconsider textk = text.k as Element of (8-tuples_on BOOLEAN)*;
+        defpred Pi[Nat,set] means
+        ex textij be Element of 8-tuples_on BOOLEAN st textij = (textk).$1 &
+        $2 = SBT.(textij);
+Q18:    for j be Nat st j in Seg 4 ex xi being Element of (8-tuples_on BOOLEAN)
+        st Pi[j,xi]
+        proof
+          let j be Nat;
+          assume j in Seg 4;
+          then j in dom(textk) by Q13,FINSEQ_1:def 3;
+          then (textk).j in rng (textk) by FUNCT_1:3;
+          then reconsider textkj = (textk).j as Element of 8-tuples_on BOOLEAN;
+          SBT.(textkj) = SBT.(textkj);
+          hence thesis;
+        end;
+        consider zk be FinSequence of (8-tuples_on BOOLEAN) such that
+Q22:    dom zk = Seg 4 & for j be Nat st j in Seg 4
+        holds Pi[j,zk.j] from FINSEQ_1:sch 5(Q18);
+Q23:    len zk = 4 by Q22,FINSEQ_1:def 3;
+        reconsider zk as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+        zk in 4-tuples_on (8-tuples_on BOOLEAN) by Q23;
+        then reconsider zk as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        for j be Nat st j in Seg 4 holds
+        ex textij be Element of 8-tuples_on BOOLEAN st textij = (textk).j &
+        zk.j = SBT.(textij) by Q22;
+        hence thesis;
+      end;
+      consider z be FinSequence of 4-tuples_on (8-tuples_on BOOLEAN) such that
+Q2:   dom z = Seg 4 & for i be Nat st i in Seg 4
+      holds P[i,z.i] from FINSEQ_1:sch 5(Q1);
+Q3:   len z = 4 by Q2,FINSEQ_1:def 3;
+      reconsider z as Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      by FINSEQ_1:def 11;
+      z in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by Q3;
+      then reconsider z as Element of
+      4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      take z;
+      for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+      ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+      (z.i).j = SBT.(textij)
+      proof
+        let i,j be Nat;
+        assume
+Q4:     i in Seg 4 & j in Seg 4;
+        then ex zi be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+        st z.i = zi & for j be Nat st j in Seg 4 holds
+        ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+        zi.j = SBT.(textij) by Q2;
+        hence ex textij be Element of 8-tuples_on BOOLEAN
+        st textij = (text.i).j & (z.i).j = SBT.(textij) by Q4;
+      end;
+      hence thesis;
+    end;
+    consider I be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2: for x being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let F1,F2 be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: for text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+    ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+    ((F1.text).i).j = SBT.(textij);
+    assume
+A2: for text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+    ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+    ((F2.text).i).j = SBT.(textij);
+    now let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      now let i,j be Nat;
+        assume
+A3:     i in Seg 4 & j in Seg 4;
+        then
+A4:     ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+        ((F1.text).i).j = SBT.(textij) by A1;
+A5:     ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+        ((F2.text).i).j = SBT.(textij) by A3,A2;
+        thus ((F1.text).i).j = ((F2.text).i).j by A4,A5;
+      end;
+      hence F1.text = F2.text by LM01;
+    end;
+    hence F1 = F2 by FUNCT_2:63;
+  end;
+end;
+
+definition
+  let SBT;
+  func InvSubBytes(SBT) ->
+  Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :DefInvSubBytes:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+  ex inputij be Element of 8-tuples_on BOOLEAN st inputij = (input.i).j &
+  ((it.input).i).j = (SBT").(inputij);
+  existence
+  proof
+    defpred P0[Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))] means
+    for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+    ex inputij be Element of 8-tuples_on BOOLEAN st inputij = ($1.i).j &
+    ($2.i).j = (SBT").(inputij);
+A1: for text being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[text,z]
+    proof
+      let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      text in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+Q01:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st text = s &
+      len s = 4;
+      defpred P[Nat,set] means
+      ex zk be Element of (4-tuples_on (8-tuples_on BOOLEAN)) st $2 = zk &
+      for j be Nat st j in Seg 4 holds
+      ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.$1).j &
+      zk.j = (SBT").(textij);
+Q1:   for k be Nat st k in Seg 4
+      ex zk being Element of (4-tuples_on (8-tuples_on BOOLEAN)) st P[k,zk]
+      proof
+        let k be Nat;
+        assume k in Seg 4;
+        then k in dom text by Q01,FINSEQ_1:def 3;
+        then text.k in rng text by FUNCT_1:3;
+        then text.k in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+Q13:    ex s be Element of (8-tuples_on BOOLEAN)* st text.k = s & len s = 4;
+        then reconsider textk = text.k as Element of (8-tuples_on BOOLEAN)*;
+        defpred Pi[Nat,set] means
+        ex textij be Element of 8-tuples_on BOOLEAN st textij = (textk).$1 &
+        $2 = (SBT").(textij);
+Q18:    for j be Nat st j in Seg 4 ex xi being Element of (8-tuples_on BOOLEAN)
+        st Pi[j,xi]
+        proof
+          let j be Nat;
+          assume j in Seg 4;
+          then j in dom(textk) by Q13,FINSEQ_1:def 3;
+          then (textk).j in rng (textk) by FUNCT_1:3;
+          then reconsider textkj = (textk).j as Element of 8-tuples_on BOOLEAN;
+          (SBT").(textkj) = (SBT").(textkj);
+          hence thesis;
+        end;
+        consider zk be FinSequence of (8-tuples_on BOOLEAN) such that
+Q22:    dom zk = Seg 4 & for j be Nat st j in Seg 4
+        holds Pi[j,zk.j ] from FINSEQ_1:sch 5(Q18);
+Q23:    len zk = 4 by Q22,FINSEQ_1:def 3;
+        reconsider zk as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+        zk in 4-tuples_on (8-tuples_on BOOLEAN) by Q23;
+        then reconsider zk as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        for j be Nat st j in Seg 4 holds
+        ex textij be Element of 8-tuples_on BOOLEAN st textij = (textk).j &
+        zk.j = (SBT").(textij) by Q22;
+        hence thesis;
+      end;
+      consider z be FinSequence of 4-tuples_on (8-tuples_on BOOLEAN) such that
+Q2:   dom z = Seg 4 & for i be Nat st i in Seg 4
+      holds P[i,z.i] from FINSEQ_1:sch 5(Q1);
+Q3:   len z = 4 by Q2,FINSEQ_1:def 3;
+      reconsider z as Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      by FINSEQ_1:def 11;
+      z in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by Q3;
+      then reconsider z as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      take z;
+      for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+      ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+      (z.i).j = (SBT").(textij)
+      proof
+        let i,j be Nat;
+        assume
+Q4:     i in Seg 4 & j in Seg 4;
+        then ex zi be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+        st z.i = zi & for j be Nat st j in Seg 4 holds
+        ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+        zi.j = (SBT").(textij) by Q2;
+        hence ex textij be Element of 8-tuples_on BOOLEAN
+        st textij = (text.i).j & (z.i).j = (SBT").(textij) by Q4;
+      end;
+      hence thesis;
+    end;
+    consider I be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2: for x being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let F1,F2 be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: for text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+    ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+    ((F1.text).i).j = (SBT").(textij);
+    assume
+A2: for text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+    ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+    ((F2.text).i).j = (SBT").(textij);
+    now let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      now let i,j be Nat;
+        assume
+A3:     i in Seg 4 & j in Seg 4;
+        then
+A4:     ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+        ((F1.text).i).j = (SBT").(textij) by A1;
+A5:     ex textij be Element of 8-tuples_on BOOLEAN st textij = (text.i).j &
+        ((F2.text).i).j = (SBT").(textij) by A3,A2;
+        thus ((F1.text).i).j = ((F2.text).i).j by A4,A5;
+      end;
+      hence F1.text = F2.text by LM01;
+    end;
+    hence F1 = F2 by FUNCT_2:63;
+  end;
+end;
+
+INV07A:
+  for input be Element of 8-tuples_on BOOLEAN
+  holds (SBT").(SBT.(input)) = input
+proof
+  let input be Element of 8-tuples_on BOOLEAN;
+  thus (SBT").(SBT.(input)) = ((SBT")*SBT).input by FUNCT_2:15
+    .= (id (8-tuples_on BOOLEAN)).input by FUNCT_2:61
+    .= input;
+end;
+
+INV08A:
+  for input be Element of 8-tuples_on BOOLEAN
+  holds SBT.((SBT").(input)) = input
+proof
+  let input be Element of 8-tuples_on BOOLEAN;
+  thus SBT.((SBT").(input)) = (SBT*(SBT")).input by FUNCT_2:15
+    .= (id (8-tuples_on BOOLEAN)).input by FUNCT_2:61
+    .= input;
+end;
+
+theorem INV07:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds (InvSubBytes(SBT)).((SubBytes(SBT)).input) = input
+proof
+  let input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  now let i,j be Nat;
+    assume
+A3: i in Seg 4 & j in Seg 4;
+    then consider outputij be Element of 8-tuples_on BOOLEAN such that
+A4: outputij = (((SubBytes(SBT)).input).i).j &
+    (((InvSubBytes(SBT)).((SubBytes(SBT)).input)).i).j = (SBT").(outputij)
+    by DefInvSubBytes;
+    consider inputij be Element of 8-tuples_on BOOLEAN such that
+A5: inputij = (input.i).j & (((SubBytes(SBT)).input).i).j = SBT.(inputij)
+    by DefSubBytes,A3;
+    thus (((InvSubBytes(SBT)).((SubBytes(SBT)).input)).i).j = (input.i).j
+    by A4,A5,INV07A;
+  end;
+  hence (InvSubBytes(SBT)).((SubBytes(SBT)).input) = input by LM01;
+end;
+
+theorem INV08:
+  for output be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds (SubBytes(SBT)).((InvSubBytes(SBT)).output) = output
+proof
+  let input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  now let i,j be Nat;
+    assume
+A3: i in Seg 4 & j in Seg 4;
+    then consider outputij be Element of 8-tuples_on BOOLEAN such that
+A4: outputij = (((InvSubBytes(SBT)).input).i).j &
+    (((SubBytes(SBT)).((InvSubBytes(SBT)).input)).i).j = SBT.(outputij)
+    by DefSubBytes;
+    consider inputij be Element of 8-tuples_on BOOLEAN such that
+A5: inputij = (input.i).j &
+    (((InvSubBytes(SBT)).input).i).j = (SBT").(inputij) by DefInvSubBytes,A3;
+    thus (((SubBytes(SBT)).((InvSubBytes(SBT)).input)).i).j = (input.i).j
+    by A4,A5,INV08A;
+  end;
+  hence (SubBytes(SBT)).((InvSubBytes(SBT)).input) = input by LM01;
+end;
+
+theorem
+  SubBytes(SBT) is one-to-one & SubBytes(SBT) is onto &
+  InvSubBytes(SBT) is one-to-one & InvSubBytes(SBT) is onto &
+  InvSubBytes(SBT) = (SubBytes(SBT))" & SubBytes(SBT) = (InvSubBytes(SBT))"
+proof
+  set f = SubBytes(SBT);
+  set g = InvSubBytes(SBT);
+P1: for x be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds g.(f.x) = x by INV07;
+P2: for y be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds f.(g.y) = y by INV08;
+  thus f is one-to-one & f is onto & g is one-to-one & g is onto &
+  g = f" & f = g" by INV00,P1,P2;
+end;
+
+begin :: ShiftRows
+
+definition
+  func ShiftRows ->
+  Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :DefShiftRows:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds (for i be Nat st i in Seg 4 holds
+  ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+  (it.input).i = Op-Shift(xi,5-i));
+  existence
+  proof
+    defpred P0[Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))] means
+    for i be Nat st i in Seg 4 holds
+    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = $1.i &
+    $2.i = Op-Shift(xi,5-i);
+A1: for x being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[x,z]
+    proof
+      let x be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      x in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+Q01:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st x = s &
+      len s = 4;
+      defpred P[Nat,set] means
+      ex xk be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xk = x.$1 &
+      $2 = Op-Shift(xk,5-$1);
+Q1:   for k be Nat st k in Seg 4
+      ex zk being Element of (4-tuples_on (8-tuples_on BOOLEAN)) st P[k,zk]
+      proof
+        let k be Nat;
+        assume k in Seg 4;
+        then k in dom x by Q01,FINSEQ_1:def 3;
+        then
+Q11:    x.k in rng x by FUNCT_1:3;
+        then x.k in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+Q13:    ex s be Element of (8-tuples_on BOOLEAN)* st x.k = s & len s = 4;
+        then reconsider xk = x.k as Element of (8-tuples_on BOOLEAN)*;
+        reconsider xk1 = xk as Element of 4-tuples_on (8-tuples_on BOOLEAN)
+        by Q11;
+        reconsider zk = Op-Shift(xk,5-k) as
+        FinSequence of (8-tuples_on BOOLEAN);
+Q15:    len zk = 4 by Q13,DESCIP_1:def 3;
+        reconsider zk as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+        zk in 4-tuples_on (8-tuples_on BOOLEAN) by Q15;
+        then reconsider zk as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        ex xk be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xk = x.k &
+        zk = Op-Shift(xk1,5-k);
+        hence thesis;
+      end;
+      consider z be FinSequence of 4-tuples_on (8-tuples_on BOOLEAN) such that
+Q2:   dom z = Seg 4 & for i be Nat st i in Seg 4
+      holds P[i,z.i] from FINSEQ_1:sch 5(Q1);
+Q3:   len z = 4 by Q2,FINSEQ_1:def 3;
+      reconsider z as Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      by FINSEQ_1:def 11;
+      z in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by Q3;
+      hence thesis by Q2;
+    end;
+    consider I be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2: for x being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds (for i be Nat st i in Seg 4 holds
+    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+    (H1.input).i = Op-Shift(xi,5-i));
+    assume
+A2: for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds (for i be Nat st i in Seg 4 holds
+    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+    (H2.input).i = Op-Shift(xi,5-i));
+    now let input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      H1.input in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+P3:   ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))* st H1.input = s &
+      len s = 4;
+      H2.input in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+P4:   ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))* st H2.input = s &
+      len s = 4;
+      now let i be Nat;
+        assume 1 <= i & i <= len (H1.input);
+        then
+XX2:    i in Seg 4 by P3;
+        then
+XX3:    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+        st xi = input.i & (H1.input).i = Op-Shift(xi,5-i) by A1;
+XX4:    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+        st xi = input.i & (H2.input).i = Op-Shift(xi,5-i) by A2,XX2;
+        thus (H1.input).i = (H2.input).i by XX3,XX4;
+      end;
+      hence H1.input = H2.input by P3,P4,FINSEQ_1:14;
+    end;
+    hence H1 = H2 by FUNCT_2:63;
+  end;
+end;
+
+definition
+  func InvShiftRows ->
+  Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :DefInvShiftRows:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds (for i be Nat st i in Seg 4 holds
+  ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+  (it.input).i = Op-Shift(xi,i-1));
+  existence
+  proof
+    defpred P0[Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))] means
+    for i be Nat st i in Seg 4 holds
+    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = $1.i &
+    $2.i = Op-Shift(xi,i-1);
+A1: for x being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[x,z]
+    proof
+      let x be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      x in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+Q01:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st x = s &
+      len s = 4;
+      defpred P[Nat,set] means
+      ex xk be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xk = x.$1 &
+      $2 = Op-Shift(xk,$1-1);
+Q1:   for k be Nat st k in Seg 4
+      ex zk being Element of (4-tuples_on (8-tuples_on BOOLEAN)) st P[k,zk]
+      proof
+        let k be Nat;
+        assume k in Seg 4;
+        then k in dom x by Q01,FINSEQ_1:def 3;
+        then
+Q11:    x.k in rng x by FUNCT_1:3;
+        then x.k in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+Q13:    ex s be Element of (8-tuples_on BOOLEAN)* st x.k = s & len s = 4;
+        then reconsider xk = x.k as Element of (8-tuples_on BOOLEAN)*;
+        reconsider xk1 = xk as Element of 4-tuples_on (8-tuples_on BOOLEAN)
+        by Q11;
+        reconsider zk = Op-Shift(xk,k-1) as
+        FinSequence of (8-tuples_on BOOLEAN);
+Q15:    len zk = 4 by Q13,DESCIP_1:def 3;
+        reconsider zk as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+        zk in 4-tuples_on (8-tuples_on BOOLEAN) by Q15;
+        then reconsider zk as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        ex xk be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xk = x.k &
+        zk = Op-Shift(xk1,k-1);
+        hence thesis;
+      end;
+      consider z be FinSequence of 4-tuples_on (8-tuples_on BOOLEAN) such that
+Q2:   dom z = Seg 4 & for i be Nat st i in Seg 4 holds
+      P[i,z.i] from FINSEQ_1:sch 5(Q1);
+Q3:   len z = 4 by Q2,FINSEQ_1:def 3;
+      reconsider z as Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      by FINSEQ_1:def 11;
+      z in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by Q3;
+      hence thesis by Q2;
+    end;
+    consider I be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2: for x being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds (for i be Nat st i in Seg 4 holds
+    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+    (H1.input).i = Op-Shift(xi,i-1));
+    assume
+A2: for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds (for i be Nat st i in Seg 4 holds
+    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+    (H2.input).i = Op-Shift(xi,i-1));
+    now let input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      H1.input in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+P3:   ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))* st H1.input = s &
+      len s = 4;
+      H2.input in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+P4:   ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))* st H2.input = s &
+      len s = 4;
+      now let i be Nat;
+        assume 1 <= i & i <= len (H1.input);
+        then
+XX2:    i in Seg 4 by P3;
+        then
+XX3:    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+        (H1.input).i = Op-Shift(xi,i-1) by A1;
+XX4:    ex xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) st xi = input.i &
+        (H2.input).i = Op-Shift(xi,i-1) by A2,XX2;
+        thus (H1.input).i = (H2.input).i by XX3,XX4;
+      end;
+      hence H1.input = H2.input by P3,P4,FINSEQ_1:14;
+    end;
+    hence H1 = H2 by FUNCT_2:63;
+  end;
+end;
+
+theorem INV04:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds InvShiftRows.(ShiftRows.input) = input
+proof
+  let input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  InvShiftRows.(ShiftRows.input) in
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  then
+P3: ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))*
+  st InvShiftRows.(ShiftRows.input) = s & len s = 4;
+  input in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  then
+P4: ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))*
+  st input = s & len s = 4;
+  now let i be Nat;
+    assume 1 <= i & i <= len (InvShiftRows.(ShiftRows.input));
+    then
+XX2: i in Seg 4 by P3;
+    then consider xi be Element of 4-tuples_on (8-tuples_on BOOLEAN) such that
+XX3: xi = input.i & (ShiftRows.input).i = Op-Shift(xi,5-i) by DefShiftRows;
+    xi in 4-tuples_on (8-tuples_on BOOLEAN);
+    then
+YY1: ex s be Element of (8-tuples_on BOOLEAN)* st xi = s & len s = 4;
+    consider yi be Element of 4-tuples_on (8-tuples_on BOOLEAN) such that
+XX4: yi = (ShiftRows.input).i &
+    (InvShiftRows.(ShiftRows.input)).i = Op-Shift(yi,i-1)
+    by DefInvShiftRows,XX2;
+    thus (InvShiftRows.(ShiftRows.input)).i = Op-Shift(xi,5-i+(i-1))
+    by XX3,XX4,DESCIP_1:10,YY1
+      .= input.i by DESCIP_1:12,YY1,XX3;
+  end;
+  hence (InvShiftRows.(ShiftRows.input)) = input by P3,P4,FINSEQ_1:14;
+end;
+
+theorem INV05:
+  for output be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds ShiftRows.(InvShiftRows.output) = output
+proof
+  let output be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  ShiftRows.(InvShiftRows.output) in
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  then
+P3: ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))*
+  st ShiftRows.(InvShiftRows.output) = s & len s = 4;
+  output in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  then
+P4: ex s be Element of (4-tuples_on(8-tuples_on BOOLEAN))*
+  st output = s & len s = 4;
+  now let i be Nat;
+    assume 1 <= i & i <= len (ShiftRows.(InvShiftRows.output));
+    then
+XX2: i in Seg 4 by P3;
+    then consider xi be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+    such that
+XX3: xi = output.i &
+    (InvShiftRows.output).i = Op-Shift(xi,i-1) by DefInvShiftRows;
+    xi in 4-tuples_on (8-tuples_on BOOLEAN);
+    then
+YY1: ex s be Element of (8-tuples_on BOOLEAN)* st xi = s & len s = 4;
+    consider yi be Element of 4-tuples_on (8-tuples_on BOOLEAN) such that
+XX4: yi = (InvShiftRows.output).i &
+    (ShiftRows.(InvShiftRows.output)).i = Op-Shift(yi,5-i) by DefShiftRows,XX2;
+    thus (ShiftRows.(InvShiftRows.output)).i = Op-Shift(xi,i-1+(5-i))
+    by XX3,XX4,DESCIP_1:10,YY1
+      .= output.i by DESCIP_1:12,YY1,XX3;
+  end;
+  hence (ShiftRows.(InvShiftRows.output)) = output by P3,P4,FINSEQ_1:14;
+end;
+
+theorem
+  ShiftRows is one-to-one & ShiftRows is onto &
+  InvShiftRows is one-to-one & InvShiftRows is onto &
+  InvShiftRows = (ShiftRows)" & ShiftRows = (InvShiftRows)"
+  by INV00,INV04,INV05;
+
+begin :: AddRoundKey
+
+definition
+  func AddRoundKey ->
+  Function of [:4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)):],
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :DefAddRoundKey:
+  for text, key be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds for i,j be Nat st i in Seg 4 & j in Seg 4
+  holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+  st textij = (text.i).j & keyij = (key.i).j &
+  ((it.(text,key)).i).j = Op-XOR(textij,keyij);
+  existence
+  proof
+    defpred P0[Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))] means
+    for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+    st textij = ($1.i).j & keyij = ($2.i).j & ($3.i).j = Op-XOR(textij,keyij);
+A1: for text,key
+    being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[text,key,z]
+    proof
+      let text, key
+      be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      text in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+Q01:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st text = s & len s = 4;
+      key in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      then
+Q02:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st key = s & len s = 4;
+      defpred P[Nat,set] means
+      ex zk be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+      st $2 = zk & for j be Nat st j in Seg 4
+      holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+      st textij = (text.$1).j & keyij = (key.$1).j &
+      zk.j = Op-XOR(textij,keyij);
+Q1:   for k be Nat st k in Seg 4 ex zk being
+      Element of (4-tuples_on (8-tuples_on BOOLEAN)) st P[k,zk]
+      proof
+        let k be Nat;
+        assume
+Q11:    k in Seg 4;
+        then k in dom text by Q01,FINSEQ_1:def 3;
+        then text.k in rng text by FUNCT_1:3;
+        then text.k in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+Q13:    ex s be Element of (8-tuples_on BOOLEAN)*
+        st text.k = s & len s = 4;
+        then reconsider textk = text.k as Element of (8-tuples_on BOOLEAN)*;
+        k in dom(key) by Q02,FINSEQ_1:def 3,Q11;
+        then key.k in rng key by FUNCT_1:3;
+        then key.k in 4-tuples_on (8-tuples_on BOOLEAN);
+        then
+Q16:    ex s be Element of (8-tuples_on BOOLEAN)*
+        st key.k = s & len s = 4;
+        then reconsider keyk = key.k as Element of (8-tuples_on BOOLEAN)*;
+        defpred Pi[Nat,set] means
+        ex textij,keyij be Element of 8-tuples_on BOOLEAN
+        st textij = (textk).$1 & keyij = (keyk).$1 & $2 = Op-XOR(textij,keyij);
+Q18:    for j be Nat st j in Seg 4 ex xi being Element of (8-tuples_on BOOLEAN)
+        st Pi[j,xi]
+        proof
+          let j be Nat;
+          assume
+Q19:      j in Seg 4;
+          then j in dom(textk) by Q13,FINSEQ_1:def 3;
+          then (textk).j in rng (textk) by FUNCT_1:3;
+          then reconsider textkj = (textk).j as Element of 8-tuples_on BOOLEAN;
+          j in dom(keyk) by Q16,FINSEQ_1:def 3,Q19;
+          then (keyk).j in rng (keyk) by FUNCT_1:3;
+          then reconsider keykj = (key.k).j as Element of 8-tuples_on BOOLEAN;
+          Op-XOR(textkj,keykj) = Op-XOR(textkj,keykj);
+          hence thesis;
+        end;
+        consider zk be FinSequence of (8-tuples_on BOOLEAN) such that
+Q22:    dom zk = Seg 4 & for j be Nat st j in Seg 4
+        holds Pi[j,zk.j] from FINSEQ_1:sch 5(Q18);
+Q23:    len zk = 4 by Q22,FINSEQ_1:def 3;
+        reconsider zk as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+        zk in 4-tuples_on (8-tuples_on BOOLEAN) by Q23;
+        then reconsider zk as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        for j be Nat st j in Seg 4
+        holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+        st textij = (textk).j & keyij = (keyk).j & zk.j = Op-XOR(textij,keyij)
+        by Q22;
+        hence thesis;
+      end;
+      consider z be FinSequence of 4-tuples_on (8-tuples_on BOOLEAN) such that
+Q2:   dom z = Seg 4 & for i be Nat st i in Seg 4
+      holds P[i,z.i] from FINSEQ_1:sch 5(Q1);
+Q3:   len z = 4 by Q2,FINSEQ_1:def 3;
+      reconsider z as Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      by FINSEQ_1:def 11;
+      z in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by Q3;
+      then reconsider z as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      take z;
+      for i,j be Nat st i in Seg 4 & j in Seg 4 holds
+      ex textij,keyij be Element of 8-tuples_on BOOLEAN st textij =
+      (text.i).j & keyij = (key.i).j & (z.i).j = Op-XOR(textij,keyij)
+      proof
+        let i,j be Nat;
+        assume
+Q4:     i in Seg 4 & j in Seg 4;
+        then ex zi be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+        st z.i = zi & for j be Nat st j in Seg 4
+        holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+        st textij = (text.i).j & keyij = (key.i).j &
+        zi.j = Op-XOR(textij,keyij) by Q2;
+        hence ex textij,keyij be Element of 8-tuples_on BOOLEAN
+        st textij = (text.i).j & keyij = (key.i).j &
+        (z.i).j = Op-XOR(textij,keyij) by Q4;
+      end;
+      hence thesis;
+    end;
+    consider I be Function of [:4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)):],
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2: for x,y being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,y,I.(x,y)] from BINOP_1:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let F1,F2 be Function of [:4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)):],
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: for text,key be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+    st textij = (text.i).j & keyij = (key.i).j &
+    ((F1.(text,key)).i).j = Op-XOR(textij,keyij);
+    assume
+A2: for text,key be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds for i,j be Nat st i in Seg 4 & j in Seg 4
+    holds ex textij,keyij be Element of 8-tuples_on BOOLEAN
+    st textij = (text.i).j & keyij = (key.i).j &
+    ((F2.(text,key)).i).j = Op-XOR(textij,keyij);
+    now let text,key be
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      now let i,j be Nat;
+        assume
+A3:     i in Seg 4 & j in Seg 4;
+        then
+A4:     ex textij,keyij be Element of 8-tuples_on BOOLEAN
+        st textij = (text.i).j & keyij = (key.i).j &
+        ((F1.(text,key)).i).j = Op-XOR(textij,keyij) by A1;
+A5:     ex textij,keyij be Element of 8-tuples_on BOOLEAN
+        st textij = (text.i).j & keyij = (key.i).j &
+        ((F2.(text,key)).i).j = Op-XOR(textij,keyij) by A3,A2;
+        thus ((F1.(text,key)).i).j = ((F2.(text,key)).i).j by A4,A5;
+      end;
+      hence F1.(text,key) = F2.(text,key) by LM01;
+    end;
+    hence F1 = F2 by BINOP_1:2;
+  end;
+end;
+
+begin :: Key Expansion
+
+definition
+  let SBT;
+  let x be Element of 4-tuples_on (8-tuples_on BOOLEAN);
+  func SubWord(SBT,x) -> Element of 4-tuples_on (8-tuples_on BOOLEAN) means
+  for i be Element of Seg 4 holds it.i = SBT.(x.i);
+  existence
+  proof
+    defpred P[Nat,set] means ex xi be Element of 8-tuples_on BOOLEAN
+    st xi = x.$1 & $2 = SBT.(xi);
+P1: for k be Nat st k in Seg 4 ex z being Element of 8-tuples_on BOOLEAN
+    st P[k,z]
+    proof
+      let k be Nat;
+      assume
+AS:   k in Seg 4;
+      x in 4-tuples_on (8-tuples_on BOOLEAN);
+      then ex s be Element of (8-tuples_on BOOLEAN)* st x = s & len s = 4;
+      then k in dom x by FINSEQ_1:def 3,AS;
+      then x.k in rng x by FUNCT_1:3;
+      then reconsider xk = x.k as Element of 8-tuples_on BOOLEAN;
+      SBT.(xk) is Element of 8-tuples_on BOOLEAN;
+      hence thesis;
+    end;
+    consider p being FinSequence of 8-tuples_on BOOLEAN such that
+P3: dom p = Seg 4 & for k be Nat st k in Seg 4 holds
+    P[k,p.k] from FINSEQ_1:sch 5(P1);
+    reconsider p as Element of (8-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+    len p = 4 by P3,FINSEQ_1:def 3;
+    then p in 4-tuples_on (8-tuples_on BOOLEAN);
+    then reconsider p as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+    take p;
+    now let i be Element of Seg 4;
+      ex xi be Element of 8-tuples_on BOOLEAN st xi = x.i & p.i = SBT.(xi)
+      by P3;
+      hence p.i = SBT.(x.i);
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Element of 4-tuples_on (8-tuples_on BOOLEAN);
+    assume
+A1: for i be Element of Seg 4 holds H1.i = SBT.(x.i);
+    assume
+A2: for i be Element of Seg 4 holds H2.i = SBT.(x.i);
+    H1 in 4-tuples_on (8-tuples_on BOOLEAN);
+    then
+P1: ex s be Element of (8-tuples_on BOOLEAN)* st H1 = s & len s = 4;
+    H2 in 4-tuples_on (8-tuples_on BOOLEAN);
+    then
+P2: ex s be Element of (8-tuples_on BOOLEAN)* st H2 = s & len s = 4;
+    now let i be Nat;
+      assume 1 <= i & i <= len H1;
+      then i in Seg 4 by P1;
+      then reconsider j = i as Element of Seg 4;
+      thus H1.i = (SBT).(x.j) by A1
+        .= H2.i by A2;
+    end;
+    hence H1 = H2 by P1,P2,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  let x be Element of 4-tuples_on (8-tuples_on BOOLEAN);
+  func RotWord(x) -> Element of 4-tuples_on (8-tuples_on BOOLEAN) equals
+  Op-LeftShift(x);
+  correctness by DESCIP_1:6;
+end;
+
+definition
+  let n,m be non zero Element of NAT;
+  let s,t be Element of m-tuples_on (n-tuples_on BOOLEAN);
+  func Op-WXOR(s,t) -> Element of m-tuples_on (n-tuples_on BOOLEAN) means
+  for i be Element of Seg m holds it.i = Op-XOR(s.i,t.i);
+  existence
+  proof
+    defpred P[Nat,set] means
+    ex si,ti be Element of (n-tuples_on BOOLEAN) st si = s.$1 & ti = t.$1 &
+    $2 = Op-XOR(si,ti);
+P1: for k be Nat st k in Seg m ex z being Element of n-tuples_on BOOLEAN
+    st P[k,z]
+    proof
+      let k be Nat;
+      assume
+AS:   k in Seg m;
+      s in m-tuples_on (n-tuples_on BOOLEAN);
+      then ex v be Element of (n-tuples_on BOOLEAN)* st s = v & len v = m;
+      then k in dom s by FINSEQ_1:def 3,AS;
+      then s.k in rng s by FUNCT_1:3;
+      then reconsider sk = s.k as Element of n-tuples_on BOOLEAN;
+      t in m-tuples_on (n-tuples_on BOOLEAN);
+      then ex v be Element of (n-tuples_on BOOLEAN)* st t = v & len v = m;
+      then k in dom t by FINSEQ_1:def 3,AS;
+      then t.k in rng t by FUNCT_1:3;
+      then reconsider tk = t.k as Element of n-tuples_on BOOLEAN;
+      Op-XOR(sk,tk) is Element of n-tuples_on BOOLEAN;
+      hence thesis;
+    end;
+    consider p being FinSequence of n-tuples_on BOOLEAN such that
+P3: dom p = Seg m & for k be Nat st k in Seg m holds P[k,p.k]
+    from FINSEQ_1:sch 5(P1);
+P4: len p = m by P3,FINSEQ_1:def 3;
+    p in (n-tuples_on BOOLEAN)* by FINSEQ_1:def 11;
+    then p in m-tuples_on (n-tuples_on BOOLEAN) by P4;
+    then reconsider p as Element of m-tuples_on (n-tuples_on BOOLEAN);
+    take p;
+    now let i be Element of Seg m;
+      ex si,ti be Element of n-tuples_on BOOLEAN st si = s.i & ti = t.i &
+      p.i = Op-XOR(si,ti) by P3;
+      hence p.i = Op-XOR(s.i,t.i);
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Element of m-tuples_on (n-tuples_on BOOLEAN);
+    assume
+A1: for i be Element of Seg m holds H1.i = Op-XOR(s.i,t.i);
+    assume
+A2: for i be Element of Seg m holds H2.i = Op-XOR(s.i,t.i);
+    H1 in m-tuples_on (n-tuples_on BOOLEAN);
+    then
+P1: ex v be Element of (n-tuples_on BOOLEAN)* st H1 = v & len v = m;
+    H2 in m-tuples_on (n-tuples_on BOOLEAN);
+    then
+P2: ex v be Element of (n-tuples_on BOOLEAN)* st H2 = v & len v = m;
+    now let i be Nat;
+      assume 1 <= i & i <= len H1;
+      then i in Seg m by P1;
+      then reconsider j = i as Element of Seg m;
+      thus H1.i = Op-XOR(s.j,t.j) by A1
+        .= H2.i by A2;
+    end;
+    hence H1 = H2 by P1,P2,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  func Rcon -> Element of 10-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+  means
+  it.1 = <* <*0,0,0,0*>^<*0,0,0,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.2 = <* <*0,0,0,0*>^<*0,0,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.3 = <* <*0,0,0,0*>^<*0,1,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.4 = <* <*0,0,0,0*>^<*1,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.5 = <* <*0,0,0,1*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.6 = <* <*0,0,1,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.7 = <* <*0,1,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.8 = <* <*1,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.9 = <* <*0,0,0,1*>^<*1,0,1,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+  it.10 = <* <*0,0,1,1*>^<*0,1,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *>;
+  existence
+  proof
+X0: 0 in BOOLEAN by TARSKI:def 2,MARGREL1:def 11;
+X1: 1 in BOOLEAN by TARSKI:def 2,MARGREL1:def 11;
+P1: <*0,0,0,0*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0;
+P2: <*0,0,0,1*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+P3: <*0,0,1,0*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+P4: <*0,1,0,0*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+P5: <*1,0,0,0*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+R1: <*1,0,1,1*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+R2: <*0,0,1,1*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+R3: <*0,1,1,0*> is Element of (4-tuples_on BOOLEAN) by LMGSEQ4,X0,X1;
+    reconsider PP6 = <* <*0,0,0,0*>^<*0,0,0,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P2,LMGSEQ16;
+    reconsider PP7 = <* <*0,0,0,0*>^<*0,0,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P3,LMGSEQ16;
+    reconsider PP8 = <* <*0,0,0,0*>^<*0,1,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P4,LMGSEQ16;
+    reconsider PP9 = <* <*0,0,0,0*>^<*1,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P5,LMGSEQ16;
+    reconsider PP10 = <* <*0,0,0,1*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P2,LMGSEQ16;
+    reconsider PP11 = <* <*0,0,1,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P3,LMGSEQ16;
+    reconsider PP12 = <* <*0,1,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P4,LMGSEQ16;
+    reconsider PP13 = <* <*1,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P5,LMGSEQ16;
+    reconsider PP14 = <* <*0,0,0,1*>^<*1,0,1,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,P2,R1,LMGSEQ16;
+    reconsider PP15 = <* <*0,0,1,1*>^<*0,1,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> as
+    Element of 4-tuples_on (8-tuples_on BOOLEAN) by P1,R2,R3,LMGSEQ16;
+    reconsider Q0 = <*PP6,PP7,PP8,PP9,PP10*> as FinSequence;
+    reconsider Q1 = <*PP11,PP12,PP13,PP14,PP15*> as FinSequence;
+    reconsider IT = Q0^Q1 as
+    Element of 10-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) by LMGSEQ10;
+A1: len Q0 = 5 & Q0.1 = PP6 & Q0.2 = PP7 & Q0.3 = PP8 & Q0.4 = PP9 &
+    Q0.5 = PP10 by FINSEQ_4:78;
+A2: len Q1 = 5 & Q1.1 = PP11 & Q1.2 = PP12 & Q1.3 = PP13 & Q1.4 = PP14 &
+    Q1.5 = PP15 by FINSEQ_4:78;
+    1 in Seg 5;
+    then 1 in dom Q0 by FINSEQ_1:def 3,A1;
+    then
+R1: IT.1 = PP6 by A1,FINSEQ_1:def 7;
+    2 in Seg 5;
+    then 2 in dom Q0 by FINSEQ_1:def 3,A1;
+    then
+R2: IT.2 = PP7 by A1,FINSEQ_1:def 7;
+    3 in Seg 5;
+    then 3 in dom Q0 by FINSEQ_1:def 3,A1;
+    then
+R3: IT.3 = PP8 by A1,FINSEQ_1:def 7;
+    4 in Seg 5;
+    then 4 in dom Q0 by FINSEQ_1:def 3,A1;
+    then
+R4: IT.4 = PP9 by A1,FINSEQ_1:def 7;
+    5 in Seg 5;
+    then 5 in dom Q0 by FINSEQ_1:def 3,A1;
+    then
+R5: IT.5 = PP10 by A1,FINSEQ_1:def 7;
+    1 in Seg 5;
+    then 1 in dom Q1 by FINSEQ_1:def 3,A2;
+    then
+R10: IT.(5+1) = Q1.1 by A1,FINSEQ_1:def 7
+      .= PP11 by FINSEQ_4:78;
+    2 in Seg 5;
+    then 2 in dom Q1 by FINSEQ_1:def 3,A2;
+    then
+R20: IT.(5+2) = Q1.2 by A1,FINSEQ_1:def 7
+      .= PP12 by FINSEQ_4:78;
+    3 in Seg 5;
+    then 3 in dom Q1 by FINSEQ_1:def 3,A2;
+    then
+R30: IT.(5+3) = Q1.3 by A1,FINSEQ_1:def 7
+      .= PP13 by FINSEQ_4:78;
+    4 in Seg 5;
+    then 4 in dom Q1 by FINSEQ_1:def 3,A2;
+    then
+R40: IT.(5+4) = Q1.4 by A1,FINSEQ_1:def 7
+      .= PP14 by FINSEQ_4:78;
+    5 in Seg 5;
+    then 5 in dom Q1 by FINSEQ_1:def 3,A2;
+    then
+R50: IT.(5+5) = Q1.5 by A1,FINSEQ_1:def 7
+      .= PP15 by FINSEQ_4:78;
+    thus thesis by R1,R2,R3,R4,R5,R10,R20,R30,R40,R50;
+  end;
+  uniqueness
+  proof
+    let R1,R2 be Element of 10-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A1: R1.1 = <* <*0,0,0,0*>^<*0,0,0,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.2 = <* <*0,0,0,0*>^<*0,0,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.3 = <* <*0,0,0,0*>^<*0,1,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.4 = <* <*0,0,0,0*>^<*1,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.5 = <* <*0,0,0,1*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.6 = <* <*0,0,1,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.7 = <* <*0,1,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.8 = <* <*1,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.9 = <* <*0,0,0,1*>^<*1,0,1,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R1.10 = <* <*0,0,1,1*>^<*0,1,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *>;
+    assume
+A2: R2.1 = <* <*0,0,0,0*>^<*0,0,0,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.2 = <* <*0,0,0,0*>^<*0,0,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.3 = <* <*0,0,0,0*>^<*0,1,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.4 = <* <*0,0,0,0*>^<*1,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.5 = <* <*0,0,0,1*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.6 = <* <*0,0,1,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.7 = <* <*0,1,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.8 = <* <*1,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.9 = <* <*0,0,0,1*>^<*1,0,1,1*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *> &
+    R2.10 = <* <*0,0,1,1*>^<*0,1,1,0*>,<*0,0,0,0*>^<*0,0,0,0*>,
+    <*0,0,0,0*>^<*0,0,0,0*>,<*0,0,0,0*>^<*0,0,0,0*> *>;
+    R1 in 10-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+    then
+XP1: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st R1 = v &
+    len v = 10;
+    R2 in 10-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+    then
+XP2: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st R2 = v &
+    len v = 10;
+    for i be Nat st 1 <= i & i <= len R1 holds R1.i = R2.i
+    proof
+      let i be Nat;
+      assume 1 <= i & i <= len R1;
+      then i = 1 or ... or i = 10 by XP1;
+      hence thesis by A1,A2;
+    end;
+    hence R1 = R2 by XP1,XP2,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  let SBT;
+  let m,i be Nat, w be Element of (4-tuples_on (8-tuples_on BOOLEAN));
+  assume AS: (m = 4 or m = 6 or m = 8) & i < 4*(7+m) & m <= i;
+  func KeyExTemp(SBT,m,i,w) -> Element of (4-tuples_on (8-tuples_on BOOLEAN))
+  means
+  (ex T3 be Element of (4-tuples_on (8-tuples_on BOOLEAN)) st T3 = Rcon.(i/m) &
+  it = Op-WXOR(SubWord(SBT,RotWord(w)),T3)) if ((i mod m) = 0),
+  (it = SubWord(SBT,w)) if (m = 8 & (i mod 8) = 4) otherwise it = w;
+  existence
+  proof
+    thus (i mod m) = 0 implies ex A
+    being Element of (4-tuples_on (8-tuples_on BOOLEAN))
+    st (ex T3 be Element of (4-tuples_on (8-tuples_on BOOLEAN))
+    st T3 = Rcon.(i/m) & A = Op-WXOR(SubWord(SBT,RotWord(w)),T3))
+    proof
+      assume
+A1:   (i mod m) = 0;
+      m <> 0 & m divides i by A1,INT_1:62,AS;
+      then
+LTT0: i/m is Integer by WSIERP_1:17;
+LTT1: (4*(7+m))/m = (28/m)+4 by AS;
+LTT2: m/m <= i/m by AS,XREAL_1:72;
+LTT4: i/m in NAT by INT_1:3,LTT0;
+LTT5: i/m < 28/m+4 by AS,XREAL_1:74,LTT1;
+      i/m <= 10
+      proof
+        now per cases by AS;
+          case m = 4;
+            then i/m <10+1 by AS,XREAL_1:74,LTT1;
+            hence thesis by NAT_1:13,LTT4;
+          end;
+          case m = 6;
+            hence thesis by LTT5,XXREAL_0:2;
+          end;
+          case m = 8;
+            hence thesis by LTT5,XXREAL_0:2;
+          end;
+        end;
+        hence thesis;
+      end;
+      then
+Q0:   i/m in Seg 10 by AS,LTT2,LTT4;
+      reconsider j = i/m as Nat by LTT4;
+      Rcon in 10-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+      then ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN)) *
+      st Rcon = v & len v = 10;
+      then dom Rcon = Seg 10 by FINSEQ_1:def 3;
+      then Rcon.j in rng Rcon by Q0,FUNCT_1:3;
+      then reconsider T3 = Rcon.j as
+      Element of (4-tuples_on (8-tuples_on BOOLEAN));
+      Op-WXOR(SubWord(SBT,RotWord(w)),T3) is
+      Element of (4-tuples_on (8-tuples_on BOOLEAN));
+      hence thesis;
+    end;
+    thus m = 8 & (i mod 8) = 4 implies ex A being
+    Element of (4-tuples_on (8-tuples_on BOOLEAN)) st (A = SubWord(SBT,w));
+    thus not ((i mod m) = 0) & not (m = 8 & (i mod 8) = 4) implies
+    ex A being Element of (4-tuples_on (8-tuples_on BOOLEAN)) st A = w;
+  end;
+  uniqueness;
+  consistency;
+end;
+
+definition
+  let SBT;
+  let m be Nat;
+  assume AS: (m = 4 or m = 6 or m = 8);
+  func KeyExpansionX(SBT,m) ->
+  Function of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) means
+  for Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds (for i be Element of NAT st i < m holds (it.Key).(i+1) = Key.(i+1))
+  & (for i be Element of NAT st m <= i & i < 4*(7+m) holds
+  ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+  Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+  st P = (it.Key).((i-m)+1) & Q = (it.Key).i &
+  (it.Key).(i+1) = Op-WXOR(P,KeyExTemp(SBT,m,i,Q)));
+  existence
+  proof
+    defpred P0[Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))] means
+    (for i be Element of NAT st i < m holds $2.(i+1) = $1.(i+1))&
+    (for i be Element of NAT st m <= i & i < 4*(7+m) holds
+    ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+    Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+    st P = $2.((i-m)+1) & Q = ($2).i &
+    $2.(i+1) = Op-WXOR(P,KeyExTemp(SBT,m,i,Q)));
+A1: for x being Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+    st P0[x,z]
+    proof
+      let x be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      defpred PP[Nat,set,set] means
+      ex r,t be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+      st r = $2 & t = $3 &
+      (ex P0,Q0 be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+      st P0 = r.1 & Q0 = r.m & t.1 = Op-WXOR(P0,KeyExTemp(SBT,m,m*$1,Q0))) &
+      for i be Nat st 1 <= i & i < m holds
+      ex P be Element of 4-tuples_on (8-tuples_on BOOLEAN),
+      Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+      st P = r.(i+1) & Q = t.i &
+      t.(i+1) = Op-WXOR(P,KeyExTemp(SBT,m,m*$1+i,Q));
+      0+m <= 7+m by XREAL_1:6;
+      then
+LMMLT47M: 1*m <= 4*(7+m) by XREAL_1:66;
+      reconsider N2 = (4*(7+m) div m )+1 as Nat;
+YY1:  for k being Nat st 1 <= k & k < N2
+      for s being Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+      ex y being Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+      st PP[k,s,y]
+      proof
+        let k be Nat;
+        assume 1 <= k & k < N2;
+        let s be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+        defpred PX[Nat,set,set] means
+        ex P,Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+        st P = s.($1+1) & Q = $2 &
+        $3 = Op-WXOR(P,KeyExTemp(SBT,m,m*k+$1,Q));
+        s in m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+        then ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+        st s = v & len v = m;
+        then
+QQ3:    dom s = Seg m by FINSEQ_1:def 3;
+XX1:    for i being Nat st 1 <= i & i < m
+        for z being Element of (4-tuples_on (8-tuples_on BOOLEAN))
+        ex w being Element of (4-tuples_on (8-tuples_on BOOLEAN))
+        st PX[i,z,w]
+        proof
+          let i be Nat;
+          assume
+AA1:      1 <= i & i < m;
+          let z be Element of (4-tuples_on (8-tuples_on BOOLEAN));
+          1 <= i+1 & i+1 <= m by NAT_1:13,AA1;
+          then i+1 in Seg m;
+          then s.(i+1) in rng s by QQ3,FUNCT_1:3;
+          then reconsider P = s.(i+1) as
+          Element of 4-tuples_on (8-tuples_on BOOLEAN);
+          reconsider Q = z as Element of 4-tuples_on (8-tuples_on BOOLEAN);
+          Op-WXOR(P,KeyExTemp(SBT,m,m*k+i,Q)) is
+          Element of (4-tuples_on (8-tuples_on BOOLEAN));
+          hence thesis;
+        end;
+        1 in dom s by AS,QQ3;
+        then s.1 in rng s by FUNCT_1:3;
+        then reconsider P0 = s.1 as
+        Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        m in dom s by AS,QQ3;
+        then s.m in rng s by FUNCT_1:3;
+        then reconsider Q0 = s.m as
+        Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        reconsider A0 = Op-WXOR(P0,KeyExTemp(SBT,m,m*k,Q0)) as
+        Element of 4-tuples_on (8-tuples_on BOOLEAN);
+        consider y being FinSequence of (4-tuples_on (8-tuples_on BOOLEAN))
+        such that
+A2:     len y = m & (y.1 = A0 or m = 0) & for i be Nat st 1 <= i &
+        i < m holds PX[i,y.i,y.(i+1)] from RECDEF_1:sch 4 (XX1);
+        y in (4-tuples_on (8-tuples_on BOOLEAN))* by FINSEQ_1:def 11;
+        then y in m-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) by A2;
+        hence thesis by AS,A2;
+      end;
+      consider z being
+      FinSequence of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+A2:   len z = N2 & (z.1 = x or N2 = 0) & for k be Nat st 1 <= k &
+      k < N2 holds PP[k,z.k,z.(k+1)] from RECDEF_1:sch 4 (YY1);
+      defpred Q0[Nat,set] means
+      ex i,j be Element of NAT,
+      zi be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+      st (($1 mod m) <> 0 implies i = ($1 div m)+1 & j = $1 mod m) &
+      (($1 mod m) = 0 implies i = ($1 div m) & j = m) & zi = z.i & $2 = zi.j;
+YY2:  for k be Nat st k in Seg (4*(7+m))
+      ex w being Element of (4-tuples_on (8-tuples_on BOOLEAN)) st Q0[k,w]
+      proof
+        let k be Nat;
+        assume
+A1:     k in Seg (4*(7+m));
+QQ1:    1 <= k & k <= 4*(7+m) by A1,FINSEQ_1:1;
+        then
+QQ2:    k div m <= (4*(7+m)) div m by NAT_2:24;
+        per cases;
+        suppose
+C1:       (k mod m) <> 0;
+          reconsider j = (k mod m) as Element of NAT;
+          reconsider i = (k div m)+1 as Element of NAT;
+          1 <= i & i <= N2 by QQ2,XREAL_1:6,NAT_1:11;
+          then i in Seg N2;
+          then i in dom z by A2,FINSEQ_1:def 3;
+          then z.i in rng z by FUNCT_1:3;
+          then reconsider zi = z.i as
+          Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+          zi in m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+          then ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+          st zi = v & len v = m;
+          then
+Q0:       dom zi = Seg m by FINSEQ_1:def 3;
+          1 <= j & j <= m by C1,INT_1:58,AS,NAT_1:14;
+          then j in dom zi by Q0;
+          then zi.j in rng zi by FUNCT_1:3;
+          then reconsider w = zi.j as
+          Element of (4-tuples_on (8-tuples_on BOOLEAN));
+          ((k mod m) <> 0 implies i = (k div m)+1 & j = k mod m) &
+          ((k mod m) = 0 implies i = (k div m) & j = m) & zi = z.i &
+          w = zi.j by C1;
+          hence thesis;
+        end;
+        suppose
+C2:       (k mod m) = 0;
+          reconsider j = m as Element of NAT by ORDINAL1:def 12;
+          reconsider i = (k div m) as Element of NAT;
+QQ3:      1 <= i by NAT_D:24,QQ1,C2,NAT_2:13,AS;
+          (k div m)+0 <= ((4*(7+m)) div m)+1 by QQ2,XREAL_1:7;
+          then i in Seg N2 by QQ3;
+          then i in dom z by A2,FINSEQ_1:def 3;
+          then z.i in rng z by FUNCT_1:3;
+          then reconsider zi = z.i as
+          Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+          zi in m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+          then ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+          st zi = v & len v = m;
+          then
+Q0:       dom zi = Seg m by FINSEQ_1:def 3;
+          j in Seg m by AS;
+          then zi.j in rng zi by Q0,FUNCT_1:3;
+          then reconsider w = zi.j as
+          Element of (4-tuples_on (8-tuples_on BOOLEAN));
+          ((k mod m) <> 0 implies i = (k div m)+1 & j = k mod m) &
+          ((k mod m) = 0 implies i = (k div m) & j = m) & zi = z.i &
+          w = zi.j by C2;
+          hence thesis;
+        end;
+      end;
+      consider u being FinSequence of (4-tuples_on (8-tuples_on BOOLEAN))
+      such that
+YY3:  dom u = Seg (4*(7+m)) & for k be Nat st k in Seg (4*(7+m))
+      holds Q0[k,u.k] from FINSEQ_1:sch 5(YY2);
+      4*(7+m) is Element of NAT by ORDINAL1:def 12;
+      then
+YY4:  len u = 4*(7+m) by YY3,FINSEQ_1:def 3;
+      u in ((4-tuples_on (8-tuples_on BOOLEAN)))* by FINSEQ_1:def 11;
+      then u in (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+      by YY4;
+      then reconsider u as
+      Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+      take u;
+LX3:  for i be Element of NAT st i < m holds u.(i+1) = x.(i+1)
+      proof
+        let k be Element of NAT;
+        assume k < m;
+        then
+LX31:   1 <= k+1 & k+1 <= m by NAT_1:11,NAT_1:13;
+        then 1 <= k+1 & k+1 <= 4*(7+m) by LMMLT47M,XXREAL_0:2;
+        then k+1 in Seg (4*(7+m));
+        then consider i,j be Element of NAT,
+        zi be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        such that
+LX34:   (((k+1) mod m) <> 0 implies i = ((k+1) div m)+1 &
+        j = (k+1) mod m) & (((k+1) mod m) = 0 implies
+        i = ((k+1) div m) & j = m) & zi = z.i & u.(k+1) = zi.j by YY3;
+        per cases;
+        suppose
+C1:       ((k+1) mod m) <> 0;
+C11:      (k+1) < m
+          proof
+            assume not (k+1) < m;
+            then (k+1) = m by XXREAL_0:1,LX31;
+            hence contradiction by NAT_D:25,C1;
+          end;
+          then (k+1) div m = 0 by NAT_D:27;
+          hence u.(k+1) = x.(k+1) by C11,NAT_D:24,LX34,A2;
+        end;
+        suppose
+C2:       ((k+1) mod m) = 0;
+          (k+1) = m
+          proof
+            assume not (k+1) = m;
+            then k+1 < m by LX31,XXREAL_0:1;
+            hence contradiction by NAT_D:24,C2;
+          end;
+          hence u.(k+1) = x.(k+1) by LX34,C2,INT_1:49,A2;
+        end;
+      end;
+      for k be Element of NAT st m <= k & k < 4*(7+m) holds
+      ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+      Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+      st P = u.((k-m)+1) & Q = u.k & u.(k+1) = Op-WXOR(P,KeyExTemp(SBT,m,k,Q))
+      proof
+        let k be Element of NAT;
+        assume
+AS1:    m <= k & k < 4*(7+m);
+        then 1 <= k & k <= 4*(7+m) by XXREAL_0:2,AS;
+        then k in Seg (4*(7+m));
+        then consider i,j be Element of NAT,
+        zi be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        such that
+LX34:   ((k mod m) <> 0 implies i = (k div m)+1 & j = k mod m) &
+        ((k mod m) = 0 implies i = (k div m) & j = m) & zi = z.i &
+        u.k = zi.j by YY3;
+NLX32:  1 <= k+1 & k+1 <= 4*(7+m) by AS1,NAT_1:11,NAT_1:13;
+        then k+1 in Seg (4*(7+m));
+        then consider i1,j1 be Element of NAT,
+        zi1 be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        such that
+NLX34:  (((k+1) mod m) <> 0 implies i1 = ((k+1) div m)+1 &
+        j1 = (k+1) mod m) & (((k+1) mod m) = 0 implies i1 = ((k+1) div m) &
+        j1 = m) & zi1 = z.i1 & u.(k+1) = zi1.j1 by YY3;
+        reconsider km0 = k-m as Element of NAT by AS1,XREAL_1:48,INT_1:3;
+        reconsider km1 = km0+1 as Element of NAT;
+        k+1-m <= 4*(7+m)-0 by NLX32,XREAL_1:13;
+        then 1 <= km1 & km1 <= 4*(7+m) by NAT_1:11;
+        then km1 in Seg (4*(7+m));
+        then consider i2,j2 be Element of NAT,
+        zi2 be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        such that
+LLX34:  ((km1 mod m) <> 0 implies i2 = (km1 div m)+1 & j2 = km1 mod m) &
+        ((km1 mod m) = 0 implies i2 = (km1 div m) & j2 = m) &
+        zi2 = z.i2 & u.km1 = zi2.j2 by YY3;
+        per cases;
+        suppose
+C1:       (k mod m) <> 0;
+          reconsider i0 = k div m as Element of NAT;
+DD1:      ((4*(7+m)) div m)+0 < ((4*(7+m)) div m)+1 by XREAL_1:8;
+          k div m <= (4*(7+m)) div m by AS1,NAT_2:24;
+          then 1 <= i0 & i0 < N2 by DD1,XXREAL_0:2,AS,NAT_2:13,AS1;
+          then consider r,t be
+          Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+C16:      r = z.i0 & t = z.(i0+1) &
+          (ex P0,Q0 be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+          st P0 = r.1 & Q0 = r.m & t.1 = Op-WXOR(P0,KeyExTemp(SBT,m,m*i0,Q0)))
+          & for n be Nat st 1 <= n & n < m holds
+          ex P be Element of 4-tuples_on (8-tuples_on BOOLEAN),
+          Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+          st P = r.(n+1) & Q = t.n &
+          t.(n+1) = Op-WXOR(P,KeyExTemp(SBT,m,i0*m+n,Q)) by A2;
+          1 <= j & j < m by AS,INT_1:58,LX34,C1,NAT_1:14;
+          then consider P be Element of 4-tuples_on (8-tuples_on BOOLEAN),
+          Q be Element of 4-tuples_on (8-tuples_on BOOLEAN) such that
+C18:      P = r.(j+1) & Q = t.j &
+          t.(j+1) = Op-WXOR(P,KeyExTemp(SBT,m,i0*m+j,Q)) by C16;
+          per cases;
+          suppose
+NC1:        ((k+1) mod m) <> 0;
+NC16:       zi1 = zi by NLX34,NC1,AS,XLMOD01,LX34,C1;
+C21:        u.(k+1) = t.(j+1) by NLX34,NC16,NC1,AS,XLMOD02,LX34,C1,C16;
+C22X:       km1 = (k+1)-m;
+LC12:       i2 = ((k+1) div m)-1+1 by NC1,XLMOD03,C22X,LLX34,AS,XLMOD04
+              .= i0 by AS,XLMOD01,NC1;
+LC13:       j2 = j1 by LLX34,C22X,XLMOD03,NLX34;
+C19:        u.(k-m+1) = r.(j+1)
+            by LLX34,LC13,LC12,C16,NLX34,NC1,AS,XLMOD02,LX34,C1;
+C22:        k = i0*m+j by AS,INT_1:59,LX34,C1;
+            thus ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+            Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+            st P = u.((k-m)+1) & Q = u.k &
+            u.(k+1) = Op-WXOR(P,KeyExTemp(SBT,m,k,Q))
+            by C18,C19,C16,LX34,C1,C21,C22;
+          end;
+          suppose
+MC1:        ((k+1) mod m) = 0;
+NC13:       j1 = m-1+1 by NLX34,MC1
+              .= j+1 by AS,XLMOD02X,MC1,LX34;
+C21:        u.(k+1) = t.(j+1) by NLX34,MC1,XLMOD01X,NC13,C16;
+C22X:       km1 = (k+1)-m;
+LC12:       i2 = ((k+1) div m)-1 by C22X,MC1,XLMOD03,LLX34,AS,XLMOD04
+              .= (k div m)+1-1 by AS,XLMOD01X,MC1
+              .= i0;
+C19:        u.(k-m+1) = r.(j+1) by LLX34,C22X,XLMOD03,NLX34,LC12,C16,NC13;
+C22:        k = i0*m+j by AS,INT_1:59,LX34,C1;
+            thus ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+            Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+            st P = u.((k-m)+1) & Q = u.k &
+            u.(k+1) = Op-WXOR(P,KeyExTemp(SBT,m,k,Q))
+            by C18,C19,LX34,C16,C1,C21,C22;
+          end;
+        end;
+        suppose
+C2:       (k mod m) = 0;
+DD1:      ((4*(7+m)) div m)+0 < ((4*(7+m)) div m)+1 by XREAL_1:8;
+          k div m <= (4*(7+m)) div m by AS1,NAT_2:24;
+          then 1 <= i & i < N2 by DD1,XXREAL_0:2,C2,LX34,AS,NAT_2:13,AS1;
+          then consider r,t be
+          Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+          such that
+C16:      r = z.i & t = z.(i+1) &
+          (ex P0,Q0 be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+          st P0 = r.1 & Q0 = r.m & t.1 = Op-WXOR(P0,KeyExTemp(SBT,m,m*i,Q0)))
+          & for n be Nat st 1 <= n & n < m holds
+          ex P be Element of 4-tuples_on (8-tuples_on BOOLEAN),
+          Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+          st P = r.(n+1) & Q = t.n &
+          t.(n+1) = Op-WXOR(P,KeyExTemp(SBT,m,i*m+n,Q)) by A2;
+NC1X:     ((k+1) mod m) = ((0 qua Nat)+1) mod m by C2,NAT_D:23
+            .= 1 by NAT_D:14,AS;
+C21:      u.(k+1) = t.1 by NLX34,NC1X,AS,XLMOD01,C2,LX34,C16;
+C22X:     km1 = (k+1)-m;
+LC12:     i2 = ((k+1) div m)-1+1 by NC1X,XLMOD03,C22X,LLX34,AS,XLMOD04
+            .= i by AS,XLMOD01,NC1X,C2,LX34;
+C19:      u.(k-m+1) = r.1 by LLX34,XLMOD03,C22X,LC12,C16,NC1X;
+C22:      k = (k div m)*m+(k mod m) by AS,INT_1:59
+            .= i*m by C2,LX34;
+          thus ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+          Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+          st P = u.((k-m)+1) & Q = u.k &
+          u.(k+1) = Op-WXOR(P,KeyExTemp(SBT,m,k,Q))
+          by C19,LX34,C16,C2,C21,C22;
+        end;
+      end;
+      hence P0[x,u] by LX3;
+    end;
+    consider I be Function of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+    such that
+A2: for x being Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Function of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+AA1: for Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds (for i be Element of NAT st i < m holds (H1.Key).(i+1) = Key.(i+1))
+    & (for i be Element of NAT st m <= i & i < 4*(7+m) holds
+    ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+    Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+    st P = (H1.Key).((i-m)+1) & Q = (H1.Key).i &
+    (H1.Key).(i+1) = Op-WXOR(P,KeyExTemp(SBT,m,i,Q)));
+    assume
+AA2: for Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds (for i be Element of NAT st i < m holds (H2.Key).(i+1) = Key.(i+1))
+    & (for i be Element of NAT st m <= i & i < 4*(7+m) holds
+    ex P be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+    Q be Element of 4-tuples_on (8-tuples_on BOOLEAN)
+    st P = (H2.Key).((i-m)+1) & Q = (H2.Key).i &
+    (H2.Key).(i+1) = Op-WXOR(P,KeyExTemp(SBT,m,i,Q)));
+    now let input be
+    Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      (H1.input) in (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+      then
+XX1:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st (H1.input) = s & len s = (4*(7+m));
+      reconsider H1i = (H1.input) as
+      Element of (4-tuples_on (8-tuples_on BOOLEAN))* by XX1;
+      (H2.input) in (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+      then
+XX2:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st (H2.input) = s & len s = (4*(7+m));
+      reconsider H2i = (H2.input) as
+      Element of (4-tuples_on (8-tuples_on BOOLEAN))* by XX2;
+      defpred PN[Nat] means
+      (m <= $1 & $1 <= 4*(7+m)) implies for k be Element of NAT
+      st 1 <= k & k <= $1 holds (H1.input).k = (H2.input).k;
+PN0:  PN[0];
+PN1:  for i be Nat st PN[i] holds PN[i+1]
+      proof
+        let i be Nat;
+        assume
+A1:     PN[i];
+        assume
+A2:     m <= i+1 & i+1 <= 4*(7+m);
+        per cases;
+        suppose
+C10:      m = i+1;
+          thus for k be Element of NAT st 1 <= k & k <= i+1 holds
+          (H1.input).k = (H2.input).k
+          proof
+            let k be Element of NAT;
+            assume
+B1:         1 <= k & k <= i+1;
+            k-1 < k by XREAL_1:44;
+            then
+B2:         k-1 < m by C10,B1,XXREAL_0:2;
+            reconsider k1 = k-1 as Element of NAT by XREAL_1:48,B1,INT_1:3;
+            thus (H1.input).k = input.(k1+1) by B2,AA1
+              .= (H2.input).k by B2,AA2;
+          end;
+        end;
+        suppose m <> i+1;
+          then
+C10X:     m < i+1 by A2,XXREAL_0:1;
+          i < i+1 by XREAL_1:29;
+          then
+C11Z:     i < 4*(7+m) by A2,XXREAL_0:2;
+          thus for k be Element of NAT st 1 <= k & k <= i+1 holds
+          (H1.input).k = (H2.input).k
+          proof
+            let k be Element of NAT;
+            assume
+C13:        1 <= k & k <= i+1;
+            then reconsider k1 = k-1 as Element of NAT by XREAL_1:48,INT_1:3;
+            per cases;
+            suppose
+C14:          k1 < m;
+              thus (H1.input).k = input.(k1+1) by C14,AA1
+                .= (H2.input).k by C14,AA2;
+            end;
+            suppose
+C15:          m <= k1;
+              k-1 <= i+1-1 by C13,XREAL_1:9;
+              then
+C16:          m <= k1 & k1 < 4*(7+m) by C11Z,XXREAL_0:2,C15;
+              then consider PP1 be
+              Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+              QQ1 be Element of 4-tuples_on (8-tuples_on BOOLEAN) such that
+C17:          PP1 = (H1.input).((k1-m)+1) & QQ1 = (H1.input).k1 &
+              (H1.input).(k1+1) = Op-WXOR(PP1,KeyExTemp(SBT,m,k1,QQ1)) by AA1;
+              consider PP2 be Element of (4-tuples_on (8-tuples_on BOOLEAN)),
+              QQ2 be Element of 4-tuples_on (8-tuples_on BOOLEAN) such that
+C18:          PP2 = (H2.input).((k1-m)+1) & QQ2 = (H2.input).k1 &
+              (H2.input).(k1+1) = Op-WXOR(PP2,KeyExTemp(SBT,m,k1,QQ2))
+              by AA2,C16;
+C190:         k-1 <= i+1-1 by XREAL_1:9,C13;
+              then
+C191:         1 <= k1 & k1 <= i by C15,AS,XXREAL_0:2;
+C24X:         0 <= k1-m by C15,XREAL_1:48;
+              then
+C25X:         1+0 <= k1-m+1 by XREAL_1:6;
+              k1-(m-1) <= k1 by AS,XREAL_1:43;
+              then
+C25:          1 <= (k1-m)+1 & (k1-m)+1 <= i by C190,XXREAL_0:2,C25X;
+              reconsider k1m1 = (k1-m)+1 as Element of NAT by C24X,INT_1:3;
+C21:          (H1.input).k1m1 = (H2.input).k1m1 by A2,C10X,NAT_1:13,A1,C25;
+              thus (H1.input).k = (H2.input).k
+              by C21,C17,C18,C191,A2,C10X,NAT_1:13,A1;
+            end;
+          end;
+        end;
+      end;
+L10:  for i be Nat holds PN[i] from NAT_1:sch 2(PN0,PN1);
+L1:   now let i be Element of NAT;
+        assume
+A1:     m <=i & i <= 4*(7+m);
+        1 <= i & i <= i by AS,A1,XXREAL_0:2;
+        hence (H1.input).i = (H2.input).i by L10,A1;
+      end;
+      now let i0 be Nat;
+        assume
+P13:    1 <= i0 & i0 <= len H1i;
+        then reconsider i = i0-1 as Element of NAT by XREAL_1:48,INT_1:3;
+        now per cases;
+        suppose
+C1:       i0 <= m;
+          i < i0 by XREAL_1:44;
+          then
+C11:      i < m by C1,XXREAL_0:2;
+          thus H1i.i0 = input.(i+1) by C11,AA1
+            .= H2i.i0 by C11,AA2;
+        end;
+        suppose
+C3:       m < i0;
+          i+1 in Seg len H1i by P13;
+          hence H1i.i0 = H2i.i0 by L1,C3,XX1,P13;
+        end;
+      end;
+      hence H1i.i0 = H2i.i0;
+    end;
+    hence H1.input = H2.input by XX1,XX2,FINSEQ_1:def 17;
+  end;
+  hence H1 = H2 by FUNCT_2:63;
+end;
+end;
+
+definition
+  let SBT;
+  let m be Nat;
+  func KeyExpansion(SBT,m) ->
+  Function of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) means
+  for Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) holds
+  ex w be Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+  st w = (KeyExpansionX(SBT,m)).Key & for i be Nat st i < 7+m
+  holds (it.Key).(i+1) = <*w.(4*i+1),w.(4*i+2),w.(4*i+3),w.(4*i+4)*>;
+  existence
+  proof
+    defpred P0[Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    Element of (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))]
+    means
+    ex w be Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+    st w = (KeyExpansionX(SBT,m)).$1 & for i be Nat st i < 7+m holds
+    $2.(i+1) = <*w.(4*i+1),w.(4*i+2),w.(4*i+3),w.(4*i+4)*>;
+A1: for x being Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    ex z be
+    Element of (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+    st P0[x,z]
+    proof
+      let x be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      reconsider w = (KeyExpansionX(SBT,m)).x as
+      Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+      w in (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN));
+      then
+XX1:  ex s be Element of (4-tuples_on (8-tuples_on BOOLEAN))*
+      st w = s & len s = (4*(7+m));
+      reconsider w0 = w as
+      Element of (4-tuples_on (8-tuples_on BOOLEAN))* by XX1;
+      reconsider m7 = 7+m as Element of NAT by ORDINAL1:def 12;
+      reconsider m47 = (4*(7+m)) as Element of NAT by ORDINAL1:def 12;
+      defpred P[Nat,set] means
+      ex n be Element of NAT st n = $1-1 &
+      $2 = <*w.(4*n+1),w.(4*n+2),w.(4*n+3),w.(4*n+4)*>;
+P1:   for k be Nat st k in Seg m7
+      ex z being Element of 4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+      st P[k,z]
+      proof
+        let k be Nat;
+        assume k in Seg m7;
+        then
+ZZ1:    1 <= k & k <= m7 by FINSEQ_1:1;
+        then reconsider n = k-1 as Element of NAT by XREAL_1:48,INT_1:3;
+ZZ3:    4*(n+1) <= 4*m7 by ZZ1,XREAL_1:64;
+ZZ4:    0+1 <= 4*n+1 by XREAL_1:7;
+ZZ7:    4*n+1 <= 4*n+4 by XREAL_1:7;
+ZZ8:    4*n+2 <= 4*n+4 by XREAL_1:7;
+ZZ9:    4*n+3 <= 4*n+4 by XREAL_1:7;
+        4*n+1 <= 4*m7 by ZZ7,ZZ3,XXREAL_0:2;
+        then
+X1:     (4*n+1) in Seg m47 by ZZ4;
+ZZ10:   1 <= 4*n+2 by ZZ4,XREAL_1:7;
+        4*n+2 <= 4*m7 by ZZ8,ZZ3,XXREAL_0:2;
+        then
+X2:     (4*n+2) in Seg m47 by ZZ10;
+ZZ11:   1 <= 4*n+3 by ZZ4,XREAL_1:7;
+        4*n+3 <= 4*m7 by ZZ9,ZZ3,XXREAL_0:2;
+        then
+X3:     (4*n+3) in Seg m47 by ZZ11;
+ZZ12:   1 <= 4*n+4 by ZZ4,XREAL_1:7;
+X4:     (4*n+4) in Seg m47 by ZZ3,ZZ12;
+X5:     dom w = Seg m47 by FINSEQ_1:def 3,XX1;
+        w.(4*n+1) in rng w by X5,X1,FUNCT_1:3;
+        then reconsider w1 = w.(4*n+1) as
+        Element of (4-tuples_on (8-tuples_on BOOLEAN));
+        w.(4*n+2) in rng w by X5,X2,FUNCT_1:3;
+        then reconsider w2 = w.(4*n+2) as
+        Element of (4-tuples_on (8-tuples_on BOOLEAN));
+        w.(4*n+3) in rng w by X5,X3,FUNCT_1:3;
+        then reconsider w3 = w.(4*n+3) as
+        Element of (4-tuples_on (8-tuples_on BOOLEAN));
+        w.(4*n+4) in rng w by X5,X4,FUNCT_1:3;
+        then reconsider w4 = w.(4*n+4) as
+        Element of (4-tuples_on (8-tuples_on BOOLEAN));
+        reconsider z = <*w1,w2,w3,w4*> as
+        Element of 4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) by LMGSEQ4;
+        z = <*w.(4*n+1),w.(4*n+2),w.(4*n+3),w.(4*n+4)*>;
+        hence thesis;
+      end;
+      consider p being
+      FinSequence of 4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) such that
+P3:   dom p = Seg m7 & for k be Nat st k in Seg m7 holds P[k,p.k]
+      from FINSEQ_1:sch 5(P1);
+P4:   len p = m7 by P3,FINSEQ_1:def 3;
+      p in (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))*
+      by FINSEQ_1:def 11;
+      then p in m7-tuples_on (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))
+      by P4;
+      then reconsider p as Element of
+      (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+      take p;
+      now let i be Nat;
+        assume i < 7+m;
+        then
+AA2:    i+1 <= 7+m by NAT_1:13;
+        1 <= i+1 by NAT_1:11;
+        then i+1 in Seg m7 by AA2;
+        then ex n be Element of NAT st n = (i+1)-1 &
+        p.(i+1) = <*w.(4*n+1),w.(4*n+2),w.(4*n+3),w.(4*n+4)*> by P3;
+        hence p.(i+1) = <*w.(4*i+1),w.(4*i+2),w.(4*i+3),w.(4*i+4)*>;
+      end;
+      hence thesis;
+    end;
+    consider I be Function of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+A2: for x being Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds P0[x,I.x] from FUNCT_2:sch 3(A1);
+    take I;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    let H1,H2 be Function of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+    assume
+A1: for Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) holds
+    ex w be Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+    st w = (KeyExpansionX(SBT,m)).Key & for i be Nat st i < 7+m holds
+    (H1.Key).(i+1) = <*w.(4*i+1),w.(4*i+2),w.(4*i+3),w.(4*i+4)*>;
+    assume
+A2: for Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) holds
+    ex w be Element of (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN))
+    st w = (KeyExpansionX(SBT,m)).Key & for i be Nat st i <7+m holds
+    (H2.Key).(i+1) = <*w.(4*i+1),w.(4*i+2),w.(4*i+3),w.(4*i+4)*>;
+    now let input be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      consider w1 be Element of
+      (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) such that
+P1:   w1 = (KeyExpansionX(SBT,m)).input &
+      for i be Nat st i < 7+m holds
+      (H1.input).(i+1) = <*w1.(4*i+1),w1.(4*i+2),w1.(4*i+3),w1.(4*i+4)*> by A1;
+      consider w2 be Element of
+      (4*(7+m))-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)) such that
+P2:   w2 = (KeyExpansionX(SBT,m)).input &
+      for i be Nat st i < 7+m holds
+      (H2.input).(i+1) = <*w2.(4*i+1),w2.(4*i+2),w2.(4*i+3),w2.(4*i+4)*> by A2;
+      (H1.input) in
+      (7+m)-tuples_on(4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)));
+      then
+P3:   ex s be Element of (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))*
+      st (H1.input) = s & len s = (7+m);
+      (H2.input) in
+      (7+m)-tuples_on (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+      then
+P4:   ex s be Element of (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))*
+      st (H2.input) = s & len s = (7+m);
+      now let i be Nat;
+        assume
+P5:     1 <= i & i <= len (H1.input);
+        then i-1 in NAT by XREAL_1:48,INT_1:3;
+        then reconsider i0 = i-1 as Nat;
+        i < (7+m)+1 by P3,P5,NAT_1:13;
+        then
+P6:     i-1 < (7+m)+1-1 by XREAL_1:14;
+        thus (H1.input).i = (H1.input).(i0+1)
+          .= <*w2.(4*i0+1),w2.(4*i0+2),w2.(4*i0+3),w2.(4*i0+4)*> by P6,P1,P2
+          .= (H2.input).(i0+1) by P6,P2
+          .= (H2.input).i;
+      end;
+      hence
+      (H1.input) = (H2.input) by P3,P4,FINSEQ_1:def 17;
+    end;
+    hence H1 = H2 by FUNCT_2:63;
+  end;
+end;
+
+begin :: Encryption and Decryption
+
+reserve MCFunc for Permutation of
+4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+reserve MixColumns for
+Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+
+definition
+  let SBT;
+  let MCFunc;
+  let m be Nat;
+  let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  let Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  func AES-ENC(SBT,MCFunc,text,Key) ->
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :defENC:
+  ex seq be FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+  st len seq = 7+m-1 & (ex Keyi1 be Element of
+  4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+  seq.1 = AddRoundKey.(text,Keyi1)) &
+  (for i be Nat st 1 <= i & i < 7+m-1 holds
+  ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) &
+  seq.(i+1) = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq.i),Keyi)) &
+  ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st KeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+  it = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq.(7+m-1)),KeyNr);
+  existence
+  proof
+    1+0 < 7+m by XREAL_1:8;
+    then
+N1: 0 < 7+m-1 by XREAL_1:50;
+    then 7+m-1 in NAT by INT_1:3;
+    then reconsider Nr = 7+m-1 as Nat;
+ZZ1: (KeyExpansion(SBT,m)).(Key) in
+    (Nr+1)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+    reconsider kky = (KeyExpansion(SBT,m)).(Key) as Element of
+    (Nr+1)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+XX12: ex s be Element of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))*
+    st kky = s & len s = (Nr+1) by ZZ1;
+    defpred P[Nat,set,set] means
+    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = ((KeyExpansion(SBT,m)).(Key)).($1+1) &
+    $3 = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).$2,Keyi);
+    1+0 <= 7+m by XREAL_1:7;
+    then 1 in Seg (Nr+1);
+    then 1 in dom (kky) by FINSEQ_1:def 3,XX12;
+    then ((KeyExpansion(SBT,m)).(Key)).1 in rng kky by FUNCT_1:3;
+    then reconsider Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    reconsider I0 = AddRoundKey.(text,Keyi1) as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+X1: for n being Nat st 1 <= n & n < Nr
+    for z being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds ex y being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P[n,z,y]
+    proof
+      let n be Nat;
+      assume
+X11:  1 <= n & n < Nr;
+      let z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+X111: n+1 <= Nr+1 by XREAL_1:7,X11;
+      0+1 <= n+1 by XREAL_1:7;
+      then n+1 in Seg (Nr+1) by X111;
+      then n+1 in dom (kky) by FINSEQ_1:def 3,XX12;
+      then ((KeyExpansion(SBT,m)).(Key)).(n+1) in rng kky by FUNCT_1:3;
+      then reconsider Keyi = ((KeyExpansion(SBT,m)).(Key)).(n+1) as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      reconsider y = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).z,Keyi) as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      take y;
+      thus P[n,z,y];
+    end;
+    consider seq be
+    FinSequence of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+X2: len seq = Nr & (seq.1 = I0 or Nr = 0) &
+    for i be Nat st 1 <= i & i < Nr holds P[i,seq.i,seq.(i+1)]
+    from RECDEF_1:sch 4(X1);
+    Nr in Seg Nr by FINSEQ_1:3,N1;
+    then
+    Nr in dom seq by FINSEQ_1:def 3,X2;
+    then seq.Nr in rng seq by FUNCT_1:3;
+    then reconsider seq10 = seq.Nr as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    Nr+1 in Seg (Nr+1) by FINSEQ_1:3;
+    then Nr+1 in dom (kky) by FINSEQ_1:def 3,XX12;
+    then ((KeyExpansion(SBT,m)).(Key)).(Nr+1) in rng kky by FUNCT_1:3;
+    then reconsider KeyNr = ((KeyExpansion(SBT,m)).(Key)).(Nr+1) as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    reconsider w = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq10),KeyNr) as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    w = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq.Nr),KeyNr);
+    hence thesis by XREAL_1:8,X2;
+  end;
+  uniqueness
+  proof
+    let s1,s2 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    1+0 < 7+m by XREAL_1:8;
+    then 0 < 7+m-1 by XREAL_1:50;
+    then 7+m-1 in NAT by INT_1:3;
+    then reconsider Nr = 7+m-1 as Nat;
+    assume
+A1: ex seq be FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+    st len seq = 7+m-1 &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+    seq.1 = AddRoundKey.(text,Keyi1)) & (for i be Nat st 1 <= i & i < 7+m-1
+    holds ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) &
+    seq.(i+1) = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq.i),Keyi)) &
+    ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+    s1 = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq.(7+m-1)),KeyNr);
+    assume
+A2: ex seq be FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+    st len seq = 7+m-1 &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+    seq.1 = AddRoundKey.(text,Keyi1)) & (for i be Nat st 1 <= i & i < 7+m-1
+    holds ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) &
+    seq.(i+1) = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq.i),Keyi)) &
+    ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+    s2 = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq.(7+m-1)),KeyNr);
+    consider seq1 be
+    FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+P1: len seq1 = Nr &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+    seq1.1 = AddRoundKey.(text,Keyi1)) & (for i be Nat st 1 <= i & i < Nr
+    holds ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) &
+    seq1.(i+1) = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq1.i),Keyi))
+    & ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = ((KeyExpansion(SBT,m)).(Key)).(Nr+1) &
+    s1 = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq1.(Nr)),KeyNr) by A1;
+    consider seq2 be
+    FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+P2: len seq2 = Nr &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+    seq2.1 = AddRoundKey.(text,Keyi1)) & (for i be Nat st 1 <= i & i < Nr
+    holds ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) &
+    seq2.(i+1) = AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq2.i),Keyi))
+    & ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = ((KeyExpansion(SBT,m)).(Key)).(Nr+1) &
+    s2 = AddRoundKey.((ShiftRows*SubBytes(SBT)).(seq2.(Nr)),KeyNr) by A2;
+    defpred EQ[Nat] means
+    1 <= $1 & $1 <= len seq1 implies seq1.$1 = seq2.$1;
+Q50: EQ[0];
+Q51: for i be Nat st EQ[i] holds EQ[i+1]
+    proof
+      let i be Nat;
+      assume
+Q52:  EQ[i];
+      assume 1 <= i+1 & i+1 <= len seq1;
+      then
+Q54:  1-1 <= i+1-1 & i+1-1 <= len seq1-1 by XREAL_1:9;
+Q550: (len seq1)-1 <= (len seq1)-0 by XREAL_1:13;
+      per cases;
+      suppose
+C1:     i = 0;
+        thus seq1.(i+1) = seq2.(i+1) by C1,P1,P2;
+      end;
+      suppose
+Q560:   i <> 0;
+        Nr-1 < Nr-0 by XREAL_1:15;
+        then
+XX1:    1 <= i & i < Nr by Q560,NAT_1:14,P1,Q54,XXREAL_0:2;
+        then
+Q60:    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) & seq1.(i+1) =
+        AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq1.i),Keyi) by P1;
+        ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) & seq2.(i+1) =
+        AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(seq2.i),Keyi) by P2,XX1;
+        hence seq1.(i+1) = seq2.(i+1)
+        by Q560,NAT_1:14,Q550,Q54,XXREAL_0:2,Q52,Q60;
+      end;
+    end;
+    for i be Nat holds EQ[i] from NAT_1:sch 2(Q50,Q51);
+    hence s1 = s2 by P1,P2,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  let SBT;
+  let MCFunc;
+  let m be Nat;
+  let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  let Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  func AES-DEC(SBT,MCFunc,text,Key) ->
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  :defDEC:
+  ex seq be FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+  st len seq = 7+m-1 &
+  (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+  seq.1 = (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(text,Keyi1))) &
+  (for i be Nat st 1 <= i & i < 7+m-1 holds
+  ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+  seq.(i+1) =
+  (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq.i,Keyi))) &
+  ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+  it = AddRoundKey.(seq.(7+m-1),KeyNr);
+  existence
+  proof
+    1+0 < 7+m by XREAL_1:8;
+    then
+N1: 0 < 7+m-1 by XREAL_1:50;
+    then 7+m-1 in NAT by INT_1:3;
+    then reconsider Nr = 7+m-1 as Nat;
+ZZ1: Rev((KeyExpansion(SBT,m)).(Key)) in
+    (Nr+1)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+    reconsider kky = Rev((KeyExpansion(SBT,m)).(Key)) as Element of
+    (Nr+1)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+XX12: ex s be Element of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))*
+    st kky = s & len s = Nr+1 by ZZ1;
+    defpred P[Nat,set,set] means
+    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).($1+1) &
+    $3 = (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.($2,Keyi));
+    1+0 <= 7+m by XREAL_1:7;
+    then 1 in Seg (Nr+1);
+    then 1 in dom (kky) by FINSEQ_1:def 3,XX12;
+    then (Rev((KeyExpansion(SBT,m)).(Key))).1 in rng kky by FUNCT_1:3;
+    then reconsider Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    reconsider I0 = (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(text,Keyi1))
+    as Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+X1: for n being Nat st 1 <= n & n < Nr
+    for z being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    holds ex y being Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st P[n,z,y]
+    proof
+      let n be Nat;
+      assume
+X11:  1 <= n & n < Nr;
+      let z be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+X111: n+1 <= Nr+1 by XREAL_1:7,X11;
+      0+1 <= n+1 by XREAL_1:7;
+      then n+1 in Seg (Nr+1) by X111;
+      then n+1 in dom (kky) by FINSEQ_1:def 3,XX12;
+      then (Rev((KeyExpansion(SBT,m)).(Key))).(n+1) in rng kky by FUNCT_1:3;
+      then reconsider Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(n+1) as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      reconsider y =
+      (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(z,Keyi)) as
+      Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+      take y;
+      thus P[n,z,y];
+    end;
+    consider seq be
+    FinSequence of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) such that
+X2: len seq = Nr & (seq.1 = I0 or Nr = 0) &
+    for i be Nat st 1 <= i & i < Nr holds P[i,seq.i,seq.(i+1)]
+    from RECDEF_1:sch 4(X1);
+    Nr in Seg Nr by FINSEQ_1:3,N1;
+    then Nr in dom seq by FINSEQ_1:def 3,X2;
+    then seq.Nr in rng seq by FUNCT_1:3;
+    then reconsider seq10 = seq.Nr as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    Nr+1 in Seg (Nr+1) by FINSEQ_1:3;
+    then Nr+1 in dom (kky) by FINSEQ_1:def 3,XX12;
+    then (Rev((KeyExpansion(SBT,m)).(Key))).(Nr+1) in rng kky by FUNCT_1:3;
+    then reconsider KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(Nr+1) as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    reconsider w = AddRoundKey.((seq10),KeyNr) as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    w = AddRoundKey.(seq.Nr,KeyNr);
+    hence thesis by X2,XREAL_1:8;
+  end;
+  uniqueness
+  proof
+    let s1,s2 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    1+0 < 7+m by XREAL_1:8;
+    then 0 < 7+m-1 by XREAL_1:50;
+    then 7+m-1 in NAT by INT_1:3;
+    then reconsider Nr = 7+m-1 as Nat;
+    assume
+A1: ex seq be FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+    st len seq = 7+m-1 &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+    seq.1 = (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(text,Keyi1))) &
+    (for i be Nat st 1 <= i & i < 7+m-1 holds
+    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+    seq.(i+1) =
+    (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq.i,Keyi))) &
+    ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+    s1 = AddRoundKey.(seq.(7+m-1),KeyNr);
+    assume
+A2: ex seq be FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))
+    st len seq = 7+m-1 &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+    seq.1 = (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(text,Keyi1))) &
+    (for i be Nat st 1 <= i & i < 7+m-1 holds
+    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+    seq.(i+1) =
+    (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq.i,Keyi))) &
+    ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+    s2 = AddRoundKey.(seq.(7+m-1),KeyNr);
+    consider seq1 be
+    FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+P1: len seq1 = Nr &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+    seq1.1 = (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(text,Keyi1))) &
+    (for i be Nat st 1 <= i & i < Nr holds
+    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+    seq1.(i+1) =
+    (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq1.i,Keyi))) &
+    ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+    s1 = AddRoundKey.(seq1.(7+m-1),KeyNr) by A1;
+    consider seq2 be
+    FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+P2: len seq2 = Nr &
+    (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+    seq2.1 = (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(text,Keyi1))) &
+    (for i be Nat st 1 <= i & i < Nr holds
+    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+    seq2.(i+1) =
+    (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq2.i,Keyi))) &
+    ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    st KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+    s2 = AddRoundKey.(seq2.(7+m-1),KeyNr) by A2;
+    defpred EQ[Nat] means
+    1 <= $1 & $1 <= len seq1 implies seq1.$1 = seq2.$1;
+Q50: EQ[0];
+Q51: for i be Nat st EQ[i] holds EQ[i+1]
+    proof
+      let i be Nat;
+      assume
+Q52:  EQ[i];
+      assume 1 <= i+1 & i+1 <= len seq1;
+      then
+Q54:  1-1 <= i+1-1 & i+1-1 <= (len seq1)-1 by XREAL_1:9;
+Q550: (len seq1)-1 <= (len seq1)-0 by XREAL_1:13;
+      per cases;
+      suppose
+C1:     i = 0;
+        thus seq1.(i+1) = seq2.(i+1) by C1,P1,P2;
+      end;
+      suppose
+Q560:   i <> 0;
+        Nr-1 < Nr-0 by XREAL_1:15;
+        then
+XX1:    1 <= i & i < Nr by Q560,NAT_1:14,P1,Q54,XXREAL_0:2;
+        then
+Q60:    ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+        seq1.(i+1) =
+        (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq1.i,Keyi))
+        by P1;
+        ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+        st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+        seq2.(i+1) =
+        (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(seq2.i,Keyi))
+        by P2,XX1;
+        hence seq1.(i+1) = seq2.(i+1)
+        by Q560,NAT_1:14,Q550,Q54,XXREAL_0:2,Q52,Q60;
+      end;
+    end;
+    for i be Nat holds EQ[i] from NAT_1:sch 2(Q50,Q51);
+    hence s1 = s2 by FINSEQ_1:14,P1,P2;
+  end;
+end;
+
+theorem INV01:
+  for input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds (MCFunc").(MCFunc.input) = input
+proof
+  let input be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  thus (MCFunc").(MCFunc.(input)) = ((MCFunc")*MCFunc).input by FUNCT_2:15
+    .= (id (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))).input
+    by FUNCT_2:61
+    .= input;
+end;
+
+theorem
+  for output be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  holds MCFunc.((MCFunc").output) = output
+proof
+  let output be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  thus (MCFunc).((MCFunc").(output)) = (MCFunc*(MCFunc")).output by FUNCT_2:15
+    .= (id (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)))).output
+    by FUNCT_2:61
+    .= output;
+end;
+
+theorem LAST01:
+  for m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) holds
+  (InvSubBytes(SBT)*InvShiftRows).((ShiftRows*SubBytes(SBT)).text) = text
+proof
+  let m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  thus (InvSubBytes(SBT)*InvShiftRows).((ShiftRows*SubBytes(SBT)).text) =
+  (InvSubBytes(SBT)*InvShiftRows).(ShiftRows.((SubBytes(SBT)).text))
+  by FUNCT_2:15
+    .= (InvSubBytes(SBT)).(InvShiftRows.(ShiftRows.((SubBytes(SBT)).text)))
+    by FUNCT_2:15
+    .= (InvSubBytes(SBT)). ((SubBytes(SBT)).text) by INV04
+    .= text by INV07;
+end;
+
+theorem LAST02:
+  for m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) holds
+  (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).
+  ((MCFunc*ShiftRows*SubBytes(SBT)).text) = text
+proof
+  let m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  thus (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).
+  ((MCFunc*ShiftRows*SubBytes(SBT)).text) =
+  (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).
+  ((MCFunc*ShiftRows).((SubBytes(SBT)).text)) by FUNCT_2:15
+    .= (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).
+    (MCFunc.(ShiftRows.((SubBytes(SBT)).text))) by FUNCT_2:15
+    .= (InvSubBytes(SBT)*InvShiftRows).((MCFunc").
+    (MCFunc.(ShiftRows.((SubBytes(SBT)).text)))) by FUNCT_2:15
+    .= (InvSubBytes(SBT)*InvShiftRows).(ShiftRows.((SubBytes(SBT)).text))
+    by INV01
+    .= (InvSubBytes(SBT)).(InvShiftRows.(ShiftRows.((SubBytes(SBT)).text)))
+    by FUNCT_2:15
+    .= (InvSubBytes(SBT)).((SubBytes(SBT)).text) by INV04
+    .= text by INV07;
+end;
+
+theorem LAST03:
+  for m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  dkeyi,ekeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8) & dkeyi = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+  ekeyi = ((KeyExpansion(SBT,m)).(Key)).(7+m)
+  holds AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi) = text
+proof
+  let m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  dkeyi,ekeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  assume
+AS: (m = 4 or m = 6 or m = 8) & dkeyi = (Rev((KeyExpansion(SBT,m)).(key))).1 &
+  ekeyi = ((KeyExpansion(SBT,m)).(key)).(7+m);
+  set p = (KeyExpansion(SBT,m)).(key);
+  (KeyExpansion(SBT,m)).(key) in
+  (7+m)-tuples_on(4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)));
+  then
+B0: ex s be Element of (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))*
+  st (KeyExpansion(SBT,m)).(key) = s & len s = (7+m);
+  1+0 < 7+m by XREAL_1:8;
+  then 1 in Seg (7+m);
+  then
+B1: 1 in dom p by FINSEQ_1:def 3,B0;
+A0: dkeyi = p.((len p)-1+1) by AS,FINSEQ_5:58,B1
+    .= ekeyi by B0,AS;
+  now let i,j be Nat;
+    assume
+A3: i in Seg 4 & j in Seg 4;
+    then consider etextij,ekeyij be Element of 8-tuples_on BOOLEAN such that
+A4: etextij = (text.i).j & ekeyij = (ekeyi.i).j &
+    ((AddRoundKey.(text,ekeyi)).i).j = Op-XOR(etextij,ekeyij)
+    by DefAddRoundKey;
+    consider dtextij,dkeyij be Element of 8-tuples_on BOOLEAN such that
+A5: dtextij = ((AddRoundKey.(text,ekeyi)).i).j & dkeyij = (dkeyi.i).j &
+    ((AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi)).i).j =
+    Op-XOR(dtextij,dkeyij) by DefAddRoundKey,A3;
+    thus ((AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi)).i).j = (text.i).j
+    by A4,A5,A0,DESCIP_1:17;
+  end;
+  hence AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi) = text by LM01;
+end;
+
+LAST04:
+  for m be Nat,
+  text,otext be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Keyi1,KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8) & Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+  KeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+  otext = AddRoundKey.((ShiftRows*SubBytes(SBT)).text,KeyNr)
+  holds (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(otext,Keyi1)) = text
+proof
+  let m be Nat,
+  text,otext be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Keyi1,KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  assume
+AS: (m = 4 or m = 6 or m = 8) & Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+  KeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+  otext = AddRoundKey.((ShiftRows*SubBytes(SBT)).text,KeyNr);
+  (AddRoundKey.(otext,Keyi1)) = (ShiftRows*SubBytes(SBT)).text by AS,LAST03;
+  hence (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey. (otext,Keyi1))
+  = text by LAST01;
+end;
+
+theorem LAST05:
+  for m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  dkeyi,ekeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8) & dkeyi = ((KeyExpansion(SBT,m)).(key)).1 &
+  ekeyi = (Rev((KeyExpansion(SBT,m)).(key))).(7+m)
+  holds AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi) = text
+proof
+  let m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  dkeyi,ekeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  assume
+AS: (m = 4 or m = 6 or m = 8) & dkeyi = ((KeyExpansion(SBT,m)).(key)).1 &
+  ekeyi = (Rev((KeyExpansion(SBT,m)).(key))).(7+m);
+  set p = (KeyExpansion(SBT,m)).(key);
+  (KeyExpansion(SBT,m)).(key) in
+  (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+  then
+B0: ex s be Element of (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))*
+  st (KeyExpansion(SBT,m)).(key) = s & len s = (7+m);
+  1+0 < 7+m by XREAL_1:8;
+  then 7+m in Seg (7+m);
+  then
+B1: 7+m in dom p by FINSEQ_1:def 3,B0;
+A0: ekeyi = p.((len p)-(7+m)+1) by AS,FINSEQ_5:58,B1
+    .= dkeyi by B0,AS;
+  now let i,j be Nat;
+    assume
+A3: i in Seg 4 & j in Seg 4;
+    then consider etextij,ekeyij be Element of 8-tuples_on BOOLEAN such that
+A4: etextij = (text.i).j & ekeyij = (ekeyi.i).j &
+    ((AddRoundKey.(text,ekeyi)).i).j = Op-XOR(etextij,ekeyij)
+    by DefAddRoundKey;
+    consider dtextij,dkeyij be Element of 8-tuples_on BOOLEAN such that
+A5: dtextij = ((AddRoundKey.(text,ekeyi)).i).j & dkeyij = (dkeyi.i).j &
+    ((AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi)).i).j =
+    Op-XOR(dtextij,dkeyij) by DefAddRoundKey,A3;
+    thus ((AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi)).i).j =
+    (text.i).j by A4,A5,A0,DESCIP_1:17;
+  end;
+  hence AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi) = text by LM01;
+end;
+
+theorem
+  for m be Nat,
+  text,otext be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Keyi1,KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8) & Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+  KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+  otext = AddRoundKey.((ShiftRows*SubBytes(SBT)).text,KeyNr)
+  holds (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(otext,Keyi1)) = text
+proof
+  let m be Nat,
+  text,otext be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Keyi1,KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  assume
+AS: (m = 4 or m = 6 or m = 8) & Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+  KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+  otext = AddRoundKey.((ShiftRows*SubBytes(SBT)).text,KeyNr);
+  (AddRoundKey.(otext,Keyi1)) = (ShiftRows*SubBytes(SBT)).text by AS,LAST05;
+  hence (InvSubBytes(SBT)*InvShiftRows).(AddRoundKey.(otext,Keyi1)) = text
+  by LAST01;
+end;
+
+theorem LAST08:
+  for m,i be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  eKeyi,dKeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8) & i <= 7+m-1 &
+  eKeyi = ((KeyExpansion(SBT,m)).(Key)).(7+m-i) &
+  dKeyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1)
+  holds AddRoundKey.(AddRoundKey.(text,eKeyi),dKeyi) = text
+proof
+  let m,i be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  ekeyi,dkeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  assume
+AS: (m = 4 or m = 6 or m = 8) & i <= 7+m-1 &
+  ekeyi = ((KeyExpansion(SBT,m)).(key)).(7+m-i) &
+  dkeyi = (Rev((KeyExpansion(SBT,m)).(key))).(i+1);
+  set p = (KeyExpansion(SBT,m)).(key);
+  (KeyExpansion(SBT,m)).(key) in
+  (7+m)-tuples_on(4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)));
+  then
+B0: ex s be Element of (4-tuples_on (4-tuples_on (8-tuples_on BOOLEAN)))*
+  st (KeyExpansion(SBT,m)).(key) = s & len s = (7+m);
+  i+1 <= 7+m-1+1 by AS,XREAL_1:7;
+  then 1 <= i+1 & i+1 <= 7+m by NAT_1:11;
+  then i+1 in Seg (7+m);
+  then
+B1: i+1 in dom p by FINSEQ_1:def 3,B0;
+A0: dkeyi = p.((len p)-(i+1)+1) by AS,FINSEQ_5:58,B1
+    .= ekeyi by B0,AS;
+  now let i,j be Nat;
+    assume
+A3: i in Seg 4 & j in Seg 4;
+    then consider etextij,ekeyij be Element of 8-tuples_on BOOLEAN such that
+A4: etextij = (text.i).j & ekeyij = (ekeyi.i).j &
+    ((AddRoundKey.(text,ekeyi)).i).j = Op-XOR(etextij,ekeyij)
+    by DefAddRoundKey;
+    consider dtextij,dkeyij be Element of 8-tuples_on BOOLEAN such that
+A5: dtextij = ((AddRoundKey.(text,ekeyi)).i).j & dkeyij = (dkeyi.i).j &
+    ((AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi)).i).j =
+    Op-XOR(dtextij,dkeyij) by DefAddRoundKey,A3;
+    thus ((AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi)).i).j =
+    (text.i).j by A4,A5,A0,DESCIP_1:17;
+  end;
+  hence AddRoundKey.(AddRoundKey.(text,ekeyi),dkeyi) = text by LM01;
+end;
+
+LAST07:
+  for m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  eKeyi,dKeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8) & eKeyi = ((KeyExpansion(SBT,m)).(Key)).1 &
+  dKeyi = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m)
+  holds AddRoundKey.(AddRoundKey.(text,eKeyi),dKeyi) = text
+proof
+  let m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  eKeyi,dKeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  assume
+AS: (m = 4 or m = 6 or m = 8) & eKeyi = ((KeyExpansion(SBT,m)).(Key)).1 &
+  dKeyi = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m);
+  1+0 < 7+m by XREAL_1:8;
+  then 0 < 7+m-1 by XREAL_1:50;
+  then 7+m-1 in NAT by INT_1:3;
+  then reconsider i = 7+m-1 as Nat;
+P2: eKeyi = ((KeyExpansion(SBT,m)).(Key)).(7+m-i) by AS;
+  dKeyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) by AS;
+  hence thesis by AS,P2,LAST08;
+end;
+
+theorem LASTXX:
+  for m be Nat,
+  text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st (m = 4 or m = 6 or m = 8)
+  holds AES-DEC(SBT,MCFunc,AES-ENC(SBT,MCFunc,text,Key),Key) = text
+proof
+  let m be Nat;
+  let text be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  let Key be Element of m-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  1+0 < 7+m by XREAL_1:8;
+  then
+N1: 0 < 7+m-1 by XREAL_1:50;
+  then 7+m-1 in NAT by INT_1:3;
+  then reconsider Nr = 7+m-1 as Nat;
+A0: 1 <= Nr by NAT_1:14,N1;
+  assume
+AS: (m = 4 or m = 6 or m = 8);
+  consider eseq be
+  FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+P1: len eseq = Nr &
+  (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+  eseq.1 = AddRoundKey.(text,Keyi1)) & (for i be Nat st 1 <= i & i < Nr holds
+  ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi = ((KeyExpansion(SBT,m)).(Key)).(i+1) & eseq.(i+1) =
+  AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(eseq.i),Keyi)) &
+  ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st KeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+  AES-ENC(SBT,MCFunc,text,Key) =
+  AddRoundKey.((ShiftRows*SubBytes(SBT)).(eseq.Nr),KeyNr) by defENC;
+  consider dseq be
+  FinSequence of (4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))) such that
+P2: len dseq = Nr &
+  (ex Keyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+  dseq.1 = (InvSubBytes(SBT)*InvShiftRows).
+  (AddRoundKey.(AES-ENC(SBT,MCFunc,text,Key),Keyi1))) &
+  (for i be Nat st 1 <= i & i < Nr holds
+  ex Keyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st Keyi = (Rev((KeyExpansion(SBT,m)).(Key))).(i+1) &
+  dseq.(i+1) =
+  (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(dseq.i,Keyi))) &
+  ex KeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  st KeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+  AES-DEC(SBT,MCFunc,AES-ENC(SBT,MCFunc,text,Key),Key) =
+  AddRoundKey.(dseq.Nr,KeyNr) by defDEC;
+  consider eKeyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  such that
+P11: eKeyi1 = ((KeyExpansion(SBT,m)).(Key)).1 &
+  eseq.1 = AddRoundKey.(text,eKeyi1) by P1;
+  consider eKeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  such that
+P12: eKeyNr = ((KeyExpansion(SBT,m)).(Key)).(7+m) &
+  AES-ENC(SBT,MCFunc,text,Key) =
+  AddRoundKey.((ShiftRows*SubBytes(SBT)).(eseq.Nr),eKeyNr) by P1;
+  consider dKeyi1 be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  such that
+P21: dKeyi1 = (Rev((KeyExpansion(SBT,m)).(Key))).1 &
+  dseq.1 = (InvSubBytes(SBT)*InvShiftRows).
+  (AddRoundKey.(AES-ENC(SBT,MCFunc,text,Key),dKeyi1)) by P2;
+  consider dKeyNr be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+  such that
+P22: dKeyNr = (Rev((KeyExpansion(SBT,m)).(Key))).(7+m) &
+  AES-DEC(SBT,MCFunc,AES-ENC(SBT,MCFunc,text,Key),Key) =
+  AddRoundKey.(dseq.Nr,dKeyNr) by P2;
+  defpred PQ[Nat] means
+  $1 < Nr implies dseq.($1+1) = eseq.(Nr-$1);
+  Nr in Seg Nr by A0;
+  then Nr in dom eseq by P1,FINSEQ_1:def 3;
+  then eseq.Nr in rng eseq by FUNCT_1:3;
+  then reconsider esqm = eseq.Nr as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  dseq.(1+0) = esqm by P12,P21,AS,LAST04
+    .= eseq.(Nr-0);
+  then
+PN1: PQ[0];
+PN2: for i be Nat st PQ[i] holds PQ[i+1]
+  proof
+    let i be Nat;
+    assume
+A1: PQ[i];
+    assume
+A2: i+1 < Nr;
+A4: i <= i+1 by NAT_1:11;
+    consider dKeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    such that
+A6: dKeyi = (Rev((KeyExpansion(SBT,m)).(Key))).((i+1)+1) &
+    dseq.((i+1)+1) =
+    (InvSubBytes(SBT)*InvShiftRows*(MCFunc")).(AddRoundKey.(dseq.(i+1),dKeyi))
+    by P2,A2,NAT_1:11;
+X11: 0 < Nr-(i+1) by A2,XREAL_1:50;
+    then Nr-(i+1) in NAT by INT_1:3;
+    then reconsider m7i1 = Nr-(i+1) as Nat;
+    1 <= m7i1 by NAT_1:14,X11;
+    then
+A9: 1 <= Nr-(i+1) & Nr-(i+1) < Nr by XREAL_1:44;
+    consider eKeyi be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    such that
+A10: eKeyi = ((KeyExpansion(SBT,m)).(Key)).(m7i1+1) &
+    eseq.(m7i1+1) =
+    AddRoundKey.((MCFunc*ShiftRows*SubBytes(SBT)).(eseq.(m7i1)),eKeyi)
+    by P1,A9;
+    m7i1 in Seg Nr by A9;
+    then m7i1 in dom eseq by P1,FINSEQ_1:def 3;
+    then eseq.m7i1 in rng eseq by FUNCT_1:3;
+    then reconsider esq7mi1 = eseq.m7i1 as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    reconsider MSSesq7mi1 = (MCFunc*ShiftRows*SubBytes(SBT)).esq7mi1 as
+    Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+XXX: eKeyi = ((KeyExpansion(SBT,m)).(Key)).(7+m-(i+1)) by A10;
+A12: AddRoundKey.(eseq.(Nr-i),dKeyi) = MSSesq7mi1 by A10,A2,AS,A6,XXX,LAST08;
+    thus dseq.((i+1)+1) = eseq.(Nr-(i+1)) by A6,A4,A2,XXREAL_0:2,A1,A12,LAST02;
+  end;
+P30: for k be Nat holds PQ[k] from NAT_1:sch 2(PN1,PN2);
+  5+m < 6+m by XREAL_1:8;
+  then
+P31: dseq.(5+m+1) = eseq.(Nr-(5+m)) by P30;
+  1 <= 1 & 1 <= 1+(5+m) by NAT_1:11;
+  then 1 in Seg Nr;
+  then 1 in dom eseq by P1,FINSEQ_1:def 3;
+  then eseq.1 in rng eseq by FUNCT_1:3;
+  then reconsider esq1 = eseq.1 as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  thus AES-DEC(SBT,MCFunc,AES-ENC(SBT,MCFunc,text,Key),Key) = text
+  by P22,P31,P11,AS,LAST07;
+end;
+
+theorem LR8D1:
+  for D be non empty set, n,m be non zero Element of NAT,
+  r be Element of n-tuples_on D st m <= n & 8 <= n-m
+  holds Op-Left(Op-Right(r,m),8) is Element of 8-tuples_on D
+proof
+  let D be non empty set,
+  n,m be non zero Element of NAT,
+  r be Element of n-tuples_on D;
+  assume
+A1: m <= n & 8 <= n-m;
+  r in { s where s is Element of D*: len s = n};
+  then consider s be Element of D* such that
+A2: r = s & len s = n;
+  len Op-Right(r,m) = n - m by A1,A2,RFINSEQ:def 1;
+  then len(Op-Left(Op-Right(r,m),8)) = 8 by A1,FINSEQ_1:59;
+  hence thesis by FINSEQ_2:92;
+end;
+
+Lm1:
+  for D be non empty set, n be non zero Element of NAT,
+  r be Element of n-tuples_on D st 8 <= n & 8 <= n-8 & 16 <= n &
+  8 <= n-16 & 24 <= n & 8 <= n-24
+  holds <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),Op-Left(Op-Right(r,16),8),
+  Op-Left(Op-Right(r,24),8) *> is Element of 4-tuples_on (8-tuples_on D)
+proof
+  let D be non empty set, n be non zero Element of NAT,
+  r be Element of n-tuples_on D;
+  assume 8 <= n & 8 <= n-8 & 16 <= n & 8 <= n-16 & 24 <= n & 8 <= n-24;
+  then Op-Left(r,8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,8),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,16),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,24),8) is Element of 8-tuples_on D by DESCIP_1:1,LR8D1;
+  hence thesis by LMGSEQ4;
+end;
+
+Lm2:
+  for D be non empty set, n,m,l,p,q be non zero Element of NAT,
+  r be Element of n-tuples_on D st m <= n & 8 <= n-m & l = m+8 & l <= n &
+  8 <= n-l & p = m+16 & p <= n & 8 <= n-p & q = m+24 & q <= n & 8 <= n-q
+  holds <* Op-Left(Op-Right(r,m),8),Op-Left(Op-Right(r,l),8),
+  Op-Left(Op-Right(r,p),8),Op-Left(Op-Right(r,q),8) *> is
+  Element of 4-tuples_on (8-tuples_on D)
+proof
+  let D be non empty set, n,m,l,p,q be non zero Element of NAT,
+  r be Element of n-tuples_on D;
+  assume m <= n & 8 <= n-m & l = m+8 & l <= n & 8 <= n-l &
+  p = m+16 & p <= n & 8 <= n-p & q = m+24 & q <= n & 8 <= n-q;
+  then Op-Left(Op-Right(r,m),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,l),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,p),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,q),8) is Element of 8-tuples_on D by LR8D1;
+  hence thesis by LMGSEQ4;
+end;
+
+Lm3:
+  for D be non empty set, n,m,l,p,q be non zero Element of NAT,
+  r be Element of n-tuples_on D st m <= n & 8 <= n-m & l = m+8 & l <= n &
+  8 <= n-l & p = m+16 & p <= n & 8 <= n-p & q = m+24 & q <= n & 8 = n-q
+  holds <* Op-Left(Op-Right(r,m),8),Op-Left(Op-Right(r,l),8),
+  Op-Left(Op-Right(r,p),8),Op-Right(r,q) *> is
+  Element of 4-tuples_on (8-tuples_on D)
+proof
+  let D be non empty set, n,m,l,p,q be non zero Element of NAT,
+  r be Element of n-tuples_on D;
+  assume m <= n & 8 <= n-m & l = m+8 & l <= n & 8 <= n-l &
+  p = m+16 & p <= n & 8 <= n-p & q = m+24 & q <= n & 8 = n-q;
+  then Op-Left(Op-Right(r,m),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,l),8) is Element of 8-tuples_on D &
+  Op-Left(Op-Right(r,p),8) is Element of 8-tuples_on D &
+  Op-Right(r,q) is Element of 8-tuples_on D by DESCIP_1:2,LR8D1;
+  hence thesis by LMGSEQ4;
+end;
+
+definition
+  let r be Element of 128-tuples_on BOOLEAN;
+  func AES-KeyInitState128(r) ->
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  it.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+    Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+  it.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+    Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+  it.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+    Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+  it.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+    Op-Left(Op-Right(r,112),8),Op-Right(r,120) *>;
+  existence
+  proof
+    set R1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *>;
+    set R2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *>;
+    set R3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *>;
+    set R4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Right(r,120) *>;
+    8 <= 128-8 & 8 <= 128-16 & 8 <= 128-24;
+    then reconsider R1 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm1;
+    8 <= 128-32 & 8 <= 128-40 & 8 <= 128-48 & 8 <= 128-56 &
+    40 = 32+8 & 48 = 32+16 & 56 = 32+24;
+    then reconsider R2 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 128-64 & 8 <= 128-72 & 8 <= 128-80 & 8 <= 128-88 &
+    72 = 64+8 & 80 = 64+16 & 88 = 64+24;
+    then reconsider R3 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 128-96 & 8 <= 128-104 & 8 <= 128-112 & 8 = 128-120 &
+    104 = 96+8 & 112 = 96+16 & 120 = 96+24 & 8 = 128-120;
+    then reconsider R4 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm3;
+    set T1 = <*R1,R2*>;
+    set T2 = <*R3,R4*>;
+    set T = T1^T2;
+A4: T.1 = T1.1 & ... & T.2 = T1.2 by FINSEQ_3:154;
+A5: T.(2+1) = T2.1 & ... & T.(2+2) = T2.2 by FINSEQ_3:155;
+    len T = 4 & T is FinSequence of 4-tuples_on (8-tuples_on BOOLEAN)
+    by CARD_1:def 7;
+    then reconsider T as Element of
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by FINSEQ_2:92;
+    take T;
+    thus thesis by A4,A5,FINSEQ_1:44;
+  end;
+  uniqueness
+  proof
+    let p,q be Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A6: p.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+    p.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+    p.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+    p.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Right(r,120) *>;
+    assume
+A7: q.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+    q.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+    q.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+    q.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Right(r,120) *>;
+    p in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+A8: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st p = v &
+    len v = 4;
+    q in 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+A9: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st q = v &
+    len v = 4;
+    for i be Nat st 1 <= i & i <= len p holds p.i = q.i
+    proof
+      let i be Nat;
+      assume 1 <= i & i <= len p;
+      then i = 1 or ... or i = 4 by A8;
+      hence thesis by A6,A7;
+    end;
+    hence p = q by A8,A9,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  let r be Element of 192-tuples_on BOOLEAN;
+  func AES-KeyInitState192(r) ->
+  Element of 6-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  it.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+    Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+  it.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+    Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+  it.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+    Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+  it.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+    Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *> &
+  it.5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+    Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *> &
+  it.6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+    Op-Left(Op-Right(r,176),8),Op-Right(r,184) *>;
+  existence
+  proof
+    set R1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *>;
+    set R2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *>;
+    set R3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *>;
+    set R4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *>;
+    set R5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+      Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *>;
+    set R6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+      Op-Left(Op-Right(r,176),8),Op-Right(r,184) *>;
+    8 <= 192-8 & 8 <= 192-16 & 8 <= 192-24;
+    then reconsider R1 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm1;
+    8 <= 192-32 & 8 <= 192-40 & 8 <= 192-48 & 8 <= 192-56 &
+    40 = 32+8 & 48 = 32+16 & 56 = 32+24;
+    then reconsider R2 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 192-64 & 8 <= 192-72 & 8 <= 192-80 & 8 <= 192-88 &
+    72 = 64+8 & 80 = 64+16 & 88 = 64+24;
+    then reconsider R3 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 192-96 & 8 <= 192-104 & 8 <= 192-112 & 8 <= 192-120 &
+    104 = 96+8 & 112 = 96+16 & 120 = 96+24;
+    then reconsider R4 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 192-128 & 8 <= 192-136 & 8 <= 192-144 & 8 <= 192-152 &
+    136 = 128+8 & 144 = 128+16 & 152 = 128+24;
+    then reconsider R5 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 192-160 & 8 <= 192-168 & 8 <= 192-176 & 8 = 192-184 &
+    168 = 160+8 & 176 = 160+16 & 184 = 160+24 & 8 = 192-184;
+    then reconsider R6 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm3;
+    set T1 = <*R1,R2,R3*>;
+    set T2 = <*R4,R5,R6*>;
+    set T = T1^T2;
+A4: T.1 = T1.1 & ... & T.3 = T1.3 by FINSEQ_3:154;
+A5: T.(3+1) = T2.1 & ... & T.(3+3) = T2.3 by FINSEQ_3:155;
+    len T = 6 & T is FinSequence of 4-tuples_on (8-tuples_on BOOLEAN)
+    by CARD_1:def 7;
+    then reconsider T as Element of
+    6-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by FINSEQ_2:92;
+    take T;
+    thus thesis by A4,A5,FINSEQ_1:45;
+  end;
+  uniqueness
+  proof
+    let p,q be Element of 6-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A6: p.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+    p.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+    p.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+    p.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *> &
+    p.5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+      Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *> &
+    p.6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+      Op-Left(Op-Right(r,176),8),Op-Right(r,184) *>;
+    assume
+A7: q.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+    q.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+    q.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+    q.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *> &
+    q.5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+      Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *> &
+    q.6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+      Op-Left(Op-Right(r,176),8),Op-Right(r,184) *>;
+    p in 6-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+A8: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st p = v &
+    len v = 6;
+    q in 6-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+A9: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st q = v &
+    len v = 6;
+    for i be Nat st 1 <= i & i <= len p holds p.i = q.i
+    proof
+      let i be Nat;
+      assume 1 <= i & i <= len p;
+      then i = 1 or ... or i = 6 by A8;
+      hence thesis by A6,A7;
+    end;
+    hence p = q by A8,A9,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  let r be Element of 256-tuples_on BOOLEAN;
+  func AES-KeyInitState256(r) ->
+  Element of 8-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) means
+  it.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+    Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+  it.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+    Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+  it.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+    Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+  it.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+    Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *> &
+  it.5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+    Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *> &
+  it.6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+    Op-Left(Op-Right(r,176),8),Op-Left(Op-Right(r,184),8) *> &
+  it.7 = <* Op-Left(Op-Right(r,192),8),Op-Left(Op-Right(r,200),8),
+    Op-Left(Op-Right(r,208),8),Op-Left(Op-Right(r,216),8) *> &
+  it.8 = <* Op-Left(Op-Right(r,224),8),Op-Left(Op-Right(r,232),8),
+    Op-Left(Op-Right(r,240),8),Op-Right(r,248) *>;
+  existence
+  proof
+    set R1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *>;
+    set R2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *>;
+    set R3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *>;
+    set R4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *>;
+    set R5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+      Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *>;
+    set R6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+      Op-Left(Op-Right(r,176),8),Op-Left(Op-Right(r,184),8) *>;
+    set R7 = <* Op-Left(Op-Right(r,192),8),Op-Left(Op-Right(r,200),8),
+      Op-Left(Op-Right(r,208),8),Op-Left(Op-Right(r,216),8) *>;
+    set R8 = <* Op-Left(Op-Right(r,224),8),Op-Left(Op-Right(r,232),8),
+      Op-Left(Op-Right(r,240),8),Op-Right(r,248) *>;
+    8 <= 256-8 & 8 <= 256-16 & 8 <= 256-24;
+    then reconsider R1 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm1;
+    8 <= 256-32 & 8 <= 256-40 & 8 <= 256-48 & 8 <= 256-56 &
+    40 = 32+8 & 48 = 32+16 & 56 = 32+24;
+    then reconsider R2 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 256-64 & 8 <= 256-72 & 8 <= 256-80 & 8 <= 256-88 &
+    72 = 64+8 & 80 = 64+16 & 88 = 64+24;
+    then reconsider R3 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 256-96 & 8 <= 256-104 & 8 <= 256-112 & 8 <= 256-120 &
+    104 = 96+8 & 112 = 96+16 & 120 = 96+24;
+    then reconsider R4 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 256-128 & 8 <= 256-136 & 8 <= 256-144 & 8 <= 256-152 &
+    136 = 128+8 & 144 = 128+16 & 152 = 128+24;
+    then reconsider R5 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 256-160 & 8 <= 256-168 & 8 <= 256-176 & 8 <= 256-184 &
+    168 = 160+8 & 176 = 160+16 & 184 = 160+24;
+    then reconsider R6 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 256-192 & 8 <= 256-200 & 8 <= 256-208 & 8 <= 256-216 &
+    200 = 192+8 & 208 = 192+16 & 216 = 192+24;
+    then reconsider R7 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm2;
+    8 <= 256-224 & 8 <= 256-232 & 8 <= 256-240 & 8 = 256-248 &
+    232 = 224+8 & 240 = 224+16 & 248 = 224+24 & 8 = 256-248;
+    then reconsider R8 as Element of 4-tuples_on (8-tuples_on BOOLEAN) by Lm3;
+    set T1 = <*R1,R2,R3,R4*>;
+    set T2 = <*R5,R6,R7,R8*>;
+    set T = T1^T2;
+A4: T.1 = T1.1 & ... & T.4 = T1.4 by FINSEQ_3:154;
+A5: T.(4+1) = T2.1 & ... & T.(4+4) = T2.4 by FINSEQ_3:155;
+    len T = 8 & T is FinSequence of 4-tuples_on (8-tuples_on BOOLEAN)
+    by CARD_1:def 7;
+    then reconsider T as Element of
+    8-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)) by FINSEQ_2:92;
+    take T;
+    thus thesis by A4,A5,FINSEQ_4:76;
+  end;
+  uniqueness
+  proof
+    let p,q be Element of 8-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    assume
+A6: p.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+    p.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+    p.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+    p.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *> &
+    p.5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+      Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *> &
+    p.6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+      Op-Left(Op-Right(r,176),8),Op-Left(Op-Right(r,184),8) *> &
+    p.7 = <* Op-Left(Op-Right(r,192),8),Op-Left(Op-Right(r,200),8),
+      Op-Left(Op-Right(r,208),8),Op-Left(Op-Right(r,216),8) *> &
+    p.8 = <* Op-Left(Op-Right(r,224),8),Op-Left(Op-Right(r,232),8),
+      Op-Left(Op-Right(r,240),8),Op-Right(r,248) *>;
+    assume
+A7: q.1 = <* Op-Left(r,8),Op-Left(Op-Right(r,8),8),
+      Op-Left(Op-Right(r,16),8),Op-Left(Op-Right(r,24),8) *> &
+    q.2 = <* Op-Left(Op-Right(r,32),8),Op-Left(Op-Right(r,40),8),
+      Op-Left(Op-Right(r,48),8),Op-Left(Op-Right(r,56),8) *> &
+    q.3 = <* Op-Left(Op-Right(r,64),8),Op-Left(Op-Right(r,72),8),
+      Op-Left(Op-Right(r,80),8),Op-Left(Op-Right(r,88),8) *> &
+    q.4 = <* Op-Left(Op-Right(r,96),8),Op-Left(Op-Right(r,104),8),
+      Op-Left(Op-Right(r,112),8),Op-Left(Op-Right(r,120),8) *> &
+    q.5 = <* Op-Left(Op-Right(r,128),8),Op-Left(Op-Right(r,136),8),
+      Op-Left(Op-Right(r,144),8),Op-Left(Op-Right(r,152),8) *> &
+    q.6 = <* Op-Left(Op-Right(r,160),8),Op-Left(Op-Right(r,168),8),
+      Op-Left(Op-Right(r,176),8),Op-Left(Op-Right(r,184),8) *> &
+    q.7 = <* Op-Left(Op-Right(r,192),8),Op-Left(Op-Right(r,200),8),
+      Op-Left(Op-Right(r,208),8),Op-Left(Op-Right(r,216),8) *> &
+    q.8 = <* Op-Left(Op-Right(r,224),8),Op-Left(Op-Right(r,232),8),
+      Op-Left(Op-Right(r,240),8),Op-Right(r,248) *>;
+    p in 8-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+A8: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st p = v &
+    len v = 8;
+    q in 8-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+    then
+A9: ex v be Element of (4-tuples_on (8-tuples_on BOOLEAN))* st q = v &
+    len v = 8;
+    for i be Nat st 1 <= i & i <= len p holds p.i = q.i
+    proof
+      let i be Nat;
+      assume 1 <= i & i <= len p;
+      then i = 1 or ... or i = 8 by A8;
+      hence thesis by A6,A7;
+    end;
+    hence p = q by A8,A9,FINSEQ_1:14;
+  end;
+end;
+
+definition
+  let SBT,MixColumns;
+  let message be Element of 128-tuples_on BOOLEAN;
+  let Key be Element of 128-tuples_on BOOLEAN;
+  func AES128-ENC(SBT,MixColumns,message,Key) ->
+  Element of 128-tuples_on BOOLEAN equals
+  (AES-Statearray)".(AES-ENC(SBT,MixColumns,AES-Statearray.message,
+  AES-KeyInitState128(Key)));
+  correctness
+  proof
+    rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    by FUNCT_2:def 3;
+    then (AES-Statearray)" is Function of
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),128-tuples_on BOOLEAN
+    by FUNCT_2:25;
+    hence thesis by FUNCT_2:5;
+  end;
+end;
+
+definition
+  let SBT,MixColumns;
+  let cipher be Element of 128-tuples_on BOOLEAN;
+  let Key be Element of 128-tuples_on BOOLEAN;
+  func AES128-DEC(SBT,MixColumns,cipher,Key) ->
+  Element of 128-tuples_on BOOLEAN equals
+  (AES-Statearray)".(AES-DEC(SBT,MixColumns,AES-Statearray.cipher,
+  AES-KeyInitState128(Key)));
+  correctness
+  proof
+    rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    by FUNCT_2:def 3;
+    then (AES-Statearray)" is
+    Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    128-tuples_on BOOLEAN by FUNCT_2:25;
+    hence thesis by FUNCT_2:5;
+  end;
+end;
+
+theorem
+  for SBT be Permutation of (8-tuples_on BOOLEAN),
+  MixColumns be Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  message,Key be Element of 128-tuples_on BOOLEAN holds
+  AES128-DEC(SBT,MixColumns,AES128-ENC(SBT,MixColumns,message,Key),Key) =
+  message
+proof
+  let SBT be Permutation of (8-tuples_on BOOLEAN),
+  MixColumns be Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  message,Key be Element of 128-tuples_on BOOLEAN;
+  reconsider text = AES-Statearray.message as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider sKey = AES-KeyInitState128(Key) as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider cipher = AES-ENC(SBT,MixColumns,text,sKey) as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider CBLOCK = AES128-ENC(SBT,MixColumns,message,Key) as
+  Element of 128-tuples_on BOOLEAN;
+  AES128-DEC(SBT,MixColumns,CBLOCK,Key) =
+  (AES-Statearray)".(AES-DEC(SBT,MixColumns,cipher,sKey)) by LMINV1
+    .=(AES-Statearray)".text by LASTXX;
+  hence thesis by FUNCT_2:26;
+end;
+
+definition
+  let SBT,MixColumns;
+  let message be Element of 128-tuples_on BOOLEAN;
+  let Key be Element of 192-tuples_on BOOLEAN;
+  func AES192-ENC(SBT,MixColumns,message,Key) ->
+  Element of 128-tuples_on BOOLEAN equals
+  (AES-Statearray)".(AES-ENC(SBT,MixColumns,AES-Statearray.message,
+  AES-KeyInitState192(Key)));
+  correctness
+  proof
+    rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    by FUNCT_2:def 3;
+    then (AES-Statearray)" is Function of
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),128-tuples_on BOOLEAN
+    by FUNCT_2:25;
+    hence thesis by FUNCT_2:5;
+  end;
+end;
+
+definition
+  let SBT,MixColumns;
+  let cipher be Element of 128-tuples_on BOOLEAN;
+  let Key be Element of 192-tuples_on BOOLEAN;
+  func AES192-DEC(SBT,MixColumns,cipher,Key) ->
+  Element of 128-tuples_on BOOLEAN equals
+  (AES-Statearray)".(AES-DEC(SBT,MixColumns,AES-Statearray.cipher,
+  AES-KeyInitState192(Key)));
+  correctness
+  proof
+    rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    by FUNCT_2:def 3;
+    then (AES-Statearray)" is
+    Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    128-tuples_on BOOLEAN by FUNCT_2:25;
+    hence thesis by FUNCT_2:5;
+  end;
+end;
+
+theorem
+  for SBT be Permutation of (8-tuples_on BOOLEAN),
+  MixColumns be Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  message be Element of 128-tuples_on BOOLEAN,
+  Key be Element of 192-tuples_on BOOLEAN holds
+  AES192-DEC(SBT,MixColumns,AES192-ENC(SBT,MixColumns,message,Key),Key) =
+  message
+proof
+  let SBT be Permutation of (8-tuples_on BOOLEAN),
+  MixColumns be Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  message be Element of 128-tuples_on BOOLEAN,
+  Key be Element of 192-tuples_on BOOLEAN;
+  reconsider text = AES-Statearray.message as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider sKey = AES-KeyInitState192(Key) as
+  Element of 6-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider cipher = AES-ENC(SBT,MixColumns,text,sKey) as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider CBLOCK = AES192-ENC(SBT,MixColumns,message,Key) as
+  Element of 128-tuples_on BOOLEAN;
+  AES192-DEC(SBT,MixColumns,CBLOCK,Key) =
+  (AES-Statearray)".(AES-DEC(SBT,MixColumns,cipher,sKey)) by LMINV1
+    .=(AES-Statearray)".text by LASTXX;
+  hence thesis by FUNCT_2:26;
+end;
+
+definition
+  let SBT,MixColumns;
+  let message be Element of 128-tuples_on BOOLEAN;
+  let Key be Element of 256-tuples_on BOOLEAN;
+  func AES256-ENC(SBT,MixColumns,message,Key) ->
+  Element of 128-tuples_on BOOLEAN equals
+  (AES-Statearray)".(AES-ENC(SBT,MixColumns,AES-Statearray.message,
+  AES-KeyInitState256(Key)));
+  correctness
+  proof
+    rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    by FUNCT_2:def 3;
+    then (AES-Statearray)" is Function of
+    4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),128-tuples_on BOOLEAN
+    by FUNCT_2:25;
+    hence thesis by FUNCT_2:5;
+  end;
+end;
+
+definition
+  let SBT,MixColumns;
+  let cipher be Element of 128-tuples_on BOOLEAN;
+  let Key be Element of 256-tuples_on BOOLEAN;
+  func AES256-DEC(SBT,MixColumns,cipher,Key) ->
+  Element of 128-tuples_on BOOLEAN equals
+  (AES-Statearray)".(AES-DEC(SBT,MixColumns,AES-Statearray.cipher,
+  AES-KeyInitState256(Key)));
+  correctness
+  proof
+    rng AES-Statearray = 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN))
+    by FUNCT_2:def 3;
+    then (AES-Statearray)" is
+    Function of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+    128-tuples_on BOOLEAN by FUNCT_2:25;
+    hence thesis by FUNCT_2:5;
+  end;
+end;
+
+theorem
+  for SBT be Permutation of (8-tuples_on BOOLEAN),
+  MixColumns be Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  message be Element of 128-tuples_on BOOLEAN,
+  Key be Element of 256-tuples_on BOOLEAN holds
+  AES256-DEC(SBT,MixColumns,AES256-ENC(SBT,MixColumns,message,Key),Key) =
+  message
+proof
+  let SBT be Permutation of (8-tuples_on BOOLEAN),
+  MixColumns be Permutation of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN)),
+  message be Element of 128-tuples_on BOOLEAN,
+  Key be Element of 256-tuples_on BOOLEAN;
+  reconsider text = AES-Statearray.message as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider sKey = AES-KeyInitState256(Key) as
+  Element of 8-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider cipher = AES-ENC(SBT,MixColumns,text,sKey) as
+  Element of 4-tuples_on(4-tuples_on (8-tuples_on BOOLEAN));
+  reconsider CBLOCK = AES256-ENC(SBT,MixColumns,message,Key) as
+  Element of 128-tuples_on BOOLEAN;
+  AES256-DEC(SBT,MixColumns,CBLOCK,Key) =
+  (AES-Statearray)".(AES-DEC(SBT,MixColumns,cipher,sKey)) by LMINV1
+    .=(AES-Statearray)".text by LASTXX;
+  hence thesis by FUNCT_2:26;
+end;

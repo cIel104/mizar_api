@@ -1,0 +1,1595 @@
+:: Stone Lattices
+::  by Adam Grabowski
+::
+:: Received October 22, 2015
+:: Copyright (c) 2015-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies SUBSET_1, LATTICES, LATSTONE, XBOOLE_0, TARSKI, EQREL_1, PBOOLE,
+      ORDINAL4, XXREAL_2, STRUCT_0, ZFMISC_1, LATTICE5, FILTER_0, LATTICE4,
+      TOPS_1, REWRITE1, MOEBIUS2, NAT_1, FINSET_1, XCMPLX_0, MOEBIUS1, RELAT_1,
+      BINOP_1, REALSET1, LATTICEA, XXREAL_0, CARD_1, NUMBERS, NEWTON, ARYTM_3;
+ notations TARSKI, ZFMISC_1, XBOOLE_0, RELAT_1, ORDINAL1, NAT_1, FINSET_1,
+      ARYTM_3, BINOP_1, REALSET1, SUBSET_1, NAT_D, ENUMSET1, XCMPLX_0,
+      XXREAL_0, CARD_1, NUMBERS, NEWTON, INT_2, FUNCT_1, FUNCT_2, STRUCT_0,
+      LATTICES, LATTICE3, FILTER_0, FILTER_1, FILTER_2, LATTICE4, MOEBIUS1,
+      MOEBIUS2, LATTICEA;
+ constructors DOMAIN_1, XBOOLE_0, FILTER_1, NAT_1, ORDINAL1, INT_2, NEWTON,
+      ARYTM_3, NAT_D, SQUARE_1, ENUMSET1, ZFMISC_1, FILTER_0, FINSET_1,
+      FILTER_2, LATTICE4, MOEBIUS1, XREAL_0, XCMPLX_0, XXREAL_0, BINOP_1,
+      REALSET2, LATTICE3, PARTFUN1, MOEBIUS2, SUBSET_1, BOOLEALG, REALSET1,
+      LATTICEA;
+ registrations STRUCT_0, LATTICES, INT_1, FILTER_1, MOEBIUS1, MOEBIUS2,
+      XCMPLX_0, INT_3, NEWTON, NAT_1, ORDINAL1, XXREAL_0, RELSET_1, LATTICE6;
+ requirements SUBSET, BOOLE, REAL, NUMERALS;
+ definitions TARSKI, XBOOLE_0, LATTICES;
+ equalities FILTER_1;
+ theorems LATTICES, FILTER_0, FILTER_2, MSUALG_7, MOEBIUS2, MOEBIUS1, NEWTON,
+      ENUMSET1, INT_2, NAT_5, TARSKI, BOOLEALG, FILTER_1, ZFMISC_1, XTUPLE_0,
+      LATTICEA, LATTICE4;
+
+begin :: Preliminaries
+
+:: The main aim of this article is to provide a formal counterpart
+:: for the paper of Jouni J\"arvinen "Lattice theory for rough sets",
+:: in Transactions of Rough Sets, VI, LNCS vol. 4374, pp. 400--498, 2007.
+:: The corresponding items are marked by the acronym LTRS. We deal
+:: with Section 4.3, page 423--426.
+
+theorem ThA:
+  for L being distributive Lattice, S being Sublattice of L holds
+    S is distributive
+  proof
+    let L be distributive Lattice, S be Sublattice of L;
+    let a,b,c be Element of S;
+    reconsider aa = a, bb = b, cc = c as Element of L by FILTER_2:68;
+A2: b "\/" c = bb "\/" cc by MSUALG_7:11;
+    reconsider ab = aa "/\" bb, ac = aa "/\" cc as Element of L;
+A4: ab = a "/\" b & ac = a "/\" c by MSUALG_7:11;
+    a "/\" (b "\/" c) = aa "/\" (bb "\/" cc) by MSUALG_7:11,A2
+       .= (aa "/\" bb) "\/" (aa "/\" cc) by LATTICES:def 11
+       .= (a "/\" b) "\/" (a "/\" c) by MSUALG_7:11,A4;
+    hence thesis;
+  end;
+
+registration let L be distributive Lattice;
+  cluster -> distributive for Sublattice of L;
+  coherence by ThA;
+end;
+
+registration let L1, L2 be bounded Lattice;
+  cluster [:L1,L2:] -> bounded;
+  coherence by FILTER_1:41;
+end;
+
+ reserve L for Lattice;
+ reserve I,P for non empty ClosedSubset of L;
+
+theorem ThB:
+  L is lower-bounded & Bottom L in I implies latt (L,I) is lower-bounded
+    & Bottom latt (L,I) = Bottom L
+  proof
+    set b9 = the Element of latt (L,I);
+    reconsider b = b9 as Element of L by FILTER_2:68;
+    assume
+A0: L is lower-bounded & Bottom L in I;
+    set c = Bottom L;
+    reconsider c9 = c as Element of latt (L,I) by FILTER_2:72,A0;
+    ex c9 being Element of latt (L,I) st
+    for a9 being Element of latt (L,I) holds c9 "/\" a9 = c9 & a9 "/\" c9 = c9
+    proof
+    take c9;
+    let a9 be Element of latt (L,I);
+    reconsider a = a9 as Element of L by FILTER_2:68;
+    thus c9 "/\" a9 = c "/\" a by FILTER_2:73 .= c9 by A0;
+    hence thesis;
+    end;
+    hence
+W1: latt (L,I) is lower-bounded by LATTICES:def 13;
+    for a9 being Element of latt (L,I) holds c9 "/\" a9 = c9 & a9 "/\" c9 = c9
+    proof
+      let a9 be Element of latt (L,I);
+      reconsider a = a9 as Element of L by FILTER_2:68;
+      thus c9 "/\" a9 = c "/\" a by FILTER_2:73  .= c9 by A0;
+      hence thesis;
+    end;
+    hence thesis by LATTICES:def 16,W1;
+  end;
+
+theorem ThC:
+  L is upper-bounded & Top L in I implies latt (L,I) is upper-bounded
+    & Top latt (L,I) = Top L
+  proof
+    set b9 = the Element of latt (L,I);
+    reconsider b = b9 as Element of L by FILTER_2:68;
+    assume
+A0: L is upper-bounded & Top L in I;
+    set c = Top L;
+    reconsider c9 = c as Element of latt (L,I) by FILTER_2:72,A0;
+    ex c9 being Element of latt (L,I) st
+    for a9 being Element of latt (L,I) holds c9 "\/" a9 = c9 & a9 "\/" c9 = c9
+    proof
+    take c9;
+    let a9 be Element of latt (L,I);
+    reconsider a = a9 as Element of L by FILTER_2:68;
+    thus c9 "\/" a9 = c "\/" a by FILTER_2:73 .= c9 by A0;
+    hence thesis;
+    end;
+    hence
+W1: latt (L,I) is upper-bounded by LATTICES:def 14;
+    for a9 being Element of latt (L,I) holds c9 "\/" a9 = c9 & a9 "\/" c9 = c9
+    proof
+      let a9 be Element of latt (L,I);
+      reconsider a = a9 as Element of L by FILTER_2:68;
+      thus c9 "\/" a9 = c "\/" a by FILTER_2:73 .= c9 by A0;
+      hence thesis;
+    end;
+    hence thesis by LATTICES:def 17,W1;
+  end;
+
+begin :: Pseudocomplements in Lattices
+
+::$N Pseudocomplement
+
+definition let L be non empty LattStr;
+  let a,b be Element of L;
+  pred a is_a_pseudocomplement_of b means
+    a "/\" b = Bottom L &
+    for x being Element of L st b "/\" x = Bottom L holds x [= a;
+end;
+
+:: p. 122 6.1 Definition from Gratzer
+
+definition let L be non empty LattStr;
+  attr L is pseudocomplemented means :def2:
+    for x being Element of L
+    ex y being Element of L st y is_a_pseudocomplement_of x;
+end;
+
+:: LTRS: Example 43(a)
+
+theorem Th1:
+  for L being Boolean Lattice holds L is pseudocomplemented
+  proof
+    let L be Boolean Lattice;
+    L is pseudocomplemented
+    proof
+      let x be Element of L;
+      take y = x`;
+      for z being Element of L st x "/\" z = Bottom L holds z [= y
+      proof
+        let z be Element of L;
+        assume E1: x "/\" z = Bottom L;
+        z = z "/\" Top L .= z "/\" (x "\/" y) by LATTICES:21
+         .= (z "/\" x) "\/" (z "/\" y) by LATTICES:def 11 .= z "/\" y by E1;
+        hence z [= y by LATTICES:4;
+      end;
+      hence thesis by LATTICES:20;
+    end;
+    hence thesis;
+  end;
+
+registration
+  cluster Boolean -> pseudocomplemented for Lattice;
+  coherence by Th1;
+end;
+
+registration
+  cluster Boolean pseudocomplemented bounded for Lattice;
+  existence
+  proof
+    set L = the Boolean Lattice;
+    take L;
+    thus thesis;
+  end;
+end;
+
+:: Pseudocomplements are unique
+
+theorem Th2:
+  for L being pseudocomplemented lower-bounded Lattice,
+  a, b, x being Element of L st a is_a_pseudocomplement_of x &
+    b is_a_pseudocomplement_of x holds a = b
+  proof
+    let L be pseudocomplemented lower-bounded Lattice;
+    let a, b, x be Element of L;
+    assume that
+a1: a is_a_pseudocomplement_of x and
+b1: b is_a_pseudocomplement_of x;
+a2: a "/\" x = Bottom L by a1;
+b2: b "/\" x = Bottom L by b1;
+ab1:b [= a by a1,b2;
+    a [= b by b1,a2;
+    hence a = b by ab1,LATTICES:8;
+  end;
+
+:: The unique pseudocomplement
+
+definition let L be non empty LattStr, x be Element of L;
+  assume A1:L is pseudocomplemented lower-bounded Lattice;
+  func x* -> Element of L means :def3:
+    it is_a_pseudocomplement_of x;
+  existence by def2,A1;
+  uniqueness by A1,Th2;
+end;
+
+theorem ThD:
+  for L being pseudocomplemented lower-bounded Lattice, x being Element of L
+  holds x* "/\" x = Bottom L
+  proof
+    let L be pseudocomplemented lower-bounded Lattice, x be Element of L;
+    x* is_a_pseudocomplement_of x by def3;
+    hence thesis;
+  end;
+
+reserve L for lower-bounded pseudocomplemented Lattice;
+
+:: LTRS: Lemma 42(a)
+
+theorem Th5:
+  for a being Element of L holds a [= a**
+  proof
+    let a be Element of L;
+a1: a** is_a_pseudocomplement_of a* by def3;
+    a* is_a_pseudocomplement_of a by def3;
+    hence thesis by a1;
+  end;
+
+:: LTRS: Lemma 42(b)
+
+theorem Th6:
+  for a, b being Element of L holds a [= b implies b* [= a*
+  proof
+    let a, b be Element of L;
+    assume a [= b; then
+a1: a "/\" b = a by LATTICES:4;
+a2: a* is_a_pseudocomplement_of a by def3;
+    a "/\" (b*) = (b* "/\" b) "/\" a by a1,LATTICES:def 7
+    .= Bottom L "/\" a by ThD .= Bottom L;
+    hence b* [= a* by a2;
+  end;
+
+:: LTRS: Lemma 42(c)
+
+theorem Th7:
+  for a being Element of L holds a* = a***
+  proof
+    let a be Element of L;
+a1: a*** [= a* by Th6,Th5;
+    a* [= a*** by Th5;
+    hence thesis by a1,LATTICES:8;
+  end;
+
+:: LTRS: Example 43(c)
+theorem Th11:
+  for L being pseudocomplemented bounded Lattice holds (Bottom L)* = Top L
+  proof
+    let L be pseudocomplemented bounded Lattice;
+    Top L is_a_pseudocomplement_of Bottom L by LATTICES:19;
+    hence (Bottom L)* = Top L by def3;
+  end;
+
+:: LTRS: Example 43(c)
+theorem Th11a:
+  for L being pseudocomplemented bounded Lattice holds (Top L)* = Bottom L
+  proof
+    let L be pseudocomplemented bounded Lattice;
+    for x be Element of L st Top L "/\" x = Bottom L holds x [= Bottom L; then
+    Bottom L is_a_pseudocomplement_of Top L;
+    hence (Top L)* = Bottom L by def3;
+  end;
+
+:: Pseudocomplements are precisely complements in complemented lattices.
+:: A complement (if exists) is always a pseudocomplement.
+
+:: LTRS: Example 43(a)
+theorem ThE:
+  for L being Boolean Lattice, x being Element of L holds x` = x*
+  proof
+    let L be Boolean Lattice, x be Element of L;
+a1: x* [= x`
+    proof
+      x* "/\" x = Bottom L by ThD;
+      hence thesis by LATTICES:25;
+    end;
+    x` [= x*
+    proof
+a1:   (x`) "/\" x = Bottom L by LATTICES:20;
+      x* is_a_pseudocomplement_of x by def3;
+      hence thesis by a1;
+    end;
+    hence thesis by a1,LATTICES:8;
+  end;
+
+:: Connection between pseudocomplements and the functor from LATTICEA
+
+theorem ThF:
+  for L being pseudocomplemented bounded Lattice, x, y being Element of L st
+    y is_a_pseudocomplement_of x holds y in PseudoComplements x
+  proof
+    let L be pseudocomplemented bounded Lattice, x, y be Element of L;
+    assume y is_a_pseudocomplement_of x; then
+    x "/\" y = Bottom L; then
+    y in { xx where xx is Element of L : x "/\" xx = Bottom L };
+    hence thesis by LATTICEA:def 8;
+  end;
+
+theorem
+  for L being pseudocomplemented bounded Lattice, x being Element of L holds
+    x* in PseudoComplements x
+  proof
+    let L be pseudocomplemented bounded Lattice, a be Element of L;
+    a* is_a_pseudocomplement_of a by def3;
+    hence thesis by ThF;
+  end;
+
+begin :: Skeleton of a Pseudocomplemented Lattice
+
+definition let L be lower-bounded pseudocomplemented Lattice;
+  func Skeleton L -> Subset of L equals
+    the set of all a* where a is Element of L;
+  coherence
+  proof
+    { a* where a is Element of L : not contradiction }
+      c= the carrier of L
+    proof
+      let x be object;
+      assume x in { a* where a is Element of L : not contradiction };
+      then consider a being Element of L such that
+A1:   x = a*;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem
+  for L being lower-bounded pseudocomplemented Lattice holds
+    Skeleton L = { a where a is Element of L : a** = a }
+  proof
+    let L be lower-bounded pseudocomplemented Lattice;
+    thus Skeleton L c= { a where a is Element of L : a** = a }
+    proof
+      let x be object;
+      assume x in Skeleton L; then
+      consider a being Element of L such that
+a1:   x = a*;
+      a*** = a* by Th7;
+      hence thesis by a1;
+    end;
+    let x be object;
+    assume x in { a where a is Element of L : a** = a };
+    then consider a being Element of L such that
+a3: x = a & a** = a;
+    thus thesis by a3;
+  end;
+
+:: LTRS: Lemma 44(a), p. 424
+
+theorem Th13:
+  for L being lower-bounded pseudocomplemented Lattice, x being Element of L
+  holds x in Skeleton L iff x** = x
+  proof
+    let L be lower-bounded pseudocomplemented Lattice, x be Element of L;
+    hereby
+      assume x in Skeleton L; then
+      consider a being Element of L such that
+a1:   x = a*;
+      thus x** = x by a1,Th7;
+    end;
+    assume x** = x;
+    hence x in Skeleton L;
+  end;
+
+registration let L be bounded pseudocomplemented Lattice;
+  cluster Skeleton L -> non empty;
+  coherence
+  proof
+    set x = the Element of L;
+    x* in Skeleton L;
+    hence thesis;
+  end;
+end;
+
+theorem
+  for L being pseudocomplemented distributive lower-bounded Lattice holds
+  for a, b being Element of L st a in Skeleton L & b in Skeleton L holds
+  a "/\" b in Skeleton L
+  proof
+    let L be pseudocomplemented distributive lower-bounded Lattice;
+    let a, b be Element of L;
+    assume a in Skeleton L & b in Skeleton L; then
+A2: a = a** & b = b** by Th13;
+    a* [= (a "/\" b)* by Th6,LATTICES:6; then
+B2: (a "/\" b)** [= a by A2,Th6;
+    b* [= (a "/\" b)* by Th6,LATTICES:6; then
+    (a "/\" b)** [= b** by Th6; then
+B1: (a "/\" b)** [= a "/\" b by B2,FILTER_0:7,A2;
+    a "/\" b [= (a "/\" b)** by Th5; then
+    a "/\" b = (a "/\" b)** by B1,LATTICES:8;
+    hence thesis;
+  end;
+
+begin :: Stone Identity
+
+definition let L be non empty LattStr;
+  attr L is satisfying_Stone_identity means :SatStone:
+    for x being Element of L holds x* "\/" (x**) = Top L;
+end;
+
+theorem Th4:
+  for L being Boolean Lattice holds L is satisfying_Stone_identity
+  proof
+    let L be Boolean Lattice, x be Element of L;
+    x* "\/" ((x*)*) = Top L
+    proof
+      x* "\/" ((x*)*) = x` "\/" ((x*)*) by ThE .= x` "\/" ((x`)*) by ThE
+      .= x` "\/" ((x`)`) by ThE .= Top L by LATTICES:21;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+registration
+  cluster Boolean -> satisfying_Stone_identity for Lattice;
+  coherence by Th4;
+end;
+
+registration
+  cluster satisfying_Stone_identity pseudocomplemented Boolean for Lattice;
+  existence
+  proof
+    set L = the Boolean Lattice;
+    take L;
+    thus thesis;
+  end;
+end;
+
+:: LTRS: Lemma 44(b), p. 424
+
+theorem Th12:
+  for L being pseudocomplemented distributive bounded Lattice holds
+    L is satisfying_Stone_identity iff for a, b being Element of L holds
+      (a "/\" b)* = (a*) "\/" (b*)
+  proof
+    let L be pseudocomplemented distributive bounded Lattice;
+    hereby
+      assume
+ a11: L is satisfying_Stone_identity;
+      let a, b be Element of L;
+      set g = a "/\" b;
+a0:   g "/\" (a* "\/" (b*))
+        = ((a*) "/\" g) "\/" (g "/\" (b*)) by LATTICES:def 11
+       .= (((a*) "/\" a) "/\" b) "\/" (g "/\" (b*))
+         by LATTICES:def 7
+       .= (((a*) "/\" a) "/\" b) "\/" (a "/\" (b "/\" (b*)))
+         by LATTICES:def 7
+       .= ((Bottom L) "/\" b) "\/" (a "/\" (b "/\" (b*))) by ThD
+       .= ((Bottom L) "/\" b) "\/" (a "/\" Bottom L) by ThD .= Bottom L;
+      for x be Element of L st g "/\" x = Bottom L holds x [= a* "\/" (b*)
+      proof
+        let x be Element of L;
+        set z = b "/\" x;
+        set w = x "/\" (a**);
+        assume a1: g "/\" x = Bottom L;
+a0:     Bottom L [= b "/\" x "/\" (a**) by LATTICES:16;
+a2:     (b "/\" x) "/\" a = Bottom L by a1,LATTICES:def 7;
+        a* is_a_pseudocomplement_of a by def3; then
+        b "/\" x "/\" (a**) [= a* "/\" (a**) by LATTICES:9,a2;
+        then b "/\" x "/\" (a**) [= Bottom L by ThD; then
+        b "/\" x "/\" (a**) = Bottom L by LATTICES:8,a0; then
+a4:     x "/\" (a**) "/\" b = Bottom L by LATTICES:def 7;
+        b* is_a_pseudocomplement_of b by def3; then
+a5:     x "/\" (a**) [= b* by a4;
+a6:     x "/\" (a*) [= a* by LATTICES:6;
+        x = x "/\" Top L .= x "/\" ((a*) "\/" (a**)) by a11
+        .= (x "/\" (a*)) "\/" (x "/\" (a**)) by LATTICES:def 11;
+        hence x [= a* "\/" (b*) by a5,a6,FILTER_0:4;
+      end; then
+      (a*) "\/" (b*) is_a_pseudocomplement_of (a "/\" b) by a0;
+      hence (a "/\" b)* = (a*) "\/" (b*) by def3;
+    end;
+    assume
+a1: for a, b being Element of L holds (a "/\" b)* = (a*) "\/" (b*);
+    let x be Element of L;
+    x "/\" (x*) = Bottom L by ThD; then
+    x* "\/" (x**) = (Bottom L)* by a1;
+    hence thesis by Th11;
+  end;
+
+::$N Stone algebra
+
+definition
+  let L be Lattice;
+  attr L is Stone means
+    L is pseudocomplemented distributive bounded satisfying_Stone_identity;
+end;
+
+registration
+  cluster Stone ->
+    pseudocomplemented distributive bounded satisfying_Stone_identity
+      for Lattice;
+  coherence;
+  cluster pseudocomplemented distributive bounded satisfying_Stone_identity
+      -> Stone for Lattice;
+  coherence;
+end;
+
+:: LTRS:
+
+theorem
+  for L being pseudocomplemented distributive bounded Lattice holds
+    L is satisfying_Stone_identity iff for a, b being Element of L st
+    a in Skeleton L & b in Skeleton L holds a "\/" b in Skeleton L
+  proof
+    let L be pseudocomplemented distributive bounded Lattice;
+    hereby
+      assume
+  a0: L is satisfying_Stone_identity;
+      let a, b be Element of L;
+      assume
+X0:   a in Skeleton L & b in Skeleton L; then
+      consider x being Element of L such that
+X1:   a = x*;
+      consider y being Element of L such that
+X2:   b = y* by X0;
+      (x "/\" y)* in Skeleton L;
+      hence a "\/" b in Skeleton L by X1,X2,Th12,a0;
+    end;
+    assume
+a1: for a, b being Element of L st a in Skeleton L & b in Skeleton L
+    holds a "\/" b in Skeleton L;
+    let y be Element of L;
+    y* in Skeleton L & y** in Skeleton L; then
+sp: (y* "\/" (y**))** = y* "\/" (y**) by Th13,a1;
+r1: y** [= (y* "/\" (y**))* by Th6,LATTICES:6;
+    y*** [= (y* "/\" (y**))* by LATTICES:6,Th6; then
+    y* [= (y* "/\" (y**))* by Th7; then
+r:  (y*) "\/" (y**) [= (y* "/\" (y**))* "\/" ((y* "/\" (y**))*)
+      by r1,FILTER_0:4;
+s1: (y* "\/" (y**))* [= y** by Th6,LATTICES:5;
+    (y* "\/" (y**))* [= y*** by Th6,LATTICES:5; then
+s2: (y* "\/" (y**))* [= y* by Th7;
+    (y* "\/" (y**))* "/\" ((y* "\/" (y**))*) [= y* "/\" (y**)
+      by s1,s2,FILTER_0:5; then
+    (y* "/\" (y**))* [= y* "\/" (y**) by sp,Th6;then
+    (y* "/\" (y**))* = y* "\/" (y**) by r,LATTICES:8;
+    then (Bottom L)* = y* "\/" (y**) by ThD;
+    hence thesis by Th11;
+  end;
+
+reserve L for Stone Lattice;
+
+:: LTRS: Proposition 45
+
+theorem Lm1:
+  Top L in Skeleton L & Bottom L in Skeleton L
+proof
+  (Top L)* in Skeleton L & (Bottom L)* in Skeleton L;
+  hence thesis by Th11a,Th11;
+end;
+
+definition let L be Stone Lattice, a be Element of L;
+  attr a is skeletal means
+    a in Skeleton L;
+end;
+
+registration
+  let L be Stone Lattice;
+  cluster Top L -> skeletal;
+  coherence by Lm1;
+  cluster Bottom L -> skeletal;
+  coherence by Lm1;
+end;
+
+:: LTRS: Proposition 45
+
+registration let L be Stone Lattice;
+  cluster Skeleton L -> join-closed meet-closed;
+  coherence
+  proof
+    set S = Skeleton L;
+tt: for p,q being Element of L st p in S & q in S holds p "\/" q in S
+    proof
+      let p,q be Element of L;
+      assume p in S & q in S; then
+      p** = p & q** = q by Th13; then
+      p "\/" q = (p* "/\" (q*))* by Th12;
+      hence thesis;
+    end;
+    for p,q being Element of L st p in S & q in S holds p "/\" q in S
+    proof
+      let p,q be Element of L;
+      assume
+T1:   p in S & q in S; then
+T3:   p = p** by Th13;
+      p * [= (p "/\" q)* by Th6,LATTICES:6; then
+T2:   (p "/\" q)** [= p** by Th6;
+T4:   q = q** by T1,Th13;
+      q* [= (p "/\" q)* by Th6,LATTICES:6; then
+      (p "/\" q)** [= q** by Th6; then
+T5:   (p "/\" q)** [= p "/\" q by T3,T4,T2,FILTER_0:7;
+      p "/\" q [= (p "/\" q)** by Th5; then
+      p "/\" q = (p "/\" q)** by T5,LATTICES:8;
+      hence thesis;
+    end;
+    hence thesis by tt,LATTICES:def 24,def 25;
+  end;
+end;
+
+definition let L be Stone Lattice;
+  redefine func Skeleton L -> ClosedSubset of L;
+  coherence;
+end;
+
+:: Skeleton equipped with the lattice structure
+
+definition let L be Stone Lattice;
+  func SkelLatt L -> Sublattice of L equals
+  latt (L,Skeleton L);
+  coherence;
+end;
+
+registration let L be Stone Lattice;
+  cluster SkelLatt L -> distributive;
+  coherence;
+end;
+
+theorem
+  Bottom L = Bottom SkelLatt L & Top L = Top SkelLatt L
+  proof
+    Bottom L in Skeleton L & Top L in Skeleton L by Lm1;
+    hence thesis by ThB,ThC;
+  end;
+
+LattIsComplemented:
+  latt (L,Skeleton L) is complemented
+  proof
+    set P = Skeleton L;
+A0: Bottom L in P & Top L in P by Lm1;
+    set LL = latt (L,P);
+    for b being Element of LL
+    ex a being Element of LL st a is_a_complement_of b
+    proof
+      let b be Element of LL;
+      reconsider bb = b as Element of L by FILTER_2:68;
+      set aa = bb*;
+      bb* in Skeleton L; then
+      reconsider a = aa as Element of LL by FILTER_2:72;
+      b in the carrier of LL; then
+z1:   b in Skeleton L by FILTER_2:72;
+      aa "\/" bb = bb*** "\/" bb by z1,Th13 .= bb*** "\/" (bb**) by z1,Th13
+      .= Top L by SatStone; then
+A1:   a "\/" b = Top L by FILTER_2:73 .= Top LL by A0,ThC;
+      aa "/\" bb = Bottom L by ThD; then
+      a "/\" b = Bottom L by FILTER_2:73 .= Bottom LL by A0,ThB;
+      hence thesis by LATTICES:def 18,A1;
+    end;
+    hence thesis by LATTICES:def 19;
+  end;
+
+:: LTRS: Proposition 45
+
+registration let L be Stone Lattice;
+  cluster SkelLatt L -> Boolean;
+  coherence
+  proof
+    Top L in Skeleton L by Lm1; then
+A0: latt (L, Skeleton L) is upper-bounded by ThC;
+    Bottom L in Skeleton L by Lm1; then
+a2: latt (L, Skeleton L) is lower-bounded by ThB;
+    latt (L, Skeleton L) is complemented by LattIsComplemented;
+    hence thesis by a2,A0;
+  end;
+end;
+
+begin :: Dense Elements in Lattices
+
+definition let L be lower-bounded Lattice;
+  func DenseElements L -> Subset of L equals
+    { a where a is Element of L : a* = Bottom L };
+  coherence
+  proof
+    { a where a is Element of L : a* = Bottom L } c= the carrier of L
+    proof
+      let x be object;
+      assume x in { a where a is Element of L : a* = Bottom L }; then
+      consider aa being Element of L such that
+A1:   aa = x & aa* = Bottom L;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem TopIsDense:
+  Top L in DenseElements L
+  proof
+    (Top L)* = Bottom L by Th11a;
+    hence thesis;
+  end;
+
+registration let L be Stone Lattice;
+  cluster DenseElements L -> non empty;
+  coherence by TopIsDense;
+end;
+
+definition let L be Stone Lattice, a be Element of L;
+  attr a is dense means
+    a in DenseElements L;
+end;
+
+registration let L be Stone Lattice;
+  cluster Top L -> dense;
+  coherence by TopIsDense;
+end;
+
+theorem DenseIsBot:
+  for L being Stone Lattice, x being Element of L st x in DenseElements L holds
+    x* = Bottom L
+  proof
+    let L be Stone Lattice, x be Element of L;
+    assume x in DenseElements L; then
+    consider aa being Element of L such that
+A1: x = aa & aa* = Bottom L;
+    thus thesis by A1;
+  end;
+
+registration let L be Stone Lattice;
+  cluster DenseElements L -> join-closed meet-closed;
+  coherence
+  proof
+A1: for x,y being Element of L st x in DenseElements L & y in DenseElements L
+      holds x "\/" y in DenseElements L
+    proof
+      let x,y be Element of L;
+      assume x in DenseElements L & y in DenseElements L; then
+A2:   x* = Bottom L & y* = Bottom L by DenseIsBot;
+F1:   (x "\/" y)* [= x* by Th6,LATTICES:5;
+      Bottom L [= (x "\/" y)* by LATTICES:16; then
+      (x "\/" y)* = Bottom L by LATTICES:8,A2,F1;
+      hence x "\/" y in DenseElements L;
+    end;
+    for x,y being Element of L st x in DenseElements L & y in DenseElements L
+      holds x "/\" y in DenseElements L
+    proof
+      let x,y be Element of L;
+      assume x in DenseElements L & y in DenseElements L; then
+A2:   x* = Bottom L & y* = Bottom L by DenseIsBot;
+      (x "/\" y)* = x* "\/" (y*) by Th12;
+      hence x "/\" y in DenseElements L by A2;
+    end;
+    hence thesis by A1,LATTICES:def 25,def 24;
+  end;
+end;
+
+definition let L be Stone Lattice;
+  redefine func DenseElements L -> ClosedSubset of L;
+  coherence;
+end;
+
+:: Set of dense elements equipped with the lattice structure
+
+definition let L be Stone Lattice;
+  func DenseLatt L -> Sublattice of L equals
+    latt (L, DenseElements L);
+  coherence;
+end;
+
+registration let L be Stone Lattice;
+  cluster DenseLatt L -> distributive;
+  coherence;
+end;
+
+:: Meet-decomposition of elements of a lattice in terms
+:: of skeletal and dense elements
+
+theorem
+  for L being Stone Lattice, a being Element of L holds
+  ex b, c being Element of L st a = b "/\" c & b in Skeleton L &
+  c in DenseElements L
+  proof
+    let L be Stone Lattice, a be Element of L;
+A1: a = (a** "/\" a) "\/" Bottom L by LATTICES:4,Th5
+     .= (a** "/\" a) "\/" (a** "/\" (a*)) by ThD
+     .= a** "/\" (a "\/" (a*)) by LATTICES:def 11;
+    take b = a**;
+    take c = a "\/" (a*);
+G1: (a "\/" (a*))* [= a* by Th6,LATTICES:5;
+    (a "\/" (a*))* [= a** by Th6,LATTICES:5; then
+    (a "\/" (a*))* [= a* "/\" (a**) by FILTER_0:7,G1; then
+    (a "\/" (a*))* [= Bottom L by ThD; then
+    (a "\/" (a*))* = Bottom L by BOOLEALG:9;
+    hence thesis by A1;
+  end;
+
+begin :: An Example: Lattice of Natural Divisors
+
+theorem
+  for p being Prime holds NatDivisors p = {1, p}
+  proof
+    let p be Prime;
+a1: NatDivisors (p|^1)={ p|^k where k is Element of NAT:k <= 1 } by NAT_5:19;
+    { p|^k where k is Element of NAT : k <= 1 } = {1, p}
+    proof
+      thus { p|^k where k is Element of NAT : k <= 1 } c= {1, p}
+      proof
+        let x be object;
+        assume x in { p|^k where k is Element of NAT : k <= 1 }; then
+        consider kk being Element of NAT such that
+A2:     x = p |^ kk & kk <= 1;
+        kk = 0 or ... or kk = 1 by A2; then
+        x = 1 or x = p |^ 1 by NEWTON:4,A2;
+        hence thesis by TARSKI:def 2;
+      end;
+      let x be object;
+      assume x in {1, p}; then
+      x = 1 or x = p by TARSKI:def 2; then
+      x = p |^ 0 or x = p |^ 1 by NEWTON:4;
+      hence thesis;
+    end;
+    hence thesis by a1;
+  end;
+
+theorem DivisorsSquare:
+  for p being Prime holds NatDivisors (p * p) = {1, p, p*p}
+  proof
+    let p be Prime;
+a1: NatDivisors (p|^2)={p|^k where k is Element of NAT : k <= 2} by NAT_5:19;
+    { p|^k where k is Element of NAT : k <= 2 } = {1, p, p * p}
+    proof
+      thus { p|^k where k is Element of NAT : k <= 2 } c= {1, p, p * p}
+      proof
+        let x be object;
+        assume x in { p|^k where k is Element of NAT : k <= 2 }; then
+        consider kk being Element of NAT such that
+A2:     x = p |^ kk & kk <= 2;
+        kk = 0 or ... or kk = 2 by A2; then
+        x = 1 or x = p or x = p * p by A2,NEWTON:81,4;
+        hence thesis by ENUMSET1:def 1;
+      end;
+      let x be object;
+      assume x in {1, p, p * p}; then
+      x = 1 or x = p or x = p * p by ENUMSET1:def 1; then
+      x = p |^ 0 or x = p |^ 1 or x = p |^ 2 by NEWTON:4,81;
+      hence thesis;
+    end;
+    hence thesis by a1,NEWTON:81;
+  end;
+
+registration let n be non zero Nat;
+  cluster Divisors_Lattice n -> finite;
+  coherence
+  proof
+    NatDivisors n is finite;
+    hence thesis by MOEBIUS2:def 10;
+  end;
+end;
+
+registration
+  cluster complete for Boolean Lattice;
+  existence
+  proof
+    reconsider n = 1 as non zero Nat;
+    Divisors_Lattice n is Boolean by MOEBIUS1:22;
+    hence thesis;
+  end;
+end;
+
+registration let p be Prime;
+  cluster Divisors_Lattice (p) -> Boolean;
+  coherence;
+end;
+
+:: Hence it is pseudocomplemented, and Stone
+
+registration let p be Prime;
+  cluster Divisors_Lattice (p * p) -> pseudocomplemented;
+  coherence
+  proof
+    set L = Divisors_Lattice (p * p);
+    the carrier of Divisors_Lattice (p * p) =
+      NatDivisors (p*p) by MOEBIUS2:def 10; then
+A1: the carrier of L = {1, p, p * p} by DivisorsSquare;
+    for x being Element of L
+     ex y being Element of L st y is_a_pseudocomplement_of x
+    proof
+      let x be Element of L;
+      per cases by ENUMSET1:def 1,A1;
+      suppose
+    C1: x = 1;
+        reconsider pp = p * p as Element of L by A1,ENUMSET1:def 1;
+        x = Bottom L by C1,MOEBIUS2:64; then
+B1:     pp "/\" x = Bottom L;
+        for y being Element of L st x "/\" y = Bottom L holds y [= pp
+        proof
+          let y be Element of L;
+          assume x "/\" y = Bottom L;
+          pp = Top L by MOEBIUS2:64;
+          hence thesis by LATTICES:19;
+        end; then
+        pp is_a_pseudocomplement_of x by B1;
+        hence thesis;
+      end;
+      suppose
+B0:     x = p;
+        reconsider pp = Bottom L as Element of L;
+        for y being Element of L st x "/\" y = Bottom L holds y [= pp
+        proof
+          let y be Element of L;
+w3:       y = 1 or y = p or y = p * p by A1,ENUMSET1:def 1;
+          assume
+W1:       x "/\" y = Bottom L;
+W2:       y <> Top L
+          proof
+            assume y = Top L; then
+            p = 1 by B0,MOEBIUS2:64,W1;
+            hence thesis by INT_2:def 4;
+          end;
+          y <> p
+          proof
+            assume y = p; then
+            1 = p by W1,MOEBIUS2:64,B0;
+            hence thesis by INT_2:def 4;
+          end;
+          hence thesis by W2,w3,MOEBIUS2:64;
+        end; then
+        pp is_a_pseudocomplement_of x;
+        hence thesis;
+      end;
+      suppose
+    C1: x = p * p;
+        reconsider pp = 1 as Element of L by A1,ENUMSET1:def 1;
+b1:     pp = Bottom L by MOEBIUS2:64;
+        for y being Element of L st x "/\" y = Bottom L holds y [= pp
+        proof
+          let y be Element of L;
+          assume
+S1:       x "/\" y = Bottom L;
+s3:       y = 1 or y = p * p or y = p by A1,ENUMSET1:def 1;
+R2:       Top L = p * p by MOEBIUS2:64;
+          y <> p
+          proof
+            assume y = p; then
+            p = 1 by MOEBIUS2:64,S1,R2,C1;
+            hence thesis by INT_2:def 4;
+          end;
+          hence thesis by s3,C1,MOEBIUS2:64,S1;
+        end; then
+        pp is_a_pseudocomplement_of x by b1;
+        hence thesis;
+      end;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem PsCompl:
+  for L being Lattice, p being Prime, x being Element of L st
+    L = Divisors_Lattice (p * p) & x = p holds x* = Bottom L
+  proof
+    let L be Lattice, p be Prime, x be Element of L;
+    assume that
+A1: L = Divisors_Lattice (p * p) and
+B0: x = p;
+    reconsider pp = Bottom L as Element of L;
+    for y being Element of L st x "/\" y = Bottom L holds y [= pp
+    proof
+      let y be Element of L;
+      y in the carrier of L; then
+      y in NatDivisors (p*p) by A1,MOEBIUS2:def 10; then
+      y in {1, p, p*p} by DivisorsSquare; then
+w3:   y = 1 or y = p or y = p * p by ENUMSET1:def 1;
+      assume
+W1:   x "/\" y = Bottom L;
+W2:   y <> Top L
+      proof
+        assume y = Top L; then
+        x = 1 by MOEBIUS2:64,A1,W1;
+        hence thesis by INT_2:def 4,B0;
+      end;
+      y <> p
+      proof
+        assume y = p; then
+        1 = p by A1,MOEBIUS2:64,B0,W1;
+        hence thesis by INT_2:def 4;
+      end;
+      hence thesis by W2,w3,A1,MOEBIUS2:64;
+    end; then
+    pp is_a_pseudocomplement_of x by A1;
+    hence thesis by def3,A1;
+  end;
+
+:: The example of a lattice which is Stone but not Boolean
+
+registration let p be Prime;
+  cluster Divisors_Lattice (p * p) -> satisfying_Stone_identity;
+  coherence
+  proof
+    set L = Divisors_Lattice (p * p);
+    let x be Element of L;
+    x in the carrier of L; then
+    x in NatDivisors (p * p) by MOEBIUS2:def 10; then
+    x in {1, p, p * p} by DivisorsSquare; then
+    per cases by ENUMSET1:def 1;
+    suppose
+      x = 1; then
+      x = Bottom L by MOEBIUS2:64; then
+      x* = Top L by Th11;
+      hence thesis;
+    end;
+    suppose
+      x = p; then
+      x* = Bottom L by PsCompl;
+      hence thesis by Th11;
+    end;
+    suppose
+      x = p * p; then
+      x = Top L by MOEBIUS2:64; then
+      x* = Bottom L by Th11a;
+      hence thesis by Th11;
+    end;
+  end;
+end;
+
+registration let p be Prime;
+  cluster Divisors_Lattice (p * p) -> non Boolean Stone;
+  coherence
+  proof
+    p |^ 2 divides (p * p) by NEWTON:81; then
+    p * p is square-containing by MOEBIUS1:def 1;
+    hence thesis by MOEBIUS2:65;
+  end;
+end;
+
+registration
+  cluster Stone non Boolean for Lattice;
+  existence
+  proof
+    set p = the Prime;
+    take Divisors_Lattice (p * p);
+    thus thesis;
+  end;
+end;
+
+:: Every squarefree number generates Stone lattice as it is Boolean
+
+begin :: Products of Pseudocomplemented Lattices
+
+ reserve L1, L2 for Lattice;
+ reserve p1, q1 for Element of L1;
+ reserve p2, q2 for Element of L2;
+
+theorem ProductPsCompl:
+  L1 is 01_Lattice & L2 is 01_Lattice implies
+    (p1 is_a_pseudocomplement_of q1 & p2 is_a_pseudocomplement_of q2 iff
+      [p1,p2] is_a_pseudocomplement_of [q1,q2])
+  proof
+    assume
+A0: L1 is 01_Lattice & L2 is 01_Lattice;
+    set L = [:L1,L2:];
+    thus p1 is_a_pseudocomplement_of q1 & p2 is_a_pseudocomplement_of q2
+      implies [p1,p2] is_a_pseudocomplement_of [q1,q2]
+    proof
+      assume
+A1:   p1 is_a_pseudocomplement_of q1 & p2 is_a_pseudocomplement_of q2;
+      set a = [p1,p2], b = [q1,q2];
+a2:   a "/\" b = [Bottom L1, Bottom L2] by A1,FILTER_1:35;
+      for x being Element of L st b "/\" x = Bottom L holds x [= a
+      proof
+        let x be Element of L;
+        assume
+Z1:     b "/\" x = Bottom L;
+        consider x1,x2 being object such that
+Z2:     x1 in the carrier of L1 & x2 in the carrier of L2 & x = [x1,x2]
+          by ZFMISC_1:def 2;
+        reconsider x1 as Element of L1 by Z2;
+        reconsider x2 as Element of L2 by Z2;
+        [q1,q2] "/\" [x1,x2] = [Bottom L1,Bottom L2] by FILTER_1:42,A0,Z2,Z1;
+        then
+Z3:     [q1 "/\" x1,q2 "/\" x2] = [Bottom L1,Bottom L2] by FILTER_1:35; then
+T1:     q1 "/\" x1 = Bottom L1 by XTUPLE_0:1;
+T2:     q2 "/\" x2 = Bottom L2 by Z3,XTUPLE_0:1;
+Z4:     x1 [= p1 by T1,A1;
+        x2 [= p2 by A1,T2;
+        hence thesis by Z2,FILTER_1:36,Z4;
+      end;
+      hence thesis by a2,FILTER_1:42,A0;
+    end;
+    assume
+W0: [p1,p2] is_a_pseudocomplement_of [q1,q2]; then
+    [p1,p2] "/\" [q1,q2] = [Bottom L1,Bottom L2] by A0,FILTER_1:42; then
+w1: [p1 "/\" q1, p2 "/\" q2] = [Bottom L1,Bottom L2] by FILTER_1:35; then
+W1: p1 "/\" q1 = Bottom L1 & p2 "/\" q2 = Bottom L2 by XTUPLE_0:1;
+w2: for xx1 being Element of L1 st q1 "/\" xx1 = Bottom L1 holds xx1 [= p1
+    proof
+      let xx1 be Element of L1;
+      assume q1 "/\" xx1 = Bottom L1; then
+      [q1 "/\" xx1, q2 "/\" p2] = Bottom [:L1, L2:]
+        by W1,FILTER_1:42,A0; then
+      [q1,q2] "/\" [xx1, p2] = Bottom [:L1, L2:] by FILTER_1:35; then
+      [xx1,p2] [= [p1,p2] by W0;
+      hence thesis by FILTER_1:36;
+    end;
+    for xx2 being Element of L2 st q2 "/\" xx2 = Bottom L2 holds xx2 [= p2
+    proof
+      let xx2 be Element of L2;
+      assume q2 "/\" xx2 = Bottom L2; then
+      [q1 "/\" p1, q2 "/\" xx2] = Bottom [:L1, L2:]
+        by W1,FILTER_1:42,A0; then
+      [q1,q2] "/\" [p1, xx2] = Bottom [:L1, L2:] by FILTER_1:35; then
+      [p1,xx2] [= [p1,p2] by W0;
+      hence thesis by FILTER_1:36;
+    end;
+    hence thesis by w2,w1,XTUPLE_0:1;
+  end;
+
+theorem PsComplProduct:
+  L1 is 01_Lattice & L2 is 01_Lattice implies (L1 is pseudocomplemented &
+  L2 is pseudocomplemented iff [:L1,L2:] is pseudocomplemented)
+  proof
+    assume
+A0: L1 is 01_Lattice & L2 is 01_Lattice;
+    thus L1 is pseudocomplemented & L2 is pseudocomplemented implies
+    [:L1,L2:] is pseudocomplemented
+    proof
+      assume
+A1:   L1 is pseudocomplemented & L2 is pseudocomplemented;
+      for x being Element of [:L1,L2:] holds ex y being Element of [:L1,L2:]
+      st y is_a_pseudocomplement_of x
+      proof
+        let x be Element of [:L1,L2:];
+        consider x1, x2 being object such that
+B1:     x1 in the carrier of L1 & x2 in the carrier of L2 & x = [x1,x2]
+         by ZFMISC_1:def 2;
+        reconsider x1 as Element of L1 by B1;
+        reconsider x2 as Element of L2 by B1;
+        consider xx1 being Element of L1 such that
+A2:     xx1 is_a_pseudocomplement_of x1 by A1;
+        consider xx2 being Element of L2 such that
+A3:     xx2 is_a_pseudocomplement_of x2 by A1;
+        take y = [xx1,xx2];
+        thus thesis by B1,A2,A3,ProductPsCompl,A0;
+      end;
+      hence thesis;
+    end;
+    assume
+aa: [:L1,L2:] is pseudocomplemented;
+    for x being Element of L1 holds ex y being Element of L1 st
+    y is_a_pseudocomplement_of x
+    proof
+      let x be Element of L1;
+      set x2 = the Element of L2;
+      consider y being Element of [:L1,L2:] such that
+B0:   y is_a_pseudocomplement_of [x,x2] by aa;
+      consider y1, y2 being object such that
+B1:   y1 in the carrier of L1 & y2 in the carrier of L2 & y = [y1,y2]
+        by ZFMISC_1:def 2;
+      reconsider y1 as Element of L1 by B1;
+      reconsider y2 as Element of L2 by B1;
+      take y1;
+      thus thesis by B1,B0,ProductPsCompl,A0;
+    end;
+    hence L1 is pseudocomplemented;
+    for x being Element of L2 holds ex y being Element of L2 st
+    y is_a_pseudocomplement_of x
+    proof
+      let x be Element of L2;
+      set x2 = the Element of L1;
+      consider y being Element of [:L1,L2:] such that
+B0:   y is_a_pseudocomplement_of [x2,x] by aa;
+      consider y1, y2 being object such that
+B1:   y1 in the carrier of L1 & y2 in the carrier of L2 & y = [y1,y2]
+        by ZFMISC_1:def 2;
+      reconsider y1 as Element of L1 by B1;
+      reconsider y2 as Element of L2 by B1;
+      take y2;
+      thus thesis by B1,B0,ProductPsCompl,A0;
+    end;
+    hence thesis;
+  end;
+
+registration let L1, L2 be pseudocomplemented 01_Lattice;
+  cluster [:L1,L2:] -> pseudocomplemented;
+  coherence by PsComplProduct;
+end;
+
+theorem ProductPCompl:
+  L1 is pseudocomplemented 01_Lattice & L2 is pseudocomplemented 01_Lattice
+  implies [p1,p2]* = [p1*,p2*]
+  proof
+    assume
+A1: L1 is pseudocomplemented 01_Lattice &
+    L2 is pseudocomplemented 01_Lattice;
+A3: p1* is_a_pseudocomplement_of p1 by def3,A1;
+    p2* is_a_pseudocomplement_of p2 by def3,A1; then
+    [p1*,p2*] is_a_pseudocomplement_of [p1,p2] by A3,ProductPsCompl,A1;
+    hence thesis by def3,A1;
+  end;
+
+ reserve L1, L2 for non empty Lattice;
+
+theorem ProductIsSStone:
+  L1 is satisfying_Stone_identity pseudocomplemented 01_Lattice &
+  L2 is satisfying_Stone_identity pseudocomplemented 01_Lattice implies
+  [:L1,L2:] is satisfying_Stone_identity
+  proof
+    assume that
+A1: L1 is satisfying_Stone_identity pseudocomplemented 01_Lattice and
+A2: L2 is satisfying_Stone_identity pseudocomplemented 01_Lattice;
+    set L = [:L1,L2:];
+    for x being Element of L holds x* "\/" (x**) = Top L
+    proof
+      let x be Element of L;
+      consider x1,x2 being object such that
+A3:   x1 in the carrier of L1 & x2 in the carrier of L2 & x = [x1,x2]
+        by ZFMISC_1:def 2;
+      reconsider x1 as Element of L1 by A3;
+      reconsider x2 as Element of L2 by A3;
+X1:   [x1*,x2*] = x* by ProductPCompl,A3,A1,A2;
+A4:   x1* "\/" (x1**) = Top L1 by A1,SatStone;
+      [x1* "\/" (x1**), x2* "\/" (x2**)] = [Top L1, Top L2]
+        by A4,A2,SatStone
+           .= Top L by FILTER_1:43,A1,A2; then
+      Top L = [x1*,x2*] "\/" [x1**,x2**] by FILTER_1:35
+           .= x* "\/" (x**) by X1,ProductPCompl,A1,A2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  L1 is Stone & L2 is Stone implies [:L1,L2:] is Stone
+  by ProductIsSStone,FILTER_1:38;
+
+registration let L1, L2 be Stone Lattice;
+  cluster [:L1,L2:] -> Stone;
+  coherence by ProductIsSStone,FILTER_1:38;
+end;
+
+begin :: Special Construction: B squared
+
+reserve B for Boolean Lattice;
+
+:: LTRS: Lemma 46 - definition
+
+definition let B be Boolean Lattice;
+  func B squared -> Subset of [:B,B:] equals
+    { [a,b] where a, b is Element of B : a [= b };
+  coherence
+  proof
+    { [a,b] where a, b is Element of B : a [= b } c= the carrier of [:B,B:]
+    proof
+      let x be object;
+      assume x in { [a,b] where a, b is Element of B : a [= b }; then
+      consider a1, b1 being Element of B such that
+A1:   x = [a1,b1] & a1 [= b1;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let B be Boolean Lattice;
+  cluster B squared -> non empty;
+  coherence
+  proof
+    set x = Bottom B;
+    take [x,x];
+    thus thesis;
+  end;
+end;
+
+registration let B be Boolean Lattice;
+  cluster B squared -> join-closed meet-closed;
+  coherence
+  proof
+    set S = B squared;
+AA: for p,q being Element of [:B,B:] st p in S & q in S holds p "\/" q in S
+    proof
+      let p,q be Element of [:B,B:];
+      assume
+A0:   p in S & q in S; then
+      consider a1, b1 being Element of B such that
+A1:   p = [a1,b1] & a1 [= b1;
+      consider a2, b2 being Element of B such that
+A2:   q = [a2,b2] & a2 [= b2 by A0;
+A3:   p "\/" q = [a1 "\/" a2, b1 "\/" b2] by FILTER_1:35,A1,A2;
+      a1 "\/" a2 [= b1 "\/" b2 by A1,A2,FILTER_0:4;
+      hence thesis by A3;
+    end;
+    for p,q being Element of [:B,B:] st p in S & q in S holds p "/\" q in S
+    proof
+      let p,q be Element of [:B,B:];
+      assume
+A0:   p in S & q in S; then
+      consider a1, b1 being Element of B such that
+A1:   p = [a1,b1] & a1 [= b1;
+      consider a2, b2 being Element of B such that
+A2:   q = [a2,b2] & a2 [= b2 by A0;
+A3:   p "/\" q = [a1 "/\" a2, b1 "/\" b2] by FILTER_1:35,A1,A2;
+      a1 "/\" a2 [= b1 "/\" b2 by A1,A2,FILTER_0:5;
+      hence thesis by A3;
+    end;
+    hence thesis by LATTICES:def 24,def 25,AA;
+  end;
+end;
+
+definition let B be Boolean Lattice;
+  redefine func B squared -> non empty ClosedSubset of [:B,B:];
+  coherence;
+end;
+
+definition let B be Boolean Lattice;
+  func B squared-latt -> Lattice equals
+    latt ([:B,B:], B squared);
+  coherence;
+end;
+
+theorem SquaredCarrier:
+  the carrier of (B squared-latt) = B squared
+  proof
+    set L = [:B,B:];
+    set P = B squared;
+    consider o1,o2 being BinOp of P such that
+A1: o1 = (the L_join of L)||P & o2 = (the L_meet of L)||P &
+    latt ([:B,B:], P) = LattStr (#P, o1, o2#) by FILTER_2:def 14;
+    thus thesis by A1;
+  end;
+
+theorem
+  [Bottom B, Bottom B] in the carrier of (B squared-latt)
+  proof
+    [Bottom B, Bottom B] in B squared;
+    hence thesis by SquaredCarrier;
+  end;
+
+theorem
+  [Top B, Top B] in the carrier of (B squared-latt)
+  proof
+    [Top B, Top B] in B squared;
+    hence thesis by SquaredCarrier;
+  end;
+
+registration let B be Boolean Lattice;
+  cluster B squared-latt -> lower-bounded;
+  coherence
+  proof
+    Bottom [:B,B:] = [Bottom B, Bottom B] by FILTER_1:42; then
+    Bottom [:B,B:] in B squared;
+    hence thesis by ThB;
+  end;
+  cluster B squared-latt -> upper-bounded;
+  coherence
+  proof
+    Top [:B,B:] = [Top B, Top B] by FILTER_1:43; then
+    Top [:B,B:] in B squared;
+    hence thesis by ThC;
+  end;
+end;
+
+theorem SquaredBottom:
+  Bottom (B squared-latt) = [Bottom B, Bottom B]
+  proof
+    [Bottom B, Bottom B] in B squared; then
+    Bottom [:B,B:] in B squared by FILTER_1:42; then
+    Bottom latt ([:B,B:], B squared) = Bottom [:B,B:] by ThB;
+    hence thesis by FILTER_1:42;
+  end;
+
+theorem SquaredTop:
+  Top (B squared-latt) = [Top B, Top B]
+  proof
+    [Top B, Top B] in B squared; then
+    Top [:B,B:] in B squared by FILTER_1:43; then
+    Top latt ([:B,B:], B squared) = Top [:B,B:]  by ThC;
+    hence thesis by FILTER_1:43;
+  end;
+
+registration let B be Boolean Lattice;
+  cluster B squared-latt -> pseudocomplemented;
+  coherence
+  proof
+    set L = B squared-latt;
+    for x being Element of L holds ex y being Element of L st
+      y is_a_pseudocomplement_of x
+    proof
+      let x be Element of L;
+      x in the carrier of L; then
+      x in B squared by SquaredCarrier; then
+      consider x1,x2 being Element of B such that
+A1:   x = [x1,x2] & x1 [= x2;
+I1:   [x2`,x2`] in B squared;
+      reconsider y = [x2`,x2`] as Element of L by I1,SquaredCarrier;
+      take y;
+Z1:   x "/\" y = [x1,x2] "/\" [x2`,x2`] by A1,MSUALG_7:11
+         .= [x1 "/\" x2`, x2 "/\" x2`] by FILTER_1:35
+         .= [x1 "/\" x2`, Bottom B] by LATTICES:20;
+      x2` [= x1` by A1,LATTICES:26; then
+      x1 "/\" x2` [= x1 "/\" x1` by FILTER_0:5; then
+      x1 "/\" x2` [= Bottom B by LATTICES:20; then
+tt:   x1 "/\" x2` = Bottom B by BOOLEALG:9;
+      for w being Element of L st x "/\" w = Bottom L holds w [= y
+      proof
+        let w be Element of L;
+        assume
+O1:     x "/\" w = Bottom L;
+        w in the carrier of L; then
+        w in B squared by SquaredCarrier; then
+        consider w1,w2 being Element of B such that
+Y1:     w = [w1,w2] & w1 [= w2;
+        [x1,x2] "/\" [w1,w2] = Bottom L by O1,Y1,A1,MSUALG_7:11; then
+        [x1,x2] "/\" [w1,w2] = [Bottom B, Bottom B] by SquaredBottom; then
+        [x1 "/\" w1,x2 "/\" w2] = [Bottom B, Bottom B] by FILTER_1:35; then
+        x1 "/\" w1 = Bottom B & x2 "/\" w2 = Bottom B by XTUPLE_0:1; then
+Y2:     w2 [= x2` by LATTICES:25; then
+        w1 [= x2` by Y1,LATTICES:7; then
+        [w1,w2] "/\" [x2`,x2`] = [w1,w2] by LATTICES:4,Y2,FILTER_1:36; then
+        w "/\" y = w by Y1,MSUALG_7:11;
+        hence thesis by LATTICES:4;
+      end;
+      hence thesis by tt,Z1,SquaredBottom;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem PseudoInSquared:
+  for L being Lattice, x1,x2 being Element of B, x being Element of L st
+    L = B squared-latt & x = [x1,x2] holds x* = [x2`,x2`]
+  proof
+    let L be Lattice, x1,x2 be Element of B, x be Element of L;
+    assume
+A0:   L = B squared-latt & x = [x1,x2];
+      x in the carrier of L; then
+      x in B squared by SquaredCarrier,A0; then
+      consider xx1,xx2 being Element of B such that
+W1:   x = [xx1,xx2] & xx1 [= xx2;
+aa:   xx1 = x1 & xx2 = x2 by W1,A0,XTUPLE_0:1;
+      [x2`,x2`] in B squared; then
+      reconsider y = [x2`,x2`] as Element of L by A0,SquaredCarrier;
+Z1:   x "/\" y = [x1,x2] "/\" [x2`,x2`] by A0,MSUALG_7:11
+         .= [x1 "/\" x2`, x2 "/\" x2`] by FILTER_1:35
+         .= [x1 "/\" x2`, Bottom B] by LATTICES:20;
+      x2` [= x1` by aa,W1,LATTICES:26; then
+      x1 "/\" x2` [= x1 "/\" x1` by FILTER_0:5; then
+      x1 "/\" x2` [= Bottom B by LATTICES:20; then
+tt:   x1 "/\" x2` = Bottom B by BOOLEALG:9;
+      for w being Element of L st x "/\" w = Bottom L holds w [= y
+      proof
+        let w be Element of L;
+        assume
+O1:     x "/\" w = Bottom L;
+        w in the carrier of L; then
+        w in B squared by A0,SquaredCarrier; then
+        consider w1,w2 being Element of B such that
+Y1:     w = [w1,w2] & w1 [= w2;
+        [x1,x2] "/\" [w1,w2] = Bottom L by O1,Y1,A0,MSUALG_7:11; then
+        [x1,x2] "/\" [w1,w2] = [Bottom B, Bottom B]
+          by A0,SquaredBottom; then
+        [x1 "/\" w1,x2 "/\" w2] = [Bottom B, Bottom B]
+          by FILTER_1:35; then
+        x1 "/\" w1 = Bottom B & x2 "/\" w2 = Bottom B by XTUPLE_0:1; then
+Y2:     w2 [= x2` by LATTICES:25; then
+        w1 [= x2` by Y1,LATTICES:7; then
+        [w1,w2] "/\" [x2`,x2`] = [w1,w2] by LATTICES:4,Y2,FILTER_1:36; then
+        w "/\" y = w by Y1,MSUALG_7:11,A0;
+        hence thesis by LATTICES:4;
+      end; then
+      y is_a_pseudocomplement_of x by tt,Z1,A0,SquaredBottom;
+      hence thesis by def3,A0;
+  end;
+
+registration let B be Boolean Lattice;
+  cluster B squared-latt -> satisfying_Stone_identity;
+  coherence
+  proof
+    set L = B squared-latt;
+    for x being Element of L holds x* "\/" (x**) = Top L
+    proof
+      let x be Element of L;
+      x in the carrier of L; then
+      x in B squared by SquaredCarrier; then
+      consider x1,x2 being Element of B such that
+W1:   x = [x1,x2] & x1 [= x2;
+      [x2`,x2`] in B squared; then
+      reconsider y = [x2`,x2`] as Element of L by SquaredCarrier;
+W0:   x* = [x2`,x2`] by W1,PseudoInSquared; then
+      x** = [x2``,x2``] by PseudoInSquared; then
+      x* "\/" (x**) = [x2`,x2`] "\/" [x2,x2] by W0,MSUALG_7:11
+        .= [x2` "\/" x2, x2` "\/" x2] by FILTER_1:35
+        .= [Top B, x2` "\/" x2] by LATTICES:21
+        .= [Top B, Top B] by LATTICES:21 .= Top L by SquaredTop;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+:: LTRS: Lemma 46, p. 425
+
+registration let B be Boolean Lattice;
+  cluster B squared-latt -> Stone;
+  coherence;
+end;
+
+:: Skeleton and dense elements in the lattice B squared
+
+theorem
+  Skeleton (B squared-latt) = the set of all [a,a] where a is Element of B
+  proof
+    set L = B squared-latt;
+    Skeleton (B squared-latt) = the set of all [a,a] where a is Element of B
+    proof
+      thus Skeleton (B squared-latt)
+      c= the set of all [a,a] where a is Element of B
+      proof
+        let x be object;
+        assume x in Skeleton L; then
+        consider a being Element of L such that
+A1:     x = a*;
+        a in the carrier of L; then
+        a in B squared by SquaredCarrier; then
+        consider a1,a2 being Element of B such that
+A2:     a = [a1,a2] & a1 [= a2;
+        a* = [a2`,a2`] by A2,PseudoInSquared;
+        hence thesis by A1;
+      end;
+      let x be object;
+      assume x in the set of all [a,a] where a is Element of B; then
+      consider a being Element of B such that
+B1:   x = [a,a];
+      set b = [a`,a`];
+      b in B squared; then
+      reconsider b as Element of L by FILTER_2:72;
+      reconsider a1 = b* as Element of L;
+      b* = [a``,a``] by PseudoInSquared .= [a,a];
+      hence thesis by B1;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  DenseElements (B squared-latt) = the set of all [a,Top B]
+    where a is Element of B
+  proof
+    set L = B squared-latt;
+    thus DenseElements L c= the set of all [a,Top B] where a is Element of B
+    proof
+      let x be object;
+      assume x in DenseElements L; then
+      consider a being Element of L such that
+A1:   x = a & a* = Bottom L;
+      x in the carrier of L by A1; then
+      x in B squared by SquaredCarrier; then
+      consider a1, a2 being Element of B such that
+A2:   x = [a1,a2] & a1 [= a2;
+A3:   a* = [Bottom B, Bottom B] by A1,SquaredBottom;
+      a* = [a2`,a2`] by A1,A2,PseudoInSquared; then
+      a2`` = (Bottom B)` by A3,XTUPLE_0:1; then
+      a2 = Top B by LATTICE4:30;
+      hence thesis by A2;
+    end;
+    let x be object;
+    assume x in the set of all [a,Top B] where a is Element of B; then
+    consider a being Element of B such that
+A1: x = [a, Top B];
+    a [= Top B by LATTICES:19; then
+    x in B squared by A1; then
+    reconsider y = x as Element of L by SquaredCarrier;
+    y* = [(Top B)`,(Top B)`] by A1,PseudoInSquared; then
+    y* = [Bottom B, (Top B)`] by LATTICE4:29
+     .= [Bottom B, Bottom B] by LATTICE4:29
+     .= Bottom L by SquaredBottom;
+    hence thesis;
+  end;
+

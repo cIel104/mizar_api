@@ -1,0 +1,1030 @@
+:: An inference system of an extension of Floyd-Hoare logic for partial
+:: predicates
+::  by Ievgen Ivanov , Artur Korni{\l}owicz and Mykola Nikitchenko
+::
+:: Received June 29, 2018
+:: Copyright (c) 2018-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NOMIN_1, NUMBERS, SUBSET_1, XBOOLE_0, RELAT_1, FUNCT_1, FINSEQ_1,
+      XXREAL_0, NAT_1, ARYTM_3, CARD_1, XBOOLEAN, TARSKI, CARD_3, ARYTM_1,
+      FUNCT_7, PARTFUN1, NOMIN_3, NOMIN_2, PARTPR_1, PARTPR_2;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, NUMBERS, MARGREL1, RELAT_1,
+      RELSET_1, FUNCT_1, PARTFUN1, PARTFUN2, FINSEQ_1, BINOP_1, XXREAL_0,
+      XCMPLX_0, CARD_3, FUNCT_7, NOMIN_1, PARTPR_1, PARTPR_2, NOMIN_2;
+ constructors MIDSP_3, RELSET_1, MULTOP_1, NOMIN_2, PARTFUN2;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, ORDINAL1, XREAL_0, FUNCT_7,
+      RELSET_1, INT_1, NOMIN_1, NOMIN_2;
+ requirements NUMERALS, BOOLE, SUBSET, REAL, ARITHM;
+ equalities XBOOLEAN, NOMIN_1, RELAT_1, NOMIN_2, PARTPR_1, PARTPR_2;
+ expansions TARSKI;
+ theorems RELAT_1, RELSET_1, FINSEQ_1, PARTFUN1, FUNCT_1, FUNCT_7, NOMIN_1,
+      NOMIN_2, PARTPR_1, XBOOLE_1, NAT_1, XXREAL_0, XREAL_1, INT_1, PARTPR_2,
+      FUNCOP_1;
+ schemes NAT_1;
+
+begin
+
+reserve v,x for object;
+reserve D,V,A for set;
+reserve n for Nat;
+reserve p,q for PartialPredicate of D;
+reserve f,g for BinominativeFunction of D;
+
+definition
+  let D,f,p;
+  pred f coincides_with p means
+  for d being Element of D st d in dom p holds f.d in dom p;
+end;
+
+definition
+  let D,f,g,p,q;
+  pred f,g coincide_with p,q means
+  for d being Element of D st d in rng f & g.d in dom q holds d in dom p;
+end;
+
+theorem
+  f coincides_with PP_BottomPred(D);
+
+theorem
+  PPid(D) coincides_with p;
+
+definition
+  let D,p,q;
+  pred p ||= q means
+  for d being Element of D holds
+   d in dom p & p.d = TRUE implies d in dom q & q.d = TRUE;
+  reflexivity;
+end;
+
+reserve D for non empty set;
+reserve d for Element of D;
+reserve f,g for BinominativeFunction of D;
+reserve p,q,r,s for PartialPredicate of D;
+
+theorem Th3:
+  p ||= r implies PP_and(p,q) ||= r
+  proof
+    set F = PP_and(p,q);
+A1: dom(F) = {d where d is Element of D:
+     d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+     or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE} by PARTPR_1:16;
+    assume
+A2: p ||= r;
+    let d such that
+A3: d in dom F and
+A4: F.d = TRUE;
+    consider d1 being Element of D such that
+A5: d = d1 and
+A6: d1 in dom p & p.d1 = FALSE or d1 in dom q & q.d1 = FALSE
+    or d1 in dom p & p.d1 = TRUE & d1 in dom q & q.d1 = TRUE by A1,A3;
+    per cases by A6;
+    suppose d1 in dom p & p.d1 = FALSE;
+      hence thesis by A4,A5,PARTPR_1:19;
+    end;
+    suppose d1 in dom q & q.d1 = FALSE;
+      hence thesis by A4,A5,PARTPR_1:19;
+    end;
+    suppose d1 in dom p & d1 in dom q & p.d1 = TRUE & q.d1 = TRUE;
+      hence thesis by A2,A5;
+    end;
+  end;
+
+theorem
+  PP_and(p,q) ||= p by Th3;
+
+theorem
+  p ||= q & r ||= s implies PP_and(p,r) ||= PP_and(q,s)
+  proof
+    assume that
+A1: p ||= q and
+A2: r ||= s;
+    let d such that
+A3: d in dom PP_and(p,r) & PP_and(p,r).d = TRUE;
+A4: dom(PP_and(q,s)) =
+    {d where d is Element of D:
+    d in dom q & q.d = FALSE or d in dom s & s.d = FALSE
+    or d in dom q & q.d = TRUE & d in dom s & s.d = TRUE} by PARTPR_1:16;
+    d in dom p & p.d = TRUE & d in dom r & r.d = TRUE by A3,PARTPR_1:23;
+    then d in dom q & q.d = TRUE & d in dom s & s.d = TRUE by A1,A2;
+    hence thesis by A4,PARTPR_1:18;
+  end;
+
+theorem Th6:
+  PP_or(p,q) ||= r implies p ||= r
+  proof
+    set F = PP_or(p,q);
+A1: dom(F) = {d where d is Element of D:
+     d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+     or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} by PARTPR_1:def 4;
+    assume
+A2: F ||= r;
+    let d;
+    assume d in dom p & p.d = TRUE;
+    then d in dom F & F.d = TRUE by A1,PARTPR_1:def 4;
+    hence thesis by A2;
+  end;
+
+theorem
+  p ||= PP_or(q,r) implies
+  for d st d in dom p & p.d = TRUE holds
+   d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+  proof
+    assume that
+A1: p ||= PP_or(q,r);
+    let d;
+    assume d in dom p & p.d = TRUE;
+    then d in dom PP_or(q,r) & PP_or(q,r).d = TRUE by A1;
+    hence thesis by PARTPR_1:10;
+  end;
+
+theorem
+  PP_or(p,p) ||= p;
+
+theorem
+  p ||= q & r ||= s implies PP_or(p,r) ||= PP_or(q,s)
+  proof
+    assume that
+A1: p ||= q and
+A2: r ||= s;
+    let d such that
+A3: d in dom PP_or(p,r) & PP_or(p,r).d = TRUE;
+A4: dom(PP_or(q,s)) =
+    {d where d is Element of D:
+    d in dom q & q.d = TRUE or d in dom s & s.d = TRUE
+    or d in dom q & q.d = FALSE & d in dom s & s.d = FALSE} by PARTPR_1:def 4;
+    d in dom p & p.d = TRUE or d in dom r & r.d = TRUE by A3,PARTPR_1:10;
+    then d in dom q & q.d = TRUE or d in dom s & s.d = TRUE by A1,A2;
+    hence thesis by A4,PARTPR_1:def 4;
+  end;
+
+theorem
+  PP_or(p,q) ||= r implies PP_and(p,q) ||= r by Th6,Th3;
+
+definition
+  let D;
+  func SemanticFloydHoareTriples(D) -> set equals
+  { <*p,f,q*> where p,q is PartialPredicate of D,
+                    f is BinominativeFunction of D :
+   for d being Element of D holds
+    d in dom p & p.d = TRUE & d in dom f & f.d in dom q implies
+     q.(f.d) = TRUE };
+  coherence;
+end;
+
+notation
+  let D;
+  synonym SFHTs(D) for SemanticFloydHoareTriples(D);
+end;
+
+theorem Th11:
+  <*p,f,q*> in SFHTs(D) implies
+  for d holds d in dom p & p.d = TRUE & d in dom f & f.d in dom q implies
+   q.(f.d) = TRUE
+  proof
+    assume <*p,f,q*> in SFHTs(D);
+    then consider p1,q1 being PartialPredicate of D,
+           f1 being BinominativeFunction of D such that
+A1: <*p,f,q*> = <*p1,f1,q1*> and
+A2: for d holds d in dom p1 & p1.d = TRUE & d in dom f1 & f1.d in dom q1
+     implies q1.(f1.d) = TRUE;
+    p = p1 & q = q1 & f = f1 by A1,FINSEQ_1:78;
+    hence thesis by A2;
+  end;
+
+theorem Th12:
+  <*{},f,p*> in SFHTs(D)
+  proof
+A1: {} is PartialPredicate of D by RELSET_1:12;
+    for d holds d in dom {} & {}.d = TRUE & d in dom f & f.d in dom p
+     implies p.(f.d) = TRUE;
+    hence thesis by A1;
+end;
+
+registration
+  let D;
+  cluster SFHTs(D) -> non empty;
+  coherence by Th12;
+end;
+
+definition
+  let D;
+  mode SemanticFloydHoareTriple of D
+    is Element of SemanticFloydHoareTriples(D);
+  mode SFHT of D is Element of SFHTs(D);
+end;
+
+theorem
+  <*p,id dom p,p*> is SFHT of D
+  proof
+    set f = id dom p;
+    for d holds d in dom p & p.d = TRUE & d in dom f & f.d in dom p implies
+    p.(f.d) = TRUE by FUNCT_1:17;
+    then <*p,f,p*> in SFHTs(D);
+    hence thesis;
+  end;
+
+theorem Th14:
+  <*p,id field f,p*> is SFHT of D
+  proof
+    set i = id field f;
+A1: i is BinominativeFunction of D by PARTPR_2:5;
+    for d holds d in dom p & p.d = TRUE & d in dom i & i.d in dom p implies
+    p.(i.d) = TRUE by FUNCT_1:17;
+    then <*p,i,p*> in SFHTs(D) by A1;
+    hence thesis;
+  end;
+
+::$N CONS_1 rule
+theorem Th15:
+  <*p,f,q*> is SFHT of D & r ||= p implies <*r,f,q*> is SFHT of D
+  proof
+    assume that
+A1: <*p,f,q*> is SFHT of D and
+A2: r ||= p;
+    for d holds d in dom r & r.d = TRUE & d in dom f & f.d in dom q implies
+     q.(f.d) = TRUE
+    proof
+      let d;
+      assume d in dom r & r.d = TRUE;
+      then d in dom p & p.d = TRUE by A2;
+      hence thesis by A1,Th11;
+    end;
+    then <*r,f,q*> in SFHTs(D);
+    hence thesis;
+  end;
+
+::$N CONS_2 rule
+theorem
+  <*p,f,q*> is SFHT of D & q ||= r & dom r c= dom q
+  implies <*p,f,r*> is SFHT of D
+  proof
+    assume that
+A1: <*p,f,q*> is SFHT of D and
+A2: q ||= r and
+A3: dom r c= dom q;
+    for d holds d in dom p & p.d = TRUE & d in dom f & f.d in dom r implies
+     r.(f.d) = TRUE
+    proof
+      let d;
+      assume that
+A4:   d in dom p and
+A5:   p.d = TRUE and
+A6:   d in dom f and
+A7:   f.d in dom r;
+      q.(f.d) = TRUE by A1,A3,A4,A5,A6,A7,Th11;
+      hence r.(f.d) = TRUE by A2,A3,A7;
+    end;
+    then <*p,f,r*> in SFHTs(D);
+    hence thesis;
+  end;
+
+::$N skip rule
+theorem
+  <*p,PPid(D),p*> is SFHT of D
+  proof
+    set f = PPid(D);
+    for d holds d in dom p & p.d = TRUE & d in dom f & f.d in dom p implies
+     p.(f.d) = TRUE;
+    then <*p,f,p*> in SFHTs(D);
+    hence thesis;
+  end;
+
+theorem Th18:
+  <*PP_False(D),f,p*> is SFHT of D
+  proof
+    set F = PP_False(D);
+    for d being Element of D holds
+     d in dom F & F.d = TRUE & d in dom f & f.d in dom p implies
+      p.(f.d) = TRUE by FUNCOP_1:7;
+    then <*F,f,p*> in SFHTs(D);
+    hence thesis;
+  end;
+
+::$N inversion rule
+theorem
+  p is total implies <*PP_inversion(p),f,q*> is SFHT of D
+  proof
+    assume p is total;
+    then
+A1: PP_inversion(p) ||= PP_False(D) by PARTPR_2:10;
+    <*PP_False(D),f,q*> is SFHT of D by Th18;
+    hence thesis by A1,Th15;
+  end;
+
+::$N composition rule
+theorem
+  <*p,f,q*> is SFHT of D & <*q,g,r*> is SFHT of D & f,g coincide_with q,r
+  implies <*p,PP_composition(f,g),r*> is SFHT of D
+  proof
+    assume that
+A1: <*p,f,q*> is SFHT of D and
+A2: <*q,g,r*> is SFHT of D and
+A3: f,g coincide_with q,r;
+    set F = PP_composition(f,g);
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom r implies
+     r.(F.d) = TRUE
+    proof
+      let d;
+      assume that
+A4:   d in dom p and
+A5:   p.d = TRUE and
+A6:   d in dom F and
+A7:   F.d in dom r;
+A8:   F = g*f by PARTPR_2:def 1;
+      then
+A9:   F.d = g.(f.d) by A6,FUNCT_1:12;
+      dom(g*f) c= dom f by RELAT_1:25;
+      then
+A10:  f.d is Element of D by A6,A8,PARTFUN1:4;
+A11:  f.d in dom g by A6,A8,FUNCT_1:11;
+A12:  d in dom f by A6,A8,FUNCT_1:11;
+      then f.d in rng f by FUNCT_1:def 3;
+      then
+A13:  f.d in dom q by A3,A7,A9,A10;
+      then q.(f.d) = TRUE by A1,A4,A5,A12,Th11;
+      hence r.(F.d) = TRUE by A2,A7,A9,A11,A13,Th11;
+    end;
+    then <*p,F,r*> in SFHTs(D);
+    hence thesis;
+  end;
+
+::$N IF rule
+theorem
+  <*PP_and(r,p),f,q*> is SFHT of D &
+  <*PP_and(PP_not(r),p),g,q*> is SFHT of D implies
+  <*p,PP_IF(r,f,g),q*> is SFHT of D
+  proof
+    set F = PP_IF(r,f,g);
+    set P = PP_and(r,p);
+    set Q = PP_not(r);
+    set R = PP_and(Q,p);
+    assume that
+A1: <*P,f,q*> is SFHT of D and
+A2: <*R,g,q*> is SFHT of D;
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom q implies
+     q.(F.d) = TRUE
+    proof
+      let d;
+      assume that
+A3:   d in dom p and
+A4:   p.d = TRUE and
+A5:   d in dom F and
+A6:   F.d in dom q;
+A7:   dom(P) = {d where d is Element of D:
+       d in dom r & r.d = FALSE or d in dom p & p.d = FALSE
+       or d in dom r & r.d = TRUE & d in dom p & p.d = TRUE} by PARTPR_1:16;
+A8:   dom(R) = {d where d is Element of D:
+       d in dom Q & Q.d = FALSE or d in dom p & p.d = FALSE
+       or d in dom Q & Q.d = TRUE & d in dom p & p.d = TRUE} by PARTPR_1:16;
+      dom(F) = {d where d is Element of D:
+       d in dom r & r.d = TRUE & d in dom f
+      or d in dom r & r.d = FALSE & d in dom g} by PARTPR_2:def 11;
+      then consider d1 being Element of D such that
+A9:   d = d1 and
+A10:  d1 in dom r & r.d1 = TRUE & d1 in dom f
+      or d1 in dom r & r.d1 = FALSE & d1 in dom g by A5;
+      reconsider d1 as Element of D;
+      now
+        per cases by A10;
+        suppose that
+A11:      d1 in dom r and
+A12:      r.d1 = TRUE and
+A13:      d1 in dom f;
+A14:      F.d = f.d by A9,A11,A12,A13,PARTPR_2:def 11;
+A15:      d in dom P by A3,A4,A7,A9,A11,A12;
+          P.d = TRUE by A3,A4,A9,A11,A12,PARTPR_1:18;
+          hence q.(F.d) = TRUE by A1,A6,A9,A13,A14,A15,Th11;
+        end;
+        suppose that
+A16:      d1 in dom r and
+A17:      r.d1 = FALSE and
+A18:      d1 in dom g;
+A19:      F.d = g.d by A9,A16,A17,A18,PARTPR_2:def 11;
+A20:      d in dom Q by A9,A16,PARTPR_1:def 2;
+A21:      Q.d = TRUE by A9,A16,A17,PARTPR_1:def 2;
+          then
+A22:      R.d = TRUE by A3,A4,A20,PARTPR_1:18;
+          d in dom R by A3,A4,A8,A20,A21;
+          hence q.(F.d) = TRUE by A2,A6,A9,A18,A19,A22,Th11;
+        end;
+      end;
+      hence thesis;
+    end;
+    then <*p,F,q*> in SFHTs(D);
+    hence thesis;
+  end;
+
+theorem
+  f coincides_with p & <*p,f,p*> is SFHT of D implies
+  <*p,iter(f,n),p*> is SFHT of D
+  proof
+    assume that
+A1: f coincides_with p and
+A2: <*p,f,p*> is SFHT of D;
+    defpred P[Nat] means <*p,iter(f,$1),p*> is SFHT of D;
+    iter(f,0) = id(field f) by FUNCT_7:68;
+    then
+A3: P[0] by Th14;
+A4: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A5:   P[k];
+      set i = iter(f,k+1);
+A6:   i is BinominativeFunction of D by FUNCT_7:86;
+      for d holds d in dom p & p.d = TRUE & d in dom i & i.d in dom p implies
+      p.(i.d) = TRUE
+      proof
+        let d;
+        assume that
+A7:     d in dom p and
+A8:     p.d = TRUE and
+A9:     d in dom i and
+A10:    i.d in dom p;
+        set j = iter(f,k);
+A11:    j is BinominativeFunction of D by FUNCT_7:86;
+A12:    i = j*f by FUNCT_7:69;
+        then
+A13:    i.d = j.(f.d) by A9,FUNCT_1:12;
+A14:    d in dom f by A9,A12,FUNCT_1:11;
+A15:    f.d in dom j by A9,A12,FUNCT_1:11;
+A16:    f.d in dom p by A1,A7;
+        p.(f.d) = TRUE by A1,A2,A7,A8,A14,Th11;
+        hence p.(i.d) = TRUE by A5,A10,A11,A13,A15,A16,Th11;
+      end;
+      then <*p,i,p*> in SFHTs(D) by A6;
+      hence thesis;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A3,A4);
+    hence thesis;
+  end;
+
+::$N while rule
+theorem
+  f coincides_with p & dom p c= dom f &
+  <*PP_and(r,p),f,p*> is SFHT of D implies
+  <*p,PP_while(r,f),PP_and(PP_not(r),p)*> is SFHT of D
+  proof
+    set a = PP_and(r,p);
+    set F = PP_while(r,f);
+    set q = PP_and(PP_not(r),p);
+    assume that
+A1: f coincides_with p and
+A2: dom p c= dom f and
+A3: <*a,f,p*> is SFHT of D;
+A4: dom a = {d where d is Element of D:
+       d in dom r & r.d = FALSE or d in dom p & p.d = FALSE
+       or d in dom r & r.d = TRUE & d in dom p & p.d = TRUE} by PARTPR_1:16;
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom q implies
+     q.(F.d) = TRUE
+    proof
+      let d;
+      assume that
+A5:   d in dom p and
+A6:   p.d = TRUE and
+A7:   d in dom F and
+A8:   F.d in dom q;
+      consider n being Nat such that
+A9:    for i being Nat st i <= n-1 holds
+        d in dom(r*iter(f,i)) & (r*iter(f,i)).d = TRUE and
+A10:  d in dom(r*iter(f,n)) and
+A11:  (r*iter(f,n)).d = FALSE and
+A12:  F.d = iter(f,n).d by A7,PARTPR_2:def 15;
+      reconsider I = iter(f,n) as BinominativeFunction of D
+      by FUNCT_7:86;
+A13:  d in dom I by A10,FUNCT_1:11;
+A14:  (r*I).d = r.(I.d) by A10,FUNCT_1:12;
+      per cases by A8,PARTPR_1:17;
+      suppose F.d in dom PP_not(r) & PP_not(r).(F.d) = FALSE;
+        hence thesis by A11,A12,A14,PARTPR_1:def 2;
+      end;
+      suppose F.d in dom PP_not(r) & PP_not(r).(F.d) = TRUE &
+        F.d in dom p & p.(F.d) = TRUE;
+        hence thesis by PARTPR_1:18;
+      end;
+      suppose that
+A15:    F.d in dom p and
+A16:    p.(F.d) = FALSE;
+        for i being Nat st i <= n & d in dom iter(f,i) & iter(f,i).d in dom p
+         holds p.(iter(f,i).d) = TRUE
+        proof
+          defpred P[Nat] means $1 <= n implies
+           for i being Nat st i <= $1 holds
+            iter(f,i).d in dom p & d in dom iter(f,i) & p.(iter(f,i).d) = TRUE;
+A17:      P[0]
+          proof
+            assume 0 <= n;
+            let i be Nat;
+            assume that
+A18:        i <= 0;
+A19:        i = 0 by A18,NAT_1:3;
+A20:        iter(f,0) = id field f by FUNCT_7:68;
+            dom f c= field f by XBOOLE_1:7;
+            hence thesis by A2,A5,A6,A19,A20,FUNCT_1:18;
+          end;
+A21:      for k being Nat st P[k] holds P[k+1]
+          proof
+            let k be Nat;
+            assume that
+A22:        P[k] and
+A23:        k+1 <= n;
+            let i be Nat such that
+A24:        i <= k+1;
+A25:        k <= k+1 by NAT_1:11;
+            per cases by A24,NAT_1:8;
+            suppose i <= k;
+              hence thesis by A22,A23,A25,XXREAL_0:2;
+            end;
+            suppose
+A26:          i = k+1;
+              set DD = iter(f,k).d;
+A27:          k+1-1 <= n-1 by A23,XREAL_1:9;
+A28:          d in dom(r*iter(f,k)) by A9,A27;
+              then
+A29:          d in dom iter(f,k) by FUNCT_1:11;
+              iter(f,k) is BinominativeFunction of D by FUNCT_7:86;
+              then reconsider DD as Element of D
+              by A29,PARTFUN1:4;
+A30:          DD in dom p by A22,A23,A25,XXREAL_0:2;
+              (r*iter(f,k)).d = TRUE by A9,A27;
+              then
+A31:          r.DD = TRUE by A29,FUNCT_1:13;
+A32:          DD in dom r by A28,FUNCT_1:11;
+A33:          p.DD = TRUE by A22,A23,A25,XXREAL_0:2;
+A34:          DD in dom a by A4,A30,A31,A32,A33;
+A35:          a.DD = TRUE by A30,A31,A32,A33,PARTPR_1:18;
+A36:          iter(f,k+1) = f*iter(f,k) by FUNCT_7:71;
+A37:          f.DD = (f*iter(f,k)).d by A29,FUNCT_1:13;
+              hence iter(f,i).d in dom p by A1,A22,A23,A25,A26,A36,XXREAL_0:2;
+              thus d in dom iter(f,i) by A2,A26,A29,A30,A36,FUNCT_1:11;
+              thus p.(iter(f,i).d) = TRUE
+              by A1,A3,A2,A26,A30,A34,A35,A37,A36,Th11;
+            end;
+          end;
+          for k being Nat holds P[k] from NAT_1:sch 2(A17,A21);
+          hence thesis;
+        end;
+        hence q.(F.d) = TRUE by A12,A13,A15,A16;
+      end;
+    end;
+    then <*p,F,q*> in SFHTs(D);
+    hence thesis;
+  end;
+
+::$N unconditional composition rule (USEQ)
+theorem Th24:
+  <*p,f,q*> is SFHT of D &
+  <*q,g,r*> is SFHT of D & <*PP_inversion(q),g,s*> is SFHT of D
+  implies <*p,PP_composition(f,g),PP_or(r,s)*> is SFHT of D
+  proof
+    assume that
+A1: <*p,f,q*> is SFHT of D and
+A2: <*q,g,r*> is SFHT of D and
+A3: <*PP_inversion(q),g,s*> is SFHT of D;
+    set F = PP_composition(f,g);
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom PP_or(r,s)
+    implies PP_or(r,s).(F.d) = TRUE
+    proof
+      let d such that
+A4:   d in dom p and
+A5:   p.d = TRUE and
+A6:   d in dom F and
+A7:   F.d in dom PP_or(r,s);
+      set d1 = f.d;
+      assume PP_or(r,s).(F.d) <> TRUE;
+      then
+A8:   PP_or(r,s).(F.d) = FALSE by A7,PARTPR_1:3;
+      then
+A9:   F.d in dom r & r.(F.d) = FALSE by A7,PARTPR_1:13;
+A10:  F.d in dom s & s.(F.d) = FALSE by A7,A8,PARTPR_1:13;
+A11:  F = g*f by PARTPR_2:def 1;
+      then
+A12:  F.d = g.d1 by A6,FUNCT_1:12;
+A13:  d in dom f by A6,A11,FUNCT_1:11;
+      then
+A14:  d1 in D by PARTFUN1:4;
+A15:  d1 in dom g by A6,A11,FUNCT_1:11;
+      per cases;
+      suppose
+A16:    d1 in dom q;
+        then q.d1 = TRUE by A1,A4,A5,A13,Th11;
+        hence contradiction by A2,A9,A12,A16,A15,Th11;
+      end;
+      suppose
+A17:    not d1 in dom q;
+        set I = PP_inversion(q);
+A18:    I.d1 = TRUE by A14,A17,PARTPR_2:def 17;
+        dom I = {d where d is Element of D: not d in dom q}
+        by PARTPR_2:def 17;
+        then d1 in dom I by A17,A14;
+        hence contradiction by A3,A15,A10,A12,A18,Th11;
+      end;
+    end;
+    then <*p,F,PP_or(r,s)*> in SFHTs(D);
+    hence <*p,F,PP_or(r,s)*> is SFHT of D;
+  end;
+
+::$N unconditional composition rule (USEQ)
+theorem
+  <*p,f,q*> is SFHT of D &
+  <*q,g,r*> is SFHT of D & <*PP_inversion(q),g,r*> is SFHT of D
+  implies <*p,PP_composition(f,g),r*> is SFHT of D
+  proof
+    PP_or(r,r) = r;
+    hence thesis by Th24;
+  end;
+
+::$N unconditional while rule (UWH)
+theorem
+  <*PP_and(r,p),f,p*> is SFHT of D &
+  <*PP_and(r,PP_inversion(p)),f,p*> is SFHT of D implies
+  <*p,PP_while(r,f),PP_and(PP_not(r),p)*> is SFHT of D
+  proof
+    set a = PP_and(r,p);
+    set F = PP_while(r,f);
+    set q = PP_and(PP_not(r),p);
+    set INV = PP_inversion(p);
+    assume that
+A1: <*a,f,p*> is SFHT of D and
+A2: <*PP_and(r,INV),f,p*> is SFHT of D;
+A3: dom a = {d where d is Element of D:
+     d in dom r & r.d = FALSE or d in dom p & p.d = FALSE
+     or d in dom r & r.d = TRUE & d in dom p & p.d = TRUE} by PARTPR_1:16;
+A4: dom INV = {d where d is Element of D: not d in dom p}
+    by PARTPR_2:def 17;
+A5: dom(PP_and(r,INV)) = {d where d is Element of D:
+     d in dom r & r.d = FALSE or d in dom INV & INV.d = FALSE
+     or d in dom r & r.d = TRUE & d in dom INV & INV.d = TRUE} by PARTPR_1:16;
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom q implies
+     q.(F.d) = TRUE
+    proof
+      let d;
+      assume that
+A6:   d in dom p and
+A7:   p.d = TRUE and
+A8:   d in dom F and
+A9:   F.d in dom q;
+      consider n being Nat such that
+A10:   for i being Nat st i <= n-1 holds
+        d in dom(r*iter(f,i)) & (r*iter(f,i)).d = TRUE and
+A11:   d in dom(r*iter(f,n)) and
+A12:  (r*iter(f,n)).d = FALSE and
+A13:  F.d = iter(f,n).d by A8,PARTPR_2:def 15;
+      reconsider I = iter(f,n) as BinominativeFunction of D
+      by FUNCT_7:86;
+A14:  d in dom I by A11,FUNCT_1:11;
+A15:  (r*I).d = r.(I.d) by A11,FUNCT_1:12;
+      per cases by A9,PARTPR_1:17;
+      suppose F.d in dom PP_not(r) & PP_not(r).(F.d) = FALSE;
+        hence thesis by A12,A13,A15,PARTPR_1:def 2;
+      end;
+      suppose F.d in dom PP_not(r) & PP_not(r).(F.d) = TRUE &
+        F.d in dom p & p.(F.d) = TRUE;
+        hence thesis by PARTPR_1:18;
+      end;
+      suppose that
+A16:    F.d in dom p and
+A17:    p.(F.d) = FALSE;
+A18:    iter(f,0) = id field f by FUNCT_7:68;
+A19:    iter(f,n).d in dom r by A11,FUNCT_1:11;
+A20:    dom PP_not(r) = dom r by PARTPR_1:def 2;
+A21:    now
+          0 = n or 0 <= n-1 by NAT_1:3,INT_1:52;
+          then 0 = n or d in dom(r*iter(f,0)) by A10;
+          then d in dom id field f by A11,A18,FUNCT_1:11;
+          hence iter(f,0).d in dom p & d in dom iter(f,0) &
+          p.(iter(f,0).d) = TRUE by A6,A7,A18,FUNCT_1:18;
+        end;
+        per cases by NAT_1:3;
+        suppose
+A22:      n = 0;
+          then d in dom id field f by A11,A18,FUNCT_1:11;
+          then
+A23:      iter(f,0).d = d by A18,FUNCT_1:18;
+          then PP_not(r).d = TRUE by A12,A15,A19,A22,PARTPR_1:def 2;
+          hence thesis by A21,A13,A19,A20,A22,A23,PARTPR_1:18;
+        end;
+        suppose
+A24:      n > 0;
+          defpred P[Nat] means $1 < n implies
+            not d in dom iter(f,$1) or not iter(f,$1).d in dom p or
+            d in dom iter(f,$1) & iter(f,$1).d in dom p &
+            p.(iter(f,$1).d) = TRUE;
+A25:      P[0] by A21;
+A26:      for i being Nat st P[i] holds P[i+1]
+          proof
+            let i be Nat;
+            assume that
+A27:        P[i] and
+A28:        i+1 < n and
+A29:        d in dom iter(f,i+1) and
+A30:        iter(f,i+1).d in dom p;
+A31:        i <= i+1 by NAT_1:11;
+            set DD = iter(f,i).d;
+A32:        i+1-1 <= n-1 by A28,XREAL_1:9;
+A33:        d in dom(r*iter(f,i)) by A10,A32;
+            then
+A34:        d in dom iter(f,i) by FUNCT_1:11;
+            iter(f,i) is BinominativeFunction of D by FUNCT_7:86;
+            then reconsider DD as Element of D by A34,PARTFUN1:4;
+            (r*iter(f,i)).d = TRUE by A10,A32;
+            then
+A35:        r.DD = TRUE by A34,FUNCT_1:13;
+A36:        DD in dom r by A33,FUNCT_1:11;
+A37:        iter(f,i+1) = f*iter(f,i) by FUNCT_7:71;
+A38:        f.DD = (f*iter(f,i)).d by A34,FUNCT_1:13;
+            per cases by A27,A28,A31,A33,FUNCT_1:11,XXREAL_0:2;
+            suppose
+A39:          not DD in dom p;
+A40:          DD in dom INV by A4,A39;
+A41:          INV.DD = TRUE by A39,PARTPR_2:def 17;
+              then
+A42:          PP_and(r,INV).DD = TRUE by A35,A36,A40,PARTPR_1:18;
+A43:          DD in dom PP_and(r,INV) by A5,A35,A36,A40,A41;
+A44:          f.DD in dom p by A30,A38,FUNCT_7:71;
+              DD in dom f by A29,A37,FUNCT_1:11;
+              then p.(f.DD) = TRUE by A2,A42,A43,A44,Th11;
+              hence thesis by A29,A30,A38,FUNCT_7:71;
+            end;
+            suppose that
+A45:          DD in dom p and
+A46:          p.DD = TRUE;
+              thus d in dom iter(f,i+1) by A29;
+              thus iter(f,i+1).d in dom p by A30;
+A47:          DD in dom a by A3,A35,A36,A45,A46;
+A48:          a.DD = TRUE by A45,A35,A36,A46,PARTPR_1:18;
+              DD in dom f & f.DD in dom p by A29,A30,A34,A37,FUNCT_1:11,13;
+              hence thesis by A1,A37,A38,A47,A48,Th11;
+            end;
+          end;
+A49:      for k being Nat holds P[k] from NAT_1:sch 2(A25,A26);
+          0+1 <= n by A24,NAT_1:13;
+          then reconsider n1 = n-1 as Element of NAT by INT_1:5;
+          set E = iter(f,n1).d;
+A50:      d in dom(r*iter(f,n1)) by A10;
+          then
+A51:      d in dom iter(f,n1) by FUNCT_1:11;
+          iter(f,n1) is BinominativeFunction of D by FUNCT_7:86;
+          then reconsider E as Element of D by A51,PARTFUN1:4;
+A52:      E in dom r by A50,FUNCT_1:11;
+          (r*iter(f,n1)).d = TRUE by A10;
+          then
+A53:      r.E = TRUE by A50,FUNCT_1:12;
+A54:      f*iter(f,n1) = iter(f,n1+1) by FUNCT_7:71;
+          then
+A55:      f.E = F.d by A13,A51,FUNCT_1:13;
+A56:      E in dom f by A14,A54,FUNCT_1:11;
+          p.(F.d) = TRUE
+          proof
+            n1 < n-0 by XREAL_1:15;
+            then per cases by A49,A51;
+            suppose
+A57:          not E in dom p;
+              then
+A58:          E in dom INV by A4;
+A59:          INV.E = TRUE by A57,PARTPR_2:def 17;
+              then
+A60:          PP_and(r,INV).E = TRUE by A52,A53,A58,PARTPR_1:18;
+              E in dom PP_and(r,INV) by A52,A53,A58,A59,A5;
+              hence p.(F.d) = TRUE by A2,A16,A55,A56,A60,Th11;
+            end;
+            suppose
+A61:          E in dom p & p.E = TRUE;
+              then
+A62:          a.E = TRUE by A52,A53,PARTPR_1:18;
+              E in dom a by A3,A52,A53,A61;
+              hence p.(F.d) = TRUE by A1,A16,A55,A56,A62,Th11;
+            end;
+          end;
+          hence q.(F.d) = TRUE by A17;
+        end;
+      end;
+    end;
+    then <*p,F,q*> in SFHTs(D);
+    hence thesis;
+  end;
+
+::$N DP rule
+theorem
+  <*p,f,r*> is SFHT of D & <*q,f,r*> is SFHT of D implies
+  <*PP_or(p,q),f,r*> is SFHT of D
+  proof
+    set P = PP_or(p,q);
+    assume
+A1: <*p,f,r*> is SFHT of D & <*q,f,r*> is SFHT of D;
+    for d holds d in dom P & P.d = TRUE & d in dom f & f.d in dom r implies
+     r.(f.d) = TRUE
+    proof
+      let d;
+      assume d in dom P & P.d = TRUE;
+      then d in dom p & p.d = TRUE or d in dom q & q.d = TRUE by PARTPR_1:10;
+      hence thesis by A1,Th11;
+    end;
+    then <*P,f,r*> in SFHTs(D);
+    hence thesis;
+  end;
+
+reserve p,q for SCPartialNominativePredicate of V,A;
+reserve f,g for SCBinominativeFunction of V,A;
+reserve E for (V,A)-FPrg-yielding FinSequence;
+reserve e for Element of product E;
+reserve d for TypeSCNominativeData of V,A;
+
+theorem Th27:
+  (for d being TypeSCNominativeData of V,A holds
+   d in dom p & p.d = TRUE & d in dom f & f.d in dom q implies q.(f.d) = TRUE)
+  implies
+  <*p,f,q*> is SFHT of ND(V,A)
+  proof
+    assume
+A1: for d being TypeSCNominativeData of V,A holds
+    d in dom p & p.d = TRUE & d in dom f & f.d in dom q implies q.(f.d) = TRUE;
+    for d being Element of ND(V,A)
+    holds d in dom p & p.d = TRUE & d in dom f & f.d in dom q
+    implies q.(f.d) = TRUE
+    proof
+      let d be Element of ND(V,A);
+      d is TypeSCNominativeData of V,A by NOMIN_1:39;
+      hence thesis by A1;
+    end;
+    then <*p,f,q*> in SFHTs(ND(V,A));
+    hence thesis;
+  end;
+
+::$N assignment rule
+theorem
+  <*SC_Psuperpos(p,f,v),SC_assignment(f,v),p*> is SFHT of ND(V,A)
+  proof
+    set P = SC_Psuperpos(p,f,v);
+    set F = SC_assignment(f,v);
+    for d holds d in dom P & P.d = TRUE & d in dom F & F.d in dom p implies
+     p.(F.d) = TRUE
+    proof
+      let d such that
+A1:   d in dom P & P.d = TRUE and
+A2:   d in dom F and
+      F.d in dom p;
+      F.d = local_overlapping(V,A,d,f.d,v) by A2,NOMIN_2:def 7;
+      hence p.(F.d) = TRUE by A1,NOMIN_2:35;
+    end;
+    hence thesis by Th27;
+  end;
+
+::$N SFID_1 rule
+theorem
+  <*SC_Psuperpos(p,f,v),SC_Fsuperpos(PPid(ND(V,A)),f,v),p*> is SFHT of ND(V,A)
+  proof
+    set I = PPid(ND(V,A));
+    set P = SC_Psuperpos(p,f,v);
+    set F = SC_Fsuperpos(I,f,v);
+    for d holds d in dom P & P.d = TRUE & d in dom F & F.d in dom p implies
+     p.(F.d) = TRUE
+    proof
+      let d such that
+A1:   d in dom P & P.d = TRUE and
+A2:   d in dom F and
+      F.d in dom p;
+      set o = local_overlapping(V,A,d,f.d,v);
+      o in ND(V,A);
+      then o = I.o by FUNCT_1:18
+      .= F.d by A2,NOMIN_2:38;
+      hence p.(F.d) = TRUE by A1,NOMIN_2:35;
+    end;
+    hence thesis by Th27;
+  end;
+
+::$N SFID rule
+theorem
+  product E <> {} implies
+  <*SC_Psuperpos(p,e,E),SC_Fsuperpos(PPid(ND(V,A)),e,E),p*> is SFHT of ND(V,A)
+  proof
+    assume
+A1: product E <> {};
+    set I = PPid(ND(V,A));
+    set P = SC_Psuperpos(p,e,E);
+    set F = SC_Fsuperpos(I,e,E);
+    for d holds d in dom P & P.d = TRUE & d in dom F & F.d in dom p implies
+     p.(F.d) = TRUE
+    proof
+      let d such that
+A2:   d in dom P and
+A3:   P.d = TRUE and
+A4:   d in dom F and
+      F.d in dom p;
+      set X = E;
+      set o = global_overlapping(V,A,d,NDentry(E,X,d));
+      o in ND(V,A);
+      then o = I.o by FUNCT_1:18
+      .= F.d by A1,A4,NOMIN_2:37;
+      hence p.(F.d) = TRUE by A1,A2,A3,NOMIN_2:34;
+    end;
+    hence thesis by Th27;
+  end;
+
+::$N SF_1 rule
+theorem
+  <*p, PP_composition(SC_Fsuperpos(PPid(ND(V,A)),g,v),f), q*>
+   is SFHT of ND(V,A)
+  implies
+  <*p,SC_Fsuperpos(f,g,v),q*> is SFHT of ND(V,A)
+  proof
+    set I = PPid(ND(V,A));
+    set F = SC_Fsuperpos(f,g,v);
+    set G = SC_Fsuperpos(I,g,v);
+    set C = PP_composition(G,f);
+    assume <*p,C,q*> is SFHT of ND(V,A);
+    then
+A1: for d holds d in dom p & p.d = TRUE & d in dom C & C.d in dom q
+     implies q.(C.d) = TRUE by Th11;
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom q implies
+     q.(F.d) = TRUE
+    proof
+      let d such that
+A2:   d in dom p and
+A3:   p.d = TRUE and
+A4:   d in dom F and
+A5:   F.d in dom q;
+      set o = local_overlapping(V,A,d,g.d,v);
+A6:   F.d = f.o by A4,NOMIN_2:38;
+A7:   o in ND(V,A);
+      dom F = {d where d is TypeSCNominativeData of V,A:
+       local_overlapping(V,A,d,g.d,v) in dom f & d in dom g} by NOMIN_2:def 15;
+      then consider d1 being TypeSCNominativeData of V,A such that
+A8:   d = d1 and
+A9:   local_overlapping(V,A,d1,g.d1,v) in dom f and
+A10:  d1 in dom g by A4;
+      dom G = {d where d is TypeSCNominativeData of V,A:
+       local_overlapping(V,A,d,g.d,v) in dom I & d in dom g} by NOMIN_2:def 15;
+      then
+A11:  d in dom G by A7,A8,A10;
+A12:  o = I.o by A7,FUNCT_1:18
+      .= G.d by A11,NOMIN_2:38;
+A13:  C = f*G by PARTPR_2:def 1;
+      then C.d = f.(G.d) by A11,FUNCT_1:13;
+      hence q.(F.d) = TRUE by A1,A2,A3,A5,A6,A11,A13,A8,A9,A12,FUNCT_1:11;
+    end;
+    hence thesis by Th27;
+  end;
+
+::$N SF rule
+theorem
+  product E <> {} &
+  <*p, PP_composition(SC_Fsuperpos(PPid(ND(V,A)),e,E),f), q*>
+    is SFHT of ND(V,A)
+  implies
+  <*p,SC_Fsuperpos(f,e,E),q*> is SFHT of ND(V,A)
+  proof
+    assume
+A1: product E <> {};
+    set I = PPid(ND(V,A));
+    set F = SC_Fsuperpos(f,e,E);
+    set G = SC_Fsuperpos(I,e,E);
+    set C = PP_composition(G,f);
+    assume <*p,C,q*> is SFHT of ND(V,A);
+    then
+A2: for d holds d in dom p & p.d = TRUE & d in dom C & C.d in dom q
+     implies q.(C.d) = TRUE by Th11;
+    for d holds d in dom p & p.d = TRUE & d in dom F & F.d in dom q implies
+     q.(F.d) = TRUE
+    proof
+      let d such that
+A3:   d in dom p and
+A4:   p.d = TRUE and
+A5:   d in dom F and
+A6:   F.d in dom q;
+      set X = E;
+      set o = global_overlapping(V,A,d,NDentry(E,X,d));
+A7:   o in ND(V,A);
+      F = SCFsuperpos(E,X).(f,e) by A1,NOMIN_2:def 14;
+      then dom F = {d where d is TypeSCNominativeData of V,A:
+       global_overlapping(V,A,d,NDentry(E,X,d)) in dom f & d in_doms E}
+        by A1,NOMIN_2:def 13;
+      then consider d1 being TypeSCNominativeData of V,A such that
+A8:   d = d1 and
+A9:   global_overlapping(V,A,d1,NDentry(E,X,d1)) in dom f and
+A10:  d1 in_doms E by A5;
+      G = SCFsuperpos(E,X).(I,e) by A1,NOMIN_2:def 14;
+      then dom G = {d where d is TypeSCNominativeData of V,A:
+       global_overlapping(V,A,d,NDentry(E,X,d)) in dom I & d in_doms E}
+        by A1,NOMIN_2:def 13;
+      then
+A11:  d in dom G by A7,A8,A10;
+A12:  F.d = f.o by A1,A5,NOMIN_2:37;
+A13:  o = I.o by A7,FUNCT_1:18
+      .= G.d by A1,A11,NOMIN_2:37;
+A14:  C = f*G by PARTPR_2:def 1;
+      then C.d = f.(G.d) by A11,FUNCT_1:13;
+      hence q.(F.d) = TRUE by A2,A3,A4,A6,A12,A11,A14,A8,A9,A13,FUNCT_1:11;
+    end;
+    hence thesis by Th27;
+  end;
+

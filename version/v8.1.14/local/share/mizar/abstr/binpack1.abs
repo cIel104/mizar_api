@@ -1,0 +1,442 @@
+:: Algorithm NextFit for the Bin Packing Problem
+::  by Hiroshi Fujiwara , Ryota Adachi and Hiroaki Yamamoto
+:: 
+:: Received June 30, 2021
+:: Copyright (c) 2021-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies BINPACK1, NUMBERS, NAT_1, FINSEQ_1, CARD_1, RELAT_1, SUBSET_1,
+      XBOOLE_0, FUNCT_1, TARSKI, ORDINAL4, ARYTM_1, ARYTM_3, REAL_1, ZFMISC_1,
+      XXREAL_0, CARD_3, INT_1, FINSEQ_2, VALUED_0, PARTFUN1, ABIAN, FINSET_1,
+      CLASSES1, RFUNCT_3, AFINSQ_1, AFINSQ_2, PRGCOR_2;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, RELSET_1,
+      PARTFUN1, FUNCT_2, ORDINAL1, CARD_1, ABIAN, BINOP_1, NUMBERS, XCMPLX_0,
+      XXREAL_0, XREAL_0, FINSEQ_1, FINSEQ_2, FINSEQOP, RVSUM_1, INT_1,
+      FINSET_1, VALUED_0, CLASSES1, RFUNCT_3, GLIB_003, RVSUM_3, AFINSQ_1,
+      AFINSQ_2;
+ constructors CARD_1, RELSET_1, RVSUM_1, NAT_D, CLASSES1, RFUNCT_3, DBLSEQ_1,
+      GLIB_003, PROB_1, PARTFUN3, AFINSQ_2, RECDEF_1, WELLORD2;
+ registrations ORDINAL1, XBOOLE_0, FUNCT_1, NUMBERS, XREAL_0, NAT_1, FINSEQ_1,
+      FINSEQ_2, VALUED_0, RELAT_1, RVSUM_1, ABIAN, RELSET_1, INT_1, FINSET_1,
+      CARD_1, XXREAL_0, MEMBERED, AFINSQ_1, AFINSQ_2, NAT_6;
+ requirements NUMERALS, SUBSET, BOOLE, ARITHM, REAL;
+
+
+begin :: Preliminaries
+
+definition
+  let a be non empty FinSequence of REAL;
+  let i be Element of dom a;
+  redefine func a . i -> Element of REAL;
+end;
+
+definition
+  let h be non empty FinSequence of NAT*;
+  let i be Element of dom h;
+  redefine func h . i -> FinSequence of NAT;
+end;
+
+theorem :: BINPACK1:1
+  for n being Nat st n is odd holds 1 <= n & (n + 1) div 2 = (n + 1) / 2;
+
+theorem :: BINPACK1:2
+  for D be set, p being FinSequence st
+  (for i being Nat st i in dom p holds p . i in D) holds
+  p is FinSequence of D;
+
+theorem :: BINPACK1:3
+  for x, y being object holds {[x, y]} " {y} = {x};
+
+theorem :: BINPACK1:4
+  for a, b being Nat, s being set holds
+  Seg a \/ {s} = Seg b implies a = b or a + 1 = b;
+
+definition
+  let D be non empty set;
+  let f be D-valued FinSequence;
+  let I be set;
+:::  assume I c= dom f; :: not needed to prove the correctness of definition
+  func Seq (f, I) -> D-valued FinSequence equals
+:: BINPACK1:def 1
+  Seq (f | I);
+end;
+
+definition
+  let a be non empty FinSequence of REAL;
+  let f be Function;
+  let s be set;
+  func SumBin (a, f, s) -> Real equals
+:: BINPACK1:def 2
+  Sum (Seq (a, (f " s)));
+end;
+
+registration
+  cluster positive for non empty FinSequence of REAL;
+end;
+
+definition
+  let a be FinSequence of REAL;
+  attr a is at_most_one means
+:: BINPACK1:def 3
+  for i being Nat st 1 <= i & i <= len a holds a . i <= 1;
+end;
+
+registration
+  cluster at_most_one for non empty positive FinSequence of REAL;
+end;
+
+theorem :: BINPACK1:5
+  for f being FinSequence of NAT, j, b being Nat holds
+  b = j implies (f ^ <* b *>) " {j} = f " {j} \/ {len f + 1};
+
+theorem :: BINPACK1:6
+  for f being FinSequence of NAT, j, b being Nat holds
+  b <> j implies (f ^ <* b *>) " {j} = f " {j};
+
+theorem :: BINPACK1:7
+  for a being non empty FinSequence of REAL,
+      p being set, i being Nat st
+  (p \/ {i}) c= dom a &
+  (for m being Nat st m in p holds m < i) holds
+  Seq (a | (p \/ {i})) = Seq (a | p) ^ <* a . i *>;
+
+theorem :: BINPACK1:8
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, j, b being Nat st
+  len f + 1 <= len a holds
+  b = j implies
+  SumBin (a, f ^ <* b *>, {j}) = SumBin (a, f, {j}) + a . (len f + 1);
+
+theorem :: BINPACK1:9
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, j, b being Nat st
+  len f + 1 <= len a holds
+  b <> j implies
+  SumBin (a, f ^ <* b *>, {j}) = SumBin (a, f, {j});
+
+theorem :: BINPACK1:10
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT st
+  dom f = dom a holds
+  SumBin (a, f, rng f) = Sum a;
+
+theorem :: BINPACK1:11
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, s, t being set st s misses t holds
+  SumBin (a, f, s \/ t) = SumBin (a, f, s) + SumBin (a, f, t);
+
+theorem :: BINPACK1:12
+  for a being non empty positive FinSequence of REAL,
+  f being FinSequence of NAT, s being set holds
+  0 <= SumBin (a, f, s);
+
+theorem :: BINPACK1:13
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT, s be set st
+  s misses rng f holds
+  SumBin (a, f, s) = 0;
+
+begin :: Optimal Packing
+
+theorem :: BINPACK1:14
+  for a being non empty at_most_one FinSequence of REAL holds
+  ex k being Nat st
+  ex f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) &
+  k = card rng f;
+
+theorem :: BINPACK1:15
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  ex fr being FinSequence of NAT st
+  dom fr = dom a &
+  (for j being Nat st j in rng fr holds SumBin (a, fr, {j}) <= 1) &
+  (ex k being Nat st rng fr = Seg k) &
+  card rng f = card rng fr;
+
+definition
+  let a be non empty at_most_one FinSequence of REAL;
+  func Opt(a) -> Element of NAT means
+:: BINPACK1:def 4
+
+  ex g being non empty FinSequence of NAT st
+  dom g = dom a &
+  (for j being Nat st j in rng g holds SumBin (a, g, {j}) <= 1) &
+  it = card rng g &
+  (for f being non empty FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  it <= card rng f);
+end;
+
+theorem :: BINPACK1:16
+  for a being non empty FinSequence of REAL, f being FinSequence of NAT,
+  k being Nat, R1 being real-valued FinSequence st
+  dom f = dom a & (rng f = Seg k) & len R1 = k &
+  (for j being Nat st j in dom R1 holds R1 . j = SumBin (a, f, {j})) holds
+  Sum R1 = SumBin (a, f, rng f);
+
+theorem :: BINPACK1:17
+  for a being non empty FinSequence of REAL,
+  f being FinSequence of NAT st
+  dom f = dom a &
+  (for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1) holds
+  [/ (Sum a) \] <= card rng f;
+
+theorem :: BINPACK1:18
+  for a being non empty at_most_one FinSequence of REAL holds
+  [/ Sum a \] <= Opt a;
+
+begin
+
+definition
+  let a be non empty FinSequence of REAL,
+  Alg be Function of [:REAL,NAT*:],NAT;
+  func OnlinePackingHistory(a, Alg) -> non empty FinSequence of NAT*
+  means
+:: BINPACK1:def 5
+
+  len it = len a &
+  it . 1 = <* 1 *> &
+  for i being Nat st 1 <= i & i < len a holds
+  ex d1 being Element of REAL, d2 being FinSequence of NAT
+  st d1 = a . (i + 1) & d2 = it . i &
+  it . (i + 1) = d2 ^ <* Alg . (d1, d2) *>;
+end;
+
+theorem :: BINPACK1:19
+  for a be non empty FinSequence of REAL,
+  Alg being Function of [:REAL,NAT*:],NAT holds
+  (OnlinePackingHistory(a, Alg)) . 1 = {[1, 1]};
+
+theorem :: BINPACK1:20
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  SumBin (a, h . 1, {(h . 1) . 1}) = a . 1;
+
+theorem :: BINPACK1:21
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i <= len a holds
+  h . i is FinSequence of NAT);
+
+theorem :: BINPACK1:22
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i <= len a holds len (h . i) = i);
+
+theorem :: BINPACK1:23
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i < len a holds
+  h . (i + 1) = (h . i) ^ <* Alg . (a . (i + 1), h . i) *> &
+  (h . (i + 1)) . (i + 1) =  Alg . (a . (i + 1), h . i));
+
+theorem :: BINPACK1:24
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i being Nat st 1 <= i & i < len a holds
+  rng (h . (i + 1)) = rng (h . i) \/ {(h . (i + 1)) . (i + 1)});
+
+theorem :: BINPACK1:25
+  for a being non empty positive FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, Alg) holds
+  (for i, l being Nat st
+  1 <= i & i < len a holds
+  SumBin (a, h . i, {l}) <= SumBin (a, h . (i + 1), {l}));
+
+definition
+  let a be non empty FinSequence of REAL, Alg be Function of [:REAL,NAT*:],NAT;
+  func OnlinePacking(a, Alg) -> non empty FinSequence of NAT
+  equals
+:: BINPACK1:def 6
+  OnlinePackingHistory(a, Alg) . (len OnlinePackingHistory(a, Alg));
+end;
+
+theorem :: BINPACK1:26
+  for a being non empty FinSequence of REAL,
+  Alg being Function of [:REAL, NAT*:],NAT,
+  h being non empty FinSequence of NAT*,
+  f being non empty FinSequence of NAT holds
+  dom OnlinePacking(a, Alg) = dom a;
+
+begin
+
+definition
+  let a be non empty FinSequence of REAL;
+  func NextFit(a) -> Function of [:REAL, NAT*:],NAT
+  means
+:: BINPACK1:def 7
+
+  for s be Real, f be FinSequence of NAT holds
+  (s + SumBin (a, f, {f . (len f)}) <= 1 implies it . (s, f) = f . (len f)) &
+  (s + SumBin (a, f, {f . (len f)}) > 1 implies it . (s, f) = f . (len f) + 1);
+end;
+
+theorem :: BINPACK1:27
+  for a being non empty FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i being Nat st 1 <= i & i <= len a holds
+  ex k being Nat st rng (h . i) = Seg k & (h . i) . i = k);
+
+theorem :: BINPACK1:28
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  for i being Nat st 1 <= i & i <= len a holds
+  SumBin (a, h . i, {(h . i) . i}) <= 1;
+
+theorem :: BINPACK1:29
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  for i, j being Nat st 1 <= i & i <= len a & j in rng (h . i) holds
+  SumBin (a, h . i, {j}) <= 1;
+
+theorem :: BINPACK1:30
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT st
+  f = OnlinePacking(a, NextFit(a)) holds
+  for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1;
+
+begin :: Approximation Guarantee of Algorithm NextFit
+
+theorem :: BINPACK1:31
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, k being Nat st
+  1 <= i & i <= len a & rng (h . i) = Seg k holds (h . i) . i = k);
+
+theorem :: BINPACK1:32
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, k being Nat st 1 <= i & i < len a &
+  rng (h . i) = Seg k & rng (h . (i + 1)) = Seg (k + 1) holds
+  SumBin (a, (h . (i + 1)), {k}) + SumBin (a, (h . (i + 1)), {k + 1}) > 1);
+
+theorem :: BINPACK1:33
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, l, k being Nat st 1 <= i & i <= len a &
+  rng (h . i) = Seg k & 2 <= k & 1 <= l & l < k holds
+  SumBin (a, (h . i), {l}) + SumBin (a, (h . i), {l + 1}) > 1);
+
+theorem :: BINPACK1:34
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT* st
+  h = OnlinePackingHistory(a, NextFit(a)) holds
+  (for i, j, k be Nat st 1 <= i & i <= len a &
+  rng (h . i) = Seg k & 2 <= k & 1 <= j & j <= k div 2 holds
+  SumBin (a, (h . i), {2 * j - 1}) + SumBin (a, (h . i), {2 * j}) > 1);
+
+theorem :: BINPACK1:35
+  for a being non empty positive at_most_one FinSequence of REAL,
+  h being non empty FinSequence of NAT*,
+  f being FinSequence of NAT st
+  f = OnlinePacking(a, NextFit(a)) holds
+  ex k being Nat st rng f = Seg k;
+
+theorem :: BINPACK1:36
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & rng f = Seg k holds
+  (for j being Nat st 1 <= j & j <= k div 2 holds
+  SumBin (a, f, {2 * j - 1}) + SumBin (a, f, {2 * j}) > 1);
+
+theorem :: BINPACK1:37
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & k = card rng f holds
+  k div 2 < Sum a;
+
+theorem :: BINPACK1:38
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & k = card rng f holds
+  k <= 2 * [/ Sum a \] - 1;
+
+theorem :: BINPACK1:39
+  for a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT, k being Nat st
+  f = OnlinePacking(a, NextFit(a)) & k = card rng f holds
+  k <= 2 * Opt a - 1;
+
+begin :: Tightness of Approximation Guarantee of Algorithm NextFit
+
+theorem :: BINPACK1:40
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) &
+  f = OnlinePacking(a, NextFit(a)) holds
+  n = card rng f;
+
+theorem :: BINPACK1:41
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) holds
+  Sum a = (n + 1) / 2 + 1 / (n + 1) - 1 / 2;
+
+theorem :: BINPACK1:42
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL,
+  f being non empty FinSequence of NAT st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) &
+  dom f = dom a &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies f . i = 1) &
+  (i is even implies f . i = i div 2 + 1)) holds
+  for j being Nat st j in rng f holds SumBin (a, f, {j}) <= 1;
+
+theorem :: BINPACK1:43
+  for n being Nat, epsilon being Real,
+  a being non empty positive at_most_one FinSequence of REAL st
+  n is odd & len a = n & epsilon = 1 / (n + 1) &
+  (for i being Nat st i in Seg n holds
+  (i is odd  implies a . i = 2 * epsilon) &
+  (i is even implies a . i = 1 - epsilon)) holds n = 2 * Opt a - 1;
+
+theorem :: BINPACK1:44
+  for n being Nat st n is odd holds
+  ex a being non empty positive at_most_one FinSequence of REAL st
+  len a = n &
+  for f being non empty FinSequence of NAT st
+  f = OnlinePacking(a, NextFit(a)) holds
+  n = card rng f & n = 2 * Opt a - 1;

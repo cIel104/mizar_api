@@ -1,0 +1,770 @@
+:: About Regular Graphs
+::  by Sebastian Koch
+:: 
+:: Received June 30, 2023
+:: Copyright (c) 2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies SUBSET_1, RELAT_1, FUNCT_1, XXREAL_0, TARSKI, ARYTM_3, CARD_1,
+      XBOOLE_0, NAT_1, ARYTM_1, GLIB_000, PARTFUN1, FINSET_1, ZFMISC_1,
+      FUNCOP_1, GLIB_009, MOD_4, GLIB_006, GLIB_007, FUNCT_4, CARD_2, SCMYCIEL,
+      GLIB_010, SIMPLEX0, XCMPLX_0, GLIB_013, SETFAM_1, RELAT_2, REWRITE1,
+      ORDINAL1, FINSEQ_1, GLIB_012, GLIB_001, GLIB_002, WELLORD2, PBOOLE,
+      GRAPH_1, TAXONOM2, EQREL_1, CHORD, FUNCT_7, AOFA_I00, CARD_3, VALUED_0,
+      NUMBERS, AFINSQ_1, ABIAN, PRGCOR_2, INT_1, GLIB_014, GLUNIR00, GLIB_016,
+      CARD_5;
+ notations TARSKI, XBOOLE_0, XTUPLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, RELAT_1,
+      FUNCT_1, ORDINAL1, RELSET_1, PARTFUN1, FUNCT_2, BINOP_1, DOMAIN_1,
+      FUNCT_3, FUNCOP_1, FUNCT_4, FINSET_1, CARD_1, PBOOLE, CARD_3, NUMBERS,
+      XCMPLX_0, XXREAL_0, ABIAN, VALUED_0, ORDERS_1, RELAT_2, NAT_D, CARD_2,
+      FINSEQ_1, EQREL_1, VALUED_1, RVSUM_1, AFINSQ_1, AFINSQ_2, GLIB_000,
+      TAXONOM2, GLIB_001, GLIB_002, CHORD, AOFA_I00, GLIB_006, GLIB_007,
+      GLIB_008, GLIB_009, GLIB_010, GLIB_012, GLIB_013, GLIB_014, GLUNIR00;
+ constructors DOMAIN_1, FUNCT_4, CARD_2, GLIB_002, CHORD, GLIB_007, GLIB_008,
+      GLIB_009, GLIB_010, GLIB_012, GLIB_013, NAT_D, TAXONOM2, CARD_3,
+      AFINSQ_2, WSIERP_1, RECDEF_1, RVSUM_4, GLIB_014, GLUNIR00;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, ORDINAL1, FINSET_1, XREAL_0, NAT_1,
+      GLIB_000, CARD_1, GLIB_002, GLIB_008, GLIB_010, GLIBPRE0, GLIB_013,
+      MSAFREE5, CARD_2, RELSET_1, GLIB_001, CARD_5, FUNCT_3, SUBSET_1, FUNCT_2,
+      FUNCOP_1, AFINSQ_1, AFINSQ_2, VALUED_0, FUNCT_4, GLUNIR00, RELAT_2,
+      GLIB_009, GLIB_012, COUNTERS;
+ requirements ARITHM, BOOLE, NUMERALS, SUBSET, REAL;
+
+
+begin :: Directed-complete Graphs
+
+definition
+  let G be _Graph;
+  attr G is Dcomplete means
+:: GLIB_016:def 1
+
+  for v,w being Vertex of G st v <> w ex e being object st e DJoins v,w,G;
+end;
+
+definition
+  let c be non empty Cardinal;
+  func canCompleteGraph(c) -> _Graph equals
+:: GLIB_016:def 2
+  createGraph(c, RelIncl c \ id c);
+  func canDCompleteGraph(c) -> _Graph equals
+:: GLIB_016:def 3
+  createGraph(c, [: c, c :] \ id c);
+end;
+
+registration
+  let c be non empty Cardinal;
+  reduce the_Vertices_of canCompleteGraph(c) to c;
+  reduce the_Vertices_of canDCompleteGraph(c) to c;
+end;
+
+registration
+  let c be non empty Cardinal;
+  cluster -> ordinal for Vertex of canCompleteGraph(c);
+  cluster -> ordinal for Vertex of canDCompleteGraph(c);
+end;
+
+registration
+  cluster -> natural for Vertex of canCompleteGraph(omega);
+  cluster -> natural for Vertex of canDCompleteGraph(omega);
+  let n be non zero Nat;
+  cluster canCompleteGraph(n) -> _finite;
+  cluster canDCompleteGraph(n) -> _finite;
+  cluster -> natural for Vertex of canCompleteGraph(n);
+  cluster -> natural for Vertex of canDCompleteGraph(n);
+end;
+
+registration
+  let c be non empty Cardinal;
+  cluster canCompleteGraph(c) -> plain c-vertex simple complete;
+  cluster canDCompleteGraph(c) -> plain c-vertex Dsimple Dcomplete;
+end;
+
+theorem :: GLIB_016:1
+  for c being non empty Cardinal, v being Vertex of canCompleteGraph(c)
+  holds v.inNeighbors() = v & v.outNeighbors() = c \ succ v;
+
+theorem :: GLIB_016:2
+  for v being Vertex of canCompleteGraph(omega)
+  holds v.inDegree() = v & v.outDegree() = omega;
+
+theorem :: GLIB_016:3
+  for n being non zero Nat, v being Vertex of canCompleteGraph(n)
+  holds v.inDegree() = v & v.outDegree() = n - v - 1;
+
+registration
+  let c be non empty Cardinal;
+  cluster simple c-vertex complete for _Graph;
+  cluster Dsimple c-vertex Dcomplete for _Graph;
+end;
+
+registration
+  cluster Dcomplete -> complete for _Graph;
+  cluster _trivial -> Dcomplete for _Graph;
+  cluster non _trivial Dcomplete -> non non-multi non edgeless for _Graph;
+end;
+
+registration
+  cluster non Dcomplete for _Graph;
+end;
+
+theorem :: GLIB_016:4
+  for G1, G2 being _Graph st G1 == G2 & G1 is Dcomplete holds G2 is Dcomplete;
+
+theorem :: GLIB_016:5
+  for G1 being _Graph, G2 being removeLoops of G1
+  holds G1 is Dcomplete iff G2 is Dcomplete;
+
+theorem :: GLIB_016:6
+  for G1 being _Graph, G2 being removeDParallelEdges of G1
+  holds G1 is Dcomplete iff G2 is Dcomplete;
+
+theorem :: GLIB_016:7
+  for G1 being _Graph, G2 being DSimpleGraph of G1
+  holds G1 is Dcomplete iff G2 is Dcomplete;
+
+theorem :: GLIB_016:8
+  for G1 being _Graph, G2 being reverseEdgeDirections of G1
+  holds G1 is Dcomplete iff G2 is Dcomplete;
+
+registration
+  let G be Dcomplete _Graph;
+  cluster -> Dcomplete for removeLoops of G;
+  cluster -> Dcomplete for removeDParallelEdges of G;
+  cluster -> Dcomplete for DSimpleGraph of G;
+  cluster -> Dcomplete for reverseEdgeDirections of G;
+  let V be set;
+  cluster -> Dcomplete for inducedSubgraph of G, V;
+  cluster -> Dcomplete for addLoops of G, V;
+end;
+
+registration
+  let G be Dcomplete _Graph, v,e,w be object;
+  cluster -> Dcomplete for addEdge of G,v,e,w;
+end;
+
+registration
+  let G be non Dcomplete _Graph;
+  cluster -> non Dcomplete for removeLoops of G;
+  cluster -> non Dcomplete for removeDParallelEdges of G;
+  cluster -> non Dcomplete for DSimpleGraph of G;
+  cluster -> non Dcomplete for reverseEdgeDirections of G;
+  cluster spanning -> non Dcomplete for Subgraph of G;
+end;
+
+theorem :: GLIB_016:9
+  for G1, G2 being _Graph, F being PGraphMapping of G1,G2
+  st F is Dcontinuous strong_SG-embedding
+  holds G2 is Dcomplete implies G1 is Dcomplete;
+
+theorem :: GLIB_016:10
+  for G1, G2 being _Graph, F being PGraphMapping of G1,G2
+  st F is Disomorphism holds G1 is Dcomplete iff G2 is Dcomplete;
+
+registration
+  let G be Dcomplete _Graph;
+  cluster G-Disomorphic -> Dcomplete for _Graph;
+end;
+
+theorem :: GLIB_016:11
+  for G being Dcomplete _Graph, v being Vertex of G holds
+    the_Vertices_of G \ {v} c= v.inNeighbors() &
+    the_Vertices_of G \ {v} c= v.outNeighbors() &
+    the_Vertices_of G \ {v} c= v.allNeighbors();
+
+theorem :: GLIB_016:12
+  for G being loopless Dcomplete _Graph, v being Vertex of G holds
+    v.inNeighbors() = the_Vertices_of G \ {v} &
+    v.outNeighbors() = the_Vertices_of G \ {v} &
+    v.allNeighbors() = the_Vertices_of G \ {v};
+
+theorem :: GLIB_016:13
+  for G being Dsimple Dcomplete _Graph, v being Vertex of G
+  holds v.inDegree()+`1 = G.order() & v.outDegree()+`1 = G.order();
+
+:: more general version of GLIB_012:57
+theorem :: GLIB_016:14
+  for G1 being _Graph, G2 being DLGraphComplement of G1
+  holds the_Edges_of G1 = G1.loops() iff G2 is Dcomplete;
+
+registration
+  let G be edgeless _Graph;
+  cluster -> Dcomplete for DLGraphComplement of G;
+end;
+
+:: directed version of GLIB_012:75
+:: Proof copied from the reverse version and reordered
+theorem :: GLIB_016:15
+  for G1 being _Graph, G2 being DLGraphComplement of G1
+  holds G1 is Dcomplete iff the_Edges_of G2 = G2.loops();
+
+registration
+  cluster loopfull Dcomplete for _Graph;
+end;
+
+registration
+  let G be loopfull Dcomplete _Graph;
+  cluster -> edgeless for DLGraphComplement of G;
+end;
+
+:: more general version of GLIB_012:92
+:: also directed version of second part of GLIB_012:113
+theorem :: GLIB_016:16
+  for G1 being _Graph, G2 being DGraphComplement of G1
+  holds the_Edges_of G1 = G1.loops() iff G2 is Dcomplete;
+
+registration
+  let G be edgeless _Graph;
+  cluster -> Dcomplete for DGraphComplement of G;
+end;
+
+:: directed version of first part of GLIB_012:113
+theorem :: GLIB_016:17
+  for G1 being _Graph, G2 being DGraphComplement of G1
+  holds G1 is Dcomplete iff G2 is edgeless;
+
+registration
+  let G be Dcomplete _Graph;
+  cluster -> edgeless for DGraphComplement of G;
+end;
+
+registration
+  let G be non Dcomplete _Graph;
+  cluster -> non edgeless for DGraphComplement of G;
+end;
+
+registration
+  let G1 be _Graph, G2 be DLGraphComplement of G1;
+  cluster -> Dcomplete for GraphUnion of G1, G2;
+end;
+
+registration
+  let G1 be _Graph, G2 be DGraphComplement of G1;
+  cluster -> Dcomplete for GraphUnion of G1, G2;
+end;
+
+theorem :: GLIB_016:18
+  for G being _Graph holds G is Dcomplete iff
+    [: the_Vertices_of G, the_Vertices_of G :] \ id the_Vertices_of G
+      c= VertexDomRel(G);
+
+:: Proof mostly copied from previous one
+theorem :: GLIB_016:19
+  for V being non empty set, E being Relation of V
+  holds createGraph(V,E) is Dcomplete iff [: V, V :] \ id V c= E;
+
+begin :: Regular Graphs
+
+reserve c,c1,c2 for Cardinal, G,G1,G2 for _Graph, v for Vertex of G;
+
+definition
+  let c, G;
+  attr G is c-regular means
+:: GLIB_016:def 4
+
+  for v holds v.degree() = c;
+end;
+
+registration
+  let c;
+  cluster c-regular -> with_max_degree for _Graph;
+  cluster (c+`1)-vertex simple complete -> c-regular for _Graph;
+  cluster simple c-regular for _Graph;
+end;
+
+::$N Degree of regularity is unique.
+theorem :: GLIB_016:20
+  G is c1-regular c2-regular implies c1 = c2;
+
+theorem :: GLIB_016:21
+  G is c-regular iff for C being Component of G holds C is c-regular;
+
+registration
+  let c;
+  cluster non c-regular for _Graph;
+  let G be c-regular _Graph;
+  cluster -> c-regular for Component of G;
+end;
+
+theorem :: GLIB_016:22
+  for G being c-regular _Graph holds G.minDegree() = c & G.maxDegree() = c;
+
+theorem :: GLIB_016:23
+  G.minDegree() = c & G.supDegree() = c implies G is c-regular;
+
+registration
+  let n be Nat;
+  cluster n-regular -> locally-finite for _Graph;
+  cluster simple vertex-finite n-regular for _Graph;
+end;
+
+theorem :: GLIB_016:24
+  G is edgeless iff G is 0-regular;
+
+registration
+  cluster edgeless -> 0-regular for _Graph;
+  cluster 0-regular -> edgeless for _Graph;
+end;
+
+registration
+  let c be non empty Cardinal;
+  cluster c-regular -> non edgeless for _Graph;
+end;
+
+:: this is just a special case of
+:: cluster without_isolated_vertices edge-finite -> vertex-finite
+:: and
+:: cluster c-regular -> without_isolated_vertices
+:: registration
+  :: let c be non empty Cardinal;
+  :: cluster c-regular edge-finite -> vertex-finite for _Graph;
+  :: coherence;
+:: end;
+
+theorem :: GLIB_016:25
+  for G being simple c-regular _Graph holds c c= G.order();
+
+theorem :: GLIB_016:26
+  for n being Nat, G1 being simple vertex-finite n-regular _Graph
+  for G2 being GraphComplement of G1
+  holds G2 is (G1.order()-'(n+1))-regular;
+
+theorem :: GLIB_016:27
+  (ex v st v is isolated) & G is c-regular implies c = 0;
+
+theorem :: GLIB_016:28
+  (ex v st v is endvertex) & G is c-regular implies c = 1;
+
+registration
+  let G be 1-regular _Graph;
+  cluster -> endvertex for Vertex of G;
+end;
+
+theorem :: GLIB_016:29
+  for G being 1-regular _Graph, T being Trail of G st T is non trivial
+  ex e being object st e Joins T.first(),T.last(),G &
+    T = G.walkOf(T.first(),e,T.last());
+
+::$INSERT The connected $1$-regular graph is $K_2$
+registration
+  cluster 1-regular connected -> 2-vertex 1-edge complete for _Graph;
+  cluster simple 2-vertex connected -> 1-regular for _Graph;
+end;
+
+theorem :: GLIB_016:30
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds G1 is c-regular iff G2 is c-regular;
+
+theorem :: GLIB_016:31
+  G1 == G2 & G1 is c-regular implies G2 is c-regular;
+
+theorem :: GLIB_016:32
+  for E being set, G2 being reverseEdgeDirections of G1, E
+  holds G1 is c-regular iff G2 is c-regular;
+
+:: The 1-regular graphs are sometimes called ladder graph or ladder rung graph
+:: but since it is rarely used in the literature, it is omitted here.
+:: If you think a definition is needed nonetheless, please use the
+:: term "ladder-rung" rather than "ladder" cause the latter is more often used
+:: to refer to P_n x P_2 instead of nP_2.
+
+:: On the other hand cubic graphs are often used AND shorten the number of
+:: characters needed for the attribute descriptor, hence they are defined here.
+definition
+  let G be _Graph;
+  attr G is cubic means
+:: GLIB_016:def 5 :: or trivalent
+  G is 3-regular;
+end;
+
+registration
+  cluster cubic -> 3-regular for _Graph;
+  cluster 3-regular -> cubic for _Graph;
+end;
+
+theorem :: GLIB_016:33
+  G is cubic iff for v holds v.degree() = 3;
+
+theorem :: GLIB_016:34
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds G1 is cubic iff G2 is cubic;
+
+theorem :: GLIB_016:35
+  G1 == G2 & G1 is cubic implies G2 is cubic;
+
+theorem :: GLIB_016:36
+  for E being set, G2 being reverseEdgeDirections of G1, E
+  holds G1 is cubic iff G2 is cubic;
+
+definition
+  let G be _Graph;
+  attr G is regular means
+:: GLIB_016:def 6
+
+  ex c being Cardinal st G is c-regular;
+end;
+
+theorem :: GLIB_016:37
+  G is regular iff G.minDegree() = G.supDegree();
+
+definition
+  let G be locally-finite _Graph;
+  redefine attr G is regular means
+:: GLIB_016:def 7
+
+  ex n being Nat st G is n-regular;
+end;
+
+registration
+  let c be Cardinal;
+  cluster c-regular -> regular for _Graph;
+end;
+
+registration
+  cluster cubic -> regular for _Graph;
+  cluster regular -> with_max_degree for _Graph;
+  cluster simple non edgeless finite regular for _Graph;
+end;
+
+registration
+  let G be regular _Graph;
+  cluster -> regular for Component of G;
+end;
+
+registration
+  let G be simple _finite regular _Graph;
+  cluster -> regular for GraphComplement of G;
+end;
+
+theorem :: GLIB_016:38
+  (ex v st v is isolated) & G is regular implies G is edgeless;
+
+theorem :: GLIB_016:39
+  (ex v st v is endvertex) & G is regular implies G is 1-regular;
+
+theorem :: GLIB_016:40
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds G1 is regular iff G2 is regular;
+
+theorem :: GLIB_016:41
+  G1 == G2 & G1 is regular implies G2 is regular;
+
+theorem :: GLIB_016:42
+  for E being set, G2 being reverseEdgeDirections of G1, E
+  holds G1 is regular iff G2 is regular;
+
+begin :: Directed-regular Graphs
+
+definition
+  let c, G;
+  attr G is c-Dregular means
+:: GLIB_016:def 8
+
+  for v holds v.inDegree() = c & v.outDegree() = c;
+end;
+
+registration
+  let c;
+  cluster c-Dregular -> with_max_in_degree with_max_out_degree for _Graph;
+  cluster (c+`1)-vertex Dsimple Dcomplete -> c-Dregular for _Graph;
+  cluster Dsimple c-Dregular for _Graph;
+end;
+
+::$N Degree of directed regularity is unique.
+theorem :: GLIB_016:43
+  G is c1-Dregular c2-Dregular implies c1 = c2;
+
+registration
+  let c;
+  cluster non c-Dregular for _Graph;
+  let G be c-Dregular _Graph;
+  cluster -> c-Dregular for Component of G;
+end;
+
+theorem :: GLIB_016:44
+  for G being c-Dregular _Graph holds
+    G.minInDegree() = c & G.minOutDegree() = c &
+    G.maxInDegree() = c & G.maxOutDegree() = c;
+
+theorem :: GLIB_016:45
+  G.minInDegree() = c & G.minOutDegree() = c &
+    G.supInDegree() = c & G.supOutDegree() = c implies G is c-Dregular;
+
+theorem :: GLIB_016:46
+  for n being Nat holds G is n-Dregular implies G is 2*n-regular;
+
+registration
+  let n be Nat;
+  cluster n-Dregular -> 2*n-regular locally-finite for _Graph;
+  cluster Dsimple _finite n-Dregular for _Graph;
+end;
+
+registration
+  let c be infinite Cardinal;
+  cluster c-Dregular -> c-regular for _Graph;
+end;
+
+theorem :: GLIB_016:47
+  G is edgeless iff G is 0-Dregular;
+
+registration
+  cluster edgeless -> 0-Dregular for _Graph;
+  cluster 0-Dregular -> edgeless for _Graph;
+end;
+
+registration
+  let c be non empty Cardinal;
+  cluster c-Dregular -> non edgeless for _Graph;
+end;
+
+:: same as above
+:: registration
+  :: let c be non empty Cardinal;
+  :: cluster c-Dregular edge-finite -> vertex-finite for _Graph;
+  :: coherence;
+:: end;
+
+theorem :: GLIB_016:48
+  for G being Dsimple c-Dregular _Graph holds c c= G.order();
+
+theorem :: GLIB_016:49
+  for n being Nat, G1 being Dsimple vertex-finite n-Dregular _Graph
+  for G2 being DGraphComplement of G1
+  holds G2 is (G1.order()-'(n+1))-Dregular;
+
+theorem :: GLIB_016:50
+  (ex v st v is isolated) & G is c-Dregular implies c = 0;
+
+registration
+  let c; let G be c-Dregular _Graph;
+  cluster -> non endvertex for Vertex of G;
+end;
+
+:: A connected 1-Dregular graph is either K2 with an additional edge in
+:: the other direction, the trivial graph with 1 loop or a collection
+:: of directed cycles or directed double rays (the latter two not shown here).
+registration
+  cluster 2-edge 2-vertex Dsimple -> 1-Dregular complete for _Graph;
+  cluster _trivial 1-edge -> 1-Dregular for _Graph;
+end;
+
+theorem :: GLIB_016:51
+  for F being PGraphMapping of G1, G2 st F is Disomorphism
+  holds G1 is c-Dregular iff G2 is c-Dregular;
+
+theorem :: GLIB_016:52
+  G1 == G2 & G1 is c-Dregular implies G2 is c-Dregular;
+
+definition
+  let G be _Graph;
+  attr G is Dregular means
+:: GLIB_016:def 9
+
+  ex c being Cardinal st G is c-Dregular;
+end;
+
+theorem :: GLIB_016:53
+  G is Dregular iff G.minInDegree() = G.supInDegree() &
+    G.minOutDegree() = G.supOutDegree() & G.minInDegree() = G.minOutDegree();
+
+definition
+  let G be locally-finite _Graph;
+  redefine attr G is Dregular means
+:: GLIB_016:def 10
+
+  ex n being Nat st G is n-Dregular;
+end;
+
+registration
+  let c be Cardinal;
+  cluster c-Dregular -> Dregular for _Graph;
+end;
+
+registration
+  cluster Dregular -> with_max_degree for _Graph;
+  cluster Dsimple non edgeless finite Dregular for _Graph;
+end;
+
+registration
+  let G be Dregular _Graph;
+  cluster -> Dregular for Component of G;
+end;
+
+registration
+  let G be Dsimple _finite Dregular _Graph;
+  cluster -> Dregular for DGraphComplement of G;
+end;
+
+registration
+  let G be Dregular _Graph;
+  cluster -> non endvertex for Vertex of G;
+end;
+
+theorem :: GLIB_016:54
+  for F being PGraphMapping of G1, G2 st F is Disomorphism
+  holds G1 is Dregular iff G2 is Dregular;
+
+theorem :: GLIB_016:55
+  G1 == G2 & G1 is Dregular implies G2 is Dregular;
+
+begin :: Counting the Edges
+
+:: basically infinite version of GROUP_2:156
+theorem :: GLIB_016:56
+  for P being set, c being Cardinal
+  st P is mutually-disjoint & for A being set st A in P holds card A = c
+  holds card union P = c*`card P;
+
+theorem :: GLIB_016:57
+  for X being non empty set, P being a_partition of X, c being Cardinal
+  st for x being Element of X holds card EqClass(x,P) = c
+  holds card X = c*`card P;
+
+registration
+  let f be Function, X be set;
+  cluster <: f, id X :> -> one-to-one;
+end;
+
+registration
+  let f be one-to-one Function;
+  cluster f~ -> one-to-one;
+  cluster ~f -> one-to-one;
+end;
+
+registration
+  let X be set, f be Function;
+  cluster <: id X, f :> -> one-to-one;
+end;
+
+theorem :: GLIB_016:58
+  for G being c-regular _Graph holds 2*`G.size() = c*`G.order();
+
+begin :: The Degree Map and Degree Sequence
+
+definition
+  let G be _Graph;
+  func G.degreeMap() -> ManySortedSet of the_Vertices_of G means
+:: GLIB_016:def 11
+
+  for v being Vertex of G holds it.v = v.degree();
+  func G.inDegreeMap() -> ManySortedSet of the_Vertices_of G means
+:: GLIB_016:def 12
+
+  for v being Vertex of G holds it.v = v.inDegree();
+  func G.outDegreeMap() -> ManySortedSet of the_Vertices_of G means
+:: GLIB_016:def 13
+
+  for v being Vertex of G holds it.v = v.outDegree();
+end;
+
+registration
+  let G be _Graph;
+  cluster G.degreeMap() -> Cardinal-yielding;
+  cluster G.inDegreeMap() -> Cardinal-yielding;
+  cluster G.outDegreeMap() -> Cardinal-yielding;
+end;
+
+theorem :: GLIB_016:59
+  for G being _Graph holds card G.degreeMap() = G.order() &
+    card G.inDegreeMap() = G.order() & card G.outDegreeMap() = G.order();
+
+theorem :: GLIB_016:60
+  for G being _Graph, v being Vertex of G
+  holds G.degreeMap().v = G.inDegreeMap().v +` G.outDegreeMap().v;
+
+registration
+  let G be locally-finite _Graph;
+  cluster G.degreeMap() -> natural-valued;
+  cluster G.inDegreeMap() -> natural-valued;
+  cluster G.outDegreeMap() -> natural-valued;
+end;
+
+definition
+  let G be locally-finite _Graph;
+  redefine func G.degreeMap() -> Function of the_Vertices_of G, NAT;
+  redefine func G.inDegreeMap() -> Function of the_Vertices_of G, NAT;
+  redefine func G.outDegreeMap() -> Function of the_Vertices_of G, NAT;
+end;
+
+registration
+  let G be vertex-finite _Graph;
+  cluster G.degreeMap() -> finite;
+  cluster G.inDegreeMap() -> finite;
+  cluster G.outDegreeMap() -> finite;
+end;
+
+theorem :: GLIB_016:61
+  for c being Cardinal, G being _trivial c-edge _Graph, v being Vertex of G
+  holds G.inDegreeMap() = v .--> c & G.outDegreeMap() = v .--> c &
+    G.degreeMap() = v .--> (2*`c);
+
+registration
+  let G be _trivial _Graph;
+  cluster G.degreeMap() -> trivial;
+  cluster G.inDegreeMap() -> trivial;
+  cluster G.outDegreeMap() -> trivial;
+end;
+
+:: theorem
+  :: for G1, G2 being _Graph, f being PVertexMapping of G1, G2
+  :: st f is isomorphism holds G2.degreeMap() = G1.degreeMap() * f;
+::
+:: theorem
+  :: for G1, G2 being _Graph, f being PVertexMapping of G1, G2
+  :: st f is Disomorphism holds
+    :: G2.inDegreeMap() = G1.inDegreeMap() * f &
+    :: G2.outDegreeMap() = G1.outDegreeMap() * f;
+::
+:: theorem
+  :: for G1, G2 being _Graph st G1 == G2 holds
+    :: G1.degreeMap() = G2.degreeMap() & G1.inDegreeMap() = G2.inDegreeMap() &
+    :: G1.outDegreeMap() = G2.outDegreeMap();
+::
+:: theorem
+  :: for G1 being _Graph, E being set, G2 being reverseEdgeDirections of G1, E
+  :: holds G1.degreeMap() = G2.degreeMap();
+
+theorem :: GLIB_016:62
+  for G2 being _Graph, V being set, G1 being addVertices of G2, V
+  holds G1.degreeMap() = G2.degreeMap() +* ((V\the_Vertices_of G2) --> 0) &
+    G1.inDegreeMap() = G2.inDegreeMap() +* ((V\the_Vertices_of G2) --> 0) &
+    G1.outDegreeMap() = G2.outDegreeMap() +* ((V\the_Vertices_of G2) --> 0);
+
+theorem :: GLIB_016:63
+  for G being _Graph, C being Component of G holds
+    C.degreeMap() = G.degreeMap() | the_Vertices_of C &
+    C.inDegreeMap() = G.inDegreeMap() | the_Vertices_of C &
+    C.outDegreeMap() = G.outDegreeMap() | the_Vertices_of C;
+
+registration
+  let G be _Graph, v being Denumeration of the_Vertices_of G;
+  cluster G.degreeMap()*v -> Sequence-like G.order()-element;
+  cluster G.inDegreeMap()*v -> Sequence-like G.order()-element;
+  cluster G.outDegreeMap()*v -> Sequence-like G.order()-element;
+end;
+
+theorem :: GLIB_016:64
+  for G being _finite _Graph, v being Denumeration of the_Vertices_of G
+  holds G.degreeMap()*v = G.inDegreeMap()*v + G.outDegreeMap()*v;
+
+theorem :: GLIB_016:65
+  for G being _finite _Graph, v being Denumeration of the_Vertices_of G
+  holds G.size() = Sum(G.inDegreeMap()*v) & G.size() = Sum(G.outDegreeMap()*v);
+
+theorem :: GLIB_016:66
+  for G being _finite _Graph, v being Denumeration of the_Vertices_of G
+  holds 2*G.size() = Sum(G.degreeMap()*v);
+
+::#MR Handshaking Lemma
+theorem :: GLIB_016:67
+  for G being _finite _Graph, k being Nat
+  st k = card {w where w is Vertex of G : w.degree() is non even}
+  holds k is even;

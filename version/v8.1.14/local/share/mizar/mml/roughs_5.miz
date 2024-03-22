@@ -1,0 +1,1331 @@
+:: Formalizing Two Generalized Approximation Operators
+::  by Adam Grabowski and Micha{\l} Sielwiesiuk
+:: 
+:: Received June 29, 2018
+:: Copyright (c) 2018-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies STRUCT_0, ORDERS_2, RELAT_1, TARSKI, ZFMISC_1, RELAT_2, XBOOLE_0,
+      PARTFUN1, SUBSET_1, FUNCT_1, EQREL_1, ROUGHS_1, ROUGHS_2, ROUGHS_5,
+      ALTCAT_2, FIB_NUM, FUNCT_7, COHSP_1, ROUGHS_4, SETWISEO;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, RELAT_2, FUNCT_1,
+      RELSET_1, PARTFUN1, FUNCT_2, DOMAIN_1, STRUCT_0, ORDERS_2, SETWISEO,
+      EQREL_1, PRE_TOPC, ROUGHS_1, YELLOW_3, ROUGHS_2, ALTCAT_2, ROUGHS_4;
+ constructors EQREL_1, REALSET2, RELSET_1, ROUGHS_1, YELLOW_3, TOPS_1,
+      ROUGHS_2, ALTCAT_2, COHSP_1, ROUGHS_3, ROUGHS_4, RELAT_2, SETWISEO,
+      PARTIT1, BVFUNC_1;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, STRUCT_0, ORDERS_2, RELSET_1,
+      FUNCT_1, FUNCT_2, ROUGHS_1;
+ requirements BOOLE, SUBSET;
+ definitions TARSKI, XBOOLE_0;
+ equalities SUBSET_1, STRUCT_0, RELAT_1, ROUGHS_1;
+ expansions TARSKI, XBOOLE_0, FUNCT_2, ROUGHS_2, ROUGHS_4;
+ theorems XBOOLE_0, XBOOLE_1, SUBSET_1, TARSKI, ZFMISC_1, RELAT_1, FUNCT_2,
+      FUNCT_1, ROUGHS_2, ALTCAT_2, PREFER_1, LATTAD_1;
+ schemes FUNCT_2;
+
+begin :: Definitions of the mappings defined in the paper by Gomolinska
+
+definition :: property (1) p. 105
+  let R be non empty set;
+  let I be Function of R, bool R;
+  attr I is map-reflexive means
+    for u being Element of R holds u in I.u;
+end;
+
+definition :: stolen from SETWISEO
+  let R be non empty set;
+  func singleton R -> Function of R, bool R means :SingleFunc:
+  for x being Element of R holds it.x = {x};
+  existence
+  proof
+    deffunc U(object) = {$1};
+A1: now
+      let x be Element of R;
+      {x} c= R;
+      hence U(x) in bool R;
+    end;
+    thus ex f being Function of R, bool R st
+    for x being Element of R holds f.x = U(x) from FUNCT_2:sch 8(A1);
+  end;
+  uniqueness
+  proof
+    let IT,IT9 be Function of R, bool R such that
+A3: for x being Element of R holds IT.x = {x} and
+A4: for x being Element of R holds IT9.x = {x};
+    now
+      let x be Element of R;
+      IT.x = {x} by A3;
+      hence IT.x = IT9.x by A4;
+    end;
+    hence thesis;
+  end;
+  correctness;
+end;
+
+registration let R be non empty set;
+  cluster singleton R -> map-reflexive;
+  coherence
+  proof
+    for r being Element of R holds r in (singleton R).r
+    proof
+      let r be Element of R;
+      r in {r} by TARSKI:def 1;
+      hence thesis by SingleFunc;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem :: property (2)
+  for R being non empty RelStr,
+      I being Function of the carrier of R, bool the carrier of R
+  st I is map-reflexive holds
+    the carrier of R = union (I.:[#]R)
+  proof
+    let R be non empty RelStr,
+        I be Function of the carrier of R, bool the carrier of R;
+    assume AA: I is map-reflexive;
+    thus the carrier of R c= union (I.:[#]R)
+    proof
+      let x be object;
+      assume A0: x in the carrier of R; then
+      reconsider y = x as Element of R;
+A2:   y in I.x by AA;
+      x in dom I by A0,FUNCT_2:def 1; then
+      I.x in I.:[#]R by FUNCT_1:def 6;
+      hence thesis by A2,TARSKI:def 4;
+    end;
+    let x be object;
+    assume x in union (I.:[#]R); then
+    consider y being set such that
+T1: x in y & y in I.:[#]R by TARSKI:def 4;
+    thus thesis by T1;
+  end;
+
+ reserve f,g for Function;
+ reserve R for non empty reflexive RelStr;
+
+theorem LApId: :: Theorem 4.1 b)
+  LAp R cc= id bool the carrier of R
+  proof
+    set f = LAp R;
+    set g = id bool the carrier of R;
+A1: dom f c= dom g;
+    for i being set st i in dom f holds f.i c= g.i
+    proof
+      let i be set;
+      assume i in dom f; then
+      reconsider ii = i as Subset of R;
+      f.ii = LAp ii by ROUGHS_2:def 10;
+      hence thesis by ROUGHS_2:35;
+    end;
+    hence thesis by A1,ALTCAT_2:def 1;
+  end;
+
+theorem :: 4.1 b)
+  id bool the carrier of R cc= UAp R
+  proof
+    set f = id bool the carrier of R;
+    set g = UAp R;
+A1: dom f c= dom g by FUNCT_2:def 1;
+    for i being set st i in dom f holds f.i c= g.i
+    proof
+      let i be set;
+      assume i in dom f; then
+      reconsider ii = i as Subset of R;
+      g.ii = UAp ii by ROUGHS_2:def 11;
+      hence f.i c= g.i by ROUGHS_2:36;
+    end;
+    hence thesis by A1,ALTCAT_2:def 1;
+  end;
+
+ reserve R for non empty RelStr;
+
+theorem :: Proposition 1.1 a)
+  for f being map of R,
+      x,y being Subset of R holds
+    Flip (Flip f) = f by ROUGHS_2:23;
+
+:::  $f^d$
+
+theorem FlipCompose:
+  for f,g being map of R holds
+    Flip (f * g) = Flip f * Flip g
+  proof
+    let f,g be map of R;
+    set fg = Flip (f * g);
+    set ff = Flip f;
+    set gg = Flip g;
+    for x being Subset of R holds fg.x = (ff * gg).x
+    proof
+      let x be Subset of R;
+      x` in bool the carrier of R; then
+A1:   x` in dom g by FUNCT_2:def 1;
+a2:   dom Flip g = bool the carrier of R by FUNCT_2:def 1;
+      fg.x = ((f * g).x`)` by ROUGHS_2:def 14
+        .= (f.((g.x`)`)`)` by FUNCT_1:13,A1
+        .= ff.((g.x`)`) by ROUGHS_2:def 14
+        .= ff.(gg.x) by ROUGHS_2:def 14
+        .= (ff * gg).x by a2,FUNCT_1:13;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+theorem :: c)
+  for f being map of R holds
+    f.{} = {} iff (Flip f).(the carrier of R) = the carrier of R
+  proof
+    let f be map of R;
+    thus f.{} = {} implies (Flip f).(the carrier of R) = the carrier of R
+      by ROUGHS_2:18;
+    set g = Flip f;
+A1: Flip Flip f = f by ROUGHS_2:23;
+    thus (Flip f).(the carrier of R) = the carrier of R implies f.{} = {}
+      by A1,ROUGHS_2:19;
+  end;
+
+begin :: Formalization of I and tau mappings
+
+definition
+  let R be non empty RelStr;
+  func UncertaintyMap R -> Function of the carrier of R,
+    bool the carrier of R means :DefUnc:
+  for x being Element of R holds
+    it.x = Coim(the InternalRel of R,x);
+  existence
+  proof
+    deffunc F(Element of R) = In(Coim(the InternalRel of R,$1),
+      bool the carrier of R);
+    consider f being Function of the carrier of R, bool the carrier of R
+    such that
+A1: for x being Element of R holds f.x = F(x) from FUNCT_2:sch 4;
+    take f;
+    let x be Element of R;
+A2: f.x = In(Coim(the InternalRel of R,x),bool the carrier of R) by A1;
+    (the InternalRel of R)"{x} c= the carrier of R;
+    hence thesis by A2;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be Function of the carrier of R, bool the carrier of R
+    such that
+A1: for x being Element of R holds
+      f1.x = Coim(the InternalRel of R,x) and
+A2: for x being Element of R holds
+      f2.x = Coim(the InternalRel of R,x);
+    for x being Element of R holds f1.x = f2.x
+    proof
+      let x be Element of R;
+      f1.x = Coim(the InternalRel of R,x) by A1
+          .= f2.x by A2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  correctness;
+end;
+
+theorem For3: :: property (3)
+  for w,u being Element of R holds
+    [w,u] in the InternalRel of R iff w in (UncertaintyMap R).u
+  proof
+    let w,u be Element of R;
+    thus [w,u] in the InternalRel of R implies w in (UncertaintyMap R).u
+    proof
+      assume S1: [w,u] in the InternalRel of R;
+      u in {u} by TARSKI:def 1; then
+      w in Coim(the InternalRel of R,u) by S1,RELAT_1:def 14;
+      hence thesis by DefUnc;
+    end;
+    assume w in (UncertaintyMap R).u; then
+    w in Coim(the InternalRel of R,u) by DefUnc; then
+    consider x being object such that
+S1: [w,x] in the InternalRel of R & x in {u} by RELAT_1:def 14;
+    thus thesis by S1,TARSKI:def 1;
+  end;
+
+definition let R be non empty RelStr;
+  func tau R -> Function of the carrier of R, bool the carrier of R means
+    :DefTau:
+    for u being Element of R holds
+      it.u = Im(the InternalRel of R,u);
+  existence
+  proof
+    deffunc F(Element of R) = In(Im(the InternalRel of R,$1),
+      bool the carrier of R);
+    consider f being Function of the carrier of R, bool the carrier of R
+    such that
+A1: for x being Element of R holds f.x = F(x) from FUNCT_2:sch 4;
+    take f;
+    let x be Element of R;
+A2: f.x = In(Im(the InternalRel of R,x),bool the carrier of R) by A1;
+    (the InternalRel of R).:{x} c= the carrier of R;
+    hence thesis by A2;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be Function of the carrier of R, bool the carrier of R
+    such that
+A1: for x being Element of R holds
+      f1.x = Im(the InternalRel of R,x) and
+A2: for x being Element of R holds
+      f2.x = Im(the InternalRel of R,x);
+    for x being Element of R holds f1.x = f2.x
+    proof
+      let x be Element of R;
+      f1.x = Im(the InternalRel of R,x) by A1
+          .= f2.x by A2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem ImCoim:
+  for u,w being Element of R holds
+    u in Im (the InternalRel of R,w) iff
+      w in Coim (the InternalRel of R,u)
+  proof
+    let u,w be Element of R;
+    thus u in Im (the InternalRel of R,w) implies
+      w in Coim (the InternalRel of R,u)
+    proof
+      assume u in Im (the InternalRel of R,w); then
+Z1:   [w,u] in the InternalRel of R by RELAT_1:169;
+      u in {u} by TARSKI:def 1;
+      hence thesis by Z1,RELAT_1:def 14;
+    end;
+    assume w in Coim (the InternalRel of R,u); then
+    consider t being object such that
+W1: [w,t] in the InternalRel of R & t in {u} by RELAT_1:def 14;
+    t = u by W1,TARSKI:def 1;
+    hence thesis by RELAT_1:169,W1;
+  end;
+
+theorem For3A: :: formula (3)
+  for w,u being Element of R holds
+    [w,u] in the InternalRel of R iff u in (tau R).w
+  proof
+    let w,u be Element of R;
+    thus [w,u] in the InternalRel of R implies u in (tau R).w
+    proof
+      assume [w,u] in the InternalRel of R; then
+      u in Im(the InternalRel of R,w) by RELAT_1:169;
+      hence thesis by DefTau;
+    end;
+    assume u in (tau R).w; then
+    u in Im(the InternalRel of R,w) by DefTau; then
+    w in Coim(the InternalRel of R,u) by ImCoim; then
+    consider x being object such that
+S1: [w,x] in the InternalRel of R & x in {u} by RELAT_1:def 14;
+    thus thesis by S1,TARSKI:def 1;
+  end;
+
+:: General version of the induced mapping
+
+definition let R be non empty RelStr;
+  let f be Function of the carrier of R, bool the carrier of R;
+  func ff_0 f -> map of R means :Defff:
+    for x being Subset of R holds
+      it.x = { u where u is Element of R : f.u meets x };
+  existence
+  proof
+    deffunc F(Subset of R) =
+      In({ u where u is Element of R : f.u meets $1 },
+        bool the carrier of R);
+    consider g being map of R such that
+A1: for x being Element of bool the carrier of R holds
+      g.x = F(x) from FUNCT_2:sch 4;
+    take g;
+    let x be Subset of R;
+A2: g.x = In({ u where u is Element of R : f.u meets x },
+        bool the carrier of R) by A1;
+    { u where u is Element of R : f.u meets x } c= the carrier of R
+    proof
+      let y be object;
+      assume y in { u where u is Element of R : f.u meets x }; then
+      consider u being Element of R such that
+A3:   y = u & f.u meets x;
+      thus thesis by A3;
+    end;
+    hence thesis by A2,SUBSET_1:def 8;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be map of R;
+    assume that
+A1: for x being Subset of R holds
+    f1.x = { u where u is Element of R : f.u meets x } and
+A2: for x being Subset of R holds
+    f2.x = { u where u is Element of R : f.u meets x };
+    for y being Element of bool the carrier of R holds f1.y = f2.y
+    proof
+      let y be Element of bool the carrier of R;
+      f1.y = { u where u is Element of R : f.u meets y } by A1
+          .= f2.y by A2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let R be non empty RelStr;
+  func f_0 R -> map of R equals
+  ff_0 tau R;
+  coherence;
+  func f_1 R -> map of R equals
+  ff_0 UncertaintyMap R;
+  coherence;
+end;
+
+theorem UncEqTau:
+  the InternalRel of R is symmetric implies
+    UncertaintyMap R = tau R
+  proof
+    assume
+AA: the InternalRel of R is symmetric;
+    set f = UncertaintyMap R,
+        g = tau R;
+    for x being Element of R holds f.x = g.x
+    proof
+      let x be Element of R;
+Z2:   f.x = Coim(the InternalRel of R,x) by DefUnc;
+ZZ:   Im(the InternalRel of R,x) c= Coim(the InternalRel of R,x)
+      proof
+        let y be object;
+        assume y in Im(the InternalRel of R,x); then
+        [x,y] in the InternalRel of R by RELAT_1:169; then
+B2:     [y,x] in the InternalRel of R by AA,PREFER_1:20;
+        x in {x} by TARSKI:def 1;
+        hence thesis by B2,RELAT_1:def 14;
+      end;
+      Coim(the InternalRel of R,x) c= Im(the InternalRel of R,x)
+      proof
+        let y be object;
+        assume y in Coim(the InternalRel of R,x); then
+        consider yy being object such that
+B2:     [y,yy] in the InternalRel of R & yy in {x} by RELAT_1:def 14;
+        yy = x by TARSKI:def 1,B2; then
+        [x,y] in the InternalRel of R by B2,PREFER_1:20,AA;
+        hence thesis by RELAT_1:169;
+      end;
+      hence thesis by ZZ,DefTau,Z2;
+    end;
+    hence thesis;
+  end;
+
+theorem :: Proposition 4.2
+  the InternalRel of R is symmetric implies
+    f_0 R = f_1 R by UncEqTau;
+
+Lemacik:
+  for a,b being object,
+      RR being Relation of the carrier of R st [a,b] in RR holds
+    a is Element of R & b is Element of R by ZFMISC_1:87;
+
+theorem :: (6)
+  the InternalRel of R is symmetric iff
+    for u,v being Element of R holds
+      u in (tau R).v implies v in (tau R).u
+  proof
+    hereby assume
+A1: the InternalRel of R is symmetric;
+    let u,v be Element of R;
+    assume u in (tau R).v; then
+    u in (UncertaintyMap R).v by A1,UncEqTau; then
+    [u,v] in the InternalRel of R by For3;
+    hence v in (tau R).u by For3A;
+    end;
+    assume
+Z0: for u,v being Element of R holds
+      u in (tau R).v implies v in (tau R).u;
+    for a,b being object st [a,b] in the InternalRel of R holds
+      [b,a] in the InternalRel of R
+    proof
+      let a,b be object;
+      assume
+Z1:   [a,b] in the InternalRel of R; then
+      reconsider aa = a, bb = b as Element of R by Lemacik;
+      bb in (tau R).aa by Z1,For3A; then
+      aa in (tau R).bb by Z0;
+      hence thesis by For3A;
+    end;
+    hence thesis by PREFER_1:20;
+  end;
+
+theorem UApF0:
+  f_0 R = UAp R
+  proof
+    set ff = f_0 R;
+    set gg = UAp R;
+    for x being Subset of R holds ff.x = gg.x
+    proof
+      let x be Subset of R;
+WW:   { u where u is Element of R : (tau R).u meets x } =
+            { w where w is Element of R :
+               Class (the InternalRel of R, w) meets x }
+      proof
+        thus { u where u is Element of R : (tau R).u meets x } c=
+            { w where w is Element of R :
+            Class (the InternalRel of R, w) meets x }
+        proof
+          let t be object;
+          assume t in { u where u is Element of R :
+             (tau R).u meets x }; then
+          consider u being Element of R such that
+W1:       u = t & (tau R).u meets x;
+          consider tt being object such that
+W2:       tt in (tau R).u & tt in x by XBOOLE_0:3,W1;
+W4:       (tau R).u = Im (the InternalRel of R, u) by DefTau;
+          reconsider ttt = tt as Element of R by W2;
+          thus thesis by W1,W4;
+        end;
+        let t be object;
+        assume t in { w where w is Element of R :
+            Class (the InternalRel of R, w) meets x }; then
+        consider tt being Element of R such that
+H1:     tt = t & Class (the InternalRel of R, tt) meets x;
+        consider wx being object such that
+H2:     wx in Class (the InternalRel of R, tt) & wx in x by H1,XBOOLE_0:3;
+        reconsider wxx = wx as Element of R by H2;
+        (tau R).tt = Im (the InternalRel of R, tt) by DefTau;
+        hence thesis by H1;
+      end;
+      ff.x = UAp x by WW,Defff
+          .= gg.x by ROUGHS_2:def 11;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+theorem FlipLAp:
+  Flip f_0 R = LAp R
+  proof
+    f_0 R = UAp R by UApF0;
+    hence thesis by ROUGHS_2:27;
+  end;
+
+theorem :: Theorem 4.1 c)
+  for R being Approximation_Space
+  for x being Subset of R holds
+    (f_0 R).x is exact
+  proof
+    let R be Approximation_Space;
+    let x be Subset of R;
+    (f_0 R).x = (UAp R).x by UApF0
+       .= UAp x by ROUGHS_2:def 11;
+    hence thesis;
+  end;
+
+theorem :: 4.1 a)
+  the InternalRel of R is total reflexive implies
+    id bool the carrier of R cc= f_0 R
+  proof
+    assume zz: the InternalRel of R is total reflexive;
+    set f = id bool the carrier of R;
+    set g = f_0 R;
+A1: dom f c= dom g by FUNCT_2:def 1;
+    for i being set st i in dom f holds f.i c= g.i
+    proof
+      let i be set;
+      assume k2: i in dom f; then
+      reconsider ii = i as Subset of R;
+      i c= { u where u is Element of R : (tau R).u meets ii }
+      proof
+        let y be object;
+        assume D1: y in i; then
+        reconsider wy = y as Element of R by k2;
+        [wy,wy] in the InternalRel of R by zz,LATTAD_1:1; then
+        wy in (tau R).wy by For3A; then
+        (tau R).wy meets ii by XBOOLE_0:3,D1;
+        hence thesis;
+      end;
+      hence f.i c= g.i by Defff;
+    end;
+    hence thesis by A1,ALTCAT_2:def 1;
+  end;
+
+theorem :: 4.1 a)
+  R is reflexive implies
+    Flip (f_0 R) cc= id bool the carrier of R
+  proof
+    assume A0: R is reflexive;
+    Flip (f_0 R) = LAp R by FlipLAp;
+    hence thesis by A0,LApId;
+  end;
+
+theorem :: 4.1 b)
+  the InternalRel of R is total reflexive implies
+    id bool the carrier of R cc= f_1 R
+  proof
+    assume zz: the InternalRel of R is total reflexive;
+    set f = id bool the carrier of R;
+    set g = f_1 R;
+A1: dom f c= dom g by FUNCT_2:def 1;
+    for i being set st i in dom f holds f.i c= g.i
+    proof
+      let i be set;
+      assume k2: i in dom f; then
+      reconsider ii = i as Subset of R;
+      i c= { u where u is Element of R : (UncertaintyMap R).u meets ii }
+      proof
+        let y be object;
+        assume D1: y in i; then
+        reconsider wy = y as Element of R by k2;
+        [wy,wy] in the InternalRel of R by zz,LATTAD_1:1; then
+        wy in (UncertaintyMap R).wy by For3; then
+        (UncertaintyMap R).wy meets ii by XBOOLE_0:3,D1;
+        hence thesis;
+      end;
+      hence f.i c= g.i by Defff;
+    end;
+    hence thesis by A1,ALTCAT_2:def 1;
+  end;
+
+ reserve f for Function of the carrier of R, bool the carrier of R;
+
+theorem Proph: :: 4.1 h)
+  (ff_0 f).{} = {}
+  proof
+    { u where u is Element of R : f.u meets {}R } c= {}
+    proof
+      let y be object;
+      assume y in { u where u is Element of R : f.u meets {}R };
+      then consider u being Element of R such that
+A1:   u = y & f.u meets {}R;
+      thus thesis by A1;
+    end;
+    hence thesis by Defff;
+  end;
+
+registration let R;
+             let f;
+  cluster ff_0 f -> empty-preserving;
+  coherence by Proph;
+end;
+
+theorem :: 4.1 h)
+  (f_0 R).{} = {}
+  proof
+    { u where u is Element of R : (tau R).u meets {}R } c= {}
+    proof
+      let y be object;
+      assume y in { u where u is Element of R : (tau R).u meets {}R };
+      then consider u being Element of R such that
+A1:   u = y & (tau R).u meets {}R;
+      thus thesis by A1;
+    end;
+    hence thesis by Defff;
+  end;
+
+theorem :: 4.1 h)
+  (f_1 R).{} = {}
+  proof
+    { u where u is Element of R : (UncertaintyMap R).u meets {}R } c= {}
+    proof
+      let y be object;
+      assume y in { u where u is Element of R :
+        (UncertaintyMap R).u meets {}R };
+      then consider u being Element of R such that
+A1:   u = y & (UncertaintyMap R).u meets {}R;
+      thus thesis by A1;
+    end;
+    hence thesis by Defff;
+  end;
+
+registration let R be non empty reflexive RelStr;
+  cluster the InternalRel of R -> total reflexive;
+  coherence;
+end;
+
+theorem :: 4.1 h)
+  f is map-reflexive implies
+    (ff_0 f).the carrier of R = the carrier of R
+  proof
+    assume RR: f is map-reflexive;
+A0: (ff_0 f).([#]R) =
+      { u where u is Element of R : f.u meets [#]R } by Defff;
+    the carrier of R c= { u where u is Element of R : f.u meets [#]R }
+    proof
+      let y be object;
+      assume y in the carrier of R; then
+      reconsider u = y as Element of R;
+      u in f.u by RR;
+      then consider u being Element of R such that
+A1:   u = y & f.u meets [#]R by XBOOLE_0:3;
+      thus thesis by A1;
+    end;
+    hence thesis by A0;
+  end;
+
+theorem :: 4.1 h)
+  the InternalRel of R is reflexive total implies
+    (f_0 R).the carrier of R = the carrier of R
+  proof
+    assume RR: the InternalRel of R is reflexive total;
+A0: (f_0 R).([#]R) =
+      { u where u is Element of R : (tau R).u meets [#]R } by Defff;
+    the carrier of R c= { u where u is Element of R : (tau R).u meets [#]R }
+    proof
+      let y be object;
+      assume y in the carrier of R; then
+      reconsider u = y as Element of R;
+ZZ:   (tau R).u = Im(the InternalRel of R,u) by DefTau;
+      [u,u] in the InternalRel of R by LATTAD_1:1,RR; then
+      u in (tau R).u by RELAT_1:169,ZZ;
+      then consider u being Element of R such that
+A1:   u = y & (tau R).u meets [#]R by XBOOLE_0:3;
+      thus thesis by A1;
+    end;
+    hence thesis by A0;
+  end;
+
+theorem :: 4.1 h)
+  the InternalRel of R is reflexive total implies
+    (f_1 R).the carrier of R = the carrier of R
+  proof
+    assume RR: the InternalRel of R is reflexive total;
+A0: (f_1 R).([#]R) =
+      { u where u is Element of R : (UncertaintyMap R).u meets [#]R } by Defff;
+    the carrier of R c= { u where u is Element of R :
+      (UncertaintyMap R).u meets [#]R }
+    proof
+      let y be object;
+      assume y in the carrier of R; then
+      reconsider u = y as Element of R;
+      [u,u] in the InternalRel of R by LATTAD_1:1,RR; then
+      u in (UncertaintyMap R).u by For3; then
+      consider u being Element of R such that
+A1:   u = y & (UncertaintyMap R).u meets [#]R by XBOOLE_0:3;
+      thus thesis by A1;
+    end;
+    hence thesis by A0;
+  end;
+
+theorem :: 4.1 f) g) general version
+  for u,w being Element of R,
+      x being Subset of R st
+    f.u = f.w holds u in (ff_0 f).x iff w in (ff_0 f).x
+  proof
+    let u,w be Element of R,
+        x be Subset of R;
+    assume AA: f.u = f.w;
+A3: (ff_0 f).x = { w where w is Element of R : f.w meets x }
+        by Defff;
+    thus u in (ff_0 f).x implies w in (ff_0 f).x
+    proof
+      assume
+A1:   u in (ff_0 f).x;
+      consider v being Element of R such that
+A2:   u = v & f.v meets x by A1,A3;
+      thus w in (ff_0 f).x by A3,AA,A2;
+    end;
+    assume w in (ff_0 f).x; then
+    consider v being Element of R such that
+A2: w = v & f.v meets x by A3;
+    thus thesis by A3,AA,A2;
+  end;
+
+theorem :: 4.1 g)
+  for u,w being Element of R,
+      x being Subset of R st
+  (UncertaintyMap R).u = (UncertaintyMap R).w holds
+    u in (f_1 R).x iff w in (f_1 R).x
+  proof
+    let u,w be Element of R,
+        x be Subset of R;
+    assume AA: (UncertaintyMap R).u = (UncertaintyMap R).w;
+A3: (f_1 R).x = { w where w is Element of R : (UncertaintyMap R).w meets x }
+        by Defff;
+    thus u in (f_1 R).x implies w in (f_1 R).x
+    proof
+      assume
+A1:   u in (f_1 R).x;
+      consider v being Element of R such that
+A2:   u = v & (UncertaintyMap R).v meets x by A1,A3;
+      thus w in (f_1 R).x by A3,AA,A2;
+    end;
+    assume w in (f_1 R).x; then
+    consider v being Element of R such that
+A2: w = v & (UncertaintyMap R).v meets x by A3;
+    thus thesis by A3,AA,A2;
+  end;
+
+theorem :: 4.1 f)
+  for u,w being Element of R,
+      x being Subset of R st
+  (tau R).u = (tau R).w holds
+    u in (f_0 R).x iff w in (f_0 R).x
+  proof
+    let u,w be Element of R,
+        x be Subset of R;
+    assume
+AA: (tau R).u = (tau R).w;
+A3: (f_0 R).x = { w where w is Element of R : (tau R).w meets x } by Defff;
+    thus u in (f_0 R).x implies w in (f_0 R).x
+    proof
+      assume u in (f_0 R).x; then
+      consider v being Element of R such that
+A2:   u = v & (tau R).v meets x by A3;
+      thus w in (f_0 R).x by A3,AA,A2;
+    end;
+    assume w in (f_0 R).x; then
+A2: ex v being Element of R st
+    w = v & (tau R).v meets x by A3;
+    thus thesis by A3,AA,A2;
+  end;
+
+theorem FlipFF:
+  for f being Function of the carrier of R, bool the carrier of R
+  for x being Subset of R holds
+    (Flip ff_0 f).x = { w where w is Element of R : f.w c= x }
+  proof
+    let f be Function of the carrier of R, bool the carrier of R;
+    let x be Subset of R;
+ZZ: (ff_0 f).(x`) = { w where w is Element of R : f.w meets x` }
+        by Defff;
+    thus (Flip ff_0 f).x c= { w where w is Element of R : f.w c= x }
+    proof
+      let y be object;
+      assume
+S1:   y in (Flip ff_0 f).x; then
+      y in ((ff_0 f).(x`))` by ROUGHS_2:def 14; then
+Z1:   not y in (ff_0 f).(x`) by XBOOLE_0:def 5;
+      reconsider yy = y as Element of R by S1;
+      f.yy misses x` by Z1,ZZ; then
+      f.yy c= x by SUBSET_1:24;
+      hence thesis;
+    end;
+    let y be object;
+    assume y in { w where w is Element of R : f.w c= x }; then
+    consider w being Element of R such that
+L1: y = w & f.w c= x;
+    reconsider yy = y as Element of R by L1;
+    not yy in ((ff_0 f).x`)
+    proof
+      assume yy in (ff_0 f).x`; then
+      consider v being Element of R such that
+L2:   yy = v & f.v meets x` by ZZ;
+      thus thesis by L1,L2,SUBSET_1:24;
+    end; then
+    yy in ((ff_0 f).(x`))` by XBOOLE_0:def 5;
+    hence thesis by ROUGHS_2:def 14;
+  end;
+
+theorem FlipF0:
+  for x being Subset of R holds
+    (Flip f_0 R).x = { w where w is Element of R : (tau R).w c= x }
+  proof
+    let x be Subset of R;
+ZZ: (f_0 R).(x`) = { w where w is Element of R : (tau R).w meets x` }
+        by Defff;
+    thus (Flip f_0 R).x c= { w where w is Element of R : (tau R).w c= x }
+    proof
+      let y be object;
+      assume
+S1:   y in (Flip f_0 R).x; then
+      y in ((f_0 R).(x`))` by ROUGHS_2:def 14; then
+Z1:   not y in (f_0 R).(x`) by XBOOLE_0:def 5;
+      reconsider yy = y as Element of R by S1;
+      (tau R).yy misses x` by Z1,ZZ; then
+      (tau R).yy c= x by SUBSET_1:24;
+      hence thesis;
+    end;
+    let y be object;
+    assume y in { w where w is Element of R : (tau R).w c= x }; then
+    consider w being Element of R such that
+L1: y = w & (tau R).w c= x;
+    reconsider yy = y as Element of R by L1;
+    not yy in ((f_0 R).x`)
+    proof
+      assume yy in (f_0 R).x`; then
+      ex v being Element of R st
+      yy = v & (tau R).v meets x` by ZZ;
+      hence thesis by L1,SUBSET_1:24;
+    end; then
+    yy in ((f_0 R).(x`))` by XBOOLE_0:def 5;
+    hence thesis by ROUGHS_2:def 14;
+  end;
+
+theorem FlipF1:
+  for x being Subset of R holds
+    (Flip f_1 R).x = { w where w is Element of R :
+       (UncertaintyMap R).w c= x }
+  proof
+    let x be Subset of R;
+ZZ: (f_1 R).(x`) = { w where w is Element of R :
+      (UncertaintyMap R).w meets x` } by Defff;
+    thus (Flip f_1 R).x c= { w where w is Element of R :
+      (UncertaintyMap R).w c= x }
+    proof
+      let y be object;
+      assume
+S1:   y in (Flip f_1 R).x; then
+      y in ((f_1 R).(x`))` by ROUGHS_2:def 14; then
+Z1:   not y in (f_1 R).(x`) by XBOOLE_0:def 5;
+      reconsider yy = y as Element of R by S1;
+      (UncertaintyMap R).yy misses x` by Z1,ZZ; then
+      (UncertaintyMap R).yy c= x by SUBSET_1:24;
+      hence thesis;
+    end;
+    let y be object;
+    assume y in { w where w is Element of R :
+      (UncertaintyMap R).w c= x }; then
+    consider w being Element of R such that
+L1: y = w & (UncertaintyMap R).w c= x;
+    reconsider yy = y as Element of R by L1;
+    not yy in ((f_1 R).x`)
+    proof
+      assume yy in (f_1 R).x`; then
+      ex v being Element of R st
+      yy = v & (UncertaintyMap R).v meets x` by ZZ;
+      hence thesis by L1,SUBSET_1:24;
+    end; then
+    yy in ((f_1 R).(x`))` by XBOOLE_0:def 5;
+    hence thesis by ROUGHS_2:def 14;
+  end;
+
+theorem :: 4.1 f) Flip
+  for u,w being Element of R,
+      x being Subset of R st
+  f.u = f.w holds
+    u in (Flip ff_0 f).x iff w in (Flip ff_0 f).x
+  proof
+    let u,w be Element of R,
+        x be Subset of R;
+    assume
+AA: f.u = f.w;
+A3: (Flip ff_0 f).x = { w where w is Element of R : f.w c= x } by FlipFF;
+    thus u in (Flip ff_0 f).x implies w in (Flip ff_0 f).x
+    proof
+      assume u in (Flip ff_0 f).x; then
+      consider v being Element of R such that
+A2:   u = v & f.v c= x by A3;
+      thus w in (Flip ff_0 f).x by A3,AA,A2;
+    end;
+    assume w in (Flip ff_0 f).x; then
+    ex v being Element of R st w = v & f.v c= x by A3;
+    hence thesis by A3,AA;
+  end;
+
+theorem :: 4.1 f) Flip
+  for u,w being Element of R,
+      x being Subset of R st
+  (tau R).u = (tau R).w holds
+    u in (Flip f_0 R).x iff w in (Flip f_0 R).x
+  proof
+    let u,w be Element of R,
+        x be Subset of R;
+    assume AA: (tau R).u = (tau R).w;
+A3: (Flip f_0 R).x = { w where w is Element of R : (tau R).w c= x }
+        by FlipF0;
+    thus u in (Flip f_0 R).x implies w in (Flip f_0 R).x
+    proof
+      assume u in (Flip f_0 R).x; then
+      consider v being Element of R such that
+A2:   u = v & (tau R).v c= x by A3;
+      thus w in (Flip f_0 R).x by A3,AA,A2;
+    end;
+    assume w in (Flip f_0 R).x; then
+    ex v being Element of R st w = v & (tau R).v c= x by A3;
+    hence thesis by A3,AA;
+  end;
+
+theorem :: 4.1 g) Flip
+  for u,w being Element of R,
+      x being Subset of R st
+  (UncertaintyMap R).u = (UncertaintyMap R).w holds
+    u in (Flip f_1 R).x iff w in (Flip f_1 R).x
+  proof
+    let u,w be Element of R,
+        x be Subset of R;
+    assume AA: (UncertaintyMap R).u = (UncertaintyMap R).w;
+A3: (Flip f_1 R).x = { w where w is Element of R :
+      (UncertaintyMap R).w c= x } by FlipF1;
+    thus u in (Flip f_1 R).x implies w in (Flip f_1 R).x
+    proof
+      assume u in (Flip f_1 R).x; then
+      consider v being Element of R such that
+A2:   u = v & (UncertaintyMap R).v c= x by A3;
+      thus w in (Flip f_1 R).x by A3,AA,A2;
+    end;
+    assume w in (Flip f_1 R).x; then
+    ex v being Element of R st w = v & (UncertaintyMap R).v c= x by A3;
+    hence thesis by A3,AA;
+  end;
+
+theorem ReflUnc:
+  R is reflexive implies
+    for w being Element of R holds w in (UncertaintyMap R).w
+  proof
+    assume aa: R is reflexive;
+    let w be Element of R;
+    [w,w] in the InternalRel of R by aa,LATTAD_1:1;
+    hence thesis by For3;
+  end;
+
+theorem ReflTau:
+  R is reflexive implies
+    for w being Element of R holds w in (tau R).w
+  proof
+    assume aa: R is reflexive;
+    let w be Element of R;
+    [w,w] in the InternalRel of R by aa,LATTAD_1:1;
+    hence thesis by For3A;
+  end;
+
+registration let R be reflexive non empty RelStr;
+  cluster UncertaintyMap R -> map-reflexive;
+  coherence by ReflUnc;
+  cluster tau R -> map-reflexive;
+  coherence by ReflTau;
+end;
+
+theorem :: 4.1 b)
+  R is reflexive implies
+    Flip f_1 R cc= id bool the carrier of R
+  proof
+    assume TT: R is reflexive;
+    set f = Flip f_1 R;
+    set g = id bool the carrier of R;
+A1: dom f c= dom g;
+    for i being set st i in dom f holds f.i c= g.i
+    proof
+      let i be set;
+      assume i in dom f; then
+      reconsider ii = i as Subset of R;
+      { w where w is Element of R : (UncertaintyMap R).w c= ii } c= ii
+      proof
+        let r be object;
+        assume r in { w where w is Element of R : (UncertaintyMap R).w c= ii };
+        then consider w being Element of R such that
+C4:     r = w & (UncertaintyMap R).w c= ii;
+        thus thesis by C4,TT,ReflUnc;
+      end;
+      hence thesis by FlipF1;
+    end;
+    hence thesis by A1,ALTCAT_2:def 1;
+  end;
+
+theorem :: Theorem 4.2 (a) <=> (b)
+  (f_0 R) * (f_0 R) = f_0 R
+    iff
+  Flip (f_0 R) * Flip (f_0 R) = Flip (f_0 R)
+  proof
+    thus (f_0 R) * (f_0 R) = f_0 R implies
+      Flip (f_0 R) * Flip (f_0 R) = Flip (f_0 R) by FlipCompose;
+    assume Flip (f_0 R) * Flip (f_0 R) = Flip (f_0 R); then
+    Flip (Flip (f_0 R) * Flip (f_0 R)) = f_0 R by ROUGHS_2:23; then
+    f_0 R = (Flip Flip (f_0 R)) * (Flip Flip (f_0 R)) by FlipCompose
+       .= (f_0 R) * (Flip Flip (f_0 R)) by ROUGHS_2:23
+       .= (f_0 R) * (f_0 R) by ROUGHS_2:23;
+    hence thesis;
+  end;
+
+theorem
+  R is reflexive implies
+    union ((UncertaintyMap R).:[#]R) = the carrier of R
+  proof
+    assume AA: R is reflexive;
+B1: the carrier of R c= union ((UncertaintyMap R).:[#]R)
+    proof
+      let t be object;
+      assume t in the carrier of R; then
+      reconsider tt = t as Element of R;
+      dom UncertaintyMap R = the carrier of R by FUNCT_2:def 1; then
+A2:   tt in dom UncertaintyMap R & tt in [#]R;
+A3:   tt in (UncertaintyMap R).t by AA,ReflUnc;
+      (UncertaintyMap R).t in (UncertaintyMap R).:[#]R by A2,FUNCT_1:def 6;
+      hence thesis by TARSKI:def 4,A3;
+    end;
+    union ((UncertaintyMap R).:[#]R) c= the carrier of R
+    proof
+      let f be object;
+      assume f in union ((UncertaintyMap R).:[#]R); then
+      ex tt being set st
+      f in tt & tt in ((UncertaintyMap R).:[#]R) by TARSKI:def 4;
+      hence thesis;
+    end;
+    hence thesis by B1;
+  end;
+
+F0Mono:
+  f_0 R is c=-monotone
+  proof
+    set f = f_0 R;
+    for a,b being Subset of R st a c= b holds f.a c= f.b
+    proof
+      let a,b be Subset of R;
+      assume
+A0:   a c= b;
+A1:   f.a = (UAp R).a by UApF0 .= UAp a by ROUGHS_2:def 11;
+      f.b = (UAp R).b by UApF0 .= UAp b by ROUGHS_2:def 11;
+      hence thesis by A1,A0,ROUGHS_2:15;
+    end;
+    hence thesis;
+  end;
+
+F1Mono:
+  f_1 R is c=-monotone
+  proof
+    set f = f_1 R;
+    for a,b being Subset of R st a c= b holds f.a c= f.b
+    proof
+    let a,b be Subset of R;
+    assume
+A0: a c= b;
+A2: { u where u is Element of R : (UncertaintyMap R).u meets a } c=
+      { u where u is Element of R : (UncertaintyMap R).u meets b }
+    proof
+      let t be object;
+      assume t in { u where u is Element of R :
+        (UncertaintyMap R).u meets a }; then
+      consider u being Element of R such that
+B1:   u = t & (UncertaintyMap R).u meets a;
+      (UncertaintyMap R).u meets b by A0,B1,XBOOLE_1:63;
+      hence thesis by B1;
+    end;
+    f.a = { u where u is Element of R : (UncertaintyMap R).u meets a }
+      by Defff;
+    hence thesis by A2,Defff;
+    end;
+    hence thesis;
+  end;
+
+registration let R be non empty RelStr; :: i)
+  cluster f_0 R -> c=-monotone;
+  coherence by F0Mono;
+  cluster f_1 R -> c=-monotone;
+  coherence by F1Mono;
+end;
+
+theorem FlipMono:
+  for f being map of R st f is c=-monotone holds
+    Flip f is c=-monotone
+  proof
+    let f be map of R;
+    set g = Flip f;
+    assume
+A1: f is c=-monotone;
+    for A,B being Subset of R st A c= B holds g.A c= g.B
+    proof
+      let A,B be Subset of R;
+      assume A c= B; then
+      B` c= A` by SUBSET_1:12; then
+      f.B` c= f.A` by A1; then
+      (f.A`)` c= (f.B`)` by SUBSET_1:12; then
+      g.A c= (f.B`)` by ROUGHS_2:def 14;
+      hence thesis by ROUGHS_2:def 14;
+    end;
+    hence thesis;
+  end;
+
+theorem :: i)
+  Flip f_0 R is c=-monotone by FlipMono;
+
+theorem :: i)
+  Flip f_1 R is c=-monotone by FlipMono;
+
+theorem Propj: :: j)
+  for f being Function of the carrier of R, bool the carrier of R
+  for x,y being Subset of R holds
+    (ff_0 f).(x \/ y) = (ff_0 f).x \/ (ff_0 f).y
+  proof
+    let f be Function of the carrier of R, bool the carrier of R;
+    let x,y be Subset of R;
+AA: (ff_0 f).(x \/ y) =
+      { u where u is Element of R : f.u meets (x \/ y) } by Defff;
+AB: (ff_0 f).x =
+      { u where u is Element of R : f.u meets x } by Defff;
+AC: (ff_0 f).y =
+      { u where u is Element of R : f.u meets y } by Defff;
+    thus (ff_0 f).(x \/ y) c= (ff_0 f).x \/ (ff_0 f).y
+    proof
+      let t be object;
+      assume t in (ff_0 f).(x \/ y); then
+      consider u being Element of R such that
+A1:   t = u & f.u meets (x \/ y) by AA;
+      f.u meets x or f.u meets y by A1,XBOOLE_1:70; then
+      t in (ff_0 f).x or t in (ff_0 f).y by A1,AB,AC;
+      hence thesis by XBOOLE_0:def 3;
+    end;
+    let t be object;
+    assume t in (ff_0 f).x \/ (ff_0 f).y; then
+    per cases by XBOOLE_0:def 3;
+    suppose t in (ff_0 f).x; then
+      consider u being Element of R such that
+A1:     t = u & f.u meets x by AB;
+      f.u meets (x \/ y) by XBOOLE_1:70,A1;
+      hence thesis by A1,AA;
+    end;
+    suppose t in (ff_0 f).y; then
+      consider u being Element of R such that
+A1:     t = u & f.u meets y by AC;
+      f.u meets (x \/ y) by XBOOLE_1:70,A1;
+      hence thesis by A1,AA;
+    end;
+  end;
+
+theorem :: j) version
+  for x,y being Subset of R holds
+    (f_0 R).(x \/ y) = (f_0 R).x \/ (f_0 R).y by Propj;
+
+theorem :: j) version
+  for x,y being Subset of R holds
+    (f_1 R).(x \/ y) = (f_1 R).x \/ (f_1 R).y by Propj;
+
+theorem Propk: :: k)
+  for f being Function of the carrier of R, bool the carrier of R
+  for x,y being Subset of R holds
+    (Flip ff_0 f).x \/ (Flip ff_0 f).y c= (Flip ff_0 f).(x \/ y)
+  proof
+    let f be Function of the carrier of R, bool the carrier of R;
+    let x,y be Subset of R;
+AA: (Flip ff_0 f).(x \/ y) =
+      { u where u is Element of R : f.u c= (x \/ y) } by FlipFF;
+AB: (Flip ff_0 f).x =
+      { u where u is Element of R : f.u c= x } by FlipFF;
+AC: (Flip ff_0 f).y =
+      { u where u is Element of R : f.u c= y } by FlipFF;
+XX:   x c= x \/ y & y c= x \/ y by XBOOLE_1:7;
+      let t be object;
+      assume t in (Flip ff_0 f).x \/ (Flip ff_0 f).y; then
+      per cases by XBOOLE_0:def 3;
+      suppose t in (Flip ff_0 f).x; then
+        consider u being Element of R such that
+A1:     t = u & f.u c= x by AB;
+        f.u c= (x \/ y) by A1,XX;
+        hence thesis by A1,AA;
+      end;
+      suppose t in (Flip ff_0 f).y; then
+        consider u being Element of R such that
+A1:     t = u & f.u c= y by AC;
+        f.u c= (x \/ y) by A1,XX;
+        hence thesis by A1,AA;
+    end;
+  end;
+
+theorem :: k)
+  for x,y being Subset of R holds
+    ((Flip f_0 R).x \/ (Flip f_0 R).y) c= (Flip f_0 R).(x \/ y) by Propk;
+
+theorem :: k)
+  for x,y being Subset of R holds
+    ((Flip f_1 R).x \/ (Flip f_1 R).y) c= (Flip f_1 R).(x \/ y) by Propk;
+
+theorem Propl: :: l)
+  for f being Function of the carrier of R, bool the carrier of R
+  for x,y being Subset of R holds
+    (ff_0 f).(x /\ y) c= (ff_0 f).x /\ (ff_0 f).y
+  proof
+    let f be Function of the carrier of R, bool the carrier of R;
+    let x,y be Subset of R;
+AB: (ff_0 f).x =
+      { u where u is Element of R : f.u meets x } by Defff;
+AC: (ff_0 f).y =
+      { u where u is Element of R : f.u meets y } by Defff;
+    let t be object;
+    assume t in (ff_0 f).(x /\ y); then
+    t in { u where u is Element of R : f.u meets (x /\ y) } by Defff; then
+    consider u being Element of R such that
+A1: t = u & f.u meets (x /\ y);
+    f.u meets x & f.u meets y by A1,XBOOLE_1:74; then
+    t in (ff_0 f).x & t in (ff_0 f).y by A1,AB,AC;
+    hence thesis by XBOOLE_0:def 4;
+  end;
+
+theorem :: l)
+  for x,y being Subset of R holds
+    (f_0 R).(x /\ y) c= (f_0 R).x /\ (f_0 R).y by Propl;
+
+theorem :: l)
+  for x,y being Subset of R holds
+    (f_1 R).(x /\ y) c= (f_1 R).x /\ (f_1 R).y by Propl;
+
+theorem Propm: :: m)
+  for f being Function of the carrier of R, bool the carrier of R
+  for x,y being Subset of R holds
+    (Flip ff_0 f).x /\ (Flip ff_0 f).y = (Flip ff_0 f).(x /\ y)
+  proof
+    let f be Function of the carrier of R, bool the carrier of R;
+    let x,y be Subset of R;
+AA: (ff_0 f).(x /\ y)` =
+      { u where u is Element of R : f.u meets (x /\ y)` } by Defff;
+AB: (ff_0 f).x` =
+      { u where u is Element of R : f.u meets x` } by Defff;
+AC: (ff_0 f).y` =
+      { u where u is Element of R : f.u meets y` } by Defff;
+    thus (Flip ff_0 f).x /\ (Flip ff_0 f).y c= (Flip ff_0 f).(x /\ y)
+    proof
+      let t be object;
+      assume zz: t in (Flip ff_0 f).x /\ (Flip ff_0 f).y; then
+ZZ:   t in (Flip ff_0 f).x & t in (Flip ff_0 f).y by XBOOLE_0:def 4; then
+      t in ((ff_0 f).x`)` by ROUGHS_2:def 14; then
+Z1:   not t in ((ff_0 f).x`) by XBOOLE_0:def 5;
+      t in ((ff_0 f).y`)` by ZZ,ROUGHS_2:def 14; then
+V1:   not t in ((ff_0 f).y`) by XBOOLE_0:def 5;
+      not t in (ff_0 f).(x /\ y)`
+      proof
+        assume t in (ff_0 f).(x /\ y)`; then
+        consider w being Element of R such that
+A1:     t = w & f.w meets (x /\ y)` by AA;
+        f.w meets (x` \/ y`) by XBOOLE_1:54,A1; then
+        per cases by XBOOLE_1:70;
+        suppose f.w meets x`;
+          hence thesis by Z1,A1,AB;
+        end;
+        suppose f.w meets y`;
+          hence thesis by V1,AC,A1;
+        end;
+      end; then
+      t in ((ff_0 f).(x /\ y)`)` by zz,XBOOLE_0:def 5;
+      hence thesis by ROUGHS_2:def 14;
+    end;
+    let t be object;
+    assume v0: t in (Flip ff_0 f).(x /\ y); then
+    t in ((ff_0 f).(x /\ y)`)` by ROUGHS_2:def 14; then
+ww: not t in { u where u is Element of R : f.u meets (x /\ y)` }
+      by AA,XBOOLE_0:def 5;
+vc: (x /\ y)` = x` \/ y` by XBOOLE_1:54;
+w1: not t in (ff_0 f).x`
+    proof
+      assume t in (ff_0 f).x`; then
+      consider w being Element of R such that
+A1:   t = w & f.w meets x` by AB;
+      f.w meets (x /\ y)` by vc,A1,XBOOLE_1:63,XBOOLE_1:7;
+      hence thesis by ww,A1;
+    end;
+z1: not t in (ff_0 f).y`
+    proof
+      assume t in (ff_0 f).y`; then
+      consider w being Element of R such that
+A1:   t = w & f.w meets y` by AC;
+      f.w meets (x /\ y)` by vc,A1,XBOOLE_1:63,7;
+      hence thesis by ww,A1;
+    end;
+    t in ((ff_0 f).x`)` by w1,v0,XBOOLE_0:def 5; then
+W1: t in (Flip ff_0 f).x by ROUGHS_2:def 14;
+    t in ((ff_0 f).y`)` by z1,v0,XBOOLE_0:def 5; then
+    t in (Flip ff_0 f).y by ROUGHS_2:def 14;
+    hence thesis by W1,XBOOLE_0:def 4;
+  end;
+
+theorem :: m)
+  for x,y being Subset of R holds
+    (Flip f_0 R).x /\ (Flip f_0 R).y = (Flip f_0 R).(x /\ y) by Propm;
+
+theorem :: m)
+  for x,y being Subset of R holds
+    (Flip f_1 R).x /\ (Flip f_1 R).y = (Flip f_1 R).(x /\ y) by Propm;

@@ -1,0 +1,1780 @@
+:: Events of Borel Sets, Construction of Borel Sets and Random Variables
+:: for Stochastic Finance
+::  by Peter Jaeger
+::
+:: Received July 10, 2014
+:: Copyright (c) 2014-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINANCE1, PROB_3, SERIES_1, SEQ_1, XXREAL_1, RANDOM_3, FINANCE2,
+      NUMBERS, XBOOLE_0, PROB_1, SUBSET_1, REAL_1, TARSKI, RELAT_1, FUNCT_1,
+      ARYTM_3, XXREAL_0, BORSUK_5, VALUED_1, ARYTM_1, NAT_1, CARD_3, CARD_1,
+      ZFMISC_1, RPR_1, POWER, RANDOM_1, FUNCT_7, SETFAM_1, INT_1, RAT_1,
+      LIMFUNC1;
+ notations TARSKI, SUBSET_1, XBOOLE_0,
+      ORDINAL1, PROB_3, SERIES_1, SEQ_1, XXREAL_1,
+      RCOMP_1, SETFAM_1, RELAT_1, FINANCE1, RANDOM_3, NUMBERS, XREAL_0,
+      XXREAL_0, XCMPLX_0, FUNCT_1, REAL_1, VALUED_1, NAT_1, FUNCT_2, PROB_1,
+      LIMFUNC1, RANDOM_1, FINSUB_1, INT_1, RAT_1, IRRAT_1, SEQ_4, BORSUK_5;
+ constructors PROB_3, SERIES_1, FINANCE1, RANDOM_3, REAL_1, RELSET_1, RCOMP_1,
+      SEQ_4, BORSUK_5, LIMFUNC1;
+ registrations PROB_1, FINANCE1, SUBSET_1, NAT_1, XREAL_0, XXREAL_0, MEMBERED,
+      ORDINAL1, FUNCT_2, NUMBERS, VALUED_0, VALUED_1, RELSET_1, FINSUB_1,
+      INT_1, BORSUK_5, RAT_1;
+ requirements NUMERALS, REAL, BOOLE, SUBSET, ARITHM;
+ definitions TARSKI;
+ equalities PROB_1, FINANCE1, SUBSET_1, BORSUK_5, XCMPLX_0, LIMFUNC1;
+ expansions FUNCT_2, MEMBERED, TARSKI, XBOOLE_0, PROB_1;
+ theorems SERIES_1, PROB_3, XXREAL_1, FINANCE1, RANDOM_3, TARSKI, XBOOLE_0,
+      XBOOLE_1, XCMPLX_1, XXREAL_0, PROB_1, NAT_1, FUNCT_2, ORDINAL1, VALUED_1,
+      XREAL_0, FUNCT_1, NUMBERS, SUBSET_1, INT_1, ZFMISC_1, XCMPLX_0, RAT_1;
+ schemes NAT_1, RECDEF_1, FUNCT_2;
+
+begin :: Events of Borel-Sets
+
+:: We start with some theorems which are necessary to prove, that IRRAT is an
+:: Event of the Borel-Sets
+
+theorem Ko1:
+  1 in REAL & -1 in REAL
+  proof
+    reconsider a = 1 as Element of REAL by NUMBERS:19;
+    consider myp1 being Element of REAL such that A2: myp1 = -a;
+    thus thesis by A2;
+  end;
+
+theorem Th5:
+  number_e in REAL\RAT
+proof
+  number_e in REAL & not number_e in RAT by XREAL_0:def 1;
+  hence thesis by XBOOLE_0:def 5;
+end;
+
+theorem Th6:
+  number_e in REAL\INT
+proof
+  number_e in REAL & not number_e in RAT by XREAL_0:def 1;
+  then number_e in REAL\RAT by XBOOLE_0:def 5;
+  hence thesis by NUMBERS:14,XBOOLE_1:34,TARSKI:def 3;
+end;
+
+theorem Th7:
+  number_e in REAL\NAT
+proof
+  number_e in REAL & not number_e in RAT by XREAL_0:def 1;
+  then number_e in REAL\RAT by XBOOLE_0:def 5;
+  hence thesis by NUMBERS:18,XBOOLE_1:34,TARSKI:def 3;
+end;
+
+registration
+  cluster REAL \ RAT -> non empty;
+  coherence by Th5;
+  cluster REAL \ INT -> non empty;
+  coherence by Th6;
+  cluster REAL \ NAT -> non empty;
+  coherence by Th7;
+end;
+
+theorem Th1:
+  for k being Real holds {k} in Borel_Sets
+proof
+  let k be Real;
+  [.k,k.] is Element of Borel_Sets by FINANCE1:8;
+  then [.k,k.] in Borel_Sets;
+  hence thesis by XXREAL_1:17;
+end;
+
+theorem
+  for k1,k2 being Real holds ].k1,k2.] is Event of Borel_Sets
+  proof
+    let k1,k2 be Real;
+A1: [.k1,k2.] is Element of Borel_Sets by FINANCE1:8;
+A2: {k1} is Event of Borel_Sets by Th1;
+    reconsider k1,k2 as ExtReal;
+    per cases;
+    suppose B1: k1<=k2;
+      [.k1,k2.] \ {k1} is Element of Borel_Sets by A1,A2,PROB_1:24;
+      hence thesis by B1,XXREAL_1:134;
+    end;
+    suppose k1>k2; then
+      ].k1,k2.]={} by XXREAL_1:26;
+      hence thesis by PROB_1:4;
+    end;
+  end;
+
+definition
+  func Family_of_halflines2 -> Subset-Family of REAL equals
+    the set of all right_closed_halfline(r) where r is Element of REAL;
+  coherence
+  proof
+    the set of all right_closed_halfline(r)
+    where r is Element of REAL c= bool REAL
+    proof
+      let p be object;
+      assume p in the set of all right_closed_halfline(r) where
+      r is Element of REAL;
+      then ex r being Element of REAL st p = right_closed_halfline(r);
+      hence p in bool REAL;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem
+  for Exy being ExtReal holds
+    {Exy} is Subset of ExtREAL by XXREAL_0:def 1,ZFMISC_1:31;
+
+theorem
+  for Y being set, k being Nat st Y = REAL \ {k} holds
+    Y is Event of Borel_Sets
+proof
+  let Y be set,k be Nat;
+  assume A1: Y = REAL \ {k};
+  reconsider Exx = k as Element of REAL by ORDINAL1:def 12,NUMBERS:19;
+  reconsider Z = {Exx} as Subset of REAL;
+  Z` is Element of Borel_Sets by PROB_1:15,Th1;
+  hence thesis by A1;
+end;
+
+ reserve Exx for Real;
+
+theorem
+  ex A being SetSequence of NAT st for n being Nat holds A.n = {n}
+proof
+  deffunc U(Nat) = {In($1,NAT)};
+AA: for x being Element of NAT holds U(x) in bool NAT
+  proof
+    let x be Element of NAT;
+    U(x) c= NAT by ZFMISC_1:31;
+    hence thesis;
+  end;
+  consider f being SetSequence of NAT such that
+A1: for d be Element of NAT holds f.d = U(d) from FUNCT_2:sch 8(AA);
+  take f;
+  let n be Nat;
+  reconsider n as Element of NAT by ORDINAL1:def 12;
+  f.n = U(n) by A1;
+  hence thesis;
+end;
+
+theorem
+  for A being SetSequence of NAT st
+    (for n being Nat holds A.n = {n}) holds
+    for n being Nat holds (Partial_Union A).n in Borel_Sets
+proof
+  let A be SetSequence of NAT;
+  assume A0: for n being Nat holds A.n={n};
+  defpred J[Nat] means (Partial_Union A).$1 in Borel_Sets;
+S0: (Partial_Union A).0=A.0 by PROB_3:def 2;
+   (Partial_Union A).0 in Borel_Sets
+   proof
+    A.0={0} by A0;
+    hence thesis by Th1,S0;
+   end; then
+J0: J[0];
+J1: for n being Nat st J[n] holds J[n+1]
+  proof
+   let n be Nat;
+   assume Q0: J[n];
+   (Partial_Union A).(n+1) in Borel_Sets
+   proof
+Q00: (Partial_Union A).(n+1) = (Partial_Union A).n \/ A.(n+1)
+       by PROB_3:def 2;
+     {n+1} in Borel_Sets by Th1; then
+     A.(n+1) in Borel_Sets by A0;
+     hence thesis by Q0,PROB_1:3,Q00;
+   end;
+   hence thesis;
+  end;
+  for n being Nat holds (Partial_Union A).n in Borel_Sets
+  proof
+    for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem
+  REAL is Event of Borel_Sets
+proof
+  reconsider A = {1} as Subset of REAL;
+W1: A in Borel_Sets by Th1;
+  A` in Borel_Sets by Th1,PROB_1:15; then
+  A \/ A` in Borel_Sets by W1,PROB_1:3;
+  then [#]REAL in Borel_Sets by SUBSET_1:10;
+  hence thesis;
+end;
+
+Q00: ex A1 being SetSequence of REAL st for n being Nat holds A1.n={n}
+ proof
+   reconsider z = 1 as Element of REAL by NUMBERS:19;
+   deffunc U(Nat) = {z*$1};
+   consider f being SetSequence of REAL such that
+A1:for d be Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+   take f;
+   let n be Nat;
+   n in NAT by ORDINAL1:def 12; then
+   f.n = U(n) by A1 .= {n};
+   hence thesis;
+ end;
+
+Q0: ex A being SetSequence of Borel_Sets st
+      for n being Nat holds A.n={n}
+ proof
+  consider A1 being SetSequence of REAL such that
+A1: for n being Nat holds A1.n={n} by Q00;
+  A2: for n being Nat holds A1.n is Event of Borel_Sets
+  proof
+   let n be Nat;
+   reconsider n as Element of REAL by NUMBERS:19,ORDINAL1:def 12;
+   {n} in Borel_Sets by Th1;
+   hence thesis by A1;
+  end;
+  reconsider A1 as SetSequence of Borel_Sets by PROB_1:25,A2;
+  take A1;
+  thus thesis by A1;
+ end;
+
+H2: ex A being SetSequence of REAL st for n being Nat holds A.n={-n}
+ proof
+  reconsider y = 1 as Element of REAL by NUMBERS:19;
+  consider z being Element of REAL such that A0: z=-y;
+  deffunc U(Nat) = {z*$1};
+  consider f being SetSequence of REAL such that
+A1:  for d be Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+  take f;
+  let n be Nat;
+  n in NAT by ORDINAL1:def 12; then
+  f.n = U(n) by A1;
+  hence thesis by A0;
+ end;
+
+theorem ZV5:
+  NAT is Event of Borel_Sets
+proof
+ consider A being SetSequence of Borel_Sets such that
+Q10: for n being Nat holds A.n={n} by Q0;
+ reconsider A as SetSequence of REAL;
+ Union A = NAT
+ proof
+  for x being object holds x in Union A iff x in NAT
+  proof
+   let x be object;
+H0: for n being Element of NAT holds
+        for x being object holds x in {n} iff x=n by TARSKI:def 1;
+H1: (ex n being Nat st x in A.n) implies
+     ex n being Element of NAT st x in A.n
+   proof
+    given n being Nat such that C0: x in A.n;
+    n+0 in NAT;
+    then consider n being Element of NAT such that C1: x in A.n by C0;
+    thus thesis by C1;
+   end;
+   thus x in Union A implies x in NAT
+   proof
+    assume C0: x in Union A;
+    ex n being Element of NAT st x in A.n & A.n={n}
+    proof
+     consider n being Element of NAT such that D0: x in A.n by C0,PROB_1:12,H1;
+     A.n = {n} by Q10;
+     hence thesis by D0;
+    end;
+    then ex n being Element of NAT st x=n by H0;
+    hence thesis;
+   end;
+   assume C000: x in NAT;
+   ex k being Nat st x in {k} & A.k={k}
+   proof
+    reconsider k = x as Nat by C000;
+A:  x in {k} by TARSKI:def 1;
+    A.k = {k} by Q10;
+    hence thesis by A;
+   end;
+   hence thesis by PROB_1:12;
+  end;
+ hence thesis;
+ end;
+hence thesis by PROB_1:17;
+end;
+
+theorem
+  REAL \ NAT is Event of Borel_Sets
+proof
+  consider Y being Subset of REAL such that A2: Y = NAT by NUMBERS:19;
+  Y` is Event of Borel_Sets by ZV5,A2,PROB_1:20;
+  hence thesis by A2;
+end;
+
+theorem ThA:
+  for AA being SetSequence of REAL holds
+   ex A being SetSequence of REAL st
+  for n being Nat holds A.n=(Partial_Union AA).n
+ proof
+  let AA be SetSequence of REAL;
+  deffunc U(Nat) = (Partial_Union AA).$1;
+  consider f being SetSequence of REAL such that
+A1: for d be Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+  take f;
+  let n be Nat;
+  n in NAT by ORDINAL1:def 12;
+  hence thesis by A1;
+ end;
+
+theorem Th40:
+  INT is Event of Borel_Sets
+proof
+  consider A1 being SetSequence of REAL such that
+A1: for n being Nat holds A1.n={n} by Q00;
+  consider A2 being SetSequence of REAL such that
+A2: for n being Nat holds A2.n={-n} by H2;
+A3: for n being Nat holds (Partial_Union A1).n is Event of Borel_Sets
+ proof
+  defpred J[Nat] means (Partial_Union A1).$1 in Borel_Sets;
+B0: (Partial_Union A1).0=A1.0 by PROB_3:def 2;
+  A1.0 = {0} by A1; then
+J0: J[0] by Th1,B0;
+J1: for n being Nat st J[n] holds J[n+1]
+  proof
+   let n be Nat;
+   assume Q0: J[n];
+   (Partial_Union A1).(n+1) in Borel_Sets
+   proof
+C0: (Partial_Union A1).(n+1) = (Partial_Union A1).n \/ A1.(n+1)
+     by PROB_3:def 2;
+C2: A1.(n+1) in Borel_Sets
+    proof
+     A1.(n+1)={n+1} by A1;
+     hence thesis by Th1;
+    end;
+    (Partial_Union A1).n \/ A1.(n+1) is Event of Borel_Sets
+     by Q0,C2,PROB_1:21;
+    hence thesis by C0;
+   end;
+ hence thesis;
+ end;
+  for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+  hence thesis;
+ end;
+  defpred J[Nat] means (Partial_Union A2).$1 in Borel_Sets;
+B0: (Partial_Union A2).0=A2.0 by PROB_3:def 2;
+  A2.0 = {-0} by A2; then
+J0: J[0] by Th1,B0;
+A4: for n being Nat holds
+ (Partial_Union A2).n is Event of Borel_Sets
+ proof
+  J1: for n being Nat st J[n] holds J[n+1]
+  proof
+   let n be Nat;
+   assume Q0: J[n];
+   (Partial_Union A2).(n+1) in Borel_Sets
+   proof
+C0: (Partial_Union A2).(n+1) = (Partial_Union A2).n \/ A2.(n+1)
+     by PROB_3:def 2;
+    A2.(n+1)={-(n+1)} by A2; then
+    A2.(n+1) in Borel_Sets by Th1; then
+    (Partial_Union A2).n \/ A2.(n+1) is Event of Borel_Sets
+      by Q0,PROB_1:21;
+    hence thesis by C0;
+   end;
+  hence thesis;
+ end;
+  for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+  hence thesis;
+ end;
+ consider B1 being SetSequence of REAL such that
+A5: for n being Nat holds B1.n = (Partial_Union A1).n by ThA;
+A6: for n being Nat holds B1.n is Event of Borel_Sets
+ proof
+  let n be Nat;
+  (Partial_Union A1).n is Event of Borel_Sets by A3;
+  hence thesis by A5;
+ end;
+ consider B2 being SetSequence of REAL such that
+A7: for n being Nat holds B2.n = (Partial_Union A2).n by ThA;
+ A8: for n being Nat holds B2.n is Event of Borel_Sets
+ proof
+  let n be Nat;
+  (Partial_Union A2).n is Event of Borel_Sets by A4;
+  hence thesis by A7;
+ end;
+ reconsider B1 as SetSequence of Borel_Sets by A6,PROB_1:25;
+ reconsider B2 as SetSequence of Borel_Sets by A8,PROB_1:25;
+A9: Union B1 is Event of Borel_Sets by PROB_1:26;
+A10: Union B2 is Event of Borel_Sets by PROB_1:26;
+ Union B1 \/ Union B2 = INT
+ proof
+  for x being object holds x in (Union B1 \/ Union B2) iff x in INT
+  proof
+   let x be object;
+   thus x in Union B1 \/ Union B2 implies x in INT
+   proof
+    assume x in Union B1 \/ Union B2; then
+    per cases by XBOOLE_0:def 3;
+    suppose F0: x in Union B1;
+      consider n being Nat such that F1: x in B1.n by F0,PROB_1:12;
+  F2: x in (Partial_Union A1).n by F1,A5;
+      consider k being Nat such that
+  G1: k<=n & x in (Partial_Union A1).k by F2;
+      consider m being Nat such that
+  I0: m<=k & x in A1.m by G1,PROB_3:13;
+     x in INT
+     proof
+      x in {m} by I0,A1; then
+  I1: x=m by TARSKI:def 1;
+      m+0 in NAT;
+      hence thesis by I1,NUMBERS:17;
+    end;
+    hence thesis;
+    end;
+    suppose x in Union B2; then
+      consider k being Nat such that H1: x in B2.k by PROB_1:12;
+      x in (Partial_Union A2).k by H1,A7;
+      then consider z being Nat such that
+  G1: z<=k & x in A2.z by PROB_3:13;
+      x in {-z} by G1,A2;
+      then x=-z by TARSKI:def 1;
+      hence thesis by INT_1:def 1;
+     end;
+   end;
+   x in INT implies x in (Union B1 \/ Union B2)
+   proof
+    assume x in INT; then
+    consider k being Nat such that E0: x=k or x=-k by INT_1:def 1;
+    per cases by E0;
+    suppose x=k; then
+     reconsider p2 = x as Nat;
+     x in Union B1 \/ Union B2
+     proof
+      ex k being Nat st x in B1.k
+      proof
+       ex q being Nat st x in (Partial_Union A1).q
+       proof
+        x in {p2} by TARSKI:def 1; then
+        x in A1.p2 by A1; then
+        x in (Partial_Union A1).p2 by PROB_3:13;
+        hence thesis;
+       end; then
+       consider q being Nat such that I0: x in (Partial_Union A1).q;
+       B1.q=(Partial_Union A1).q by A5;
+       hence thesis by I0;
+      end;
+      then x in Union B1 by PROB_1:12;
+      hence thesis by XBOOLE_0:def 3;
+     end;
+    hence thesis;
+    end;
+    suppose F1: x=-k;
+     -k is Element of INT by INT_1:def 1;
+     then consider z being Element of INT such that G0: z=-k & -k=x by F1;
+     x in Union B1 \/ Union B2
+     proof
+       ex k being Nat st x in B2.k
+       proof
+       ex q being Nat st x in (Partial_Union A2).q
+       proof
+    K0: x in {-k} by G0,TARSKI:def 1;
+        x in A2.k by A2,K0; then
+        x in (Partial_Union A2).k by PROB_3:13;
+        then consider q being Nat such that I0: x in (Partial_Union A2).q;
+        thus thesis by I0;
+       end; then
+       consider q being Nat such that I0: x in (Partial_Union A2).q;
+       B2.q=(Partial_Union A2).q by A7;
+       hence thesis by I0;
+      end; then
+      x in Union B2 or x in Union B2 by PROB_1:12;
+      hence thesis by XBOOLE_0:def 3;
+     end;
+     hence thesis;
+    end;
+   end;
+   hence thesis;
+  end;
+ hence thesis;
+ end;
+hence thesis by A9,A10,PROB_1:3;
+end;
+
+definition
+  let k be Nat;
+  let pm be Element of REAL;
+  func GoCross_Seq_REAL(pm,k) -> SetSequence of REAL means  :Def4:
+  for n being Nat holds it.n = {pm*k*(n+1)"};
+  existence
+  proof
+    ex A being SetSequence of REAL st for n being Nat holds A.n={pm*k*(n+1)"}
+    proof
+      deffunc U(Element of NAT) = {pm*k*($1+1)"};
+      consider f being SetSequence of REAL such that
+  A1: for d be Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+      take f;
+      let n be Nat;
+      reconsider n as Element of NAT by ORDINAL1:def 12;
+      f.n = U(n) by A1;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be SetSequence of REAL;
+    assume A1: for d being Nat holds f1.d={pm*k*(d+1)"};
+    assume A2: for d being Nat holds f2.d={pm*k*(d+1)"};
+    for d being Nat holds f1.d=f2.d
+    proof
+      let d be Nat;
+      f2.d={pm*k*(d+1)"} by A2;
+      hence thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let k be Nat;
+  let pm be Element of REAL;
+  redefine func GoCross_Seq_REAL(pm,k) -> SetSequence of Borel_Sets;
+  correctness
+  proof
+    for n being Nat holds GoCross_Seq_REAL(pm,k).n is Event of Borel_Sets
+    proof
+      let n be Nat;
+      {pm*k*(n+1)"} in Borel_Sets by Th1;
+      hence thesis by Def4;
+    end;
+    hence thesis by PROB_1:25;
+  end;
+end;
+
+registration
+  let k be Nat;
+  let pm be Element of REAL;
+  cluster GoCross_Seq_REAL(pm,k) -> Borel_Sets-valued;
+  coherence;
+end;
+
+theorem
+  for pm being Element of REAL, k being Nat st
+    k>0 & pm<>0 holds GoCross_Seq_REAL(pm,k) is one-to-one
+  proof
+    let pm be Element of REAL;
+    let k be Nat;
+    assume A1: k>0 & pm<>0;
+    for x1,x2 being object st
+      x1 in dom GoCross_Seq_REAL(pm,k) &
+      x2 in dom GoCross_Seq_REAL(pm,k) &
+    GoCross_Seq_REAL(pm,k).x1 = GoCross_Seq_REAL(pm,k).x2 holds x1 = x2
+    proof
+      let x1,x2 be object;
+      assume B1: x1 in dom GoCross_Seq_REAL(pm,k);
+      assume B2: x2 in dom GoCross_Seq_REAL(pm,k);
+      assume B3: GoCross_Seq_REAL(pm,k).x1 = GoCross_Seq_REAL(pm,k).x2;
+      reconsider x1 as Nat by B1;
+      reconsider x2 as Nat by B2;
+      set d1 = pm*k*(x1+1)";
+      {pm*k*(x1+1)"}=GoCross_Seq_REAL(pm,k).x1 &
+        {pm*k*(x2+1)"}=GoCross_Seq_REAL(pm,k).x2 by Def4; then
+B8:   d1 in {pm*k*(x2+1)"} by TARSKI:def 1,B3;
+      (pm")*(pm*(k*(x1+1)"))=(pm")*(pm*(k*(x2+1)")) by TARSKI:def 1,B8; then
+C1:   (pm"*pm)*(k*(x1+1)")=(pm"*pm)*(k*(x2+1)");
+      pm"*pm=1 by A1,XCMPLX_0:def 7;
+      then k"*(k*(x1+1)")=k"*(k*(x2+1)") by C1; then
+C2:   k"*k*(x1+1)"=k"*k*(x2+1)";
+      k"*k=1 by A1,XCMPLX_0:def 7;
+      then x1+1 = x2+1 by C2,XCMPLX_1:201;
+      hence thesis;
+    end;
+    hence thesis by FUNCT_1:def 4;
+  end;
+
+definition
+  let k be Nat;
+  let pm be Element of REAL;
+  func GoCross_Partial_Union(pm,k) -> SetSequence of REAL means :Def5:
+  it.0 = GoCross_Seq_REAL(pm,k).0 &
+  for n being Nat holds
+    it.(n+1) = it.n \/ GoCross_Seq_REAL(pm,k).(n+1);
+  existence
+  proof
+    defpred P[set,set,set] means
+      for x,y being Subset of REAL,s being Nat st
+      s = $1 & x = $2 & y = $3 holds y = x \/ GoCross_Seq_REAL(pm,k).(s+1);
+A1: for n being Nat for x being Subset of REAL
+     ex y being Subset of REAL st P[n,x,y]
+    proof
+      let n be Nat;
+      let x be Subset of REAL;
+      take x \/ GoCross_Seq_REAL(pm,k).(n+1);
+      thus thesis;
+    end;
+    consider F being SetSequence of REAL such that
+A2: F.0 = GoCross_Seq_REAL(pm,k).0 and
+A3: for n being Nat holds P[n,F.n,F.(n+1)] from RECDEF_1:sch 2(A1);
+    take F;
+    thus F.0 = GoCross_Seq_REAL(pm,k).0 by A2;
+    let n be Nat;
+    thus thesis by A3;
+  end;
+  uniqueness
+  proof
+    let S1,S2 be SetSequence of REAL such that
+A4: S1.0 = GoCross_Seq_REAL(pm,k).0 and
+A5: for n being Nat holds S1.(n+1) = S1.n \/ GoCross_Seq_REAL(pm,k).(n+1)
+    and
+A6: S2.0 = GoCross_Seq_REAL(pm,k).0 and
+A7: for n being Nat holds S2.(n+1) = S2.n \/ GoCross_Seq_REAL(pm,k).(n+1);
+    defpred P[object] means S1.$1 = S2.$1;
+    for n being object holds n in NAT implies P[n]
+    proof
+      let n be object;
+      assume n in NAT;
+      then reconsider n as Element of NAT;
+A8:   for k2 being Nat st P[k2] holds P[k2+1]
+      proof
+        let k2 be Nat;
+        assume S1.k2 = S2.k2;
+        hence S1.(k2+1) = S2.k2 \/ GoCross_Seq_REAL(pm,k).(k2+1) by A5
+                       .= S2.(k2+1) by A7;
+      end;
+A9:   P[0] by A4,A6;
+      for k being Nat holds P[k] from NAT_1:sch 2(A9,A8);
+      then S1.n = S2.n;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let k be Nat;
+  let pm be Element of REAL;
+  redefine func GoCross_Partial_Union(pm,k) -> SetSequence of Borel_Sets;
+  correctness
+  proof
+    defpred J[Nat] means
+      GoCross_Partial_Union(pm,k).$1 is Event of Borel_Sets;
+    GoCross_Seq_REAL(pm,k).0 is Event of Borel_Sets by PROB_1:25; then
+J1: J[0] by Def5;
+J2: for n being Nat st J[n] holds J[n+1]
+    proof
+      let n be Nat;
+      assume B1: J[n];
+C2:   GoCross_Seq_REAL(pm,k).(n+1) is Event of Borel_Sets by PROB_1:25;
+      GoCross_Partial_Union(pm,k).n \/ GoCross_Seq_REAL(pm,k).(n+1)
+        is Event of Borel_Sets by B1,C2,PROB_1:21;
+      hence thesis by Def5;
+    end;
+    for n being Nat holds J[n] from NAT_1:sch 2(J1,J2);
+    hence thesis by PROB_1:25;
+  end;
+end;
+
+registration
+  let k be Nat;
+  let pm be Element of REAL;
+  cluster GoCross_Partial_Union(pm,k) -> Borel_Sets-valued;
+  coherence;
+end;
+
+registration
+  let k be Nat;
+  let pm be Element of REAL;
+  cluster GoCross_Partial_Union(pm,k) -> non-descending;
+  coherence
+  proof
+    for s,q being Nat st s<=q holds
+      (GoCross_Partial_Union(pm,k)).s c= (GoCross_Partial_Union(pm,k)).q
+    proof
+      let s,q be Nat;
+      assume A1: s<=q;
+      consider j being Nat such that S2: q = s + j by A1,NAT_1:10;
+      defpred J[Nat] means
+        GoCross_Partial_Union(pm,k).s c= GoCross_Partial_Union(pm,k).(s+$1);
+J1:   J[0];
+J2:   for n being Nat st J[n] holds J[n+1]
+      proof
+        let n be Nat;
+        assume B1: J[n];
+B20:    (GoCross_Partial_Union(pm,k)).((s+n)+1) =
+          (GoCross_Partial_Union(pm,k)).((s+n)) \/
+          (GoCross_Seq_REAL(pm,k)).((s+n)+1) by Def5;
+        (GoCross_Partial_Union(pm,k)).s c=
+          (GoCross_Partial_Union(pm,k)).(s+(n+1)) by B1,XBOOLE_0:def 3,B20;
+        hence thesis;
+      end;
+      for n being Nat holds J[n] from NAT_1:sch 2(J1,J2);
+      hence thesis by S2;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let pm be Element of REAL;
+  func GoCross_Union(pm) -> SetSequence of REAL means   :Def6:
+  it.0 = Union GoCross_Partial_Union(pm,0) &
+  for n being Nat holds
+    it.(n+1) = it.n \/ Union GoCross_Partial_Union(pm,(n+1));
+  existence
+  proof
+    defpred P[set,set,set] means
+      for x,y being Subset of REAL,s being Nat st
+      s = $1 & x = $2 & y = $3 holds
+        y = x \/ Union GoCross_Partial_Union(pm,(s+1));
+A1: for n being Nat for x being Subset of REAL
+      ex y being Subset of REAL st P[n,x,y]
+    proof
+      let n be Nat;
+      let x be Subset of REAL;
+      take x \/ Union GoCross_Partial_Union(pm,(n+1));
+      thus thesis;
+    end;
+    consider F being SetSequence of REAL such that
+A2: F.0 = Union GoCross_Partial_Union(pm,0) and
+A3: for n being Nat holds P[n,F.n,F.(n+1)] from RECDEF_1:sch 2(A1);
+    take F;
+    thus F.0 = Union GoCross_Partial_Union(pm,0) by A2;
+    let n be Nat;
+    thus thesis by A3;
+  end;
+  uniqueness
+  proof
+    let S1,S2 be SetSequence of REAL such that
+A4: S1.0 = Union GoCross_Partial_Union(pm,0) and
+A5: for n being Nat holds
+      S1.(n+1) = S1.n \/ Union GoCross_Partial_Union(pm,(n+1)) and
+A6: S2.0 = Union GoCross_Partial_Union(pm,0) and
+A7: for n being Nat holds
+      S2.(n+1) = S2.n \/ Union GoCross_Partial_Union(pm,(n+1));
+    defpred P[object] means S1.$1 = S2.$1;
+    for n being object holds n in NAT implies P[n]
+    proof
+      let n be object;
+      assume n in NAT;
+      then reconsider n as Nat;
+A8:   for k2 being Nat st P[k2] holds P[k2+1]
+      proof
+        let k2 be Nat;
+        assume S1.k2 = S2.k2;
+        hence S1.(k2+1) = S2.k2 \/ Union GoCross_Partial_Union(pm,(k2+1))
+          by A5
+         .= S2.(k2+1) by A7;
+      end;
+A9:   P[0] by A4,A6;
+      for k being Nat holds P[k] from NAT_1:sch 2(A9,A8);
+      then S1.n = S2.n;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let pm be Element of REAL;
+  redefine func GoCross_Union(pm) -> SetSequence of Borel_Sets;
+  correctness
+proof
+ defpred J[Nat] means
+  (GoCross_Union(pm)).$1 is Event of Borel_Sets;
+  Union GoCross_Partial_Union(pm,0) is Event of Borel_Sets by PROB_1:17; then
+J1: J[0] by Def6;
+J2: for n being Nat st J[n] holds J[n+1]
+ proof
+  let n be Nat;
+  assume B1: J[n];
+C2: Union GoCross_Partial_Union(pm,(n+1)) is Event of Borel_Sets by PROB_1:17;
+   (GoCross_Union(pm)).n \/ Union GoCross_Partial_Union(pm,(n+1))
+    is Event of Borel_Sets by B1,C2,PROB_1:21;
+   hence thesis by Def6;
+ end;
+ for n being Nat holds J[n] from NAT_1:sch 2(J1,J2);
+ hence thesis by PROB_1:25;
+end;
+end;
+
+registration
+  let pm be Element of REAL;
+  cluster GoCross_Union(pm) -> Borel_Sets-valued;
+  coherence;
+end;
+
+registration
+  let pm be Element of REAL;
+  cluster GoCross_Union(pm) -> non-descending;
+  coherence
+proof
+  for s,q being Nat st s<=q holds
+    (GoCross_Union(pm)).s c= (GoCross_Union(pm)).q
+  proof
+    let s,q be Nat;
+    assume s<=q; then
+    consider j being Nat such that S2: q = s + j by NAT_1:10;
+    defpred J[Nat] means
+      (GoCross_Union(pm)).s c= (GoCross_Union(pm)).(s+$1);
+J1: J[0];
+J2: for n being Nat st J[n] holds J[n+1]
+    proof
+      let n be Nat;
+      assume B1: J[n];
+B20:  (GoCross_Union(pm)).((s+n)+1) = (GoCross_Union(pm)).((s+n)) \/
+         Union GoCross_Partial_Union(pm,((s+n)+1)) by Def6;
+      (GoCross_Union(pm)).(s+n) c=
+         (GoCross_Union(pm)).(s+(n+1)) by XBOOLE_0:def 3, B20;
+      hence thesis by B1,XBOOLE_1:1;
+    end;
+    for n being Nat holds J[n] from NAT_1:sch 2(J1,J2);
+    hence thesis by S2;
+ end;
+ hence thesis;
+end;
+end;
+
+theorem Th3:
+  for mym,myp being Element of REAL st mym=1 & myp=-1 holds
+    Union GoCross_Union(mym) \/ Union GoCross_Union(myp) = RAT
+proof
+ let mym,myp be Element of REAL;
+ assume A: mym=1 & myp=-1;
+ for x being object holds
+ x in (Union GoCross_Union(mym) \/ Union GoCross_Union(myp)) iff x in RAT
+ proof
+  let x be object;
+B1: x in (Union GoCross_Union(mym) \/
+            Union GoCross_Union(myp)) implies x in RAT
+  proof
+   assume x in (Union GoCross_Union(mym) \/ Union GoCross_Union(myp));
+   then per cases by XBOOLE_0:def 3;
+   suppose x in Union GoCross_Union(mym);
+   then consider k being Nat such that
+D1: x in (GoCross_Union(mym)).k by PROB_1:12;
+   per cases;
+   suppose k=0;
+    then x in Union GoCross_Partial_Union(mym,0) by D1,Def6;
+    then consider k2 being Nat such that
+E1: x in GoCross_Partial_Union(mym,0).k2 by PROB_1:12;
+    per cases;
+    suppose k2=0;
+     then x in GoCross_Seq_REAL(mym,0).0 by E1,Def5;
+     then x in {mym*0*(0+1)"} by Def4;
+     then x in INT by INT_1:def 1;
+     hence thesis by NUMBERS:14;
+     end;
+     suppose k2>0;
+      then consider n being Nat such that H1: k2=n+1 by NAT_1:6;
+      x in GoCross_Partial_Union(mym,0).n \/ GoCross_Seq_REAL(mym,0).(n+1)
+        by E1,H1,Def5; then
+      per cases by XBOOLE_0:def 3;
+      suppose H1: x in GoCross_Partial_Union(mym,0).n;
+      defpred J[Nat] means
+       x in GoCross_Partial_Union(mym,0).$1 implies x in RAT;
+      x in RAT
+      proof
+   J0: J[0]
+       proof
+        assume x in GoCross_Partial_Union(mym,0).0; then
+        x in GoCross_Seq_REAL(mym,0).0 by Def5; then
+        x in {mym*0*(0+1)"} by Def4; then
+        x=0 by TARSKI:def 1;
+        hence thesis by NUMBERS:18;
+       end;
+   J1: for n being Nat st J[n] holds J[n+1]
+       proof
+        let n be Nat;
+        assume K1: J[n];
+        assume x in GoCross_Partial_Union(mym,0).(n+1); then
+        x in (GoCross_Partial_Union(mym,0).n \/ GoCross_Seq_REAL(mym,0).(n+1))
+          by Def5; then
+        per cases by XBOOLE_0:def 3;
+        suppose x in GoCross_Partial_Union(mym,0).n;
+          hence thesis by K1;
+        end;
+        suppose x in GoCross_Seq_REAL(mym,0).(n+1);
+          then x in {mym*0*((n+1)+1)"} by Def4;
+          then x in INT by INT_1:def 1;
+          hence thesis by NUMBERS:14;
+        end;
+      end;
+       for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+        hence thesis by H1;
+       end;
+       hence thesis;
+      end;
+      suppose x in GoCross_Seq_REAL(mym,0).(n+1);
+      then x in {mym*0*((n+1)+1)"} by Def4;
+      then x in INT by INT_1:def 1;
+      hence thesis by NUMBERS:14;
+     end;
+    end;
+   end;
+   suppose k>0;
+    then consider kh being Nat such that H1: k=kh+1 by NAT_1:6;
+    x in (GoCross_Union(mym)).kh
+              \/  Union GoCross_Partial_Union(mym,kh+1) by D1,H1,Def6; then
+    per cases by XBOOLE_0:def 3;
+    suppose J00: x in (GoCross_Union(mym)).kh;
+     defpred J[Nat] means x in (GoCross_Union(mym)).$1 implies x in RAT;
+ J0: J[0]
+     proof
+      assume x in (GoCross_Union(mym)).0;
+      then x in Union GoCross_Partial_Union(mym,0) by Def6;
+      then consider k2 being Nat such that
+  E1: x in GoCross_Partial_Union(mym,0).k2 by PROB_1:12;
+      per cases;
+      suppose k2=0;
+       then x in GoCross_Seq_REAL(mym,0).0 by E1,Def5;
+       then x in {mym*0*(0+1)"} by Def4;
+       then x in INT by INT_1:def 1;
+       hence thesis by NUMBERS:14;
+      end;
+      suppose k2>0;
+       then consider n being Nat such that H1: k2=n+1 by NAT_1:6;
+       x in GoCross_Partial_Union(mym,0).n \/ GoCross_Seq_REAL(mym,0).(n+1)
+        by E1,H1,Def5; then
+       per cases by XBOOLE_0:def 3;
+       suppose H1: x in GoCross_Partial_Union(mym,0).n;
+         defpred J[Nat] means
+          x in GoCross_Partial_Union(mym,0).$1 implies x in RAT;
+     J0: J[0]
+         proof
+          assume x in GoCross_Partial_Union(mym,0).0;
+          then x in GoCross_Seq_REAL(mym,0).0 by Def5;
+          then x in {mym*0*(0+1)"} by Def4;
+          then x=0 by TARSKI:def 1;
+          hence thesis by NUMBERS:18;
+         end;
+     J1: for n being Nat st J[n] holds J[n+1]
+         proof
+          let n be Nat;
+          assume K1: J[n];
+          assume x in GoCross_Partial_Union(mym,0).(n+1); then
+          x in (GoCross_Partial_Union(mym,0).n \/
+                  GoCross_Seq_REAL(mym,0).(n+1)) by Def5; then
+          per cases by XBOOLE_0:def 3;
+          suppose x in GoCross_Partial_Union(mym,0).n;
+            hence thesis by K1;
+          end;
+          suppose x in GoCross_Seq_REAL(mym,0).(n+1);
+            then x in {mym*0*((n+1)+1)"} by Def4;
+            then x in INT by INT_1:def 1;
+            hence thesis by NUMBERS:14;
+          end;
+         end;
+         for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+         hence thesis by H1;
+       end;
+       suppose x in GoCross_Seq_REAL(mym,0).(n+1);
+        then x in {mym*0*((n+1)+1)"} by Def4;
+        then x in INT by INT_1:def 1;
+        hence thesis by NUMBERS:14;
+       end;
+      end;
+     end;
+  J1:for n being Nat st J[n] holds J[n+1]
+     proof
+      let n be Nat;
+      assume K0000: J[n];
+      x in (GoCross_Union(mym)).(n+1) implies x in RAT
+      proof
+       assume x in (GoCross_Union(mym)).(n+1); then
+       x in (GoCross_Union(mym)).n \/
+             Union GoCross_Partial_Union(mym,(n+1)) by Def6; then
+       per cases by XBOOLE_0:def 3;
+       suppose x in (GoCross_Union(mym)).n;
+        hence thesis by K0000;
+       end;
+       suppose x in Union GoCross_Partial_Union(mym,(n+1));
+        then consider k being Nat such that
+    H1: x in GoCross_Partial_Union(mym,(n+1)).k by PROB_1:12;
+        defpred J[Nat] means
+        x in GoCross_Partial_Union(mym,(n+1)).$1 implies x in RAT;
+    J0: J[0]
+        proof
+         assume x in GoCross_Partial_Union(mym,(n+1)).0;
+         then x in GoCross_Seq_REAL(mym,(n+1)).0 by Def5;
+         then x in {mym*(n+1)*(0+1)"} by Def4;
+         then x=1*(n+1) by TARSKI:def 1,A;
+         hence thesis by NUMBERS:17,NUMBERS:14;
+        end;
+    J1: for k being Nat st J[k] holds J[k+1]
+        proof
+         let k be Nat;
+         assume K0: J[k];
+         set o = n+1, o2 = k+2, o3 = k+1;
+         x in GoCross_Partial_Union(mym,(n+1)).(k+1) implies x in RAT
+         proof
+          assume x in GoCross_Partial_Union(mym,(n+1)).(k+1); then
+          x in GoCross_Partial_Union(mym,(n+1)).k \/
+                GoCross_Seq_REAL(mym,(n+1)).(k+1) by Def5; then
+          per cases by XBOOLE_0:def 3;
+          suppose x in GoCross_Partial_Union(mym,(n+1)).k;
+           hence thesis by K0;
+          end;
+          suppose x in GoCross_Seq_REAL(mym,(n+1)).(k+1); then
+           x in {mym*(n+1)*(o3+1)"} by Def4; then
+       OZ: x=(n+1)*(k+2)" by TARSKI:def 1,A;
+           reconsider o2,o as Element of INT by NUMBERS:17;
+           o/o2 is Element of RAT by RAT_1:def 1;
+           hence thesis by OZ;
+          end;
+         end;
+         hence thesis;
+        end;
+        for k being Nat holds J[k] from NAT_1:sch 2(J0,J1);
+       hence thesis by H1;
+       end;
+      end;
+     hence thesis;
+     end;
+     for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+     hence thesis by J00;
+    end;
+    suppose x in Union GoCross_Partial_Union(mym,kh+1);
+     then consider q being Nat such that
+JK0: x in GoCross_Partial_Union(mym,kh+1).q by PROB_1:12;
+     defpred J[Nat] means
+       x in GoCross_Partial_Union(mym,(kh+1)).$1 implies x in RAT;
+ J0: J[0]
+     proof
+      assume x in GoCross_Partial_Union(mym,(kh+1)).0;
+      then x in GoCross_Seq_REAL(mym,(kh+1)).0 by Def5;
+      then x in {mym*(kh+1)*(0+1)"} by Def4;
+      then x=mym*(kh+1)*(1)" by TARSKI:def 1;
+      hence thesis by A,NUMBERS:17,NUMBERS:14;
+     end;
+ J1: for k being Nat st J[k] holds J[k+1]
+     proof
+      let k be Nat;
+      assume K0: J[k];
+      set o=kh+1, o2=k+2, o3=k+1;
+      x in GoCross_Partial_Union(mym,(kh+1)).(k+1) implies x in RAT
+      proof
+       assume x in GoCross_Partial_Union(mym,(kh+1)).(k+1); then
+       x in GoCross_Partial_Union(mym,(kh+1)).k \/
+             GoCross_Seq_REAL(mym,(kh+1)).(k+1) by Def5; then
+       per cases by XBOOLE_0:def 3;
+        suppose x in GoCross_Partial_Union(mym,(kh+1)).k;
+         hence thesis by K0;
+        end;
+        suppose x in GoCross_Seq_REAL(mym,(kh+1)).(k+1); then
+         x in {mym*(kh+1)*(o3+1)"} by Def4; then
+     OZ: x=(kh+1)*(k+2)" by TARSKI:def 1,A;
+         reconsider o2,o as Element of INT by NUMBERS:17;
+:::         reconsider o as Element of INT by NUMBERS:17;
+         o/o2 is Element of RAT by RAT_1:def 1;
+         hence thesis by OZ;
+        end;
+       end;
+       hence thesis;
+      end;
+      for k being Nat holds J[k] from NAT_1:sch 2(J0,J1);
+      hence thesis by JK0;
+     end;
+    end;
+   end;
+   suppose x in Union GoCross_Union(myp);
+    then consider k being Nat such that D1: x in (GoCross_Union(myp)).k
+      by PROB_1:12;
+    per cases;
+    suppose k=0;
+     then x in Union GoCross_Partial_Union(myp,0) by D1,Def6; then
+     consider k2 being Nat such that E1: x in GoCross_Partial_Union(myp,0).k2
+      by PROB_1:12;
+     per cases;
+     suppose k2=0;
+      then x in GoCross_Seq_REAL(myp,0).0 by E1,Def5;
+      then x in {myp*0*(0+1)"} by Def4;
+      then x in INT by INT_1:def 1;
+     hence thesis by NUMBERS:14;
+     end;
+     suppose k2>0;
+      then consider n being Nat such that H1: k2=n+1 by NAT_1:6;
+      x in GoCross_Partial_Union(myp,0).n \/ GoCross_Seq_REAL(myp,0).(n+1)
+       by E1,H1,Def5; then
+      per cases by XBOOLE_0:def 3;
+      suppose H1: x in GoCross_Partial_Union(myp,0).n;
+        defpred J[Nat] means
+          x in GoCross_Partial_Union(myp,0).$1 implies x in RAT;
+    J0: J[0]
+        proof
+         assume x in GoCross_Partial_Union(myp,0).0;
+         then x in GoCross_Seq_REAL(myp,0).0 by Def5;
+         then x in {myp*0*(0+1)"} by Def4;
+         then x=0 by TARSKI:def 1;
+         hence thesis by NUMBERS:18;
+        end;
+       x in RAT
+       proof
+    J1: for n being Nat st J[n] holds J[n+1]
+        proof
+         let n be Nat;
+         assume K1: J[n];
+         assume x in GoCross_Partial_Union(myp,0).(n+1); then
+         x in (GoCross_Partial_Union(myp,0).n \/ GoCross_Seq_REAL(myp,0).(n+1))
+          by Def5; then
+         per cases by XBOOLE_0:def 3;
+         suppose x in GoCross_Partial_Union(myp,0).n;
+          hence thesis by K1;
+         end;
+         suppose x in GoCross_Seq_REAL(myp,0).(n+1);
+          then x in {myp*0*((n+1)+1)"} by Def4;
+          then x in INT by INT_1:def 1;
+          hence thesis by NUMBERS:14;
+         end;
+        end;
+        for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+        hence thesis by H1;
+       end;
+      hence thesis;
+      end;
+      suppose x in GoCross_Seq_REAL(myp,0).(n+1);
+       then x in {myp*0*((n+1)+1)"} by Def4;
+       then x in INT by INT_1:def 1;
+       hence thesis by NUMBERS:14;
+      end;
+     end;
+    end;
+    suppose k>0;
+     then consider kh being Nat such that H1: k=kh+1 by NAT_1:6;
+     x in (GoCross_Union(myp)).kh
+         \/ Union GoCross_Partial_Union(myp,kh+1) by D1,H1,Def6; then
+     per cases by XBOOLE_0:def 3;
+     suppose J00: x in (GoCross_Union(myp)).kh;
+      defpred J[Nat] means x in (GoCross_Union(myp)).$1 implies x in RAT;
+  J0: J[0]
+      proof
+       assume x in (GoCross_Union(myp)).0;
+       then x in Union GoCross_Partial_Union(myp,0) by Def6;
+       then consider k2 being Nat such that
+   E1: x in GoCross_Partial_Union(myp,0).k2 by PROB_1:12;
+       per cases;
+       suppose k2=0;
+        then x in GoCross_Seq_REAL(myp,0).0 by E1,Def5;
+        then x in {myp*0*(0+1)"} by Def4;
+        then x in INT by INT_1:def 1;
+        hence thesis by NUMBERS:14;
+       end;
+       suppose k2>0; then
+        consider n being Nat such that H1: k2=n+1 by NAT_1:6;
+        x in GoCross_Partial_Union(myp,0).n \/ GoCross_Seq_REAL(myp,0).(n+1)
+         by E1,H1,Def5; then
+        per cases by XBOOLE_0:def 3;
+        suppose H1: x in GoCross_Partial_Union(myp,0).n;
+         x in RAT
+         proof
+          defpred J[Nat] means
+           x in GoCross_Partial_Union(myp,0).$1 implies x in RAT;
+      J0: J[0]
+          proof
+           assume x in GoCross_Partial_Union(myp,0).0;
+           then x in GoCross_Seq_REAL(myp,0).0 by Def5;
+           then x in {myp*0*(0+1)"} by Def4;
+           then x=0 by TARSKI:def 1;
+           hence thesis by NUMBERS:18;
+          end;
+      J1: for n being Nat st J[n] holds J[n+1]
+          proof
+           let n be Nat;
+           assume K1: J[n];
+           assume x in GoCross_Partial_Union(myp,0).(n+1); then
+            x in (GoCross_Partial_Union(myp,0).n \/
+              GoCross_Seq_REAL(myp,0).(n+1)) by Def5; then
+            per cases by XBOOLE_0:def 3;
+            suppose x in GoCross_Partial_Union(myp,0).n;
+             hence thesis by K1;
+            end;
+            suppose x in GoCross_Seq_REAL(myp,0).(n+1);
+             then x in {myp*0*((n+1)+1)"} by Def4;
+             then x in INT by INT_1:def 1;
+             hence thesis by NUMBERS:14;
+           end;
+          end;
+          for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+         hence thesis by H1;
+         end;
+        hence thesis;
+        end;
+        suppose x in GoCross_Seq_REAL(myp,0).(n+1);
+         then x in {myp*0*((n+1)+1)"} by Def4;
+         then x in INT by INT_1:def 1;
+         hence thesis by NUMBERS:14;
+        end;
+       end;
+      end;
+   J1:for n being Nat st J[n] holds J[n+1]
+      proof
+       let n be Nat;
+       assume K0000: J[n];
+       x in (GoCross_Union(myp)).(n+1) implies x in RAT
+       proof
+        assume x in (GoCross_Union(myp)).(n+1); then
+        x in (GoCross_Union(myp)).n \/
+           Union GoCross_Partial_Union(myp,(n+1)) by Def6; then
+        per cases by XBOOLE_0:def 3;
+        suppose x in (GoCross_Union(myp)).n;
+         hence thesis by K0000;
+        end;
+        suppose x in Union GoCross_Partial_Union(myp,(n+1));
+         then consider k being Nat such that
+     H1: x in GoCross_Partial_Union(myp,(n+1)).k by PROB_1:12;
+         defpred J[Nat] means
+          x in GoCross_Partial_Union(myp,(n+1)).$1 implies x in RAT;
+     J0: J[0]
+         proof
+          assume x in GoCross_Partial_Union(myp,(n+1)).0;
+          then x in GoCross_Seq_REAL(myp,(n+1)).0 by Def5;
+          then x in {myp*(n+1)*(0+1)"} by Def4; then
+      HH: x=-1*(n+1) by TARSKI:def 1, A;
+          -(n+1) is Element of INT by INT_1:def 1;
+          hence thesis by HH,NUMBERS:14;
+         end;
+     J1: for k being Nat st J[k] holds J[k+1]
+         proof
+          let k be Nat;
+          assume K0: J[k];
+          x in GoCross_Partial_Union(myp,(n+1)).(k+1) implies x in RAT
+          proof
+           assume x in GoCross_Partial_Union(myp,(n+1)).(k+1); then
+           x in GoCross_Partial_Union(myp,(n+1)).k \/
+                 GoCross_Seq_REAL(myp,(n+1)).(k+1) by Def5; then
+           per cases by XBOOLE_0:def 3;
+           suppose x in GoCross_Partial_Union(myp,(n+1)).k;
+             hence thesis by K0;
+           end;
+           suppose x in GoCross_Seq_REAL(myp,(n+1)).(k+1); then
+             x in {myp*(n+1)*(k+1+1)"} by Def4;
+             hence thesis by A,RAT_1:def 2;
+           end;
+          end;
+         hence thesis;
+         end;
+         for k being Nat holds J[k] from NAT_1:sch 2(J0,J1);
+         hence thesis by H1;
+        end;
+       end;
+      hence thesis;
+      end;
+      for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+      hence thesis by J00;
+     end;
+     suppose x in Union GoCross_Partial_Union(myp,kh+1);
+      then consider q being Nat such that
+ JK0: x in GoCross_Partial_Union(myp,kh+1).q by PROB_1:12;
+      defpred J[Nat] means
+         x in GoCross_Partial_Union(myp,(kh+1)).$1 implies x in RAT;
+  J0: J[0]
+      proof
+       assume x in GoCross_Partial_Union(myp,(kh+1)).0;
+       then x in GoCross_Seq_REAL(myp,(kh+1)).0 by Def5;
+       then x in {myp*(kh+1)*(0+1)"} by Def4; then
+   HH: x=-(kh+1) by TARSKI:def 1,A;
+       -(kh+1) in INT by INT_1:def 1;
+       hence thesis by HH,NUMBERS:14;
+      end;
+  J1: for k being Nat st J[k] holds J[k+1]
+      proof
+       let k be Nat;
+       assume K0: J[k];
+       set o3 = k+1;
+       x in GoCross_Partial_Union(myp,(kh+1)).(k+1) implies x in RAT
+       proof
+        assume x in GoCross_Partial_Union(myp,(kh+1)).(k+1); then
+        x in GoCross_Partial_Union(myp,(kh+1)).k \/
+              GoCross_Seq_REAL(myp,(kh+1)).(k+1) by Def5; then
+        per cases by XBOOLE_0:def 3;
+        suppose x in GoCross_Partial_Union(myp,(kh+1)).k;
+          hence thesis by K0;
+        end;
+        suppose x in GoCross_Seq_REAL(myp,(kh+1)).(k+1); then
+         x in {myp*(kh+1)*(o3+1)"} by Def4;
+         hence thesis by A,RAT_1:def 2;
+        end;
+       end;
+       hence thesis;
+      end;
+      for k being Nat holds J[k] from NAT_1:sch 2(J0,J1);
+     hence thesis by JK0;
+     end;
+    end;
+   end;
+  end;
+  x in RAT implies
+    x in (Union GoCross_Union(mym) \/ Union GoCross_Union(myp))
+  proof
+   assume x in RAT;
+   then reconsider x as Rational;
+   consider m being Integer, k being Nat such that C0: k>0 & x=m/k
+     by RAT_1:8;
+   consider m2 being Nat such that C2: m=m2 or m=-m2 by INT_1:2;
+   per cases by C2;
+   suppose S1: m=m2;
+     consider q2 being Nat such that F2: q2=k-1 by C0;
+ G1: x in GoCross_Seq_REAL(mym,m2).q2
+     proof
+      GoCross_Seq_REAL(mym,m2).q2 = {1*m2*(q2+1)"} by Def4,A;
+      hence thesis by C0,S1,F2,TARSKI:def 1;
+     end;
+ G2: x in (GoCross_Partial_Union(mym,m2)).q2
+     proof
+      per cases;
+      suppose q2=0;
+        hence thesis by Def5,G1;
+      end;
+      suppose q2>0;
+       then consider q3 being Nat such that F2: q3=q2-1;
+       x in (GoCross_Partial_Union(mym,m2)).q2
+       proof
+        (GoCross_Partial_Union(mym,m2)).(q3+1)=
+         (GoCross_Partial_Union(mym,m2)).q3 \/
+          (GoCross_Seq_REAL(mym,m2)).(q3+1) by Def5;
+        hence thesis by F2,G1,XBOOLE_0:def 3;
+       end;
+       hence thesis;
+      end;
+     end;
+     x in (GoCross_Union(mym)).m2
+     proof
+      per cases;
+      suppose I1: m2=0;
+       x in Union GoCross_Partial_Union(mym,m2) by G2,PROB_1:12;
+       hence thesis by I1,Def6;
+      end;
+      suppose m2>0;
+       then consider m3 being Nat such that F2: m3=m2-1;
+   I2: x in(GoCross_Union(mym)).m3 or
+          x in Union GoCross_Partial_Union(mym,m3+1) by F2,G2,PROB_1:12;
+       x in (GoCross_Union(mym)).m2
+       proof
+        (GoCross_Union(mym)).(m3+1) = (GoCross_Union(mym)).m3 \/
+               Union (GoCross_Partial_Union(mym,m3+1)) by Def6;
+        hence thesis by I2,XBOOLE_0:def 3,F2;
+       end;
+      hence thesis;
+      end;
+     end;
+     then x in Union GoCross_Union(mym) by PROB_1:12;
+     hence thesis by XBOOLE_0:def 3;
+   end;
+   suppose S1: m=-m2;
+    consider q2 being Nat such that F2: q2=k-1 by C0;
+ G1: x in GoCross_Seq_REAL(myp,m2).q2
+     proof
+      GoCross_Seq_REAL(myp,m2).q2 = {(-1)*m2*(q2+1)"} by Def4,A;
+      hence thesis by C0,S1,F2,TARSKI:def 1;
+     end;
+ G2: x in (GoCross_Partial_Union(myp,m2)).q2
+     proof
+      per cases;
+      suppose q2=0;
+      hence thesis by Def5,G1;
+      end;
+      suppose q2>0;
+       then consider q3 being Nat such that F2: q3=q2-1;
+       x in (GoCross_Partial_Union(myp,m2)).q2
+       proof
+        (GoCross_Partial_Union(myp,m2)).(q3+1) =
+         (GoCross_Partial_Union(myp,m2)).q3 \/
+              (GoCross_Seq_REAL(myp,m2)).(q3+1) by Def5;
+       hence thesis by F2,G1,XBOOLE_0:def 3;
+       end;
+       hence thesis;
+      end;
+     end;
+     x in (GoCross_Union(myp)).m2
+     proof
+      per cases;
+      suppose m2=0; then
+      (GoCross_Union(myp)).m2 = Union GoCross_Partial_Union(myp,m2) by Def6;
+       hence thesis by G2,PROB_1:12;
+      end;
+      suppose m2>0;
+       then consider m3 being Nat such that F2: m3=m2-1;
+   I2: x in(GoCross_Union(myp)).m3 or
+         x in Union GoCross_Partial_Union(myp,m3+1) by F2,G2,PROB_1:12;
+       x in (GoCross_Union(myp)).m2
+       proof
+        (GoCross_Union(myp)).(m3+1) = (GoCross_Union(myp)).m3 \/
+               Union (GoCross_Partial_Union(myp,m3+1)) by Def6;
+        hence thesis by I2,XBOOLE_0:def 3,F2;
+       end;
+       hence thesis;
+      end;
+     end;
+     then x in (Union GoCross_Union(mym)) or
+      x in (Union GoCross_Union(myp)) by PROB_1:12;
+     hence thesis by XBOOLE_0:def 3;
+    end;
+  end;
+ hence thesis by B1;
+ end;
+hence thesis;
+end;
+
+theorem Th41:
+  RAT is Event of Borel_Sets
+proof
+  reconsider mym = 1 as Element of REAL by Ko1;
+  consider myp being Element of REAL such that A10: myp=-mym;
+A0: Union GoCross_Union(mym) \/ Union GoCross_Union(myp) = RAT by A10,Th3;
+A1: Union GoCross_Union(mym) is Event of Borel_Sets by PROB_1:17;
+  Union GoCross_Union(myp) is Event of Borel_Sets by PROB_1:17;
+  hence thesis by A1,PROB_1:21,A0;
+end;
+
+theorem
+  REAL \ INT is Event of Borel_Sets
+proof
+  consider Y being Subset of REAL such that A2: Y = INT by NUMBERS:15;
+  Y` is Event of Borel_Sets by Th40,A2,PROB_1:20;
+  hence thesis by A2;
+end;
+
+theorem
+  REAL \ RAT is Event of Borel_Sets
+proof
+  consider Y being Subset of REAL such that A2: Y = RAT by NUMBERS:12;
+  Y` is Event of Borel_Sets by Th41,A2,PROB_1:20;
+  hence thesis by A2;
+end;
+
+theorem
+  IRRAT is Event of Borel_Sets
+proof
+  consider Y being Subset of REAL such that A2: Y = RAT by NUMBERS:12;
+  Y` is Event of Borel_Sets by Th41,A2,PROB_1:20;
+  hence thesis by A2;
+end;
+
+begin :: Construction of Borel-Sets
+
+:: Since the Borel-Sets can be constructed by different sets of intervals,
+:: we show, that other sets can do this.
+
+theorem
+  Borel_Sets = sigma Family_of_halflines2
+proof
+A1: sigma Family_of_halflines2 c= sigma Family_of_halflines
+ proof
+  Family_of_halflines2 c= sigma(Family_of_halflines)
+  proof
+   for x being object holds x in Family_of_halflines2 implies
+    x in sigma Family_of_halflines
+   proof
+    let x be object;
+    assume x in Family_of_halflines2;
+    then consider r being Element of REAL such that
+B1: x=right_closed_halfline(r);
+    x is Element of Borel_Sets by FINANCE1:3,B1;
+    hence thesis;
+   end;
+   hence thesis;
+  end;
+  hence thesis by PROB_1:def 9;
+  end;
+ sigma Family_of_halflines c= sigma Family_of_halflines2
+ proof
+  Family_of_halflines c= sigma Family_of_halflines2
+  proof
+   for x being object holds x in Family_of_halflines implies
+    x in sigma Family_of_halflines2
+   proof
+    let x be object;
+    assume x in Family_of_halflines;
+    then consider r being Element of REAL such that B1: x=halfline(r);
+    right_closed_halfline(r) is Event of sigma Family_of_halflines2
+    proof
+      set L = right_closed_halfline(r);
+  A3: L in Family_of_halflines2 & L=[.r,+infty.[;
+      Family_of_halflines2 c= sigma(Family_of_halflines2) by PROB_1:def 9;
+      hence thesis by A3;
+    end; then
+    (halfline(r))` is Event of sigma(Family_of_halflines2) by FINANCE1:2;
+    then ((halfline(r))`)` is Event of sigma(Family_of_halflines2)
+     by PROB_1:15;
+    hence thesis by B1;
+   end;
+   hence thesis;
+  end;
+  hence thesis by PROB_1:def 9;
+ end;
+ hence thesis by A1;
+end;
+
+begin :: Random-Variables for Stochastic Finance in Discrete Time
+
+:: The aim is to show, that certain functions are Random-Variables, in order
+:: to use theorems of Article RANDOM_3. An example for this application is the
+:: definition of the arbitrage opportunity, which uses a Random-Variable
+:: combined with a Probability-Measure.
+
+ reserve Omega,Omega2 for non empty set;
+ reserve Sigma for SigmaField of Omega;
+ reserve Sigma2 for SigmaField of Omega2;
+ reserve X,Y,Z for Function of Omega,REAL;
+
+theorem
+  for X,Y being random_variable of Sigma,Borel_Sets holds
+    X+Y is random_variable of Sigma, Borel_Sets
+proof
+  let X,Y be random_variable of Sigma, Borel_Sets;
+  reconsider X,Y as Real-Valued-Random-Variable of Sigma by RANDOM_3:9;
+  X+Y is Real-Valued-Random-Variable of Sigma;
+  hence thesis by RANDOM_3:9;
+end;
+
+theorem
+  for X,Y being random_variable of Sigma,Borel_Sets holds
+    X-Y is random_variable of Sigma, Borel_Sets
+proof
+  let X,Y be random_variable of Sigma, Borel_Sets;
+  reconsider X,Y as Real-Valued-Random-Variable of Sigma by RANDOM_3:9;
+  X-Y is Real-Valued-Random-Variable of Sigma;
+  hence thesis by RANDOM_3:9;
+end;
+
+theorem
+  for X,Y being random_variable of Sigma,Borel_Sets holds
+    X(#)Y is random_variable of Sigma, Borel_Sets
+proof
+  let X,Y be random_variable of Sigma, Borel_Sets;
+  reconsider X,Y as Real-Valued-Random-Variable of Sigma by RANDOM_3:9;
+  X(#)Y is Real-Valued-Random-Variable of Sigma;
+  hence thesis by RANDOM_3:9;
+end;
+
+theorem Th8:
+  for r being Real,
+      X being random_variable of Sigma,Borel_Sets holds
+    r(#)X is random_variable of Sigma, Borel_Sets
+proof
+  let r be Real;
+  let Y be random_variable of Sigma, Borel_Sets;
+  reconsider Y as Real-Valued-Random-Variable of Sigma by RANDOM_3:9;
+  r(#)Y is Real-Valued-Random-Variable of Sigma;
+  hence thesis by RANDOM_3:9;
+end;
+
+theorem T:
+  for Omega,Omega2 be non empty set
+  for F be SigmaField of Omega
+  for F2 be SigmaField of Omega2
+  for k be Element of set_of_random_variables_on(F,F2) holds
+  Change_Element_to_Func(F,F2,k) is random_variable of F,F2
+proof
+  let Omega,Omega2 be non empty set;
+  let F be SigmaField of Omega;
+  let F2 be SigmaField of Omega2;
+  let k be Element of set_of_random_variables_on(F,F2);
+  Change_Element_to_Func(F,F2,k) is Element of
+     {f where f is Function of Omega,Omega2:
+     f is (F,F2)-random_variable-like} by FINANCE1:def 7;
+  then Change_Element_to_Func(F,F2,k) in
+     {f where f is Function of Omega,Omega2:
+     f is (F,F2)-random_variable-like}; then
+  ex Y being Function of Omega,Omega2 st
+     Change_Element_to_Func(F,F2,k)=Y & Y is (F,F2)-random_variable-like;
+  hence thesis;
+end;
+
+theorem T1:
+  for Omega be non empty set
+  for F be SigmaField of Omega
+  for k be Element of set_of_random_variables_on(F,Borel_Sets) holds
+   ElementsOfPortfolioValueProb_fut(F,k) is
+    random_variable of F,Borel_Sets
+  proof
+  let Omega be non empty set;
+  let F be SigmaField of Omega;
+  let k be Element of set_of_random_variables_on(F,Borel_Sets);
+  ElementsOfPortfolioValueProb_fut(F,k) =
+  Change_Element_to_Func(F,Borel_Sets,k) by FINANCE1:def 8;
+  hence thesis by T;
+end;
+
+theorem
+  for p be Nat
+  for Omega, Omega2 be non empty set
+  for F be SigmaField of Omega
+  for F2 be SigmaField of Omega2
+  for G be sequence of set_of_random_variables_on(F,F2) holds
+   Element_Of(F,F2,G,p) is random_variable of F,F2
+  proof
+  let p be Nat;
+  let Omega, Omega2 be non empty set;
+  let F be SigmaField of Omega;
+  let F2 be SigmaField of Omega2;
+  let G be sequence of set_of_random_variables_on(F,F2);
+  G.p in set_of_random_variables_on(F,F2); then
+  consider Y being Function of Omega,Omega2 such that
+A2: G.p=Y & Y is (F,F2)-random_variable-like;
+    Element_Of(F,F2,G,p)=Y by FINANCE1:def 9,A2;
+    hence thesis by A2;
+end;
+
+definition
+  let Omega be non empty set;
+  let F be SigmaField of Omega;
+  let X be non empty set;
+  let G be sequence of X;
+  let phi be Real_Sequence;
+  let n be Nat;
+  func RVElementsOfPortfolioValue_fut(phi,F,G,n) -> Function of Omega,REAL
+  means :Def5000:
+  for w being Element of Omega holds
+   it.w = ElementsOfPortfolioValueProb_fut(F,G.n).w * phi.n;
+  existence
+  proof
+    deffunc U(Element of Omega) =
+      In(ElementsOfPortfolioValueProb_fut(F,G.n).$1 * phi.n,REAL);
+    consider f being Function of Omega,REAL such that
+A1: for d be Element of Omega holds f.d = U(d) from FUNCT_2:sch 4;
+    take f;
+    let n be Element of Omega;
+    f.n = U(n) by A1;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of Omega,REAL;
+    assume that
+A2: for w being Element of Omega holds f1.w =
+      ElementsOfPortfolioValueProb_fut(F,G.n).w * phi.n and
+A3: for w being Element of Omega holds f2.w =
+      ElementsOfPortfolioValueProb_fut(F,G.n).w * phi.n;
+    for w being Element of Omega holds f1.w=f2.w
+    proof
+      let w be Element of Omega;
+      f2.w = ElementsOfPortfolioValueProb_fut(F,G.n).w * phi.n by A3;
+      hence thesis by A2;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem
+  for Omega be non empty set
+  for F be SigmaField of Omega
+  for G be sequence of set_of_random_variables_on(F,Borel_Sets)
+  for phi be Real_Sequence
+  for n be Nat holds
+  RVElementsOfPortfolioValue_fut(phi,F,G,n) is
+    random_variable of F,Borel_Sets
+proof
+  let Omega be non empty set;
+  let F be SigmaField of Omega;
+  let G be sequence of set_of_random_variables_on(F,Borel_Sets);
+  let phi be Real_Sequence;
+  let n be Nat;
+  ElementsOfPortfolioValueProb_fut(F,G.n)
+  is random_variable of F,Borel_Sets by T1;
+  then
+A1: phi.n(#)ElementsOfPortfolioValueProb_fut(F,G.n)
+   is random_variable of F,Borel_Sets by Th8;
+  for w being Element of Omega holds
+  (phi.n(#)ElementsOfPortfolioValueProb_fut(F,G.n)).w =
+    (RVElementsOfPortfolioValue_fut(phi,F,G,n)).w
+  proof
+   let w be Element of Omega;
+   phi.n * ElementsOfPortfolioValueProb_fut(F,G.n).w =
+       (phi.n(#)ElementsOfPortfolioValueProb_fut(F,G.n)).w by VALUED_1:6;
+   hence thesis by Def5000;
+  end;
+ hence thesis by A1,FUNCT_2:63;
+end;
+
+definition
+  let phi be Real_Sequence;
+  let Omega be non empty set;
+  let F be SigmaField of Omega;
+  let X be non empty set;
+  let G be sequence of X;
+  let w be Element of Omega;
+  func RVPortfolioValueFutExt_El(phi,F,G,w) -> Real_Sequence means
+  :Def5001:
+  for n being Nat holds
+   it.n = (RVElementsOfPortfolioValue_fut(phi,F,G,n)).w;
+existence
+proof
+ deffunc U(Element of NAT) =
+    (RVElementsOfPortfolioValue_fut(phi,F,G,$1)).w;
+ consider f being Real_Sequence such that
+ A1:  for d be Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+ take f;
+ let n be Nat;
+ reconsider n as Element of NAT by ORDINAL1:def 12;
+ f.n = U(n) by A1;
+ hence thesis;
+end;
+uniqueness
+proof
+  let f1,f2 be Real_Sequence;
+  assume that
+A1: for n being Nat holds
+     f1.n=(RVElementsOfPortfolioValue_fut(phi,F,G,n)).w and
+A2: for n being Nat holds
+     f2.n=(RVElementsOfPortfolioValue_fut(phi,F,G,n)).w;
+ for n being Nat holds f1.n=f2.n
+ proof
+  let n be Nat;
+  f1.n=(RVElementsOfPortfolioValue_fut(phi,F,G,n)).w by A1;
+  hence thesis by A2;
+ end;
+hence thesis;
+end;
+end;
+
+definition
+  let d be Nat;
+  let phi be Real_Sequence;
+  let Omega be non empty set;
+  let F be SigmaField of Omega;
+  let X be non empty set;
+  let G be sequence of X;
+  let w be Element of Omega;
+  redefine func PortfolioValueFutExt(d,phi,F,G,w) -> Real equals
+  Partial_Sums((RVPortfolioValueFutExt_El(phi,F,G,w))).d;
+correctness
+proof
+ defpred J[Nat] means
+  Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,w,G)).$1=
+  Partial_Sums((RVPortfolioValueFutExt_El(phi,F,G,w))).$1;
+  Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,w,G)).0 =
+   ElementsOfPortfolioValue_fut(phi,F,w,G).0 by SERIES_1:def 1; then
+  Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,w,G)).0 =
+   ElementsOfPortfolioValueProb_fut(F,G.0).w * phi.0 by FINANCE1:def 10; then
+   Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,w,G)).0 =
+   (RVElementsOfPortfolioValue_fut(phi,F,G,0)).w by Def5000; then
+  Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,w,G)).0 =
+  (RVPortfolioValueFutExt_El(phi,F,G,w)).0 by Def5001; then
+ J0: J[0] by SERIES_1:def 1;
+ J1: for n being Nat st J[n] holds J[n+1]
+ proof
+  let n be Nat;
+  assume B0: J[n];
+  B2: (ElementsOfPortfolioValue_fut(phi,F,w,G)).(n+1) =
+   (RVPortfolioValueFutExt_El(phi,F,G,w)).(n+1)
+  proof
+   (RVPortfolioValueFutExt_El(phi,F,G,w)).(n+1)=
+    (RVElementsOfPortfolioValue_fut(phi,F,G,n+1)).w by Def5001; then
+   (RVPortfolioValueFutExt_El(phi,F,G,w)).(n+1)=
+    ElementsOfPortfolioValueProb_fut(F,G.(n+1)).w * phi.(n+1) by Def5000;
+   hence thesis by FINANCE1:def 10;
+   end;
+  Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,w,G)).(n+1)=
+   Partial_Sums((RVPortfolioValueFutExt_El(phi,F,G,w))).n +
+    (ElementsOfPortfolioValue_fut(phi,F,w,G)).(n+1) by SERIES_1:def 1,B0;
+  hence thesis by B2,SERIES_1:def 1;
+ end;
+ for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+hence thesis;
+end;
+end;
+

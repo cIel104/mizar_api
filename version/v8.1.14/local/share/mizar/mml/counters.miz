@@ -1,0 +1,2442 @@
+:: Extended Natural Numbers and Counters
+::  by Sebastian Koch
+:: 
+:: Received October 25, 2020
+:: Copyright (c) 2020-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, RELAT_1, TARSKI, XBOOLE_0, FUNCT_1, MEMBERED, SUBSET_1,
+      XCMPLX_0, XXREAL_0, INT_1, ORDINAL1, FUNCOP_1, FUNCT_4, FUNCT_2,
+      ZFMISC_1, ORDINAL2, ARYTM_3, NAT_1, SETFAM_1, CARD_1, AOFA_I00, CARD_3,
+      AFINSQ_1, PARTFUN1, ORDINAL4, CARD_2, VALUED_0, REAL_1, FINSET_1,
+      FUNCT_7, XXREAL_2, PBOOLE, COUNTERS;
+ notations TARSKI, XBOOLE_0, ENUMSET1, ZFMISC_1, SUBSET_1, SETFAM_1, RELAT_1,
+      FUNCT_1, ORDINAL1, RELSET_1, PARTFUN1, FUNCT_2, FUNCOP_1, FUNCT_4,
+      ORDINAL2, FINSET_1, CARD_1, PBOOLE, CARD_3, NUMBERS, XXREAL_0, XREAL_0,
+      INT_1, RAT_1, MEMBERED, VALUED_0, CARD_2, XXREAL_2, XXREAL_3, XCMPLX_0,
+      NAT_1, ORDINAL4, AFINSQ_1, AOFA_I00;
+ constructors XCMPLX_0, RAT_1, MEMBERED, FUNCOP_1, FUNCT_4, XXREAL_0, PARTFUN1,
+      NAT_1, SETFAM_1, RELSET_1, NUMBERS, XXREAL_3, FINSET_1, VALUED_0,
+      XXREAL_2, ENUMSET1, INT_1, CARD_1, PBOOLE, AOFA_I00, AFINSQ_1, CARD_2;
+ registrations MEMBERED, RELAT_1, FUNCOP_1, XREAL_0, RAT_1, ORDINAL1, INT_1,
+      FUNCT_1, XBOOLE_0, RELSET_1, FUNCT_2, SETFAM_1, SUBSET_1, PBOOLE, NAT_1,
+      NUMBERS, XXREAL_0, XXREAL_3, CARD_1, VALUED_0, XXREAL_2, FOMODEL0,
+      FINSET_1, AFINSQ_1, CAYLDICK, ORDINAL2, CARD_3, CATALG_1, ZFMISC_1,
+      CARD_2, CARD_5, ORDINAL4;
+ requirements SUBSET, BOOLE, NUMERALS, ARITHM, REAL;
+ theorems ZFMISC_1, NUMBERS, TARSKI, XXREAL_0, XBOOLE_0, XBOOLE_1, ORDINAL1,
+      FINSET_1, XXREAL_3, NAT_1, XREAL_0, SUBSET_1, XXREAL_2, MEMBERED, INT_1,
+      ENUMSET1, VALUED_0, RELAT_1, FUNCOP_1, FUNCT_4, SETFAM_1, FUNCT_1,
+      PARTFUN1, FUNCT_2, AFINSQ_1, CARD_1, ORDINAL2, ORDINAL3, ORDINAL4,
+      XTUPLE_0, CARD_2, CARD_3, SYSREL;
+ schemes NAT_1, SUBSET_1, FUNCT_1, ORDINAL2;
+
+begin :: Extended natural numbers
+
+definition
+  func ExtNAT -> Subset of ExtREAL equals
+  NAT \/ {+infty};
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in NAT \/ {+infty};
+      then per cases by ZFMISC_1:136;
+      suppose x in NAT;
+        then x in REAL by NUMBERS:19;
+        hence x in ExtREAL by NUMBERS:31;
+      end;
+      suppose x = +infty;
+        then x in {+infty,-infty} by TARSKI:def 2;
+        hence x in ExtREAL by XXREAL_0:def 4, XBOOLE_0:def 3;
+      end;
+    end;
+    hence thesis by TARSKI:def 3;
+  end;
+end;
+
+theorem Th1:
+  NAT c< ExtNAT & ExtNAT c< ExtREAL
+proof
+  A2: +infty in ExtNAT by ZFMISC_1:136;
+  not +infty in NAT;
+  hence NAT c< ExtNAT by A2, XBOOLE_1:7, XBOOLE_0:def 8;
+  -infty in {+infty,-infty} by TARSKI:def 2;
+  then A2: -infty in ExtREAL by XXREAL_0:def 4, XBOOLE_0:def 3;
+  not -infty in ExtNAT
+  proof
+    assume -infty in ExtNAT;
+    then per cases by ZFMISC_1:136;
+    suppose -infty in NAT;
+      hence contradiction;
+    end;
+    suppose -infty in {+infty};
+      hence contradiction by TARSKI:def 1;
+    end;
+  end;
+  hence thesis by A2, XBOOLE_0:def 8;
+end;
+
+registration
+  cluster ExtNAT -> non empty infinite;
+  coherence by Th1, FINSET_1:1, XBOOLE_0:def 8;
+end;
+
+definition
+  let x be object;
+  attr x is ext-natural means
+  :Def1:
+  x in ExtNAT;
+end;
+
+registration
+  cluster +infty -> ext-natural;
+  coherence by ZFMISC_1:136;
+  cluster ext-natural -> ext-real for object;
+  coherence;
+  cluster natural -> ext-natural for object;
+  coherence
+  proof
+    let x be object;
+    assume x is natural;
+    then x in NAT by ORDINAL1:def 12;
+    hence thesis by Th1, XBOOLE_0:def 8, TARSKI:def 3;
+  end;
+  cluster finite ext-natural -> natural for set;
+  coherence
+  proof
+    let x be set;
+    assume x is finite ext-natural;
+    then x in ExtNAT & not x in {+infty} by XXREAL_0:def 2, TARSKI:def 1;
+    then x in NAT by XBOOLE_0:def 3;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster zero ext-natural for object;
+  existence
+  proof
+    take the zero natural object;
+    thus thesis;
+  end;
+  cluster non zero ext-natural for object;
+  existence
+  proof
+    take the non zero natural object;
+    thus thesis;
+  end;
+  cluster ext-natural for number;
+  existence
+  proof
+    take the natural number;
+    thus thesis;
+  end;
+  cluster -> ext-natural for Element of ExtNAT;
+  coherence;
+end;
+
+definition
+  mode ExtNat is ext-natural ExtReal;
+end;
+
+registration
+  let x be ExtNat;
+  reduce In(x,ExtNAT) to x;
+  reducibility by Def1, SUBSET_1:def 8;
+end;
+
+registration
+  sethood of ExtNat
+  proof
+    take ExtNAT;
+    thus thesis by Def1;
+  end;
+end;
+
+theorem Th3:
+  for x being object holds x is ExtNat iff x is Nat or x = +infty
+proof
+  let x be object;
+  hereby
+    assume x is ExtNat;
+    then x in NAT or x = +infty by Def1, ZFMISC_1:136;
+    hence x is Nat or x = +infty;
+  end;
+  assume x is Nat or x = +infty;
+  then x in NAT or x in {+infty} by ORDINAL1:def 12, TARSKI:def 1;
+  then x in ExtNAT by XBOOLE_0:def 3;
+  hence thesis;
+end;
+
+registration
+  cluster zero -> ext-natural for object;
+  coherence;
+  cluster ext-natural -> non negative for ExtReal;
+  coherence by Th3;
+end;
+
+registration
+  cluster -> non negative for ExtNat;
+  coherence;
+  cluster non zero -> positive for ExtNat;
+  coherence;
+end;
+
+reserve N,M,K for ExtNat;
+
+registration
+  let N,M;
+  cluster min(N,M) -> ext-natural;
+  coherence by XXREAL_0:def 9;
+  cluster max(N,M) -> ext-natural;
+  coherence by XXREAL_0:def 10;
+  cluster N + M -> ext-natural;
+  coherence
+  proof
+    per cases by Th3;
+    suppose N is Nat;
+      then reconsider n = N as Nat;
+      per cases by Th3;
+      suppose M is Nat;
+        then reconsider k = M as Nat;
+        n + k is Nat;
+        hence thesis;
+      end;
+      suppose M = +infty;
+        hence thesis by XXREAL_3:def 2;
+      end;
+    end;
+    suppose N = +infty;
+      hence thesis by XXREAL_3:def 2;
+    end;
+  end;
+  cluster N * M -> ext-natural;
+  coherence
+  proof
+    per cases by Th3;
+    suppose N is Nat;
+      then reconsider n = N as Nat;
+      per cases by Th3;
+      suppose M is Nat;
+        then reconsider k = M as Nat;
+        n * k is Nat;
+        hence thesis;
+      end;
+      suppose A1: M = +infty;
+        N is positive or N is zero;
+        hence thesis by A1, XXREAL_3:def 5;
+      end;
+    end;
+    suppose A1: N = +infty;
+      M is positive or M is zero;
+      hence thesis by A1, XXREAL_3:def 5;
+    end;
+  end;
+end;
+
+theorem
+  0 <= N;
+
+theorem
+  0 <> N implies 0 < N;
+
+theorem
+  0 < N + 1;
+
+theorem Th5:
+  M in NAT & N <= M implies N in NAT
+proof
+  assume A1: M in NAT & N <= M;
+  0 <= N & 0 in REAL by XREAL_0:def 1;
+  then N in REAL by A1, NUMBERS:19, XXREAL_0:45;
+  then N is Nat by Th3;
+  hence thesis by ORDINAL1:def 12;
+end;
+
+theorem
+  N < M implies N in NAT
+proof
+  assume A1: N < M;
+  0 <= N & 0 in REAL by XREAL_0:def 1;
+  then N in REAL by A1, XXREAL_0:46;
+  then N is Nat by Th3;
+  hence thesis by ORDINAL1:def 12;
+end;
+
+theorem
+  N <= M implies N * K <= M * K by XXREAL_3:71;
+
+theorem
+  N = 0 or ex K st N = K + 1
+proof
+  per cases by Th3;
+  suppose N is Nat;
+    then reconsider n = N as Nat;
+    assume N <> 0;
+    then consider k being Nat such that
+      A1: n = k + 1 by NAT_1:6;
+    reconsider K = k as ExtNat;
+    take K;
+    N = k + (1 qua ExtNat) by A1;
+    hence thesis;
+  end;
+  suppose A2: N = +infty;
+    assume N <> 0;
+    take +infty;
+    thus thesis by A2, XXREAL_3:def 2;
+  end;
+end;
+
+theorem
+  N + M = 0 implies N = 0 & M = 0;
+
+registration
+  let M be ExtNat, N be non zero ExtNat;
+  cluster M + N -> non zero;
+  coherence;
+  cluster N + M -> non zero;
+  coherence;
+end;
+
+theorem Th10:
+  N <= M + 1 implies N <= M or N = M + 1
+proof
+  assume A1: N <= M + 1;
+  per cases by Th3;
+  suppose M is Nat;
+    then reconsider m = M as Nat;
+    m + (1 qua ExtNat) = M + 1;
+    then A2: m + 1 in NAT & N <= m + 1 by A1;
+    then N in NAT by Th5;
+    then reconsider n = N as Nat;
+    n <= m or n = m + 1 by A2, NAT_1:8;
+    then N <= M or N = m + (1 qua ExtNat);
+    hence thesis;
+  end;
+  suppose M = +infty;
+    hence thesis by A1, XXREAL_3:def 2;
+  end;
+end;
+
+theorem
+  N <= M & M <= N + 1 implies N = M or M = N + 1
+proof
+  assume A1: N <= M & M <= N + 1;
+  then M <= N or M = N + 1 by Th10;
+  hence thesis by A1, XXREAL_0:1;
+end;
+
+theorem
+  N <= M implies ex K st M = N + K
+proof
+  assume A1: N <= M;
+  per cases by Th3;
+  suppose M is Nat;
+    then reconsider m = M as Nat;
+    m in NAT by ORDINAL1:def 12;
+    then N in NAT by A1, Th5;
+    then reconsider n = N as Nat;
+    consider k being Nat such that
+      A2: m = n + k by A1, NAT_1:10;
+    reconsider K = k as ExtNat;
+    take K;
+    m = (n qua ExtNat) + k by A2;
+    hence thesis;
+  end;
+  suppose A3: M = +infty;
+    take M;
+    thus thesis by A3, XXREAL_3:def 2;
+  end;
+end;
+
+theorem
+  N <= N + M
+proof
+  0 + N <= M + N by XXREAL_3:35;
+  hence thesis by XXREAL_3:4;
+end;
+
+theorem
+  N <= M implies N <= M + K
+proof
+  assume A1: N <= M;
+  N + 0 <= M + K by A1, XXREAL_3:36;
+  hence thesis by XXREAL_3:4;
+end;
+
+theorem Th4c:
+  N < 1 implies N = 0
+proof
+  assume A1: N < 1;
+  then N in NAT by Th5;
+  then reconsider n = N as Nat;
+  n = 0 by A1, NAT_1:14;
+  hence thesis;
+end;
+
+theorem
+  N * M = 1 implies N = 1
+proof
+  assume A1: N * M = 1;
+  N <> +infty & M <> +infty
+  proof
+    assume N = +infty or M = +infty;
+    then (N = +infty & (M is zero or M is positive)) or
+      (M = +infty & (N is zero or N is positive));
+    hence contradiction by A1, XXREAL_3:def 5;
+  end;
+  then reconsider n = N, m = M as Nat by Th3;
+  n * (m qua ExtNat) = 1 by A1;
+  hence thesis by NAT_1:15;
+end;
+
+theorem
+  K < K + N iff 1 <= N & K <> +infty
+proof
+  hereby
+    assume A1: K < K + N;
+    assume N < 1 or K = +infty;
+    then N = 0 or K = +infty by Th4c;
+    hence contradiction by A1, XXREAL_3:4, XXREAL_3:def 2;
+  end;
+  assume A2: 1 <= N & K <> +infty;
+  then reconsider k = K as Nat by Th3;
+  per cases by Th3;
+  suppose N is Nat;
+    then reconsider n = N as Nat;
+    k < (k qua ExtNat) + n by A2, NAT_1:19;
+    hence thesis;
+  end;
+  suppose N = +infty;
+    then A3: K + N = +infty by XXREAL_3:def 2;
+    k in REAL by XREAL_0:def 1;
+    hence thesis by A3, XXREAL_0:9;
+  end;
+end;
+
+theorem
+  K <> 0 & N = M * K implies M <= N
+proof
+  assume A1: K <> 0 & N = M * K;
+  per cases by Th3;
+  suppose N is Nat;
+    then reconsider n = N as Nat;
+    per cases;
+    suppose M = 0;
+      hence thesis;
+    end;
+    suppose A2: M <> 0;
+      M <> +infty & K <> +infty
+      proof
+        assume M = +infty or K = +infty;
+        then n = +infty by A1, A2, XXREAL_3:def 5;
+        hence contradiction;
+      end;
+      then reconsider m = M, k = K as Nat by Th3;
+      n = m * (k qua ExtNat) by A1;
+      hence thesis by A1, NAT_1:24;
+    end;
+  end;
+  suppose N = +infty;
+    hence thesis by XXREAL_0:3;
+  end;
+end;
+
+theorem
+  M <= N implies M * K <= N * K by XXREAL_3:71;
+
+theorem
+  K + M + N = K + (M + N) by XXREAL_3:29;
+
+theorem
+  K * (N+M) = K*N + K*M
+proof
+  per cases by Th3;
+  suppose K is Nat;
+    hence thesis by XXREAL_3:95;
+  end;
+  suppose A1: K = +infty;
+    per cases;
+    suppose A2: N is positive & M is positive;
+      hence K * (N+M) = +infty by A1, XXREAL_3:def 5
+        .= K*N + +infty by XXREAL_3:def 2
+        .= K*N + K*M by A1, A2, XXREAL_3:def 5;
+    end;
+    suppose M is non positive;
+      then A3: M = 0;
+      hence K * (N+M) = K*N by XXREAL_3:4
+        .= K*N + 0 by XXREAL_3:4
+        .= K*N + K*M by A3;
+    end;
+    suppose N is non positive;
+      then A3: N = 0;
+      hence K * (N+M) = K*M by XXREAL_3:4
+        .= 0 + K*M by XXREAL_3:4
+        .= K*N + K*M by A3;
+    end;
+  end;
+end;
+
+begin :: Sets of extended natural numbers
+
+definition
+  let X be set;
+  attr X is ext-natural-membered means
+  :Def2:
+  for x being object holds x in X implies x is ext-natural;
+end;
+
+registration
+  cluster empty -> ext-natural-membered for set;
+  coherence;
+  cluster natural-membered -> ext-natural-membered for set;
+  coherence;
+  cluster ext-natural-membered -> ext-real-membered for set;
+  coherence
+  proof
+    let X be set;
+    assume A1: X is ext-natural-membered;
+    now
+      let x be object;
+      assume x in X;
+      then x is ext-natural by A1;
+      hence x is ext-real;
+    end;
+    hence thesis by MEMBERED:def 2;
+  end;
+  cluster ExtNAT -> ext-natural-membered;
+  coherence;
+end;
+
+registration
+  cluster non empty ext-natural-membered for set;
+  existence
+  proof
+    take ExtNAT;
+    thus thesis;
+  end;
+end;
+
+theorem ThSubset:
+  for X being set holds X is ext-natural-membered iff X c= ExtNAT
+proof
+  let X be set;
+  hereby
+    assume A1: X is ext-natural-membered;
+    now
+      let x be object;
+      assume x in X;
+      then x is ext-natural by A1;
+      hence x in ExtNAT;
+    end;
+    hence X c= ExtNAT by TARSKI:def 3;
+  end;
+  assume X c= ExtNAT;
+  hence thesis;
+end;
+
+reserve X for ext-natural-membered set;
+
+registration
+  let X;
+  cluster -> ext-natural for Element of X;
+  coherence
+  proof
+    let x be Element of X;
+    per cases;
+    suppose X is non empty;
+      hence thesis by Def2;
+    end;
+    suppose X is empty;
+      hence thesis;
+    end;
+  end;
+end;
+
+theorem ThEx:
+  for X being non empty ext-natural-membered set ex N st N in X
+proof
+  let X be non empty ext-natural-membered set;
+  consider x being ExtReal such that
+    A1: x in X by MEMBERED:8;
+  reconsider N = x as ext-natural ExtReal by A1;
+  take N;
+  thus thesis by A1;
+end;
+
+theorem
+  (for N holds N in X) implies X = ExtNAT
+proof
+  assume A1: for N holds N in X;
+  A2: X c= ExtNAT by ThSubset;
+  for x being object st x in ExtNAT holds x in X by A1;
+  then ExtNAT c= X by TARSKI:def 3;
+  hence thesis by A2, XBOOLE_0:def 10;
+end;
+
+theorem
+  for Y being set st Y c= X holds Y is ext-natural-membered;
+
+registration
+  let X;
+  cluster -> ext-natural-membered for Subset of X;
+  coherence;
+end;
+
+registration
+  let N;
+  cluster {N} -> ext-natural-membered;
+  coherence by TARSKI:def 1;
+  let M;
+  cluster {N,M} -> ext-natural-membered;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in {N,M};
+      then per cases by TARSKI:def 2;
+      suppose x = N;
+        hence x is ext-natural;
+      end;
+      suppose x = M;
+        hence x is ext-natural;
+      end;
+    end;
+    hence thesis;
+  end;
+  let K;
+  cluster {N,M,K} -> ext-natural-membered;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in {N,M,K};
+      then per cases by ENUMSET1:def 1;
+      suppose x = N;
+        hence x is ext-natural;
+      end;
+      suppose x = M;
+        hence x is ext-natural;
+      end;
+      suppose x = K;
+        hence x is ext-natural;
+      end;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X; let Y be ext-natural-membered set;
+  cluster X \/ Y -> ext-natural-membered;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in X \/ Y;
+      then per cases by XBOOLE_0:def 3;
+      suppose x in X;
+        hence x is ext-natural;
+      end;
+      suppose x in Y;
+        hence x is ext-natural;
+      end;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X; let Y be set;
+  cluster X /\ Y -> ext-natural-membered;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in X /\ Y;
+      then x in X by XBOOLE_0:def 4;
+      hence x is ext-natural;
+    end;
+    hence thesis;
+  end;
+  cluster X \ Y -> ext-natural-membered;
+  coherence;
+end;
+
+registration
+  let X; let Y be ext-natural-membered set;
+  cluster X \+\ Y -> ext-natural-membered;
+  coherence
+  proof
+    X \+\ Y = (X \ Y) \/ (Y \ X) by XBOOLE_0:def 6;
+    hence thesis;
+  end;
+end;
+
+definition
+  let X; let Y be set;
+  redefine pred X c= Y means
+  N in X implies N in Y;
+  compatibility
+  proof
+    thus (X c= Y) implies for N st N in X holds N in Y;
+    assume A1: for N st N in X holds N in Y;
+    for x being object st x in X holds x in Y by A1;
+    hence thesis by TARSKI:def 3;
+  end;
+end;
+
+definition
+  let X; let Y be ext-natural-membered set;
+  redefine pred X = Y means
+  N in X iff N in Y;
+  compatibility
+  proof
+    thus (X = Y) implies for N holds N in X iff N in Y;
+    assume for N holds N in X iff N in Y;
+    then X c= Y & Y c= X;
+    hence thesis by XBOOLE_0:def 10;
+  end;
+end;
+
+definition
+  let X; let Y be ext-natural-membered set;
+  redefine pred X misses Y means
+  not ex N st N in X & N in Y;
+  compatibility
+  proof
+    thus X misses Y implies not ex N st N in X & N in Y by XBOOLE_0:3;
+    assume not ex N st N in X & N in Y;
+    then not ex x being object st x in X & x in Y;
+    hence thesis by XBOOLE_0:3;
+  end;
+end;
+
+theorem
+  for F being set st(for X being set st X in F holds X is ext-natural-membered)
+  holds union F is ext-natural-membered
+proof
+  let F be set;
+  assume A1: for X being set st X in F holds X is ext-natural-membered;
+  let x be object;
+  assume x in union F;
+  then consider Y being set such that
+    A2: x in Y & Y in F by TARSKI:def 4;
+  Y is ext-natural-membered by A1, A2;
+  hence x is ext-natural by A2;
+end;
+
+theorem
+  for F, X being set st X in F & X is ext-natural-membered
+  holds meet F is ext-natural-membered
+proof
+  let F, X be set;
+  assume A1: X in F & X is ext-natural-membered;
+  let x be object;
+  assume x in meet F;
+  then x in X by A1, SETFAM_1:def 1;
+  hence thesis by A1;
+end;
+
+scheme
+  ENMSeparation {P[object]}:
+   ex X being ext-natural-membered set st for N holds N in X iff P[N]
+proof
+  consider X being Subset of ExtNAT such that
+    A1: for N being set holds N in X iff N in ExtNAT & P[N]
+    from SUBSET_1:sch 1;
+  reconsider X as ext-natural-membered set;
+  take X;
+  let N be ExtNat;
+  thus N in X implies P[N] by A1;
+  assume A2: P[N];
+  N in ExtNAT by Def1;
+  hence N in X by A1, A2;
+end;
+
+definition
+  let X be ext-natural-membered set;
+  redefine mode UpperBound of X means
+  :DefU:
+    for N holds N in X implies N <= it;
+  compatibility
+  proof
+    let U be ExtReal;
+    thus U is UpperBound of X implies for N st N in X holds N <= U
+      by XXREAL_2:def 1;
+    assume for N holds N in X implies N <= U;
+    then for x being ExtReal st x in X holds x <= U;
+    hence U is UpperBound of X by XXREAL_2:def 1;
+  end;
+  redefine mode LowerBound of X means
+  :DefL:
+    for N holds N in X implies it <= N;
+  compatibility
+  proof
+    let L be ExtReal;
+    thus L is LowerBound of X implies for N st N in X holds L <= N
+      by XXREAL_2:def 2;
+    assume for N holds N in X implies L <= N;
+    then for x being ExtReal st x in X holds L <= x;
+    hence L is LowerBound of X by XXREAL_2:def 2;
+  end;
+end;
+
+registration
+  cluster -> bounded_below for ext-natural-membered set;
+  coherence
+  proof
+    let X be ext-natural-membered set;
+    for x being ExtReal st x in X holds 0 <= x;
+    then 0 is LowerBound of X by XXREAL_2:def 2;
+    hence thesis by XXREAL_2:def 9;
+  end;
+  cluster non empty -> left_end for ext-natural-membered set;
+  coherence
+  proof
+    let X be ext-natural-membered set;
+    assume X is non empty;
+    then consider N such that
+      A2: N in X by ThEx;
+    per cases;
+    suppose X is trivial;
+      hence thesis by A2;
+    end;
+    suppose A3: X is non trivial;
+      :: get smallest n in the set
+      defpred P[Nat] means $1 in X;
+      A4: ex n being Nat st P[n]
+      proof
+        per cases by Th3;
+        suppose N is Nat;
+          then reconsider n = N as Nat;
+          take n;
+          thus thesis by A2;
+        end;
+        suppose A5: N = +infty;
+          set n = the Element of X \ {N};
+          X \ {N} is non empty by A3, ZFMISC_1:139;
+          then A6: n in X & n <> +infty by A5, ZFMISC_1:56;
+          then reconsider n as Nat by Th3;
+          take n;
+          thus thesis by A6;
+        end;
+      end;
+      consider n being Nat such that
+        A7: P[n] & for m being Nat st P[m] holds n <= m from NAT_1:sch 5(A4);
+      :: n is lower bound
+      now
+        let x be ExtNat;
+        assume A7a: x in X;
+        per cases by Th3;
+        suppose x is Nat;
+          hence n <= x by A7, A7a;
+        end;
+        suppose x = +infty;
+          hence n <= x by XXREAL_0:3;
+        end;
+      end;
+      then A8: n is LowerBound of X by DefL;
+      :: n is biggest lower bound
+      for x being LowerBound of X holds x <= n by A7, XXREAL_2:def 2;
+      then inf X = n by A8, XXREAL_2:def 4;
+      hence thesis by A7, XXREAL_2:def 5;
+    end;
+  end;
+end;
+
+registration
+  let X;
+  cluster ext-natural for UpperBound of X;
+  existence
+  proof
+    for x being ExtReal st x in X holds x <= +infty by XXREAL_0:3;
+    then reconsider L = +infty as UpperBound of X by XXREAL_2:def 1;
+    take L;
+    thus thesis;
+  end;
+  cluster ext-natural for LowerBound of X;
+  existence
+  proof
+    for x being ExtReal st x in X holds 0 <= x;
+    then reconsider L = 0 as LowerBound of X by XXREAL_2:def 2;
+    take L;
+    thus thesis;
+  end;
+  cluster inf X -> ext-natural;
+  coherence
+  proof
+    per cases;
+    suppose X is non empty;
+      then inf X in X by XXREAL_2:def 5;
+      hence thesis;
+    end;
+    suppose X is empty;
+      hence thesis by XXREAL_2:38;
+    end;
+  end;
+end;
+
+registration
+  let X be non empty ext-natural-membered set;
+  cluster sup X -> ext-natural;
+  coherence
+  proof
+    consider N such that
+      A1: N in X by ThEx;
+    per cases;
+    suppose sup X = +infty;
+      hence thesis;
+    end;
+    suppose A2: sup X <> +infty;
+      A3: 0 <= sup X by A1, XXREAL_2:4;
+      then sup X in REAL by A2, XREAL_0:def 1, XXREAL_0:10;
+      then reconsider S = sup X as Real;
+      set s = [\ S /];
+      now
+        let x be ExtNat;
+        assume x in X;
+        then A4: x <= S by XXREAL_2:4;
+        then x <> +infty by XXREAL_0:4;
+        then reconsider n = x as Nat by Th3;
+        n < s + 1 by A4, INT_1:29, XXREAL_0:2;
+        hence x <= s by INT_1:7;
+      end;
+      then s is UpperBound of X by DefU;
+      then B1: S <= s by XXREAL_2:def 3;
+      s <= S by INT_1:def 6;
+      hence thesis by A3, B1, XXREAL_0:1;
+    end;
+  end;
+end;
+
+registration
+  cluster non empty bounded_above -> right_end for ext-natural-membered set;
+  coherence
+  proof
+    let X be ext-natural-membered set;
+    assume A1: X is non empty bounded_above;
+    then consider N such that
+      A2: N in X by ThEx;
+    per cases;
+    suppose X is trivial;
+      hence thesis by A2;
+    end;
+    suppose A3: X is non trivial;
+      :: get biggest n in the set
+      defpred P[Nat] means $1 in X;
+      A4: ex n being Nat st P[n]
+      proof
+        per cases by Th3;
+        suppose N is Nat;
+          then reconsider n = N as Nat;
+          take n;
+          thus thesis by A2;
+        end;
+        suppose A5: N = +infty;
+          set n = the Element of X \ {N};
+          X \ {N} is non empty by A3, ZFMISC_1:139;
+          then A6: n in X & n <> +infty by A5, ZFMISC_1:56;
+          then reconsider n as Nat by Th3;
+          take n;
+          thus thesis by A6;
+        end;
+      end;
+      consider R being Real such that
+        B1: R is UpperBound of X by A1, XXREAL_2:def 10;
+      set r = [\ R /];
+      C2: 0 <= R by A2, B1, XXREAL_2:def 1;
+      C3: R < r + 1 by INT_1:29;
+      then 0 <= r by C2, INT_1:7;
+      then r in NAT by ORDINAL1:def 12;
+      then reconsider r as Nat;
+      B2: for n being Nat st P[n] holds n <= r
+      proof
+        let n be Nat;
+        assume P[n];
+        then n <= R by B1, XXREAL_2:def 1;
+        then n < r + 1 by C3, XXREAL_0:2;
+        hence n <= r by NAT_1:13;
+      end;
+      consider n being Nat such that
+        A7: P[n] & for m being Nat st P[m] holds m <= n
+        from NAT_1:sch 6(B2,A4);
+      :: n is upper bound
+      now
+        let x be ExtNat;
+        assume A7a: x in X;
+        then x <= R by B1, XXREAL_2:def 1;
+        then x in REAL by XREAL_0:def 1, XXREAL_0:13;
+        then x is Nat by Th3;
+        hence x <= n by A7, A7a;
+      end;
+      then A8: n is UpperBound of X by DefU;
+      :: n is smallest upper bound
+      for x being UpperBound of X holds n <= x by A7, XXREAL_2:def 1;
+      then sup X = n by A8, XXREAL_2:def 3;
+      hence thesis by A7, XXREAL_2:def 6;
+    end;
+  end;
+end;
+
+definition
+  let X be left_end ext-natural-membered set;
+  redefine func min X -> ExtNat means
+  it in X & for N st N in X holds it <= N;
+  coherence;
+  compatibility
+  proof
+    let M be ExtNat;
+    thus M = min X implies M in X & for N st N in X holds M <= N
+      by XXREAL_2:def 7;
+    assume A1: M in X & for N st N in X holds M <= N;
+    then for x being ExtReal st x in X holds M <= x;
+    hence thesis by A1, XXREAL_2:def 7;
+  end;
+end;
+
+definition
+  let X be right_end ext-natural-membered set;
+  redefine func max X -> ExtNat means
+  it in X & for N st N in X holds N <= it;
+  coherence;
+  compatibility
+  proof
+    let M be ExtNat;
+    thus M = max X implies M in X & for N st N in X holds N <= M
+      by XXREAL_2:def 8;
+    assume A1: M in X & for N st N in X holds N <= M;
+    then for x being ExtReal st x in X holds x <= M;
+    hence thesis by A1, XXREAL_2:def 8;
+  end;
+end;
+
+begin :: Relations with extended natural numbers in range
+
+definition
+  let R be Relation;
+  attr R is ext-natural-valued means
+  rng R c= ExtNAT;
+end;
+
+registration
+  cluster empty -> ext-natural-valued for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume R is empty;
+    then rng R = {};
+    hence thesis by XBOOLE_1:2;
+  end;
+  cluster natural-valued -> ext-natural-valued for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume R is natural-valued;
+    then rng R c< ExtNAT by Th1, VALUED_0:def 6, XBOOLE_1:59;
+    hence thesis by XBOOLE_0:def 8;
+  end;
+  cluster ext-natural-valued -> ExtNAT-valued ext-real-valued for Relation;
+  coherence by RELAT_1:def 19, XBOOLE_1:1, VALUED_0:def 2;
+  cluster ExtNAT-valued -> ext-natural-valued for Relation;
+  coherence by RELAT_1:def 19;
+end;
+
+registration
+  cluster ext-natural-valued for Function;
+  existence
+  proof
+    take the natural-valued Function;
+    thus thesis;
+  end;
+end;
+
+registration
+  let R be ext-natural-valued Relation;
+  cluster rng R -> ext-natural-membered;
+  coherence;
+end;
+
+theorem
+  for R being Relation, S being ext-natural-valued Relation st R c= S
+  holds R is ext-natural-valued;
+
+registration
+  let R be ext-natural-valued Relation;
+  cluster -> ext-natural-valued for Subset of R;
+  coherence;
+end;
+
+registration
+  let R, S be ext-natural-valued Relation;
+  cluster R \/ S -> ext-natural-valued;
+  coherence;
+end;
+
+registration
+  let R be ext-natural-valued Relation, S be Relation;
+  cluster R /\ S -> ext-natural-valued;
+  coherence;
+  cluster R \ S -> ext-natural-valued;
+  coherence;
+  cluster S * R -> ext-natural-valued;
+  coherence;
+end;
+
+registration
+  let R, S be ext-natural-valued Relation;
+  cluster R \+\ S -> ext-natural-valued;
+  coherence
+  proof
+    R \+\ S = (R \ S) \/ (S \ R) by XBOOLE_0:def 6;
+    hence thesis;
+  end;
+end;
+
+registration
+  let R be ext-natural-valued Relation, X be set;
+  cluster R.:X -> ext-natural-membered;
+  coherence
+  proof
+    R.:X c= rng R & rng R c= ExtNAT by RELAT_1:111;
+    hence thesis;
+  end;
+  cluster R|X -> ext-natural-valued;
+  coherence;
+  cluster X|`R -> ext-natural-valued;
+  coherence;
+end;
+
+registration
+  let R be ext-natural-valued Relation, x be object;
+  cluster Im(R,x) -> ext-natural-membered;
+  coherence
+  proof
+    Im(R,x) = R.:{x} by RELAT_1:def 16;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X;
+  cluster id X -> ext-natural-valued;
+  coherence by ThSubset;
+end;
+
+definition
+  let f be Function;
+  redefine attr f is ext-natural-valued means
+  for x being object st x in dom f holds f.x is ext-natural;
+  compatibility
+  proof
+    hereby
+      assume A1: f is ext-natural-valued;
+      let x be object;
+      assume x in dom f;
+      then f.x in rng f by FUNCT_1:3;
+      hence f.x is ext-natural by A1;
+    end;
+    assume A2: for x being object st x in dom f holds f.x is ext-natural;
+    now
+      let y be object;
+      assume y in rng f;
+      then consider x being object such that
+        A3: x in dom f & f.x = y by FUNCT_1:def 3;
+      y is ext-natural by A2, A3;
+      hence y in ExtNAT;
+    end;
+    hence thesis by TARSKI:def 3;
+  end;
+end;
+
+theorem ThFunc1:
+  for f being Function holds
+    f is ext-natural-valued iff for x being object holds f.x is ext-natural
+proof
+  let f be Function;
+  hereby
+    assume A1: f is ext-natural-valued;
+    let x be object;
+    per cases;
+    suppose x in dom f;
+      hence f.x is ext-natural by A1;
+    end;
+    suppose not x in dom f;
+      hence f.x is ext-natural by FUNCT_1:def 2;
+    end;
+  end;
+  thus (for x being object holds f.x is ext-natural)
+    implies f is ext-natural-valued;
+end;
+
+registration
+  let f be ext-natural-valued Function;
+  let x be object;
+  cluster f.x -> ext-natural;
+  coherence by ThFunc1;
+end;
+
+registration
+  let X be set; let N;
+  cluster X --> N -> ext-natural-valued;
+  coherence
+  proof
+    rng(X --> N) c= {N} & {N} c= ExtNAT by ThSubset;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f,g be ext-natural-valued Function;
+  cluster f +* g -> ext-natural-valued;
+  coherence
+  proof
+    rng(f +* g) c= rng f \/ rng g by FUNCT_4:17;
+    hence thesis by XBOOLE_1:1;
+  end;
+end;
+
+registration
+  let x be object; let N;
+  cluster x .--> N -> ext-natural-valued;
+  coherence
+  proof
+    x .--> N = {x} --> N by FUNCOP_1:def 9;
+    hence thesis;
+  end;
+end;
+
+registration
+  let Z be set; let X;
+  cluster -> ext-natural-valued for Relation of Z,X;
+  coherence
+  proof
+    let R be Relation of Z,X;
+    rng R c= X & X c= ExtNAT by ThSubset;
+    hence thesis;
+  end;
+end;
+
+registration
+  let Z be set; let X;
+  cluster [: Z, X :] -> ext-natural-valued for Relation of Z,X;
+  coherence;
+end;
+
+registration
+  cluster non empty constant ext-natural-valued for Function;
+  existence
+  proof
+    take the non empty set --> the ExtNat;
+    thus thesis;
+  end;
+end;
+
+theorem
+  for f being non empty constant ext-natural-valued Function
+  ex N st for x being object st x in dom f holds f.x = N
+proof
+  let f be non empty constant ext-natural-valued Function;
+  consider R being ExtReal such that
+    A1: for x being object st x in dom f holds f.x = R by VALUED_0:14;
+  set x = the Element of dom f;
+  f.x = R & f.x is ext-natural by A1;
+  then reconsider N = R as ExtNat;
+  take N;
+  thus thesis by A1;
+end;
+
+begin :: Ordinal preliminaries
+
+:: into ORDINAL1 ?
+theorem Th2:
+  for f being Function holds f is Ordinal-yielding iff
+    for x being object st x in dom f holds f.x is Ordinal
+proof
+  let f be Function;
+  hereby
+    assume f is Ordinal-yielding;
+    then consider A being Ordinal such that
+      A1: rng f c= A by ORDINAL2:def 4;
+    let x be object;
+    assume x in dom f;
+    then f.x in rng f by FUNCT_1:3;
+    hence f.x is Ordinal by A1;
+  end;
+  assume A2: for x being object st x in dom f holds f.x is Ordinal;
+  now
+    reconsider A = sup rng f as Ordinal;
+    take A;
+    now
+      let y be object;
+      assume A3: y in rng f;
+      then consider x being object such that
+        A4: x in dom f & y = f.x by FUNCT_1:def 3;
+      y is Ordinal by A2, A4;
+      then A5: y in On rng f by A3, ORDINAL1:def 9;
+      On rng f c= A by ORDINAL2:def 3;
+      hence y in A by A5;
+    end;
+    hence rng f c= A by TARSKI:def 3;
+  end;
+  hence thesis by ORDINAL2:def 4;
+end;
+
+:: into ORDINAL1 ?
+registration
+  cluster ordinal -> c=-linear for set;
+  coherence
+  proof
+    let A be set;
+    assume A is ordinal;
+    then for x,y being set st x in A & y in A holds x,y are_c=-comparable
+      by ORDINAL1:15;
+    hence thesis by ORDINAL1:def 8;
+  end;
+end;
+
+:: into ORDINAL1 ? ::: generalize in ORDINAL2
+registration
+  let f be Ordinal-yielding Function, x be object;
+  cluster f.x -> ordinal;
+  coherence
+  proof
+    per cases;
+    suppose x in dom f;
+      hence thesis by Th2;
+    end;
+    suppose not x in dom f;
+      hence thesis by FUNCT_1:def 2;
+    end;
+  end;
+end;
+
+:: into ORDINAL4 ?
+registration
+  let A, B be non-empty Sequence;
+  cluster A^B -> non-empty;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A1: x in dom (A^B);
+      then reconsider c = x as Ordinal;
+      per cases;
+      suppose A2: c in dom A;
+        then (A^B).c = A.c by ORDINAL4:def 1;
+        hence (A^B).x is non empty by A2, FUNCT_1:def 9;
+      end;
+      suppose not c in dom A;
+        then consider d being Ordinal such that
+          A3: c = dom A +^ d by ORDINAL1:16, ORDINAL3:27;
+        c in dom A +^ dom B by A1, ORDINAL4:def 1;
+        then A4: d in dom B by A3, ORDINAL3:22;
+        then (A^B).(dom A +^ d) = B.d by ORDINAL4:def 1;
+        hence (A^B).x is non empty by A3, A4, FUNCT_1:def 9;
+      end;
+    end;
+    hence thesis by FUNCT_1:def 9;
+  end;
+end;
+
+:: into CARD_1 ? ::: version of CARD_1:64
+theorem Th3:
+  for X being set, x being object holds card(X --> x) = card X
+proof
+  let X be set, x be object;
+  deffunc F(object) = [$1, x];
+  consider f being Function such that
+    A1: dom f = X & for z being object st z in X holds f.z = F(z)
+    from FUNCT_1:sch 3;
+  now
+    let y be object;
+    hereby
+      assume y in rng f;
+      then consider z being object such that
+        A2: z in dom f & f.z = y by FUNCT_1:def 3;
+      A3: y = [z,x] by A1, A2;
+      z in X & x in {x} by A1, A2, TARSKI:def 1;
+      then y in [: X, {x} :] by A3, ZFMISC_1:87;
+      hence y in X --> x by FUNCOP_1:def 2;
+    end;
+    assume y in X --> x;
+    then consider z,x0 being object such that
+      A4: z in X & x0 in {x} & y = [z,x0] by ZFMISC_1:def 2;
+    y = [z,x] by A4, TARSKI:def 1
+      .= f.z by A1, A4;
+    hence y in rng f by A1, A4, FUNCT_1:3;
+  end;
+  then A5: rng f = X --> x by TARSKI:2;
+  now
+    let x1,x2 be object;
+    assume A6: x1 in dom f & x2 in dom f & f.x1 = f.x2;
+    then f.x1 = [x1,x] & f.x2 = [x2,x] by A1;
+    hence x1 = x2 by A6, XTUPLE_0:1;
+  end;
+  hence thesis by A1, A5, FUNCT_1:def 4, CARD_1:70;
+end;
+
+:: generalization of CARD_1:64
+:: into CARD_1 ?
+theorem
+  for c being Cardinal, x being object holds card(c --> x) = c
+proof
+  let c be Cardinal, x be object;
+  thus card(c --> x) = card c by Th3
+    .= c;
+end;
+
+:: into CARD_1 ?
+registration
+  let X be trivial set;
+  cluster card X -> trivial;
+  coherence
+  proof
+    per cases;
+    suppose X is empty;
+      hence thesis;
+    end;
+    suppose X is non empty;
+      then consider x being object such that
+        A1: X = {x} by ZFMISC_1:131;
+      thus thesis by A1, CARD_1:30, CARD_1:49;
+    end;
+  end;
+end;
+
+:: into CARD_2 ?
+registration
+  let c1 be Cardinal, c2 be non empty Cardinal;
+  cluster c1 +` c2 -> non empty;
+  coherence
+  proof
+    c2 c= c1 +` c2 by CARD_2:94;
+    hence thesis;
+  end;
+end;
+
+:: into CARD_2 ?
+theorem
+  for A being Ordinal holds A <> 0 & A <> 1 iff A is non trivial
+proof
+  let A be Ordinal;
+  hereby
+    assume A1: A <> 0 & A <> 1;
+    then A in 1 or 1 in A by ORDINAL1:14;
+    then A2: 1 in A by A1, CARD_1:49, TARSKI:def 1;
+    0 in 1 by CARD_1:49, TARSKI:def 1;
+    then 0 in A by A2, ORDINAL1:10;
+    hence A is non trivial by A2, ZFMISC_1:def 10;
+  end;
+  assume A is non trivial;
+  then consider x, y being object such that
+    A3: x in A & y in A & x <> y by ZFMISC_1:def 10;
+  A4: card {x,y} c= card A by A3, ZFMISC_1:32, CARD_1:11;
+  card A c= A by CARD_1:8;
+  then card {x,y} c= A by A4, XBOOLE_1:1;
+  then {0,1} c= A by A3, CARD_2:57, CARD_1:50;
+  then 0 in A & 1 in A by ZFMISC_1:32;
+  hence thesis;
+end;
+
+:: into CARD_2 ?
+theorem ThAdd:
+  for A being Ordinal, B being infinite Cardinal st A in B holds A +^ B = B
+proof
+  let A being Ordinal, B be infinite Cardinal;
+  assume A1: A in B;
+  deffunc F(Ordinal) = A+^$1;
+  consider fi being Ordinal-Sequence such that
+    A2: dom fi = B & for C being Ordinal st C in B holds fi.C = F(C)
+    from ORDINAL2:sch 3;
+  A3: A +^ B = sup fi by A2, ORDINAL2:29;
+  now
+    let D be Ordinal;
+    assume D in rng fi;
+    then consider x being object such that
+      B1: x in dom fi & fi.x = D by FUNCT_1:def 3;
+    reconsider C = x as Ordinal by B1;
+    card A in B & card C in B by A1, A2, B1, CARD_1:9;
+    then card A +` card C in B +` B by CARD_2:96;
+    then B2: card A +` card C in card B by CARD_2:75;
+    D = A +^ C by A2, B1;
+    then card D = card A +` card C by CARD_2:13;
+    hence D in B by B2, CARD_3:43;
+  end;
+  then sup rng fi c= B by ORDINAL2:20;
+  then A4: sup fi c= B by ORDINAL2:def 5;
+  B c= A +^ B by ORDINAL3:24;
+  hence thesis by A3, A4, XBOOLE_0:def 10;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be Cardinal-yielding Function, g be Function;
+  cluster f*g -> Cardinal-yielding;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A1: x in dom(f*g);
+      then x in dom g & g.x in dom f by FUNCT_1:11;
+      then f.(g.x) is Cardinal by CARD_3:def 1;
+      hence (f*g).x is Cardinal by A1, FUNCT_1:12;
+    end;
+    hence thesis by CARD_3:def 1;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  cluster natural-valued -> Cardinal-yielding for Function;
+  coherence
+  proof
+    let f be Function;
+    assume f is natural-valued;
+    then for x being object st x in dom f holds f.x is Cardinal;
+    hence thesis by CARD_3:def 1;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be empty Function;
+  cluster disjoin f -> empty;
+  coherence by CARD_3:3;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be empty-yielding Function;
+  cluster disjoin f -> empty-yielding;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in dom disjoin f;
+      then A1: x in dom f by CARD_3:def 3;
+      [: f.x, {x} :] is empty;
+      hence (disjoin f).x is empty by A1, CARD_3:def 3;
+    end;
+    hence thesis by FUNCT_1:def 8;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be non empty-yielding Function;
+  cluster disjoin f -> non empty-yielding;
+  coherence
+  proof
+    consider x being object such that
+      A1: x in dom f & f.x is non empty by FUNCT_1:def 8;
+    [: f.x, {x} :] is non empty by A1;
+    then (disjoin f).x is non empty by A1, CARD_3:def 3;
+    hence thesis;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be empty-yielding Function;
+  cluster Union f -> empty;
+  coherence
+  proof
+    assume Union f is non empty;
+    then consider y being object such that
+      A1: y in Union f by XBOOLE_0:def 1;
+    y in union rng f by A1, CARD_3:def 4;
+    then consider Y being set such that
+      A2: y in Y & Y in rng f by TARSKI:def 4;
+    thus contradiction by A2;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  cluster Cardinal-yielding -> Ordinal-yielding for Function;
+  coherence
+  proof
+    let f be Function;
+    assume f is Cardinal-yielding;
+    then for x being object st x in dom f holds f.x is Ordinal by CARD_3:def 1;
+    hence thesis by Th2;
+  end;
+end;
+
+:: into CARD_3 ?
+theorem
+  for f being Function, p being Permutation of dom f
+  holds Card(f*p) = (Card f)*p
+proof
+  let f be Function, p be Permutation of dom f;
+  A1: rng p = dom f by FUNCT_2:def 3;
+  then A2: rng p = dom Card f by CARD_3:def 2;
+  A3: dom Card(f*p) = dom(f*p) by CARD_3:def 2
+    .= dom p by A1, RELAT_1:27
+    .= dom((Card f)*p) by A2, RELAT_1:27;
+  now
+    let x be object;
+    assume A4: x in dom Card(f*p);
+    then A5: x in dom(f*p) by CARD_3:def 2;
+    then A6: p.x in dom f by FUNCT_1:11;
+    thus Card(f*p).x = card((f*p).x) by A5, CARD_3:def 2
+      .= card(f.(p.x)) by A5, FUNCT_1:12
+      .= (Card f).(p.x) by A6, CARD_3:def 2
+      .= ((Card f)*p).x by A3, A4, FUNCT_1:12;
+  end;
+  hence thesis by A3, FUNCT_1:2;
+end;
+
+:: into CARD_3 ?
+registration
+  let A be Sequence;
+  cluster Card A -> Sequence-like;
+  coherence
+  proof
+    dom Card A = dom A by CARD_3:def 2;
+    hence thesis by ORDINAL1:def 7;
+  end;
+end;
+
+:: into CARD_3 ?
+theorem
+  for A, B being Sequence holds Card(A^B) = (Card A)^(Card B)
+proof
+  let A, B be Sequence;
+  A1: dom Card(A^B) = dom(A^B) by CARD_3:def 2
+    .= (dom A)+^(dom B) by ORDINAL4:def 1
+    .= (dom Card A)+^(dom B) by CARD_3:def 2
+    .= (dom Card A)+^(dom Card B) by CARD_3:def 2
+    .= dom((Card A)^(Card B)) by ORDINAL4:def 1;
+  now
+    let x be object;
+    assume x in dom Card(A^B);
+    then A2: x in dom(A^B) by CARD_3:def 2;
+    then reconsider C = x as Ordinal;
+    x in (dom A)+^(dom B) by A2, ORDINAL4:def 1;
+    then per cases by ORDINAL3:38;
+    suppose A3: C in dom A;
+      then A4: C in dom Card A by CARD_3:def 2;
+      thus (Card(A^B)).x = card((A^B).x) by A2, CARD_3:def 2
+        .= card(A.x) by A3, ORDINAL4:def 1
+        .= (Card A).x by A3, CARD_3:def 2
+        .= ((Card A)^(Card B)).x by A4, ORDINAL4:def 1;
+    end;
+    suppose ex D being Ordinal st D in dom B & C = (dom A)+^D;
+      then consider D being Ordinal such that
+        A5: D in dom B & C = (dom A)+^D;
+      A6: D in dom Card B & C = (dom Card A)+^D by A5, CARD_3:def 2;
+      thus (Card(A^B)).x = card((A^B).x) by A2, CARD_3:def 2
+        .= card(B.D) by A5, ORDINAL4:def 1
+        .= (Card B).D by A5, CARD_3:def 2
+        .= ((Card A)^(Card B)).x by A6, ORDINAL4:def 1;
+    end;
+  end;
+  hence thesis by A1, FUNCT_1:2;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be trivial Function;
+  cluster Card f -> trivial;
+  coherence
+  proof
+    dom f is trivial;
+    then dom Card f is trivial by CARD_3:def 2;
+    hence thesis;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  let f be non trivial Function;
+  cluster Card f -> non trivial;
+  coherence
+  proof
+    dom f is non trivial;
+    then dom Card f is non trivial by CARD_3:def 2;
+    hence thesis;
+  end;
+end;
+
+:: into CARD_3 ?
+registration
+  let A, B be Cardinal-yielding Sequence;
+  cluster A^B -> Cardinal-yielding;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A1: x in dom (A^B);
+      then reconsider c = x as Ordinal;
+      per cases;
+      suppose A2: c in dom A;
+        then (A^B).c = A.c by ORDINAL4:def 1;
+        hence (A^B).x is Cardinal by A2, CARD_3:def 1;
+      end;
+      suppose not c in dom A;
+        then consider d being Ordinal such that
+          A3: c = dom A +^ d by ORDINAL1:16, ORDINAL3:27;
+        c in dom A +^ dom B by A1, ORDINAL4:def 1;
+        then A4: d in dom B by A3, ORDINAL3:22;
+        then (A^B).(dom A +^ d) = B.d by ORDINAL4:def 1;
+        hence (A^B).x is Cardinal by A3, A4, CARD_3:def 1;
+      end;
+    end;
+    hence thesis by CARD_3:def 1;
+  end;
+end;
+
+:: into CARD_3 or AFINSQ_1 ?
+registration
+  let c1 be Cardinal;
+  cluster <% c1 %> -> Cardinal-yielding;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in dom <% c1 %>;
+      then x in {0} by AFINSQ_1:def 4, CARD_1:49;
+      then x = 0 by TARSKI:def 1;
+      hence <% c1 %>.x is Cardinal;
+    end;
+    hence thesis by CARD_3:def 1;
+  end;
+  let c2 be Cardinal;
+  cluster <% c1, c2 %> -> Cardinal-yielding;
+  coherence
+  proof
+    <% c1, c2 %> = <% c1 %> ^ <% c2 %> by AFINSQ_1:def 5;
+    hence thesis;
+  end;
+  let c3 be Cardinal;
+  cluster <% c1, c2, c3 %> -> Cardinal-yielding;
+  coherence
+  proof
+    <% c1, c2, c3 %> = <% c1 %> ^ <% c2 %> ^ <% c3 %> by AFINSQ_1:def 6
+      .= <% c1, c2 %> ^ <% c3 %> by AFINSQ_1:def 5;
+    hence thesis;
+  end;
+end;
+
+:: into CARD_3 or AFINSQ_1 ?
+registration
+  let X1, X2, X3 be non empty set;
+  cluster <% X1, X2, X3 %> -> non-empty;
+  coherence
+  proof
+    <% X1, X2, X3 %> = <% X1 %> ^ <% X2 %> ^ <% X3 %> by AFINSQ_1:def 6
+      .= <% X1, X2 %> ^ <% X3 %> by AFINSQ_1:def 5;
+    hence thesis;
+  end;
+end;
+
+:: into AFINSQ_1 ?
+registration
+  let A be infinite Ordinal;
+  cluster <% A %> -> non natural-valued;
+  coherence
+  proof
+    <% A %>.0 = A;
+    hence thesis;
+  end;
+  let x be object;
+  cluster <% A, x %> -> non natural-valued;
+  coherence
+  proof
+    <% A, x %>.0 = A;
+    hence thesis;
+  end;
+  cluster <% x, A %> -> non natural-valued;
+  coherence
+  proof
+    <% x, A %>.1 = A;
+    hence thesis;
+  end;
+  let y be object;
+  cluster <% A, x, y %> -> non natural-valued;
+  coherence
+  proof
+    <% A, x, y %>.0 = A;
+    hence thesis;
+  end;
+  cluster <% x, A, y %> -> non natural-valued;
+  coherence
+  proof
+    <% x, A, y %>.1 = A;
+    hence thesis;
+  end;
+  cluster <% x, y, A %> -> non natural-valued;
+  coherence
+  proof
+    <% x, y, A %>.2 = A;
+    hence thesis;
+  end;
+end;
+
+:: into AFINSQ_1 ?
+registration
+  cluster non empty non-empty natural-valued for XFinSequence;
+  existence
+  proof
+    take <% 1 %>;
+    thus thesis;
+  end;
+  let x be object;
+  cluster <% x %> -> one-to-one;
+  coherence
+  proof
+    <% x %> = 0 .--> x by AFINSQ_1:def 1;
+    hence thesis;
+  end;
+end;
+
+:: into AFINSQ_1 ?
+theorem Th7:
+  for x, y being object holds dom <% x, y %> = {0,1} & rng <% x, y %> = {x,y}
+proof
+  let x,y be object;
+  thus A1: dom <% x, y %> = {0,1} by AFINSQ_1:38, CARD_1:50;
+  now
+    let b be object;
+    hereby
+      assume b in rng <% x, y %>;
+      then consider a being object such that
+        A2: a in dom <% x, y %> & <% x, y %>.a = b by FUNCT_1:def 3;
+      per cases by A1, A2, TARSKI:def 2;
+      suppose a = 0;
+        hence b in {x,y} by A2, TARSKI:def 2;
+      end;
+      suppose a = 1;
+        hence b in {x,y} by A2, TARSKI:def 2;
+      end;
+    end;
+    assume b in {x, y};
+    then per cases by TARSKI:def 2;
+    suppose b = x;
+      then 0 in dom <% x, y %> & <% x, y %>.0 = b
+        by A1, TARSKI:def 2;
+      hence b in rng <% x, y %> by FUNCT_1:3;
+    end;
+    suppose b = y;
+      then 1 in dom <% x, y %> & <% x, y %>.1 = b
+        by A1, TARSKI:def 2;
+      hence b in rng <% x, y %> by FUNCT_1:3;
+    end;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem Th8:
+  for x,y,z being object holds dom<% x,y,z %>={0,1,2} & rng<% x,y,z %>={x,y,z}
+proof
+  let x,y,z be object;
+  thus A1: dom <% x, y, z %> = {0,1,2} by CARD_1:51, AFINSQ_1:39;
+  now
+    let b be object;
+    hereby
+      assume b in rng <% x, y, z %>;
+      then consider a being object such that
+        A2: a in dom <% x, y, z %> & <% x, y, z %>.a = b by FUNCT_1:def 3;
+      per cases by A1, A2, ENUMSET1:def 1;
+      suppose a = 0;
+        hence b in {x,y,z} by A2, ENUMSET1:def 1;
+      end;
+      suppose a = 1;
+        hence b in {x,y,z} by A2, ENUMSET1:def 1;
+      end;
+      suppose a = 2;
+        hence b in {x,y,z} by A2, ENUMSET1:def 1;
+      end;
+    end;
+    assume b in {x, y, z};
+    then per cases by ENUMSET1:def 1;
+    suppose b = x;
+      then 0 in dom <% x, y, z %> & <% x, y, z %>.0 = b
+        by A1, ENUMSET1:def 1;
+      hence b in rng <% x, y, z %> by FUNCT_1:3;
+    end;
+    suppose b = y;
+      then 1 in dom <% x, y, z %> & <% x, y, z %>.1 = b
+        by A1, ENUMSET1:def 1;
+      hence b in rng <% x, y, z %> by FUNCT_1:3;
+    end;
+    suppose b = z;
+      then 2 in dom <% x, y, z %> & <% x, y, z %>.2 = b
+        by A1, ENUMSET1:def 1;
+      hence b in rng <% x, y, z %> by FUNCT_1:3;
+    end;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+:: into AFINSQ_1 ?
+registration
+  let x be object;
+  cluster <% x %> -> trivial;
+  coherence;
+  let y be object;
+  cluster <% x, y %> -> non trivial;
+  coherence
+  proof
+    dom <% x, y %> = {0,1} by AFINSQ_1:38, CARD_1:50;
+    then 0 in dom <% x, y %> & 1 in dom <% x, y %> by TARSKI:def 2;
+    hence thesis by ZFMISC_1:def 10;
+  end;
+  let z be object;
+  cluster <% x, y, z %> -> non trivial;
+  coherence
+  proof
+    dom <% x, y, z %> = {0,1,2} by AFINSQ_1:39, CARD_1:51;
+    then 0 in dom <% x, y, z %> & 1 in dom <% x, y, z %> by ENUMSET1:def 1;
+    hence thesis by ZFMISC_1:def 10;
+  end;
+end;
+
+:: into AFINSQ_1 ?
+registration
+  cluster non empty trivial for XFinSequence;
+  existence
+  proof
+    take <% the object %>;
+    thus thesis;
+  end;
+  let D be non empty set;
+  cluster non empty trivial for XFinSequence of D;
+  existence
+  proof
+    take <% the Element of D %>;
+    thus thesis;
+  end;
+end;
+
+:: into AFINSQ_1 ?
+theorem Th9:
+  for p being non empty trivial Sequence
+  ex x being object st p = <% x %>
+proof
+  let p be non empty trivial XFinSequence;
+  consider x being object such that
+    A1: rng p = {x} by ZFMISC_1:131;
+  take x;
+  consider z being object such that
+    A2: dom p = {z} by ZFMISC_1:131;
+  dom p = card {z} by A2;
+  then A3: dom p = 1 by CARD_1:30;
+  p = (dom p) --> x by A1, FUNCOP_1:9
+    .= 0 .--> x by A3, CARD_1:49, FUNCOP_1:def 9;
+  hence thesis by AFINSQ_1:def 1;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for D being non empty set, p being non empty trivial Sequence of D
+  ex x being Element of D st p = <% x %>
+proof
+  let D be non empty set, p be non empty trivial Sequence of D;
+  consider x being object such that
+    A1: p = <% x %> by Th9;
+  rng p = {x} by A1, AFINSQ_1:33;
+  then x in rng p by TARSKI:def 1;
+  then reconsider x as Element of D;
+  take x;
+  thus thesis by A1;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  <% 0 %> = id 1
+proof
+  thus <% 0 %> = {[0,0]} by AFINSQ_1:32
+    .= id 1 by SYSREL:13, CARD_1:49;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  <% 0, 1 %> = id 2
+proof
+  A1: dom <% 0, 1 %> = dom id 2 by Th7, CARD_1:50;
+  now
+    let x be object;
+    assume x in dom <% 0, 1 %>;
+    then A2: x in 2 & x in {0,1} by A1, Th7;
+    then per cases by TARSKI:def 2;
+    suppose x = 0;
+      hence <% 0, 1 %>.x = (id 2).x by A2, FUNCT_1:18;
+    end;
+    suppose x = 1;
+      hence <% 0, 1 %>.x = (id 2).x by A2, FUNCT_1:18;
+    end;
+  end;
+  hence thesis by A1, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  <% 0, 1, 2 %> = id 3
+proof
+  A1: dom <% 0, 1, 2 %> = dom id 3 by Th8, CARD_1:51;
+  now
+    let x be object;
+    assume x in dom <% 0, 1, 2 %>;
+    then A2: x in 3 & x in {0,1,2} by A1, Th8;
+    then per cases by ENUMSET1:def 1;
+    suppose x = 0;
+      hence <% 0, 1, 2 %>.x = (id 3).x by A2, FUNCT_1:18;
+    end;
+    suppose x = 1;
+      hence <% 0, 1, 2 %>.x = (id 3).x by A2, FUNCT_1:18;
+    end;
+    suppose x = 2;
+      hence <% 0, 1, 2 %>.x = (id 3).x by A2, FUNCT_1:18;
+    end;
+  end;
+  hence thesis by A1, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x, y being object holds <% x, y %> * <% 1, 0 %> = <% y, x %>
+proof
+  let x,y be object;
+  rng <% 1, 0 %> = {1,0} by Th7
+    .= dom <% x, y %> by Th7;
+  then A1: dom(<% x, y %> * <% 1, 0 %>) = dom <% 1, 0 %> by RELAT_1:27
+    .= {0,1} by Th7;
+  then A2: dom(<% x, y %> * <% 1, 0 %>) = dom <% y, x %> by Th7;
+  now
+    let a be object;
+    assume A3: a in dom(<% x, y %> * <% 1, 0 %>);
+    then per cases by A1, TARSKI:def 2;
+    suppose A4: a = 0;
+      thus (<% x, y %> * <% 1, 0 %>).a
+         = <% x, y %>.(<% 1, 0 %>.a) by A3, FUNCT_1:12
+        .= <% y, x %>.a by A4;
+    end;
+    suppose A5: a = 1;
+      thus (<% x, y %> * <% 1, 0 %>).a
+         = <% x, y %>.(<% 1, 0 %>.a) by A3, FUNCT_1:12
+        .= <% y, x %>.a by A5;
+    end;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x, y, z being object holds <% x, y, z %> * <% 0, 2, 1 %> = <% x, z, y %>
+proof
+  let x,y,z be object;
+  rng <% 0, 2, 1 %> = {0,2,1} by Th8
+    .= {0,1,2} by ENUMSET1:57
+    .= dom <% x, y, z %> by Th8;
+  then A1: dom(<% x, y, z %> * <% 0, 2, 1 %>) = dom <% 0, 2, 1 %> by RELAT_1:27
+    .= {0,1,2} by Th8;
+  then A2: dom(<% x, y, z %> * <% 0, 2, 1 %>) = dom <% x, z, y %> by Th8;
+  now
+    let a be object;
+    assume A3: a in dom(<% x, y, z %> * <% 0, 2, 1 %>);
+    then per cases by A1, ENUMSET1:def 1;
+    suppose A4: a = 0;
+      thus (<% x, y, z %> * <% 0, 2, 1 %>).a
+         = <% x, y, z %>.(<% 0, 2, 1 %>.a) by A3, FUNCT_1:12
+        .= <% x, z, y %>.a by A4;
+    end;
+    suppose A5: a = 1;
+      thus (<% x, y, z %> * <% 0, 2, 1 %>).a
+         = <% x, y, z %>.(<% 0, 2, 1 %>.a) by A3, FUNCT_1:12
+        .= <% x, z, y %>.a by A5;
+    end;
+    suppose A6: a = 2;
+      thus (<% x, y, z %> * <% 0, 2, 1 %>).a
+         = <% x, y, z %>.(<% 0, 2, 1 %>.a) by A3, FUNCT_1:12
+        .= <% x, z, y %>.a by A6;
+    end;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x, y, z being object holds <% x, y, z %> * <% 1, 0, 2 %> = <% y, x, z %>
+proof
+  let x,y,z be object;
+  rng <% 1, 0, 2 %> = {1,0,2} by Th8
+    .= {0,1,2} by ENUMSET1:58
+    .= dom <% x, y, z %> by Th8;
+  then A1: dom(<% x, y, z %> * <% 1, 0, 2 %>) = dom <% 1, 0, 2 %> by RELAT_1:27
+    .= {0,1,2} by Th8;
+  then A2: dom(<% x, y, z %> * <% 1, 0, 2 %>) = dom <% y, x, z %> by Th8;
+  now
+    let a be object;
+    assume A3: a in dom(<% x, y, z %> * <% 1, 0, 2 %>);
+    then per cases by A1, ENUMSET1:def 1;
+    suppose A4: a = 0;
+      thus (<% x, y, z %> * <% 1, 0, 2 %>).a
+         = <% x, y, z %>.(<% 1, 0, 2 %>.a) by A3, FUNCT_1:12
+        .= <% y, x, z %>.a by A4;
+    end;
+    suppose A5: a = 1;
+      thus (<% x, y, z %> * <% 1, 0, 2 %>).a
+         = <% x, y, z %>.(<% 1, 0, 2 %>.a) by A3, FUNCT_1:12
+        .= <% y, x, z %>.a by A5;
+    end;
+    suppose A6: a = 2;
+      thus (<% x, y, z %> * <% 1, 0, 2 %>).a
+         = <% x, y, z %>.(<% 1, 0, 2 %>.a) by A3, FUNCT_1:12
+        .= <% y, x, z %>.a by A6;
+    end;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x, y, z being object holds <% x, y, z %> * <% 1, 2, 0 %> = <% y, z, x %>
+proof
+  let x,y,z be object;
+  rng <% 1, 2, 0 %> = {1,2,0} by Th8
+    .= {0,1,2} by ENUMSET1:59
+    .= dom <% x, y, z %> by Th8;
+  then A1: dom(<% x, y, z %> * <% 1, 2, 0 %>) = dom <% 1, 2, 0 %> by RELAT_1:27
+    .= {0,1,2} by Th8;
+  then A2: dom(<% x, y, z %> * <% 1, 2, 0 %>) = dom <% y, z, x %> by Th8;
+  now
+    let a be object;
+    assume A3: a in dom(<% x, y, z %> * <% 1, 2, 0 %>);
+    then per cases by A1, ENUMSET1:def 1;
+    suppose A4: a = 0;
+      thus (<% x, y, z %> * <% 1, 2, 0 %>).a
+         = <% x, y, z %>.(<% 1, 2, 0 %>.a) by A3, FUNCT_1:12
+        .= <% y, z, x %>.a by A4;
+    end;
+    suppose A5: a = 1;
+      thus (<% x, y, z %> * <% 1, 2, 0 %>).a
+         = <% x, y, z %>.(<% 1, 2, 0 %>.a) by A3, FUNCT_1:12
+        .= <% y, z, x %>.a by A5;
+    end;
+    suppose A6: a = 2;
+      thus (<% x, y, z %> * <% 1, 2, 0 %>).a
+         = <% x, y, z %>.(<% 1, 2, 0 %>.a) by A3, FUNCT_1:12
+        .= <% y, z, x %>.a by A6;
+    end;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x, y, z being object holds <% x, y, z %> * <% 2, 0, 1 %> = <% z, x, y %>
+proof
+  let x,y,z be object;
+  rng <% 2, 0, 1 %> = {2,0,1} by Th8
+    .= {2,1,0} by ENUMSET1:57
+    .= {0,1,2} by ENUMSET1:60
+    .= dom <% x, y, z %> by Th8;
+  then A1: dom(<% x, y, z %> * <% 2, 0, 1 %>) = dom <% 2, 0, 1 %> by RELAT_1:27
+    .= {0,1,2} by Th8;
+  then A2: dom(<% x, y, z %> * <% 2, 0, 1 %>) = dom <% z, x, y %> by Th8;
+  now
+    let a be object;
+    assume A3: a in dom(<% x, y, z %> * <% 2, 0, 1 %>);
+    then per cases by A1, ENUMSET1:def 1;
+    suppose A4: a = 0;
+      thus (<% x, y, z %> * <% 2, 0, 1 %>).a
+         = <% x, y, z %>.(<% 2, 0, 1 %>.a) by A3, FUNCT_1:12
+        .= <% z, x, y %>.a by A4;
+    end;
+    suppose A5: a = 1;
+      thus (<% x, y, z %> * <% 2, 0, 1 %>).a
+         = <% x, y, z %>.(<% 2, 0, 1 %>.a) by A3, FUNCT_1:12
+        .= <% z, x, y %>.a by A5;
+    end;
+    suppose A6: a = 2;
+      thus (<% x, y, z %> * <% 2, 0, 1 %>).a
+         = <% x, y, z %>.(<% 2, 0, 1 %>.a) by A3, FUNCT_1:12
+        .= <% z, x, y %>.a by A6;
+    end;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x, y, z being object holds <% x, y, z %> * <% 2, 1, 0 %> = <% z, y, x %>
+proof
+  let x,y,z be object;
+  rng <% 2, 1, 0 %> = {2,1,0} by Th8
+    .= {0,1,2} by ENUMSET1:60
+    .= dom <% x, y, z %> by Th8;
+  then A1: dom(<% x, y, z %> * <% 2, 1, 0 %>) = dom <% 2, 1, 0 %> by RELAT_1:27
+    .= {0,1,2} by Th8;
+  then A2: dom(<% x, y, z %> * <% 2, 1, 0 %>) = dom <% z, y, x %> by Th8;
+  now
+    let a be object;
+    assume A3: a in dom(<% x, y, z %> * <% 2, 1, 0 %>);
+    then per cases by A1, ENUMSET1:def 1;
+    suppose A4: a = 0;
+      thus (<% x, y, z %> * <% 2, 1, 0 %>).a
+         = <% x, y, z %>.(<% 2, 1, 0 %>.a) by A3, FUNCT_1:12
+        .= <% z, y, x %>.a by A4;
+    end;
+    suppose A5: a = 1;
+      thus (<% x, y, z %> * <% 2, 1, 0 %>).a
+         = <% x, y, z %>.(<% 2, 1, 0 %>.a) by A3, FUNCT_1:12
+        .= <% z, y, x %>.a by A5;
+    end;
+    suppose A6: a = 2;
+      thus (<% x, y, z %> * <% 2, 1, 0 %>).a
+         = <% x, y, z %>.(<% 2, 1, 0 %>.a) by A3, FUNCT_1:12
+        .= <% z, y, x %>.a by A6;
+    end;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x,y being object st x <> y holds <% x, y %> is one-to-one
+proof
+  let x,y be object;
+  assume A1: x <> y;
+  now
+    let x1, x2 be object;
+    assume A2: x1 in dom <%x,y%> & x2 in dom <%x,y%> & <%x,y%>.x1=<%x,y%>.x2;
+    then x1 in {0,1} & x2 in {0,1} by Th7;
+    then per cases by TARSKI:def 2;
+    suppose x1 = 0 & x2 = 0;
+      hence x1 = x2;
+    end;
+    suppose x1 = 0 & x2 = 1;
+      hence x1 = x2 by A1, A2; :: by contradiction
+    end;
+    suppose x1 = 1 & x2 = 0;
+      hence x1 = x2 by A1, A2; :: by contradiction
+    end;
+    suppose x1 = 1 & x2 = 1;
+      hence x1 = x2;
+    end;
+  end;
+  hence thesis by FUNCT_1:def 4;
+end;
+
+:: into AFINSQ_1 ?
+theorem
+  for x,y,z being object st x <> y & x <> z & y <> z
+  holds <% x, y, z %> is one-to-one
+proof
+  let x,y,z be object;
+  assume A1: x <> y & x <> z & y <> z;
+  now
+    let x1, x2 be object;
+    assume A2: x1 in dom <%x,y,z%> & x2 in dom <%x,y,z%> &
+      <%x,y,z%>.x1 = <%x,y,z%>.x2;
+    then x1 in {0,1,2} & x2 in {0,1,2} by Th8;
+    then per cases by ENUMSET1:def 1;
+    suppose x1 = 0 & (x2 = 0 or x2 = 1 or x2 = 2);
+      hence x1 = x2 by A1, A2; :: by contradiction
+    end;
+    suppose x1 = 1 & (x2 = 0 or x2 = 1 or x2 = 2);
+      hence x1 = x2 by A1, A2; :: by contradiction
+    end;
+    suppose x1 = 2 & (x2 = 0 or x2 = 1 or x2 = 2);
+      hence x1 = x2 by A1, A2; :: by contradiction
+    end;
+  end;
+  hence thesis by FUNCT_1:def 4;
+end;
+
+begin :: Relations with cardinal domain
+
+definition
+  let R be Relation;
+  attr R is with_cardinal_domain means
+  :Def1:
+  ex c being Cardinal st dom R = c;
+end;
+
+registration
+  cluster empty -> with_cardinal_domain for Relation;
+  coherence;
+  cluster finite Sequence-like -> with_cardinal_domain for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume A1: R is finite Sequence-like;
+    dom R is epsilon-transitive epsilon-connected by A1, ORDINAL1:def 7;
+    hence thesis by A1;
+  end;
+  cluster with_cardinal_domain -> Sequence-like for Relation;
+  coherence by ORDINAL1:def 7;
+  let c be Cardinal;
+  cluster -> with_cardinal_domain for ManySortedSet of c;
+  coherence by PARTFUN1:def 2;
+  let x be object;
+  cluster c --> x -> with_cardinal_domain;
+  coherence;
+end;
+
+registration
+  let X be set;
+  cluster -> with_cardinal_domain for Denumeration of X;
+  coherence
+  proof
+    let f be Denumeration of X;
+    per cases;
+    suppose X = {};
+      hence thesis;
+    end;
+    suppose X <> {};
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let c be Cardinal;
+  cluster -> with_cardinal_domain for Permutation of c;
+  coherence;
+end;
+
+registration
+  cluster non empty trivial non-empty with_cardinal_domain
+    Cardinal-yielding for Function;
+  existence
+  proof
+    take <% 1 %>;
+    thus thesis;
+  end;
+  cluster non empty non trivial non-empty finite with_cardinal_domain
+    Cardinal-yielding for Function;
+  existence
+  proof
+    take <% 1, 1 %>;
+    thus thesis;
+  end;
+  cluster non empty non-empty infinite with_cardinal_domain
+    natural-valued for Function;
+  existence
+  proof
+    take omega --> 1;
+    thus thesis;
+  end;
+  cluster non trivial non-empty with_cardinal_domain
+    Cardinal-yielding non natural-valued for Function;
+  existence
+  proof
+    take <% omega, 1 %>;
+    thus thesis;
+  end;
+end;
+
+registration
+  let R be with_cardinal_domain Relation;
+  cluster dom R -> cardinal;
+  coherence
+  proof
+    consider c being Cardinal such that
+      A1: dom R = c by Def1;
+    thus thesis by A1;
+  end;
+end;
+
+registration
+  let f be with_cardinal_domain Function;
+  identify dom f with card f;
+  correctness
+  proof
+    consider c being Cardinal such that
+      A1: dom f = c;
+    c = card dom f by A1;
+    hence thesis by CARD_1:62;
+  end;
+end;
+
+registration
+  let R be with_cardinal_domain Relation, P be total (rng R)-defined Relation;
+  cluster R * P -> with_cardinal_domain;
+  coherence
+  proof
+    dom P = rng R by PARTFUN1:def 2;
+    then dom(R*P) = dom R by RELAT_1:27;
+    hence thesis;
+  end;
+end;
+
+registration
+  let g be Function, f be Denumeration of dom g;
+  cluster g * f -> with_cardinal_domain;
+  coherence
+  proof
+    rng f = dom g by FUNCT_2:def 3;
+    then dom(g*f) = dom f by RELAT_1:27;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be with_cardinal_domain Function, p be Permutation of dom f;
+  cluster f * p -> with_cardinal_domain;
+  coherence
+  proof
+    rng p = dom f by FUNCT_2:def 3;
+    then dom(f*p) = dom p by RELAT_1:27;
+    hence thesis;
+  end;
+end;
+
+theorem Th56:
+  for A, B being with_cardinal_domain Sequence st dom A in dom B
+  holds A^B is with_cardinal_domain
+proof
+  let A, B be with_cardinal_domain Sequence;
+  assume A1: dom A in dom B;
+  A2: dom(A^B) = (dom A)+^(dom B) by ORDINAL4:def 1;
+  per cases;
+  suppose dom B is infinite;
+    hence thesis by A1, A2, ThAdd;
+  end;
+  suppose A3: dom B is finite;
+    dom A c= dom B by A1, ORDINAL1:def 2;
+    hence thesis by A2, A3;
+  end;
+end;
+
+registration
+  let p be XFinSequence, B be with_cardinal_domain Sequence;
+  cluster p^B -> with_cardinal_domain;
+  coherence
+  proof
+    per cases;
+    suppose dom B is infinite;
+      then omega c= dom B & dom p in omega by ORDINAL1:16, CARD_1:61;
+      hence thesis by Th56;
+    end;
+    suppose dom B is finite;
+      then B is XFinSequence;
+      hence thesis;
+    end;
+  end;
+end;
+
+definition
+  mode Counters is non empty with_cardinal_domain Cardinal-yielding Function;
+end;
+
+definition
+  mode Counters+ is
+    non empty non-empty with_cardinal_domain Cardinal-yielding Function;
+end;
+

@@ -1,0 +1,1979 @@
+:: Transformation tools for real linear spaces
+::  by Kazuhisa Nakasho
+::
+:: Received July 23, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies ALGSTR_0, ARYTM_3, CARD_1, CARD_3, EUCLID,
+      FINSEQ_1, FINSEQ_2, FINSEQ_4, FINSET_1, FUNCT_1, FUNCT_2, MOD_4, MATRLIN,
+      NAT_1, NUMBERS, ORDINAL4, PARTFUN1, PRE_TOPC, PRVECT_1, RELAT_1, RLSUB_1,
+      RLVECT_1, RLVECT_3, RLVECT_5, RVSUM_1, STRUCT_0, SUBSET_1, SUPINF_2,
+      TARSKI, VALUED_0, VECTSP_1, XBOOLE_0, XXREAL_0, FUNCT_7, REAL_NS1,
+      FUNCOP_1, ZFMISC_1, REAL_1, METRIC_1, MSSUBFAM, UNIALG_1,
+      COMPLEX1, NORMSP_0, NORMSP_1, REALSET1, LOPBAN_1, DUALSP01, FCONT_1,
+      SQUARE_1, RELAT_2, PRVECT_2, GROUP_2, REAL_NS3, DUALSP02;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, RELSET_1,
+      PARTFUN1, FUNCT_2, BINOP_1, DOMAIN_1, FUNCT_3, FUNCOP_1, REALSET1,
+      FINSET_1, CARD_1, CARD_3, ORDINAL1, NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0,
+      REAL_1, SQUARE_1, NAT_1, VALUED_0, COMPLEX1, FINSEQ_1, FINSEQ_2,
+      FINSEQOP, VALUED_1, RVSUM_1, MATRIX_0, STRUCT_0, ALGSTR_0, PRE_TOPC,
+      RLVECT_1, RLSUB_1, VECTSP_1, RLVECT_3, VECTSP_4, VECTSP_5, NORMSP_0,
+      NORMSP_1, VECTSP_7, MATRLIN, RLVECT_5, RLSUB_2, EUCLID, LOPBAN_1,
+      PRVECT_1, REAL_NS1, PRVECT_2, PRVECT_3, DUALSP01, DUALSP02, NORMSP_3,
+      REAL_NS3;
+ constructors MATRIX13, MONOID_0, RANKNULL, REALSET1, RELSET_1, RLSUB_2,
+      RLVECT_3, VECTSP10, SQUARE_1, BINOP_2, REAL_NS1, REAL_1, FUNCT_3,
+      PRVECT_2, PRVECT_3, NORMSP_3, REAL_NS3, DUALSP02;
+ registrations CARD_1, EUCLID, FINSEQ_1, FINSEQ_2, FINSET_1, FUNCT_1, FUNCT_2,
+      NAT_1, NUMBERS, PRVECT_1, RELAT_1, RELSET_1, COMPLEX1, RLVECT_3,
+      STRUCT_0, VALUED_0, VECTSP_1, VECTSP_7, RLVECT_1, XREAL_0, FUNCOP_1,
+      ORDINAL1, REAL_NS1, REALSET1, NORMSP_1, RLVECT_5, LOPBAN_1, NORMSP_3,
+      CARD_3, XBOOLE_0, PRVECT_2, PRVECT_3, REAL_NS2, REAL_NS3,
+      DUALSP02;
+ requirements ARITHM, NUMERALS, REAL, BOOLE, SUBSET;
+ definitions ALGSTR_0, NORMSP_0, RLVECT_1;
+ equalities EUCLID, FINSEQ_1, STRUCT_0, BINOP_1, VECTSP_1, RLVECT_1, NORMSP_0,
+      REALSET1, ALGSTR_0, DUALSP01, PRVECT_3, DUALSP02;
+ expansions STRUCT_0, TARSKI, RLVECT_1, ALGSTR_0, VECTSP_1;
+ theorems CARD_1, CARD_2, EUCLID, FINSEQ_1, FINSEQ_2, FINSEQ_3, FUNCT_1,
+      FUNCT_2, NORMSP_1, PRVECT_1, BINOP_2, MATRLIN, MATRLIN2, NAT_1,
+      ORDINAL1, PARTFUN1, RELAT_1, RLSUB_1, RLVECT_1, RLVECT_3, RLVECT_5,
+      RVSUM_1, SUBSET_1, TARSKI, VECTSP_4, VECTSP_5, XBOOLE_0, XREAL_0,
+      XREAL_1, ZFMISC_1, FUNCOP_1, REAL_NS1, LOPBAN_1, VALUED_1,
+      XXREAL_0, NORMSP_3, PDIFF_8, NDIFF_5, CARD_3, PRVECT_2, PRVECT_3,
+      RLSUB_2, FUNCT_3, REAL_NS2, REAL_NS3, XTUPLE_0;
+ schemes FUNCT_2, NAT_1, FINSEQ_2;
+
+begin :: Lipschitz continuity of linear maps from finite-dimensional spaces
+
+registration
+  let n be Nat;
+  cluster REAL-NS n -> finite-dimensional;
+  correctness by REAL_NS2:62;
+end;
+
+theorem Th1:
+  for X,Y be RealLinearSpace,
+        L be LinearOperator of X,Y,
+        F be FinSequence of X
+  holds L.Sum(F) = Sum(L*F)
+  proof
+    let X,Y be RealLinearSpace,
+          L be LinearOperator of X,Y,
+          F be FinSequence of X;
+
+    defpred S1[ set ] means
+    for H be FinSequence of X
+      st len H = $1
+    holds L.Sum H = Sum(L*H);
+
+    A1: dom F = Seg(len F) by FINSEQ_1:def 3;
+
+    A2: S1[0]
+    proof
+      let H be FinSequence of X;
+      assume
+      A3: len H = 0;
+      then H = {};
+      then
+      A4: L*H = <*> the carrier of Y;
+      A5: L is additive;
+
+      L.(0.X)
+       = L.(0.X + 0.X)
+      .= L.(0.X) + L.(0.X) by A5;
+      then L.(0.X) = 0.Y by RLVECT_1:9;
+      hence L.(Sum H)
+       = 0.Y by A3,RLVECT_1:75
+      .= Sum(L*H) by A4,RLVECT_1:43;
+    end;
+
+    A6: for n be Nat st S1[n] holds S1[n + 1]
+    proof
+      let n be Nat;
+      assume
+      A7: for H be FinSequence of X
+            st len H = n
+          holds L.(Sum H) = Sum(L*H);
+
+      let H be FinSequence of X;
+      assume
+      A8: len H = n + 1;
+
+      reconsider p = H | (Seg n) as FinSequence of the carrier of X
+        by FINSEQ_1:18;
+      A9: n <= n + 1 by NAT_1:12;
+      then
+      A10: len p = n by A8,FINSEQ_1:17;
+
+      A11: dom p = Seg n by A8,A9,FINSEQ_1:17;
+      1 <= n + 1 by NAT_1:11;
+      then
+      A12: n + 1 in dom H by A8,FINSEQ_3:25;
+      then reconsider v1 = H.(n+1) as VECTOR of X by FUNCT_1:102;
+      A13: L.v1 = (L*H).(n+1) by A12,FUNCT_1:13;
+      A14: dom L = the carrier of X by FUNCT_2:def 1;
+
+      rng H c= the carrier of X;
+      then dom(L*H) = dom H by A14,RELAT_1:27;
+      then
+      A15: dom(L*H)
+       = Seg len H by FINSEQ_1:def 3
+      .= Seg(n+1) by A8;
+      then
+      A16: len(L*H) = n+1 by FINSEQ_1:def 3;
+
+      rng p c= the carrier of X;
+      then
+      A17: dom(L*p) = dom p by A14,RELAT_1:27;
+      reconsider Lp = L*p as FinSequence;
+      A18: n is Element of NAT by ORDINAL1:def 12;
+      A19: dom(L*p)
+       = Seg len p by A17,FINSEQ_1:def 3
+      .= Seg n by A8,A9,FINSEQ_1:17;
+
+      then
+      A20: len(L*p) = n by A18,FINSEQ_1:def 3;
+      A21: Seg n c= Seg(n+1) by NAT_1:12,FINSEQ_1:5;
+
+      for i be object st i in dom((L*H) | dom(L*p))
+      holds ((L*H) | dom(L*p)).i = (L*p).i
+      proof
+        let i be object;
+        assume
+        A22: i in dom((L*H) | dom(L*p));
+        then
+        A23: i in dom(L*H) /\ dom(L*p) by RELAT_1:61;
+        then
+        A24:
+        i in dom(L*H) & i in dom(L*p) by XBOOLE_0:def 4;
+        A25: i in dom p by A11,A19,A23,XBOOLE_0:def 4;
+
+        thus ((L*H) | dom(L*p)).i
+         = (L*H).i by A22,FUNCT_1:47
+        .= L.(H.i) by A24,FUNCT_1:12
+        .= L.(p.i) by A25,FUNCT_1:47
+        .= (L*p).i by A24,FUNCT_1:12;
+      end;
+      then
+      A26: (L*H) | dom(L*p) = L*p by A15,A19,A21,FUNCT_1:2,RELAT_1:62;
+      A27: L is additive;
+      thus L.(Sum H)
+       = L.((Sum p) + v1) by A8,A10,A11,RLVECT_1:38
+      .= L.(Sum p) + L.v1 by A27
+      .= Sum(L*p) + L.v1 by A7,A10
+      .= Sum(L*H) by A13,A16,A20,A26,RLVECT_1:38;
+    end;
+
+    for n be Nat holds S1[n] from NAT_1:sch 2(A2,A6);
+    hence L.(Sum F) = Sum(L*F) by A1;
+  end;
+
+theorem Th2:
+  for X be finite-dimensional RealNormSpace,
+      Y be RealNormSpace,
+      L be LinearOperator of X,Y
+    st dim X <> 0
+  holds L is Lipschitzian
+  proof
+    let X be finite-dimensional RealNormSpace,
+        Y be RealNormSpace,
+        L be LinearOperator of X,Y;
+
+    assume
+    A1: dim X <> 0;
+    reconsider X0 = X as finite-dimensional RealLinearSpace;
+    set b = the OrdBasis of RLSp2RVSp(X);
+
+    the RLSStruct of X = the RLSStruct of X;
+    then consider r1,r2 be Real such that
+    A2: 0 < r1
+      & 0 < r2
+      & for x be Point of X
+        holds
+          ||.x.|| <= r1 * max_norm(X,b).x
+        & max_norm(X,b).x <= r2 * ||.x.|| by A1,REAL_NS3:24;
+    reconsider e = b as FinSequence of X;
+    deffunc F3(Nat) = In(||.L.(e/.$1).||,REAL);
+
+    A3: the carrier of X = dom L by FUNCT_2:def 1;
+    A4: rng e c= the carrier of X;
+
+    consider k be FinSequence of REAL such that
+    A5: len k = len b
+      & for i be Nat st i in dom k
+        holds k.i = F3(i) from FINSEQ_2:sch 1;
+
+    set k1 = Sum(k);
+
+    for i be Nat st i in dom k
+    holds 0 <= k.i
+    proof
+      let i be Nat;
+      assume i in dom k;
+      then k.i
+       = In(||.L.(e/.i).||,REAL) by A5
+      .= ||.L.(e/.i).||;
+      hence 0 <= k.i;
+    end;
+    then
+    A6: 0 <= k1 by RVSUM_1:84;
+
+    for x be Point of X
+    holds ||.L.x.|| <= r2 * (k1 + 1) * ||.x.||
+    proof
+      let x be Point of X;
+      consider u be Element of RLSp2RVSp(X),
+               v be Element of REAL(dim X)
+      such that
+      A7: x = u
+        & v = (u |-- b)
+        & max_norm(X,b).x = (max_norm(dim X)).v
+        by REAL_NS3:def 3;
+
+      reconsider ub = (u |-- b) as FinSequence of REAL;
+
+      A8:
+      now
+        let i be Nat;
+        assume
+        A9: i in dom(ub); then
+        i in dom(abs(v)) by A7,VALUED_1:def 11;
+
+        then abs(v).i
+         = |.v.i.| by VALUED_1:def 11
+        .= |.v/.i.| by A7,A9,PARTFUN1:def 6
+        .= |.ub/.i.| by A7;
+        hence |.ub/.i.| <= max_norm(X,b).x by A1,A7,A9,REAL_NS3:def 1;
+      end;
+
+      A10: len(u |-- b) = len b by MATRLIN:def 7;
+      then
+      A11: dom(u |-- b)
+       = Seg len b by FINSEQ_1:def 3
+      .= dom b by FINSEQ_1:def 3;
+      then
+      A12: dom(lmlt(u |-- b, b))
+       = dom(u |-- b) by MATRLIN:12
+      .= Seg len b by A10,FINSEQ_1:def 3;
+
+      A13: lmlt(u |-- b, b)
+       = (the lmult of RLSp2RVSp(X)) .: (u |-- b, b) by MATRLIN:def 5
+      .= (the Mult of X) .: (ub, b);
+
+      A14: rng((the Mult of X) .: (ub,e)) c= the carrier of X;
+      reconsider f0 = (the Mult of X ) .: (ub,e)
+        as FinSequence of the carrier of X;
+
+      A15: dom f0
+       = Seg len b by A12,A13
+      .= dom b by FINSEQ_1:def 3;
+
+      rng f0 c= dom L by A14,FUNCT_2:def 1;
+      then
+      A16: len(L * f0)
+       = len f0 by FINSEQ_2:29
+      .= len b by A12,A13,FINSEQ_1:def 3;
+
+      A17: dom(L * f0)
+       = Seg(len b) by A16,FINSEQ_1:def 3
+      .= dom b by FINSEQ_1:def 3;
+
+      A18: dom((the Mult of Y) .: (ub, L*e)) = dom b
+      proof
+        A19: dom((the Mult of Y) .: (ub, L*e))
+           = dom((the Mult of Y) * (<: ub,L*e :>)) by FUNCOP_1:def 3;
+        A20: dom(<: ub,L*e :>)
+           = dom ub /\ dom(L*e) by FUNCT_3:def 7
+          .= dom ub /\ dom e by A3,A4,RELAT_1:27
+          .= dom b by A11;
+        A21: dom(the Mult of Y) = [:REAL,the carrier of Y:] by FUNCT_2:def 1;
+        A22: rng(<: ub,L*e :>) c= [:rng ub, rng(L*e):] by FUNCT_3:51;
+        [:rng ub ,rng(L*e):] c= [:REAL,the carrier of Y:] by ZFMISC_1:96;
+        then rng(<: ub,L*e :>) c= [:REAL,the carrier of Y:] by A22;
+        hence thesis by A19,A20,A21,RELAT_1:27;
+      end;
+
+      A23: for i be object st i in dom(L * f0)
+           holds (L * f0).i = ((the Mult of Y) .: (ub, L * e)).i
+      proof
+        let i0 be object;
+        assume
+        A24: i0 in dom(L * f0);
+        then reconsider i = i0 as Nat;
+
+        b.i in rng b by A17,A24,FUNCT_1:3;
+        then reconsider bi = b.i as Element of X;
+        reconsider ri = ub.i as Real;
+        A25: (L * e).i
+         = L.(b.i) by A17,A24,FUNCT_1:13;
+
+        thus (L * f0).i0
+         = L.(f0.i) by A24,FUNCT_1:12
+        .= L.((the Mult of X).(ub.i,b.i)) by A15,A17,A24,FUNCOP_1:22
+        .= L.(ri * bi)
+        .= ri * L.bi by LOPBAN_1:def 5
+        .= (the Mult of Y).(ub.i, (L * e).i) by A25
+        .= ((the Mult of Y).:(ub, L * e)).i0 by A17,A18,A24,FUNCOP_1:22;
+      end;
+
+      reconsider f = L * f0 as FinSequence of the carrier of Y;
+      A26: L.x
+       = L.(Sum(lmlt(u |-- b, b))) by A7,MATRLIN:35
+      .= L.(Sum(f0)) by A13,REAL_NS2:75
+      .= Sum(L * f0) by Th1
+      .= Sum((the Mult of Y) .: (ub, L * e)) by A17,A18,A23,FUNCT_1:2
+      .= Sum(f) by A17,A18,A23,FUNCT_1:2;
+
+      deffunc F4(Nat) = In(||.f/.$1.||,REAL);
+
+      consider g be FinSequence of REAL such that
+      A27: len g = len f
+         & for i be Nat st i in dom g
+           holds g.i = F4(i) from FINSEQ_2:sch 1;
+
+      A28: for i be Element of NAT st i in dom f
+           holds g.i = ||.f/.i.||
+      proof
+        let i be Element of NAT;
+        assume i in dom f;
+        then i in Seg (len f) by FINSEQ_1:def 3;
+        then i in dom g by A27,FINSEQ_1:def 3;
+        then g.i = In(||.f/.i.||,REAL) by A27;
+        hence thesis;
+      end;
+      then
+      A29: ||.L.x.|| <= Sum(g) by A26,A27,NDIFF_5:7;
+
+      A30: for i be Nat st i in Seg len b
+           holds g.i <= ((max_norm(X,b).x) * k).i
+      proof
+        let i be Nat;
+        assume
+        A31: i in Seg len b; then
+        A32: i in dom f by A16,FINSEQ_1:def 3;
+        A33: dom ub = Seg(len b) by A10,FINSEQ_1:def 3;
+        A34: i in dom b by A31,FINSEQ_1:def 3;
+        b/.i in the carrier of X;
+        then
+        A35: b/.i in dom L by FUNCT_2:def 1;
+        A36: (L*b).i
+         = L.(b.i) by A34,FUNCT_1:13
+        .= L.(b/.i) by A34,PARTFUN1:def 6
+        .= L/.(b/.i) by A35,PARTFUN1:def 6;
+        A37: i in dom f by A16,A31,FINSEQ_1:def 3;
+
+        then f/.i
+         = f.i by PARTFUN1:def 6
+        .= ((the Mult of Y) .: (ub,L*b)).i by A17,A18,A23,FUNCT_1:2
+        .= (the Mult of Y ).(ub.i,(L*b).i) by A17,A18,A37,FUNCOP_1:22
+        .= (ub/.i) * (L/.(b/.i)) by A31,A33,A36,PARTFUN1:def 6
+        .= (ub/.i) * L/.(b/.i);
+        then
+        A38: g.i
+         = ||.(ub/.i) * L/.(b/.i).|| by A28,A32
+        .= |.(ub/.i).| * ||.L/.(e/.i).|| by NORMSP_1:def 1;
+
+        i in dom k by A5,A31,FINSEQ_1:def 3;
+        then k.i
+         = In(||.L.(e/.i).||, REAL) by A5
+        .= ||.L.(e/.i).||;
+        then g.i <= (max_norm(X,b).x) * k.i by A8,A31,A33,A38,XREAL_1:64;
+        hence g.i <= ((max_norm(X,b).x) * k).i by RVSUM_1:45;
+      end;
+      A39: g is (len b)-element by A16,A27,CARD_1:def 7;
+      dom((max_norm(X,b).x) * k)
+       = dom k by VALUED_1:def 5
+      .= Seg len k by FINSEQ_1:def 3
+      .= Seg len b by A5;
+      then len((max_norm(X,b).x) * k) = len b by FINSEQ_1:def 3;
+      then (max_norm(X,b).x) * k is (len b)-element by CARD_1:def 7;
+      then Sum(g) <= Sum((max_norm(X,b).x) * k) by A30,A39,RVSUM_1:82;
+      then Sum(g) <= (max_norm(X,b).x) * Sum(k) by RVSUM_1:87;
+      then
+      A40: ||.L.x.|| <= k1 * (max_norm(X,b).x) by A29,XXREAL_0:2;
+      A41: 0 <= max_norm(X,b).x by A1,REAL_NS3:18;
+      k1+0 < k1+1 by XREAL_1:8;
+      then k1 * (max_norm(X,b).x) <= (k1+1) * (max_norm(X,b).x)
+        by A41,XREAL_1:64;
+      then
+      A42: ||.L.x.|| <= (k1 + 1) * (max_norm(X,b).x) by A40,XXREAL_0:2;
+      (k1 + 1) * (max_norm(X,b).x) <= (k1 + 1) * (r2 * ||.x.||)
+        by A2,A6,XREAL_1:64;
+      hence ||.L.x.|| <= r2 * (k1 + 1) * ||.x.|| by A42,XXREAL_0:2;
+    end;
+    hence thesis by A2,A6,LOPBAN_1:def 8;
+  end;
+
+theorem
+  for X be finite-dimensional RealNormSpace,
+      Y be RealNormSpace
+    st dim X <> 0
+  holds LinearOperators(X,Y) = BoundedLinearOperators(X,Y)
+  proof
+    let X be finite-dimensional RealNormSpace,
+        Y be RealNormSpace;
+    assume
+    A1: dim X <> 0;
+
+    for f be object
+    holds
+      f in LinearOperators(X,Y)
+        iff
+      f in BoundedLinearOperators(X,Y)
+    proof
+      let f be object;
+      hereby
+        assume f in LinearOperators(X,Y);
+        then f is Lipschitzian LinearOperator of X,Y
+          by A1,Th2,LOPBAN_1:def 6;
+
+        hence f in BoundedLinearOperators(X,Y)
+          by LOPBAN_1:def 9;
+      end;
+
+      assume f in BoundedLinearOperators(X,Y);
+      then f is Lipschitzian LinearOperator of X,Y
+        by LOPBAN_1:def 9;
+      hence f in LinearOperators(X,Y) by LOPBAN_1:def 6;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+
+begin :: Identification of a real number set with a one-dimensional real normed space
+
+registration ::: obsolete
+  cluster RNS_Real -> non empty right_complementable Abelian
+    add-associative right_zeroed vector-distributive
+    scalar-distributive scalar-associative scalar-unital
+    discerning reflexive RealNormSpace-like;
+  coherence;
+end;
+
+theorem
+  for v,w be Element of RNS_Real,
+      v1,w1 be Element of REAL
+    st v = v1 & w = w1
+  holds v + w = v1 + w1 by BINOP_2:def 9;
+
+theorem
+  for v be Element of RNS_Real,
+     v1 be Element of REAL,
+      a be Real
+    st v = v1
+  holds a * v = a * v1 by BINOP_2:def 11;
+
+::: DUALSP02:11 remove for X
+::: see DUALSP03:3 for minus, repeated DUALSP02:11
+
+theorem
+  for v be Element of RNS_Real,
+      v1 be Element of REAL
+    st v = v1
+  holds ||.v.|| = |.v1.| by EUCLID:def 2;
+
+begin :: Identification of real Euclidean space and real normed space
+
+theorem Th9:
+  ex f be LinearOperator of RNS_Real,REAL-NS 1
+  st f is isomorphism
+   & for x be Element of RNS_Real
+     holds f.x = <*x*>
+  proof
+    deffunc H1(Real) = In(<*$1*>, REAL 1);
+
+    consider f be Function of REAL,REAL 1 such that
+    A1: for x be Element of REAL
+        holds f.x = H1(x) from FUNCT_2:sch 4;
+
+    A2: for x be Element of RNS_Real
+        holds f.x = <*x*>
+    proof
+      let x be Element of RNS_Real;
+      reconsider x0 = x as Element of REAL;
+      f.x = In(<*x*>, REAL 1) by A1;
+      hence f.x = <*x*> by SUBSET_1:def 8;
+    end;
+
+    reconsider f as Function of
+      the carrier of RNS_Real, the carrier of REAL-NS 1
+      by REAL_NS1:def 4;
+
+    for v,w be Element of RNS_Real
+    holds f.(v + w) = f.v + f. w
+    proof
+      let v,w be Element of RNS_Real;
+      reconsider v0 = v, w0 = w as Element of REAL;
+      A4: f.v = <*v0*> by A2;
+      A5: f.w = <*w0*> by A2;
+
+      v + w = v0 + w0 by BINOP_2:def 9;
+      hence f.(v + w)
+       = <*v0 + w0*> by A2
+      .= <*v0*> + <*w0*> by RVSUM_1:13
+      .= f.v + f.w by A4,A5,REAL_NS1:2;
+    end;
+    then
+    A7: f is additive;
+
+    for x be VECTOR of RNS_Real
+    for r be Real
+    holds f.(r * x) = r * (f.x)
+    proof
+      let v be VECTOR of RNS_Real,
+          r be Real;
+      reconsider v0 = v as Element of REAL;
+      r * v = r * v0 by BINOP_2:def 11;
+      hence f.(r * v)
+       = <* r * v0 *> by A2
+      .= r * <*v0*> by RVSUM_1:47
+      .= r * (f.v) by A2,REAL_NS1:3;
+    end;
+    then reconsider f as LinearOperator of RNS_Real,REAL-NS 1
+      by A7,LOPBAN_1:def 5;
+
+    take f;
+    now
+      let z1,z2 be object;
+      assume
+      A9: z1 in the carrier of RNS_Real
+        & z2 in the carrier of RNS_Real
+        & f.z1 = f.z2;
+
+      <*z1*> = f.z1 by A2,A9
+      .= <*z2*> by A2,A9;
+      hence z1 = z2 by FINSEQ_1:76;
+    end;
+    then
+    A10: f is one-to-one by FUNCT_2:19;
+
+    now
+      let w be object;
+      assume w in the carrier of REAL-NS 1;
+      then w in REAL 1 by REAL_NS1:def 4;
+      then w in {s where s is Element of REAL* : len s = 1}
+        by FINSEQ_2:def 4;
+      then consider s be Element of REAL* such that
+      A11: w = s & len s = 1;
+
+      set x = s.1;
+      A12: 1 in {1} by TARSKI:def 1;
+      1 in dom s by A11,A12,FINSEQ_1:2,def 3;
+      then s.1 in rng s by FUNCT_1:3;
+      then
+      reconsider x as Element of REAL;
+      reconsider x as Element of RNS_Real;
+
+      A13: w = <*x*> by A11,FINSEQ_1:40;
+      f.x = w by A2,A13;
+      hence w in rng f by FUNCT_2:112;
+    end;
+    then the carrier of REAL-NS 1 c= rng f;
+    then
+    A14: f is onto by FUNCT_2:def 3,XBOOLE_0:def 10;
+
+    for x be Point of RNS_Real holds ||.x.|| = ||.f.x.||
+    proof
+      let x be Point of RNS_Real;
+      reconsider x0 = x as Element of REAL;
+      A15: <*x0*> in REAL 1;
+      then reconsider x1 = <*x0*> as VECTOR of REAL-NS 1 by REAL_NS1:def 4;
+      ||.f.x.||
+       = |. <*x0*> .| by A2,REAL_NS1:1
+      .= ||.x1.|| by A15,REAL_NS1:1
+      .= |.x0.| by PDIFF_8:2
+      .= absreal.x0 by EUCLID:def 2
+      .= ||.x.||;
+      hence thesis;
+    end;
+    hence thesis by A2,A10,A14,NORMSP_3:def 11;
+  end;
+
+theorem
+  RNS_Real is finite-dimensional & dim RNS_Real = 1
+  proof
+    consider I be LinearOperator of RNS_Real,REAL-NS 1 such that
+    A1: I is isomorphism by Th9;
+
+    consider K be Lipschitzian LinearOperator of REAL-NS 1,RNS_Real
+    such that
+    A2: K = I " & K is isomorphism by A1,NORMSP_3:37;
+
+      REAL-NS 1 is finite-dimensional
+    & dim(REAL-NS 1) = 1 by REAL_NS2:62;
+    hence thesis by A2,REAL_NS2:88;
+  end;
+
+theorem Th11:
+  for X be RealLinearSpace-Sequence
+  holds
+    for v,w be Element of product carr X,
+        i be Element of dom carr X
+    holds
+      ([:addop X:].(v,w)).i = (the addF of X.i).(v.i, w.i)
+    & for vi,wi be VECTOR of X.i
+        st vi = v.i & wi = w.i
+      holds ([:addop X:].(v,w)).i = vi + wi
+  proof
+    let X be RealLinearSpace-Sequence;
+    let v,w be Element of product carr X;
+    let i be Element of dom carr X;
+    ([:addop X:].(v,w)).i = ((addop X).i).(v.i,w.i) by PRVECT_1:def 8;
+    hence thesis by PRVECT_1:def 12;
+  end;
+
+theorem Th12:
+  for X be RealLinearSpace-Sequence,
+      r be Element of REAL,
+      v be Element of product carr X,
+      i be Element of dom carr X
+  holds
+    ([:multop X:].(r,v)).i = (the Mult of X.i).(r,v.i)
+  & for vi be VECTOR of X.i st vi = v.i
+    holds ([:multop X:].(r,v)).i = r * vi
+  proof
+    let X be RealLinearSpace-Sequence;
+    let r be Element of REAL,v be Element of product carr X;
+    let i be Element of dom carr X;
+    ([:multop X:].(r,v)).i = ((multop X).i).(r,v.i) by PRVECT_2:def 2;
+    hence thesis by PRVECT_2:def 8;
+  end;
+
+theorem Th13:
+  for n be Nat,
+      X be RealNormSpace-Sequence
+  st X = n |-> RNS_Real
+  holds product X = REAL-NS n
+  proof
+    let n be Nat,
+    X be RealNormSpace-Sequence;
+    assume
+    A1: X = n |-> RNS_Real;
+    A2: n is Element of NAT by ORDINAL1:def 12;
+    A3: X = Seg n --> RNS_Real by FINSEQ_2:def 2,A1;
+
+    set RN = REAL-NS n;
+    set PX = product X;
+
+    A4: PX = NORMSTR(# product(carr X),
+                       zeros X,
+                       [:(addop X):],
+                       [:(multop X):],
+                       productnorm X #) by PRVECT_2:6;
+
+    A5: len X = n by A1,CARD_1:def 7;
+    then
+    A6: dom X = Seg n by FINSEQ_1:def 3;
+
+    A7: len (carr X)
+     = len X by PRVECT_1:def 11
+    .= n by A1,CARD_1:def 7;
+
+    then
+    A8: dom(carr X) = Seg n by FINSEQ_1:def 3;
+    A9: for i be Nat st i in Seg n
+        holds (carr X).i = REAL
+    proof
+      let i be Nat;
+      assume
+      A10: i in Seg n;
+      then reconsider i0 = i as Element of dom(carr X)
+        by A7,FINSEQ_1:def 3;
+      X.i0 = RNS_Real by A1,A10,FINSEQ_2:57;
+      hence (carr X).i
+       = the carrier of RNS_Real by A6,A10,PRVECT_1:def 11
+      .= REAL;
+    end;
+
+    A11:
+    for x be object
+    holds x in product(carr X) iff x in REAL n
+    proof
+      let x be object;
+      hereby
+        assume x in product (carr X);
+
+        then consider g be Function such that
+        A12: x = g & dom g = dom(carr X)
+           & for y be object st y in dom (carr X)
+             holds g.y in (carr X).y by CARD_3:def 5;
+
+        dom g = Seg n by A7,A12,FINSEQ_1:def 3;
+        then reconsider g as FinSequence by FINSEQ_1:def 2;
+
+        for y be object st y in rng g holds y in REAL
+        proof
+          let y be object;
+          assume y in rng g;
+          then consider i be object such that
+          A13: i in dom g & y = g.i by FUNCT_1:def 3;
+          A14: g.i in (carr X).i by A12,A13;
+
+          reconsider i as Nat by A13;
+          thus y in REAL by A8,A9,A12,A13,A14;
+        end;
+        then rng g c= REAL;
+        then reconsider g as FinSequence of REAL by FINSEQ_1:def 4;
+        len g = n by A2,A8,A12,FINSEQ_1:def 3;
+        then g is Element of n -tuples_on REAL by FINSEQ_2:92;
+        hence x in REAL n by A12;
+      end;
+
+      assume x in REAL n;
+      then x in {s where s is Element of REAL * : len s = n}
+        by FINSEQ_2:def 4;
+      then consider z be Element of REAL* such that
+      A15: x = z & len z =n;
+
+      reconsider z as FinSequence of REAL;
+      A16: dom z
+       = Seg n by A15,FINSEQ_1:def 3
+      .= dom(carr X) by A7,FINSEQ_1:def 3;
+
+      for y be object st y in dom(carr X)
+      holds z.y in (carr X).y
+      proof
+        let y be object;
+        assume
+        A17: y in dom(carr X);
+        then reconsider i = y as Nat;
+        A18: (carr X).i = REAL by A8,A9,A17;
+        z.i in rng z by A16,A17,FUNCT_1:3;
+        hence z.y in (carr X).y by A18;
+      end;
+      hence x in product(carr X) by A15,A16,CARD_3:def 5;
+    end;
+    then
+    A19: product (carr X) = REAL n by TARSKI:2;
+
+    A20: the carrier of RN
+     = REAL n by REAL_NS1:def 4
+    .= the carrier of PX by A4,A11,TARSKI:2;
+
+    A21: for j be Element of dom(carr X)
+         holds (0* n).j = 0.(X.j)
+    proof
+      let j be Element of dom(carr X);
+      thus (0* n).j
+       = (n |-> (In(0, REAL))).j
+      .= (Seg n --> (In(0, REAL))).j by FINSEQ_2:def 2
+      .= In(0, REAL) by A8
+      .= 0.(X.j) by A1,A8,FINSEQ_2:57;
+    end;
+    A22: the ZeroF of RN
+     = 0.RN
+    .= 0* n by REAL_NS1:def 4
+    .= the ZeroF of PX by A4,A19,A21,PRVECT_1:def 14;
+
+    A23: REAL n
+     = the carrier of (REAL-NS n) by REAL_NS1:def 4
+    .= the carrier of PX by A20;
+
+    for a, b be Element of REAL n
+    holds (the addF of PX).(a, b) = a + b
+    proof
+      let a, b be Element of REAL n;
+      reconsider a1 = a, b1 = b as Element of product(carr X) by A11;
+      reconsider ab = [:(addop X):].(a1,b1) as Element of REAL n by A11;
+
+      a in n -tuples_on REAL;
+      then a in {s where s is Element of REAL* : len s = n} by FINSEQ_2:def 4;
+      then consider az be Element of REAL* such that
+      A24: a = az & len az = n;
+      reconsider az as FinSequence of REAL;
+
+      b in n -tuples_on REAL;
+      then b in {s where s is Element of REAL* : len s = n} by FINSEQ_2:def 4;
+      then consider bz be Element of REAL* such that
+      A25: b = bz & len bz =n;
+      reconsider bz as FinSequence of REAL;
+
+      ab in n -tuples_on REAL;
+      then ab in {s where s is Element of REAL* : len s = n} by FINSEQ_2:def 4;
+      then consider abz be Element of REAL* such that
+      A26: ab = abz & len abz = n;
+      reconsider abz as FinSequence of REAL;
+
+      A27: dom abz
+       = Seg n by A26,FINSEQ_1:def 3
+      .= (Seg n) /\ (Seg n)
+      .= (dom az) /\ (Seg n) by A24,FINSEQ_1:def 3
+      .= (dom az) /\ (dom bz) by A25,FINSEQ_1:def 3;
+
+      for i be object st i in dom abz
+      holds abz.i = az.i + bz.i
+      proof
+        let i be object;
+        assume i in dom abz;
+        then reconsider i0 = i as Element of dom carr X
+          by A8,A26,FINSEQ_1:def 3;
+        reconsider ai0 = a.i0 as VECTOR of X.i0 by A3,A8,XREAL_0:def 1;
+        reconsider bi0 = b.i0 as VECTOR of X.i0 by A3,A8,XREAL_0:def 1;
+        ([:addop X:].(a1,b1)).i0
+         = ai0 + bi0 by Th11
+        .= a.i0 + b.i0 by A3,A8,BINOP_2:def 9;
+        hence abz.i = az.i + bz.i by A24,A25,A26;
+      end;
+      hence (the addF of PX).(a, b) = a + b
+        by A4,A24,A25,A26,A27,VALUED_1:def 1;
+    end;
+    then Euclid_add n = the addF of PX by A23,REAL_NS1:def 1;
+    then
+    A28: the addF of RN
+       = the addF of PX by REAL_NS1:def 4;
+
+    for r be Real,
+        a be Element of REAL n
+    holds (the Mult of PX).(r, a) = r * a
+    proof
+      let r be Real;
+      let a be Element of REAL n;
+      A29: r is Element of REAL by XREAL_0:def 1;
+      reconsider a1 = a as Element of product(carr X) by A11;
+      reconsider aa1 = a1 as Element of PX by A4;
+      [:(multop X):].(r,a1) = r * aa1 by A4;
+      then reconsider ra = [:(multop X):].(r,a1)
+        as Element of REAL n by A4,A11;
+
+      a in n -tuples_on REAL;
+      then a in {s where s is Element of REAL* : len s = n} by FINSEQ_2:def 4;
+      then consider az be Element of REAL* such that
+      A30: a = az & len az = n;
+      reconsider az as FinSequence of REAL;
+
+      ra in n -tuples_on REAL;
+      then ra in {s where s is Element of REAL* : len s = n} by FINSEQ_2:def 4;
+      then consider raz be Element of REAL* such that
+      A31: ra = raz & len raz = n;
+      reconsider raz as FinSequence of REAL;
+
+      A32: dom raz
+       = Seg n by A31,FINSEQ_1:def 3
+      .= dom az by A30,FINSEQ_1:def 3;
+
+      for i be object st i in dom raz
+      holds raz.i = r * az.i
+      proof
+        let i be object;
+        assume i in dom raz;
+        then reconsider i0 = i as Element of dom carr X
+          by A8,A31,FINSEQ_1:def 3;
+
+        reconsider ai0 = a.i0 as VECTOR of X.i0 by XREAL_0:def 1,A3,A8;
+        ([:multop X:].(r,a1)).i0
+         = r * ai0 by Th12,A29
+        .= r * a.i0 by A3,A8,BINOP_2:def 11;
+        hence
+        raz . i = r*(az. i) by A30,A31;
+      end;
+      hence (the Mult of PX).(r, a) = r * a by A4,A30,A31,A32,VALUED_1:def 5;
+    end;
+    then Euclid_mult n = the Mult of PX by A23,REAL_NS1:def 2;
+    then
+    A33: the Mult of RN = the Mult of PX by REAL_NS1:def 4;
+
+    for a be Element of REAL n
+    holds (the normF of PX).a = |.a.|
+    proof
+      let a be Element of REAL n;
+      reconsider a1 = a as Element of product(carr X) by A11;
+      reconsider aa1 = a1 as Element of PX by A4;
+
+      a in n -tuples_on REAL;
+      then a in {s where s is Element of REAL * : len s = n} by FINSEQ_2:def 4;
+      then consider az be Element of REAL* such that
+      A34: a= az & len az =n;
+      reconsider az as FinSequence of REAL;
+
+      A35: (the normF of PX).aa1
+       = ||.aa1.||
+      .= |.normsequence(X,a1).| by PRVECT_2:7;
+
+      A36: len(normsequence(X,a1))
+       = len X by PRVECT_2:def 11
+      .= n by A1,CARD_1:def 7;
+
+      A37: dom(normsequence(X,a1))
+       = Seg n by A36,FINSEQ_1:def 3
+      .= dom a by A34,FINSEQ_1:def 3;
+
+      reconsider f1 = normsequence(X,a1) as real-valued Function;
+      reconsider g1 = a as real-valued Function;
+
+      for i be object st i in dom f1
+      holds f1.i = |. g1.i .|
+      proof
+        let i be object;
+        assume i in dom f1;
+        then i in Seg n by A36,FINSEQ_1:def 3;
+        then reconsider i0 = i as Element of dom X by A5,FINSEQ_1:def 3;
+        thus f1.i
+         = (the normF of X.i0).(a1.i0) by PRVECT_2:def 11
+        .= (the normF of RNS_Real).(a1.i0) by A3
+        .= |. g1.i .| by EUCLID:def 2;
+      end;
+      then f1
+       = |.g1.| by A37,VALUED_1:def 11
+      .= abs a;
+      then |.normsequence(X,a1).|
+       = sqrt(Sum(sqr a)) by EUCLID:25
+      .= |.a.|;
+      hence thesis by A35;
+    end;
+    then Euclid_norm n = the normF of PX by A23,REAL_NS1:def 3;
+    hence thesis by A20,A22,A28,A33,REAL_NS1:def 4;
+  end;
+
+theorem
+  for n be Nat,
+      X be RealNormSpace-Sequence
+    st X = n |-> RNS_Real
+  holds product X is finite-dimensional
+      & dim(product X) = n
+  proof
+    let n be Nat,
+        X be RealNormSpace-Sequence;
+    assume X = n |-> RNS_Real;
+    then product X = REAL-NS n by Th13;
+    hence thesis by REAL_NS2:62;
+  end;
+
+begin :: Transformation to real vector space
+
+definition
+  let X be RealLinearSpace,
+      Y be Subspace of X;
+  redefine func RLSp2RVSp(Y) -> Subspace of RLSp2RVSp(X);
+  correctness
+  proof
+    the addF of RLSp2RVSp(Y)
+      = (the addF of RLSp2RVSp(Y)) || the carrier of RLSp2RVSp(Y);
+    hence thesis;
+  end;
+end;
+
+theorem
+  for X be RealLinearSpace
+  for Y be Subspace of X
+  holds RLSp2RVSp(Y) is Subspace of RLSp2RVSp(X);
+
+theorem Th16:
+  for X be RealLinearSpace
+  for Y1,Y2 be Subspace of X
+  holds RLSp2RVSp(Y1 + Y2) = RLSp2RVSp(Y1) + RLSp2RVSp(Y2)
+  proof
+    let X be RealLinearSpace;
+    let Y1,Y2 be Subspace of X;
+    set Y12 = Y1 + Y2;
+
+    A1: the carrier of Y12
+      = {(v + u) where u, v is VECTOR of X : (v in Y1 & u in Y2)}
+      by RLSUB_2:def 1;
+
+    A2: the carrier of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2))
+     = { (v + u) where u, v is Element of RLSp2RVSp(X)
+        : (v in RLSp2RVSp(Y1) & u in RLSp2RVSp(Y2)) } by VECTSP_5:def 1;
+
+    A3: for x be object
+        holds
+          x in the carrier of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2))
+            iff
+          x in the carrier of RLSp2RVSp(Y12)
+    proof
+      let x be object;
+      hereby
+        assume x in the carrier of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2));
+        then consider u, v be Element of RLSp2RVSp(X) such that
+        A4: x = v + u
+          & v in RLSp2RVSp(Y1)
+          & u in RLSp2RVSp(Y2) by A2;
+
+        reconsider u1 = u, v1 = v as Element of X;
+        A5: v1 in Y1 & u1 in Y2 by A4;
+
+        v + u = v1 + u1;
+        hence x in the carrier of RLSp2RVSp(Y12) by A1,A4,A5;
+      end;
+      assume x in the carrier of RLSp2RVSp(Y12);
+      then consider u, v be VECTOR of X such that
+      A6: x = v + u & v in Y1 & u in Y2 by A1;
+      reconsider v1 = v, u1 = u as Element of RLSp2RVSp(X);
+      A7: v in RLSp2RVSp(Y1) & u in RLSp2RVSp(Y2) by A6;
+
+      v + u = v1 + u1;
+      hence x in the carrier of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2)) by A2,A6,A7;
+    end;
+
+    A8: the addF of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2))
+     = (the addF of RLSp2RVSp (X)) ||
+          the carrier of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2)) by VECTSP_4:def 2
+    .= (the addF of RLSp2RVSp (X)) || the carrier of RLSp2RVSp(Y12)
+          by A3,TARSKI:2
+    .= the addF of RLSp2RVSp(Y1 + Y2) by VECTSP_4:def 2;
+
+    A9: 0.(RLSp2RVSp(Y1) + RLSp2RVSp(Y2))
+     = 0.(RLSp2RVSp(X)) by VECTSP_4:def 2
+    .= 0.(RLSp2RVSp(Y1 + Y2)) by VECTSP_4:def 2;
+
+    MultF_Real* (Y1 + Y2)
+     = (the Mult of X) | [:REAL, the carrier of (Y1+Y2):] by RLSUB_1:def 2
+    .= (the lmult of RLSp2RVSp(X)) |
+        [:the carrier of F_Real,
+          the carrier of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2)):] by A3,TARSKI:2
+    .= the lmult of (RLSp2RVSp(Y1) + RLSp2RVSp(Y2)) by VECTSP_4:def 2;
+    hence thesis by A3,A8,A9,TARSKI:2;
+  end;
+
+theorem Th17:
+  for X be RealLinearSpace
+  for Y1,Y2 be Subspace of X
+  holds RLSp2RVSp(Y1 /\ Y2) = RLSp2RVSp(Y1) /\ RLSp2RVSp(Y2)
+  proof
+    let X be RealLinearSpace;
+    let Y1,Y2 be Subspace of X;
+    set Y12 = Y1 /\ Y2;
+    the carrier of Y12 = (the carrier of Y1) /\ (the carrier of Y2)
+      by RLSUB_2:def 2;
+    hence thesis by VECTSP_5:def 2;
+  end;
+
+theorem Th18:
+  for X be RealLinearSpace
+  holds RLSp2RVSp((0).X) = (0).RLSp2RVSp(X)
+  proof
+    let X be RealLinearSpace;
+    set Y = (0).X;
+
+    A1: the carrier of (0).RLSp2RVSp(X)
+     = { 0.(RLSp2RVSp(X)) } by VECTSP_4:def 3
+    .= { 0.X };
+
+    A2: the addF of RLSp2RVSp(Y)
+     = (the addF of RLSp2RVSp(X)) ||
+        the carrier of RLSp2RVSp(Y) by VECTSP_4:def 2
+    .= (the addF of RLSp2RVSp(X)) ||
+        the carrier of (0).(RLSp2RVSp(X)) by A1,RLSUB_1:def 3
+    .= the addF of (0).(RLSp2RVSp(X)) by VECTSP_4:def 2;
+
+    A3: 0.(RLSp2RVSp(Y))
+     = 0.(RLSp2RVSp(X)) by VECTSP_4:def 2
+    .= 0.((0).RLSp2RVSp(X)) by VECTSP_4:def 2;
+
+    MultF_Real* Y
+     = (the Mult of X) | [:REAL, the carrier of (Y):] by RLSUB_1:def 2
+    .= (the lmult of RLSp2RVSp(X)) |
+      [:the carrier of F_Real, the carrier of (0).(RLSp2RVSp(X)):]
+        by A1,RLSUB_1:def 3
+    .= the lmult of (0).(RLSp2RVSp(X)) by VECTSP_4:def 2;
+    hence thesis by A1,A2,A3,RLSUB_1:def 3;
+  end;
+
+begin :: Basis and dimension properties of real linear spaces
+
+theorem
+  for X be RealLinearSpace
+  for Y1, Y2 be Subspace of X
+    st Y1 /\ Y2 = (0).X
+  holds
+    for B1 be linearly-independent Subset of Y1
+    for B2 be linearly-independent Subset of Y2
+    holds B1 \/ B2 is linearly-independent Subset of (Y1 + Y2)
+  proof
+    let X be RealLinearSpace;
+    let Y1, Y2 be Subspace of X;
+    assume
+    A1: Y1 /\ Y2 = (0).X;
+
+    let B1 be linearly-independent Subset of Y1;
+    let B2 be linearly-independent Subset of Y2;
+
+    A2: RLSp2RVSp(Y1) /\ RLSp2RVSp(Y2)
+     = RLSp2RVSp(Y1 /\ Y2) by Th17
+    .= RLSp2RVSp((0).X) by A1
+    .= (0).RLSp2RVSp(X) by Th18;
+
+    A3: B1 is linearly-independent Subset of RLSp2RVSp(Y1)
+      by REAL_NS2:78;
+    A4: B2 is linearly-independent Subset of RLSp2RVSp(Y2)
+      by REAL_NS2:78;
+
+    RLSp2RVSp(Y1 + Y2) = RLSp2RVSp(Y1) + RLSp2RVSp(Y2) by Th16;
+
+    then B1 \/ B2 is linearly-independent Subset of RLSp2RVSp(Y1 + Y2)
+      by A2,A3,A4,MATRLIN2:2;
+
+    hence B1 \/ B2 is linearly-independent Subset of (Y1 + Y2)
+      by REAL_NS2:78;
+  end;
+
+theorem Th20:
+  for X be RealLinearSpace
+  for Y1, Y2 be Subspace of X
+    st Y1 /\ Y2 = (0). X
+  holds
+    for B1 be Basis of Y1
+    for B2 be Basis of Y2
+    holds B1 \/ B2 is Basis of (Y1 + Y2)
+  proof
+    let X be RealLinearSpace;
+    let Y1, Y2 be Subspace of X;
+    assume
+    A1: Y1 /\ Y2 = (0).X;
+
+    let B1 be Basis of Y1;
+    let B2 be Basis of Y2;
+
+    A2: RLSp2RVSp(Y1) /\ RLSp2RVSp(Y2)
+     = RLSp2RVSp(Y1 /\ Y2) by Th17
+    .= (0).RLSp2RVSp(X) by A1,Th18;
+
+    A3: B1 is Basis of RLSp2RVSp(Y1) by REAL_NS2:80;
+    A4: B2 is Basis of RLSp2RVSp(Y2) by REAL_NS2:80;
+
+    RLSp2RVSp(Y1 + Y2) = RLSp2RVSp(Y1) + RLSp2RVSp(Y2) by Th16;
+
+    then B1 \/ B2 is Basis of RLSp2RVSp(Y1+ Y2) by A2,A3,A4,MATRLIN2:3;
+    hence B1 \/ B2 is Basis of (Y1 + Y2) by REAL_NS2:80;
+  end;
+
+theorem Th21:
+  for X,Y be RealLinearSpace,
+      X1 be Subspace of X,
+      Y1 be Subspace of Y
+  holds [:X1,Y1:] is Subspace of [:X,Y:]
+  proof
+    let X,Y be RealLinearSpace,
+        X1 be Subspace of X,
+        Y1 be Subspace of Y;
+    set V = [:X,Y:];
+    set XY1 = [:X1,Y1:];
+
+    A1: the carrier of X1 c= the carrier of X
+      & 0.X1 = 0.X
+      & the addF of X1 = (the addF of X) || the carrier of X1
+      & the Mult of X1 = (the Mult of X) | [:REAL, the carrier of X1:]
+      by RLSUB_1:def 2;
+
+    A2: the carrier of Y1 c= the carrier of Y
+      & 0.Y1 = 0.Y
+      & the addF of Y1 = (the addF of Y) || the carrier of Y1
+      & the Mult of Y1 = (the Mult of Y) | [:REAL, the carrier of Y1:]
+      by RLSUB_1:def 2;
+
+    A3: the carrier of XY1 c= the carrier of V by A1,A2,ZFMISC_1:96;
+
+    A4: 0.XY1
+     = [0.X, 0.Y] by A2,RLSUB_1:def 2
+    .= 0.V;
+
+    set f = the addF of XY1;
+    set g = (the addF of V) || the carrier of XY1;
+
+    A5: dom(the addF of V)
+      = [:the carrier of V,the carrier of V:] by FUNCT_2:def 1;
+
+    A6: dom g = [:the carrier of XY1,the carrier of XY1:]
+        by A3,A5,RELAT_1:62,ZFMISC_1:96;
+    A7: dom f = [:the carrier of XY1,the carrier of XY1:]
+        by FUNCT_2:def 1;
+
+    for z be object st z in dom f
+    holds f.z = g.z
+    proof
+      let z be object;
+      assume z in dom f;
+
+      then consider x, y be object such that
+      A8: x in the carrier of XY1
+        & y in the carrier of XY1
+        & z = [x,y] by ZFMISC_1:def 2;
+
+      reconsider x,y as Point of XY1 by A8;
+
+      consider ax be Point of X1, bx be Point of Y1 such that
+      A9: x = [ax,bx] by PRVECT_3:9;
+
+      consider az be Point of X1, bz be Point of Y1 such that
+      A10: y = [az,bz] by PRVECT_3:9;
+
+      reconsider ax0 = ax, az0 = az as Point of X by A1;
+      reconsider bx0 = bx, bz0 = bz as Point of Y by A2;
+      reconsider x1 = [ax0,bx0] as Point of V;
+      reconsider y1 = [az0,bz0] as Point of V;
+
+      A11: bx + bz = bx0 + bz0 by RLSUB_1:13;
+
+      thus f.z
+       = f.(x,y) by A8
+      .= x + y
+      .= [ax + az, bx + bz] by A9,A10,PRVECT_3:9
+      .= [ax0 + az0, bx0 + bz0] by A11,RLSUB_1:13
+      .= x1 + y1 by PRVECT_3:9
+      .= g.[x1,y1] by A9,A10,FUNCT_1:49,ZFMISC_1:87
+      .= g.z by A8,A9,A10;
+    end;
+    then
+    A12: the addF of XY1 = (the addF of V) || the carrier of XY1
+      by A6,A7,FUNCT_1:2;
+
+    set f = the Mult of XY1;
+    set g = (the Mult of V) | [:REAL, the carrier of XY1:];
+    A13: dom (the Mult of V) = [:REAL,the carrier of V:] by FUNCT_2:def 1;
+    A14: dom g = [:REAL,the carrier of XY1:] by A3,A13,RELAT_1:62,ZFMISC_1:96;
+    A15: dom f = [:REAL,the carrier of XY1:] by FUNCT_2:def 1;
+
+    for z be object st z in dom f
+    holds f.z = g.z
+    proof
+      let z be object;
+      assume z in dom f;
+      then consider x, y be object such that
+      A16: x in REAL
+         & y in the carrier of XY1
+         & z = [x,y] by ZFMISC_1:def 2;
+
+      reconsider y as Point of XY1 by A16;
+      reconsider x as Element of REAL by A16;
+      consider az be Point of X1, bz be Point of Y1 such that
+      A17: y = [az,bz] by PRVECT_3:9;
+
+      reconsider az0 = az as Point of X by A1;
+      reconsider bz0 = bz as Point of Y by A2;
+      reconsider y1 = [az0,bz0] as Point of V;
+
+      A18: x * az = x * az0 by RLSUB_1:14;
+      thus f.z
+       = f.(x,y) by A16
+      .= x * y
+      .= [x * az, x * bz] by PRVECT_3:9,A17
+      .= [x * az0, x * bz0] by A18,RLSUB_1:14
+      .= x * y1 by PRVECT_3:9
+      .= g.[x,y1] by A17,FUNCT_1:49,ZFMISC_1:87
+      .= g.z by A16,A17;
+    end; then
+    the Mult of XY1 = (the Mult of V) | [:REAL, the carrier of XY1:]
+        by A14,A15,FUNCT_1:2;
+    hence thesis by A1,A2,A4,A12,RLSUB_1:def 2,ZFMISC_1:96;
+  end;
+
+theorem Th22:
+  for X,Y be RealLinearSpace,
+      X1,Y1 be Subspace of [:X,Y:]
+    st X1 = [:X,(0).Y:] & Y1 = [:(0).X,Y:]
+  holds
+      X1 + Y1 = [:X,Y:]
+    & X1 /\ Y1 = (0).[:X,Y:]
+  proof
+    let X,Y be RealLinearSpace,
+      X1,Y1 be Subspace of [:X,Y:];
+    assume
+    A1: X1 = [:X,(0).Y:] & Y1 = [:(0).X,Y:];
+
+    for x be object
+    holds
+      x in the carrier of (X1 + Y1)
+        iff
+      x in the carrier of [:X,Y:]
+    proof
+      let x be object;
+      hereby
+        assume x in the carrier of (X1+Y1);
+        then x in { (v + u) where u, v is VECTOR of [:X,Y:]
+                    : (v in X1 & u in Y1) } by RLSUB_2:def 1;
+
+        then consider u, v be VECTOR of [:X,Y:] such that
+        A2: x = v + u & v in X1 & u in Y1;
+        thus x in the carrier of [:X,Y:] by A2;
+      end;
+      assume x in the carrier of [:X,Y:];
+      then consider a be Point of X, b be Point of Y such that
+      A3: x = [a,b] by PRVECT_3:9;
+
+      reconsider x1 = [a,0.Y] as Point of [:X,Y:];
+      reconsider y1 = [0.X,b] as Point of [:X,Y:];
+
+      A4: x1 + y1
+       = [a + 0.X, 0.Y + b] by PRVECT_3:9
+      .= [a, b];
+
+      0.X in {0.X} by TARSKI:def 1;
+      then 0.X in the carrier of (0).X by RLSUB_1:def 3;
+      then [0.X,b] is Point of [:(0).X,Y:] by PRVECT_3:9;
+      then
+      A5: y1 in Y1 by A1;
+      0.Y in {0.Y} by TARSKI:def 1;
+      then 0.Y in the carrier of (0).Y by RLSUB_1:def 3;
+      then [a,0.Y] is Point of [:X,(0).Y:] by PRVECT_3:9;
+      then
+      A6: x1 in X1 by A1;
+      x in { (v + u) where u, v is VECTOR of [:X,Y:]
+              : ( v in X1 & u in Y1 ) } by A3,A4,A5,A6;
+      hence x in the carrier of (X1 + Y1) by RLSUB_2:def 1;
+    end;
+    hence X1 + Y1 = [:X,Y:] by RLSUB_1:32,TARSKI:2;
+
+    A7: for x be object
+        holds
+          x in (the carrier of [:X,(0).Y:])
+            /\ (the carrier of [:(0).X,Y:])
+            iff
+          x in { [0.X,0.Y] }
+    proof
+      let x be object;
+      hereby
+        assume
+        x in (the carrier of [:X,(0).Y:])
+          /\ (the carrier of [:(0).X,Y:]);
+        then
+        A8: x in the carrier of [:X,(0).Y:]
+          & x in the carrier of [:(0).X,Y:]
+            by XBOOLE_0:def 4;
+
+        consider a be Point of X, b be Point of (0).Y such that
+        A9: x = [a,b] by A8,PRVECT_3:9;
+
+        consider a1 be Point of (0).X, b1 be Point of Y such that
+        A10: x = [a1,b1] by A8,PRVECT_3:9;
+
+        A11: a = a1 & b = b1 by A9,A10,XTUPLE_0:1;
+
+        a1 in the carrier of (0).X;
+        then a1 in {0.X} by RLSUB_1:def 3;
+        then
+        A12: a1 = 0.X by TARSKI:def 1;
+
+        b in the carrier of (0).Y;
+        then
+        A13: b in {0.Y} by RLSUB_1:def 3;
+        x = [0.X,0.Y] by A10,A11,A12,A13,TARSKI:def 1;
+        hence x in {[0.X,0.Y]} by TARSKI:def 1;
+      end;
+      assume x in { [0.X,0.Y] };
+      then
+      A14: x = [0.X,0.Y] by TARSKI:def 1;
+
+      0.X in {0.X} by TARSKI:def 1;
+      then
+      A15: 0.X in the carrier of (0).X by RLSUB_1:def 3;
+
+      0.Y in {0.Y} by TARSKI:def 1;
+      then 0.Y in the carrier of (0).Y by RLSUB_1:def 3;
+
+      then
+      A16: x is Point of [:X,(0).Y :] by A14,PRVECT_3:9;
+
+      x is Point of [:(0).X,Y :] by A14,A15,PRVECT_3:9;
+      hence x in (the carrier of [:X,(0).Y:])
+              /\ (the carrier of [:(0).X,Y:])
+        by A16,XBOOLE_0:def 4;
+    end;
+    the carrier of (X1 /\ Y1)
+     = (the carrier of X1) /\ (the carrier of Y1) by RLSUB_2:def 2
+    .= (the carrier of [:X,(0).Y:]) /\ (the carrier of [:(0).X,Y:]) by A1
+    .= {[0.X,0.Y]} by A7,TARSKI:2
+    .= {0. [:X,Y:]}
+    .= the carrier of ((0).[:X,Y:]) by RLSUB_1:def 3;
+    hence X1 /\ Y1 = (0).[:X,Y:] by RLSUB_1:30;
+  end;
+
+theorem Th23:
+  for X,Y be RealLinearSpace
+  holds
+    ex f be LinearOperator of X,[:X,(0).Y:]
+    st f is bijective
+     & for x be Element of X
+       holds f.x = [x,0.Y]
+  proof
+    let X,Y be RealLinearSpace;
+    set A = the carrier of X;
+    set B = the carrier of [:X,(0).Y:];
+
+    deffunc H1(Element of A) = In([$1,0.Y],B);
+    consider f be Function of A,B such that
+    A1: for x be Element of A
+        holds f.x = H1(x) from FUNCT_2:sch 4;
+
+    A2: for x be Element of X
+        holds f.x = [x,0.Y]
+    proof
+      let x be Element of X;
+      0.Y in {0.Y} by TARSKI:def 1;
+      then 0.Y in the carrier of (0).Y by RLSUB_1:def 3;
+
+      then
+      A3: [x,0.Y] is Point of [:X,(0).Y:] by PRVECT_3:9;
+      thus f.x
+       = In([x,0.Y],B) by A1
+      .= [x,0.Y] by A3,SUBSET_1:def 8;
+    end;
+
+    0.Y in {0.Y} by TARSKI:def 1;
+    then reconsider ZY = 0.Y as Point of (0).Y by RLSUB_1:def 3;
+    for x1,x2 be Element of X
+    holds f.(x1 + x2) = f.x1 + f.x2
+    proof
+      let x1,x2 be Element of X;
+      A4: f.x1 = [x1, 0.Y] by A2;
+      A5: f.x2 = [x2, 0.Y] by A2;
+
+      f.x1 + f.x2
+       = [x1 + x2, ZY + ZY] by A4,A5,PRVECT_3:9
+      .= [x1 + x2, 0.Y + 0.Y] by RLSUB_1:13
+      .= f.(x1 + x2) by A2;
+      hence thesis;
+    end;
+    then
+    A6: f is additive;
+
+    for x be VECTOR of X
+    for r be Real
+    holds f.(r * x) = r * f.x
+    proof
+      let x be VECTOR of X,
+      r be Real;
+      A7: f.x = [x,0.Y] by A2;
+      r * f.x
+       = [r * x, r * ZY] by A7,PRVECT_3:9
+      .= [r * x, r * 0.Y] by RLSUB_1:14
+      .= [r * x, 0.Y];
+      hence thesis by A2;
+    end;
+    then reconsider f as LinearOperator of X,[:X,(0).Y:]
+      by A6,LOPBAN_1:def 5;
+
+    take f;
+    now
+      let x1,x2 be object;
+      assume
+      A8: x1 in A
+        & x2 in A
+        & f.x1 = f.x2;
+      [x1,0.Y]
+       = f.x1 by A2,A8
+      .= [x2,0.Y] by A2,A8;
+      hence x1 = x2 by XTUPLE_0:1;
+    end;
+    then
+    A9: f is one-to-one by FUNCT_2:19;
+
+    now
+      let z be object;
+      assume z in B;
+      then consider x be Point of X, y be Point of (0).Y such that
+      A10: z = [x,y] by PRVECT_3:9;
+
+      y in the carrier of (0).Y;
+      then y in {0.Y} by RLSUB_1:def 3;
+      then y = 0.Y by TARSKI:def 1;
+      then f.x = z by A2,A10;
+      hence z in rng f by FUNCT_2:112;
+    end;
+    then B c= rng f;
+    then f is onto by FUNCT_2:def 3,XBOOLE_0:def 10;
+    hence thesis by A2,A9;
+  end;
+
+theorem Th24:
+  for X,Y be RealLinearSpace
+  holds
+    ex f be LinearOperator of Y,[:(0).X,Y:]
+    st f is bijective
+     & for y be Element of Y
+       holds f.y = [0.X,y]
+  proof
+    let X,Y be RealLinearSpace;
+    set A = the carrier of Y;
+    set B = the carrier of [:(0).X,Y:];
+
+    deffunc H1(Element of A) = In([0.X,$1],B);
+
+    consider f be Function of A,B such that
+    A1: for y be Element of A holds
+        f.y = H1(y) from FUNCT_2:sch 4;
+
+    A2: for y be Element of Y
+        holds f.y = [0.X,y]
+    proof
+      let y be Element of Y;
+      0.X in {0.X} by TARSKI:def 1;
+      then 0.X in the carrier of (0).X by RLSUB_1:def 3;
+
+      then
+      A3: [0.X,y] is Point of [:(0).X,Y:] by PRVECT_3:9;
+      thus f.y
+       = In([0.X,y],B) by A1
+      .= [0.X,y] by A3,SUBSET_1:def 8;
+    end;
+    0.X in {0.X} by TARSKI:def 1;
+    then reconsider ZY = 0.X as Point of (0).X by RLSUB_1:def 3;
+
+    for y1,y2 be Element of Y holds f.(y1 + y2) = f.y1 + f.y2
+    proof
+      let y1,y2 be Element of Y;
+      A4: f.y1 = [0.X,y1] by A2;
+      A5: f.y2 = [0.X,y2] by A2;
+
+      f.y1 + f.y2
+       = [ZY + ZY, y1 + y2] by A4,A5,PRVECT_3:9
+      .= [0.X + 0.X, y1 + y2] by RLSUB_1:13
+      .= f.(y1 + y2) by A2;
+      hence thesis;
+    end;
+    then
+    A6: f is additive;
+
+    for y be VECTOR of Y
+    for r be Real
+    holds f.(r * y) = r * f.y
+    proof
+      let y1 be VECTOR of Y,
+          r be Real;
+      A7: f.y1 = [0.X,y1] by A2;
+      r * f.y1
+       = [r * ZY, r * y1] by A7,PRVECT_3:9
+      .= [r * 0.X, r * y1] by RLSUB_1:14
+      .= [0.X, r * y1];
+      hence thesis by A2;
+    end;
+    then
+    reconsider f as LinearOperator of Y,[:(0).X,Y:]
+      by A6,LOPBAN_1:def 5;
+
+    take f;
+    now
+      let y1,y2 be object;
+      assume
+      A8: y1 in A
+        & y2 in A
+        & f.y1 = f.y2;
+
+      [0.X,y1]
+       = f.y1 by A2,A8
+      .= [0.X,y2] by A2,A8;
+      hence y1 = y2 by XTUPLE_0:1;
+    end;
+    then
+    A9: f is one-to-one by FUNCT_2:19;
+
+    now
+      let z be object;
+      assume z in B;
+      then consider x be Point of (0).X, y be Point of Y such that
+      A10: z = [x,y] by PRVECT_3:9;
+      x in the carrier of (0).X;
+      then x in {0.X} by RLSUB_1:def 3;
+      then x = 0.X by TARSKI:def 1;
+      then f.y = z by A2,A10;
+      hence z in rng f by FUNCT_2:112;
+    end;
+    then B c= rng f;
+    then f is onto by FUNCT_2:def 3,XBOOLE_0:def 10;
+    hence thesis by A2,A9;
+  end;
+
+Lm1:
+  for X be RealLinearSpace,
+      B be Basis of X
+  holds not 0.X in B
+  proof
+    let X be RealLinearSpace,
+        B be Basis of X;
+    assume 0.X in B;
+    then {0.X} c= B by ZFMISC_1:31;
+    then {0.X} is linearly-independent by RLVECT_3:def 3,RLVECT_3:5;
+    hence contradiction by RLVECT_3:9;
+  end;
+
+theorem Th25:
+  for X,Y be RealLinearSpace,
+       BX be Basis of X,
+       BY be Basis of Y
+  holds
+    [:BX,{0.Y}:] \/ [:{0.X},BY:] is Basis of [:X,Y:]
+  proof
+    let X,Y be RealLinearSpace;
+    let BX be Basis of X,
+        BY be Basis of Y;
+    reconsider BBX = [:BX,{0.Y}:]
+      as Subset of the carrier of [:X,Y:] by ZFMISC_1:96;
+    reconsider BBY = [:{0.X},BY:]
+      as Subset of the carrier of [:X,Y:] by ZFMISC_1:96;
+    reconsider BB = BBX \/ BBY
+      as Subset of the carrier of [:X,Y:];
+
+    consider T1 be LinearOperator of X,[:X,(0).Y:] such that
+    A1: T1 is bijective and
+    A2: for x be Element of X
+        holds T1.x = [x,0.Y] by Th23;
+
+    for y be object
+    holds y in T1.:BX iff y in BBX
+    proof
+      let y be object;
+      hereby
+        assume y in T1.:BX;
+        then consider x be object such that
+        A3: x in the carrier of X
+          & x in BX & y = T1.x by FUNCT_2:64;
+        A4: y = [x,0.Y] by A2,A3;
+        0.Y in {0.Y} by TARSKI:def 1;
+        hence y in BBX by A3,A4,ZFMISC_1:87;
+      end;
+      assume y in BBX;
+      then consider a, b be object such that
+      A5: a in BX & b in {0.Y} & y = [a,b] by ZFMISC_1:def 2;
+      A6: b = 0.Y by A5,TARSKI:def 1;
+      T1.a = [a,0.Y] by A2,A5;
+      hence y in T1.:BX by A5,A6,FUNCT_2:35;
+    end;
+    then
+    A7: T1.:BX = BBX by TARSKI:2;
+
+    consider T2 be LinearOperator of Y,[:(0).X,Y:] such that
+    A8: T2 is bijective and
+    A9: for y be Element of Y
+        holds T2.y = [0.X,y] by Th24;
+
+    for y be object
+    holds y in T2.:BY iff y in BBY
+    proof
+      let y be object;
+      hereby
+        assume y in T2.:BY;
+        then consider x be object such that
+        A10: x in the carrier of Y
+           & x in BY & y = T2.x by FUNCT_2:64;
+        A11: y = [0.X,x] by A9,A10;
+        0.X in {0.X} by TARSKI:def 1;
+        hence y in BBY by A10,A11,ZFMISC_1:87;
+      end;
+      assume y in BBY;
+      then consider a, b be object such that
+      A12: a in {0.X} & b in BY & y = [a,b] by ZFMISC_1:def 2;
+
+      A13: a = 0.X by A12,TARSKI:def 1;
+      T2.b = [0.X,b] by A9,A12;
+      hence y in T2.:BY by A12,A13,FUNCT_2:35;
+    end;
+    then
+    A14: T2.:BY = BBY by TARSKI:2;
+
+    X is Subspace of X by RLSUB_1:25;
+    then reconsider W1 = [:X,(0).Y:] as Subspace of [:X,Y:] by Th21;
+
+    Y is Subspace of Y by RLSUB_1:25;
+    then reconsider W2 = [:(0).X,Y:] as Subspace of [:X,Y:] by Th21;
+
+    A15: BBX is Basis of W1 by A1,A7,REAL_NS2:87;
+    A16: BBY is Basis of W2 by A8,A14,REAL_NS2:87;
+
+      W1 + W2 = [:X,Y:]
+    & W1 /\ W2 = (0). [:X,Y:] by Th22;
+
+    hence [:BX,{0.Y}:] \/ [:{0.X},BY:] is Basis of [:X,Y:] by A15,A16,Th20;
+  end;
+
+theorem Th26:
+  for X,Y be finite-dimensional RealLinearSpace
+  holds
+    [:X,Y:] is finite-dimensional
+  & dim [:X,Y:] = dim X + dim Y
+  proof
+    let X,Y be finite-dimensional RealLinearSpace;
+
+    consider BX be finite Subset of X such that
+    A1: BX is Basis of X by RLVECT_5:def 1;
+    A2: card BX = dim X by A1,RLVECT_5:def 2;
+
+    consider BY be finite Subset of Y such that
+    A3: BY is Basis of Y by RLVECT_5:def 1;
+
+    reconsider BBX = [:BX,{0.Y}:]
+      as Subset of the carrier of [:X,Y:] by ZFMISC_1:96;
+    reconsider BBY = [:{0.X},BY:]
+      as Subset of the carrier of [:X,Y:] by ZFMISC_1:96;
+
+    reconsider BBX as finite Subset of the carrier of [:X,Y:];
+    reconsider BBY as finite Subset of the carrier of [:X,Y:];
+
+    reconsider BB=BBX \/ BBY as finite
+    Subset of the carrier of [:X,Y:];
+
+    BBX /\ BBY = {}
+    proof
+      assume BBX /\ BBY <> {};
+      then consider x be object such that
+      A4: x in BBX /\ BBY by XBOOLE_0:def 1;
+      A5: x in BBX & x in BBY by A4,XBOOLE_0:def 4;
+
+      consider a,b be object such that
+      A6: a in BX & b in {0.Y} & x = [a,b] by A5,ZFMISC_1:def 2;
+
+      consider a1,b1 be object such that
+      A7: a1 in {0.X} & b1 in BY & x = [a1,b1] by A5,ZFMISC_1:def 2;
+
+      a = a1 & b = b1 by A6,A7,XTUPLE_0:1;
+      then
+      0.X in BX by A6,A7,TARSKI:def 1;
+      hence contradiction by Lm1,A1;
+    end;
+
+    then
+    A9: card (BBX \/ BBY)
+     = card BBX + card BBY by CARD_2:40,XBOOLE_0:def 7
+    .= card BX + card BBY by CARD_1:69
+    .= card BX + card [:BY,{0.X}:] by CARD_2:4
+    .= card BX + card BY by CARD_1:69;
+    A10: BB is Basis of [:X,Y:] by A1,A3,Th25;
+    hence
+    A11: [:X,Y:] is finite-dimensional by RLVECT_5:def 1;
+
+    card BB
+     = card BX + card BY by A9
+    .= dim X + dim Y by A2,RLVECT_5:def 2,A3;
+    hence thesis by A10,A11,RLVECT_5:def 2;
+  end;
+
+theorem Th27:
+  for X be finite-dimensional RealLinearSpace
+  holds
+    product <*X*> is finite-dimensional
+  & dim(product <*X*>) = dim X
+  proof
+    let X be finite-dimensional RealLinearSpace;
+
+    consider I be Function of X,(product <*X*>) such that
+    A1: I is one-to-one & I is onto and
+        for x be Point of X holds I.x = <*x*> and
+    A2: for v, w be Point of X holds I.(v + w) = I.v + I.w and
+    A3: for v be Point of X for r be Element of REAL
+        holds I.(r * v) = r * I.v and
+        I.(0.X) = 0.(product <*X*>) by PRVECT_3:11;
+
+    A4: I is additive by A2;
+
+    for x be VECTOR of X for r be Real
+    holds I.(r * x) = r * I.x
+    proof
+      let x be VECTOR of X, r be Real;
+      reconsider r0 = r as Element of REAL by XREAL_0:def 1;
+      thus I.(r * x)
+       = r0 * I.x by A3
+      .= r * I.x;
+    end;
+
+    then I is LinearOperator of X,product <*X*> by A4,LOPBAN_1:def 5;
+    hence thesis by A1,REAL_NS2:88;
+  end;
+
+theorem
+  for X be RealLinearSpace-Sequence,
+      d be FinSequence of NAT
+   st len d = len X
+    & for i be Element of dom X
+      holds X.i is finite-dimensional
+    & d.i = dim(X.i)
+  holds
+      product X is finite-dimensional
+    & dim product X = Sum d
+  proof
+    defpred P[Nat]
+    means
+    for X be RealLinearSpace-Sequence,
+        d be FinSequence of NAT
+    st len X = $1
+     & len d = len X
+     & for i be Element of dom X
+       holds X.i is finite-dimensional
+     & d.i = dim(X.i)
+    holds
+        product X is finite-dimensional
+      & dim product X = Sum d;
+
+    A1: P[0];
+
+    A2: for n be Nat st P[n] holds P[n+1]
+    proof
+      let n be Nat;
+      assume
+      A3: P[n];
+
+      per cases;
+      suppose
+        A4: n = 0;
+        let X be RealLinearSpace-Sequence,
+        d be FinSequence of NAT;
+
+        assume
+        A5: len X = n + 1
+          & len d = len X
+          & for i be Element of dom X
+            holds X.i is finite-dimensional
+          & d.i = dim(X.i);
+
+        A6: 1 in Seg(n + 1) by A4;
+        then
+        A7: 1 in dom X by A5,FINSEQ_1:def 3;
+        reconsider i1 = 1 as Element of dom X by A5,A6,FINSEQ_1:def 3;
+
+        X.1 in rng X by A7,FUNCT_1:3;
+        then reconsider X1 = X.1 as RealLinearSpace by PRVECT_2:def 3;
+        A8: X = <* X1 *> by A4,A5,FINSEQ_1:40;
+        A9: d = <*d.1*> by A4,A5,FINSEQ_1:40;
+
+        X.i1 = X1;
+        then
+        A10: X1 is finite-dimensional
+          & d.i1 = dim(X1) by A5;
+
+        Sum d
+        = d.i1 by A9,RVSUM_1:73
+        .= dim X1 by A5;
+        hence thesis by A8,A10,Th27;
+      end;
+      suppose
+        A11: n <> 0;
+        let X be RealLinearSpace-Sequence,
+            d be FinSequence of NAT;
+
+        assume
+        A12: len X = n + 1
+          & len d = len X
+          & for i be Element of dom X
+            holds X.i is finite-dimensional
+          & d.i = dim(X.i);
+
+        set Y = X|n;
+        set e = d|n;
+
+        A13: n + 1 in Seg(n + 1) by FINSEQ_1:4;
+        then
+        A14: n + 1 in dom X by A12,FINSEQ_1:def 3;
+        A15: n <= n + 1 by NAT_1:11;
+        A16: len Y = n by A12,FINSEQ_1:59,NAT_1:11;
+
+        for S be set st S in rng Y
+        holds S is RealLinearSpace
+        proof
+          let S be set;
+          assume S in rng Y;
+          then consider x be object such that
+          A17: x in dom Y & S = Y.x by FUNCT_1:def 3;
+          x in Seg n by A16,A17,FINSEQ_1:def 3;
+          then x in Seg(n + 1) by A15,FINSEQ_1:5,TARSKI:def 3;
+          then x in dom X by FINSEQ_1:def 3,A12;
+          then X.x in rng X by FUNCT_1:3;
+          then X.x is RealLinearSpace by PRVECT_2:def 3;
+          hence S is RealLinearSpace by A17,FUNCT_1:47;
+        end;
+        then reconsider Y as RealLinearSpace-Sequence
+          by A11,PRVECT_2:def 3;
+
+        reconsider e as FinSequence of NAT;
+        A18: len e = n by A12,FINSEQ_1:59,NAT_1:11;
+
+        A19: for i be Element of dom Y
+            holds
+                Y.i is finite-dimensional
+              & e.i = dim (Y.i)
+        proof
+          let i be Element of dom Y;
+          i in dom Y;
+          then
+          A20: i in Seg len Y by FINSEQ_1:def 3;
+          i in Seg(n + 1) by A15,A16,A20,FINSEQ_1:5,TARSKI:def 3;
+          then reconsider i0 = i as Element of dom X by A12,FINSEQ_1:def 3;
+
+          A21: i in dom e by A16,A18,A20,FINSEQ_1:def 3;
+          X.i0 is finite-dimensional by A12;
+          hence Y.i is finite-dimensional by FUNCT_1:47;
+          thus e.i
+           = d.i by FUNCT_1:47,A21
+          .= dim(X.i0) by A12
+          .= dim(Y.i) by FUNCT_1:47;
+        end;
+        then
+        A22: product Y is finite-dimensional
+          & dim product Y = Sum e by A3,A16,A18;
+        reconsider m = n + 1 as Element of dom X
+          by A12,A13,FINSEQ_1:def 3;
+
+        X.m is RealLinearSpace;
+        then
+        reconsider Xm = X.(n + 1) as RealLinearSpace;
+        reconsider Xm as finite-dimensional
+        RealLinearSpace by A12,A14;
+        A23: [:product Y,Xm:] is finite-dimensional
+          & dim([:product Y,Xm:]) = dim(product Y) + dim(Xm) by A22,Th26;
+        consider I be Function of [:(product Y),Xm:], product(Y ^ <*Xm*>)
+        such that
+        A24: I is one-to-one & I is onto
+                and
+             for v be Point of (product Y)
+             for w be Point of Xm
+             ex v1, w1 be FinSequence
+             st v = v1 & <*w*> = w1 & I.(v,w) = v1 ^ w1
+                and
+        A25: for v, w be Point of [:(product Y),Xm:]
+             holds I.(v + w) = I.v + I.w
+                and
+        A26: for v be Point of [:(product Y),Xm:]
+             for r be Element of REAL
+             holds I.(r * v) = r * I.v
+                and
+             I.(0. [:(product Y),Xm:]) = 0.(product(Y ^ <*Xm*>))
+                by PRVECT_3:22;
+
+        A27: I is additive by A25;
+
+        for v be VECTOR of [:(product Y),Xm:]
+        for r be Real
+        holds I.(r * v) = r * I.v
+        proof
+          let v be VECTOR of [:(product Y),Xm:],
+              r be Real;
+          reconsider r0 = r as Element of REAL by XREAL_0:def 1;
+          thus I.(r * v)
+           = r0 * I.v by A26
+          .= r * I.v;
+        end;
+
+        then
+        A28: I is homogeneous by LOPBAN_1:def 5;
+        A29: product(Y ^ <*Xm*>) is finite-dimensional
+           & dim(product( Y ^ <*Xm*>)) = dim [:(product Y),Xm:]
+             by A23,A24,A27,A28,REAL_NS2:88;
+        A30: e ^ <*d.(n+1)*> = d by A12,FINSEQ_3:55;
+
+        dim([:product Y,Xm:])
+         = dim(product Y) + dim Xm by A22,Th26
+        .= Sum e + dim Xm by A3,A16,A18,A19
+        .= Sum e + d.m by A12
+        .= Sum d by A30,RVSUM_1:74;
+
+        hence thesis by A12,A29,FINSEQ_3:55;
+      end;
+    end;
+
+    A31: for n be Nat holds P[n] from NAT_1:sch 2 (A1,A2);
+
+    let X be RealLinearSpace-Sequence,
+        d be FinSequence of NAT;
+
+    assume
+    len d = len X
+       & for i be Element of dom X
+         holds X.i is finite-dimensional
+       & d.i = dim(X.i);
+    hence thesis by A31;
+  end;

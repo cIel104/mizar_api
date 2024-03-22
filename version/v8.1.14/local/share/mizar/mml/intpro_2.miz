@@ -1,0 +1,2703 @@
+:: Intuitionistic Propositional Calculus in the Extended Framework with Modal 
+:: Operator, {P}art {II } (Negation, Deduction Theorem for IPC)
+::  by Takao Inou\'e and Riku Hanaoka
+:: 
+:: Received April 30, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, CARD_1, ORDINAL4, SUBSET_1, NUMBERS, ARYTM_3, RELAT_1,
+      TARSKI, XBOOLE_0, FUNCT_1, QC_LANG2, XBOOLEAN, INTPRO_1, INTPRO_2,
+      ZFMISC_1, MCART_1, NAT_1, XXREAL_0, FINSET_1, ARYTM_1, ORDINAL1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, NUMBERS, XCMPLX_0, NAT_1,
+      FUNCT_1, FINSEQ_1, INTPRO_1, ZFMISC_1, XTUPLE_0, MCART_1, DOMAIN_1,
+      QC_LANG1, QC_LANG2, CQC_LANG, XXREAL_0, FINSET_1, ENUMSET1;
+ constructors NAT_1, FINSEQ_1, NUMBERS, INTPRO_1, DOMAIN_1, XXREAL_0, XREAL_0,
+      CQC_THE1, XTUPLE_0, CQC_LANG, ENUMSET1, RELSET_1;
+ registrations SUBSET_1, ORDINAL1, FUNCT_1, FINSEQ_1, INTPRO_1, XBOOLE_0,
+      RELSET_1, XREAL_0, CQC_LANG, LUKASI_1, FINSET_1, XXREAL_0, CARD_1, NAT_1,
+      XTUPLE_0;
+ requirements NUMERALS, BOOLE, SUBSET, REAL, ARITHM;
+ definitions TARSKI, INTPRO_1, CQC_THE1, ENUMSET1;
+ equalities XBOOLE_0, ENUMSET1;
+ expansions TARSKI, INTPRO_1, CQC_THE1, XBOOLE_0, ENUMSET1;
+ theorems TARSKI, FINSEQ_1, XBOOLE_0, XBOOLE_1, INTPRO_1, ZFMISC_1, ENUMSET1,
+      XXREAL_0, FINSET_1, MCART_1, FUNCT_1, NAT_1, XREAL_1, RELAT_1, FINSEQ_3;
+ schemes NAT_1, FRAENKEL;
+
+begin :: The notion of proof in intuitionistic setting
+
+ reserve i,j,n,k,l for Nat;
+ reserve T,S,X,Y,Z for Subset of MC-wff;
+ reserve p,q,r,t,F,H,G for Element of MC-wff;
+ reserve s,U,V for MC-formula;
+
+definition
+  let p,q be Element of MC-wff;
+  func p 'equiv' q -> Element of MC-wff equals
+  (p => q) '&' (q => p);
+  correctness;
+end;
+
+definition
+  func Proof_Step_Kinds_IPC -> set equals
+  {k: k <= 10};
+  coherence;
+end;
+
+theorem Th1:
+  0 in Proof_Step_Kinds_IPC & ... & 10 in Proof_Step_Kinds_IPC;
+
+registration
+  cluster Proof_Step_Kinds_IPC -> non empty;
+  coherence by Th1;
+end;
+
+registration
+  cluster Proof_Step_Kinds_IPC -> finite;
+  coherence
+  proof
+    Proof_Step_Kinds_IPC = succ Segm 10 by NAT_1:54;
+    hence thesis;
+  end;
+end;
+
+reserve f,g for FinSequence of [:MC-wff,Proof_Step_Kinds_IPC:];
+
+theorem Th3:
+  for n being Nat holds 1 <= n & n <= len f implies
+  (f.n)`2 = 0 or ... or (f.n)`2 = 10
+proof
+  let n be Nat;
+  assume 1 <= n & n <= len f;
+  then n in dom f by FINSEQ_3:25;
+  then
+  rng f c= [:MC-wff,Proof_Step_Kinds_IPC:] & f.n in rng f
+    by FINSEQ_1:def 4,FUNCT_1:def 3;
+  then (f.n)`2 in Proof_Step_Kinds_IPC by MCART_1:10;
+  then ex k st k = (f.n)`2 & k <= 10;
+  hence thesis;
+end;
+
+definition
+  let PR be (FinSequence of [:MC-wff,Proof_Step_Kinds_IPC:]),n be Nat,X;
+  pred PR,n is_a_correct_step_wrt_IPC X means
+  :Def3:
+  (PR.n)`1 in X if (PR.n)`2 = 0,
+  ex p,q st (PR.n)`1 = p => (q => p) if (PR.n)`2 = 1,
+  ex p,q,r st (PR.n)`1 = (p => (q => r)) => ((p => q) => (p => r))
+  if (PR.n)`2 = 2,
+  ex p,q st (PR.n)`1 = (p '&' q) => p if (PR.n)`2 = 3,
+  ex p,q st (PR.n)`1 = (p '&' q) => q if (PR.n)`2 = 4,
+  ex p,q st (PR.n)`1 = p => (q => (p '&' q)) if (PR.n)`2 = 5,
+  ex p,q st (PR.n)`1 = p => (p 'or' q) if (PR.n)`2 = 6,
+  ex p,q st (PR.n)`1 = q => (p 'or' q) if (PR.n)`2 = 7,
+  ex p,q,r st (PR.n)`1 = (p => r) => ((q => r) => ((p 'or' q) => r))
+  if (PR.n)`2 = 8,
+  ex p st (PR.n)`1 = FALSUM => p if (PR.n)`2 = 9,
+  ex i,j,p,q st 1 <= i & i < n & 1 <= j & j < i & p = (PR.j)`1 &
+  q = (PR.n)`1 & (PR.i)`1 = p => q if (PR.n)`2 = 10;
+  consistency;
+end;
+
+definition
+  let X,f;
+  pred f is_a_proof_wrt_IPC X means
+  f <> {} & for n st 1 <= n & n <= len f holds
+  f,n is_a_correct_step_wrt_IPC X;
+end;
+
+theorem
+  f is_a_proof_wrt_IPC X implies rng f <> {} by RELAT_1:41;
+
+theorem Th5:
+  f is_a_proof_wrt_IPC X implies 1 <= len f
+proof
+  assume f is_a_proof_wrt_IPC X; then
+  0+1 <= len f by NAT_1:13;
+  hence thesis;
+end;
+
+theorem
+  f is_a_proof_wrt_IPC X implies (f.1)`2 = 0 or ... or (f.1)`2 = 10
+proof
+  assume
+A1: f is_a_proof_wrt_IPC X;
+  then A2: 1 <= len f by Th5;
+  then A3: f,1 is_a_correct_step_wrt_IPC X by A1;
+  assume (f.1)`2 <> 0 & ... & (f.1)`2 <> 10;
+  then per cases by A2,Th3;
+  suppose (f.1)`2 = 10;
+  then ex i,j,p,q st 1 <= i & i < 1 & 1 <= j & j < i &
+  p = (f.j)`1 & q = (f.1)`1 & (f.i)`1 = p => q by A3,Def3;
+  hence contradiction;
+  end;
+end;
+
+theorem Th7:
+  1 <= n & n <= len f implies
+  (f,n is_a_correct_step_wrt_IPC X iff f^g,n is_a_correct_step_wrt_IPC X)
+proof
+  assume that
+A1: 1 <= n and
+A2: n <= len f;
+  n in dom f by A1,A2,FINSEQ_3:25;
+  then A3: (f^g).n = f.n by FINSEQ_1:def 7;
+  len(f^g) = len f + len g by FINSEQ_1:22;
+  then len f <= len(f^g) by NAT_1:11;
+  then A4: n <= len(f^g) by A2,XXREAL_0:2;
+  thus f,n is_a_correct_step_wrt_IPC X implies f^g,n
+  is_a_correct_step_wrt_IPC X
+  proof
+    assume
+A5: f,n is_a_correct_step_wrt_IPC X;
+    ((f^g).n)`2 = 0 or ... or  ((f^g).n)`2 = 10 by A1,A4,Th3;
+    then per cases;
+    case ((f^g).n)`2 = 0;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 1;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 2;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 3;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 4;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 5;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 6;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 7;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 8;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 9;
+      hence thesis by A3,A5,Def3;
+    end;
+    case ((f^g).n)`2 = 10;
+      then consider i,j,r,t such that
+A6:  1 <= i and
+A7:  i < n and
+A8:  1 <= j and
+A9:  j < i and
+A10:  r = (f.j)`1 & t = (f.n)`1 & (f.i)`1 = r => t by A3,A5,Def3;
+A11:  i <= len f by A2,A7,XXREAL_0:2; then
+      j <= len f by A9,XXREAL_0:2; then
+A16:  j in dom f by FINSEQ_3:25,A8;
+      i in dom f by A6,A11,FINSEQ_3:25; then
+A17:  f.i = (f^g).i by FINSEQ_1:def 7;
+      f.j = (f^g).j by A16,FINSEQ_1:def 7;
+      hence thesis by A3,A6,A7,A8,A9,A10,A17;
+    end;
+end;
+  assume
+A24: f^g,n is_a_correct_step_wrt_IPC X;
+  (f.n)`2 = 0 or ... or (f.n)`2 = 10 by A1,A2,Th3;
+  then per cases;
+  case (f.n)`2 = 0;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 1;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 2;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 3;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 4;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 5;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 6;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 7;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 8;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 9;
+    hence thesis by A3,A24,Def3;
+  end;
+  case (f.n)`2 = 10;
+    then consider i,j,r,t such that
+A25: 1 <= i and
+A26: i < n and
+A27: 1 <= j and
+A28: j < i and
+A29: r = ((f^g).j)`1 & t = ((f^g).n)`1 & ((f^g).i)`1 = r => t
+      by A3,A24,Def3;
+A30: i <= len f by A2,A26,XXREAL_0:2; then
+A31: j <= len f by A28,XXREAL_0:2;
+    i in dom f by A25,A30,FINSEQ_3:25; then
+A36: f.i = (f^g).i by FINSEQ_1:def 7;
+    j in dom f by A27,A31,FINSEQ_3:25; then
+    f.j = (f^g).j by FINSEQ_1:def 7;
+    hence thesis by A3,A25,A26,A27,A28,A29,A36;
+  end;
+end;
+
+theorem Th8:
+  1 <= n & n <= len g & g,n is_a_correct_step_wrt_IPC X implies
+  (f^g),(n+len f) is_a_correct_step_wrt_IPC X
+proof
+  assume that
+A1: 1 <= n and
+A2: n <= len g and
+A3: g,n is_a_correct_step_wrt_IPC X;
+  n in dom g by A1,A2,FINSEQ_3:25; then
+A4: g.n = (f^g).(n+len f) by FINSEQ_1:def 7;
+ n + len f <= len f + len g by A2,XREAL_1:6;
+ then n+len f <= len(f^g) by FINSEQ_1:22;
+ then ((f^g).(n+len f))`2 = 0 or ... or ((f^g).(n+len f))`2 = 10
+           by A1,Th3,NAT_1:12;
+ then per cases;
+  case ((f^g).(n+len f))`2 = 0;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 1;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 2;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 3;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 4;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 5;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 6;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 7;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 8;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 9;
+    hence thesis by A3,A4,Def3;
+  end;
+  case ((f^g).(n+len f))`2 = 10;
+    then consider i,j,r,t such that
+A5: 1 <= i and
+A6: i < n and
+A7: 1 <= j and
+A8: j < i and
+A9: r = (g.j)`1 & t = (g.n)`1 & (g.i)`1 = r => t by A3,A4,Def3;
+A10: 1 <= i+len f & i+len f < n+len f by A5,A6,NAT_1:12,XREAL_1:6;
+A11: 1 <= j+len f & j+len f < i+len f by A7,A8,NAT_1:12,XREAL_1:6;
+A12: i <= len g by A2,A6,XXREAL_0:2; then
+A13: j <= len g by A8,XXREAL_0:2;
+    i in dom g by A5,A12,FINSEQ_3:25; then
+A18:g.i = (f^g).(i+len f) by FINSEQ_1:def 7;
+    j in dom g by A7,A13,FINSEQ_3:25; then
+    g.j = (f^g).(j+len f) by FINSEQ_1:def 7;
+    hence thesis by A4,A9,A10,A11,A18;
+  end;
+end;
+
+theorem Th9:
+  f is_a_proof_wrt_IPC X & g is_a_proof_wrt_IPC X implies f^g
+  is_a_proof_wrt_IPC X
+proof
+  assume that
+A1: f is_a_proof_wrt_IPC X and
+A2: g is_a_proof_wrt_IPC X;
+  thus f^g <> {} by A1;
+  let n such that
+A3: 1 <= n and
+A4: n <= len(f^g);
+ now per cases;
+    suppose
+A5:   n <= len f; then
+      f,n is_a_correct_step_wrt_IPC X by A1,A3;
+      hence thesis by A3,A5,Th7;
+    end;
+    suppose
+A6:   len f < n;
+      then reconsider k=n - len f as Element of NAT by NAT_1:21;
+A7:  k + len f <= len g + len f by A4,FINSEQ_1:22;
+  len f + 1 <= k + len f by A6,NAT_1:13;
+then A8:  1 <= k by XREAL_1:6;
+A9:  k <= len g by A7,XREAL_1:6; then
+      k + len f = n & g,k is_a_correct_step_wrt_IPC X by A2,A8;
+      hence thesis by A8,A9,Th8;
+    end;
+  end;
+  hence thesis;
+end;
+
+theorem Th10:
+  f is_a_proof_wrt_IPC X & X c= Y implies f is_a_proof_wrt_IPC Y
+proof
+  assume that
+A1: f is_a_proof_wrt_IPC X and
+A2: X c= Y;
+  thus f <> {} by A1;
+  let n;
+  assume
+A3: 1 <= n & n <= len f; then
+   A4: f,n is_a_correct_step_wrt_IPC X by A1;
+  (f.n)`2 = 0 or ... or (f.n)`2 = 10 by A3,Th3;
+  then per cases;
+  case (f.n)`2 = 0; then
+    (f.n)`1 in X by A4,Def3;
+    hence thesis by A2;
+  end;
+  case (f.n)`2 = 1;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 2;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 3;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 4;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 5;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 6;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 7;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 8;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 9;
+    hence thesis by A4,Def3;
+  end;
+  case (f.n)`2 = 10;
+    hence thesis by A4,Def3;
+  end;
+end;
+
+theorem Th11:
+  f is_a_proof_wrt_IPC X & 1 <= l & l <= len f implies (f.l)`1 in CnIPC(X)
+proof
+  assume that
+A1: f is_a_proof_wrt_IPC X and
+A2: 1 <= l & l <= len f;
+ for n holds 1 <= n & n <= len f implies (f.n)`1 in CnIPC(X)
+  proof
+    defpred P[Nat] means 1 <= $1 & $1 <= len f implies (f.$1)`1 in CnIPC(X);
+A3: for n being Nat st for k being Nat st k < n holds P[k] holds P[n]
+    proof
+      let n be Nat;
+      assume
+A4:   for k being Nat st k < n holds P[k];
+      assume that
+A5:   1 <= n and
+A6:   n <= len f;
+A7:   f,n is_a_correct_step_wrt_IPC X by A1,A5,A6;
+  now
+    (f.n)`2 = 0 or ... or (f.n)`2 = 10 by A5,A6,Th3;
+     then per cases;
+        suppose (f.n)`2 = 0; then
+A8:      (f.n)`1 in X by A7,Def3;
+          X c= CnIPC(X) by INTPRO_1:12;
+          hence thesis by A8;
+        end;
+        suppose (f.n)`2 = 1; then
+          ex p,q st (f.n)`1 = p => (q => p) by A7,Def3;
+          hence thesis by INTPRO_1:1;
+        end;
+        suppose (f.n)`2 = 2; then
+          ex p,q,r st (f.n)`1 = (p => (q => r)) => ((p => q) => (p => r))
+            by A7,Def3;
+          hence thesis by INTPRO_1:2;
+        end;
+        suppose (f.n)`2 = 3; then
+          ex p,q st (f.n)`1 = (p '&' q) => p by A7,Def3;
+          hence thesis by INTPRO_1:3;
+        end;
+        suppose (f.n)`2 = 4; then
+          ex p,q st (f.n)`1 = (p '&' q) => q  by A7,Def3;
+          hence thesis by INTPRO_1:4;
+        end;
+        suppose (f.n)`2 = 5; then
+          ex p,q st (f.n)`1 = p => (q => (p '&' q)) by A7,Def3;
+          hence thesis by INTPRO_1:5;
+        end;
+        suppose (f.n)`2 = 6; then
+          ex p,q st (f.n)`1 = p => (p 'or' q) by A7,Def3;
+          hence thesis by INTPRO_1:6;
+        end;
+        suppose (f.n)`2 = 7; then
+          ex p,q st (f.n)`1 = q => (p 'or' q) by A7,Def3;
+          hence thesis by INTPRO_1:7;
+        end;
+        suppose (f.n)`2 = 8; then
+          ex p,q,r st (f.n)`1 = (p => r) => ((q => r) => ((p 'or' q) => r))
+            by A7,Def3;
+          hence thesis by INTPRO_1:8;
+        end;
+     suppose (f.n)`2 = 9; then
+          ex p st (f.n)`1 = FALSUM => p by A7,Def3;
+          hence thesis by INTPRO_1:9;
+        end;
+        suppose (f.n)`2 = 10;
+          then consider i,j,p,q such that
+A9:      1 <= i and
+A10:      i < n and
+A11:      1 <= j and
+A12:      j < i and
+A13:      p = (f.j)`1 & q = (f.n)`1 & (f.i)`1 = p => q by A7,Def3;
+A14:      j < n by A10,A12,XXREAL_0:2;
+A15:      i <= len f by A6,A10,XXREAL_0:2; then
+          j <= len f by A12,XXREAL_0:2; then
+A16:      (f.j)`1 in CnIPC(X) by A4,A11,A14;
+          (f.i)`1 in CnIPC(X) by A4,A9,A10,A15;
+          hence thesis by A13,A16,INTPRO_1:10;
+        end;
+      end;
+      hence thesis;
+    end;
+    for n being Nat holds P[n] from NAT_1:sch 4(A3);
+    hence thesis;
+  end;
+  hence thesis by A2;
+end;
+
+definition
+  let f;
+  assume
+A1: f <> {};
+  func Effect_IPC(f) -> Element of MC-wff equals
+  :Def5:
+  (f.(len f))`1;
+  coherence
+  proof
+    0+1 <= len f by A1,NAT_1:13; then
+A2: len f in Seg len f by FINSEQ_1:1;
+    Seg len f = dom f by FINSEQ_1:def 3; then
+A3: f.(len f) in rng f by A2,FUNCT_1:def 3;
+    rng f c= [:MC-wff,Proof_Step_Kinds_IPC:] by FINSEQ_1:def 4;
+    hence thesis by A3,MCART_1:10;
+  end;
+end;
+
+theorem Th12:
+  f is_a_proof_wrt_IPC X implies Effect_IPC(f) in CnIPC(X)
+proof
+  assume
+A1: f is_a_proof_wrt_IPC X; then
+A2: 1 <= len f by Th5; then
+A3: (f.(len f))`1 in CnIPC(X) by A1,Th11;
+  f <> {} by A2;
+  hence thesis by A3,Def5;
+end;
+
+begin :: A consequence as a set of all intuitionistic provable formulas
+
+Lm1: for X holds {p: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p}
+c= MC-wff
+proof
+  let X;
+  defpred P[set] means ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = $1;
+  thus {p: P[p] } c= MC-wff from FRAENKEL:sch 10;
+end;
+
+theorem Th13:
+  X c= {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let a be object;
+  assume
+A1: a in X;
+  then reconsider p=a as Element of MC-wff;
+  reconsider pp=[p,0] as Element of [:MC-wff,Proof_Step_Kinds_IPC:]
+    by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A2: len f = 1 by FINSEQ_1:40;
+A3: f.1 = pp by FINSEQ_1:40; then
+  (f.len f)`1 = p by A2; then
+A4: Effect_IPC(f) = p by Def5;
+  1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A5: n=1 by A2,XXREAL_0:1;
+A6: (f.1)`2 = 0 by A3;
+    (f.n)`1 in X by A1,A3,A5;
+    hence thesis by A5,A6,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A4;
+end;
+
+Lm2: for X holds
+p => (q => p) in {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[p => (q => p),1] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40; then
+  (f.len f)`1 = p => (q => p) by A1; then
+A3: Effect_IPC(f) = p => (q => p) by Def5;
+  1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 1 by A2;
+    (f.n)`1 = p => (q => p) by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm3: for X holds
+(p => (q => r)) => ((p => q) => (p => r)) in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[(p => (q => r)) => ((p => q) => (p => r)),2] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40; then
+  (f.len f)`1 = (p => (q => r)) => ((p => q) => (p => r)) by A1; then
+A3: Effect_IPC(f) = (p => (q => r)) => ((p => q) => (p => r)) by Def5;
+ 1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 2 by A2;
+    (f.n)`1 = (p => (q => r)) => ((p => q) => (p => r)) by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end;
+  then f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm4: for X holds p '&' q => p in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[p '&' q => p,3] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40; then
+   (f.len f)`1 = p '&' q => p by A1; then
+A3: Effect_IPC(f) = p '&' q => p by Def5;
+  1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 3 by A2;
+    (f.n)`1 = p '&' q => p by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm5: for X holds p '&' q => q in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[p '&' q => q,4] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40; then
+  (f.len f)`1 = p '&' q => q by A1; then
+A3: Effect_IPC(f) = p '&' q => q by Def5;
+   1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 4 by A2;
+   (f.n)`1 = p '&' q => q by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm6: for X holds p => (q => (p '&' q)) in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[p => (q => (p '&' q)),5] as
+    Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40;
+then (f.len f)`1 = p => (q => (p '&' q)) by A1;
+then A3: Effect_IPC(f) = p => (q => (p '&' q)) by Def5;
+ 1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 5 by A2;
+    (f.n)`1 = p => (q => (p '&' q)) by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm7: for X holds p => (p 'or' q) in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[p => (p 'or' q),6] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40;
+then (f.len f)`1 = p => (p 'or' q) by A1;
+then A3: Effect_IPC(f) = p => (p 'or' q) by Def5;
+ 1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f;
+then A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 6 by A2;
+ (f.n)`1 = p => (p 'or' q) by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm8: for X holds q => (p 'or' q) in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[q => (p 'or' q),7] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40; then
+  (f.len f)`1 = q => (p 'or' q) by A1; then
+A3: Effect_IPC(f) = q => (p 'or' q) by Def5;
+   1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 7 by A2;
+    (f.n)`1 = q => (p 'or' q) by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end;
+  then f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm9: for X holds (p => r) => ((q => r) => ((p 'or' q) => r)) in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[(p => r) => ((q => r) => ((p 'or' q) => r)),8] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40;
+then (f.len f)`1 = (p => r) => ((q => r) => ((p 'or' q) => r)) by A1;
+then A3: Effect_IPC(f) = (p => r) => ((q => r) => ((p 'or' q) => r)) by Def5;
+ 1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f; then
+A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 8 by A2;
+    (f.n)`1 = (p => r) => ((q => r) => ((p 'or' q) => r)) by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm10: for X holds FALSUM => p in
+{F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+proof
+  let X;
+  reconsider pp=[FALSUM => p,9] as
+  Element of [:MC-wff,Proof_Step_Kinds_IPC:] by Th1,ZFMISC_1:87;
+  set f=<*pp*>;
+A1: len f = 1 by FINSEQ_1:40;
+A2: f.1 = pp by FINSEQ_1:40;
+then (f.len f)`1 = FALSUM => p by A1;
+then A3: Effect_IPC(f) = FALSUM => p by Def5;
+ 1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC X
+  proof
+    assume 1 <= n & n <= len f;
+then A4: n=1 by A1,XXREAL_0:1;
+A5: (f.1)`2 = 9 by A2;
+    (f.n)`1 = FALSUM => p by A2,A4;
+    hence thesis by A4,A5,Def3;
+  end; then
+  f is_a_proof_wrt_IPC X;
+  hence thesis by A3;
+end;
+
+Lm11: for X holds p in {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+& p => q in {G: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = G} implies
+q in {H: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = H}
+proof
+  let X;
+  assume that
+A1: p in {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F} and
+A2: p => q in {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F};
+ ex t st t=p & ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f)=t by A1;
+  then consider f such that
+A3: f is_a_proof_wrt_IPC X and
+A4: Effect_IPC(f) = p;
+ ex r st r=p => q & ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = r by A2;
+  then consider g such that
+A5: g is_a_proof_wrt_IPC X and
+A6: Effect_IPC(g) = p => q;
+  reconsider qq=[q,10] as Element of [:MC-wff,Proof_Step_Kinds_IPC:]
+    by Th1,ZFMISC_1:87;
+  set h=f^g^<*qq*>;
+A7: len h = len(f^g) + len(<*qq*>) by FINSEQ_1:22
+    .= len(f^g) + 1 by FINSEQ_1:40; then
+A8: len h = len f + len g + 1 by FINSEQ_1:22;
+  h.(len h) = qq by A7,FINSEQ_1:42;
+  then (h.(len h))`1 = q; then
+A9: Effect_IPC(h) = q by Def5;
+ 1 <= n & n <= len h implies h,n is_a_correct_step_wrt_IPC X
+  proof
+    assume that
+A10: 1 <= n and
+A11: n <= len h;
+ now per cases by A8,A11,NAT_1:8;
+      suppose n <= len f + len g; then
+A12:    n <= len(f^g) by FINSEQ_1:22;
+        f^g is_a_proof_wrt_IPC X by A3,A5,Th9; then
+        f^g,n is_a_correct_step_wrt_IPC X by A10,A12;
+        hence thesis by A10,A12,Th7;
+      end;
+      suppose
+A13:    n = len h; then
+        h.n = qq by A7,FINSEQ_1:42; then
+A14:    (h.n)`2 = 10 & (h.n)`1 = q;
+        len f in Seg(len f) by A3,FINSEQ_1:3; then
+A15:    len f in dom f by FINSEQ_1:def 3;
+        h = f^(g^<*qq*>) by FINSEQ_1:32; then
+A16:    (h.len f)`1 = (f.len f)`1 by A15,FINSEQ_1:def 7
+          .= p by A4,A3,Def5;
+        dom g = Seg(len g) & len g <> 0 by A5,FINSEQ_1:def 3; then
+A17:    len g in dom g by FINSEQ_1:3;
+        1 <= len f & len f <= len f + len g by A3,Th5,NAT_1:11;
+then     len f + len g in Seg(len f + len g) by FINSEQ_1:3;
+then     len f + len g in Seg(len(f^g)) by FINSEQ_1:22;
+then     len f + len g in dom(f^g) by FINSEQ_1:def 3; then
+A18:    (h.(len f + len g))`1 = ((f^g).(len f + len g))`1 by FINSEQ_1:def 7
+          .= (g.len g)`1 by A17,FINSEQ_1:def 7
+          .= p => q by A6,A5,Def5;
+        1 <= len g by A5,Th5; then
+        len f + 1 <= len f + len g by XREAL_1:7; then
+A19:    len f < len f + len g by NAT_1:13;
+A20:    1 <= len f & 1 <= len f + len g by A3,Th5,NAT_1:12;
+        len f + len g < n by A8,A13,NAT_1:13;
+        hence thesis by A14,A16,A18,A19,A20,Def3;
+      end;
+    end;
+    hence thesis;
+  end; then
+  h is_a_proof_wrt_IPC X;
+  hence thesis by A9;
+end;
+
+theorem Th14:
+  for X holds Y = {p: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p}
+  implies Y is IPC_theory by Lm2,Lm3,Lm4,Lm5,Lm6,Lm7,Lm8,Lm9,Lm10,Lm11;
+
+Lm12: for X holds {p: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p}
+c= CnIPC(X)
+proof
+  let X;
+  let a be object;
+  assume a in {p: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p};
+  then ex q st q=a & ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = q;
+  hence thesis by Th12;
+end;
+
+theorem Th15:
+  for X holds {p: ex f st f is_a_proof_wrt_IPC X &
+  Effect_IPC(f) = p} = CnIPC(X)
+proof
+  let X;
+  set PX = {p: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p};
+A1: PX c= CnIPC(X) by Lm12;
+  reconsider PX as Subset of MC-wff by Lm1;
+  X c= PX by Th13;
+  hence thesis by A1,Th14,INTPRO_1:11;
+end;
+
+theorem Th16:
+  p in CnIPC(X) iff ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p
+proof
+  thus p in CnIPC(X) implies ex f st f is_a_proof_wrt_IPC X &
+  Effect_IPC(f) = p
+  proof
+    assume p in CnIPC(X);
+    then p in {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F}
+      by Th15;
+    then ex F st F=p & ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F;
+    hence thesis;
+  end;
+    given f such that
+A1: f is_a_proof_wrt_IPC X & Effect_IPC(f) = p;
+    p in {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F} by A1;
+    hence thesis by Th15;
+end;
+
+theorem
+  p in CnIPC(X) implies ex Y st Y c= X & Y is finite & p in CnIPC(Y)
+proof
+  assume p in CnIPC(X);
+  then consider f such that
+A1: f is_a_proof_wrt_IPC X and
+A2: Effect_IPC(f) = p by Th16;
+A3: f <> {} by A1;
+ consider A being set such that
+A4: A is finite and
+A5: A c= MC-wff and
+A6: rng f c= [:A,Proof_Step_Kinds_IPC:] by FINSEQ_1:def 4,FINSET_1:14;
+  reconsider Z=A as Subset of MC-wff by A5;
+  take Y = Z /\ X;
+  thus Y c= X by XBOOLE_1:17;
+  thus Y is finite by A4;
+  1 <= n & n <= len f implies f,n is_a_correct_step_wrt_IPC Y
+  proof
+    assume
+A7: 1 <= n & n <= len f; then
+A8: f,n is_a_correct_step_wrt_IPC X by A1;
+    (f.n)`2 = 0 or ... or  (f.n)`2 = 10 by A7,Th3;
+    then per cases;
+    case (f.n)`2 = 0; then
+A9:  (f.n)`1 in X by A8,Def3;
+      n in Seg(len f) by A7,FINSEQ_1:1; then
+      n in dom f by FINSEQ_1:def 3; then
+      f.n in rng f by FUNCT_1:def 3; then
+      (f.n)`1 in A by A6,MCART_1:10;
+      hence thesis by A9,XBOOLE_0:def 4;
+    end;
+    case (f.n)`2 = 1;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 2;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 3;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 4;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 5;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 6;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 7;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 8;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 9;
+      hence thesis by A8,Def3;
+    end;
+    case (f.n)`2 = 10;
+      hence thesis by A8,Def3;
+    end;
+  end; then
+  f is_a_proof_wrt_IPC Y by A3; then
+  p in {q: ex f st f is_a_proof_wrt_IPC Y & Effect_IPC(f) = q} by A2;
+  hence thesis by Th15;
+end;
+
+begin :: The intuitionistic provable relation
+
+definition
+  let X,s;
+  pred X |-_IPC s means
+  :Def6:
+  s in CnIPC(X);
+end;
+
+definition
+  let s;
+  pred |-_IPC s means
+  {}(MC-wff)|-_IPC s;
+end;
+
+theorem Th18:
+  X |-_IPC p => (q => p) by INTPRO_1:1;
+
+theorem Th19:
+  X |-_IPC (p => (q => r)) => ((p => q) => (p => r))
+    by INTPRO_1:2;
+
+theorem Th20:
+  X |-_IPC p '&' q => p by INTPRO_1:3;
+
+theorem Th21:
+  X |-_IPC p '&' q => q by INTPRO_1:4;
+
+theorem Th22:
+  X |-_IPC p => (q => (p '&' q)) by INTPRO_1:5;
+
+theorem Th23:
+  X |-_IPC p => (p 'or' q) by INTPRO_1:6;
+
+theorem Th24:
+  X |-_IPC q => (p 'or' q) by INTPRO_1:7;
+
+theorem Th25:
+  X |-_IPC (p => r) => ((q => r) => ((p 'or' q) => r)) by INTPRO_1:8;
+
+theorem Th26:
+  X |-_IPC FALSUM => p by INTPRO_1:9;
+
+theorem Th27:
+  X |-_IPC p & X |-_IPC p => q implies X |-_IPC q by INTPRO_1:10;
+
+theorem Th28:
+  |-_IPC p => (q => p) by Th18;
+
+theorem Th29:
+  |-_IPC (p => (q => r)) => ((p => q) => (p => r)) by Th19;
+
+theorem Th30:
+  |-_IPC p '&' q => p by Th20;
+
+theorem Th31:
+  |-_IPC p '&' q => q by Th21;
+
+theorem Th32:
+  |-_IPC p => (q => (p '&' q)) by Th22;
+
+theorem
+  |-_IPC p => (p 'or' q) by Th23;
+
+theorem
+  |-_IPC q => (p 'or' q) by Th24;
+
+theorem Th35:
+  |-_IPC (p => r) => ((q => r) => ((p 'or' q) => r)) by Th25;
+
+theorem Th36:
+  |-_IPC FALSUM => p by Th26;
+
+theorem Th37: :: Modus Ponens
+  |-_IPC p & |-_IPC p => q implies |-_IPC q by Th27;
+
+definition
+  let s;
+  attr s is valid_IPC means
+  {}(MC-wff)|-_IPC s;
+end;
+
+definition
+  let s;
+  redefine attr s is valid_IPC means
+  s in IPC-Taut;
+  compatibility by Def6,INTPRO_1:def 16;
+end;
+
+theorem
+  p is valid_IPC implies X |-_IPC p
+proof
+  assume A1: p is valid_IPC;
+  IPC-Taut c= CnIPC(X) by INTPRO_1:16;
+  hence thesis by A1;
+end;
+
+theorem Th39:
+  p => (q => p) is valid_IPC
+proof
+  p => (q => p) in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th40:
+  (p => (q => r)) => ((p => q) => (p => r)) is valid_IPC
+proof
+  (p => (q => r)) => ((p => q) => (p => r)) in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th41:
+  p '&' q => p is valid_IPC
+proof
+  p '&' q => p in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th42:
+  p '&' q => q is valid_IPC
+proof
+  p '&' q => q in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th43:
+  p => (q => (p '&' q)) is valid_IPC
+proof
+  p => (q => (p '&' q)) in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th44:
+  p => (p 'or' q) is valid_IPC
+proof
+  p => (p 'or' q) in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th45:
+  q => (p 'or' q) is valid_IPC
+proof
+  q => (p 'or' q) in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th46:
+  (p => r) => ((q => r) => ((p 'or' q) => r)) is valid_IPC
+proof
+  (p => r) => ((q => r) => ((p 'or' q) => r)) in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem Th47:
+  FALSUM => p is valid_IPC
+proof
+  FALSUM => p in IPC-Taut
+  proof
+    IPC-Taut is IPC_theory;
+    hence thesis;
+  end;
+  hence thesis;
+end;
+
+theorem :: Modus Ponens for valid_IPC
+  p is valid_IPC & p => q is valid_IPC implies q is valid_IPC
+proof
+A1: IPC-Taut is IPC_theory;
+  assume p is valid_IPC & p => q is valid_IPC;
+  then p in IPC-Taut & p => q in IPC-Taut;
+  hence thesis by A1;
+end;
+
+ reserve X,T for Subset of MC-wff;
+ reserve F,G,H,p,q,r,t for Element of MC-wff;
+ reserve s,h for MC-formula;
+ reserve f for FinSequence of [:MC-wff,Proof_Step_Kinds_IPC:];
+ reserve i,j for Element of NAT;
+
+begin :: The first deduction theorem for IPC
+
+theorem Th49:
+  X |-_IPC p => p
+proof
+A1: X |-_IPC p => (p => p) by INTPRO_1:1;
+A2: X |-_IPC p => ((p => p) => p) by INTPRO_1:1;
+  X |-_IPC (p => ((p => p) => p)) => ((p => (p => p)) => (p => p))
+    by INTPRO_1:2;
+  then X |-_IPC (p => (p => p)) => (p => p) by A2,Th27;
+  hence thesis by A1,Th27;
+end;
+
+theorem
+  X |-_IPC IVERUM by Th49,INTPRO_1:def 18;
+
+theorem Th51:
+  X|-_IPC p implies X|-_IPC q => p
+proof
+  assume
+A1: X |-_IPC p;
+  X|-_IPC p => (q => p) by INTPRO_1:1;
+  hence thesis by A1,INTPRO_1:10;
+end;
+
+theorem Th52:
+  p is valid_IPC implies X |-_IPC p
+proof
+  assume A1: p is valid_IPC;
+  IPC-Taut c= CnIPC(X) by INTPRO_1:16;
+  hence thesis by A1;
+end;
+
+theorem Th53: :: Deduction theorem
+ (X \/ {F})|-_IPC G implies X |-_IPC F => G
+proof
+  assume (X \/ {F}) |-_IPC G; then
+  G in CnIPC(X \/ {F});
+  then consider f such that
+A3: f is_a_proof_wrt_IPC (X \/ {F}) and
+A4: Effect_IPC f = G by Th16;
+  f <> {} by A3; then
+A5: G = (f.len f)`1 by A4,Def5;
+  defpred P[Nat] means 1 <= $1 & $1 <= len f implies for H st H = (f.$1)`1
+  holds X|-_IPC F => H;
+A6: for n being Nat st for k being Nat st k < n holds P[k] holds P[n]
+  proof
+    let n be Nat such that
+A7: for k being Nat st k < n holds 1 <= k & k <= len f implies for H
+    st H = (f.k)`1 holds X|-_IPC F => H;
+    assume that
+A8: 1 <= n and
+A9: n <= len f;
+A10: f,n is_a_correct_step_wrt_IPC (X \/ {F}) by A3,A8,A9;
+    let H such that
+A11: H = (f.n)`1;
+    now
+     (f.n)`2 = 0 or ... or (f.n)`2 = 10 by A8,A9,Th3;
+      then per cases;
+      suppose
+        (f.n)`2 = 0;
+        then H in X \/ {F} by A11,A10,Def3; then
+A12:    H in X or H in {F} by XBOOLE_0:def 3;
+        now
+          per cases by A12,TARSKI:def 1;
+          suppose
+A13:        H in X;
+            X c= CnIPC(X) by INTPRO_1:12; then
+A14:        X|-_IPC H by A13;
+            X|-_IPC H => (F => H) by INTPRO_1:1;
+            hence thesis by A14,INTPRO_1:10;
+          end;
+          suppose
+            H = F;
+            hence thesis by Th49;
+          end;
+        end;
+        hence thesis;
+      end;
+      suppose
+        (f.n)`2 = 1;
+        then ex p,q st H = p => (q => p) by A11,A10,Def3;
+        then H is valid_IPC by Th39;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 2;
+        then ex p,q,r st H = (p => (q => r)) => ((p => q) => (p => r))
+         by A11,A10,Def3;
+        then H is valid_IPC by Th40;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 3;
+        then ex p,q st H = (p '&' q) => p by A11,A10,Def3;
+        then H is valid_IPC by Th41;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 4;
+        then ex p,q st H = (p '&' q) => q by A11,A10,Def3;
+        then H is valid_IPC by Th42;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 5;
+        then ex p,q st H = p => (q => (p '&' q)) by A11,A10,Def3;
+        then H is valid_IPC by Th43;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 6;
+        then ex p,q st H = p => (p 'or' q) by A11,A10,Def3;
+        then H is valid_IPC by Th44;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 7;
+        then ex p,q st H = q => (p 'or' q) by A11,A10,Def3;
+        then H is valid_IPC by Th45;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 8;
+        then ex p,q,r st H = (p => r) => ((q => r) => ((p 'or' q) => r))
+         by A11,A10,Def3;
+        then H is valid_IPC by Th46;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 9;
+        then ex p st H = FALSUM => p by A11,A10,Def3;
+        then H is valid_IPC by Th47;
+        hence thesis by Th51,Th52;
+      end;
+      suppose
+        (f.n)`2 = 10;
+        then consider i,j being Nat, p,q such that
+A15:    1 <= i and
+A16:    i < n and
+A17:    1 <= j and
+A18:    j < i and
+A19:    p = (f.j)`1 and
+A20:    q = H and
+A21:    (f.i)`1 = p => q by A11,A10,Def3;
+        i <= len f by A9,A16,XXREAL_0:2; then
+A22:    X|-_IPC F => (p => q) by A7,A15,A16,A21;
+        X|-_IPC (F => (p => q)) => ((F => p) => (F => q)) by INTPRO_1:2;
+        then
+A23:    X|-_IPC (F => p) => (F => q) by A22,INTPRO_1:10;
+        j < n by A16,A18,XXREAL_0:2; then
+A24:    j <= len f by A9,XXREAL_0:2;
+        j < n by A16,A18,XXREAL_0:2;
+        then X|-_IPC F => p by A7,A17,A19,A24;
+        hence thesis by A20,A23,INTPRO_1:10;
+      end;
+    end;
+    hence thesis;
+  end;
+A40: for n be Nat holds P[n] from NAT_1:sch 4(A6);
+  1 <= len f by A3,Th5;
+  hence thesis by A40,A5;
+end;
+
+begin :: A family of deduction theorems for IPC
+
+ reserve F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,G for MC-formula;
+ reserve x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x for Element of MC-wff;
+
+definition
+  let x1,x2,x3 be Element of MC-wff;
+  redefine func {x1,x2,x3} -> Subset of MC-wff;
+  correctness
+  proof
+    {x1,x2,x3} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3}; then
+      x = x1 or x = x2 or x = x3 by ENUMSET1:def 1;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4}; then
+      x = x1 or x = x2 or x = x3 or x = x4 by ENUMSET1:def 2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4,x5 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4,x5} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4,x5}; then
+      x = x1 or x = x2 or x = x3 or x = x4 or x = x5 by ENUMSET1:def 3;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4,x5,x6} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4,x5,x6}; then
+      x = x1 or x = x2 or x = x3 or x = x4 or x = x5 or x = x6
+        by ENUMSET1:def 4;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4,x5,x6,x7} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4,x5,x6,x7}; then
+      x = x1 or x = x2 or x = x3 or x = x4 or x = x5 or x = x6 or x = x7
+      by ENUMSET1:def 5;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7,x8 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7,x8} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4,x5,x6,x7,x8} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4,x5,x6,x7,x8}; then
+      x = x1 or x = x2 or x = x3 or x = x4 or x = x5 or x = x6 or x = x7
+        or x = x8 by ENUMSET1:def 6;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7,x8,x9 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7,x8,x9} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4,x5,x6,x7,x8,x9} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4,x5,x6,x7,x8,x9}; then
+      x = x1 or x = x2 or x = x3 or x = x4 or x = x5 or x = x6 or x = x7
+        or x = x8 or x = x9 by ENUMSET1:def 7;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7,x8,x9,x10 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10} -> Subset of MC-wff;
+  coherence
+  proof
+    {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10} c= MC-wff
+    proof
+      let x be object;
+      assume x in {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10}; then
+      x = x1 or x = x2 or x = x3 or x = x4 or x = x5 or x = x6 or x = x7
+        or x = x8 or x = x9 or x = x10 by ENUMSET1:def 8;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem Th54:
+  {F}|-_IPC G implies |-_IPC F => G
+proof
+  {F} = {F} \/ {}(MC-wff);
+  hence thesis by Th53;
+end;
+
+theorem Th55:
+  {F1,F2}|-_IPC G implies {F2} |-_IPC F1 => G
+proof
+  {F1,F2} = {F2} \/ {F1} by ENUMSET1:1;
+  hence thesis by Th53;
+end;
+
+theorem Th56:
+  {F1,F2,F3} |-_IPC G implies {F2,F3} |-_IPC F1 => G
+proof
+  {F1,F2,F3} = {F2,F3} \/ {F1} by ENUMSET1:2;
+  hence thesis by Th53;
+end;
+
+theorem Th57:
+  {F1,F2,F3,F4} |-_IPC G implies  {F2,F3,F4} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4} = {F2,F3,F4} \/ {F1} by ENUMSET1:4;
+  hence thesis by Th53;
+end;
+
+theorem
+  {F1,F2,F3,F4,F5} |-_IPC G implies {F2,F3,F4,F5} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4,F5} = {F2,F3,F4,F5} \/ {F1} by ENUMSET1:7;
+  hence thesis by Th53;
+end;
+
+theorem
+  {F1,F2,F3,F4,F5,F6} |-_IPC G implies
+  {F2,F3,F4,F5,F6} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4,F5,F6} = {F2,F3,F4,F5,F6} \/ {F1} by ENUMSET1:11;
+  hence thesis by Th53;
+end;
+
+theorem
+  {F1,F2,F3,F4,F5,F6,F7} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4,F5,F6,F7} = {F2,F3,F4,F5,F6,F7} \/ {F1} by ENUMSET1:16;
+  hence thesis by Th53;
+end;
+
+theorem
+  {F1,F2,F3,F4,F5,F6,F7,F8} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7,F8} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4,F5,F6,F7,F8} = {F2,F3,F4,F5,F6,F7,F8} \/ {F1} by ENUMSET1:22;
+  hence thesis by Th53;
+end;
+
+theorem
+  {F1,F2,F3,F4,F5,F6,F7,F8,F9} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7,F8,F9} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4,F5,F6,F7,F8,F9} =
+    {F2,F3,F4,F5,F6,F7, F8,F9} \/ {F1} by ENUMSET1:77;
+  hence thesis by Th53;
+end;
+
+reserve x1,x2,x3,x4,x5,x6,x7,x8,x9,x10 for object;
+
+theorem Th63:
+  {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10} = {x2,x3,x4,x5,x6,x7,x8,x9,x10} \/ {x1}
+proof
+  now
+    let x be object;
+A1: x in {x1} iff x=x1 by TARSKI:def 1;
+    x=x2 or x=x3 or x=x4 or x=x5 or x=x6 or x=x7 or x=x8 or x=x9 or x=x10
+    or x=x1 iff x in {x2,x3,x4,x5,x6,x7,x8,x9,x10} or x = x1
+      by ENUMSET1:def 7;
+    hence x in {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10} iff x in {x2,x3,x4,x5,x6,
+    x7,x8,x9,x10} \/ {x1} by A1,ENUMSET1:def 8,XBOOLE_0:def 3;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem
+  {F1,F2,F3,F4,F5,F6,F7,F8,F9,F10} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7,F8,F9,F10} |-_IPC F1 => G
+proof
+  {F1,F2,F3,F4,F5,F6,F7,F8,F9,F10} =
+    {F2,F3,F4,F5,F6,F7,F8,F9,F10} \/ {F1} by Th63;
+  hence thesis by Th53;
+end;
+
+begin :: Intuitionistic provable formulas and theorems
+
+theorem Th65:
+  {p} |-_IPC p
+proof
+  p in {p} & {p} c= CnIPC({p}) by TARSKI:def 1,INTPRO_1:12;
+  hence p in CnIPC({p});
+end;
+
+theorem Th66:
+  (X |-_IPC p & X c= Y) implies Y |-_IPC p
+proof
+assume
+A1: X |-_IPC p & X c= Y; then
+  p in CnIPC(X); then
+  ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p by Th16; then
+  consider g such that L: g is_a_proof_wrt_IPC X & Effect_IPC(g) = p;
+    g is_a_proof_wrt_IPC Y & Effect_IPC(g) = p by L,A1,Th10; then
+  p in CnIPC(Y) by Th16;
+  hence thesis;
+end;
+
+theorem Th67:
+  p in X implies X |-_IPC p
+proof
+  assume p in X; then
+A2: {p} c= X by ZFMISC_1:31;
+  {p} |-_IPC p by Th65;
+  hence thesis by A2,Th66;
+end;
+
+theorem
+  p in X implies p in CnIPC(X)
+proof
+  assume p in X; then
+  X |-_IPC p by Th67;
+  hence thesis;
+end;
+
+theorem Th69:
+  p in IPC-Taut implies |-_IPC p by Def6,INTPRO_1:def 16;
+
+theorem Th70:
+  |-_IPC p implies p in IPC-Taut by Def6,INTPRO_1:def 16;
+
+theorem
+  p in IPC-Taut iff |-_IPC p by Th69,Th70;
+
+theorem Th72:
+  |-_IPC p => ((p => FALSUM) => FALSUM)
+proof
+   p => FALSUM in {p => FALSUM,p} by TARSKI:def 2; then
+A1: {p => FALSUM,p} |-_IPC p => FALSUM by Th67;
+   p in {p => FALSUM,p} by TARSKI:def 2; then
+  {p => FALSUM,p} |-_IPC p by Th67; then
+  {p => FALSUM,p} |-_IPC FALSUM by A1,Th27; then
+  {p} |-_IPC (p => FALSUM) => FALSUM by Th55; then
+  |-_IPC p => ((p => FALSUM) => FALSUM) by Th54;
+  hence thesis;
+end;
+
+theorem Th73:
+  {p '&' q} |-_IPC p
+proof
+A1: {p '&' q} |-_IPC (p '&' q) => p by Th20;
+  {p '&' q} |-_IPC p '&' q by Th65;
+  hence thesis by A1,Th27;
+end;
+
+theorem Th74:
+  {p '&' q} |-_IPC q
+proof
+A1: {p '&' q} |-_IPC (p '&' q) => q by Th21;
+  {p '&' q} |-_IPC p '&' q by Th65;
+  hence thesis by A1,Th27;
+end;
+
+theorem Th75:
+  |-_IPC ((p => q) '&' (p => (q => FALSUM))) => (p => FALSUM)
+proof
+  set Q = (p => q) '&' (p => (q => FALSUM));
+   p in {p,Q} by TARSKI:def 2; then
+A1: {p,Q} |-_IPC p by Th67;
+    Q in {p,Q} by TARSKI:def 2; then
+A2: {p,Q} |-_IPC Q by Th67;
+    {p,Q} |-_IPC Q => (p => q) by Th20; then
+    {p,Q} |-_IPC p => q by A2,Th27; then
+A5: {p,Q} |-_IPC q by A1,Th27;
+    {p,Q} |-_IPC Q => (p => (q => FALSUM)) by Th21; then
+  {p,Q}|-_IPC p => (q => FALSUM) by A2,Th27; then
+   {p,Q}|-_IPC q => FALSUM by A1,Th27; then
+   {p,Q} |-_IPC FALSUM by A5,Th27; then
+  {Q}|-_IPC p => FALSUM by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th76:
+  |-_IPC (p => FALSUM) => (p => q)
+proof
+A1: (FALSUM => q) => ((p => FALSUM) => (p => q)) in IPC-Taut by INTPRO_1:22;
+   FALSUM => q in IPC-Taut by INTPRO_1:def 14; then
+  (p => FALSUM) => (p => q) in IPC-Taut by A1,INTPRO_1:def 14;
+  hence thesis by Th69;
+end;
+
+theorem Th77:
+  |-_IPC ((p => r) '&' (q => r)) => ((p 'or' q) => r)
+proof
+  set X = {(p => r) '&' (q => r)};
+A1: X |-_IPC p => r by Th73;
+A2: X |-_IPC q => r by Th74;
+  X |-_IPC (p => r) => ((q => r) => ((p 'or' q) => r)) by Th25; then
+  X |-_IPC (q => r) => ((p 'or' q) => r) by A1,Th27; then
+  X |-_IPC (p 'or' q) => r by A2,Th27;
+  hence thesis by Th54;
+end;
+
+theorem Th78:
+  |-_IPC (p '&' (p => q)) => q
+proof
+  set X = {p '&' (p => q)};
+A1: X |-_IPC p by Th73;
+  X |-_IPC p => q by Th74; then
+  X |-_IPC q by A1,Th27;
+  hence thesis by Th54;
+end;
+
+theorem Th79:
+  |-_IPC p => ((((p => FALSUM) => FALSUM) => FALSUM) => FALSUM)
+proof
+A1: p => ((p => FALSUM) => FALSUM) in IPC-Taut by Th70,Th72;
+  ((p => FALSUM) => FALSUM)=> ((((p => FALSUM) => FALSUM)
+  => FALSUM) => FALSUM) in IPC-Taut by Th70,Th72;
+  hence thesis by A1,Th69,INTPRO_1:26;
+end;
+
+theorem Th80:
+  |-_IPC ((p => FALSUM) 'or' q) => (p => q)
+proof
+A1: (p => FALSUM) =>(p => q) in IPC-Taut by Th70,Th76;
+  q => (p => q) in IPC-Taut by INTPRO_1:def 14;
+  then A2: ((p => FALSUM) =>(p => q)) '&' (q => (p => q)) in IPC-Taut
+    by A1,INTPRO_1:34;
+  (((p => FALSUM) =>(p => q)) '&' (q => (p => q))) =>
+  (((p => FALSUM)'or' q) => (p => q)) in IPC-Taut by Th70,Th77;
+  then ((p => FALSUM)'or' q) => (p => q) in IPC-Taut
+    by A2,INTPRO_1:def 14;
+  hence thesis by Th69;
+end;
+
+theorem Th81:
+  |-_IPC (p => q) => ((q => FALSUM) => (p => FALSUM)) by Th69,INTPRO_1:24;
+
+theorem Th82:
+  |-_IPC ((p => FALSUM)'or' (q => FALSUM)) => ((p '&' q)=> FALSUM)
+proof
+A1: (((p => FALSUM) =>((p '&' q) => FALSUM)) '&'
+  ((q => FALSUM) =>((p '&' q) => FALSUM))) =>
+  (((p => FALSUM) 'or' (q => FALSUM)) => ((p '&' q) => FALSUM))
+  in IPC-Taut by Th70,Th77;
+A2: (p '&' q) => p in IPC-Taut by INTPRO_1:def 14;
+  ((p '&' q) => p) => ((p => FALSUM) => ((p '&' q) => FALSUM)) in IPC-Taut
+    by Th70,Th81; then
+A3: (p => FALSUM) => ((p '&' q) => FALSUM) in IPC-Taut
+    by A2,INTPRO_1:def 14;
+A4: (p '&' q) => q in IPC-Taut by INTPRO_1:def 14;
+  ((p '&' q) => q) => ((q => FALSUM) => ((p '&' q) => FALSUM))
+  in IPC-Taut by Th70,Th81; then
+   (q => FALSUM) => ((p '&' q) => FALSUM) in IPC-Taut
+    by A4,INTPRO_1:def 14; then
+  ((p => FALSUM) =>((p '&' q) => FALSUM)) '&'
+  ((q => FALSUM) =>((p '&' q) => FALSUM)) in IPC-Taut by A3,INTPRO_1:34;
+  then ((p => FALSUM) 'or' (q => FALSUM)) => ((p '&' q)=> FALSUM)
+    in IPC-Taut by A1,INTPRO_1:def 14;
+  hence thesis by Th69;
+end;
+
+theorem Th83:
+  for p,q be MC-formula holds
+  |-_IPC p & |-_IPC q implies  |-_IPC p '&' q
+proof
+  let p,q be MC-formula;
+  assume
+A1: |-_IPC p & |-_IPC q;
+  |-_IPC p => (q => p '&' q) by Th32; then
+  |-_IPC q => p '&' q by A1,Th37;
+  hence thesis by A1,Th37;
+end;
+
+theorem Th84:
+  |-_IPC p => q & |-_IPC q => p implies  |-_IPC p 'equiv' q by Th83;
+
+theorem Th85:
+  |-_IPC p => p
+proof
+A1: |-_IPC p => (p => p) by Th28;
+A2: |-_IPC p => ((p => p) => p) by Th28;
+    |-_IPC (p => ((p => p) => p)) => ((p => (p => p)) => (p => p))
+      by Th29;
+    then |-_IPC (p => (p => p)) => (p => p) by A2,Th27;
+  hence thesis by A1, Th27;
+end;
+
+theorem
+  |-_IPC p 'equiv' p
+proof
+  |-_IPC p => p by Th85;
+  hence thesis by Th83;
+end;
+
+theorem Th87:
+  |-_IPC ((p '&' q) => FALSUM) => (p => (q => FALSUM))
+proof
+  set U = (p '&' q) => FALSUM;
+  set X = {q,p,U};
+A0: q in X & p in X & U in X by ENUMSET1:def 1; then
+A1: X |-_IPC U by Th67;
+A2: X |-_IPC p by A0,Th67;
+A3: X |-_IPC q by A0,Th67;
+    X |-_IPC p => (q => (p '&' q)) by Th22; then
+    X |-_IPC q => (p '&' q) by A2,Th27; then
+    X |-_IPC p '&' q by A3,Th27; then
+   {q,p,U} |-_IPC FALSUM by A1,Th27; then
+  {p,U} |-_IPC q => FALSUM by Th56; then
+  {U} |-_IPC p => (q => FALSUM) by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th88:
+  |-_IPC (p => (q => FALSUM)) => ((p '&' q) => FALSUM)
+proof
+  set U = p => (q => FALSUM);
+  set X = {p '&' q,U};
+A0: p '&' q in X & U in X by TARSKI:def 2; then
+A1: X |-_IPC U by Th67;
+A2: X |-_IPC p '&' q by A0,Th67;
+    X |-_IPC (p '&' q) => p by Th20; then
+A4: X |-_IPC p by A2,Th27;
+    X |-_IPC (p '&' q) => q by Th21; then
+A6: X |-_IPC q by A2,Th27;
+   X |-_IPC q => FALSUM by A1,A4,Th27; then
+   X |-_IPC FALSUM by A6,Th27; then
+  {U} |-_IPC (p '&' q) => FALSUM by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th89:
+  |-_IPC ((p '&' q) => FALSUM) 'equiv' (p => (q => FALSUM))
+proof
+A1: |-_IPC ((p '&' q) => FALSUM) => (p => (q => FALSUM)) by Th87;
+  |-_IPC (p => (q => FALSUM)) => ((p '&' q) => FALSUM) by Th88;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th90:
+  |-_IPC ((p '&' q) => FALSUM) => (q => (p => FALSUM))
+proof
+  set U = (p '&' q) => FALSUM;
+  set X = {p,q,U};
+A0: q in X & p in X & U in X by ENUMSET1:def 1; then
+A1: X |-_IPC U by Th67;
+A2: X |-_IPC p by A0,Th67;
+A3: X |-_IPC q by A0,Th67;
+    X |-_IPC p => (q => (p '&' q)) by Th22; then
+   X |-_IPC q => (p '&' q) by A2,Th27; then
+    X |-_IPC p '&' q by A3,Th27; then
+  {p,q,U} |-_IPC FALSUM by A1,Th27; then
+  {q,U} |-_IPC p => FALSUM by Th56; then
+  {U} |-_IPC q => (p => FALSUM) by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th91:
+  |-_IPC (q => (p => FALSUM)) => ((p '&' q) => FALSUM)
+proof
+  set U = q => (p => FALSUM);
+  set X = {p '&' q,U};
+A0: p '&' q in X & U in X by TARSKI:def 2; then
+A1: X |-_IPC U by Th67;
+A2: X |-_IPC p '&' q by A0,Th67;
+   X |-_IPC (p '&' q) => p by Th20; then
+A4: X |-_IPC p by A2,Th27;
+   X |-_IPC (p '&' q) => q by Th21; then
+   X |-_IPC q by A2,Th27; then
+   X |-_IPC p => FALSUM by A1,Th27; then
+   X |-_IPC FALSUM by A4,Th27; then
+  {U} |-_IPC (p '&' q) => FALSUM by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th92:
+  |-_IPC (q => (p => FALSUM)) 'equiv' ((p '&' q) => FALSUM)
+proof
+A1: |-_IPC ((p '&' q) => FALSUM) => (q => (p => FALSUM)) by Th90;
+  |-_IPC (q => (p => FALSUM)) => ((p '&' q) => FALSUM) by Th91;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th93:
+  |-_IPC p => (q => (((p '&' q) => FALSUM) => FALSUM))
+proof
+   (p '&' q) => FALSUM in {(p '&' q) => FALSUM,q,p} by ENUMSET1:def 1; then
+A1: {(p '&' q) => FALSUM,q,p} |-_IPC (p '&' q) => FALSUM by Th67;
+   q in {(p '&' q) => FALSUM,q,p} by ENUMSET1:def 1; then
+A2: {(p '&' q) => FALSUM,q,p} |-_IPC q by Th67;
+    p in {(p '&' q) => FALSUM,q,p} by ENUMSET1:def 1; then
+A3: {(p '&' q) => FALSUM,q,p} |-_IPC p by Th67;
+A04: |-_IPC p => (q => (p '&' q)) by Th22;
+  {}(MC-wff) c= {(p '&' q)=> FALSUM,q,p}; then
+  {(p '&' q) => FALSUM,q,p} |-_IPC p => (q => (p '&' q))
+       by A04,Th66; then
+  {(p '&' q) => FALSUM,q,p} |-_IPC q => (p '&' q) by A3,Th27; then
+  {(p '&' q) => FALSUM,q,p} |-_IPC p '&' q by A2,Th27; then
+  {(p '&' q) => FALSUM,q,p} |-_IPC FALSUM by A1,Th27; then
+  {q,p} |-_IPC ((p '&' q) => FALSUM) => FALSUM by Th56; then
+  {p} |-_IPC q => (((p '&' q) => FALSUM) => FALSUM) by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th94:
+  |-_IPC q => (p => (((p '&' q) => FALSUM) => FALSUM))
+proof
+    (p '&' q) => FALSUM in {(p '&' q) => FALSUM,p,q} by ENUMSET1:def 1; then
+A1: {(p '&' q) => FALSUM,p,q} |-_IPC (p '&' q) => FALSUM by Th67;
+    p in {(p '&' q) => FALSUM,p,q} by ENUMSET1:def 1; then
+A2: {(p '&' q) => FALSUM,p,q} |-_IPC p by Th67;
+    q in {(p '&' q) => FALSUM,p,q} by ENUMSET1:def 1; then
+A3: {(p '&' q) => FALSUM,p,q} |-_IPC q by Th67;
+A04: |-_IPC p => (q => (p '&' q)) by Th22;
+   {}(MC-wff) c= {(p '&' q) => FALSUM,p,q}; then
+   {(p '&' q) => FALSUM,p,q} |-_IPC p => (q => (p '&' q))
+       by A04,Th66; then
+   {(p '&' q) => FALSUM,p,q} |-_IPC q => (p '&' q) by A2,Th27;
+      then
+   {(p '&' q) => FALSUM,p,q} |-_IPC p '&' q by A3,Th27; then
+   {(p '&' q) => FALSUM,p,q} |-_IPC FALSUM by A1,Th27; then
+  {p,q} |-_IPC ((p '&' q) => FALSUM) => FALSUM by Th56; then
+  {q} |-_IPC p => (((p '&' q) => FALSUM) => FALSUM) by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th95:
+  |-_IPC p => (((p '&' q) => FALSUM) => (q => FALSUM))
+proof
+    q in {q,(p '&' q) => FALSUM,p} by ENUMSET1:def 1; then
+A1: {q,(p '&' q) => FALSUM,p} |-_IPC q by Th67;
+    (p '&' q) => FALSUM in {q,(p '&' q) => FALSUM,p} by ENUMSET1:def 1; then
+A2: {q,(p '&' q) => FALSUM,p} |-_IPC (p '&' q) => FALSUM by Th67;
+   p in {q,(p '&' q) => FALSUM,p} by ENUMSET1:def 1; then
+A3: {q,(p '&' q) => FALSUM,p} |-_IPC p by Th67;
+A04: |-_IPC p => (q => (p '&' q)) by Th22;
+   {}(MC-wff) c= {q,(p '&' q) => FALSUM,p}; then
+   {q,(p '&' q) => FALSUM,p} |-_IPC p => (q => (p '&' q))
+       by A04,Th66; then
+   {q,(p '&' q) => FALSUM,p} |-_IPC q => (p '&' q) by A3,Th27; then
+   {q,(p '&' q) => FALSUM,p} |-_IPC p '&' q by A1,Th27; then
+   {q,(p '&' q) => FALSUM,p} |-_IPC FALSUM by A2,Th27; then
+   {(p '&' q) => FALSUM,p} |-_IPC q => FALSUM by Th56; then
+   {p} |-_IPC ((p '&' q) => FALSUM) => (q => FALSUM) by Th55;
+   hence thesis by Th54;
+end;
+
+theorem Th96:
+  |-_IPC q => (((p '&' q) => FALSUM) => (p => FALSUM))
+proof
+    p in {p,(p '&' q) => FALSUM,q} by ENUMSET1:def 1; then
+A1: {p,(p '&' q) => FALSUM,q} |-_IPC p by Th67;
+    (p '&' q) => FALSUM in {p,(p '&' q) => FALSUM,q} by ENUMSET1:def 1; then
+A2: {p,(p '&' q) => FALSUM,q} |-_IPC (p '&' q) => FALSUM by Th67;
+   q in {p,(p '&' q) => FALSUM,q} by ENUMSET1:def 1; then
+A3: {p,(p '&' q) => FALSUM,q} |-_IPC q by Th67;
+A04: |-_IPC p => (q => (p '&' q)) by Th22;
+   {}(MC-wff) c= {p,(p '&' q) => FALSUM,q}; then
+   {p,(p '&' q) => FALSUM,q} |-_IPC p => (q => (p '&' q))
+       by A04,Th66; then
+   {p,(p '&' q) => FALSUM,q} |-_IPC q => (p '&' q) by A1,Th27; then
+   {p,(p '&' q) => FALSUM,q} |-_IPC p '&' q by A3,Th27; then
+   {p,(p '&' q) => FALSUM,q} |-_IPC FALSUM by A2,Th27; then
+  {(p '&' q) => FALSUM,q} |-_IPC p => FALSUM by Th56; then
+  {q} |-_IPC ((p '&' q) => FALSUM) => (p => FALSUM) by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th97:
+  |-_IPC ((p 'or' q) => FALSUM) =>((p => FALSUM) '&' (q => FALSUM))
+proof
+A1: (((p 'or' q) => FALSUM) => (p => FALSUM)) => ((((p 'or' q) => FALSUM)
+    => (q => FALSUM)) =>
+    (((p 'or' q) => FALSUM) => ((p => FALSUM) '&' (q => FALSUM))))
+    in IPC-Taut by INTPRO_1:38;
+A2: (p => (p 'or' q)) => (((p 'or' q) => FALSUM) => (p => FALSUM))
+    in IPC-Taut by INTPRO_1:24;
+  p => (p 'or' q) in IPC-Taut by INTPRO_1:def 14;
+  then A3: ((p 'or' q) => FALSUM) => (p => FALSUM) in IPC-Taut
+    by A2,INTPRO_1:def 14;
+A4: (q => (p 'or' q)) => (((p 'or' q) => FALSUM) => (q => FALSUM))
+    in IPC-Taut by INTPRO_1:24;
+  q => (p 'or' q) in IPC-Taut by INTPRO_1:def 14;
+  then A5: ((p 'or' q) => FALSUM) => (q => FALSUM) in IPC-Taut
+    by A4,INTPRO_1:def 14;
+  (((p 'or' q) => FALSUM) => (q => FALSUM)) =>
+  (((p 'or' q) => FALSUM) => ((p => FALSUM) '&' (q => FALSUM)))
+  in IPC-Taut by A1,A3,INTPRO_1:def 14;
+  then ((p 'or' q) => FALSUM) =>((p => FALSUM) '&' (q => FALSUM))
+  in IPC-Taut  by A5,INTPRO_1:def 14;
+  hence thesis by Th69;
+end;
+
+theorem Th98:
+  |-_IPC ((p => FALSUM) '&' (q => FALSUM)) => ((p 'or' q) => FALSUM) by Th77;
+
+theorem Th99:
+  |-_IPC ((p 'or' q) => FALSUM) 'equiv' ((p => FALSUM) '&' (q => FALSUM))
+proof
+A1: |-_IPC ((p 'or' q) => FALSUM) => ((p => FALSUM) '&' (q => FALSUM))
+      by Th97;
+  |-_IPC ((p => FALSUM) '&' (q => FALSUM)) => ((p 'or' q) => FALSUM) by Th98;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th100:
+  |-_IPC (p '&' (p => FALSUM)) => FALSUM by Th78;
+
+theorem Th101:
+  |-_IPC FALSUM 'equiv' (p '&' (p => FALSUM))
+proof
+A1: |-_IPC FALSUM => (p '&' (p => FALSUM)) by Th36;
+  |-_IPC (p '&' (p => FALSUM)) => FALSUM by Th100;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th102:
+  |-_IPC (p => FALSUM) => (((p => FALSUM) => FALSUM) => FALSUM) by Th72;
+
+theorem Th103:
+  |-_IPC (((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM)
+proof
+A1: (p => ((p => FALSUM) => FALSUM)) =>
+    ((((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM))
+    in IPC-Taut by INTPRO_1:24;
+  p => ((p => FALSUM) => FALSUM) in IPC-Taut by Th70,Th72;
+  then (((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM)
+    in IPC-Taut by A1,INTPRO_1:def 14;
+  hence thesis by Th69;
+end;
+
+theorem Th104:
+  |-_IPC (p => FALSUM) 'equiv' (((p => FALSUM) => FALSUM) => FALSUM)
+proof
+A1: |-_IPC (p => FALSUM) => (((p => FALSUM) => FALSUM) => FALSUM) by Th102;
+  |-_IPC (((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM) by Th103;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th105:
+  |-_IPC ((p => FALSUM) => q) => ((((p => FALSUM) => FALSUM) => FALSUM) => q)
+proof
+    ((p => FALSUM) => FALSUM) => FALSUM in
+     {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q}
+       by TARSKI:def 2; then
+A1: {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q}
+    |-_IPC ((p => FALSUM) => FALSUM) => FALSUM by Th67;
+    (p => FALSUM) =>q in {((p => FALSUM) => FALSUM) => FALSUM,
+     (p => FALSUM) => q} by TARSKI:def 2; then
+A2: {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q}
+    |-_IPC (p => FALSUM) => q by Th67;
+A03: {}(MC-wff) c= {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q};
+    |-_IPC (((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM) by Th103;
+    then
+A3: {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q}
+    |-_IPC (((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM)
+      by A03,Th66;
+    {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q}
+    |-_IPC p => FALSUM by A1,A3,Th27; then
+   {((p => FALSUM) => FALSUM) => FALSUM,(p => FALSUM) => q}
+    |-_IPC q by A2,Th27; then
+  {(p => FALSUM) => q}
+    |-_IPC (((p => FALSUM) => FALSUM) => FALSUM) => q by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th106:
+  |-_IPC (p => q) => (((p => FALSUM)=> FALSUM) => ((q => FALSUM)=> FALSUM))
+proof
+A1: (p => q) => ((q => FALSUM) => (p => FALSUM)) in IPC-Taut
+      by Th70,Th81;
+  ((q => FALSUM) => (p => FALSUM)) =>
+  (((p => FALSUM) => FALSUM) => ((q => FALSUM)=> FALSUM))in IPC-Taut
+    by Th70,Th81;
+  hence thesis by A1,Th69,INTPRO_1:26;
+end;
+
+theorem Th107:
+  |-_IPC (p '&' (q => FALSUM)) => ((p => q) => FALSUM)
+proof
+   p => q in {p => q,p '&' (q => FALSUM)} by TARSKI:def 2; then
+A1: {p => q,p '&' (q => FALSUM)} |-_IPC p => q by Th67;
+   p '&' (q => FALSUM) in {p => q,p '&' (q => FALSUM)} by TARSKI:def 2; then
+A2: {p => q,p '&' (q => FALSUM)} |-_IPC p '&' (q => FALSUM) by Th67;
+    {p => q,p '&' (q => FALSUM)} |-_IPC (p '&' (q => FALSUM)) => p by Th20;
+     then
+   {p => q,p '&' (q => FALSUM)} |-_IPC p by A2,Th27; then
+A4: {p => q,p '&' (q => FALSUM)} |-_IPC q by A1,Th27;
+   {p => q,p '&' (q => FALSUM)} |-_IPC (p '&' (q => FALSUM)) =>
+     (q => FALSUM) by Th21; then
+  {p => q,p '&' (q => FALSUM)} |-_IPC q => FALSUM by A2,Th27; then
+  {p '&' (q => FALSUM),p => q} |-_IPC FALSUM by A4,Th27; then
+  {p '&' (q => FALSUM)} |-_IPC  (p => q) => FALSUM by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th108:
+  |-_IPC (((p => q) => FALSUM) => FALSUM) => (((p => FALSUM) => FALSUM) =>
+  ((q => FALSUM) => FALSUM))
+proof
+A01: p in {p,q => FALSUM,(p => FALSUM) => FALSUM,
+     ((p => q) => FALSUM) => FALSUM} by ENUMSET1:def 2;
+A1: {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC p by A01,Th67;
+    q => FALSUM in
+     {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+       by ENUMSET1:def 2; then
+A2: {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC q => FALSUM by Th67;
+    ((p => q) => FALSUM) => FALSUM in
+     {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+       by ENUMSET1:def 2; then
+A3: {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC ((p => q) => FALSUM) => FALSUM by Th67;
+    {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+     |-_IPC p => ((q => FALSUM) => (p '&' (q => FALSUM))) by Th22; then
+    {p,q => FALSUM,(p => FALSUM) => FALSUM,
+     ((p => q) => FALSUM) => FALSUM}
+     |-_IPC ((q => FALSUM) => (p '&' (q => FALSUM))) by A1,Th27; then
+A4: {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC p '&' (q => FALSUM) by A2,Th27;
+A06: |-_IPC (p '&' (q => FALSUM)) => ((p => q) => FALSUM) by Th107;
+A07: {}(MC-wff) c= {p,q => FALSUM,(p => FALSUM) => FALSUM,
+     ((p => q) => FALSUM) => FALSUM};
+     |-_IPC ((p '&' (q => FALSUM)) => ((p => q) => FALSUM))
+     => ((((p => q) => FALSUM) => FALSUM) =>
+     ((p '&' (q => FALSUM)) => FALSUM)) by Th81; then
+     |-_IPC (((p => q) => FALSUM) => FALSUM) =>
+     ((p '&' (q => FALSUM)) => FALSUM) by A06,Th37; then
+     {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC (((p => q) => FALSUM) => FALSUM) =>
+    ((p '&' (q => FALSUM)) => FALSUM) by A07,Th66; then
+    {p,q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC (p '&' (q => FALSUM)) => FALSUM by A3,Th27; then
+    {p,q => FALSUM,(p => FALSUM) => FALSUM,
+    ((p => q) => FALSUM) => FALSUM} |-_IPC FALSUM by A4,Th27; then
+A8: {q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+    |-_IPC p => FALSUM by Th57;
+    (p => FALSUM) => FALSUM in
+     {q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+       by ENUMSET1:def 1; then
+    {q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+      |-_IPC (p => FALSUM) => FALSUM by Th67; then
+    {q => FALSUM,(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+      |-_IPC FALSUM by A8,Th27; then
+    {(p => FALSUM) => FALSUM,((p => q) => FALSUM) => FALSUM}
+      |-_IPC (q => FALSUM) => FALSUM by Th56; then
+    {((p => q) => FALSUM) => FALSUM}
+      |-_IPC ((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM) by Th55;
+    hence thesis by Th54;
+end;
+
+theorem Th109:
+  |-_IPC (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)) =>
+  (((p => q) => FALSUM) => FALSUM)
+proof
+    (p => q) => FALSUM in
+     {(p => q) => FALSUM,((p => FALSUM) => FALSUM) =>
+     ((q => FALSUM) => FALSUM)} by TARSKI:def 2; then
+A1: {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC (p => q) => FALSUM by Th67;
+    ((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM) in
+     {(p => q) => FALSUM,((p => FALSUM) => FALSUM) =>
+     ((q => FALSUM) => FALSUM)} by TARSKI:def 2; then
+A2: {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC ((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM) by Th67;
+A03: |-_IPC ((p => FALSUM) 'or' q) => (p => q) by Th80;
+A04: {}(MC-wff) c= {(p => q) => FALSUM,
+     ((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)};
+     |-_IPC (((p => FALSUM) 'or' q) => (p => q)) =>
+     (((p => q) => FALSUM) => (((p => FALSUM) 'or' q) => FALSUM)) by Th81; then
+     |-_IPC ((p => q) => FALSUM) => (((p => FALSUM) 'or' q) => FALSUM)
+       by A03,Th37; then
+     {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM)
+       => FALSUM)}
+    |-_IPC ((p => q) => FALSUM) => (((p => FALSUM) 'or' q) => FALSUM)
+      by A04,Th66; then
+A4: {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC ((p => FALSUM) 'or' q) => FALSUM by A1,Th27;
+A07: |-_IPC (((p => FALSUM) 'or' q) => FALSUM) =>
+     (((p => FALSUM) => FALSUM) '&' (q => FALSUM)) by Th97;
+    {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC (((p => FALSUM) 'or' q) => FALSUM) =>
+    (((p => FALSUM)=> FALSUM) '&' (q => FALSUM)) by A04,A07,Th66; then
+A6: {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC ((p => FALSUM) => FALSUM) '&' (q => FALSUM) by A4,Th27;
+    {(p => q) => FALSUM,((p => FALSUM) => FALSUM) =>
+     ((q => FALSUM) => FALSUM)} |-_IPC (((p => FALSUM)=> FALSUM) '&'
+     (q => FALSUM)) => ((p => FALSUM) => FALSUM) by Th20; then
+    {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC (p => FALSUM) => FALSUM by A6,Th27; then
+A8: {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC (q => FALSUM)=> FALSUM by A2,Th27;
+    {(p => q) => FALSUM,((p => FALSUM) => FALSUM) =>
+     ((q => FALSUM) => FALSUM)} |-_IPC (((p => FALSUM) => FALSUM) '&'
+     (q => FALSUM)) => (q => FALSUM) by Th21; then
+    {(p => q) => FALSUM,((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)}
+    |-_IPC q => FALSUM by A6,Th27; then
+    {(p => q) => FALSUM,((p => FALSUM) => FALSUM) =>
+     ((q => FALSUM) => FALSUM)} |-_IPC FALSUM by A8,Th27; then
+    {((p => FALSUM)=> FALSUM) => ((q => FALSUM) => FALSUM)}
+     |-_IPC ((p => q) => FALSUM) => FALSUM by Th55;
+    hence thesis by Th54;
+end;
+
+theorem Th110:
+  |-_IPC (((p => q) => FALSUM)=> FALSUM) 'equiv'
+  (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM))
+proof
+A1: |-_IPC (((p => q) => FALSUM)=> FALSUM) =>
+    (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)) by Th108;
+  |-_IPC (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)) =>
+    (((p => q) => FALSUM)=> FALSUM) by Th109;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th111:
+  |-_IPC (((p '&' q) => FALSUM) => FALSUM) => (((p => FALSUM) => FALSUM) '&'
+  ((q => FALSUM) => FALSUM))
+proof
+A1: |-_IPC p '&' q => p by Th30;
+A2: |-_IPC p '&' q => q by Th31;
+A3: |-_IPC (p '&' q => p) => ((p => FALSUM) => ((p '&' q) => FALSUM)) by Th81;
+A4: |-_IPC (p => FALSUM) => ((p '&' q) => FALSUM) by A1,A3,Th37;
+    |-_IPC ((p => FALSUM) => ((p '&' q) => FALSUM)) =>
+    ((((p '&' q) => FALSUM) => FALSUM) => ((p => FALSUM) => FALSUM))
+      by Th81; then
+A6: |-_IPC (((p '&' q) => FALSUM) => FALSUM) => ((p => FALSUM) => FALSUM)
+      by A4,Th37;
+    |-_IPC (p '&' q => q) => ((q => FALSUM) => ((p '&' q) => FALSUM)) by Th81;
+      then
+A8: |-_IPC (q => FALSUM) => ((p '&' q) => FALSUM) by A2,Th37;
+    |-_IPC ((q => FALSUM) => ((p '&' q) => FALSUM)) =>
+    ((((p '&' q) => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM))
+      by Th81; then
+A10: |-_IPC (((p '&' q) => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)
+       by A8,Th37;
+    |-_IPC ((((p '&' q) => FALSUM) => FALSUM) => ((p => FALSUM) => FALSUM))
+     => (((((p '&' q) => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM))
+     => ((((p '&' q) => FALSUM) => FALSUM) =>
+     (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM))))
+       by Th69,INTPRO_1:38; then
+  |-_IPC ((((p '&' q) => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM))
+     => ((((p '&' q) => FALSUM) => FALSUM) =>
+     (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)))
+       by A6,Th37;
+  hence thesis by A10,Th37;
+end;
+
+theorem Th112:
+  |-_IPC (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)) =>
+  (((p '&' q) => FALSUM) => FALSUM)
+proof
+    p in {p,q,(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+       by ENUMSET1:def 2; then
+A1: {p,q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)} |-_IPC p
+      by Th67;
+    q in {p,q,(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+       by ENUMSET1:def 2; then
+A2: {p,q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)} |-_IPC q
+      by Th67;
+    (p '&' q) => FALSUM in {p,q,(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+       by ENUMSET1:def 2; then
+A3: {p,q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC (p '&' q)=> FALSUM by Th67;
+    {p,q,(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+     |-_IPC p => (q => (p '&' q)) by Th22; then
+    {p,q,(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+     |-_IPC (q => (p '&' q)) by A1,Th27; then
+    {p,q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC p '&' q by A2,Th27; then
+    {p,q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC FALSUM by A3,Th27; then
+A6: {q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC p => FALSUM by Th57;
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM) in {q,
+     (p '&' q) => FALSUM,((p => FALSUM) => FALSUM) '&'
+     ((q => FALSUM) => FALSUM)} by ENUMSET1:def 1; then
+B1: {q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM) by Th67;
+    {q,(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+     |-_IPC (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM))
+     => ((p => FALSUM) => FALSUM) by Th20; then
+    {q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC (p => FALSUM) => FALSUM by B1,Th27; then
+B3: {q,(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC FALSUM by A6,Th27;
+B4: {(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC q => FALSUM by B3,Th56;
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM) in {
+     (p '&' q) => FALSUM,((p => FALSUM) => FALSUM) '&'
+     ((q => FALSUM) => FALSUM)} by TARSKI:def 2; then
+C1: {(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM) by Th67;
+    {(p '&' q) => FALSUM,
+     ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+     |-_IPC (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM))
+     => ((q => FALSUM) => FALSUM) by Th21; then
+   {(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+    |-_IPC (q => FALSUM) => FALSUM by C1,Th27; then
+  {(p '&' q) => FALSUM,
+    ((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+     |-_IPC FALSUM by B4,Th27; then
+  {((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)}
+  |-_IPC ((p '&' q)=> FALSUM) => FALSUM by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th113:
+ |-_IPC (((p '&' q) => FALSUM)=> FALSUM) 'equiv'
+        (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM))
+proof
+A1: |-_IPC (((p '&' q) => FALSUM)=> FALSUM) =>
+    (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)) by Th111;
+  |-_IPC (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)) =>
+    (((p '&' q) => FALSUM)=> FALSUM) by Th112;
+  hence thesis by A1,Th84;
+end;
+
+theorem Th114:
+ |-_IPC (((p => q) => FALSUM)=> FALSUM) =>
+          (p => ((q => FALSUM) => FALSUM))
+proof
+   p in {p,((p => q) => FALSUM)=> FALSUM} by TARSKI:def 2; then
+A1: {p,((p => q) => FALSUM)=> FALSUM} |-_IPC p by Th67;
+    ((p => q) => FALSUM)=> FALSUM in {p,((p => q) => FALSUM)=> FALSUM}
+       by TARSKI:def 2; then
+A2: {p,((p => q) => FALSUM)=> FALSUM} |-_IPC ((p => q) => FALSUM)=> FALSUM
+      by Th67;
+A03: |-_IPC (((p => q) => FALSUM) => FALSUM)
+     => (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)) by Th108;
+A04: {}(MC-wff) c= {p,((p => q) => FALSUM)=> FALSUM}; then
+   {((p => q) => FALSUM)=> FALSUM,p} |-_IPC (((p => q) => FALSUM)=> FALSUM)
+    => (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM))
+      by A03,Th66; then
+A4: {p,((p => q) => FALSUM)=> FALSUM}
+  |-_IPC ((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM) by A2,Th27;
+   |-_IPC p => ((p => FALSUM) => FALSUM) by Th72; then
+   {p,((p => q) => FALSUM)=> FALSUM} |-_IPC p => ((p => FALSUM) => FALSUM)
+      by A04,Th66; then
+   {p,((p => q) => FALSUM)=> FALSUM}|-_IPC ((p => FALSUM) => FALSUM)
+     by A1,Th27; then
+   {p,((p => q) => FALSUM)=> FALSUM}|-_IPC ((q => FALSUM) => FALSUM)
+      by A4,Th27; then
+  {((p => q) => FALSUM)=> FALSUM}|-_IPC p => ((q => FALSUM) => FALSUM)
+      by Th55;
+  hence thesis by Th54;
+end;
+
+theorem :: Restricted cut rule, No.1
+  (|-_IPC r) & ({r} |-_IPC q) implies |-_IPC q
+proof
+  assume A1: (|-_IPC r) & ({r} |-_IPC q); then
+  |-_IPC r => q by Th54;
+  hence thesis by A1,Th37;
+end;
+
+theorem Th116: :: Restricted cut rule, No.2
+  (X |-_IPC r) & (X \/ {r} |-_IPC q) implies X |-_IPC q
+proof
+  assume A1: (X |-_IPC r) & (X \/ {r} |-_IPC q); then
+  X |-_IPC r => q by Th53;
+  hence thesis by A1,Th27;
+end;
+
+theorem :: Cut rule
+  (X |-_IPC r) & (Y \/ {r} |-_IPC q) implies X \/ Y |-_IPC q
+proof
+  assume A1: (X |-_IPC r) & (Y \/ {r} |-_IPC q); then
+A2: Y |-_IPC r => q by Th53;
+A20: X c= X \/ Y & Y c= X \/ Y by XBOOLE_1:7; then
+A3: X \/ Y |-_IPC r => q by A2,Th66;
+   X \/ Y |-_IPC r by A1,A20,Th66;
+   hence thesis by A3,Th27;
+end;
+
+theorem :: Introduction => to premiss, No.1
+  (|-_IPC p) & ({r} |-_IPC q) implies {p => r} |-_IPC q
+proof
+A20: {} c= {p => r};
+  assume
+A1: (|-_IPC p) & ({r} |-_IPC q); then
+A2: {p => r} |-_IPC p by A20,Th66;
+   {p => r} |-_IPC p => r by Th65; then
+A4: {p => r} |-_IPC r by A2,Th27;
+   {r} c= {p => r} \/ {r} by XBOOLE_1:7; then
+  {p => r} \/ {r} |-_IPC q by A1,Th66;
+  hence thesis by A4,Th116;
+end;
+
+theorem Th119: :: Introduction => to premiss, No.2
+  (X |-_IPC p) & (X \/ {r} |-_IPC q) implies X \/ {p => r} |-_IPC q
+proof
+  assume A1: (X |-_IPC p) & (X \/ {r} |-_IPC q);
+   X c= X \/ {p => r} by XBOOLE_1:7; then
+A2: X \/ {p => r} |-_IPC p by A1,Th66;
+A3: p => r in {p => r} by TARSKI:def 1;
+   {p => r} c= X \/ {p => r} by XBOOLE_1:7; then
+   p => r in X \/ {p => r} by A3; then
+   X \/ {p => r} |-_IPC p => r by Th67; then
+A7: X \/ {p => r} |-_IPC r by A2,Th27;
+A8: X \/ {r}  c= (X \/ {r}) \/ {p => r} by XBOOLE_1:7;
+  (X \/ {r}) \/ {p => r} = (X \/ {p => r}) \/ {r}
+      by XBOOLE_1:4; then
+  (X \/ {p => r}) \/ {r} |-_IPC q by A1,A8,Th66;
+  hence thesis by A7,Th116;
+end;
+
+theorem Th120:
+  {q} |-_IPC q 'or' r
+proof
+A1: {q} |-_IPC q by Th65;
+  {q} |-_IPC q => (q 'or' r) by Th23;
+  hence thesis by A1,Th27;
+end;
+
+theorem Th121:
+  {r} |-_IPC q 'or' r
+proof
+A1: {r} |-_IPC r by Th65;
+  {r} |-_IPC r => (q 'or' r) by Th24;
+  hence thesis by A1,Th27;
+end;
+
+theorem :: Introduction 'or' to premiss, No.1
+  ({p} |-_IPC r & {q} |-_IPC r) implies {p 'or' q} |-_IPC r
+proof
+  set U = p 'or' q;
+  set X = {U};
+A2: |-_IPC (p => r) => ((q => r) => (U => r)) by Th35;
+  assume
+A1: {p} |-_IPC r & {q} |-_IPC r; then
+A5: |-_IPC q => r by Th54;
+   |-_IPC p => r by A1,Th54; then
+   |-_IPC (q => r) => (U => r) by A2,Th37; then
+A7: |-_IPC U => r by A5,Th37;
+  {} c= X; then
+  X |-_IPC U => r by A7,Th66;
+  hence thesis by Th27,Th65;
+end;
+
+theorem Th123: :: Introduction 'or' to premiss, No.2
+  (X \/ {p} |-_IPC r & X \/ {q} |-_IPC r) implies X \/ {p 'or' q} |-_IPC r
+proof
+  set U = p 'or' q;
+  assume A1: (X \/ {p} |-_IPC r & X \/ {q} |-_IPC r); then
+A2: X |-_IPC p => r by Th53;
+A3: X |-_IPC q => r by A1,Th53;
+  X |-_IPC (p => r) => ((q => r) => (U => r)) by Th25; then
+  X |-_IPC (q => r) => (U => r) by A2,Th27; then
+A6: X |-_IPC U => r by A3,Th27;
+A7: {U} |-_IPC U by Th65;
+    {U} c= X \/ {U} by XBOOLE_1:7; then
+A11: X \/ {U} |-_IPC U by A7,Th66;
+   X c= X \/ {U} by XBOOLE_1:7; then
+  X \/ {U} |-_IPC U => r by A6,Th66;
+  hence thesis by A11,Th27;
+end;
+
+theorem :: Introduction 'or' to premiss
+  (X \/ {p} |-_IPC r & Y \/ {q} |-_IPC r) implies
+    (X \/ Y) \/ {p 'or' q} |-_IPC r
+proof
+  set U = p 'or' q;
+  set Z = X \/ Y;
+  assume A1: (X \/ {p} |-_IPC r & Y \/ {q} |-_IPC r); then
+A2: X |-_IPC p => r by Th53;
+A4: X c= Z & Y c= Z by XBOOLE_1:7; then
+A5: Z |-_IPC p => r by A2,Th66;
+   Y |-_IPC q => r by A1,Th53; then
+A6: Z |-_IPC q => r by A4,Th66;
+   Z |-_IPC (p => r) => ((q => r) => (U => r)) by Th25; then
+   Z |-_IPC (q => r) => (U => r) by A5,Th27; then
+A9: Z |-_IPC U => r by A6,Th27;
+   Z c= Z \/ {U} by XBOOLE_1:7; then
+A11: Z \/ {U} |-_IPC U => r by A9,Th66;
+  {U} |-_IPC U by Th65; then
+  Z \/ {U} |-_IPC U by Th66,XBOOLE_1:7;
+  hence thesis by A11,Th27;
+end;
+
+theorem
+ |-_IPC (p =>(q 'or' (p => r))) => (p =>(q 'or' r))
+proof
+  set V = q 'or' r;
+A1: {r} |-_IPC q 'or' r by Th121;
+    {r} c= {p} \/ {r} by XBOOLE_1:7; then
+A3: {p} \/ {r} |-_IPC V by A1,Th66;
+A4: {p} |-_IPC p by Th65; then
+A5: {p} \/ {p => r} |-_IPC V by A3,Th119;
+A7: {q} |-_IPC V by Th120;
+    {q} c= {p} \/ {q} by XBOOLE_1:7; then
+    {p} \/ {q} |-_IPC V by A7,Th66; then
+    {p} \/ {q 'or' (p => r)} |-_IPC V by A5,Th123; then
+  {p} \/ {p => (q 'or' (p => r))} |-_IPC V by A4,Th119; then
+  {p => (q 'or' (p => r))} |-_IPC p => V by Th53;
+  hence thesis by Th54;
+end;
+
+theorem Th126:
+ |-_IPC p => ((p => FALSUM) => q)
+proof
+   p => FALSUM in {p => FALSUM,p} by TARSKI:def 2; then
+A1: {p => FALSUM,p} |-_IPC p => FALSUM by Th67;
+   p in {p => FALSUM,p} by TARSKI:def 2; then
+   {p => FALSUM,p} |-_IPC p by Th67; then
+A3: {p => FALSUM,p} |-_IPC FALSUM by A1,Th27;
+  {p => FALSUM,p} |-_IPC FALSUM => q by Th26; then
+  {p => FALSUM,p} |-_IPC q by A3,Th27; then
+  {p} |-_IPC (p => FALSUM) => q by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th127:
+  |-_IPC (p => q) => (((q '&' r)=> FALSUM) => ((p '&' r)=> FALSUM))
+proof
+   p '&' r in {p '&' r,(q '&' r)=> FALSUM,p => q} by ENUMSET1:def 1; then
+A1: {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC p '&' r by Th67;
+   (q '&' r)=> FALSUM in {p '&' r,(q '&' r)=> FALSUM,p => q}
+       by ENUMSET1:def 1; then
+A2: {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC (q '&' r)=> FALSUM by Th67;
+   p => q in {p '&' r,(q '&' r)=> FALSUM,p => q} by ENUMSET1:def 1; then
+A3: {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC p => q by Th67;
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC (p '&' r) => r by Th21; then
+A5: {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC r by A1,Th27;
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC (p '&' r) => p by Th20; then
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC p by A1,Th27; then
+A6: {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC q by A3,Th27;
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC q => (r => (q '&' r))
+       by Th22; then
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC r => (q '&' r)
+       by A6,Th27; then
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC q '&' r by A5,Th27; then
+   {p '&' r,(q '&' r)=> FALSUM,p => q} |-_IPC FALSUM by A2,Th27; then
+   {(q '&' r)=> FALSUM,p => q} |-_IPC (p '&' r)=> FALSUM by Th56; then
+  {p => q} |-_IPC ((q '&' r)=> FALSUM) => ((p '&' r)=> FALSUM) by Th55;
+  hence thesis by Th54;
+end;
+
+theorem Th128:
+  |-_IPC (p => q) => (((q 'or' r)=> FALSUM) => ((p 'or' r)=> FALSUM))
+proof
+    p 'or' r in {p 'or' r,(q 'or' r)=> FALSUM,p => q} by ENUMSET1:def 1; then
+A1: {p 'or' r,(q 'or' r)=> FALSUM,p => q} |-_IPC p 'or' r by Th67;
+   (q 'or' r)=> FALSUM in {p 'or' r,(q 'or' r)=> FALSUM,p => q}
+       by ENUMSET1:def 1; then
+A2: {p 'or' r,(q 'or' r)=> FALSUM,p => q} |-_IPC (q 'or' r)=> FALSUM
+      by Th67;
+    p => q in {p 'or' r,(q 'or' r)=> FALSUM,p => q} by ENUMSET1:def 1; then
+A3: {p 'or' r,(q 'or' r)=> FALSUM,p => q} |-_IPC p => q by Th67;
+A04: |-_IPC (p => q) => ((p 'or' r) => (q 'or' r)) by Th69,INTPRO_1:60;
+   {}(MC-wff) c= {p 'or' r,(q 'or' r)=> FALSUM,p => q}; then
+    {p 'or' r,(q 'or' r)=> FALSUM,p => q}
+     |-_IPC (p => q) => ((p 'or' r) => (q 'or' r)) by A04,Th66; then
+   {p 'or' r,(q 'or' r)=> FALSUM,p => q} |-_IPC (p 'or' r) => (q 'or' r)
+       by A3,Th27; then
+    {p 'or' r,(q 'or' r)=> FALSUM,p => q} |-_IPC q 'or' r
+      by A1,Th27; then
+    {p 'or' r,(q 'or' r)=> FALSUM,p => q} |-_IPC FALSUM by A2,Th27; then
+    {(q 'or' r)=> FALSUM,p => q} |-_IPC (p 'or' r)=> FALSUM
+      by Th56; then
+    {p => q} |-_IPC ((q 'or' r)=> FALSUM) => ((p 'or' r)=> FALSUM) by Th55;
+    hence thesis by Th54;
+end;
+
+definition
+  let p be Element of MC-wff;
+  redefine func neg p -> Element of MC-wff equals
+  (p => FALSUM);
+  correctness
+  by INTPRO_1:def 17;
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^2 p -> Element of MC-wff equals
+  ((p => FALSUM) => FALSUM);
+  correctness;
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^3 p -> Element of MC-wff equals
+  (((p => FALSUM) => FALSUM) => FALSUM);
+  correctness;
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^4 p -> Element of MC-wff equals
+  ((((p => FALSUM) => FALSUM) => FALSUM) => FALSUM);
+  correctness;
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^5 p -> Element of MC-wff equals
+  (((((p => FALSUM) => FALSUM) => FALSUM) => FALSUM) => FALSUM);
+  correctness;
+end;
+
+theorem
+  |-_IPC p => neg neg p by Th72;
+
+theorem
+  |-_IPC p => neg^2 p by Th72;
+
+theorem
+  |-_IPC ((p => q) '&' (p => neg q)) => neg p by Th75;
+
+theorem
+  |-_IPC (neg p) => (p => q) by Th76;
+
+theorem
+  |-_IPC p => neg neg neg neg p by Th79;
+
+theorem
+  |-_IPC ((neg p) 'or' q) => (p => q) by Th80;
+
+theorem
+  |-_IPC (p => q) => ((neg q) => neg p) by Th81;
+
+theorem
+  |-_IPC ((neg p) 'or' (neg q)) => neg (p '&' q) by Th82;
+
+theorem
+  |-_IPC (neg (p '&' q)) => (p => neg q) by Th87;
+
+theorem
+  |-_IPC (p => (neg q)) => neg (p '&' q) by Th88;
+
+theorem
+  |-_IPC (neg (p '&' q)) 'equiv' (p => neg q) by Th89;
+
+theorem
+  |-_IPC (neg (p '&' q)) => (q => neg p) by Th90;
+
+theorem
+  |-_IPC (q => neg p) => neg (p '&' q) by Th91;
+
+theorem
+  |-_IPC (q => neg p) 'equiv' neg (p '&' q) by Th92;
+
+theorem
+  |-_IPC p => (q => neg neg (p '&' q)) by Th93;
+
+theorem
+  |-_IPC q => (p => neg neg (p '&' q)) by Th94;
+
+theorem
+  |-_IPC p => ((neg (p '&' q)) => neg q) by Th95;
+
+theorem
+  |-_IPC q => ((neg (p '&' q)) => neg p) by Th96;
+
+theorem
+  |-_IPC (neg (p 'or' q)) => ((neg p) '&' neg q) by Th97;
+
+theorem
+  |-_IPC ((neg p) '&' neg q) => neg (p 'or' q) by Th98;
+
+theorem
+  |-_IPC (neg (p 'or' q)) 'equiv' ((neg p) '&' neg q) by Th99;
+
+theorem
+  |-_IPC (p '&' neg p) => FALSUM by Th100;
+
+theorem
+  |-_IPC FALSUM 'equiv' (p '&' neg p) by Th101;
+
+theorem
+  |-_IPC (neg p) => neg neg neg p by Th102;
+
+theorem
+  |-_IPC (neg neg neg p) => neg p by Th103;
+
+theorem
+  |-_IPC (neg p) 'equiv' neg neg neg p by Th104;
+
+theorem
+  |-_IPC ((neg p) => q) => ((neg neg neg p) => q) by Th105;
+
+theorem
+  |-_IPC (p => q) => ((neg neg p) => neg neg q) by Th106;
+
+theorem
+  |-_IPC (p '&' neg q) => neg (p => q) by Th107;
+
+theorem
+  |-_IPC (neg neg (p => q)) => ((neg neg p) => (neg neg q)) by Th108;
+
+theorem
+  |-_IPC ((neg neg p) => neg neg q) => neg neg (p => q) by Th109;
+
+theorem
+  |-_IPC (neg neg (p => q)) 'equiv' ((neg neg p) => neg neg q) by Th110;
+
+theorem
+  |-_IPC (neg neg (p '&' q)) => ((neg neg p) '&' neg neg q) by Th111;
+
+theorem
+  |-_IPC ((neg neg p) '&' (neg neg q)) => neg neg (p '&' q) by Th112;
+
+theorem
+  |-_IPC (neg neg (p '&' q)) 'equiv' ((neg neg p) '&' neg neg q) by Th113;
+
+theorem
+  |-_IPC (neg neg (p => q)) => (p => neg neg q) by Th114;
+
+theorem
+  |-_IPC p => ((neg p) => q) by Th126;
+
+theorem
+  |-_IPC (p => q) => ((neg (q '&' r)) => neg (p '&' r)) by Th127;
+
+theorem
+  |-_IPC (p => q) => ((neg (q 'or' r)) => neg (p 'or' r)) by Th128;

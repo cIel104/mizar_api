@@ -1,0 +1,359 @@
+:: Definition of Centroid Method as Defuzzification
+::  by Takashi Mitsuishi
+:: 
+:: Received July 23, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, XBOOLE_0, SUBSET_1, XXREAL_1, CARD_1, RELAT_1, TARSKI,
+      FUNCT_1, XXREAL_0, PARTFUN1, ARYTM_1, ARYTM_3, COMPLEX1, FUZZY_1,
+      MEASURE5, FUZNUM_1, REAL_1, ORDINAL2, XXREAL_2, JGRAPH_2, FUNCT_4,
+      FCONT_1, SQUARE_1, VALUED_1, FDIFF_1, INTEGRA1, INTEGRA5, SEQ_4, NAT_1,
+      PREPOWER, NEWTON, RFUNCT_3, CARD_3, MEASURE7, FINSEQ_1, POLYEQ_3,
+      FUZZY_6;
+ notations TARSKI, XBOOLE_0, SUBSET_1, NEWTON, RELAT_1, ORDINAL1, NUMBERS,
+      SQUARE_1, XCMPLX_0, XXREAL_0, COMPLEX1, XREAL_0, FUNCT_1, RELSET_1,
+      MEASURE5, PARTFUN1, FUNCT_2, FUNCT_3, INTEGRA1, RFUNCT_3, VALUED_1,
+      FUNCT_4, COMSEQ_2, FDIFF_1, FINSEQ_1, SEQ_4, PREPOWER, FCONT_1, POLYEQ_3,
+      RVSUM_1, RCOMP_1, TAYLOR_1, INTEGRA5, COUSIN2, FUZZY_1, FUZNUM_1;
+ constructors SEQ_4, RELSET_1, FCONT_1, FUNCT_4, TAYLOR_1, FDIFF_1, COMSEQ_2,
+      PREPOWER, NEWTON, RFUNCT_3, INTEGRA5, COUSIN2, SEQ_2, RVSUM_1, POLYEQ_3;
+ registrations RELSET_1, NUMBERS, XXREAL_0, MEMBERED, XBOOLE_0, VALUED_0,
+      VALUED_1, PDIFFEQ1, FUNCT_2, XREAL_0, ORDINAL1, FCONT_1, RELAT_1,
+      FUNCT_1, XCMPLX_0, NAT_1, FUZNUM_1, SQUARE_1, INT_1, INTEGRA1, POLYDIFF,
+      PREPOWER, NEWTON;
+ requirements NUMERALS, REAL, SUBSET, BOOLE, ARITHM;
+
+
+begin
+
+reserve A for non empty closed_interval Subset of REAL;
+
+definition
+ let A be non empty closed_interval Subset of REAL;
+ let f be Function of REAL,REAL;
+::: assume that
+::: f is_integrable_on A and
+::: f | A is bounded;
+ func centroid (f,A) -> Real equals
+:: FUZZY_6:def 1
+ integral((id REAL)(#)f,A)/integral(f,A);
+end;
+
+theorem :: FUZZY_6:1
+for a,b,c be Real st a < b & c > 0
+holds centroid (AffineMap (0,c),['a,b']) = (a+b)/2;
+
+theorem :: FUZZY_6:2
+for a,b be Real holds
+(id REAL) is_integrable_on ['a,b'] & (id REAL) | ['a,b'] is bounded;
+
+theorem :: FUZZY_6:3
+  (id REAL) is_integrable_on A & (id REAL) | A is bounded;
+
+theorem :: FUZZY_6:4
+for e being Real
+for f being PartFunc of REAL,REAL st
+A c= dom f & ( for x being Real st x in A holds f . x = e ) holds
+( f is_integrable_on A & f | A is bounded &
+integral (f,(lower_bound A),(upper_bound A))
+        = e * ((upper_bound A) - (lower_bound A)) );
+
+theorem :: FUZZY_6:5
+for f be Function of REAL,REAL st
+(for x be Real st x in A holds f.x = 0) holds
+integral(f,A) = 0;
+
+theorem :: FUZZY_6:6
+for f be Function of REAL,REAL st
+f is_integrable_on A & f | A is bounded
+holds
+(id REAL) (#) f is_integrable_on A &
+((id REAL) (#) f) | A is bounded;
+
+theorem :: FUZZY_6:7
+for a,b,c be Real st a < b holds
+['a,b'] c= [#]REAL & lower_bound ['a,b'] = a & upper_bound ['a,b'] = b;
+
+theorem :: FUZZY_6:8
+for a,b,c be Real, f be Function of REAL,REAL st
+a < b & b <= c &
+f is_integrable_on ['a,c'] & f | ['a,c'] is bounded &
+for x be Real st x in ['b,c'] holds  f.x = 0
+holds
+centroid(f,['a,c']) = centroid(f,['a,b']);
+
+theorem :: FUZZY_6:9
+for a,b,c be Real, f be Function of REAL,REAL st
+a <= b & b < c & f is_integrable_on ['a,c'] & f | ['a,c'] is bounded &
+for x be Real st x in ['a,b'] holds  f.x = 0
+holds
+centroid(f,['a,c']) = centroid(f,['b,c']);
+
+theorem :: FUZZY_6:10
+for f being Function of REAL,REAL st
+f is_integrable_on A & f | A is bounded & integral(f,A) > 0
+holds
+ex c being Real st c in A & f.c > 0;
+
+theorem :: FUZZY_6:11
+for r be Real, f be FuzzySet of REAL, F be Function of REAL,REAL st
+r > 0 & f is_integrable_on A & f | A is bounded &
+for x being Real holds F.x = min(r, f.x)
+holds
+integral(F,A) >= 0;
+
+theorem :: FUZZY_6:12
+for f,g be Function of REAL,REAL holds
+min(f,g) = (1/2) (#) ((f + g) - abs(f - g));
+
+theorem :: FUZZY_6:13
+for f,g be Function of REAL,REAL st
+f is_integrable_on A & f | A is bounded &
+g is_integrable_on A & g | A is bounded
+holds
+min(f,g) is_integrable_on A & min(f,g) | A is bounded &
+integral(min(f,g),A)
+ = (1/2)*( integral(f,A) + integral(g,A) - integral(abs(f-g),A) );
+
+theorem :: FUZZY_6:14
+for f,g be Function of REAL,REAL holds
+max(f,g) = (1/2) (#) (f + g + abs(f - g));
+
+theorem :: FUZZY_6:15
+for f,g be Function of REAL,REAL st
+f is_integrable_on A & f | A is bounded &
+g is_integrable_on A & g | A is bounded
+holds
+max(f,g) is_integrable_on A & max(f,g) | A is bounded &
+integral(max(f,g),A)
+= (1/2)*( integral(f,A) + integral(g,A) + integral(abs(f-g),A) );
+
+theorem :: FUZZY_6:16
+for r1,r2 be Real, f be Function of REAL,REAL st
+f is_integrable_on A & f | A is bounded
+holds
+min(AffineMap(0,r1),(r2 (#) f)) is_integrable_on A &
+min(AffineMap(0,r1),(r2 (#) f)) | A is bounded;
+
+theorem :: FUZZY_6:17
+for r1,r2 be Real, f,F be Function of REAL,REAL st
+f is_integrable_on A & f | A is bounded &
+for x being Real holds F.x = min(r1, r2*(f.x))
+holds
+F is_integrable_on A & F | A is bounded;
+
+theorem :: FUZZY_6:18
+for s be Real, f,g being Function of REAL,REAL holds
+( f | ].-infty,s.[ ) +* ( g | [.s,+infty.[ )
+is Function of REAL,REAL;
+
+theorem :: FUZZY_6:19
+for a,b,c being Real, f,g,F be Function of REAL,REAL st
+a <= b & b <= c &
+F = f | [.a,b.] +* g | [.b,c.]
+holds
+F is Function of ['a,c'],REAL;
+
+theorem :: FUZZY_6:20
+for a,b,c being Real, f,g,F be Function of REAL,REAL st
+a <= b & b <= c & F = f | [.a,b.] +* g | [.b,c.]
+holds
+F = F | [. a,c .];
+
+theorem :: FUZZY_6:21
+for a,b,c being Real, f,g,h be Function of REAL,REAL st
+a <= b & b <= c &
+f | ['a,c'] is bounded & g | ['a,c'] is bounded &
+h = (f| [.a,b.]) +* (g | [.b,c.]) & f.b = g.b
+holds
+h | ['a,c'] is bounded;
+
+theorem :: FUZZY_6:22
+for a,b,c being Real, f,g,h be Function of REAL,REAL st
+a <= b & b <= c &
+f | ['a,c'] is bounded & g | ['a,c'] is bounded &
+h | [.a,c.] = (f| [.a,b.]) +* (g | [.b,c.]) & f.b = g.b
+holds
+h | ['a,c'] is bounded;
+
+theorem :: FUZZY_6:23
+for c being Real, f,g be Function of REAL,REAL st
+f | A is bounded & g | A is bounded
+holds
+( (f | ].-infty,c.[) +* (g | [.c,+infty.[) ) | A is bounded;
+
+theorem :: FUZZY_6:24
+for a,b,c be Real, f,g,h,F be Function of REAL,REAL st
+a <= b & b <= c & f is continuous & g is continuous &
+h | [.a,c.] = (f | [.a,b.]) +* (g | [.b,c.]) & f.b = g.b & F = h | [.a,c.]
+holds
+F is continuous;
+
+theorem :: FUZZY_6:25
+for A being non empty closed_interval Subset of REAL,
+f be Function of REAL,REAL st
+f is continuous holds f is_integrable_on A & f | A is bounded;
+
+theorem :: FUZZY_6:26
+for c being Real, f,g,F be Function of REAL,REAL st
+f is Lipschitzian & g is Lipschitzian &
+f . c = g . c & F = (f | ].-infty,c.[) +* (g | [.c,+infty.[)
+holds F is Lipschitzian;
+
+theorem :: FUZZY_6:27
+for a,b being Real holds (AffineMap (a,b)) is Lipschitzian;
+
+theorem :: FUZZY_6:28
+for a,b,p,q being Real, f be Function of REAL,REAL st a <> p &
+f = ( AffineMap (a,b) | ].-infty,(q-b)/(a-p).[ )
+ +* ( AffineMap (p,q) | [.(q-b)/(a-p),+infty.[ )
+holds f is Lipschitzian;
+
+theorem :: FUZZY_6:29
+for a,b,p,q being Real, f be Function of REAL,REAL st a <> p &
+f = ( AffineMap (a,b) | ].-infty,(q-b)/(a-p).[ )
+ +* ( AffineMap (p,q) | [.(q-b)/(a-p),+infty.[ )
+holds
+f is_integrable_on A & f | A is bounded;
+
+theorem :: FUZZY_6:30
+for a,b,p,q being Real st a <> p holds
+ (AffineMap (a,b)) . ((q-b)/(a-p)) = (AffineMap (p,q)) . ((q-b)/(a-p));
+
+theorem :: FUZZY_6:31
+for f be Membership_Func of REAL holds f is bounded;
+
+theorem :: FUZZY_6:32
+for r be Real, f be Function of REAL,REAL st
+r <> 0 & f is_integrable_on A & f | A is bounded
+holds
+centroid((r (#) f),A) = centroid(f,A);
+
+theorem :: FUZZY_6:33
+for a,b,c being Real, f,g,h be Function of REAL,REAL st
+a <= b & b <= c &
+f is_integrable_on ['a,c'] & f | ['a,c'] is bounded &
+g is_integrable_on ['a,c'] & g | ['a,c'] is bounded &
+h | [.a,c.] = (f| [.a,b.]) +* (g | [.b,c.]) &
+h is_integrable_on ['a,c'] & f.b = g.b
+holds
+integral(h,['a,c']) = integral(f,['a,b']) + integral(g,['b,c']);
+
+theorem :: FUZZY_6:34
+for a,b,c be Real, f,g,h be Function of REAL,REAL st
+a <= b & b <= c & f is continuous & g is continuous &
+h  = (f| [.a,b.]) +* (g | [.b,c.]) & f.b = g.b
+holds
+integral((id REAL) (#) h,['a,c'])
+= integral((id REAL) (#) f,['a,b']) + integral((id REAL) (#) g,['b,c']);
+
+theorem :: FUZZY_6:35
+for c being Real, f,g be Function of REAL,REAL
+holds
+f|].-infty,c.[ +* g|[.c,+infty.[ = (f|].-infty,c.]) +* (g|[.c,+infty.[);
+
+theorem :: FUZZY_6:36
+for c being Real, f,g be Function of REAL,REAL st
+f | A is bounded & g | A is bounded
+holds
+( (f|].-infty,c.]) +* (g|[.c,+infty.[) ) | A is bounded;
+
+theorem :: FUZZY_6:37
+for a,b,c being Real, f,g be Function of REAL,REAL st a <= c & c <= b
+holds
+f | [.a,c.[ +* g | [.c,b.] = f | [.a,c.] +* g | [.c,b.];
+
+theorem :: FUZZY_6:38
+for a,b,c being Real, f,g,h be Function of REAL,REAL st
+a <= c & h | [.a,c.] = (f| [.a,b.]) +* (g | [.b,c.]) & f.b = g.b
+holds
+( b <= a implies h | [.a,c.] = g | [.a,c.] ) &
+( c <= b implies h | [.a,c.] = f | [.a,c.] );
+
+theorem :: FUZZY_6:39
+for b being Real, f,g,h be Function of REAL,REAL st
+h  = (f| ].-infty,b.[) +* (g | [.b,+infty.[) & f.b = g.b holds
+( b <= lower_bound A implies h | A = g | A ) &
+( upper_bound A <= b implies h | A = f | A );
+
+theorem :: FUZZY_6:40
+for a,b,p,q being Real, f be Function of REAL,REAL st
+f = ( AffineMap (a,b) |].-infty,(q-b)/(a-p).[ )
+ +* ( AffineMap (p,q) |[.(q-b)/(a-p),+infty.[ ) & (q-b)/(a-p) in A
+holds
+f | A = ( AffineMap (a,b) |[.lower_bound A,(q-b)/(a-p).] )
+ +* ( AffineMap (p,q) |[.(q-b)/(a-p),upper_bound A.] );
+
+theorem :: FUZZY_6:41
+for a,b being Real holds
+AffineMap (a,b) | A is bounded & AffineMap (a,b) is_integrable_on A;
+
+theorem :: FUZZY_6:42
+for a,b,p,q being Real, f be Function of REAL,REAL st a <> p &
+f = ( AffineMap (a,b) |].-infty,(q-b)/(a-p).[ )
+ +* ( AffineMap (p,q) |[.(q-b)/(a-p),+infty.[ )
+holds
+( (q-b)/(a-p) in A implies
+integral(f,A) = integral(AffineMap (a,b),['lower_bound A,(q-b)/(a-p)'])
+              + integral(AffineMap (p,q),['(q-b)/(a-p),upper_bound A']) )
+&
+( (q-b)/(a-p) <= lower_bound A implies
+integral(f,A) = integral(AffineMap (p,q),A) )
+&
+( (q-b)/(a-p) >= upper_bound A implies
+integral(f,A) = integral(AffineMap (a,b),A) );
+
+theorem :: FUZZY_6:43
+for a,b,p,q being Real, f be Function of REAL,REAL st a <> p &
+f | A = (AffineMap (a,b) | [.lower_bound A,(q-b)/(a-p).])
+     +* (AffineMap (p,q) | [.(q-b)/(a-p),upper_bound A.]) & (q-b)/(a-p) in A
+holds
+integral((id REAL) (#) f,A)
+= integral((id REAL) (#) (AffineMap (a,b)),['lower_bound A,(q-b)/(a-p)'])
++ integral((id REAL) (#) (AffineMap (p,q)),['(q-b)/(a-p),upper_bound A']);
+
+theorem :: FUZZY_6:44
+for a,b being Real holds
+(id REAL) (#) (AffineMap (a,b)) = (a (#) ( #Z 2)) + (b (#) ( #Z 1));
+
+theorem :: FUZZY_6:45
+for a,b,c,d being Real st c <= d holds
+integral((id REAL) (#) (AffineMap (a,b)),c,d)
+= 1/3*a*(d*d*d - c*c*c) + 1/2*b*(d*d - c*c);
+
+theorem :: FUZZY_6:46
+for a,b being Real holds
+AffineMap (a,b) = (a (#) ( #Z 1)) + (b (#) ( #Z 0));
+
+theorem :: FUZZY_6:47
+for a,b,c,d being Real st c <= d holds
+integral(AffineMap (a,b),c,d) = 1/2*a*(d*d - c*c) + b*(d - c);
+
+theorem :: FUZZY_6:48
+for a,b,p,q,c,d,e being Real, f be Function of REAL,REAL st a <> p &
+f | A = AffineMap (a,b) | [.lower_bound A,(q-b)/(a-p).]
+     +* AffineMap (p,q) | [.(q-b)/(a-p),upper_bound A.]  & (q-b)/(a-p) in A
+holds
+centroid(f,A) =
+(   1/3*a*(((q-b)/(a-p))^3 - (lower_bound A)^3)
+  + 1/2*b*(((q-b)/(a-p))^2 - (lower_bound A)^2)
+  + 1/3*p*((upper_bound A)^3 - ((q-b)/(a-p))^3)
+  + 1/2*q*((upper_bound A)^2 - ((q-b)/(a-p))^2) ) /
+( 1/2*a*(((q-b)/(a-p))^2 -(lower_bound A)^2) + b*((q-b)/(a-p) - lower_bound A)
++ 1/2*p*((upper_bound A)^2 -((q-b)/(a-p))^2) + q*(upper_bound A -(q-b)/(a-p)) )
+;
+
+theorem :: FUZZY_6:49
+for f being Function of REAL,REAL holds
+max+ f = max(AffineMap(0,0),f);
+

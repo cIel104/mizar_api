@@ -1,0 +1,1209 @@
+:: On algebras of algorithms and specifications over uninterpreted data
+::  by Ievgen Ivanov , Artur Korni{\l}owicz and Mykola Nikitchenko
+:: 
+:: Received June 29, 2018
+:: Copyright (c) 2018-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies SUBSET_1, XBOOLE_0, RELAT_1, FUNCT_1, XXREAL_0, NAT_1, ARYTM_3,
+      PARTFUN1, MARGREL1, XBOOLEAN, TARSKI, ZFMISC_1, ARYTM_1, FUNCT_7,
+      SETFAM_1, PARTPR_1, PARTPR_2, FUNCOP_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ORDINAL1, MARGREL1, SETFAM_1,
+      RELAT_1, RELSET_1, FUNCT_1, XTUPLE_0, PARTFUN1, PARTFUN2, FUNCT_2,
+      FUNCOP_1, BINOP_1, XXREAL_0, XCMPLX_0, RFUNCT_3, FUNCT_7, MULTOP_1,
+      PARTPR_1;
+ constructors DOMAIN_1, RFUNCT_3, MIDSP_3, RELSET_1, MULTOP_1, PARTPR_1,
+      SETFAM_1, PARTFUN2;
+ registrations XBOOLE_0, FUNCT_1, ORDINAL1, PARTFUN1, FUNCOP_1, XREAL_0,
+      FUNCT_7, RELSET_1, INT_1, PARTPR_1;
+ requirements NUMERALS, BOOLE, SUBSET;
+ definitions TARSKI, XBOOLE_0, FUNCT_1, FUNCT_2, BINOP_1, PARTFUN1, SETFAM_1;
+ equalities MARGREL1, XBOOLEAN, MULTOP_1, PARTPR_1, RELAT_1;
+ expansions PARTFUN1;
+ theorems RELAT_1, RELSET_1, BINOP_1, PARTFUN1, FUNCT_1, FUNCT_2, XXREAL_0,
+      INT_1, MULTOP_1, MCART_1, FUNCT_7, PARTPR_1, XBOOLE_1, TARSKI, SETFAM_1,
+      FUNCOP_1;
+ schemes FUNCT_1, FUNCT_2, MULTOP_1, BINOP_1;
+
+begin :: Preliminaries
+
+reserve x for object;
+reserve n for Nat;
+
+registration
+  let X,Y be set;
+  cluster -> X-defined for Element of PFuncs(X,Y);
+  coherence;
+  cluster -> Y-valued for Element of PFuncs(X,Y);
+  coherence;
+end;
+
+theorem Th1:
+  for X,Y,Z,T being set
+  for x,y,z being object
+  for f being Function of [:X,Y,Z:],T st x in X & y in Y & z in Z & T <> {}
+  holds f.(x,y,z) in T
+  proof
+    let X,Y,Z,T be set;
+    let x,y,z be object;
+    let f be Function of [:X,Y,Z:],T;
+    assume x in X & y in Y & z in Z;
+    then [x,y,z] in [:X,Y,Z:] by MCART_1:69;
+    hence thesis by FUNCT_2:5;
+  end;
+
+registration
+  cluster non empty non with_non-empty_elements for set;
+  existence
+  proof
+    take {{}};
+    thus {{}} is non empty;
+    thus {} in {{}} by TARSKI:def 1;
+  end;
+end;
+
+definition
+  let A,B,C be set;
+  func PFcompos(A,B,C) -> Function of [:PFuncs(A,B),PFuncs(B,C):],PFuncs(A,C)
+    means :D1:
+  for f being PartFunc of A,B
+   for g being PartFunc of B,C holds it.(f,g) = g*f;
+  existence
+  proof
+    defpred P[Function,Function,object] means $3 = $2*$1;
+A1: for f being Element of PFuncs(A,B)
+    for g being Element of PFuncs(B,C)
+    ex y being Element of PFuncs(A,C) st P[f,g,y]
+    proof
+      let f be Element of PFuncs(A,B);
+      let g be Element of PFuncs(B,C);
+      reconsider h = g*f as Element of PFuncs(A,C) by PARTFUN1:45;
+      take h;
+      thus thesis;
+    end;
+    consider F being Function of [:PFuncs(A,B),PFuncs(B,C):],PFuncs(A,C)
+     such that
+A2: for x being Element of PFuncs(A,B)
+     for y being Element of PFuncs(B,C) holds P[x,y,F.(x,y)]
+      from BINOP_1:sch 3(A1);
+    take F;
+    let f be PartFunc of A,B;
+    let g be PartFunc of B,C;
+    f in PFuncs(A,B) & g in PFuncs(B,C) by PARTFUN1:45;
+    hence thesis by A2;
+  end;
+  uniqueness
+  proof
+    let F,G be Function of [:PFuncs(A,B),PFuncs(B,C):],PFuncs(A,C) such that
+A3: for f being PartFunc of A,B
+    for g being PartFunc of B,C holds F.(f,g) = g*f and
+A4: for f being PartFunc of A,B
+    for g being PartFunc of B,C holds G.(f,g) = g*f;
+    let x,y be set;
+    assume x in PFuncs(A,B);
+    then reconsider f = x as PartFunc of A,B by PARTFUN1:46;
+    assume y in PFuncs(B,C);
+    then reconsider g = y as PartFunc of B,C by PARTFUN1:46;
+    thus F.(x,y) = g*f by A3
+    .= G.(x,y) by A4;
+  end;
+end;
+
+reserve D for non empty set;
+reserve p,q for PartialPredicate of D;
+
+theorem
+  q is total implies dom p c= dom PP_or(p,q)
+  proof
+    assume
+A1: q is total;
+    set a = PP_or(p,q);
+    let x;
+    assume
+A2: x in dom p;
+A3: dom a = {d where d is Element of D:
+             d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+          or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE}
+          by PARTPR_1:def 4;
+    per cases by A2,PARTPR_1:3;
+    suppose
+A4:   p.x = FALSE;
+      q.x = TRUE or q.x = FALSE by A1,A2,PARTPR_1:3;
+      hence thesis by A1,A2,A3,A4;
+    end;
+    suppose p.x = TRUE;
+      hence thesis by A2,A3;
+    end;
+  end;
+
+theorem
+  q is total implies dom p c= dom PP_and(p,q)
+  proof
+    assume
+A1: q is total;
+    set a = PP_and(p,q);
+    let x;
+    assume
+A2: x in dom p;
+A3: dom a = {d where d is Element of D:
+    d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+    or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE} by PARTPR_1:16;
+    per cases by A2,PARTPR_1:3;
+    suppose
+A4:   p.x = TRUE;
+      q.x = TRUE or q.x = FALSE by A1,A2,PARTPR_1:3;
+      hence thesis by A1,A2,A3,A4;
+    end;
+    suppose p.x = FALSE;
+      hence thesis by A2,A3;
+    end;
+  end;
+
+theorem
+  q is total implies dom p c= dom PP_imp(p,q)
+  proof
+    assume
+A1: q is total;
+    set a = PP_imp(p,q);
+    let x;
+    assume
+A2: x in dom p;
+A3: dom a = {d where d is Element of D:
+    d in dom p & p.d = FALSE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = TRUE & d in dom q & q.d = FALSE} by PARTPR_1:31;
+    per cases by A2,PARTPR_1:3;
+    suppose
+A4:   p.x = TRUE;
+      q.x = TRUE or q.x = FALSE by A1,A2,PARTPR_1:3;
+      hence thesis by A1,A2,A3,A4;
+    end;
+    suppose p.x = FALSE;
+      hence thesis by A2,A3;
+    end;
+  end;
+
+begin :: Operations in algebras of algorithms and specifications over uninterpreted data
+
+reserve D for set;
+
+definition
+  let D;
+  func FPrg(D) -> set equals
+  PFuncs(D,D);
+  coherence;
+end;
+
+registration
+  let D;
+  cluster FPrg(D) -> non empty functional;
+  coherence;
+end;
+
+definition
+  let D;
+  mode BinominativeFunction of D is PartFunc of D,D;
+end;
+
+theorem
+  for D being non empty set, f being BinominativeFunction of D holds
+  id field f is BinominativeFunction of D
+  proof
+    let D be non empty set, f be BinominativeFunction of D;
+    dom f c= D & rng f c= D by RELAT_1:def 19;
+    then reconsider X = field f as Subset of D by XBOOLE_1:8;
+    id X is BinominativeFunction of D;
+    hence thesis;
+  end;
+
+reserve p,q for PartialPredicate of D;
+reserve f,g for BinominativeFunction of D;
+
+registration
+  let D,p;
+  let F be Function of Pr(D),Pr(D);
+  cluster F.p -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D;
+  let F be Function of Pr(D),Pr(D);
+  let p be Element of Pr(D);
+  cluster F.p -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D,p,q;
+  let F be Function of [:Pr(D),Pr(D):],Pr(D);
+  cluster F.(p,q) -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D;
+  let F be Function of [:Pr(D),Pr(D):],Pr(D);
+  let p,q be Element of Pr(D);
+  cluster F.(p,q) -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D;
+  let F be Function of [:Pr(D),Pr(D):],Pr(D);
+  let x be Element of [:Pr(D),Pr(D):];
+  cluster F.x -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D,f;
+  let F be Function of FPrg(D),FPrg(D);
+  cluster F.f -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D,p,f,g;
+  let F be Function of [:Pr(D),FPrg(D),FPrg(D):],FPrg(D);
+  cluster F.(p,f,g) -> Function-like Relation-like;
+  coherence;
+  cluster F.[p,f,g] -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let D,p,q,f;
+  let F be Function of [:Pr(D),FPrg(D),Pr(D):],Pr(D);
+  cluster F.(p,f,q) -> Function-like Relation-like;
+  coherence;
+  cluster F.[p,f,q] -> Function-like Relation-like;
+  coherence;
+end;
+
+::$N Identity composition
+notation
+  let D be set;
+  synonym PPid(D) for id D;
+end;
+
+definition
+  let D be set;
+  redefine func PPid(D) -> BinominativeFunction of D;
+  coherence
+  proof
+    id D is BinominativeFunction of D;
+    hence thesis;
+  end;
+end;
+
+::$N Identity composition
+definition
+  let D be non empty set, d be Element of D;
+  func PP_id(d) -> Element of D equals
+  PPid(D).d;
+  coherence;
+end;
+
+::$N Sequential composition
+definition
+  let D;
+  func PPcomposition(D) -> Function of [:FPrg(D),FPrg(D):],FPrg(D)
+   equals
+  PFcompos(D,D,D);
+  coherence;
+end;
+
+::$N Sequential composition
+definition
+  let D,f,g;
+  func PP_composition(f,g) -> BinominativeFunction of D equals
+  PPcomposition(D).(f,g);
+  coherence
+  proof
+    f in FPrg(D) & g in FPrg(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,BINOP_1:17;
+  end;
+end;
+
+::$N Prediction composition
+definition
+  let D;
+  func PPprediction(D) -> Function of [:FPrg(D),Pr(D):],Pr(D) equals
+  PFcompos(D,D,BOOLEAN);
+  coherence;
+end;
+
+::$N Prediction composition
+definition
+  let D,f,p;
+  func PP_prediction(f,p) -> PartialPredicate of D equals
+  PPprediction(D).(f,p);
+  coherence
+  proof
+    f in FPrg(D) & p in Pr(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,BINOP_1:17;
+  end;
+end;
+
+registration
+  let D;
+  let F be Function of [:Pr(D),FPrg(D),FPrg(D):],FPrg(D);
+  let p be PartialPredicate of D;
+  let f,g be BinominativeFunction of D;
+  cluster F.(p,f,g) -> Function-like Relation-like;
+  coherence;
+end;
+
+theorem
+  x in dom(PP_prediction(f,p)) implies
+   x in dom(p*f) & ((p*f).x = TRUE or (p*f).x = FALSE)
+  proof
+    assume x in dom(PP_prediction(f,p));
+    then x in dom(p*f) by D1;
+    hence thesis by PARTPR_1:3;
+  end;
+
+scheme
+  PredToNomPredEx { D() -> set, Dom() -> set, P[object] }:
+  ex p being PartialPredicate of D() st
+   dom p = Dom() &
+    (for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))
+  provided
+A1: Dom() c= D()
+  proof
+    defpred Q[object,object] means
+    (P[$1] & $2 = TRUE) or (not P[$1] & $2 = FALSE);
+A2: for d being object st d in Dom() holds
+    ex z being object st z in BOOLEAN & Q[d,z]
+    proof
+      let d be object such that d in Dom();
+      per cases;
+      suppose A3: Q[d,TRUE];
+        take TRUE;
+        thus thesis by A3;
+      end;
+      suppose A4: Q[d,FALSE];
+        take FALSE;
+        thus thesis by A4;
+      end;
+    end;
+    consider p being Function of Dom(),BOOLEAN such that
+A5: for d being object st d in Dom() holds Q[d,p.d] from FUNCT_2:sch 1(A2);
+A6: p in PFuncs(Dom(),BOOLEAN) by PARTFUN1:45;
+    PFuncs(Dom(),BOOLEAN) c= PFuncs(D(),BOOLEAN) by A1,PARTFUN1:50;
+    then reconsider p as PartialPredicate of D() by A6,PARTFUN1:46;
+    take p;
+    dom p = Dom() by FUNCT_2:def 1;
+    hence thesis by A5;
+  end;
+
+scheme
+ PredToNomPredUnique { D() -> set, Dom() -> set, P[object] }:
+  for p,q being PartialPredicate of D() st
+    (dom p = Dom() & (for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))) &
+    (dom q = Dom() & (for d being object st d in dom q holds
+    (P[d] implies q.d = TRUE) & (not P[d] implies q.d = FALSE)))
+  holds p = q
+  proof
+    let p,q be PartialPredicate of D() such that
+A1: (dom p = Dom() & (for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))) and
+A2: (dom q = Dom() & (for d being object st d in dom q holds
+    (P[d] implies q.d = TRUE) & (not P[d] implies q.d = FALSE)));
+    for d being object st d in dom p holds p.d = q.d
+    proof
+      let d be object such that
+A3:   d in dom p;
+      p.d = q.d
+      proof
+        per cases;
+        suppose
+A4:       P[d];
+          hence p.d = TRUE by A1,A3
+          .= q.d by A1,A2,A3,A4;
+        end;
+        suppose
+A5:       not P[d];
+          hence p.d = FALSE by A1,A3
+          .= q.d by A1,A2,A3,A5;
+        end;
+      end;
+      hence thesis;
+    end;
+    hence thesis by A1,A2,FUNCT_1:2;
+  end;
+
+::$N Emptiness checking predicate
+definition
+  let D;
+  defpred P[object] means $1 = {};
+  func PPisEmpty(D) -> PartialPredicate of D means
+  dom it = D &
+  for d being object st d in dom it holds
+   (d = {} implies it.d = TRUE) & (d <> {} implies it.d = FALSE);
+  existence
+  proof
+A1: D c= D;
+    consider p being PartialPredicate of D such that
+A2: dom p = D and
+A3: for d being object st d in dom p holds
+    (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE)
+    from PredToNomPredEx(A1);
+    take p;
+    thus thesis by A2,A3;
+  end;
+  uniqueness
+  proof
+    for p,q being PartialPredicate of D st
+     (dom p = D & (for d being object st d in dom p holds
+     (P[d] implies p.d = TRUE) & (not P[d] implies p.d = FALSE))) &
+     (dom q = D & (for d being object st d in dom q holds
+     (P[d] implies q.d = TRUE) & (not P[d] implies q.d = FALSE)))
+    holds p = q from PredToNomPredUnique;
+    hence thesis;
+  end;
+end;
+
+::$N Empty constant function
+definition
+  let D be non with_non-empty_elements set;
+  func PPEmpty(D) -> BinominativeFunction of D equals
+  D --> {};
+  coherence
+  proof
+    set f = D --> {};
+A1: dom f = D;
+A2: rng f = {{}} by FUNCOP_1:8;
+    rng f c= D
+    proof
+      let x;
+      assume x in rng f;
+      then x = {} by A2,TARSKI:def 1;
+      hence thesis by SETFAM_1:def 8;
+    end;
+    hence thesis by A1,RELSET_1:4;
+  end;
+end;
+
+::$N Empty function
+definition
+  let D;
+  func PPBottomFunc(D) -> BinominativeFunction of D equals
+  {};
+  coherence by RELSET_1:12;
+end;
+
+reserve D for non empty set;
+reserve p,q for PartialPredicate of D;
+reserve f,g,h for BinominativeFunction of D;
+
+::$N Branching composition
+definition
+  let D;
+  defpred D1[object,Function,Function] means
+   $1 in dom $2 & $2.$1 = TRUE & $1 in dom $3;
+  defpred D2[object,Function,Function] means
+   $1 in dom $2 & $2.$1 = FALSE & $1 in dom $3;
+  deffunc D(Function,Function,Function) =
+   {d where d is Element of D: D1[d,$1,$2] or D2[d,$1,$3]};
+  func PPIF(D)
+    -> Function of [:Pr(D),FPrg(D),FPrg(D):],FPrg(D)
+   means :Def13:
+  for p being PartialPredicate of D
+  for f,g being BinominativeFunction of D holds
+   dom(it.(p,f,g)) = {d where d is Element of D:
+                      d in dom p & p.d = TRUE & d in dom f
+                   or d in dom p & p.d = FALSE & d in dom g} &
+  for d being object holds
+   (d in dom p & p.d = TRUE & d in dom f implies it.(p,f,g).d = f.d) &
+   (d in dom p & p.d = FALSE & d in dom g implies it.(p,f,g).d = g.d);
+  existence
+  proof
+    defpred P[object,object,object,object] means
+    for p being PartialPredicate of D
+     for f,g being BinominativeFunction of D st p = $1 & f = $2 & g = $3
+      holds
+     for h being Function st h = $4 holds
+      dom(h) = D(p,f,g) &
+      for d being object holds
+       (D1[d,p,f] implies h.d = f.d) & (D2[d,p,g] implies h.d = g.d);
+A1: for x1 being Element of Pr(D)
+     for x2,x3 being Element of FPrg(D)
+      ex y being Element of FPrg(D) st P[x1,x2,x3,y]
+    proof
+      let x1 be Element of Pr(D);
+      let x2,x3 be Element of FPrg(D);
+      reconsider X1 = x1 as PartFunc of D,BOOLEAN by PARTFUN1:46;
+      reconsider X2 = x2, X3 = x3 as PartFunc of D,D by PARTFUN1:46;
+      defpred Q[object,object] means
+      for d being object st d = $1 holds
+       (D1[d,X1,X2] implies $2 = X2.d) & (D2[d,X1,X3] implies $2 = X3.d);
+A2:   for a being object st a in D(X1,X2,X3)
+       ex b being object st b in D & Q[a,b]
+      proof
+        let a be object;
+        assume a in D(X1,X2,X3);
+        then consider d being Element of D such that
+A3:     d = a and
+A4:     D1[d,X1,X2] or D2[d,X1,X3];
+        per cases by A4;
+        suppose
+A5:       D1[d,X1,X2];
+          take X2.d;
+          thus thesis by A3,A5,PARTFUN1:4;
+        end;
+        suppose
+A6:       D2[d,X1,X3];
+          take X3.d;
+          thus thesis by A3,A6,PARTFUN1:4;
+        end;
+      end;
+      consider H being Function such that
+A7:   dom H = D(X1,X2,X3) and
+A8:   rng H c= D and
+A9:   for x being object st x in D(X1,X2,X3) holds Q[x,H.x]
+      from FUNCT_1:sch 6(A2);
+      D(X1,X2,X3) c= D
+      proof
+        let x;
+        assume x in D(X1,X2,X3);
+        then ex d being Element of D st d = x &
+        (D1[d,X1,X2] or D2[d,X1,X3]);
+        hence thesis;
+      end;
+      then H is PartFunc of D,D by A7,A8,RELSET_1:4;
+      then reconsider H as Element of FPrg(D) by PARTFUN1:45;
+      take H;
+      let p be PartialPredicate of D;
+      let f,g be BinominativeFunction of D such that
+A10:  x1 = p & x2 = f & x3 = g;
+      let h be Function such that
+A11:  h = H;
+      thus dom(h) = D(p,f,g) by A7,A10,A11;
+      let d be object;
+      hereby
+        assume
+A12:    D1[d,p,f];
+        then d in dom p;
+        then d in D(X1,X2,X3) by A10,A12;
+        hence h.d = f.d by A9,A10,A11,A12;
+      end;
+      assume
+A13:  D2[d,p,g];
+      then d in dom p;
+      then d in D(X1,X2,X3) by A10,A13;
+      hence h.d = g.d by A9,A10,A11,A13;
+    end;
+    consider F being Function of [:Pr(D),FPrg(D),FPrg(D):],FPrg(D)
+     such that
+A14: for x being Element of Pr(D)
+      for y,z being Element of FPrg(D)
+       holds P[x,y,z,F.[x,y,z]] from MULTOP_1:sch 1(A1);
+    take F;
+    let p be PartialPredicate of D;
+    let f,g be BinominativeFunction of D;
+    p in Pr(D) & f in FPrg(D) & g in FPrg(D) by PARTFUN1:45;
+    hence thesis by A14;
+  end;
+  uniqueness
+  proof
+    let F,G be Function of [:Pr(D),FPrg(D),FPrg(D):],FPrg(D) such that
+A15: for p being PartialPredicate of D
+     for f,g being BinominativeFunction of D holds
+     dom(F.(p,f,g)) = D(p,f,g) &
+     for d being object holds
+      (D1[d,p,f] implies F.(p,f,g).d = f.d) &
+      (D2[d,p,g] implies F.(p,f,g).d = g.d) and
+A16: for p being PartialPredicate of D
+     for f,g being BinominativeFunction of D holds
+     dom(G.(p,f,g)) = D(p,f,g) &
+     for d being object holds
+      (D1[d,p,f] implies G.(p,f,g).d = f.d) &
+      (D2[d,p,g] implies G.(p,f,g).d = g.d);
+    now
+      let x1,x2,x3 be object such that
+A17:  x1 in Pr(D) and
+A18:  x2 in FPrg(D) and
+A19:  x3 in FPrg(D);
+      reconsider p1 = x1 as PartialPredicate of D by A17,PARTFUN1:46;
+      reconsider f2 = x2, f3 = x3 as BinominativeFunction of D
+      by A18,A19,PARTFUN1:46;
+      thus F.[x1,x2,x3] = G.[x1,x2,x3]
+      proof
+A20:    G.[x1,x2,x3] = G.(x1,x2,x3);
+        F.[x1,x2,x3] = F.(x1,x2,x3);
+        then
+A21:    dom(F.[x1,x2,x3]) = D(p1,f2,f3) by A15;
+        hence dom(F.[x1,x2,x3]) = dom(G.[x1,x2,x3]) by A16,A20;
+        let a be object;
+        assume a in dom(F.[x1,x2,x3]);
+        then consider d being Element of D such that
+A22:    a = d and
+A23:    D1[d,p1,f2] or D2[d,p1,f3] by A21;
+        per cases by A23;
+        suppose
+A24:      D1[d,p1,f2];
+          thus F.[x1,x2,x3].a = F.(p1,f2,f3).a
+          .= f2.d by A15,A22,A24
+          .= G.(p1,f2,f3).a by A16,A22,A24
+          .= G.[x1,x2,x3].a;
+        end;
+        suppose
+A25:      D2[d,p1,f3];
+          thus F.[x1,x2,x3].a = F.(p1,f2,f3).a
+          .= f3.d by A15,A22,A25
+          .= G.(p1,f2,f3).a by A16,A22,A25
+          .= G.[x1,x2,x3].a;
+        end;
+      end;
+    end;
+    hence thesis by MULTOP_1:1;
+  end;
+end;
+
+::$N Branching composition
+definition
+  let D,p,f,g;
+  func PP_IF(p,f,g) -> BinominativeFunction of D equals
+  PPIF(D).(p,f,g);
+  coherence
+  proof
+    p in Pr(D) & f in FPrg(D) & g in FPrg(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,Th1;
+  end;
+end;
+
+theorem
+  x in dom(PP_IF(p,f,g)) implies
+   x in dom p & p.x = TRUE & x in dom f or
+   x in dom p & p.x = FALSE & x in dom g
+  proof
+    assume
+A1: x in dom(PP_IF(p,f,g));
+    dom(PP_IF(p,f,g)) = {d where d is Element of D:
+    d in dom p & p.d = TRUE & d in dom f
+    or d in dom p & p.d = FALSE & d in dom g} by Def13;
+    then ex d1 being Element of D st
+    d1 = x & (d1 in dom p & p.d1 = TRUE & d1 in dom f
+    or d1 in dom p & p.d1 = FALSE & d1 in dom g) by A1;
+    hence thesis;
+  end;
+
+::$N Monotone Floyd-Hoare composition
+definition
+  let D;
+  defpred D1[object,Function,Function,Function] means
+   $1 in dom $2 & $2.$1 = FALSE or $1 in dom($4*$3) & ($4*$3).$1 = TRUE;
+  defpred D2[object,Function,Function,Function] means
+   $1 in dom $2 & $2.$1 = TRUE & $1 in dom($4*$3) & ($4*$3).$1 = FALSE;
+  deffunc D(Function,Function,Function) =
+   {d where d is Element of D: D1[d,$1,$2,$3] or D2[d,$1,$2,$3]};
+  func PPFH(D) -> Function of [:Pr(D),FPrg(D),Pr(D):],Pr(D)
+   means :Def15:
+  for p,q being PartialPredicate of D
+  for f being BinominativeFunction of D holds
+   dom(it.(p,f,q)) = {d where d is Element of D:
+                 d in dom p & p.d = FALSE or d in dom(q*f) & (q*f).d = TRUE
+              or d in dom p & p.d = TRUE & d in dom(q*f) & (q*f).d = FALSE} &
+  for d being object holds
+   (d in dom p & p.d = FALSE or d in dom(q*f) & (q*f).d = TRUE
+     implies it.(p,f,q).d = TRUE) &
+   (d in dom p & p.d = TRUE & d in dom(q*f) & (q*f).d = FALSE
+     implies it.(p,f,q).d = FALSE);
+  existence
+  proof
+    defpred P[object,object,object,object] means
+    for p,q being PartialPredicate of D
+     for f being BinominativeFunction of D st p = $1 & f = $2 & q = $3
+      holds
+     for h being Function st h = $4 holds
+      dom(h) = D(p,f,q) &
+      for d being object holds
+       (D1[d,p,f,q] implies h.d = TRUE) & (D2[d,p,f,q] implies h.d = FALSE);
+A1: for x1 being Element of Pr(D)
+     for x2 being Element of FPrg(D)
+      for x3 being Element of Pr(D)
+       ex y being Element of Pr(D) st P[x1,x2,x3,y]
+    proof
+      let x1 be Element of Pr(D);
+      let x2 be Element of FPrg(D);
+      let x3 be Element of Pr(D);
+      reconsider X1 = x1, X3 = x3 as PartFunc of D,BOOLEAN
+      by PARTFUN1:46;
+      reconsider X2 = x2 as PartFunc of D,D
+      by PARTFUN1:46;
+      defpred Q[object,object] means
+      for d being object st d = $1 holds
+       (D1[d,X1,X2,X3] implies $2 = TRUE) &
+       (D2[d,X1,X2,X3] implies $2 = FALSE);
+A2:   for a being object st a in D(X1,X2,X3)
+       ex b being object st b in BOOLEAN & Q[a,b]
+      proof
+        let a be object;
+        assume a in D(X1,X2,X3);
+        then consider d being Element of D such that
+A3:     d = a and
+A4:     D1[d,X1,X2,X3] or D2[d,X1,X2,X3];
+        per cases by A4;
+        suppose
+A5:       D1[d,X1,X2,X3];
+          take TRUE;
+          thus thesis by A3,A5;
+        end;
+        suppose
+A6:       D2[d,X1,X2,X3];
+          take FALSE;
+          thus thesis by A3,A6;
+        end;
+      end;
+      consider g being Function such that
+A7:   dom g = D(X1,X2,X3) and
+A8:   rng g c= BOOLEAN and
+A9:   for x being object st x in D(X1,X2,X3) holds Q[x,g.x]
+      from FUNCT_1:sch 6(A2);
+      D(X1,X2,X3) c= D
+      proof
+        let x;
+        assume x in D(X1,X2,X3);
+        then ex d being Element of D st d = x &
+        (D1[d,X1,X2,X3] or D2[d,X1,X2,X3]);
+        hence thesis;
+      end;
+      then g is PartFunc of D,BOOLEAN by A7,A8,RELSET_1:4;
+      then reconsider g as Element of Pr(D) by PARTFUN1:45;
+      take g;
+      let p,q be PartialPredicate of D;
+      let f be BinominativeFunction of D such that
+A10:  x1 = p & x2 = f & x3 = q;
+      let h be Function such that
+A11:  h = g;
+      thus dom(h) = D(p,f,q) by A7,A10,A11;
+      let d be object;
+      hereby
+        assume
+A12:    D1[d,p,f,q];
+        then d in dom p or d in dom(q*f);
+        then d in D(X1,X2,X3) by A10,A12;
+        hence h.d = TRUE by A9,A10,A11,A12;
+      end;
+      assume
+A13:  D2[d,p,f,q];
+      then d in dom p;
+      then d in D(X1,X2,X3) by A10,A13;
+      hence h.d = FALSE by A9,A10,A11,A13;
+    end;
+    consider F being Function of [:Pr(D),FPrg(D),Pr(D):],Pr(D)
+     such that
+A14: for x being Element of Pr(D)
+      for y being Element of FPrg(D)
+       for z being Element of Pr(D)
+        holds P[x,y,z,F.[x,y,z]] from MULTOP_1:sch 1(A1);
+    take F;
+    let p,q be PartialPredicate of D;
+    let f be BinominativeFunction of D;
+    p in Pr(D) & f in FPrg(D) & q in Pr(D) by PARTFUN1:45;
+    hence thesis by A14;
+  end;
+  uniqueness
+  proof
+    let F,G be Function of [:Pr(D),FPrg(D),Pr(D):],Pr(D) such that
+A15: for p,q being PartialPredicate of D
+     for f being BinominativeFunction of D holds
+    dom(F.(p,f,q)) = D(p,f,q) &
+    for d being object holds
+     (D1[d,p,f,q] implies F.(p,f,q).d = TRUE) &
+     (D2[d,p,f,q] implies F.(p,f,q).d = FALSE) and
+A16: for p,q being PartialPredicate of D
+     for f being BinominativeFunction of D holds
+    dom(G.(p,f,q)) = D(p,f,q) &
+    for d being object holds
+     (D1[d,p,f,q] implies G.(p,f,q).d = TRUE) &
+     (D2[d,p,f,q] implies G.(p,f,q).d = FALSE);
+    now
+      let x1,x2,x3 be object such that
+A17:  x1 in Pr(D) and
+A18:  x2 in FPrg(D) and
+A19:  x3 in Pr(D);
+      reconsider p1 = x1, p3 = x3 as PartialPredicate of D
+      by A17,A19,PARTFUN1:46;
+      reconsider f2 = x2 as BinominativeFunction of D
+      by A18,PARTFUN1:46;
+      thus F.[x1,x2,x3] = G.[x1,x2,x3]
+      proof
+A20:    G.[x1,x2,x3] = G.(x1,x2,x3);
+        F.[x1,x2,x3] = F.(x1,x2,x3);
+        then
+A21:    dom(F.[x1,x2,x3]) = D(p1,f2,p3) by A15;
+        hence dom(F.[x1,x2,x3]) = dom(G.[x1,x2,x3]) by A16,A20;
+        let a be object;
+        assume a in dom(F.[x1,x2,x3]);
+        then consider d being Element of D such that
+A22:    a = d and
+A23:    D1[d,p1,f2,p3] or D2[d,p1,f2,p3] by A21;
+        per cases by A23;
+        suppose
+A24:      D1[d,p1,f2,p3];
+          thus F.[x1,x2,x3].a = F.(p1,f2,p3).a
+          .= TRUE by A15,A22,A24
+          .= G.(p1,f2,p3).a by A16,A22,A24
+          .= G.[x1,x2,x3].a;
+        end;
+        suppose
+A25:      D2[d,p1,f2,p3];
+          thus F.[x1,x2,x3].a = F.(p1,f2,p3).a
+          .= FALSE by A15,A22,A25
+          .= G.(p1,f2,p3).a by A16,A22,A25
+          .= G.[x1,x2,x3].a;
+        end;
+      end;
+    end;
+    hence thesis by MULTOP_1:1;
+  end;
+end;
+
+::$N Monotone Floyd-Hoare composition
+definition
+  let D,p,q,f;
+  func PP_FH(p,f,q) -> PartialPredicate of D equals
+  PPFH(D).(p,f,q);
+  coherence
+  proof
+    p in Pr(D) & f in FPrg(D) & q in Pr(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,Th1;
+  end;
+end;
+
+theorem
+  x in dom(PP_FH(p,f,q)) implies
+   x in dom p & p.x = FALSE or x in dom(q*f) & (q*f).x = TRUE
+   or x in dom p & p.x = TRUE & x in dom(q*f) & (q*f).x = FALSE
+  proof
+    assume
+A1: x in dom(PP_FH(p,f,q));
+    dom(PP_FH(p,f,q)) = {d where d is Element of D:
+    d in dom p & p.d = FALSE or d in dom(q*f) & (q*f).d = TRUE
+    or d in dom p & p.d = TRUE & d in dom(q*f) & (q*f).d = FALSE} by Def15;
+    then ex d1 being Element of D st
+    d1 = x & (d1 in dom p & p.d1 = FALSE or
+    d1 in dom(q*f) & (q*f).d1 = TRUE
+    or d1 in dom p & p.d1 = TRUE & d1 in dom(q*f) & (q*f).d1 = FALSE) by A1;
+    hence thesis;
+  end;
+
+::$N Cycle composition
+definition
+  let D;
+  defpred D1[object,Function,Function,Nat] means
+    (for i being Nat st i <= $4-1 holds
+     $1 in dom($2*iter($3,i)) & ($2*iter($3,i)).$1 = TRUE)
+   & $1 in dom($2*iter($3,$4)) & ($2*iter($3,$4)).$1 = FALSE;
+  deffunc D(Function,Function) =
+   {d where d is Element of D: ex n st D1[d,$1,$2,n]};
+  func PPwhile(D) -> Function of [:Pr(D),FPrg(D):],FPrg(D)
+   means
+  for p being PartialPredicate of D
+   for f being BinominativeFunction of D holds
+    dom(it.(p,f)) = {d where d is Element of D:
+     ex n being Nat st
+      (for i being Nat st i <= n-1 holds
+       d in dom(p*iter(f,i)) & (p*iter(f,i)).d = TRUE)
+      & d in dom(p*iter(f,n)) & (p*iter(f,n)).d = FALSE} &
+    for d being object st d in dom(it.(p,f))
+     ex n being Nat st
+      (for i being Nat st i <= n-1 holds
+       d in dom(p*iter(f,i)) & (p*iter(f,i)).d = TRUE)
+      & d in dom(p*iter(f,n)) & (p*iter(f,n)).d = FALSE &
+     it.(p,f).d = iter(f,n).d;
+  existence
+  proof
+    defpred P[object,object,object] means
+    for p being PartialPredicate of D
+     for f being BinominativeFunction of D st $1 = p & $2 = f holds
+    for h being Function st h = $3 holds
+    dom(h) = D(p,f) &
+    for d being object st d in dom(h)
+     ex n st D1[d,p,f,n] & h.d = iter(f,n).d;
+A1: for x1,x2 being object st x1 in Pr(D) & x2 in FPrg(D)
+     ex y being object st y in FPrg(D) & P[x1,x2,y]
+    proof
+      let x1,x2 be object;
+      assume x1 in Pr(D);
+      then reconsider X1 = x1 as PartFunc of D,BOOLEAN by PARTFUN1:46;
+      assume x2 in FPrg(D);
+      then reconsider X2 = x2 as PartFunc of D,D by PARTFUN1:46;
+      defpred Q[object,object] means
+      for d being object st d = $1
+       ex n st D1[d,X1,X2,n] & $2 = iter(X2,n).d;
+A2:   for a being object st a in D(X1,X2)
+       ex b being object st b in D & Q[a,b]
+      proof
+        let a be object;
+        assume a in D(X1,X2);
+        then consider d being Element of D such that
+A3:     d = a and
+A4:     ex n st D1[d,X1,X2,n];
+        consider n such that
+A5:     D1[d,X1,X2,n] by A4;
+        take iter(X2,n).d;
+A6:     iter(X2,n) is PartFunc of D,D by FUNCT_7:86;
+        dom(X1*iter(X2,n)) c= dom(iter(X2,n)) by RELAT_1:25;
+        hence iter(X2,n).d in D by A5,A6,PARTFUN1:4;
+        thus thesis by A3,A5;
+      end;
+      consider K being Function such that
+A7:   dom K = D(X1,X2) and
+A8:   rng K c= D and
+A9:   for x being object st x in D(X1,X2) holds Q[x,K.x]
+      from FUNCT_1:sch 6(A2);
+      take K;
+      D(X1,X2) c= D
+      proof
+        let x;
+        assume x in D(X1,X2);
+        then ex d being Element of D st
+        d = x & ex n st D1[d,X1,X2,n];
+        hence thesis;
+      end;
+      then K is PartFunc of D,D by A7,A8,RELSET_1:4;
+      hence K in FPrg(D) by PARTFUN1:45;
+      thus thesis by A7,A9;
+    end;
+    consider F being Function of [:Pr(D),FPrg(D):],FPrg(D) such that
+A10: for x,y being object st x in Pr(D) & y in FPrg(D) holds
+      P[x,y,F.(x,y)] from BINOP_1:sch 1(A1);
+    take F;
+    let p be PartialPredicate of D;
+    let f be BinominativeFunction of D;
+A11: p in Pr(D) & f in FPrg(D) by PARTFUN1:45;
+    hence dom(F.(p,f)) = D(p,f) by A10;
+    let d be object;
+    assume d in dom(F.(p,f));
+    then consider n being Nat such that
+A12: D1[d,p,f,n] & F.(p,f).d = iter(f,n).d by A10,A11;
+    take n;
+    thus thesis by A12;
+  end;
+  uniqueness
+  proof
+    let F,G be Function of [:Pr(D),FPrg(D):],FPrg(D) such that
+A13: for p being PartialPredicate of D
+    for f being BinominativeFunction of D holds
+    dom(F.(p,f)) = D(p,f) &
+    for d being object st d in dom(F.(p,f))
+     ex n being Nat st
+      (for i being Nat st i <= n-1 holds
+       d in dom(p*iter(f,i)) & (p*iter(f,i)).d = TRUE)
+      & d in dom(p*iter(f,n)) & (p*iter(f,n)).d = FALSE &
+     F.(p,f).d = iter(f,n).d and
+A14: for p being PartialPredicate of D
+    for f being BinominativeFunction of D holds
+    dom(G.(p,f)) = D(p,f) &
+    for d being object st d in dom(G.(p,f))
+     ex n being Nat st
+      (for i being Nat st i <= n-1 holds
+       d in dom(p*iter(f,i)) & (p*iter(f,i)).d = TRUE)
+      & d in dom(p*iter(f,n)) & (p*iter(f,n)).d = FALSE &
+     G.(p,f).d = iter(f,n).d;
+    let a,b be set;
+    assume
+A15: a in Pr(D);
+    then reconsider p = a as PartialPredicate of D
+    by PARTFUN1:46;
+    assume
+A16: b in FPrg(D);
+    then reconsider f = b as BinominativeFunction of D
+    by PARTFUN1:46;
+    F.(a,b) in FPrg(D) by A15,A16,BINOP_1:17;
+    then
+A17: dom(F.(a,b)) c= D by RELAT_1:def 18;
+    thus
+A18: dom(F.(a,b)) = D(p,f) by A13
+    .= dom(G.(a,b)) by A14;
+    let z be object;
+    assume
+A19: z in dom(F.(a,b));
+    then reconsider d = z as Element of D by A17;
+    consider n being Nat such that
+A20: for i being Nat st i <= n-1 holds
+     d in dom(p*iter(f,i)) & (p*iter(f,i)).d = TRUE and
+A21: d in dom(p*iter(f,n)) & (p*iter(f,n)).d = FALSE and
+A22: F.(p,f).d = iter(f,n).d by A13,A19;
+    consider m being Nat such that
+A23: for i being Nat st i <= m-1 holds
+     d in dom(p*iter(f,i)) & (p*iter(f,i)).d = TRUE and
+A24: d in dom(p*iter(f,m)) & (p*iter(f,m)).d = FALSE and
+A25: G.(p,f).d = iter(f,m).d by A14,A18,A19;
+    m = n
+    proof
+      assume m <> n;
+      then per cases by XXREAL_0:1;
+      suppose m < n;
+        then m <= n-1 by INT_1:52;
+        hence contradiction by A20,A24;
+      end;
+      suppose m > n;
+        then n <= m-1 by INT_1:52;
+        hence contradiction by A21,A23;
+      end;
+    end;
+    hence thesis by A22,A25;
+  end;
+end;
+
+::$N Cycle composition
+definition
+  let D,p,f;
+  func PP_while(p,f) -> BinominativeFunction of D equals
+  PPwhile(D).(p,f);
+  coherence
+  proof
+    p in Pr(D) & f in FPrg(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,BINOP_1:17;
+  end;
+end;
+
+definition
+  let D;
+  defpred Dn[object,Function] means $1 in dom $2;
+  deffunc DM(Function) = {d where d is Element of D: not d in dom $1};
+  func PPinversion(D) -> Function of Pr(D),Pr(D) means :Def19:
+  for p being PartialPredicate of D holds
+   dom(it.p) = {d where d is Element of D: not d in dom p} &
+   for d being Element of D holds not d in dom p implies it.p.d = TRUE;
+  existence
+  proof
+    defpred P[object,object] means
+     for p being PartialPredicate of D st p = $1 holds
+     for f being Function st f = $2 holds
+     DM(p) = dom f &
+     for d being Element of D holds not Dn[d,p] implies f.d = TRUE;
+A1: for x being object st x in Pr(D)
+     ex y being object st y in Pr(D) & P[x,y]
+    proof
+      let x;
+      assume x in Pr(D);
+      then reconsider X = x as PartFunc of D,BOOLEAN by PARTFUN1:46;
+      defpred Q[object,object] means
+       for d being Element of D st d = $1 holds not Dn[d,X] implies $2 = TRUE;
+A2:   DM(X) c= D
+      proof
+        let x;
+        assume x in DM(X);
+        then ex d being Element of D st x = d & not d in dom X;
+        hence thesis;
+      end;
+A3:   for a being object st a in DM(X)
+       ex b being object st b in BOOLEAN & Q[a,b]
+      proof
+        let a be object;
+        assume a in DM(X);
+        take TRUE;
+        thus thesis;
+      end;
+      consider g being Function such that
+A4:   dom g = DM(X) and
+A5:   rng g c= BOOLEAN and
+A6:   for x being object st x in DM(X) holds Q[x,g.x] from FUNCT_1:sch 6(A3);
+      take g;
+      g is PartFunc of D,BOOLEAN by A2,A4,A5,RELSET_1:4;
+      hence g in Pr(D) by PARTFUN1:45;
+      let p be PartialPredicate of D such that
+A7:   p = x;
+      let f be Function such that
+A8:   f = g;
+      thus DM(p) = dom f by A4,A7,A8;
+      let d be Element of D;
+      assume
+A9:   not Dn[d,p];
+      then d in DM(X) by A7;
+      hence f.d = TRUE by A6,A7,A8,A9;
+    end;
+    consider F being Function of Pr(D),Pr(D) such that
+A10: for x being object st x in Pr(D) holds P[x,F.x] from FUNCT_2:sch 1(A1);
+    take F;
+    let p be PartialPredicate of D;
+    p in Pr(D) by PARTFUN1:45;
+    hence thesis by A10;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of Pr(D),Pr(D) such that
+A11: for p being PartialPredicate of D holds
+    dom(f.p) = DM(p) &
+    for d being Element of D holds not Dn[d,p] implies f.p.d = TRUE
+    and
+A12: for p being PartialPredicate of D holds
+    dom(g.p) = DM(p) &
+    for d being Element of D holds not Dn[d,p] implies g.p.d = TRUE;
+    let x be Element of Pr(D);
+    reconsider p = x as PartialPredicate of D by PARTFUN1:46;
+    thus dom(f.x) = DM(p) by A11
+    .= dom(g.x) by A12;
+    let a be object;
+    assume a in dom(f.x);
+    then a in DM(p) by A11;
+    then
+A13: ex d being Element of D st a = d & not d in dom p;
+    hence f.x.a = TRUE by A11
+      .= g.x.a by A12,A13;
+  end;
+end;
+
+definition
+  let D be non empty set;
+  let p be PartialPredicate of D;
+  func PP_inversion(p) -> PartialPredicate of D equals
+  PPinversion(D).p;
+  coherence
+  proof
+    p in Pr(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,FUNCT_2:5;
+  end;
+end;
+
+theorem
+  for d being Element of D holds
+  d in dom p iff not d in dom(PP_inversion(p))
+  proof
+    let d be Element of D;
+A1: dom(PP_inversion(p)) = {d where d is Element of D: not d in dom p}
+    by Def19;
+    thus d in dom p implies not d in dom(PP_inversion(p))
+    proof
+      assume
+A2:   d in dom p;
+      assume d in dom(PP_inversion(p));
+      then ex d1 being Element of D st d = d1 & not d1 in dom p by A1;
+      hence thesis by A2;
+    end;
+    thus thesis by A1;
+  end;
+
+theorem
+  p is total implies dom PP_inversion(p) = {}
+  proof
+    set q = PP_inversion(p);
+    assume
+A1: dom p = D;
+A2: dom q = {d where d is Element of D: not d in dom p} by Def19;
+    thus dom q c= {}
+    proof
+      let x;
+      assume x in dom q;
+      then ex d being Element of D st x = d & not d in dom p by A2;
+      hence thesis by A1;
+    end;
+    thus thesis by XBOOLE_1:2;
+  end;

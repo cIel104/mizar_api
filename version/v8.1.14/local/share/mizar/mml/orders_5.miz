@@ -1,0 +1,4694 @@
+:: About Quotient Orders and Ordering Sequences
+::  by Sebastian Koch
+::
+:: Received June 27, 2017
+:: Copyright (c) 2017-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, SUBSET_1, REAL_1, PARTFUN1, RELAT_1, ARYTM_1, FUNCT_1,
+      ARYTM_3, TARSKI, XBOOLE_0, CARD_1, NAT_1, FUNCOP_1, XXREAL_0, CARD_3,
+      FUNCT_2, RELAT_2, EQREL_1, STRUCT_0, ORDERS_2, REARRAN1, WELLFND1,
+      FINSEQ_5, WAYBEL20, REALALG1, FINSEQ_2, PARTFUN3, ORDINAL4, CLASSES1,
+      PRE_POLY, FINSET_1, DICKSON, FINSEQ_1, ORDERS_1, PETERSON, XCMPLX_0,
+      ZFMISC_1, UPROOTS, ORDERS_5, PARTIT1;
+ notations ORDINAL1, XCMPLX_0, XREAL_0, XXREAL_0, TARSKI, XBOOLE_0, SUBSET_1,
+      NUMBERS, FUNCOP_1, RELAT_1, RELAT_2, CARD_1, CLASSES1, RELSET_1,
+      VALUED_0, VALUED_1, FUNCT_1, PARTFUN1, FUNCT_2, PARTFUN3, FINSET_1,
+      FINSEQ_2, FINSEQOP, RVSUM_1, FINSEQ_1, DICKSON, ORDERS_1, FINSEQ_3,
+      FINSEQ_5, EQREL_1, STRUCT_0, NECKLACE, PRE_POLY, ORDERS_2, PARTIT1;
+ constructors NAT_D, FINSEQ_5, PARTFUN3, RELSET_1, RVSUM_1, CLASSES1, PRE_POLY,
+      MATRPROB, FINSEQOP, NECKLACE, DICKSON, PARTIT1;
+ registrations XBOOLE_0, ORDINAL1, NUMBERS, XREAL_0, MEMBERED, RELAT_1,
+      RELAT_2, RELSET_1, EQREL_1, JORDAN23, VALUED_0, VALUED_1, FUNCT_1,
+      FUNCT_2, PARTFUN3, STRUCT_0, ORDERS_2, NAT_1, FINSET_1, FINSEQ_1,
+      PARTFUN1, RVSUM_1, PRE_POLY, CARD_1, SUBSET_1, FINSEQ_5;
+ requirements REAL, NUMERALS, SUBSET, BOOLE, ARITHM;
+ definitions XBOOLE_0, ORDERS_2, PARTFUN3;
+ expansions TARSKI, XBOOLE_0;
+ theorems TARSKI, XBOOLE_0, XBOOLE_1, XXREAL_0, ZFMISC_1, SUBSET_1, RELAT_1,
+      RELAT_2, RELSET_1, EQREL_1, ORDERS_1, ORDERS_2, XREAL_0, FINSET_1,
+      FINSEQ_1, FINSEQ_2, RVSUM_1, CARD_1, PARTFUN1, PARTFUN3, FUNCOP_1,
+      RFINSEQ, FINSEQ_3, FINSEQ_4, FINSEQOP, CLASSES1, XTUPLE_0, FUNCT_1,
+      FUNCT_2, PRE_POLY, NAT_1, CARD_2, XREAL_1, CHORD, NUMBERS, RFUNCT_1,
+      CFUNCT_1, NECKLACE, FINSEQ_5, DICKSON, SETFAM_1, PARTIT1;
+ schemes RELSET_1, FUNCT_2, NAT_1, FINSET_1, EQREL_1;
+
+begin :: Preliminaries
+
+:: into SUBSET_1 ?
+theorem Th1:
+  for A, B being set, x being object holds
+    A = B \ {x} & x in B implies B \ A = {x}
+proof
+  let A, B be set;
+  let x be object;
+  assume that
+  A1: A = B \ {x} and
+  A2: x in B;
+  reconsider A as Subset of B by A1;
+  reconsider iks = {x} as Subset of B by A2, ZFMISC_1:31;
+  A = iks` by A1, SUBSET_1:def 4;
+  then A` = iks;
+  hence thesis by SUBSET_1:def 4;
+end;
+
+:: into RELAT_1 ? present in FOMODEL0
+registration
+  let Y be set, X be Subset of Y;
+  cluster X-defined -> Y-defined for Relation;
+  coherence by RELAT_1:182;
+::  cluster X-valued -> Y-valued for Relation;
+::  coherence by RELAT_1:183;
+end;
+
+:: placement in CARD_2 also seems appropriate because of CARD_2:60
+theorem Th2:
+  for X being set, x being object st x in X & card X = 1 holds {x} = X
+proof
+  let X be set, x be object;
+  assume that
+    A1: x in X and
+    A2: card X = 1;
+  consider y being object such that
+B1:  X = {y} by CARD_2:42,A2;
+  x in {y} by B1,A1; then
+  x = y by TARSKI:def 1;
+  hence thesis by B1;
+end;
+
+:: into FINSEQ_1 ?
+:: interesting enough, trivdemo didn't recognized this one as trivial
+theorem
+  for X being set, k being Nat st X c= Seg k holds rng Sgm X c= Seg k
+proof
+  let X be set, k be Nat;
+  assume A1: X c= Seg k;
+  for x being object holds x in rng Sgm X implies x in Seg k
+  proof
+    let x be object;
+    assume A2: x in rng Sgm X;
+    rng Sgm X = X by A1, FINSEQ_1:def 13;
+    hence x in Seg k by A1, A2;
+  end;
+  hence thesis;
+end;
+
+:: into FINSEQ_1 ?
+registration
+  let s be FinSequence;
+  let N be Subset of dom s;
+  cluster s * Sgm(N) -> FinSequence-like;
+  coherence
+  proof
+    consider k being Nat such that
+A1: dom Sgm(N) = Seg k by FINSEQ_1:def 2;
+    consider l being Nat such that A2: dom s = Seg l by FINSEQ_1:def 2;
+    rng Sgm(N) = N by A2, FINSEQ_1:def 13;
+    then dom (s * Sgm(N)) = dom Sgm(N) by RELAT_1:27;
+    hence thesis by A1, FINSEQ_1:def 2;
+  end;
+end;
+
+:: into FINSEQ_2 ?
+:: compare FINSEQ_2:32
+registration
+  let A be set, B be Subset of A, C be non empty set,
+  f be FinSequence of B, g be Function of A, C;
+  cluster g*f -> FinSequence-like;
+  coherence
+  proof
+    rng f c= B by FINSEQ_1:def 4;
+    then rng f c= A by XBOOLE_1:1;
+    then rng f c= dom g by FUNCT_2:def 1;
+    hence thesis by FINSEQ_1:16;
+  end;
+end;
+
+:: into FINSEQ_2 ?
+registration
+  let s be FinSequence;
+  cluster s * idseq len(s) -> FinSequence-like;
+  coherence
+  proof
+    consider k being Nat such that
+A1: dom idseq len(s) = Seg k by FINSEQ_1:def 2;
+    rng idseq len(s) = rng id Seg len(s) by FINSEQ_2:def 1
+      .= dom s by FINSEQ_1:def 3;
+    then dom (s * idseq len(s)) = dom idseq len(s) by RELAT_1:27;
+    hence thesis by A1, FINSEQ_1:def 2;
+  end;
+end;
+
+:: into FINSEQ_5 ?
+registration
+  let s be FinSequence;
+  reduce Rev Rev(s) to s;
+  reducibility;
+end;
+
+:: into FINSET_1 ?
+scheme
+ Finite2{A()->set, B()->Subset of A(), P[set]} : P[A()]
+provided
+A1: A() is finite and
+A2: P[B()] and
+A3: for x,C being set st x in A()\B() & B() c= C & C c= A() & P[C] holds
+      P[C \/ {x}]
+proof
+  defpred Q[set] means P[B()\/$1];
+  set D = A()\B();
+  A4: D is finite by A1;
+  A5: for x, E being set st x in D & E c= D & Q[E] holds Q[E \/ {x}]
+  proof
+    let x, E be set;
+    assume that
+      A6: x in D and
+      A7: E c= D and
+      A8: Q[E];
+    set C = B() \/ E;
+    C c= B() \/ (A()\B()) by A7, XBOOLE_1:9;
+    then C c= A() by XBOOLE_1:45;
+    then P[C \/ {x}] by A3, A6, A8, XBOOLE_1:7;
+    hence Q[E \/ {x}] by XBOOLE_1:4;
+  end;
+  A10: Q[{}] by A2;
+  Q[D] from FINSET_1:sch 2(A4, A10, A5);
+  hence P[A()] by XBOOLE_1:45;
+end;
+
+:: into STRUCT_0 ?
+:: actually, I'm not sure why this redefinition is even needed by the analyzer
+definition
+  let S, T be 1-sorted, f be Function of S, T;
+  let B be Subset of S;
+  redefine func f.:B -> Subset of T;
+  coherence by FUNCT_2:36;
+end;
+
+::$CT
+
+:: into RVSUM_1 ?
+theorem Th6:
+  for s being FinSequence of REAL st Sum s <> 0 holds
+    ex i being Nat st i in dom s & s.i <> 0
+proof
+  let s be FinSequence of REAL;
+  assume A1: Sum s <> 0;
+  consider n being Nat such that A2: dom s = Seg n by FINSEQ_1:def 2;
+  assume for i being Nat holds not i in dom s or s.i = 0;
+  then for i being object st i in dom s holds s.i = 0;
+  then A3: s = dom s --> 0 by FUNCOP_1:11;
+  s = n |-> 0 by A3, A2, FINSEQ_2:def 2;
+  hence contradiction by A1,RVSUM_1:81;
+end;
+
+:: into RVSUM_1 ?
+:: similar to RVSUM_1:85
+theorem Th7:
+  for s being FinSequence of REAL st s is nonnegative-yielding &
+    ex i being Nat st i in dom s & s.i <> 0 holds
+      Sum s > 0
+proof
+  let s be FinSequence of REAL;
+  assume that
+    A1: s is nonnegative-yielding and
+    A2: ex i being Nat st i in dom s & s.i <> 0;
+  consider i being Nat such that
+    A3: i in dom s and
+    A4: s.i <> 0 by A2;
+  set sr = s;
+  A5: for j being Nat st j in dom sr holds 0 <= sr.j
+  proof
+    let j be Nat;
+    assume j in dom sr;
+    then sr.j in rng sr by FUNCT_1:3;
+    hence 0 <= sr.j by A1, PARTFUN3:def 4;
+  end;
+  ex k be Nat st k in dom sr & 0 < sr.k
+  proof
+    take i;
+    thus i in dom sr by A3;
+    sr.i in rng sr by A3, FUNCT_1:3;
+    hence 0 < sr.i by A1, A4, PARTFUN3:def 4;
+  end;
+  hence 0 < Sum s by A5, RVSUM_1:85;
+end;
+
+:: into RVSUM_1 ?
+:: used the preceeding proof to proof this one, which seemed to be both:
+:: a good exercise and a demonstration of symmetry
+:: However, a copy and paste proof would need less article references
+theorem
+  for s being FinSequence of REAL st s is nonpositive-yielding &
+    ex i being Nat st i in dom s & s.i <> 0 holds
+      Sum s < 0
+proof
+  let s be FinSequence of REAL;
+  assume that
+    A1: s is nonpositive-yielding and
+    A2: ex i being Nat st i in dom s & s.i <> 0;
+  reconsider D = dom s as non empty set by A2;
+  rng s c= REAL;
+  then reconsider sr = s as nonpositive-yielding Function of D, REAL
+    by A1, FUNCT_2:2;
+  reconsider ms = -s as FinSequence of REAL;
+a3: ms = -sr;
+  rng s c= COMPLEX by NUMBERS:11;
+  then reconsider sc = s as Function of D, COMPLEX by FUNCT_2:2;
+  A4: dom sc = dom ms by CFUNCT_1:5;
+  ex i being Nat st i in dom ms & ms.i <> 0
+  proof
+    consider i being Nat such that
+      A5: i in dom s and
+      A6: s.i <> 0 by A2;
+    take i;
+    thus i in dom ms by A5, A4;
+    assume ms.i = 0;
+    then -(sr.i) = 0 by A5, RFUNCT_1:58;
+    hence contradiction by A6;
+  end;
+  then Sum ms > 0 by a3, Th7;
+  then - Sum s > 0 by RVSUM_1:88;
+  hence Sum s < 0;
+end;
+
+:: into RFINSEQ ?
+theorem Th9:
+  for X being set, s,t being FinSequence of X, f being Function of X, REAL st
+    s is one-to-one & t is one-to-one & rng t c= rng s &
+    for x being Element of X st x in rng s \ rng t holds f.x = 0 holds
+      Sum (f * s) = Sum (f * t)
+proof
+  let X be set;
+  let s,t be FinSequence of X;
+  let f be Function of X, REAL;
+  assume that
+    A1: s is one-to-one and
+    A2: t is one-to-one and
+    A3: rng t c= rng s and
+    A4: for x being Element of X st x in rng s \ rng t holds f.x = 0;
+  defpred P[set] means
+    ex r being FinSequence of X st
+      r is one-to-one & rng t c= rng r & rng r = $1 &
+      Sum (f * r) = Sum (f * t);
+  A5: rng s is finite;
+  reconsider rngt = rng t as Subset of rng s by A3;
+  A6: P[rngt] by A2;
+  A7: for x, C being set st
+    x in rng s \ rngt & rngt c= C & C c= rng s & P[C] holds
+      P[C \/ {x}]
+  proof
+    let x, C be set;
+    assume that
+      A8: x in rng s \ rngt and
+      rngt c= C and
+      A9: C c= rng s and
+      A10: P[C];
+    reconsider x as Element of rng s by A8;
+    reconsider C as Subset of rng s by A9;
+    per cases;
+    suppose x in C;
+      then C = C \/ {x} by ZFMISC_1:40;
+      hence thesis by A10;
+    end;
+    suppose A11: not x in C;
+      consider u being FinSequence of X such that
+        A12: u is one-to-one and
+        A13: rngt c= rng u and
+        A14: rng u = C and
+        A15: Sum (f * u) = Sum (f * t) by A10;
+      set v = u ^ <*x*>;
+      rng <*x*> = {x} by FINSEQ_1:38;
+      then A16: rng v = C \/ {x} by A14, FINSEQ_1:31;
+      {x} c= rng s by A8, ZFMISC_1:31;
+      then A17: rng v c= rng s by A16, XBOOLE_1:8;
+      A18: dom v \ dom u = {len u + 1}
+      proof
+        Seg (len u) = Seg(len u + 1) \ {len u + 1} by FINSEQ_1:10;
+        then Seg (len u + 1) \ Seg (len u) = {len u + 1}
+          by Th1, FINSEQ_1:4;
+        then Seg (len u + len <*x*>) \ Seg (len u) = {len u + 1}
+          by FINSEQ_1:39;
+        then Seg (len v) \ Seg (len u) = {len u + 1} by FINSEQ_1:22;
+        then dom v \ Seg (len u) = {len u + 1} by FINSEQ_1:def 3;
+        hence thesis by FINSEQ_1:def 3;
+      end;
+      A19: u = v | (dom u) by FINSEQ_1:21;
+      take v;
+      for x1,x2 being object st x1 in dom v & x2 in dom v & v.x1 = v.x2 holds
+        x1 = x2
+      proof
+        let x1, x2 be object;
+        assume that
+          A20: x1 in dom v and
+          A21: x2 in dom v and
+          A22: v.x1 = v.x2;
+        per cases;
+        suppose v.x1 = x;
+          then A23: for y being object st y in dom u holds v.x1 <> u.y
+            by A14, A11, FUNCT_1:def 3;
+          not x1 in dom u & not x2 in dom u
+          proof
+            thus not x1 in dom u
+            proof
+              assume A24: x1 in dom u;
+              then u.x1 = v.x1 by A19, FUNCT_1:47;
+              hence contradiction by A23, A24;
+            end;
+            assume A25: x2 in dom u;
+            then u.x2 = v.x1 by A19, A22, FUNCT_1:47;
+            hence contradiction by A23, A25;
+          end;
+          then x1 in dom v \ dom u & x2 in dom v \ dom u
+            by A20, A21, XBOOLE_0:def 5;
+          then {x1,x2} c= dom v \ dom u by ZFMISC_1:32;
+          then x1 = len u + 1 & x2 = len u + 1 by A18, ZFMISC_1:20;
+          hence thesis;
+        end;
+        suppose A26: v.x1 <> x;
+          A27: x1 in dom u & x2 in dom u
+          proof
+            thus x1 in dom u
+            proof
+              assume not x1 in dom u;
+              then x1 in dom v \ dom u by A20, XBOOLE_0:def 5;
+              then x1 = len u + 1 by A18, TARSKI:def 1;
+              hence contradiction by A26,FINSEQ_1:42;
+            end;
+            assume not x2 in dom u;
+            then x2 in dom v \ dom u by A21, XBOOLE_0:def 5;
+            then x2 = len u + 1 by A18, TARSKI:def 1;
+            hence contradiction by A26, A22, FINSEQ_1:42;
+          end;
+          then u.x1 = v.x1 & u.x2 = v.x2 by A19, FUNCT_1:47;
+          hence x1 = x2 by A22, A12, A27, FUNCT_1:def 4;
+        end;
+      end;
+      then A28: v is one-to-one by FUNCT_1:def 4;
+      rng u c= rng v by A14, A16, XBOOLE_1:7;
+      then A29: rngt c= rng v by A13;
+      A30: rng s c= X by FINSEQ_1:def 4;
+      then rng v c= X by A17;
+      then reconsider v as FinSequence of X by FINSEQ_1:def 4;
+      A31: x in X by A8, A30;
+      reconsider x as Element of X by A8, A30;
+      {x} c= X by A8, A30, ZFMISC_1:31;
+      then rng <*x*> c= X by FINSEQ_1:38;
+      then reconsider iks = <*x*> as FinSequence of X by FINSEQ_1:def 4;
+      reconsider fx = f * iks as FinSequence of REAL;
+      Sum(f * t) = Sum(f * u) + 0 by A15
+        .= Sum(f * u) + f.x by A4, A8
+        .= Sum((f * u)^<*f.x*>) by RVSUM_1:74
+        .= Sum((f * u)^(fx)) by A31, FINSEQ_2:35
+        .= Sum(f * v) by A31, FINSEQOP:9;
+      hence thesis by A16, A28, A29;
+    end;
+  end;
+  P[rng s] from Finite2(A5, A6, A7);
+  then consider r being FinSequence of X such that
+    A32: r is one-to-one and
+    rng t c= rng r and
+    A33: rng r = rng s and
+    A34: Sum (f * r) = Sum (f * t);
+  defpred Q[object, object] means r.$1 = s.$2;
+  A35: for i being object st i in dom r
+    ex j being object st j in dom s & Q[i,j]
+  proof
+    let i be object;
+    assume i in dom r;
+    then r.i in rng s by A33, FUNCT_1:3;
+    then consider j being object such that
+      A36: j in dom s & r.i = s.j by FUNCT_1:def 3;
+    take j;
+    thus thesis by A36;
+  end;
+  consider p being Function of dom r, dom s such that A37:
+    for x being object st x in dom r holds Q[x,p.x] from FUNCT_2:sch 1(A35);
+  Seg len r = Seg len s by A1, A32, A33, FINSEQ_1:48;
+  then dom r = Seg len s by FINSEQ_1:def 3;
+  then A38: dom r = dom s by FINSEQ_1:def 3;
+  p is Permutation of dom r
+  proof
+    for i,j being object st i in dom p & j in dom p & p.i = p.j holds i = j
+    proof
+      let i, j be object;
+      assume that
+        A39: i in dom p and
+        A40: j in dom p and
+        A41: p.i = p.j;
+      A42: i in dom r & j in dom r by A39, A40;
+      r.i = s.(p.i) by A42, A37;
+      then r.i = r.j by A41, A42, A37;
+      hence i = j by A42, A32, FUNCT_1:def 4;
+    end;
+    then A43: p is one-to-one by FUNCT_1:def 4;
+    card dom r = card dom s by A38;
+    then p is onto by A43,FINSEQ_4:63;
+    hence p is Permutation of dom r by A43, A38;
+  end;
+  then reconsider p as Permutation of dom s by A38;
+  for i being object holds i in dom r iff i in dom p & p.i in dom s
+  proof
+    let i be object;
+    hereby
+      assume i in dom r;
+      hence i in dom p by A38, FUNCT_2:def 1;
+      then p.i in rng p by FUNCT_1:3;
+      hence p.i in dom s by FUNCT_2:def 3;
+    end;
+    assume that
+    A45: i in dom p and
+    p.i in dom s;
+    thus i in dom r by A45, FUNCT_2:def 1;
+  end;
+  then s * p = r by A37, FUNCT_1:10;
+  then A46: (f*s) * p = f * r by RELAT_1:36;
+  for x being object holds x in dom(f*s) iff x in dom s
+  proof
+    let x be object;
+    thus x in dom(f*s) implies x in dom s by FUNCT_1:11;
+    assume A47: x in dom s;
+    then s.x in rng s by FUNCT_1:3;
+    then s.x in X by FINSEQ_1:def 4, TARSKI:def 3;
+    then s.x in dom f by FUNCT_2:def 1;
+    hence thesis by A47, FUNCT_1:11;
+  end;
+  then A48: dom (f*s) = dom s by TARSKI:2;
+  then reconsider p as Permutation of dom(f*s);
+  f*s, f*r are_fiberwise_equipotent by A46, A48, RFINSEQ:4;
+  hence Sum (f * s) = Sum (f * t) by A34, RFINSEQ:9;
+end;
+
+:: into PARTFUN3 ?
+registration
+  let X be set;
+  let f be Function, g be positive-yielding Function of X,REAL;
+  cluster g*f -> positive-yielding;
+  coherence
+  proof
+    let r be Real;
+    assume r in rng (g*f);
+    then r in rng g by FUNCT_1:14;
+    hence 0 < r by PARTFUN3:def 1;
+  end;
+end;
+
+:: into PARTFUN3 ?
+registration
+  let X be set;
+  let f be Function, g be negative-yielding Function of X,REAL;
+  cluster g*f -> negative-yielding;
+  coherence
+  proof
+    let r be Real;
+    assume r in rng (g*f);
+    then r in rng g by FUNCT_1:14;
+    hence 0 > r by PARTFUN3:def 2;
+  end;
+end;
+
+:: into PARTFUN3 ?
+registration
+  let X be set;
+  let f be Function, g be nonpositive-yielding Function of X,REAL;
+  cluster g*f -> nonpositive-yielding;
+  coherence
+  proof
+    let r be Real;
+    assume r in rng (g*f);
+    then r in rng g by FUNCT_1:14;
+    hence 0 >= r by PARTFUN3:def 3;
+  end;
+end;
+
+:: into PARTFUN3 ?
+registration
+  let X be set;
+  let f be Function, g be nonnegative-yielding Function of X,REAL;
+  cluster g*f -> nonnegative-yielding;
+  coherence
+  proof
+    let r be Real;
+    assume r in rng (g*f);
+    then r in rng g by FUNCT_1:14;
+    hence 0 <= r by PARTFUN3:def 4;
+  end;
+end;
+
+:: into PRE_POLY ?
+definition
+  let s be Function;
+  redefine func support s -> Subset of dom s;
+  coherence by PRE_POLY:37;
+end;
+
+::: into PRE_POLY ?
+registration
+  let X be set;
+  cluster finite-support nonnegative-yielding for Function of X, REAL;
+  existence
+  proof
+    set f = the finite-support Function of X, NAT;
+    reconsider f as Function of X, REAL by NUMBERS:19, FUNCT_2:7;
+    take f;
+    for r being Real st r in rng f holds r >= 0; then
+    f is nonnegative-yielding by PARTFUN3:def 4;
+    hence thesis;
+  end;
+end;
+
+::: into PRE_POLY ?
+registration
+  let X be set;
+  cluster nonnegative-yielding finite-support for Function of X, COMPLEX;
+  existence
+  proof
+    set f = the finite-support Function of X, NAT;
+    reconsider f as Function of X, COMPLEX by NUMBERS:20, FUNCT_2:7;
+    take f;
+    for r being Real st r in rng f holds r >= 0; then
+    f is nonnegative-yielding by PARTFUN3:def 4;
+    hence thesis;
+  end;
+end;
+
+:: into CFUNCT_1 ?
+theorem Th10:
+  for A being set, f being Function of A, COMPLEX holds
+    support f = support -f
+proof
+  let A be set, f be Function of A, COMPLEX;
+  for x being object holds x in support f iff x in support -f
+  proof
+    let x be object;
+    hereby
+      assume A1: x in support f;
+      then A2: x in dom f;
+      then A3: x in dom -f by CFUNCT_1:5;
+      reconsider A as non empty set by A1;
+      reconsider y = x as Element of A by A2;
+      (-f).x = (-f)/.y by A3, PARTFUN1:def 6
+        .= -(f/.y) by CFUNCT_1:66
+        .= -(f.x) by A1, PARTFUN1:def 6;
+      then (-f).x <> 0 by A1, PRE_POLY:def 7;
+      hence x in support -f by PRE_POLY:def 7;
+    end;
+    assume A4: x in support -f;
+      then A5: x in dom -f;
+      then A6: x in dom f by CFUNCT_1:5;
+      reconsider A as non empty set by A4;
+      reconsider y = x as Element of A by A5;
+      (-f).x = (-f)/.y by A4, PARTFUN1:def 6
+        .= -(f/.y) by CFUNCT_1:66
+        .= -(f.x) by A6, PARTFUN1:def 6;
+      then f.x <> 0 by A4, PRE_POLY:def 7;
+      hence x in support f by PRE_POLY:def 7;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+:: into CFUNCT_1 ?
+registration
+  let A be set, f be finite-support Function of A, COMPLEX;
+  cluster -f -> finite-support;
+  coherence
+  proof
+    support f = support -f by Th10;
+    hence thesis by PRE_POLY:def 8;
+  end;
+end;
+
+:: into CFUNCT_1 as a consequence?
+registration
+  let A be set, f be finite-support Function of A, REAL;
+  cluster -f -> finite-support;
+  coherence
+  proof
+    A1: dom f = A by FUNCT_2:def 1;
+    rng f c= COMPLEX by NUMBERS:11;
+    then f is Function of A, COMPLEX by A1, FUNCT_2:2;
+    hence thesis;
+  end;
+end;
+
+begin :: Orders
+
+theorem
+  for X being set, R being Relation, Y being Subset of X st
+    R is_irreflexive_in X holds R is_irreflexive_in Y
+proof
+  let X be set, R be Relation, Y be Subset of X;
+  assume A1: R is_irreflexive_in X;
+  for x being object holds x in Y implies not [x,x] in R by A1, RELAT_2:def 2;
+  hence thesis by RELAT_2:def 2;
+end;
+
+theorem
+  for X being set, R being Relation, Y being Subset of X st
+    R is_symmetric_in X holds R is_symmetric_in Y
+proof
+  let X be set, R be Relation, Y be Subset of X;
+  assume A1: R is_symmetric_in X;
+  for x,y being object holds x in Y & y in Y & [x,y] in R implies [y,x] in R
+    by A1, RELAT_2:def 3;
+  hence thesis by RELAT_2:def 3;
+end;
+
+theorem
+  for X being set, R being Relation, Y being Subset of X st
+    R is_asymmetric_in X holds R is_asymmetric_in Y
+proof
+  let X be set, R be Relation, Y be Subset of X;
+  assume A1: R is_asymmetric_in X;
+  for x,y being object holds x in Y & y in Y & [x,y] in R implies
+    not [y,x] in R by A1, RELAT_2:def 5;
+  hence thesis by RELAT_2:def 5;
+end;
+
+Th16:
+  for X being set, R being Relation, Y being Subset of X st
+    R is_connected_in X holds R is_connected_in Y by ORDERS_1:76;
+
+definition
+  let A be RelStr;
+  attr A is connected means  :Def1:
+  the InternalRel of A is_connected_in the carrier of A;
+  attr A is strongly_connected means
+  the InternalRel of A is_strongly_connected_in the carrier of A;
+end;
+
+registration
+  cluster non empty reflexive transitive antisymmetric connected
+    strongly_connected strict total for RelStr;
+  existence
+  proof
+    set R = the Order of {{}};
+    take L = RelStr(#{{}},R#);
+    thus L is non empty;
+A1: field R = the carrier of L by ORDERS_1:12;
+    hence A2: the InternalRel of L is_reflexive_in the carrier of L by
+RELAT_2:def 9;
+    thus the InternalRel of L is_transitive_in the carrier of L by A1,
+RELAT_2:def 16;
+    thus the InternalRel of L is_antisymmetric_in the carrier of L by A1,
+RELAT_2:def 12;
+    for x, y being object holds x in {{}} & y in {{}} & x <> y implies
+      [x,y] in R or [y,x] in R
+    proof
+      let x, y being object;
+      assume that
+        A3: x in {{}} and
+        A4: y in {{}} and
+        A5: x <> y;
+      {x} c= {{}} & {y} c= {{}} by A3, A4, ZFMISC_1:31;
+      then A6: x = {} & y = {} by ZFMISC_1:3;
+      assume not ([x,y] in R or [y,x] in R);
+      thus contradiction by A5, A6;
+    end;
+    hence the InternalRel of L is_connected_in the carrier of L
+      by RELAT_2:def 6;
+    for x, y being object holds x in {{}} & y in {{}} implies
+      [x,y] in R or [y,x] in R
+    proof
+      let x, y be object;
+      assume that
+        A7: x in {{}} and
+        A8: y in {{}};
+      {x} c= {{}} & {y} c= {{}} by A7, A8, ZFMISC_1:31;
+      then A9: x = {} & y = {} by ZFMISC_1:3;
+      [x,x] in R by A2, A7, RELAT_2:def 1;
+      hence [x,y] in R or [y,x] in R by A9;
+    end;
+    hence the InternalRel of L is_strongly_connected_in the carrier of L
+      by RELAT_2:def 7;
+    thus L is strict;
+    thus the InternalRel of L is total;
+  end;
+end;
+
+registration
+  cluster strongly_connected -> reflexive connected for RelStr;
+  coherence
+  proof
+    let A be RelStr;
+    assume A1: A is strongly_connected;
+    for x being object holds x in the carrier of A implies
+      [x,x] in the InternalRel of A by A1, RELAT_2:def 7;
+    hence A is reflexive by RELAT_2:def 1, ORDERS_2:def 2;
+    for x, y being object holds
+      x in the carrier of A & y in the carrier of A & x <> y implies
+        [x,y] in the InternalRel of A or [y,x] in the InternalRel of A
+      by A1, RELAT_2:def 7;
+    hence A is connected by RELAT_2:def 6;
+  end;
+end;
+
+registration
+  cluster reflexive connected -> strongly_connected for RelStr;
+  coherence
+  proof
+    let A be RelStr;
+    assume A1: A is reflexive & A is connected;
+    for x, y being object holds
+      x in the carrier of A & y in the carrier of A implies
+        [x,y] in the InternalRel of A or [y,x] in the InternalRel of A
+    proof
+      let x,y be object;
+      assume A2: x in the carrier of A & y in the carrier of A;
+      per cases;
+      suppose x = y;
+        hence thesis by A1, A2, RELAT_2:def 1, ORDERS_2:def 2;
+      end;
+      suppose x <> y;
+        hence thesis by A1, A2, RELAT_2:def 6;
+      end;
+    end;
+    hence A is strongly_connected by RELAT_2:def 7;
+  end;
+end;
+
+registration
+  cluster empty -> reflexive antisymmetric transitive connected
+    strongly_connected for RelStr;
+  coherence
+  proof
+    let R be RelStr;
+    assume A1: R is empty;
+    then the InternalRel of R = {};
+    then field the InternalRel of R = the carrier of R by A1, RELAT_1:40;
+    then the InternalRel of R is_reflexive_in the carrier of R &
+      the InternalRel of R is_antisymmetric_in the carrier of R &
+      the InternalRel of R is_transitive_in the carrier of R &
+      the InternalRel of R is_connected_in the carrier of R &
+      the InternalRel of R is_strongly_connected_in the carrier of R
+      by A1, RELAT_2:def 9, RELAT_2:def 12, RELAT_2:def 16,
+        RELAT_2:def 14, RELAT_2:def 15;
+    hence thesis by ORDERS_2:def 2, ORDERS_2:def 4, ORDERS_2:def 3;
+  end;
+end;
+
+definition
+  let A be RelStr;
+  let a1, a2 be Element of A;
+  pred a1 =~ a2 means
+  :Def3:
+  a1 <= a2 & a2 <= a1;
+end;
+
+theorem Th22:
+  for A being reflexive non empty RelStr, a being Element of A holds a =~ a
+proof
+  let A be reflexive non empty RelStr, a be Element of A;
+  a <= a;
+  hence thesis;
+end;
+
+definition
+  let A be reflexive non empty RelStr;
+  let a1, a2 be Element of A;
+  redefine pred a1 =~ a2;
+  reflexivity by Th22;
+end;
+
+definition
+  let A be RelStr;
+  let a1, a2 be Element of A;
+  pred a1 <~ a2 means
+  a1 <= a2 & not a2 <= a1;
+  irreflexivity;
+end;
+
+notation
+  let A be RelStr;
+  let a1, a2 be Element of A;
+  synonym a2 >~ a1 for a1 <~ a2;
+end;
+
+definition
+  let A be connected RelStr;
+  let a1, a2 be Element of A;
+  redefine pred a1 <~ a2;
+  asymmetry;
+end;
+
+theorem
+  for A being non empty RelStr,
+    a1, a2 being Element of A st A is strongly_connected holds
+      a1 <~ a2 or a1 =~ a2 or a1 >~ a2
+proof
+  let A be non empty RelStr;
+  let a1, a2 be Element of A;
+  assume A1: A is strongly_connected;
+  [a1,a2] in the InternalRel of A or
+    [a2,a1] in the InternalRel of A by A1, RELAT_2:def 7;
+  then A2: a1 <= a2 or a1 >= a2 by ORDERS_2:def 5;
+  assume not (a1 <~ a2 or a1 =~ a2 or a1 >~ a2);
+  hence contradiction by A2;
+end;
+
+theorem
+  for A being transitive RelStr, a1,a2,a3 being Element of A holds
+    (a1 <~ a2 & a2 <= a3 implies a1 <~ a3) &
+    (a1 <= a2 & a2 <~ a3 implies a1 <~ a3) by ORDERS_2:3;
+
+theorem Th25:
+  for A being non empty RelStr, a1,a2 being Element of A st
+    A is strongly_connected holds
+      a1 <= a2 or a2 <= a1
+proof
+  let A be non empty RelStr;
+  let a1, a2 be Element of A;
+  assume A is strongly_connected;
+  then [a1,a2] in the InternalRel of A or [a2,a1] in the InternalRel of A
+    by RELAT_2:def 7;
+  hence a1 <= a2 or a2 <= a1 by ORDERS_2:def 5;
+end;
+
+theorem Th26:
+  for A being non empty RelStr, B being Subset of A,
+    a1,a2 being Element of A st
+      the InternalRel of A is_connected_in B & a1 in B & a2 in B & a1 <> a2
+      holds
+        a1 <= a2 or a2 <= a1
+proof
+  let A be non empty RelStr, B be Subset of A;
+  let a1, a2 be Element of A;
+  assume that
+    A1: the InternalRel of A is_connected_in B and
+    A2: a1 in B and
+    A3: a2 in B and
+    A4: a1 <> a2;
+  [a1,a2] in the InternalRel of A or [a2,a1] in the InternalRel of A
+    by A1, A2, A3, A4, RELAT_2:def 6;
+  hence a1 <= a2 or a2 <= a1 by ORDERS_2:def 5;
+end;
+
+theorem Th27:
+  for A being non empty RelStr, a1,a2 being Element of A st
+    A is connected & a1 <> a2 holds
+      a1 <= a2 or a2 <= a1
+proof
+  let A be non empty RelStr;
+  let a1, a2 be Element of A;
+  assume that
+    A1: A is connected and
+    A2: a1 <> a2;
+  [a1,a2] in the InternalRel of A or [a2,a1] in the InternalRel of A
+    by A1, A2, RELAT_2:def 6;
+  hence a1 <= a2 or a2 <= a1 by ORDERS_2:def 5;
+end;
+
+theorem
+  for A being non empty RelStr, a1,a2 being Element of A st
+    A is strongly_connected holds
+      a1 = a2 or a1 < a2 or a2 < a1
+proof
+  let A be non empty RelStr;
+  let a1, a2 be Element of A;
+  assume A is strongly_connected;
+  then A1: a1 <= a2 or a2 <= a1 by Th25;
+  assume A2: not a1 = a2;
+  assume not a1 < a2;
+  then not a1 <= a2 by A2, ORDERS_2:def 6;
+  hence a2 < a1 by A1, A2, ORDERS_2:def 6;
+end;
+
+theorem Th29:
+  for A being RelStr, a1, a2 being Element of A
+    st a1 <= a2 holds a1 in the carrier of A & a2 in the carrier of A
+proof
+  let A be RelStr;
+  let a1, a2 be Element of A;
+  assume a1 <= a2;
+  then [a1,a2] in the InternalRel of A by ORDERS_2:def 5;
+  hence thesis by ZFMISC_1:87;
+end;
+
+theorem
+  for A being RelStr, a1, a2 being Element of A
+    st a1 <= a2 holds A is non empty by Th29;
+
+theorem Th31:
+  for A being transitive RelStr, B being finite Subset of A
+    st B is non empty & the InternalRel of A is_connected_in B holds
+      ex x being Element of A st x in B &
+        for y being Element of A st y in B & x <> y holds
+          x <= y
+proof
+  let A be transitive RelStr;
+  let B be finite Subset of A;
+  assume A1: B is non empty & the InternalRel of A is_connected_in B;
+  defpred P[set] means
+    $1 is non empty implies
+      ex x being Element of A st x in $1 &
+        for y being Element of A st y in $1 & x <> y holds
+          x <= y;
+  A2: B is finite;
+  A3: P[{}];
+  A4: for z, C being set st z in B & C c= B & P[C] holds P[C \/ {z}]
+  proof
+    let z, C be set;
+    assume that
+      A5: z in B and
+      A6: C c= B and
+      A7: P[C];
+    set D = C \/ {z};
+    per cases;
+    suppose z in C;
+      then D = C by ZFMISC_1:31, XBOOLE_1:12;
+      hence thesis by A7;
+    end;
+    suppose A8: not z in C;
+      ex x being Element of A st x in D &
+        for y being Element of A st y in D & x <> y holds
+          x <= y
+      proof
+        z in {z} by TARSKI:def 1;
+        then A9: z in D by XBOOLE_0:def 3;
+        consider x being Element of A such that
+          A10: C is non empty
+            implies x in C &
+              for y being Element of A st y in C & x <> y holds
+                x <= y by A7;
+        per cases;
+        suppose A11: C is empty;
+          reconsider z as Element of A by A5;
+          take z;
+          thus z in D by A9;
+          let y be Element of A;
+          assume y in D & z <> y;
+          hence thesis by A11, TARSKI:def 1;
+        end;
+        suppose A12: C is non empty;
+          A13: A is non empty by A5;
+          A14: x in B by A12, A10, A6;
+          reconsider z as Element of A by A5;
+          z <> x by A12, A8, A10;
+          then per cases by A1, A13, A5, A14, Th26;
+          suppose A15: z <= x;
+            take z;
+            thus z in D by A9;
+            let y be Element of A;
+            assume that
+              A16: y in D and
+              A17: z <> y;
+            per cases;
+            suppose y = x;
+              hence z <= y by A15;
+            end;
+            suppose A18: y <> x;
+              y in C by A16, A17, ZFMISC_1:136;
+              then x <= y by A18, A10;
+              hence z <= y by A15, ORDERS_2:3;
+            end;
+          end;
+          suppose A19: x <= z;
+            take x;
+            thus x in D by A12, A10, XBOOLE_0:def 3;
+            let y be Element of A;
+            assume that
+              A20: y in D and
+              A21: x <> y;
+            per cases;
+            suppose y = z;
+              hence x <= y by A19;
+            end;
+            suppose y <> z;
+              then y in C by A20, ZFMISC_1:136;
+              hence x <= y by A21, A10;
+            end;
+          end;
+        end;
+      end;
+      hence P[D];
+    end;
+  end;
+  P[B] from FINSET_1:sch 2(A2, A3, A4);
+  hence thesis by A1;
+end;
+
+theorem
+  for A being connected transitive RelStr, B being finite Subset of A
+    st B is non empty holds
+      ex x being Element of A st x in B &
+        for y being Element of A st y in B & x <> y holds
+          x <= y
+proof
+  let A be connected transitive RelStr;
+  let B be finite Subset of A;
+  assume A1: B is non empty;
+  the InternalRel of A is_connected_in B by Def1, Th16;
+  hence thesis by A1, Th31;
+end;
+
+theorem Th33:
+  for A being transitive RelStr, B being finite Subset of A
+    st B is non empty & the InternalRel of A is_connected_in B holds
+      ex x being Element of A st x in B &
+        for y being Element of A st y in B & x <> y holds
+          y <= x
+proof
+  let A be transitive RelStr;
+  let B be finite Subset of A;
+  assume A1: B is non empty & the InternalRel of A is_connected_in B;
+  defpred P[set] means
+    $1 is non empty implies ex x being Element of A st x in $1 &
+      for y being Element of A st y in $1 & x <> y holds
+        y <= x;
+  A2: B is finite;
+  A3: P[{}];
+  A4: for z, C being set st z in B & C c= B & P[C] holds P[C \/ {z}]
+  proof
+    let z, C be set;
+    assume that
+      A5: z in B and
+      A6: C c= B and
+      A7: P[C];
+    set D = C \/ {z};
+    per cases;
+    suppose z in C;
+      then D = C by ZFMISC_1:31, XBOOLE_1:12;
+      hence thesis by A7;
+    end;
+    suppose A8: not z in C;
+      ex x being Element of A st x in D &
+        for y being Element of A st y in D & x <> y holds
+          y <= x
+      proof
+        z in {z} by TARSKI:def 1;
+        then A9: z in D by XBOOLE_0:def 3;
+        consider x being Element of A such that
+          A10: C is non empty implies x in C &
+            for y being Element of A st y in C & x <> y holds
+              y <= x by A7;
+        per cases;
+        suppose A11: C is empty;
+          reconsider z as Element of A by A5;
+          take z;
+          thus z in D by A9;
+          let y be Element of A;
+          assume y in D & z <> y;
+          hence thesis by A11, TARSKI:def 1;
+        end;
+        suppose A12: C is non empty;
+          A13: A is non empty by A5;
+          reconsider z as Element of A by A5;
+          A14: x in B by A12, A10, A6;
+          z <> x by A12, A8, A10;
+          then per cases by A1, A13, A5, A14, Th26;
+          suppose A15: x <= z;
+            take z;
+            thus z in D by A9;
+            let y be Element of A;
+            assume that
+              A16: y in D and
+              A17: z <> y;
+            per cases;
+            suppose y = x;
+              hence y <= z by A15;
+            end;
+            suppose A18: y <> x;
+              y in C by A16, A17, ZFMISC_1:136;
+              then y <= x by A18, A10;
+              hence y <= z by A15, ORDERS_2:3;
+            end;
+          end;
+          suppose A19: z <= x;
+            take x;
+            thus x in D by A12, A10, XBOOLE_0:def 3;
+            let y be Element of A;
+            assume that
+              A20: y in D and
+              A21: x <> y;
+            per cases;
+            suppose y = z;
+              hence y <= x by A19;
+            end;
+            suppose y <> z;
+              then y in C by A20, ZFMISC_1:136;
+              hence y <= x by A21, A10;
+            end;
+          end;
+        end;
+      end;
+      hence P[D];
+    end;
+  end;
+  P[B] from FINSET_1:sch 2(A2, A3, A4);
+  hence thesis by A1;
+end;
+
+theorem
+  for A being connected transitive RelStr, B being finite Subset of A
+    st B is non empty holds
+      ex x being Element of A st x in B &
+        for y being Element of A st y in B & x <> y holds
+          y <= x
+proof
+  let A be connected transitive RelStr;
+  let B be finite Subset of A;
+  assume A1: B is non empty;
+  the InternalRel of A is_connected_in B by Def1, Th16;
+  hence thesis by A1, Th33;
+end;
+
+:: I repeated some definitions here to have them all in one place
+
+definition
+  mode Preorder is reflexive transitive RelStr;
+  mode LinearPreorder is strongly_connected transitive RelStr;
+  mode Order is reflexive antisymmetric transitive RelStr;
+  mode LinearOrder is strongly_connected antisymmetric transitive RelStr;
+end;
+
+registration
+  cluster -> quasi_ordered for Preorder;
+  coherence by DICKSON:def 3;
+end;
+
+registration
+  cluster empty for LinearOrder;
+  existence
+  proof
+    take the empty RelStr;
+    thus thesis;
+  end;
+end;
+
+theorem
+  for A being Preorder holds
+    the InternalRel of A quasi_orders the carrier of A
+proof
+  let A be Preorder;
+  the InternalRel of A is_reflexive_in the carrier of A &
+    the InternalRel of A is_transitive_in the carrier of A
+    by ORDERS_2:def 2, ORDERS_2:def 3;
+  hence thesis by ORDERS_1:def 7;
+end;
+
+theorem
+  for A being Order holds
+    the InternalRel of A partially_orders the carrier of A
+proof
+  let A be Order;
+  the InternalRel of A is_reflexive_in the carrier of A &
+    the InternalRel of A is_transitive_in the carrier of A &
+    the InternalRel of A is_antisymmetric_in the carrier of A
+    by ORDERS_2:def 2, ORDERS_2:def 3, ORDERS_2:def 4;
+  hence thesis by ORDERS_1:def 8;
+end;
+
+theorem Th37:
+  for A being LinearOrder holds
+    the InternalRel of A linearly_orders the carrier of A
+proof
+  let A be LinearOrder;
+  A is reflexive transitive antisymmetric connected;
+  then the InternalRel of A is_reflexive_in the carrier of A &
+    the InternalRel of A is_transitive_in the carrier of A &
+    the InternalRel of A is_antisymmetric_in the carrier of A &
+    the InternalRel of A is_connected_in the carrier of A
+    by ORDERS_2:def 2, ORDERS_2:def 3, ORDERS_2:def 4;
+  hence thesis by ORDERS_1:def 9;
+end;
+
+theorem
+  for A being RelStr st the InternalRel of A quasi_orders the carrier of A
+  holds A is reflexive transitive
+  by ORDERS_1:def 7, ORDERS_2:def 2, ORDERS_2:def 3;
+
+theorem Th39:
+  for A being RelStr st the InternalRel of A partially_orders the carrier of A
+  holds A is reflexive transitive antisymmetric
+  by ORDERS_1:def 8, ORDERS_2:def 2, ORDERS_2:def 3, ORDERS_2:def 4;
+
+theorem
+  for A being RelStr st the InternalRel of A linearly_orders the carrier of A
+  holds A is reflexive transitive antisymmetric connected
+proof
+  let A be RelStr;
+  assume the InternalRel of A linearly_orders the carrier of A;
+  then the InternalRel of A is_reflexive_in the carrier of A &
+    the InternalRel of A is_transitive_in the carrier of A &
+    the InternalRel of A is_antisymmetric_in the carrier of A &
+    the InternalRel of A is_connected_in the carrier of A
+    by ORDERS_1:def 9;
+  hence thesis by ORDERS_2:def 2, ORDERS_2:def 3, ORDERS_2:def 4;
+end;
+
+scheme
+  RelStrMin{A()->transitive connected RelStr, B()->finite Subset of A(),
+    P[Element of A()]} :
+    ex x being Element of A() st x in B() & P[x] &
+      for y being Element of A() st y in B() & y <~ x holds not P[y]
+provided
+  A1: ex x being Element of A() st x in B() & P[x]
+proof
+  defpred Q[Nat] means for X being finite set
+      st card X = $1 & X is Subset of A()
+    holds
+      (ex x being Element of A() st x in X & P[x]) implies
+      ex x being Element of A() st x in X & P[x] &
+        for y being Element of A() st y in X & y <~ x holds not P[y];
+  A2: Q[0];
+  A3: for k being Nat st Q[k] holds Q[k + 1]
+  proof
+    let k be Nat;
+    assume A4: Q[k];
+      let X be finite set;
+      assume that
+        A5: card X = k + 1 and
+        A6: X is Subset of A();
+      given x being Element of A() such that
+        A7: x in X and
+        A8: P[x];
+      set Xmx = X \ {x};
+      reconsider Xmx as Subset of A() by A6, XBOOLE_1:1;
+      A9: card Xmx = (card X) - card {x} by A7, ZFMISC_1:31, CARD_2:44
+        .= (card X) - 1 by CARD_1:30
+        .= k by A5;
+      A10: Xmx \/ {x} = X by A7, ZFMISC_1:116;
+      per cases;
+      suppose ex z being Element of A() st z in Xmx & P[z];
+        then consider z being Element of A() such that
+          A11: z in Xmx and
+          A12: P[z] and
+          A13: for y being Element of A() st y in Xmx & y <~ z holds not P[y]
+          by A4, A9;
+        per cases;
+        suppose A14: not x <~ z;
+          take z;
+          thus z in X by A11;
+          thus P[z] by A12;
+          hereby
+            let y be Element of A();
+            assume that
+              A15: y in X and
+              A16: y <~ z;
+            per cases by A10, A15, XBOOLE_0:def 3;
+            suppose y in Xmx;
+              hence not P[y] by A16, A13;
+            end;
+            suppose y in {x};
+              hence not P[y] by A14, A16, TARSKI:def 1;
+            end;
+          end;
+        end;
+        suppose A17: x <~ z;
+          set Xmz = X \ {z};
+          reconsider Xmz as Subset of A() by A6, XBOOLE_1:1;
+          A18:  Xmz \/ {z} = X by A11, ZFMISC_1:116;
+          A19: card Xmz = (card X) - card {z} by A11, ZFMISC_1:31, CARD_2:44
+            .= (card X) - 1 by CARD_1:30
+            .= k by A5;
+          A20: x in Xmz by A7, A17, ZFMISC_1:56;
+          then consider v being Element of A() such that
+            A21: v in Xmz and
+            A22: P[v] and
+            A23: for y being Element of A() st y in Xmz & y <~ v holds not P[y]
+            by A19, A4, A8;
+          per cases;
+          suppose A24: v = x;
+            take v;
+            thus v in X by A21;
+            thus P[v] by A22;
+            hereby
+              let y be Element of A();
+              assume that
+                A25: y in X and
+                A26: y <~ v;
+              per cases by A18, A25, XBOOLE_0:def 3;
+              suppose y in Xmz;
+                hence not P[y] by A26, A23;
+              end;
+              suppose y in {z};
+                then z <~ x by A24, A26, TARSKI:def 1;
+                hence not P[y] by A17;
+              end;
+            end;
+          end;
+          suppose A27: v <> x;
+            A28: A() is non empty by A6, A7;
+            not (x <~ v) by A20, A8, A23;
+            then per cases by A27, A28, Th27;
+            suppose A29: v <~ x;
+              take v;
+              thus v in X by A21;
+              thus P[v] by A22;
+              hereby
+                let y be Element of A();
+                assume that
+                  A30: y in X and
+                  A31: y <~ v;
+                per cases by A18, A30, XBOOLE_0:def 3;
+                suppose y in Xmz;
+                  hence not P[y] by A31, A23;
+                end;
+                suppose y in {z};
+                  then z <~ v by A31, TARSKI:def 1;
+                  hence not P[y] by A17, A29, ORDERS_2:3;
+                end;
+              end;
+            end;
+            suppose A32: v =~ x;
+              take x;
+              thus x in X by A7;
+              thus P[x] by A8;
+              hereby
+                let y be Element of A();
+                assume that
+                  A33: y in X and
+                  A34: y <~ x;
+                per cases by A18, A33, XBOOLE_0:def 3;
+                suppose A35: y in Xmz;
+                  y <~ v
+                  proof
+                    assume A36: not y <~ v;
+                    per cases;
+                    suppose v = y;
+                      hence contradiction by A34, A32;
+                    end;
+                    suppose v <> y;
+                      then v <= y by A36, A28, Th27;
+                      hence contradiction by A34, A32, ORDERS_2:3;
+                    end;
+                  end;
+                  hence not P[y] by A35, A23;
+                end;
+                suppose y in {z};
+                  then z <~ x by TARSKI:def 1, A34;
+                  hence not P[y] by A17;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+      suppose A37: for z being Element of A() st z in Xmx holds not P[z];
+        take x;
+        thus x in X by A7;
+        thus P[x] by A8;
+        hereby
+          let y be Element of A();
+          assume that
+            A38: y in X and
+            A39: y <~ x;
+          per cases by A10, A38, XBOOLE_0:def 3;
+          suppose y in Xmx;
+            hence not P[y] by A37;
+          end;
+          suppose y in {x};
+            hence not P[y] by A39, TARSKI:def 1;
+          end;
+        end;
+    end;
+  end;
+  A40: for k being Nat holds Q[k] from NAT_1:sch 2(A2, A3);
+  reconsider c = (card B()) as Nat;
+  Q[c] by A40;
+  hence thesis by A1;
+end;
+
+scheme
+  RelStrMax{A()->transitive connected RelStr, B()->finite Subset of A(),
+    P[Element of A()]} :
+    ex x being Element of A() st x in B() & P[x] &
+      for y being Element of A() st y in B() & x <~ y holds not P[y]
+provided
+  A1: ex x being Element of A() st x in B() & P[x]
+proof
+  defpred Q[Nat] means for X being finite set
+      st card X = $1 & X is Subset of A()
+    holds
+      (ex x being Element of A() st x in X & P[x]) implies
+      ex x being Element of A() st x in X & P[x] &
+        for y being Element of A() st y in X & y >~ x holds not P[y];
+  A2: Q[0];
+  A3: for k being Nat st Q[k] holds Q[k + 1]
+  proof
+    let k be Nat;
+    assume A4: Q[k];
+    let X be finite set;
+    assume that
+      A5: card X = k + 1 and
+      A6: X is Subset of A();
+    given x being Element of A() such that
+      A7: x in X and
+      A8: P[x];
+    set Xmx = X \ {x};
+    reconsider Xmx as Subset of A() by A6, XBOOLE_1:1;
+    A9: card Xmx = (card X) - card {x} by A7, ZFMISC_1:31, CARD_2:44
+      .= (card X) - 1 by CARD_1:30
+      .= k by A5;
+    A10: Xmx \/ {x} = X by A7, ZFMISC_1:116;
+    per cases;
+    suppose ex z being Element of A() st z in Xmx & P[z];
+      then consider z being Element of A() such that
+        A11: z in Xmx and
+        A12: P[z] and
+        A13: for y being Element of A() st y in Xmx & y >~ z holds not P[y]
+        by A4, A9;
+      per cases;
+      suppose A14: not x >~ z;
+        take z;
+        thus z in X by A11;
+        thus P[z] by A12;
+        hereby
+          let y be Element of A();
+          assume that
+            A15: y in X and
+            A16: y >~ z;
+          per cases by A10, A15, XBOOLE_0:def 3;
+          suppose y in Xmx;
+            hence not P[y] by A16, A13;
+          end;
+          suppose y in {x};
+            hence not P[y] by A14, A16, TARSKI:def 1;
+          end;
+        end;
+      end;
+      suppose A17: x >~ z;
+        set Xmz = X \ {z};
+        reconsider Xmz as Subset of A() by A6, XBOOLE_1:1;
+        A18:  Xmz \/ {z} = X by A11, ZFMISC_1:116;
+        A19: card Xmz = (card X) - card {z} by A11, ZFMISC_1:31, CARD_2:44
+          .= (card X) - 1 by CARD_1:30
+          .= k by A5;
+        A20: x in Xmz by A7, A17, ZFMISC_1:56;
+        then consider v being Element of A() such that
+          A21: v in Xmz and
+          A22: P[v] and
+          A23: for y being Element of A() st y in Xmz & y >~ v holds not P[y]
+          by A19, A4, A8;
+        per cases;
+        suppose A24: v = x;
+          take v;
+          thus v in X by A21;
+          thus P[v] by A22;
+          hereby
+            let y be Element of A();
+            assume that
+              A25: y in X and
+              A26: y >~ v;
+            per cases by A18, A25, XBOOLE_0:def 3;
+            suppose y in Xmz;
+              hence not P[y] by A26, A23;
+            end;
+            suppose y in {z};
+              hence not P[y] by A17, A24, A26, TARSKI:def 1;
+            end;
+          end;
+        end;
+        suppose A27: v <> x;
+          A28: A() is non empty by A6, A7;
+          not (x >~ v) by A20, A8, A23;
+          then per cases by A27, A28, Th27;
+          suppose A29: v >~ x;
+            take v;
+            thus v in X by A21;
+            thus P[v] by A22;
+            hereby
+              let y be Element of A();
+              assume that
+                A30: y in X and
+                A31: y >~ v;
+              per cases by A18, A30, XBOOLE_0:def 3;
+              suppose y in Xmz;
+                hence not P[y] by A31, A23;
+              end;
+              suppose y in {z};
+                then z >~ v by A31, TARSKI:def 1;
+                hence not P[y] by A17, A29, ORDERS_2:3;
+              end;
+            end;
+          end;
+          suppose A32: v =~ x;
+            take x;
+            thus x in X by A7;
+            thus P[x] by A8;
+            hereby
+              let y be Element of A();
+              assume that
+                A33: y in X and
+                A34: y >~ x;
+              per cases by A18, A33, XBOOLE_0:def 3;
+              suppose A35: y in Xmz;
+                y >~ v
+                proof
+                  assume A36: not y >~ v;
+                  per cases;
+                  suppose v = y;
+                    hence contradiction by A34, A32;
+                  end;
+                  suppose v <> y;
+                    then v >= y by A36, A28, Th27;
+                    hence contradiction by A34, A32, ORDERS_2:3;
+                  end;
+                end;
+                hence not P[y] by A35, A23;
+              end;
+              suppose y in {z};
+                then z >~ x by TARSKI:def 1, A34;
+                hence not P[y] by A17;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+    suppose A37: for z being Element of A() st z in Xmx holds not P[z];
+      take x;
+      thus x in X by A7;
+      thus P[x] by A8;
+      hereby
+        let y be Element of A();
+        assume that
+          A38: y in X and
+          A39: y >~ x;
+        per cases by A10, A38, XBOOLE_0:def 3;
+        suppose y in Xmx;
+          hence not P[y] by A37;
+        end;
+        suppose y in {x};
+          hence not P[y] by A39, TARSKI:def 1;
+        end;
+      end;
+    end;
+  end;
+  A40: for k being Nat holds Q[k] from NAT_1:sch 2(A2, A3);
+  reconsider c = card B() as Nat;
+  Q[c] by A40;
+  hence thesis by A1;
+end;
+
+begin :: Quotient Order
+
+definition
+::$CD
+  let A be Preorder;
+  func EqRelOf A -> Equivalence_Relation of the carrier of A means
+  :Def6:
+  for x, y being Element of A holds [x,y] in it iff x <= y & y <= x;
+  existence
+  proof
+    defpred P[object, object] means
+      [$1, $2] in the InternalRel of A &
+      [$2, $1] in the InternalRel of A;
+    consider eq being Relation of the carrier of A such that
+      A1: for x, y being object holds
+        [x,y] in eq iff x in the carrier of A & y in the carrier of A & P[x,y]
+      from RELSET_1:sch 1;
+    A2: eq is total
+    proof
+      for x being object holds x in the carrier of A implies x in dom eq
+      proof
+        let x be object;
+        assume A3: x in the carrier of A;
+        then reconsider a=x as Element of A;
+        A is non empty by A3;
+        then [a,a] in the InternalRel of A by ORDERS_2:1, ORDERS_2:def 5;
+        then [a,a] in eq by A3, A1;
+        hence x in dom eq by XTUPLE_0:def 12;
+      end;
+      then the carrier of A c= dom eq;
+      then dom eq = the carrier of A;
+      hence thesis by PARTFUN1:def 2;
+    end;
+    A4: field eq = the carrier of A by A2, ORDERS_1:12;
+    A5: eq is symmetric
+    proof
+      for x,y being object holds
+        x in the carrier of A & y in the carrier of A & [x,y] in eq implies
+          [y,x] in eq
+      proof
+        let x,y be object;
+        assume that
+        A6: x in the carrier of A & y in the carrier of A and
+        A7: [x,y] in eq;
+        [x,y] in the InternalRel of A & [y,x] in the InternalRel of A
+          by A7, A1;
+        hence thesis by A6, A1;
+      end;
+      hence eq is symmetric by A4, RELAT_2:def 3, RELAT_2:def 11;
+    end;
+    A8: eq is transitive
+    proof
+      for x,y,z being object holds
+        x in the carrier of A & y in the carrier of A & z in the carrier of A
+          & [x,y] in eq & [y,z] in eq implies [x,z] in eq
+      proof
+        let x,y,z be object;
+        assume that
+          A9: x in the carrier of A and
+          A10: y in the carrier of A and
+          A11: z in the carrier of A and
+          A12: [x,y] in eq and
+          A13: [y,z] in eq;
+        A14: [x,y] in the InternalRel of A & [y,x] in the InternalRel of A
+          by A12, A1;
+        A15: [y,z] in the InternalRel of A & [z,y] in the InternalRel of A
+          by A13, A1;
+        A16: [x,z] in the InternalRel of A by A9, A10, A11, A14, A15,
+          RELAT_2:def 8, ORDERS_2:def 3;
+        [z,x] in the InternalRel of A by A9, A10, A11, A14, A15,
+          RELAT_2:def 8, ORDERS_2:def 3;
+        hence [x,z] in eq by A9, A11, A16, A1;
+      end;
+      hence eq is transitive by A4, RELAT_2:def 8, RELAT_2:def 16;
+    end;
+    reconsider eq as Equivalence_Relation of the carrier of A by A2, A5, A8;
+    take eq;
+    for x, y being Element of A holds [x,y] in eq iff x <= y & y <= x
+    proof
+      let x, y be Element of A;
+      thus [x,y] in eq implies x <= y & y <= x
+      proof
+        assume [x,y] in eq;
+        then [x,y] in the InternalRel of A & [y,x] in the InternalRel of A
+          by A1;
+        hence thesis by ORDERS_2:def 5;
+      end;
+      assume x <= y & y <= x;
+      then A17: [x,y] in the InternalRel of A & [y,x] in the InternalRel of A
+        by ORDERS_2:def 5;
+      field the InternalRel of A = the carrier of A
+        by ORDERS_1:12;
+      then x in the carrier of A & y in the carrier of A by A17, RELAT_1:15;
+      hence thesis by A17, A1;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let eq1, eq2 be Equivalence_Relation of the carrier of A such that
+    A18: for x, y being Element of A holds
+        [x,y] in eq1 iff x <= y & y <= x and
+    A19: for x, y being Element of A holds
+        [x,y] in eq2 iff x <= y & y <= x;
+    defpred P[Element of A, Element of A] means $1 <= $2 & $2 <= $1;
+    A20: for x, y being Element of A holds [x,y] in eq1 iff P[x,y] by A18;
+    A21: for x, y being Element of A holds [x,y] in eq2 iff P[x,y] by A19;
+    thus thesis from RELSET_1:sch 4(A20, A21);
+  end;
+end;
+
+theorem Th41:
+  for A being Preorder holds EqRelOf A = EqRel A
+proof
+  let A be Preorder;
+  for x,y being Element of A holds
+    [x,y] in EqRelOf A implies [x,y] in EqRel A
+  proof
+    let x,y be Element of A;
+    assume [x,y] in EqRelOf A;
+    then x <= y & y <= x by Def6;
+    then [x,y] in the InternalRel of A & [y,x] in the InternalRel of A
+      by ORDERS_2:def 5;
+    then [x,y] in (the InternalRel of A) & [x,y] in (the InternalRel of A)~
+      by RELAT_1:def 7;
+    then [x,y] in (the InternalRel of A) /\ (the InternalRel of A)~
+      by XBOOLE_0:def 4;
+    hence thesis by DICKSON:def 4;
+  end;
+  hence EqRelOf A c= EqRel A by RELSET_1:def 1;
+  for x,y being Element of A holds
+    [x,y] in EqRel A implies [x,y] in EqRelOf A
+  proof
+    let x,y be Element of A;
+    assume [x,y] in EqRel A;
+    then [x,y] in (the InternalRel of A) /\ (the InternalRel of A)~
+      by DICKSON:def 4;
+    then [x,y] in the InternalRel of A & [x,y] in (the InternalRel of A)~
+      by XBOOLE_0:def 4;
+    then [x,y] in the InternalRel of A & [y,x] in the InternalRel of A
+      by RELAT_1:def 7;
+    then x <= y & y <= x by ORDERS_2:def 5;
+    hence thesis by Def6;
+  end;
+  hence EqRel A c= EqRelOf A by RELSET_1:def 1;
+end;
+
+registration
+  let A be empty Preorder;
+  cluster EqRelOf A -> empty;
+  coherence;
+end;
+
+registration
+  let A be non empty Preorder;
+  cluster EqRelOf A -> non empty;
+  coherence;
+end;
+
+theorem Th42:
+  for A being Order holds
+    EqRelOf A = id the carrier of A
+proof
+  let A be Order;
+  per cases;
+  suppose A is empty;
+    hence thesis;
+  end;
+  suppose A is non empty;
+    then reconsider B = A as non empty Order;
+    defpred P[set, set] means $1 = $2;
+    A1: for x, y being Element of B holds [x,y] in EqRelOf B iff P[x,y]
+    proof
+      let x, y be Element of B;
+      hereby
+        assume [x,y] in EqRelOf B;
+        then x <= y & y <= x by Def6;
+        hence P[x,y] by ORDERS_2:2;
+      end;
+      assume P[x,y];
+      then x <= y & y <= x;
+      hence [x,y] in EqRelOf B by Def6;
+    end;
+    A2: for x, y being Element of B holds
+      [x,y] in id the carrier of B iff P[x,y] by RELAT_1:def 10;
+    thus EqRelOf A = EqRelOf B
+      .= id the carrier of B from RELSET_1:sch 4(A1, A2)
+      .= id the carrier of A;
+  end;
+end;
+
+definition
+  let A be Preorder;
+  func QuotientOrder(A) -> strict RelStr means
+  :Def7:
+    the carrier of it = Class EqRelOf A &
+    for X, Y being Element of Class EqRelOf A holds
+       [X, Y] in the InternalRel of it iff
+         ex x, y being Element of A st
+           X = Class(EqRelOf A, x) & Y = Class(EqRelOf A, y) & x <= y;
+  existence
+  proof
+    set car = Class EqRelOf A;
+    defpred P[object, object] means
+      ex x, y being Element of A st
+        $1 = Class(EqRelOf A, x) & $2 = Class(EqRelOf A, y) & x <= y;
+    consider rel being Relation of car such that
+      A1: for X,Y being object holds
+        [X,Y] in rel iff X in car & Y in car & P[X,Y]
+      from RELSET_1:sch 1;
+    set order = RelStr(#car, rel#);
+    take order;
+    thus the carrier of order = car;
+    let X, Y be Element of car;
+    thus [X,Y] in the InternalRel of order implies
+      ex x, y being Element of A st
+        X = Class(EqRelOf A, x) & Y = Class(EqRelOf A, y) & x <= y by A1;
+    given x,y being Element of A such that
+      A2: X = Class(EqRelOf A, x) & Y = Class(EqRelOf A, y) and
+      A3: x <= y;
+    (the carrier of A) \/ the carrier of A = the carrier of A;
+    then A4: field the InternalRel of A c= the carrier of A by RELSET_1:8;
+    [x,y] in the InternalRel of A by A3, ORDERS_2:def 5;
+    then x in field the InternalRel of A & y in field the InternalRel of A
+      by RELAT_1:15;
+    then X in car & Y in car by A2, A4, EQREL_1:def 3;
+    hence [X,Y] in the InternalRel of order by A1, A2, A3;
+  end;
+  uniqueness
+  proof
+    let O1, O2 be strict RelStr such that
+      A5: the carrier of O1 = Class EqRelOf A and
+      A6: for X, Y being Element of Class EqRelOf A holds
+            [X, Y] in the InternalRel of O1 iff
+              ex x, y being Element of A st
+                X = Class(EqRelOf A, x) & Y = Class(EqRelOf A, y) & x <= y and
+      A7: the carrier of O2 = Class EqRelOf A and
+      A8: for X, Y being Element of Class EqRelOf A holds
+            [X, Y] in the InternalRel of O2 iff
+              ex x, y being Element of A st
+                X = Class(EqRelOf A, x) & Y = Class(EqRelOf A, y) & x <= y;
+    A9: the carrier of O1 = the carrier of O2 by A5, A7;
+    reconsider I1 = the InternalRel of O1 as Relation of Class EqRelOf A by A5;
+    reconsider I2 = the InternalRel of O2 as Relation of Class EqRelOf A by A7;
+    for X, Y being Element of Class EqRelOf A holds
+      [X,Y] in I1 iff [X,Y] in I2
+    proof
+      let X, Y be Element of Class EqRelOf A;
+      [X,Y] in I1 iff
+        ex x, y being Element of A st
+          X = Class(EqRelOf A, x) & Y = Class(EqRelOf A, y) & x <= y by A6;
+      hence [X,Y] in I1 iff [X,Y] in I2 by A8;
+    end;
+    then A10: I1 = I2 by RELSET_1:def 2;
+    reconsider rel = the InternalRel of O2
+      as Relation of the carrier of O1 by A9;
+    thus O1 = O2 by A9, A10;
+  end;
+end;
+
+registration
+  let A be empty Preorder;
+  cluster QuotientOrder(A) -> empty;
+  coherence
+  proof
+    Class EqRelOf A = {};
+    hence thesis by Def7;
+  end;
+end;
+
+theorem Th43:
+  for A being non empty Preorder, x being Element of A holds
+    Class(EqRelOf A, x) in the carrier of QuotientOrder(A)
+proof
+  let A be non empty Preorder;
+  let x be Element of A;
+  Class(EqRelOf A, x) in Class EqRelOf A by EQREL_1:def 3;
+  hence thesis by Def7;
+end;
+
+registration
+  let A be non empty Preorder;
+  cluster QuotientOrder(A) -> non empty;
+  coherence by Th43;
+end;
+
+theorem Th44:
+  for A being Preorder holds the InternalRel of QuotientOrder(A) = <=E A
+proof
+  let A be Preorder;
+  per cases;
+  suppose A is empty;
+    then the InternalRel of QuotientOrder(A) is empty & <=E A is empty;
+    hence thesis;
+  end;
+  suppose A is non empty;
+    then reconsider B = A as non empty Preorder;
+    set qa = QuotientOrder(B);
+    set int = the InternalRel of QuotientOrder(B);
+    A1: for x being Element of B holds
+      Class(EqRelOf B, x) = Class(EqRel B, x) by Th41;
+    for X,Y being Element of qa holds
+      [X,Y] in int implies [X,Y] in <=E B
+    proof
+      let X, Y be Element of qa;
+      X in the carrier of qa & Y in the carrier of qa;
+      then A2: X in Class EqRelOf B & Y in Class EqRelOf B by Def7;
+      assume [X,Y] in int;
+      then consider x, y being Element of B such that A3:
+        X = Class(EqRelOf B, x) & Y = Class(EqRelOf B, y) & x <= y by A2, Def7;
+      X = Class(EqRel B, x) & Y = Class(EqRel B, y) & x <= y by A1, A3;
+      hence thesis by DICKSON:def 5;
+    end;
+    then A4: int c= <=E B by RELSET_1:def 1;
+    for X,Y being Element of Class EqRel B holds
+      [X,Y] in <=E B implies [X,Y] in int
+    proof
+      let X, Y be Element of Class EqRel B;
+      X in Class EqRel B & Y in Class EqRel B;
+      then A5: X in Class EqRelOf B & Y in Class EqRelOf B by Th41;
+      assume [X,Y] in <=E B;
+      then consider x, y being Element of B such that A6:
+        X = Class(EqRel B, x) & Y = Class(EqRel B, y) & x <= y
+        by DICKSON:def 5;
+      X = Class(EqRelOf B, x) & Y = Class(EqRelOf B, y) & x <= y by A1, A6;
+      hence thesis by A5, Def7;
+    end;
+    hence thesis by A4, RELSET_1:def 1;
+  end;
+end;
+
+registration
+  let A be Preorder;
+  cluster QuotientOrder(A) -> reflexive total antisymmetric transitive;
+  coherence
+  proof
+    set qa = QuotientOrder(A);
+    set car = the carrier of QuotientOrder(A);
+    set int = the InternalRel of QuotientOrder(A);
+    <=E A partially_orders Class(EqRel A) by DICKSON:9;
+    then int partially_orders Class(EqRel A) by Th44;
+    then int partially_orders Class(EqRelOf A) by Th41;
+    then int partially_orders car by Def7;
+    then qa is reflexive antisymmetric transitive by Th39;
+    hence thesis;
+  end;
+end;
+
+:: this generalizes DICKSON:10 to possibly empty RelStr
+registration
+  let A be LinearPreorder;
+  cluster QuotientOrder(A) -> connected strongly_connected;
+  coherence
+  proof
+    set qa = QuotientOrder(A);
+    set car = the carrier of qa;
+    set int = the InternalRel of qa;
+    for X, Y being object holds
+      X in car & Y in car & X <> Y implies [X,Y] in int or [Y,X] in int
+    proof
+      let X, Y be object;
+      assume that
+        A1: X in car & Y in car and
+        X <> Y;
+      reconsider X, Y as Element of Class EqRelOf A by A1, Def7;
+      A2: X in Class EqRelOf A & Y in Class EqRelOf A by A1, Def7;
+      consider x being object such that
+        A3: x in the carrier of A and
+        A4: X = Class(EqRelOf A, x) by A2, EQREL_1:def 3;
+      consider y being object such that
+        A5: y in the carrier of A and
+        A6: Y = Class(EqRelOf A, y) by A2, EQREL_1:def 3;
+      reconsider x,y as Element of A by A3, A5;
+      A is non empty by A3;
+      then per cases by Th25;
+      suppose x <= y;
+        hence thesis by A4, A6, Def7;
+      end;
+      suppose y <= x;
+        hence thesis by A4, A6, Def7;
+      end;
+    end;
+    hence qa is connected by RELAT_2:def 6;
+    hence qa is strongly_connected;
+  end;
+end;
+
+definition
+  let A be Preorder;
+  func proj A -> Function of A, QuotientOrder(A) means
+  :Def8:
+  for x being Element of A holds it.x = Class(EqRelOf A, x);
+  existence
+  proof
+    set qa = QuotientOrder(A);
+    set car = the carrier of A;
+    set carq = the carrier of qa;
+    per cases;
+    suppose A1: A is non empty;
+      defpred P[object, object] means
+        ex z being Element of A st $1 = z & $2 = Class(EqRelOf A, z);
+      A2: for x being object st x in car
+        ex y being object st y in carq & P[x,y]
+      proof
+        let x be object;
+        assume A3: x in car;
+        then reconsider z = x as Element of A;
+        set y = Class(EqRelOf A, z);
+        take y;
+        y in Class EqRelOf A by A3, EQREL_1:def 3;
+        hence y in carq by Def7;
+        thus thesis;
+      end;
+      consider f being Function of car, carq such that
+        A4: for x being object st x in car holds P[x,f.x]
+        from FUNCT_2:sch 1(A2);
+      reconsider f as Function of A, qa;
+      take f;
+      let x be Element of A;
+      consider z being Element of A such that
+        A5: x = z & f.x = Class(EqRelOf A, z) by A4, A1;
+      thus f.x = Class(EqRelOf A, x) by A5;
+    end;
+    suppose A6: A is empty;
+      then car = {};
+      then consider f being Function such that
+        A7: car = dom f and
+        A8: rng f c= carq by FUNCT_1:8;
+      reconsider f as Function of car, carq by A7, A8, FUNCT_2:2;
+      reconsider f as Function of A, qa;
+      take f;
+      A9: for x being Element of A holds Class(EqRelOf A, x) = {} by A6;
+      let x be Element of A;
+      thus f.x = {} by A6
+        .= Class(EqRelOf A, x) by A9;
+    end;
+  end;
+  uniqueness
+  proof
+    per cases;
+    suppose A10: A is non empty;
+      let f1, f2 be Function of A, QuotientOrder(A);
+      assume that
+        A11: for x being Element of A holds f1.x = Class(EqRelOf A, x) and
+        A12: for x being Element of A holds f2.x = Class(EqRelOf A, x);
+      dom f1 = the carrier of A & dom f2 = the carrier of A
+        by A10, FUNCT_2:def 1;
+      then A13: dom f1 = dom f2;
+      for x being object st x in dom f1 holds f1.x = f2.x
+      proof
+        let x be object;
+        assume x in dom f1;
+        then reconsider z = x as Element of A;
+        f1.z = Class(EqRelOf A, z) & f2.z = Class(EqRelOf A, z) by A11, A12;
+        hence f1.x = f2.x;
+      end;
+      hence f1 = f2 by A13, FUNCT_1:2;
+    end;
+    suppose A is empty;
+      then A14: QuotientOrder(A) is empty;
+      let f1, f2 be Function of A, QuotientOrder(A);
+      assume that
+        for x being Element of A holds f1.x = Class(EqRelOf A, x) and
+        for x being Element of A holds f2.x = Class(EqRelOf A, x);
+      thus f1 = f2 by A14;
+    end;
+  end;
+end;
+
+registration
+  let A be empty Preorder;
+  cluster proj A -> empty;
+  coherence;
+end;
+
+registration
+  let A be non empty Preorder;
+  cluster proj A -> non empty;
+  coherence;
+end;
+
+theorem Th45:
+  for A being non empty Preorder, x, y being Element of A st x <= y holds
+   (proj A).x <= (proj A).y
+proof
+  let A be non empty Preorder;
+  let x,y be Element of A;
+  assume A1: x <= y;
+  reconsider X = Class(EqRelOf A, x) as Element of Class EqRelOf A
+    by EQREL_1:def 3;
+  reconsider Y = Class(EqRelOf A, y) as Element of Class EqRelOf A
+    by EQREL_1:def 3;
+  A2: [X,Y] in the InternalRel of QuotientOrder(A) by A1, Def7;
+  X = (proj A).x & Y = (proj A).y by Def8;
+  hence thesis by A2, ORDERS_2:def 5;
+end;
+
+theorem
+  for A being Preorder,
+    x,y being Element of A holds
+      x =~ y implies (proj A).x = (proj A).y
+proof
+  let A be Preorder;
+  let x,y be Element of A;
+  assume A1: x =~ y;
+  then A2: [x,y] in EqRelOf A by Def6;
+  A3: x in the carrier of A & y in the carrier of A by A1, Th29;
+  thus (proj A).x = Class(EqRelOf A, x) by Def8
+    .= Class(EqRelOf A, y) by A2, A3, EQREL_1:35
+    .= (proj A).y by Def8;
+end;
+
+definition
+  let A be Preorder, R be Equivalence_Relation of the carrier of A;
+  attr R is EqRelOf-like means   :Def9:
+  R = EqRelOf A;
+end;
+
+registration
+  let A be Preorder;
+  cluster EqRelOf A -> EqRelOf-like;
+  correctness;
+end;
+
+registration
+  let A be Preorder;
+  cluster EqRelOf-like for Equivalence_Relation of the carrier of A;
+  existence
+  proof
+    set eq = EqRelOf A;
+    take eq;
+    thus eq is EqRelOf-like;
+  end;
+end;
+
+definition
+  let A be Preorder,
+    R be EqRelOf-like Equivalence_Relation of the carrier of A;
+  let x be Element of A;
+  redefine func Class(R, x) -> Element of QuotientOrder(A);
+  coherence
+  proof
+    A1: R = EqRelOf A by Def9;
+    per cases;
+    suppose A is non empty;
+      then reconsider A as non empty Preorder;
+      Class(R, x) in the carrier of QuotientOrder(A) by A1, Th43;
+      hence thesis;
+    end;
+    suppose A is empty;
+      then reconsider A as empty Preorder;
+      EqRelOf A is empty;
+      then A2: Class(R, x) = {};
+      {} is Element of QuotientOrder(A) by SUBSET_1:def 1;
+      hence thesis by A2;
+    end;
+  end;
+end;
+
+theorem Th47:
+  for A being Preorder holds
+    the carrier of QuotientOrder(A) is a_partition of the carrier of A
+proof
+  let A be Preorder;
+  the carrier of QuotientOrder(A) = Class EqRelOf A by Def7;
+  hence thesis;
+end;
+
+theorem Th48:
+  for A being non empty Preorder,
+    D being non empty a_partition of the carrier of A
+  st D = the carrier of QuotientOrder(A) holds
+    proj A = proj D
+proof
+  let A be non empty Preorder;
+  let D being non empty a_partition of the carrier of A;
+  assume A1: D = the carrier of QuotientOrder(A);
+  dom proj D = the carrier of A by FUNCT_2:def 1;
+  then A2: dom proj A = dom proj D by FUNCT_2:def 1;
+  for x being object st x in dom proj A holds (proj A).x = (proj D).x
+  proof
+    let x be object;
+    assume x in dom proj A;
+    then reconsider z = x as Element of A;
+    A3: z in (proj D).z by EQREL_1:def 9;
+    (proj D).z in the carrier of QuotientOrder(A) by A1;
+    then (proj D).z in Class EqRelOf A by Def7;
+    then consider y being object such that
+      A4: y in the carrier of A and
+      A5: (proj D).z = Class(EqRelOf A, y) by EQREL_1:def 3;
+    (proj D).z = Class(EqRelOf A, z) by A4, A3, A5, EQREL_1:23
+      .= (proj A).z by Def8;
+    hence thesis;
+  end;
+  hence thesis by A2, FUNCT_1:2;
+end;
+
+definition
+  let A be set, D be a_partition of A;
+  func PreorderFromPartition(D) -> strict RelStr equals
+  RelStr(#A, ERl D#);
+  correctness;
+end;
+
+registration
+  let A be non empty set, D be a_partition of A;
+  cluster PreorderFromPartition(D) -> non empty;
+  coherence;
+end;
+
+registration
+  let A be set, D be a_partition of A;
+  cluster PreorderFromPartition(D) -> reflexive transitive;
+  coherence;
+  cluster PreorderFromPartition(D) -> symmetric;
+  coherence
+  proof
+    ERl D is_symmetric_in field ERl D by RELAT_2:def 11;
+    then the InternalRel of PreorderFromPartition(D)
+      is_symmetric_in the carrier of PreorderFromPartition(D)
+      by ORDERS_1:12;
+    hence thesis by NECKLACE:def 3;
+  end;
+end;
+
+theorem Th49:
+  for A being set, D being a_partition of A holds
+    ERl D = EqRelOf PreorderFromPartition(D)
+proof
+  let A be set, D be a_partition of A;
+  for x,y being Element of A holds
+    [x,y] in ERl D implies [x,y] in EqRelOf PreorderFromPartition(D)
+  proof
+    let x,y be Element of A;
+    assume A1: [x,y] in ERl D;
+    then A2: [y,x] in ERl D by EQREL_1:6;
+    reconsider X = x, Y = y as Element of PreorderFromPartition(D);
+    X <= Y & Y <= X by A1, A2, ORDERS_2:def 5;
+    hence thesis by Def6;
+  end;
+  hence ERl D c= EqRelOf PreorderFromPartition(D) by RELSET_1:def 1;
+  for x,y being Element of A holds
+    [x,y] in EqRelOf PreorderFromPartition(D) implies [x,y] in ERl D
+  proof
+    let x,y be Element of A;
+    assume A3: [x,y] in EqRelOf PreorderFromPartition(D);
+    reconsider X = x, Y = y as Element of PreorderFromPartition(D);
+    X <= Y by A3, Def6;
+    hence thesis by ORDERS_2:def 5;
+  end;
+  hence thesis by RELSET_1:def 1;
+end;
+
+reserve X,Z for set;
+reserve x,y,z for object;
+reserve A,B,C for Subset of X;
+
+Def5:
+  for A being set, D being a_partition of A holds
+    Class ERl D = D by PARTIT1:38;
+
+theorem Th50:
+  for A being set, D being a_partition of A holds
+    D = Class EqRelOf PreorderFromPartition(D)
+proof
+  let A be set, D be a_partition of A;
+  ERl D = EqRelOf PreorderFromPartition(D) by Th49;
+  hence thesis by Def5;
+end;
+
+theorem Th51:
+  for A being set, D being a_partition of A holds
+    D = the carrier of QuotientOrder(PreorderFromPartition(D))
+proof
+  let A be set, D be a_partition of A;
+  D = Class EqRelOf PreorderFromPartition(D) by Th50;
+  hence thesis by Def7;
+end;
+
+definition
+  let A be set, D be a_partition of A, X be Element of D, f be Function;
+  func eqSupport(f, X) -> Subset of A equals
+  support f /\ X;
+  correctness
+  proof
+    consider EqR being Equivalence_Relation of A such that
+      A1: D = Class EqR by EQREL_1:34;
+    per cases;
+    suppose D is non empty;
+      then X in Class EqR by A1;
+      then consider x being object such that
+        x in A and
+        A2: X = Class(EqR, x) by EQREL_1:def 3;
+      thus support f /\ X is Subset of A by A2, XBOOLE_1:108;
+    end;
+    suppose D is empty;
+      then X = {} by SUBSET_1:def 1;
+      hence thesis by XBOOLE_1:2;
+    end;
+  end;
+end;
+
+definition
+  let A be Preorder, X be Element of QuotientOrder(A),
+  f be Function;
+  func eqSupport(f, X) -> Subset of A means   :Def12:
+  ex D being a_partition of the carrier of A, Y being Element of D st
+  D = the carrier of QuotientOrder(A) & Y = X & it = eqSupport(f, Y);
+  existence
+  proof
+    reconsider D = the carrier of QuotientOrder(A)
+      as a_partition of the carrier of A by Th47;
+    reconsider Y = X as Element of D;
+    take eqSupport(f, Y);
+    take D, Y;
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+definition
+  let A be Preorder, X be Element of QuotientOrder(A),
+  f be Function;
+  redefine func eqSupport(f, X) equals
+  support f /\ X;
+  correctness
+  proof
+    let B be Subset of A;
+    thus B = eqSupport(f, X) implies B = support f /\ X
+    proof
+      assume B = eqSupport(f,X);
+      then consider
+        D being a_partition of the carrier of A,
+        Y being Element of D
+       such that
+         D = the carrier of QuotientOrder(A) and
+         A1: Y = X and
+         A2: B = eqSupport(f, Y) by Def12;
+       thus B = support f /\ X by A1, A2;
+    end;
+    assume A3: B = support f /\ X;
+    reconsider D = the carrier of QuotientOrder(A)
+      as a_partition of the carrier of A by Th47;
+    reconsider Y = X as Element of D;
+    thus B = eqSupport(f, Y) by A3
+      .= eqSupport(f, X) by Def12;
+  end;
+end;
+
+registration
+  let A be set, D be a_partition of A, f be finite-support Function,
+  X be Element of D;
+  cluster eqSupport(f, X) -> finite;
+  correctness;
+end;
+
+registration
+  let A be Preorder, f be finite-support Function,
+  X be Element of QuotientOrder(A);
+  cluster eqSupport(f, X) -> finite;
+  correctness;
+end;
+
+registration
+  let A be Order;
+  let X be Element of the carrier of QuotientOrder(A);
+  let f be finite-support Function of A, REAL;
+  cluster eqSupport(f, X) -> trivial;
+  coherence
+  proof
+    per cases;
+    suppose A is empty;
+      hence thesis;
+    end;
+    suppose A is non empty;
+      then X in the carrier of QuotientOrder(A) by SUBSET_1:def 1;
+      then X in Class EqRelOf A by Def7;
+      then consider x being object such that
+        A1: x in the carrier of A and
+        A2: X = Class(EqRelOf A, x) by EQREL_1:def 3;
+      X = Class(id the carrier of A, x) by A2, Th42
+        .= {x} by A1, EQREL_1:25;
+      hence thesis by XBOOLE_1:17, ZFMISC_1:33;
+    end;
+  end;
+end;
+
+theorem Th52:
+  for A being set, D being a_partition of A, X being Element of D,
+    f being Function of A, REAL
+  holds
+    eqSupport(f, X) = eqSupport(-f, X)
+proof
+  let A be set, D be a_partition of A, X be Element of D,
+    f be Function of A, REAL;
+  A1: rng f c= COMPLEX by NUMBERS:11;
+  dom f = A by FUNCT_2:def 1;
+  then f is Function of A, COMPLEX by FUNCT_2:2, A1;
+  hence eqSupport(f,X) = eqSupport(-f,X) by Th10;
+end;
+
+theorem
+  for A being Preorder, X being Element of QuotientOrder(A),
+    f being Function of A, REAL
+  holds
+    eqSupport(f, X) = eqSupport(-f, X)
+proof
+  :: this proof demonstrates how the
+  :: similarity of the definitions is to be used
+  let A be Preorder, X be Element of QuotientOrder(A),
+    f be Function of the carrier of A, REAL;
+  consider D being a_partition of the carrier of A,
+    Y being Element of D such that
+    D = the carrier of QuotientOrder(A) and
+    A1: X = Y and
+    A2: eqSupport(f, X) = eqSupport(f, Y) by Def12;
+  thus eqSupport(f, X) = eqSupport(-f, Y) by A2, Th52
+    .= eqSupport(-f, X) by A1;
+end;
+
+definition
+  let A be set, D be a_partition of A, f be finite-support Function of A, REAL;
+  func D eqSumOf f -> Function of D, REAL means
+  :Def14:
+  for X being Element of D st X in D holds
+    it.X = Sum (f * (canFS (eqSupport(f, X))) );
+  existence
+  proof
+    per cases;
+    suppose A1: A is empty;
+      set F = the Function of D, REAL;
+      take F;
+      let X be Element of D;
+      assume X in D;
+      hence thesis by A1;
+    end;
+    suppose A is non empty;
+      then reconsider B=A as non empty set;
+      reconsider f as finite-support Function of B, REAL;
+      reconsider E=D as a_partition of B;
+      defpred P[object, object] means
+        ex Y being Element of E st $1 = Y &
+          $2 = Sum (f * (canFS (eqSupport(f, Y))) );
+      A2: for X being object st X in E
+        ex y being object st y in REAL & P[X,y]
+      proof
+        let X be object;
+        assume X in E;
+        then reconsider x = X as Element of E;
+        set y = Sum (f * (canFS (eqSupport(f, x))) );
+        take y;
+        thus thesis by XREAL_0:def 1;
+      end;
+      consider F being Function of E, REAL
+        such that A3: for X being object st
+          X in E holds P[X,F.X]
+        from FUNCT_2:sch 1(A2);
+      reconsider F as Function of D, REAL;
+      take F;
+      for X being Element of E st X in E holds
+          F.X = Sum (f * (canFS (eqSupport(f, X))) )
+      proof
+        let X be Element of E;
+        assume X in E;
+        consider Y being Element of E such that
+          A4: X = Y and
+          A5: F.X = Sum (f * (canFS (eqSupport(f, Y))) ) by A3;
+        thus thesis by A4, A5;
+      end;
+      hence thesis;
+    end;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be Function of D, REAL;
+    assume that
+      A6: for X being Element of D st X in D holds
+          f1.X = Sum (f * (canFS (eqSupport(f, X))) ) and
+      A7: for X being Element of D st X in D holds
+          f2.X = Sum (f * (canFS (eqSupport(f, X))) );
+    for X being object st X in D holds
+      f1.X = f2.X
+    proof
+      let X be object;
+      assume A8: X in D;
+      then reconsider Y=X as Element of D;
+      thus f1.X = Sum (f * (canFS (eqSupport(f, Y))) ) by A8, A6
+        .= f2.X by A8, A7;
+    end;
+    hence thesis by FUNCT_2:12;
+  end;
+end;
+
+definition
+  let A be Preorder, f be finite-support Function of A, REAL;
+  func eqSumOf f -> Function of QuotientOrder(A), REAL means  :Def15:
+  ex D being a_partition of the carrier of A st
+  D = the carrier of QuotientOrder(A) & it = D eqSumOf f;
+  existence
+  proof
+    reconsider D = the carrier of QuotientOrder(A)
+      as a_partition of the carrier of A by Th47;
+    reconsider F = D eqSumOf f as Function of QuotientOrder(A), REAL;
+    take F, D;
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+definition
+  let A be Preorder, f be finite-support Function of A, REAL;
+  redefine func eqSumOf f means
+  :Def16:
+  for X being Element of QuotientOrder(A) st X in the carrier of
+    QuotientOrder(A) holds
+      it.X = Sum (f * (canFS (eqSupport(f, X))) );
+  correctness
+  proof
+    let F be Function of QuotientOrder(A), REAL;
+    thus F = eqSumOf f implies
+      for X being Element of QuotientOrder(A) st X in the carrier of
+        QuotientOrder(A) holds
+          F.X = Sum (f * (canFS (eqSupport(f, X))) )
+    proof
+      assume F = eqSumOf f;
+      then consider D being a_partition of the carrier of A such that
+        A1: D = the carrier of QuotientOrder(A) and
+        A2: F = D eqSumOf f by Def15;
+      let X be Element of QuotientOrder(A);
+      reconsider Y = X as Element of D by A1;
+      assume X in the carrier of QuotientOrder(A);
+      hence F.X = Sum (f * (canFS (eqSupport(f, Y))) ) by A2, A1, Def14
+        .= Sum (f * (canFS (eqSupport(f, X))) );
+    end;
+    assume A3:
+      for X being Element of QuotientOrder(A) st X in the carrier of
+        QuotientOrder(A) holds
+          F.X = Sum (f * (canFS (eqSupport(f, X))) );
+    dom F = the carrier of QuotientOrder(A) by FUNCT_2:def 1;
+    then A4: dom F = dom eqSumOf f by FUNCT_2:def 1;
+    for x being object st x in dom F holds F.x = (eqSumOf f).x
+    proof
+      let x be object;
+      assume A5: x in dom F;
+      then reconsider X = x as Element of QuotientOrder(A);
+      reconsider D = the carrier of QuotientOrder(A)
+        as a_partition of the carrier of A by Th47;
+      reconsider Y = X as Element of D;
+      thus F.x = Sum (f * (canFS (eqSupport(f, X)))) by A3, A5
+        .= Sum (f * (canFS (eqSupport(f, Y))))
+        .= (D eqSumOf f).Y by A5, Def14
+        .= (eqSumOf f).x by Def15;
+    end;
+    hence F = eqSumOf f by A4, FUNCT_1:2;
+  end;
+end;
+
+theorem Th54:
+  for A being set, D being a_partition of A,
+    f being finite-support Function of A, REAL
+  holds
+    (D eqSumOf -f) = -(D eqSumOf f)
+proof
+  let A be set;
+  let D be a_partition of A;
+  let f being finite-support Function of A, REAL;
+  dom (D eqSumOf -f) = D by FUNCT_2:def 1;
+  then A1: dom (D eqSumOf -f) = dom -(D eqSumOf f) by FUNCT_2:def 1;
+  for X being object st X in dom (D eqSumOf -f) holds
+    (D eqSumOf -f).X = (-(D eqSumOf f)).X
+  proof
+    let X be object;
+    assume A2: X in dom (D eqSumOf -f);
+    then reconsider Y = X as Element of D;
+    set s = canFS(eqSupport(f,Y));
+    set t = canFS(eqSupport(-f,Y));
+    A3: dom f = A by FUNCT_2:def 1;
+    A4: rng s = eqSupport(f,Y) by FUNCT_2:def 3;
+    A5: rng t = eqSupport(-f,Y) by FUNCT_2:def 3;
+    A6: dom s = Seg len s by FINSEQ_1:def 3
+      .= Seg len t by Th52
+      .= dom t by FINSEQ_1:def 3;
+    A7: rng s c= dom f & rng t c= dom f by A3, A4, A5;
+    s, t are_fiberwise_equipotent by Th52;
+    then A8: f*s, f*t are_fiberwise_equipotent by A7, A6, CLASSES1:83;
+    A9: rng (f*s) c= REAL & rng (f*t) c= REAL;
+    A11: dom ((-f)*t) = dom -(f*t)
+    proof
+      for x being object holds x in dom ((-f)*t) iff x in dom -(f*t)
+      proof
+        rng f c= COMPLEX by NUMBERS:11;
+        then reconsider fc = f as Function of dom f, COMPLEX by FUNCT_2:2;
+        let x be object;
+        hereby
+          assume x in dom ((-f)*t);
+          then x in dom t & t.x in dom (-fc) by FUNCT_1:11;
+          then x in dom (fc*t) by FUNCT_1:11;
+          hence x in dom -(f*t) by CFUNCT_1:5;
+        end;
+        assume x in dom -(f*t);
+        then x in dom (fc*t) by CFUNCT_1:5;
+        then x in dom t & t.x in dom fc by FUNCT_1:11;
+        then x in dom t & t.x in dom (-fc) by CFUNCT_1:5;
+        hence x in dom ((-f)*t) by FUNCT_1:11;
+      end;
+      hence thesis by TARSKI:2;
+    end;
+    for x being object st x in dom ((-f)*t) holds ((-f)*t).x = (-(f*t)).x
+    proof
+      let x be object;
+      set domft = dom (f*t);
+      rng (f*t) c= COMPLEX by NUMBERS:11;
+      then reconsider ftc = f*t as Function of domft, COMPLEX by FUNCT_2:2;
+      assume A12: x in dom ((-f)*t);
+      then a13: x in dom -ftc by A11; then
+      reconsider domft as non empty set;
+      dom f is non empty
+      proof
+        A is non empty by A2;
+        hence thesis;
+      end;
+      then reconsider domf = dom f as non empty set;
+      reconsider tc = t.x as Element of domf by a13, FUNCT_1:11;
+      reconsider c = x as Element of domft by a13;
+      reconsider F = f as Function of domf, REAL by FUNCT_2:def 1;
+      reconsider FT = f*t as Function of domft, REAL by A9, FUNCT_2:2;
+      thus ((-f)*t).x = (-f).(t.x) by A12, FUNCT_1:12
+        .= - (F.tc) by RFUNCT_1:58
+        .= - ((FT).c) by FUNCT_1:12
+        .= (-(f*t)).x by RFUNCT_1:58;
+    end;
+    then A14: (-f)*t = -(f*t) by A11, FUNCT_1:2;
+    thus (D eqSumOf -f).X = Sum ((-f)*t) by A2, Def14
+      .= - Sum (f*t) by A14, RVSUM_1:88
+      .= - Sum (f*s) by A8, RFINSEQ:9
+      .= -(D eqSumOf f).Y by A2, Def14
+      .= (-(D eqSumOf f)).X by A2, RFUNCT_1:58;
+  end;
+  hence thesis by A1, FUNCT_1:2;
+end;
+
+theorem Th55:
+  for A being Preorder,
+    f being finite-support Function of A, REAL
+  holds
+    eqSumOf -f = -eqSumOf f
+proof
+  let A be Preorder;
+  let f being finite-support Function of A, REAL;
+  reconsider D = the carrier of QuotientOrder(A)
+    as a_partition of the carrier of A by Th47;
+  thus eqSumOf -f = D eqSumOf -f by Def15
+    .= -(D eqSumOf f) by Th54
+    .= -eqSumOf f by Def15;
+end;
+
+Th56:
+  for A being set, D being a_partition of A,
+    f being nonnegative-yielding finite-support Function of A, REAL
+  holds
+    D eqSumOf f is nonnegative-yielding
+proof
+  let A be set, D being a_partition of A;
+  let f be nonnegative-yielding finite-support Function of A, REAL;
+  for r being Real st r in rng (D eqSumOf f) holds 0 <= r
+  proof
+    let r be Real;
+    assume r in rng (D eqSumOf f);
+    then consider X being object such that
+      A2: X in dom (D eqSumOf f) and
+      A3: r = (D eqSumOf f).X by FUNCT_1:def 3;
+    reconsider X as Element of D by A2;
+    set s = f * (canFS(eqSupport(f,X)));
+    rng s c= REAL;
+    then reconsider s as FinSequence of REAL by FINSEQ_1:def 4;
+    for i be Nat st i in dom s holds 0 <= s.i
+    proof
+      let i be Nat;
+      assume i in dom s;
+      then s.i in rng s by FUNCT_1:3;
+      hence thesis by PARTFUN3:def 4;
+    end;
+    then 0 <= Sum s by RVSUM_1:84;
+    hence thesis by A3, A2, Def14;
+  end;
+  hence thesis by PARTFUN3:def 4;
+end;
+
+registration
+  let A be Preorder,
+      f be nonnegative-yielding finite-support Function of A, REAL;
+  cluster eqSumOf f -> nonnegative-yielding;
+  coherence
+  proof
+    reconsider D = the carrier of QuotientOrder(A)
+      as a_partition of the carrier of A by Th47;
+    (D eqSumOf f) is nonnegative-yielding by Th56;
+    hence thesis by Def15;
+  end;
+end;
+
+registration
+  let A be set, D be a_partition of A;
+  let f be nonnegative-yielding finite-support Function of A, REAL;
+  cluster D eqSumOf f -> nonnegative-yielding;
+  coherence by Th56;
+end;
+
+theorem Th58:
+  for A being set, D being a_partition of A,
+    f being finite-support Function of A, REAL
+      st f is nonpositive-yielding
+  holds
+    D eqSumOf f is nonpositive-yielding
+proof
+  let A be set, D be a_partition of A, f be finite-support Function of A, REAL;
+  assume f is nonpositive-yielding;
+  then D eqSumOf -f is nonnegative-yielding;
+  then -(D eqSumOf f) is nonnegative-yielding by Th54;
+  then -(-(D eqSumOf f)) is nonpositive-yielding;
+  hence thesis;
+end;
+
+theorem
+  for A being Preorder, f being finite-support Function of A, REAL
+    st f is nonpositive-yielding
+  holds
+    eqSumOf f is nonpositive-yielding
+proof
+  let A be Preorder, f be finite-support Function of A, REAL;
+  assume A1: f is nonpositive-yielding;
+  reconsider D = the carrier of QuotientOrder(A)
+    as a_partition of the carrier of A by Th47;
+  (D eqSumOf f) is nonpositive-yielding by A1, Th58;
+  hence thesis by Def15;
+end;
+
+theorem Th60:
+  for A being Preorder, f being finite-support Function of A, REAL,
+    x being Element of A st
+      (for y being Element of A st x =~ y holds x = y) holds
+    ((eqSumOf f)*(proj A)).x = f.x
+proof
+  let A be Preorder, f be finite-support Function of A, REAL;
+  let x be Element of A;
+  assume A1: for y being Element of A st x =~ y holds x = y;
+  per cases;
+  suppose A is empty;
+    hence thesis;
+  end;
+  suppose A2: A is non empty;
+    then reconsider X = (proj A).x as Element of QuotientOrder(A) by FUNCT_2:5;
+    A3: X in the carrier of QuotientOrder(A) by A2, SUBSET_1:def 1;
+    A4: x in the carrier of A by A2, SUBSET_1:def 1;
+    A5: X = Class(EqRelOf A, x) by Def8;
+    for y being object holds y in X iff y = x
+    proof
+      let y be object;
+      hereby
+        assume A6: y in X;
+        then y in (EqRelOf A).:{x} by A5, RELAT_1:def 16;
+        then reconsider z = y as Element of A;
+        [x,z] in EqRelOf A by A5, A6, EQREL_1:18;
+        then x <= z & z <= x by Def6;
+        hence y = x by A1, Def3;
+      end;
+      thus thesis by A4, A5, EQREL_1:20;
+    end;
+    then A7: X = {x} by TARSKI:def 1;
+    A8: x in dom (proj A) by A4, A2, FUNCT_2:def 1;
+    A9: x in dom f by A4, FUNCT_2:def 1;
+    per cases;
+    suppose x in support f;
+      then eqSupport(f, X) = {x} by A7, ZFMISC_1:46;
+      then canFS(eqSupport(f, X)) = <* x *> by FINSEQ_1:94;
+      then f * canFS(eqSupport(f, X)) = <* f.x *> by A9, FINSEQ_2:34;
+      then Sum (f * canFS(eqSupport(f, X))) = f.x by RVSUM_1:73;
+      then (eqSumOf f).X = f.x by A3, Def16;
+      hence thesis by A8, FUNCT_1:13;
+    end;
+    suppose A10: not x in support f;
+      then not x in eqSupport(f, X) by XBOOLE_0:def 4;
+      then {x} <> eqSupport(f, X) by TARSKI:def 1;
+      then eqSupport(f, X) = {} by A7, XBOOLE_1:17, ZFMISC_1:33;
+      then Sum (f * canFS(eqSupport(f, X))) = 0 by RVSUM_1:72;
+      then (eqSumOf f).X = 0 by A3, Def16;
+      then (eqSumOf f).((proj A).x) = f.x by A10, PRE_POLY:def 7;
+      hence thesis by A8, FUNCT_1:13;
+    end;
+  end;
+end;
+
+theorem Th61:
+  for A being Order, f being finite-support Function of A, REAL holds
+    (eqSumOf f)*(proj A) = f
+proof
+  let A be Order, f be finite-support Function of A, REAL;
+  set F = (eqSumOf f)*(proj A);
+  QuotientOrder(A) is empty implies A is empty;
+  then dom F = the carrier of A by FUNCT_2:def 1;
+  then A1: dom f = dom F by FUNCT_2:def 1;
+  for x being object st x in dom f holds f.x = F.x
+  proof
+    let x be object;
+    assume x in dom f;
+    then reconsider z = x as Element of A;
+    for y being Element of A st z =~ y holds z = y by ORDERS_2:2;
+    hence thesis by Th60;
+  end;
+  hence thesis by A1, FUNCT_1:2;
+end;
+
+theorem
+  for A being Order, f1, f2 being finite-support Function of A, REAL holds
+    eqSumOf f1 = eqSumOf f2 implies f1 = f2
+proof
+  let A be Order;
+  let f1, f2 be finite-support Function of A, REAL;
+  assume A1: eqSumOf f1 = eqSumOf f2;
+  thus f1 = (eqSumOf f2)*(proj A) by A1, Th61
+    .= f2 by Th61;
+end;
+
+theorem Th63:
+  for A being Preorder,
+    f being finite-support Function of A, REAL
+  holds
+    support eqSumOf f c= (proj A).:support f
+proof
+  let A be Preorder;
+  let f be finite-support Function of the carrier of A, REAL;
+  for X being object holds X in support eqSumOf f implies
+    X in (proj A).:support f
+  proof
+    let X be object;
+    assume A1: X in support eqSumOf f;
+    ex x being object st x in dom proj A & x in support f & X = (proj A).x
+    proof
+      X in dom eqSumOf f by A1;
+      then A2: X in the carrier of QuotientOrder(A);
+      A3: dom proj A = the carrier of A by A2, FUNCT_2:def 1;
+      reconsider Y = X as Element of QuotientOrder(A) by A2;
+      set s = canFS(eqSupport(f,Y));
+      A4: rng s c= eqSupport(f, Y) by FINSEQ_1:def 4;
+      s is FinSequence of the carrier of A by FINSEQ_2:24;
+      then reconsider fs = f*s as FinSequence of REAL by FINSEQ_2:32;
+      (eqSumOf f).Y <> 0 by A1, PRE_POLY:def 7;
+      then Sum (fs) <> 0 by A2, Def16;
+      then consider i being Nat such that
+        A5: i in dom (fs) and
+        A6: (fs).i <> 0 by Th6;
+      A7: i in dom s & s.i in dom f by A5, FUNCT_1:11;
+      then reconsider x = s.i as Element of A;
+      take x;
+      thus x in dom proj A by A3, A7;
+      f.x <> 0 by A6, A7, FUNCT_1:13;
+      hence x in support f by PRE_POLY:def 7;
+      x in eqSupport(f, Y) by A7, A4, FUNCT_1:3;
+      then A8: x in Y by XBOOLE_1:17, TARSKI:def 3;
+      X in Class EqRelOf A by A2, Def7;
+      then consider y being object such that
+        A9: y in the carrier of A and
+        A10: X = Class(EqRelOf A, y) by EQREL_1:def 3;
+      A11: x in Class(EqRelOf A, y) by A8, A10;
+      thus (proj A).x = Class(EqRelOf A, x) by Def8
+        .= X by A10, A9, A11, EQREL_1:23;
+    end;
+    hence thesis by FUNCT_1:def 6;
+  end;
+  hence thesis;
+end;
+
+theorem Th64:
+  for A being non empty set, D being non empty a_partition of A,
+    f being finite-support Function of A, REAL
+  holds
+    support (D eqSumOf f) c= (proj D).:support f
+proof
+  let A be non empty set, D be non empty a_partition of A;
+  let f be finite-support Function of A, REAL;
+  reconsider PFP = PreorderFromPartition(D) as non empty Preorder;
+  reconsider F = f as finite-support Function of PFP, REAL;
+  reconsider E = D as a_partition of the carrier of PFP;
+  D = the carrier of QuotientOrder(PFP) by Th51;
+  then A1: eqSumOf F = D eqSumOf f by Def15;
+  A2: proj PFP = proj E by Th48, Th51;
+  support (eqSumOf F) c= (proj PFP).:support F by Th63;
+  hence thesis by A2,A1;
+end;
+
+:: more general:
+::  for x holds (for y in (proj A).x holds f.y >= 0) or
+::    (for y in (proj A).x holds f.y <= 0)
+theorem Th65:
+  for A being Preorder,
+    f being finite-support Function of A, REAL
+  st
+    f is nonnegative-yielding
+  holds
+    (proj A).:support f = support eqSumOf f
+proof
+  let A be Preorder;
+  let f be finite-support Function of the carrier of A, REAL;
+  assume A1: f is nonnegative-yielding;
+  for X being object holds
+    X in (proj A).:support f implies X in support eqSumOf f
+  proof
+    let X be object;
+    assume A2: X in (proj A).:support f;
+    then consider x being object such that
+      A3: x in dom proj A and
+      A4: x in support f and
+      A5: X = (proj A).x by FUNCT_1:def 6;
+    A6: X in the carrier of QuotientOrder(A) by A2, FUNCT_2:36, TARSKI:def 3;
+    reconsider Y = X as Element of the carrier of QuotientOrder(A) by A6;
+    set s = canFS(eqSupport(f,Y));
+    A7: rng s = eqSupport(f, Y) by FUNCT_2:def 3;
+    s is FinSequence of the carrier of A by FINSEQ_2:24;
+    then reconsider fs = f*s as FinSequence of REAL by FINSEQ_2:32;
+    A8: ex k being Nat st k in dom fs & fs.k <> 0
+    proof
+      reconsider y = x as Element of A by A3;
+      X = Class(EqRelOf A, y) by A5, Def8;
+      then y in Y by A3, EQREL_1:20;
+      then y in eqSupport(f, Y) by A4, XBOOLE_0:def 4;
+      then consider i being object such that
+        A9: i in dom s and
+        A10: s.i = y by A7, FUNCT_1:def 3;
+      reconsider i as Nat by A9;
+      take i;
+      thus i in dom fs by A4, A10, A9, FUNCT_1:11;
+      f.y <> 0 by A4, PRE_POLY:def 7;
+      hence fs.i <> 0 by A9, A10, FUNCT_1:13;
+    end;
+    A11: (eqSumOf f).Y = Sum fs by A6, Def16;
+    Sum fs > 0 by A1, A8, Th7;
+    hence X in support eqSumOf f by PRE_POLY:def 7, A11;
+  end;
+  then (proj A).:support f c= support eqSumOf f;
+  hence thesis by Th63;
+end;
+
+theorem
+  for A being non empty set, D being non empty a_partition of A,
+    f being finite-support Function of A, REAL
+  st
+    f is nonnegative-yielding
+  holds
+    (proj D).:support f = support (D eqSumOf f)
+proof
+  let A be non empty set, D be non empty a_partition of A;
+  let f be finite-support Function of A, REAL;
+  assume A1: f is nonnegative-yielding;
+  reconsider PFP = PreorderFromPartition(D) as non empty Preorder;
+  reconsider F = f as finite-support Function of PFP, REAL;
+  reconsider E = D as a_partition of the carrier of PFP;
+  D = the carrier of QuotientOrder(PFP) by Th51;
+  then A2: eqSumOf F = D eqSumOf f by Def15;
+  A3: proj PFP = proj E by Th48, Th51;
+  support (eqSumOf F) = (proj PFP).:support F by A1, Th65;
+  hence thesis by A3, A2;
+end;
+
+theorem Th67:
+  for A being Preorder,
+    f being finite-support Function of A, REAL
+  st
+    f is nonpositive-yielding
+  holds
+    (proj A).:support f = support eqSumOf f
+proof
+  let A be Preorder;
+  let f be finite-support Function of the carrier of A, REAL;
+  assume A1: f is nonpositive-yielding;
+  reconsider mf = -f as finite-support Function of the carrier of A, REAL;
+  rng f c= COMPLEX by NUMBERS:11;
+  then reconsider fc = f as Function of dom f, COMPLEX by FUNCT_2:2;
+  set esof = eqSumOf f;
+  rng esof c= COMPLEX by NUMBERS:11;
+  then reconsider esofc = esof as
+    Function of dom esof, COMPLEX by FUNCT_2:2;
+  thus (proj A).:support f = (proj A).:support fc
+    .= (proj A).:support mf by Th10
+    .= support eqSumOf mf by Th65, A1
+    .= support -esofc by Th55
+    .= support eqSumOf f by Th10;
+end;
+
+theorem
+  for A being non empty set, D being non empty a_partition of A,
+    f being finite-support Function of A, REAL
+  st
+    f is nonpositive-yielding
+  holds
+    (proj D).:support f = support (D eqSumOf f)
+proof
+  let A be non empty set, D be non empty a_partition of A;
+  let f be finite-support Function of A, REAL;
+  assume A1: f is nonpositive-yielding;
+  reconsider PFP = PreorderFromPartition(D) as non empty Preorder;
+  reconsider F = f as finite-support Function of PFP, REAL;
+  reconsider E = D as a_partition of the carrier of PFP;
+  D = the carrier of QuotientOrder(PFP) by Th51;
+  then A2: eqSumOf F = D eqSumOf f by Def15;
+  A3: proj PFP = proj E by Th48, Th51;
+  support (eqSumOf F) = (proj PFP).:support F by A1, Th67;
+  hence thesis by A3, A2;
+end;
+
+registration
+  let A be Preorder,
+      f be finite-support Function of A, REAL;
+  cluster eqSumOf f -> finite-support;
+  coherence
+  proof
+    (proj A).:support f is finite;
+    then support eqSumOf f is finite by Th63, FINSET_1:1;
+    hence thesis by PRE_POLY:def 8;
+  end;
+end;
+
+registration
+  let A be set, D be a_partition of A,
+  f be finite-support Function of A, REAL;
+  cluster D eqSumOf f -> finite-support;
+  coherence
+  proof
+    per cases;
+    suppose A is empty;
+      hence thesis;
+    end;
+    suppose A is non empty;
+      then reconsider B = A as non empty set;
+      reconsider E = D as non empty a_partition of B;
+      reconsider F = f as finite-support Function of B, REAL;
+      (proj E).:support f is finite;
+      then support (E eqSumOf F) is finite by Th64, FINSET_1:1;
+      hence thesis by PRE_POLY:def 8;
+    end;
+  end;
+end;
+
+theorem Th69:
+  for A being non empty set, D being non empty a_partition of A,
+    f being finite-support Function of A, REAL,
+    s1 being one-to-one FinSequence of A,
+    s2 being one-to-one FinSequence of D
+  st
+    rng s2 = (proj D).:rng s1 &
+    (for X being Element of D st X in rng s2 holds eqSupport(f, X) c= rng s1)
+  holds
+    Sum((D eqSumOf f) * s2) = Sum(f * s1)
+proof
+  let A be non empty set, D be non empty a_partition of A;
+  let f be finite-support Function of A, REAL;
+  let s1 be one-to-one FinSequence of A;
+  let s2 being one-to-one FinSequence of D;
+  assume that
+    A1: rng s2 = (proj D).:rng s1 and
+    A2: for X being Element of D st X in rng s2
+      holds eqSupport(f, X) c= rng s1;
+  defpred P[Nat] means
+    for t1 being one-to-one FinSequence of A
+    for t2 being one-to-one FinSequence of D
+    st
+      rng t2 = (proj D).:rng t1 &
+      (for X being Element of D st X in rng t2
+        holds eqSupport(f, X) c= rng t1)
+    holds
+      len t2 = $1 implies Sum((D eqSumOf f) * t2) = Sum(f * t1);
+  A3: P[0]
+  proof
+    let t1 be one-to-one FinSequence of A;
+    let t2 be one-to-one FinSequence of D;
+    assume that
+      A4: rng t2 = (proj D).:rng t1 and
+      for X being Element of D st X in rng t2
+        holds eqSupport(f, X) c= rng t1;
+    assume len t2 = 0;
+    then A5: t2 = <*>D;
+    dom proj D = A by FUNCT_2:def 1;
+    then rng t1 c= dom proj D by FINSEQ_1:def 4;
+    then A6: t1 = <*>A by A5, A4;
+    thus Sum((D eqSumOf f) * t2)
+      = Sum(f * t1) by A5, A6;
+  end;
+  A7: for j being Nat st P[j] holds P[j+1]
+  proof
+    let j be Nat;
+    assume A8: P[j];
+    let t1 be one-to-one FinSequence of A;
+    let t2 be one-to-one FinSequence of D;
+    assume that
+      A9: rng t2 = (proj D).:rng t1 and
+      A10: for X being Element of D st X in rng t2
+        holds eqSupport(f, X) c= rng t1;
+    assume A11: len t2 = j+1;
+    then consider r2 being FinSequence of D, X being Element of D such that
+      A12: t2 = r2 ^ <* X *> by FINSEQ_2:19;
+    rng <* X *> = {X} by FINSEQ_1:38;
+    then rng r2 misses {X} by A12, FINSEQ_3:91;
+    then A13: not X in rng r2 by ZFMISC_1:48;
+    1 + len r2 = j + 1 by A12, A11, FINSEQ_2:16;
+    then A14: len r2 = j;
+    reconsider r2 as one-to-one FinSequence of D by A12, FINSEQ_3:91;
+    set r1 = t1 - ((proj D) " {X});
+    A15: rng r1 c= rng t1 by FINSEQ_3:66;
+    rng t1 c= A by FINSEQ_1:def 4;
+    then rng r1 c= A by A15;
+    then reconsider r1 as FinSequence of A by FINSEQ_1:def 4;
+    reconsider r1 as one-to-one FinSequence of A by FINSEQ_3:87;
+    A16: rng r2 = (proj D).:rng r1
+    proof
+      for x being object holds x in rng r2 implies x in (proj D).:rng r1
+      proof
+        let x be object;
+        assume A17: x in rng r2;
+        then x in rng t2 by A12, FINSEQ_1:29, TARSKI:def 3;
+        then consider w being object such that
+          A18: w in dom proj D and
+          A19: w in rng t1 and
+          A20: x = (proj D).w by A9, FUNCT_1:def 6;
+        not w in (proj D) " {X}
+        proof
+          assume w in ((proj D) " {X});
+          then (proj D).w in {X} by FUNCT_1:def 7;
+          then X in rng r2 by A20, A17, TARSKI:def 1;
+          hence contradiction by A13;
+        end;
+        then w in rng t1 \ ((proj D) " {X}) by A19, XBOOLE_0:def 5;
+        then w in rng r1 by FINSEQ_3:65;
+        hence x in (proj D).:rng r1 by A18, A20, FUNCT_1:def 6;
+      end;
+      hence rng r2 c= (proj D).:rng r1;
+      for x being object holds x in (proj D).:rng r1 implies x in rng r2
+      proof
+        let x be object;
+        assume A21: x in (proj D).:rng r1;
+        then consider w being object such that
+          A22: w in dom proj D and
+          A23: w in rng r1 and
+          A24: x = (proj D).w by FUNCT_1:def 6;
+        w in rng t1 \ ((proj D) " {X}) by A23, FINSEQ_3:65;
+        then not w in (proj D) " {X} by XBOOLE_0:def 5;
+        then not x in {X} by A22, A24, FUNCT_1:def 7;
+        then A25: not x in rng <* X *> by FINSEQ_1:38;
+        x in (proj D).:rng t1 by A15, A21, RELAT_1:123, TARSKI:def 3;
+        then x in rng r2 \/ rng <* X *> by A9, A12, FINSEQ_1:31;
+        hence x in rng r2 by A25, XBOOLE_0:def 3;
+      end;
+      hence (proj D).:rng r1 c= rng r2;
+    end;
+    for Y being Element of D st Y in rng r2
+      holds eqSupport(f, Y) c= rng r1
+    proof
+      let Y be Element of D;
+      assume A26: Y in rng r2;
+      for x being object holds x in eqSupport(f, Y) implies x in rng r1
+      proof
+        let x be object;
+        assume A27: x in eqSupport(f, Y);
+        rng r2 c= rng t2 by A12, FINSEQ_1:29;
+        then eqSupport(f, Y) c= rng t1 by A10, A26;
+        then A28: x in rng t1 by A27;
+        not x in (proj D) " {X}
+        proof
+          assume x in (proj D) " {X};
+          then A29: x in dom proj D & (proj D).x in {X} by FUNCT_1:def 7;
+          then reconsider y = x as Element of A;
+          y in Y by A27, XBOOLE_0:def 4;
+          then (proj D).y = Y by EQREL_1:65;
+          then X in rng r2 by A26, A29, TARSKI:def 1;
+          hence contradiction by A13;
+        end;
+        then x in rng t1 \ ((proj D) " {X}) by A28, XBOOLE_0:def 5;
+        hence x in rng r1 by FINSEQ_3:65;
+      end;
+      hence thesis;
+    end;
+    then A30: Sum((D eqSumOf f) * r2) = Sum(f * r1) by A16, A14, A8;
+    reconsider canEq = canFS eqSupport(f, X) as FinSequence of A
+      by FINSEQ_2:24;
+    reconsider qt1 = r1 ^ canEq as FinSequence of A;
+    not ex x being object st x in rng r1 /\ rng canFS eqSupport(f, X)
+    proof
+      given x being object such that
+        A31: x in rng r1 /\ rng canFS eqSupport(f, X);
+      x in rng canFS eqSupport(f, X) by A31, XBOOLE_0:def 4;
+      then A32: x in eqSupport(f, X) by FUNCT_2:def 3;
+      then reconsider y = x as Element of A;
+      y in X by A32, XBOOLE_0:def 4;
+      then A33: (proj D).y = X by EQREL_1:65;
+      A34: x in rng r1 by A31, XBOOLE_0:def 4;
+      then x in A by FINSEQ_1:def 4, TARSKI:def 3;
+      then x in dom proj D by FUNCT_2:def 1;
+      then (proj D).x in (proj D).:rng r1 by A34, FUNCT_1:def 6;
+      then X in rng r2 by A33, A16;
+      hence contradiction by A13;
+    end;
+    then rng r1 misses rng canEq by XBOOLE_0:def 1;
+    then reconsider qt1 as one-to-one FinSequence of A by FINSEQ_3:91;
+    for x being object holds x in rng qt1 implies x in rng t1
+    proof
+      let x be object;
+      assume x in rng qt1;
+      then x in rng r1 \/ rng canEq by FINSEQ_1:31;
+      then per cases by XBOOLE_0:def 3;
+      suppose x in rng r1;
+        then x in rng t1 \ ((proj D) " {X}) by FINSEQ_3:65;
+        hence thesis;
+      end;
+      suppose x in rng canFS eqSupport(f, X);
+        then A35: x in eqSupport(f, X) by FUNCT_2:def 3;
+        rng <* X *> = {X} by FINSEQ_1:39;
+        then X in rng <* X *> by TARSKI:def 1;
+        then X in rng r2 \/ rng <* X *> by XBOOLE_0:def 3;
+        then X in rng t2 by A12, FINSEQ_1:31;
+        then eqSupport(f, X) c= rng t1 by A10;
+        hence thesis by A35;
+      end;
+    end;
+    then A36: rng qt1 c= rng t1;
+    for x being Element of A st x in rng t1 \ rng qt1 holds f.x = 0
+    proof
+      let x be Element of A;
+      assume x in rng t1 \ rng qt1;
+      then A37: x in rng t1 & not x in rng qt1 by XBOOLE_0:def 5;
+      then not x in rng r1 \/ rng canEq by FINSEQ_1:31;
+      then A38: not x in rng r1 & not x in rng canFS eqSupport(f, X)
+        by XBOOLE_0:def 3;
+      then not x in eqSupport(f, X) by FUNCT_2:def 3;
+      then per cases by XBOOLE_0:def 4;
+      suppose not x in support f;
+        hence thesis by PRE_POLY:def 7;
+      end;
+      suppose A39: not x in X;
+        not x in rng t1 \ ((proj D) " {X}) by A38, FINSEQ_3:65;
+        then A40: x in (proj D) " {X} by A37, XBOOLE_0:def 5;
+        x in A;
+        then x in dom proj D by FUNCT_2:def 1;
+        then (proj D).x in (proj D).:((proj D) " {X})
+          by A40, FUNCT_1:def 6;
+        then (proj D).x in {X} by FUNCT_1:75, TARSKI:def 3;
+        then (proj D).x = X by TARSKI:def 1;
+        hence thesis by A39, EQREL_1:def 9;
+      end;
+    end;
+    then A41: Sum(f * qt1) = Sum(f * t1) by A36, Th9;
+    thus Sum((D eqSumOf f) * t2)
+      = Sum( ((D eqSumOf f)*r2) ^ <* (D eqSumOf f).X *> ) by A12, FINSEQOP:8
+      .= Sum(f * r1) + (D eqSumOf f).X by RVSUM_1:74, A30
+      .= Sum(f * r1) + Sum(f * canFS eqSupport(f, X)) by Def14
+      .= Sum((f*r1) ^ (f * canEq)) by RVSUM_1:75
+      .= Sum(f * t1) by A41, FINSEQOP:9;
+  end;
+  for i being Nat holds P[i] from NAT_1:sch 2(A3, A7);
+  then P[len s2];
+  hence thesis by A1, A2;
+end;
+
+theorem Th70:
+  for A being non empty set, D being non empty a_partition of A,
+    f being finite-support Function of A, REAL,
+    s1 being one-to-one FinSequence of A,
+    s2 being one-to-one FinSequence of D
+  st
+    rng s1 = support f & rng s2 = support(D eqSumOf f)
+  holds
+    Sum((D eqSumOf f) * s2) = Sum(f * s1)
+proof
+  let A be non empty set, D be non empty a_partition of A;
+  let f be finite-support Function of A, REAL;
+  let s1 be one-to-one FinSequence of A;
+  let s2 being one-to-one FinSequence of D;
+  assume that
+    A1: rng s1 = support f and
+    A2: rng s2 = support(D eqSumOf f);
+  A3: (proj D).:rng s1 c= rng proj D by RELAT_1:111;
+  rng proj D c= D by RELAT_1:def 19;
+  then (proj D).:rng s1 c= D by A3;
+  then reconsider s3 = canFS (proj D).:rng s1 as FinSequence of D
+    by FINSEQ_2:24;
+  reconsider s3 as one-to-one FinSequence of D;
+  A4: rng s3 = (proj D).:rng s1 by FUNCT_2:def 3;
+  for X being Element of D st X in rng s3 holds eqSupport(f, X) c= rng s1
+    by A1, XBOOLE_0:def 4;
+  then A5: Sum((D eqSumOf f) * s3) = Sum(f * s1) by A4, Th69;
+  support (D eqSumOf f) c= (proj D).:support f by Th64;
+  then A6: rng s2 c= rng s3 by A1, A2, A4;
+  for X being Element of D st X in rng s3 \ rng s2 holds (D eqSumOf f).X = 0
+  proof
+    let X be Element of D;
+    assume X in rng s3 \ rng s2;
+    then not X in support(D eqSumOf f) by A2, XBOOLE_0:def 5;
+    hence thesis by PRE_POLY:def 7;
+  end;
+  hence thesis by A5, A6, Th9;
+end;
+
+theorem
+  for A being Preorder, f being finite-support Function of A, REAL,
+    s1 being one-to-one FinSequence of A,
+    s2 being one-to-one FinSequence of QuotientOrder(A)
+  st
+    rng s1 = support f & rng s2 = support (eqSumOf f)
+  holds
+    Sum((eqSumOf f)*s2) = Sum(f*s1)
+proof
+  let A be Preorder, f be finite-support Function of A, REAL;
+  let s1 be one-to-one FinSequence of A;
+  let s2 being one-to-one FinSequence of QuotientOrder(A);
+  assume that
+    A1: rng s1 = support f and
+    A2: rng s2 = support (eqSumOf f);
+  consider D being a_partition of the carrier of A such that
+    A3: D = the carrier of QuotientOrder(A) and
+    A4: D eqSumOf f = eqSumOf f by Def15;
+  per cases;
+  suppose A is empty;
+    then eqSumOf f is empty & f is empty;
+    hence Sum((eqSumOf f)*s2) = Sum(f*s1);
+  end;
+  suppose A is non empty;
+    then reconsider B = A as non empty Preorder;
+    reconsider E = D as non empty a_partition of the carrier of B;
+    reconsider s3 = s2 as one-to-one FinSequence of E by A3;
+    reconsider F = f as finite-support Function of B, REAL;
+    rng s3 = support (E eqSumOf F) by A2, A4;
+    hence Sum((eqSumOf f)*s2) = Sum(f*s1) by A1, A4, Th70;
+  end;
+end;
+
+begin :: Ordering Finite Sequences
+
+definition
+  let A be RelStr;
+  let s be FinSequence of A;
+  attr s is weakly-ascending means
+  for n,m being Nat st n in dom s & m in dom s & n < m holds
+    s/.n <= s/.m;
+end;
+
+definition
+  let A be RelStr;
+  let s be FinSequence of A;
+  attr s is ascending means
+  for n,m being Nat st n in dom s & m in dom s & n < m holds
+    s/.n <~ s/.m;
+end;
+
+:: it is surprising that this isn't a trivial proof by Def4
+registration
+  let A be RelStr;
+  cluster ascending -> weakly-ascending for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume s is ascending;
+    then A1: for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.n <~ s/.m;
+    for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.n <= s/.m
+    proof
+      let n,m be Nat;
+      assume that
+        A2: n in dom s & m in dom s and
+        A3: n < m;
+      s/.n <~ s/.m by A1, A2, A3;
+      hence s/.n <= s/.m;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let A be antisymmetric RelStr;
+  let s be FinSequence of A;
+  redefine attr s is ascending means
+  :Def19:
+  for n,m being Nat st n in dom s & m in dom s & n < m holds
+    s/.n < s/.m;
+  correctness
+  proof
+    hereby
+      assume A1: s is ascending;
+      let n, m be Nat;
+      assume n in dom s & m in dom s & n < m;
+      then s/.n <~ s/.m by A1;
+      hence s/.n < s/.m by ORDERS_2:def 6;
+    end;
+    assume A2: for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.n < s/.m;
+    now
+      let n, m be Nat;
+      assume n in dom s & m in dom s & n < m;
+      then s/.n < s/.m by A2;
+      then s/.n <= s/.m & s/.n <> s/.m by ORDERS_2:def 6;
+      hence s/.n <~ s/.m by ORDERS_2:2;
+    end;
+    hence s is ascending;
+  end;
+end;
+
+definition
+  let A be RelStr;
+  let s be FinSequence of A;
+  attr s is weakly-descending means
+  for n,m being Nat st n in dom s & m in dom s & n < m holds
+    s/.m <= s/.n;
+end;
+
+definition
+  let A be RelStr;
+  let s be FinSequence of A;
+  attr s is descending means
+  for n,m being Nat st n in dom s & m in dom s & n < m holds
+    s/.m <~ s/.n;
+end;
+
+registration
+  let A be RelStr;
+  cluster descending -> weakly-descending for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume s is descending;
+    then A1: for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.m <~ s/.n;
+    for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.m <= s/.n
+    proof
+      let n,m be Nat;
+      assume that
+        A2: n in dom s & m in dom s and
+        A3: n < m;
+      s/.m <~ s/.n by A1, A2, A3;
+      hence s/.m <= s/.n;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let A be antisymmetric RelStr;
+  let s be FinSequence of A;
+  redefine attr s is descending means
+  for n,m being Nat st n in dom s & m in dom s & n < m holds
+    s/.m < s/.n;
+  correctness
+  proof
+    hereby
+      assume A1: s is descending;
+      let n, m be Nat;
+      assume n in dom s & m in dom s & n < m;
+      then s/.m <~ s/.n by A1;
+      hence s/.m < s/.n by ORDERS_2:def 6;
+    end;
+    assume A2: for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.m < s/.n;
+    now
+      let n, m be Nat;
+      assume n in dom s & m in dom s & n < m;
+      then s/.m < s/.n by A2;
+      then s/.m <= s/.n & s/.m <> s/.n by ORDERS_2:def 6;
+      hence s/.m <~ s/.n by ORDERS_2:2;
+    end;
+    hence s is descending;
+  end;
+end;
+
+registration
+  let A be antisymmetric RelStr;
+  cluster one-to-one weakly-ascending -> ascending for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume that
+      A1: s is one-to-one and
+      A2: s is weakly-ascending;
+    for n, m being Nat st n in dom s & m in dom s & n < m holds
+      s/.n <~ s/.m
+    proof
+      let n, m be Nat;
+      assume that
+        A3: n in dom s & m in dom s and
+        A4: n < m;
+      A5: s/.n <= s/.m by A3, A4, A2;
+      not s/.m <= s/.n
+      proof
+        assume s/.m <= s/.n;
+        then s/.n = s/.m by A5, ORDERS_2:2;
+        then s.n = s/.m by A3, PARTFUN1:def 6;
+        then s.n = s.m by A3, PARTFUN1:def 6;
+        hence contradiction by A3, A4, A1, FUNCT_1:def 4;
+      end;
+      hence thesis by A5;
+    end;
+    hence thesis;
+  end;
+  cluster one-to-one weakly-descending -> descending for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume that
+      A6: s is one-to-one and
+      A7: s is weakly-descending;
+    for n, m being Nat st n in dom s & m in dom s & n < m holds
+      s/.m <~ s/.n
+    proof
+      let n, m be Nat;
+      assume that
+        A8: n in dom s & m in dom s and
+        A9: n < m;
+      A10: s/.m <= s/.n by A8, A9, A7;
+      not s/.n <= s/.m
+      proof
+        assume s/.n <= s/.m;
+        then s/.m = s/.n by A10, ORDERS_2:2;
+        then s.m = s/.n by A8, PARTFUN1:def 6;
+        then s.m = s.n by A8, PARTFUN1:def 6;
+        hence contradiction by A8, A9, A6, FUNCT_1:def 4;
+      end;
+      hence thesis by A10;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let A be antisymmetric RelStr;
+  cluster weakly-ascending weakly-descending -> constant for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume A1: s is weakly-ascending & s is weakly-descending;
+    for x, y being object holds
+      x in dom s & y in dom s implies s.x = s.y
+    proof
+      let x, y be object;
+      assume A2: x in dom s & y in dom s;
+      then reconsider n = x, m = y as Nat;
+      per cases by XXREAL_0:1;
+      suppose n = m;
+        hence thesis;
+      end;
+      suppose n < m;
+        then s/.n <= s/.m & s/.m <= s/.n by A1, A2;
+        then A3: [s/.n, s/.m] in the InternalRel of A &
+          [s/.m, s/.n] in the InternalRel of A by ORDERS_2:def 5;
+        A4: s.x = s/.n & s.y = s/.m by A2, PARTFUN1:def 6;
+        s.x in the carrier of A & s.y in the carrier of A by A2, PARTFUN1:4;
+        hence s.x = s.y by A3, A4, ORDERS_2:def 4, RELAT_2:def 4;
+      end;
+      suppose m < n;
+        then s/.n <= s/.m & s/.m <= s/.n by A1, A2;
+        then A5: [s/.n, s/.m] in the InternalRel of A &
+          [s/.m, s/.n] in the InternalRel of A by ORDERS_2:def 5;
+        A6: s.x = s/.n & s.y = s/.m by A2, PARTFUN1:def 6;
+        s.x in the carrier of A & s.y in the carrier of A by A2, PARTFUN1:4;
+        hence s.x = s.y by A5, A6, ORDERS_2:def 4, RELAT_2:def 4;
+      end;
+    end;
+    hence thesis by FUNCT_1:def 10;
+  end;
+end;
+
+registration
+  let A be reflexive RelStr;
+  cluster constant -> weakly-ascending weakly-descending for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume A1: s is constant;
+    for n, m being Nat st n in dom s & m in dom s & n < m holds
+      s/.n <= s/.m & s/.m <= s/.n
+    proof
+      let n,m be Nat;
+      assume A2: n in dom s & m in dom s & n < m;
+      then A3: s.n = s.m by A1, FUNCT_1:def 10;
+      A4: s.n = s/.n & s.m = s/.m by A2, PARTFUN1:def 6;
+      s.n in the carrier of A by A2, PARTFUN1:4;
+      then [s.n, s.n] in the InternalRel of A by RELAT_2:def 1, ORDERS_2:def 2;
+      hence s/.n <= s/.m & s/.m <= s/.n by A3, A4, ORDERS_2:def 5;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let A be RelStr;
+  cluster <*>the carrier of A -> ascending weakly-ascending
+    descending weakly-descending;
+  coherence;
+end;
+
+registration
+  let A be RelStr;
+  cluster empty ascending weakly-ascending descending weakly-descending
+    for FinSequence of A;
+  existence
+  proof
+    take <*>the carrier of A;
+    thus thesis;
+  end;
+end;
+
+Th72:
+  for A being non empty RelStr, x being Element of A holds
+  <* x *> is ascending weakly-ascending &
+  <* x *> is descending weakly-descending
+proof
+  let A be non empty RelStr;
+  let x be Element of A;
+  set s = <* x *>;
+  for n, m being Nat st n in dom s & m in dom s & n < m holds
+    s/.n <~ s/.m
+  proof
+    let n, m be Nat;
+    assume that
+      A2: n in dom s & m in dom s and
+      A3: n < m;
+    n in {1} & m in {1} by A2, FINSEQ_1:38, FINSEQ_1:2;
+    then n = 1 & m = 1 by TARSKI:def 1;
+    hence thesis by A3;
+  end;
+  hence s is ascending;
+  hence s is weakly-ascending;
+  for n, m being Nat st n in dom s & m in dom s & n < m holds
+    s/.m <~ s/.n
+  proof
+    let n, m be Nat;
+    assume that
+      A4: n in dom s & m in dom s and
+      A5: n < m;
+    n in {1} & m in {1} by A4, FINSEQ_1:38, FINSEQ_1:2;
+    then n = 1 & m = 1 by TARSKI:def 1;
+    hence thesis by A5;
+  end;
+  hence s is descending;
+  hence s is weakly-descending;
+end;
+
+registration
+  let A be non empty RelStr;
+  let x be Element of A;
+  cluster <* x *> -> ascending weakly-ascending
+    descending weakly-descending for FinSequence of A;
+  coherence by Th72;
+end;
+
+registration
+  let A be non empty RelStr;
+  cluster non empty one-to-one ascending weakly-ascending
+    descending weakly-descending for FinSequence of A;
+  existence
+  proof
+    reconsider IT = <* the Element of A *> as FinSequence of A;
+    take IT;
+    thus thesis;
+  end;
+end;
+
+definition
+  let A be RelStr;
+  let s be FinSequence of A;
+  attr s is asc_ordering means
+  s is one-to-one & s is weakly-ascending;
+  attr s is desc_ordering means
+  s is one-to-one & s is weakly-descending;
+end;
+
+registration
+  let A be RelStr;
+  cluster asc_ordering -> one-to-one weakly-ascending for FinSequence of A;
+  coherence;
+  cluster one-to-one weakly-ascending -> asc_ordering for FinSequence of A;
+  coherence;
+  cluster desc_ordering -> one-to-one weakly-descending for FinSequence of A;
+  coherence;
+  cluster one-to-one weakly-descending -> desc_ordering for FinSequence of A;
+  coherence;
+end;
+
+:: I thought the following registration would only work with trasitivity
+:: but apparently ascending implies asc_ordering
+registration
+  let A be RelStr;
+  cluster ascending -> asc_ordering for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume A1: s is ascending;
+    for x, y being object st x in dom s & y in dom s & s.x = s.y holds x = y
+    proof
+      let x, y be object;
+      assume that
+        A2: x in dom s & y in dom s and
+        A3: s.x = s.y;
+      reconsider n = x, m = y as Nat by A2;
+      s.x = s/.n & s.y = s/.m by A2, PARTFUN1:def 6;
+      then A4: s/.n = s/.m by A3;
+      per cases by XXREAL_0:1;
+      suppose n < m;
+        hence thesis by A4, A2, A1;
+      end;
+      suppose n = m;
+        hence thesis;
+      end;
+      suppose m < n;
+        then s/.m <~ s/.n by A2, A1;
+        hence thesis by A4;
+      end;
+    end;
+    hence thesis by A1, FUNCT_1:def 4;
+  end;
+  cluster descending -> desc_ordering for FinSequence of A;
+  coherence
+  proof
+    let s be FinSequence of A;
+    assume A5: s is descending;
+    for x, y being object st x in dom s & y in dom s & s.x = s.y holds x = y
+    proof
+      let x, y be object;
+      assume that
+        A6: x in dom s & y in dom s and
+        A7: s.x = s.y;
+      reconsider n = x, m = y as Nat by A6;
+      s.x = s/.n & s.y = s/.m by A6, PARTFUN1:def 6;
+      then A8: s/.n = s/.m by A7;
+      per cases by XXREAL_0:1;
+      suppose n < m;
+        hence thesis by A8, A6, A5;
+      end;
+      suppose n = m;
+        hence thesis;
+      end;
+      suppose m < n;
+        then s/.n <~ s/.m by A6, A5;
+        hence thesis by A8;
+      end;
+    end;
+    hence thesis by A5, FUNCT_1:def 4;
+  end;
+end;
+
+definition
+  let A be RelStr;
+  let B be Subset of A;
+  let s be FinSequence of A;
+  attr s is B-asc_ordering means
+  s is asc_ordering & rng s = B;
+  attr s is B-desc_ordering means
+  s is desc_ordering & rng s = B;
+end;
+
+registration
+  let A be RelStr, B be Subset of A;
+  cluster B-asc_ordering -> asc_ordering for FinSequence of A;
+  coherence;
+  cluster B-desc_ordering -> desc_ordering for FinSequence of A;
+  coherence;
+end;
+
+registration
+  let A be RelStr, B be empty Subset of A;
+  cluster B-asc_ordering -> empty for FinSequence of A;
+  coherence;
+  cluster B-desc_ordering -> empty for FinSequence of A;
+  coherence;
+end;
+
+theorem Th73:
+  for A being RelStr, s being FinSequence of A holds
+    s is weakly-ascending iff Rev(s) is weakly-descending
+proof
+  let A be RelStr, s be FinSequence of A;
+  hereby
+    assume A1: s is weakly-ascending;
+    now
+      let n, m be Nat;
+      assume that
+        A2: n in dom Rev(s) & m in dom Rev(s) and
+        A3: n < m;
+      set l = len s;
+      A4: n in dom s & m in dom s by A2, FINSEQ_5:57;
+      then A5: n in Seg l & m in Seg l by FINSEQ_1:def 3;
+      then n <= l & m <= l by FINSEQ_1:1;
+      then reconsider a = l - n + 1, b = l - m + 1 as Nat by FINSEQ_5:1;
+      a in Seg l & b in Seg l by A5, FINSEQ_5:2;
+      then A6: a in dom s & b in dom s by FINSEQ_1:def 3;
+      A7: s/.b = s.b by A6, PARTFUN1:def 6
+        .= (Rev s).m by A4, FINSEQ_5:58
+        .= (Rev s)/.m by A2, PARTFUN1:def 6;
+      A8: s/.a = s.a by A6, PARTFUN1:def 6
+        .= (Rev s).n by A4, FINSEQ_5:58
+        .= (Rev s)/.n by A2, PARTFUN1:def 6;
+      a = l + 1 - n & b = l + 1 - m;
+      then b < a by A3, XREAL_1:15;
+      hence (Rev s)/.m <= (Rev s)/.n by A7, A8, A1, A6;
+    end;
+    hence Rev s is weakly-descending;
+  end;
+  assume A9: Rev s is weakly-descending;
+  now
+    let n, m be Nat;
+    assume that
+      A10: n in dom s & m in dom s and
+      A11: n < m;
+    set l = len Rev(s);
+    n in dom Rev(s) & m in dom Rev(s) by A10, FINSEQ_5:57;
+    then A12: n in Seg l & m in Seg l by FINSEQ_1:def 3;
+    then n <= l & m <= l by FINSEQ_1:1;
+    then reconsider a = l - n + 1, b = l - m + 1 as Nat by FINSEQ_5:1;
+    A13: dom s = dom Rev(s) by FINSEQ_5:57;
+    a in Seg l & b in Seg l by A12, FINSEQ_5:2;
+    then A14: a in dom s & b in dom s by A13, FINSEQ_1:def 3;
+    A15: s/.n = Rev(Rev(s)).n by A10, PARTFUN1:def 6
+      .= (Rev s).a by A13, A10, FINSEQ_5:58
+      .= (Rev s)/.a by A14, A13, PARTFUN1:def 6;
+    A16: s/.m = Rev(Rev(s)).m by A10, PARTFUN1:def 6
+      .= (Rev s).b by A13, A10, FINSEQ_5:58
+      .= (Rev s)/.b by A14, A13, PARTFUN1:def 6;
+    a = l + 1 - n & b = l + 1 - m;
+    then b < a by A11, XREAL_1:15;
+    hence s/.n <= s/.m by A15, A16, A9, A13, A14;
+  end;
+  hence thesis;
+end;
+
+theorem
+  for A being RelStr, s being FinSequence of A holds
+    s is ascending iff Rev(s) is descending
+proof
+  let A be RelStr, s be FinSequence of A;
+  hereby
+    assume A1: s is ascending;
+    now
+      let n, m be Nat;
+      assume that
+        A2: n in dom Rev(s) & m in dom Rev(s) and
+        A3: n < m;
+      set l = len s;
+      A4: n in dom s & m in dom s by A2, FINSEQ_5:57;
+      then A5: n in Seg l & m in Seg l by FINSEQ_1:def 3;
+      then n <= l & m <= l by FINSEQ_1:1;
+      then reconsider a = l - n + 1, b = l - m + 1 as Nat by FINSEQ_5:1;
+      a in Seg l & b in Seg l by A5, FINSEQ_5:2;
+      then A6: a in dom s & b in dom s by FINSEQ_1:def 3;
+      A7: s/.b = s.b by A6, PARTFUN1:def 6
+        .= (Rev s).m by A4, FINSEQ_5:58
+        .= (Rev s)/.m by A2, PARTFUN1:def 6;
+      A8: s/.a = s.a by A6, PARTFUN1:def 6
+        .= (Rev s).n by A4, FINSEQ_5:58
+        .= (Rev s)/.n by A2, PARTFUN1:def 6;
+      a = l + 1 - n & b = l + 1 - m;
+      then b < a by A3, XREAL_1:15;
+      then s/.b <~ s/.a by A1, A6;
+      hence (Rev s)/.m <~ (Rev s)/.n by A7, A8;
+    end;
+    hence Rev s is descending;
+  end;
+  assume A9: Rev s is descending;
+  now
+    let n, m be Nat;
+    assume that
+      A10: n in dom s & m in dom s and
+      A11: n < m;
+    set l = len Rev(s);
+    n in dom Rev(s) & m in dom Rev(s) by A10, FINSEQ_5:57;
+    then A12: n in Seg l & m in Seg l by FINSEQ_1:def 3;
+    then n <= l & m <= l by FINSEQ_1:1;
+    then reconsider a = l - n + 1, b = l - m + 1 as Nat by FINSEQ_5:1;
+    A13: dom s = dom Rev(s) by FINSEQ_5:57;
+    a in Seg l & b in Seg l by A12, FINSEQ_5:2;
+    then A14: a in dom s & b in dom s by A13, FINSEQ_1:def 3;
+    A15: s/.n = Rev(Rev(s)).n by A10, PARTFUN1:def 6
+      .= (Rev s).a by A13, A10, FINSEQ_5:58
+      .= (Rev s)/.a by A14, A13, PARTFUN1:def 6;
+    A16: s/.m = Rev(Rev(s)).m by A10, PARTFUN1:def 6
+      .= (Rev s).b by A13, A10, FINSEQ_5:58
+      .= (Rev s)/.b by A14, A13, PARTFUN1:def 6;
+    a = l + 1 - n & b = l + 1 - m;
+    then b < a by A11, XREAL_1:15;
+    hence s/.n <~ s/.m by A15, A16, A9, A13, A14;
+  end;
+  hence thesis;
+end;
+
+theorem Th75:
+  for A being RelStr, B being Subset of A, s being FinSequence of A holds
+    s is B-asc_ordering iff Rev(s) is B-desc_ordering
+proof
+  let A be RelStr;
+  let B be Subset of A;
+  let s be FinSequence of A;
+  hereby
+    assume A1: s is B-asc_ordering;
+    then A2: Rev(s) is weakly-descending by Th73;
+    rng Rev(s) = B by A1, FINSEQ_5:57;
+    hence Rev(s) is B-desc_ordering by A2, A1;
+  end;
+  assume A4: Rev(s) is B-desc_ordering;
+  then A5: s is weakly-ascending by Th73;
+  A6: rng s = B by A4, FINSEQ_5:57;
+  Rev(Rev(s)) is one-to-one by A4;
+  hence s is B-asc_ordering by A5, A6;
+end;
+
+:: this seems trivial, I'm unsure why
+theorem
+  for A being RelStr, B being Subset of A,
+    s being FinSequence of A holds
+      s is B-asc_ordering or s is B-desc_ordering implies B is finite;
+
+registration
+  let A be antisymmetric RelStr;
+  cluster asc_ordering -> ascending for FinSequence of A;
+  coherence;
+  cluster desc_ordering -> descending for FinSequence of A;
+  coherence;
+end;
+
+theorem Th77:
+  for A being antisymmetric RelStr, B being Subset of A,
+    s1, s2 being FinSequence of A st
+      s1 is B-asc_ordering & s2 is B-asc_ordering holds s1 = s2
+proof
+  let A be antisymmetric RelStr;
+  let B be Subset of A;
+  let s1, s2 be FinSequence of A;
+  assume that
+    A1: s1 is B-asc_ordering and
+    A2: s2 is B-asc_ordering;
+  A3: s1 is ascending & s2 is ascending by A1, A2;
+  A4: rng s1 = B & rng s2 = B by A1, A2;
+  len s1 = len s2 by A1, A2, FINSEQ_1:48;
+  then dom s1 = Seg len s2 by FINSEQ_1:def 3;
+  then A5: dom s1 = dom s2 by FINSEQ_1:def 3;
+  defpred P[Nat] means $1 in dom s1 & $1 in dom s2 implies s1/.$1 = s2/.$1;
+  A6: for k being Nat st for n being Nat st n < k holds P[n] holds P[k]
+  proof
+    let k be Nat;
+    assume A7: for n being Nat st n < k holds P[n];
+    assume A8: k in dom s1 & k in dom s2;
+    assume A9: s1/.k <> s2/.k;
+    s2.k in rng s1 by A4, A8, FUNCT_1:def 3;
+    then consider i being Nat such that
+      A10: i in dom s1 & s1.i = s2.k by FINSEQ_2:10;
+    s1/.i = s2.k by A10, PARTFUN1:def 6;
+    then A11: s1/.i = s2/.k by A8, PARTFUN1:def 6;
+    s1.k in rng s2 by A4, A8, FUNCT_1:def 3;
+    then consider j being Nat such that
+      A12: j in dom s2 & s2.j = s1.k by FINSEQ_2:10;
+    s2/.j = s1.k by A12, PARTFUN1:def 6;
+    then A13: s2/.j = s1/.k by A8, PARTFUN1:def 6;
+    A14: k < i
+    proof
+      assume k >= i;
+      then per cases by XXREAL_0:1;
+      suppose A15: i < k;
+        then A16: s1/.i = s2/.i by A7, A10, A5;
+        s2/.i < s2/.k by A15, A10, A3, A5, A8;
+        hence contradiction by A11, A16;
+      end;
+      suppose i = k;
+        then s1/.k = s2.k by A10, PARTFUN1:def 6;
+        hence contradiction by A9, A8, PARTFUN1:def 6;
+      end;
+    end;
+    A17: k < j
+    proof
+      assume k >= j;
+      then per cases by XXREAL_0:1;
+      suppose A18: j < k;
+        then A19: s1/.j = s2/.j by A7, A12, A5;
+        s1/.j < s1/.k by A18, A12, A3, A5, A8;
+        hence contradiction by A13, A19;
+      end;
+      suppose j = k;
+        then s1/.k = s2.k by A8, A12, PARTFUN1:def 6;
+        hence contradiction by A9, A8, PARTFUN1:def 6;
+      end;
+    end;
+    s1/.k < s1/.i by A8, A10, A14, A3;
+    then A20: s1/.k <= s2/.k by A11, ORDERS_2:def 6;
+    s2/.k < s2/.j by A8, A12, A17, A3;
+    then s2/.k <= s1/.k by A13, ORDERS_2:def 6;
+    then s1/.k = s2/.k by A20, ORDERS_2:2;
+    hence contradiction by A9;
+  end;
+  for k being Nat holds P[k] from NAT_1:sch 4(A6);
+  then A21: for k being Nat st k in dom s1 & k in dom s2 holds s1/.k = s2/.k;
+  for k being Nat st k in dom s1 holds s1.k = s2.k
+  proof
+    let k be Nat;
+    assume A22: k in dom s1;
+    then s1/.k = s2/.k by A21, A5;
+    then s1.k = s2/.k by A22, PARTFUN1:def 6;
+    hence thesis by A22, A5, PARTFUN1:def 6;
+  end;
+  then for k being object st k in dom s1 holds s1.k = s2.k;
+  hence thesis by A5, FUNCT_1:2;
+end;
+
+theorem
+  for A being antisymmetric RelStr, B being Subset of A,
+    s1, s2 being FinSequence of A st
+      s1 is B-desc_ordering & s2 is B-desc_ordering holds s1 = s2
+proof
+  let A be antisymmetric RelStr;
+  let B be Subset of A;
+  let s1, s2 be FinSequence of A;
+  assume s1 is B-desc_ordering & s2 is B-desc_ordering;
+  then Rev(Rev(s1)) is B-desc_ordering &
+    Rev(Rev(s2)) is B-desc_ordering;
+  then Rev(s1) is B-asc_ordering & Rev(s2) is B-asc_ordering by Th75;
+  then A1: Rev(s1) = Rev(s2) by Th77;
+  thus s1 = Rev(Rev(s2)) by A1 .= s2;
+end;
+
+theorem Th79:
+  for A being LinearOrder, B being finite Subset of A,
+    s being FinSequence of A holds
+      s is B-asc_ordering iff s = SgmX(the InternalRel of A, B)
+proof
+  let A be LinearOrder, B be finite Subset of A;
+  let s be FinSequence of A;
+  thus s is B-asc_ordering implies s = SgmX(the InternalRel of A, B)
+  proof
+    assume A1: s is B-asc_ordering;
+    for n,m being Nat st n in dom s & m in dom s & n < m holds
+      s/.n <> s/.m & [s/.n,s/.m] in the InternalRel of A
+    proof
+      let n, m be Nat;
+      assume A2: n in dom s & m in dom s & n < m;
+      then reconsider x = s.n, y = s.m as Element of A by PARTFUN1:4;
+      A3: x = s/.n & y = s/.m by A2, PARTFUN1:def 6;
+      A4: x < y by A1, A2, A3, Def19;
+      hence s/.n <> s/.m by A3;
+      thus [s/.n,s/.m] in the InternalRel of A
+        by A3, A4, ORDERS_2:def 6, ORDERS_2:def 5;
+    end;
+    hence thesis by A1, PRE_POLY:9;
+  end;
+  A5: the InternalRel of A linearly_orders B by Th37, ORDERS_1:38;
+  assume A6: s = SgmX(the InternalRel of A, B);
+  then A7: rng s = B by A5, PRE_POLY:def 2;
+  A8: s is one-to-one by A5, A6, PRE_POLY:10;
+  for n, m being Nat st n in dom s & m in dom s & n < m holds
+    s/.n < s/.m
+  proof
+    let n, m be Nat such that
+    A9: n in dom s & m in dom s and
+    A10: n < m;
+    [s/.n, s/.m] in the InternalRel of A by A5, A6, A9, A10, PRE_POLY:def 2;
+    then A11: s/.n <= s/.m by ORDERS_2:def 5;
+    s/.n <> s/.m
+    proof
+      assume A12: s/.n = s/.m;
+      s/.n = s.n & s/.m = s.m by A9, PARTFUN1:def 6;
+      then n = m by A8, A9, FUNCT_1:def 4, A12;
+      hence contradiction by A10;
+    end;
+    hence thesis by A11, ORDERS_2:def 6;
+  end;
+  then s is ascending;
+  hence s is B-asc_ordering by A7;
+end;
+
+registration
+  let A be LinearOrder, B be finite Subset of A;
+  cluster SgmX(the InternalRel of A, B) -> B-asc_ordering;
+  coherence by Th79;
+end;
+
+theorem Th80:
+  for A being RelStr, B, C being Subset of A,
+    s being FinSequence of A
+      st s is B-asc_ordering & C c= B
+    holds
+      ex s2 being FinSequence of A st s2 is C-asc_ordering
+proof
+  let A be RelStr, B, C be Subset of A;
+  let s be FinSequence of A;
+  assume that
+    A1: s is B-asc_ordering and
+    A2: C c= B;
+  set s2 = s * Sgm(s" C);
+  consider n being Nat such that A3: dom s = Seg n by FINSEQ_1:def 2;
+  for x being object holds x in s" C implies x in Seg n by A3, FUNCT_1:def 7;
+  then A4: s" C c= Seg n;
+  reconsider s2 as FinSequence by A3, A4;
+  A5: rng s2 c= rng s by RELAT_1:26;
+  rng s c= the carrier of A by FINSEQ_1:def 4;
+  then rng s2 c= the carrier of A by A5;
+  then reconsider s2 as FinSequence of A by FINSEQ_1:def 4;
+  Sgm(s" C) is one-to-one by A4, FINSEQ_3:92;
+  then A6: s2 is one-to-one by A1;
+  for x being object holds x in rng s2 iff x in C
+  proof
+    let x be object;
+    hereby
+      assume x in rng s2;
+      then consider i being object such that
+        A7: i in dom s2 & x = s2.i by FUNCT_1:def 3;
+      i in dom Sgm(s" C) & Sgm(s" C).i in dom s by A7, FUNCT_1:11;
+      then Sgm(s" C).i in rng Sgm(s" C) by FUNCT_1:3;
+      then Sgm(s" C).i in s" C by A4, FINSEQ_1:def 13;
+      then Sgm(s" C).i in dom s & s.(Sgm(s" C).i) in C by FUNCT_1:def 7;
+      hence x in C by A7, FUNCT_1:12;
+    end;
+    assume A8: x in C;
+    then consider k being object such that
+      A9: k in dom s & x = s.k by A1, A2, FUNCT_1:def 3;
+    k in s" C by A8, A9, FUNCT_1:def 7;
+    then k in rng Sgm(s" C) by A4, FINSEQ_1:def 13;
+    then consider i being object such that
+      A10: i in dom Sgm(s" C) & k = Sgm(s" C).i by FUNCT_1:def 3;
+    A11: i in dom s2 by A9, A10, FUNCT_1:11;
+    then x = (s*Sgm(s" C)).i by A9, A10, FUNCT_1:12;
+    hence x in rng s2 by A11, FUNCT_1:def 3;
+  end;
+  then A12: rng s2 = C by TARSKI:2;
+  A13: for n, m being Nat st n in dom s2 & m in dom s2 & n < m holds
+    s2/.n <= s2/.m
+  proof
+    let i, j be Nat such that
+      A14: i in dom s2 & j in dom s2 and
+      A15: i < j;
+    consider m being Nat such that A16: dom Sgm(s" C) = Seg m
+      by FINSEQ_1:def 2;
+    dom Sgm(s" C) = Seg len Sgm(s" C) by FINSEQ_1:def 3;
+    then A17: len Sgm(s" C) = m by A16, FINSEQ_1:6;
+    i in dom Sgm(s" C) & j in dom Sgm(s" C) by A14, FUNCT_1:11;
+    then A18: 1 <= i & j <= len Sgm(s" C) by A16, A17, FINSEQ_1:1;
+    A19: Sgm(s" C).i in dom s & Sgm(s" C).j in dom s by A14, FUNCT_1:11;
+    reconsider k = Sgm(s" C).i, l = Sgm(s" C).j as Nat;
+    A20: s is weakly-ascending by A1;
+    A21: s.k = s2.i & s.l = s2.j by A14, FUNCT_1:12;
+    A22: s.k = s/.k & s.l = s/.l by A19, PARTFUN1:def 6;
+    s2.i = s2/.i & s2.j = s2/.j by A14, PARTFUN1:def 6;
+    then A23: s/.k = s2/.i & s/.l = s2/.j by A22, A21;
+    k < l by A18, A15, A4, FINSEQ_1:def 13;
+    then s/.k <= s/.l by A19, A20;
+    hence s2/.i <= s2/.j by A23;
+  end;
+  take s2;
+  s2 is weakly-ascending by A13;
+  hence thesis by A6, A12;
+end;
+
+theorem
+  for A being RelStr, B, C being Subset of A,
+    s being FinSequence of A
+  st s is B-desc_ordering & C c= B holds
+    ex s2 being FinSequence of A st s2 is C-desc_ordering
+proof
+  let A be RelStr, B, C be Subset of A;
+  let s be FinSequence of A;
+  assume that
+    A1: s is B-desc_ordering and
+    A2: C c= B;
+  Rev(Rev(s)) is B-desc_ordering by A1;
+  then Rev(s) is B-asc_ordering by Th75;
+  then consider s2 being FinSequence of A such that
+    A3: s2 is C-asc_ordering by A2, Th80;
+  take Rev(s2);
+  thus thesis by A3, Th75;
+end;
+
+theorem Th82:
+  for A being RelStr, B being Subset of A,
+    s being FinSequence of A, x being Element of A
+  st B = {x} & s = <*x*> holds
+    s is B-asc_ordering & s is B-desc_ordering
+proof
+  let A be RelStr;
+  let B be Subset of A;
+  let s be FinSequence of A;
+  let x be Element of A;
+  assume that
+    A1: B={x} and
+    A2: s=<*x*>;
+  A3: rng s = B by A1, A2, FINSEQ_1:38;
+  A4: s is one-to-one by A2;
+  for n, m being Nat st n in dom s & m in dom s & n < m holds
+    s/.n <= s/.m & s/.m <= s/.n
+  proof
+    let n, m be Nat such that
+      A5: n in dom s and
+      A6: m in dom s and
+      A7: n < m;
+    dom s = {1} by A2, FINSEQ_1:38, FINSEQ_1:2;
+    then n = 1 & m = 1 by A5, A6, TARSKI:def 1;
+    hence thesis by A7;
+  end;
+  then s is weakly-ascending & s is weakly-descending;
+  hence thesis by A3, A4;
+end;
+
+theorem Th83:
+  for A being RelStr, B being Subset of A, s being FinSequence of A
+    st s is B-asc_ordering holds
+      the InternalRel of A is_connected_in B
+proof
+  let A be RelStr, B be Subset of A;
+  let s be FinSequence of A;
+  assume A1: s is B-asc_ordering;
+  then A2: s is weakly-ascending;
+  for x,y being object st x in B & y in B & x <> y holds
+    [x,y] in the InternalRel of A or [y,x] in the InternalRel of A
+  proof
+    let x,y be object;
+    assume that
+      A3: x in B & y in B and
+      A4: x <> y;
+    reconsider x, y as Element of A by A3;
+    A5: x in rng s & y in rng s by A1, A3;
+    consider i being Nat such that
+      A6: i in dom s and
+      A7: x = s.i by FINSEQ_2:10, A5;
+    A8: x = s/.i by A6, A7, PARTFUN1:def 6;
+    consider j being Nat such that
+      A9: j in dom s and
+      A10: y = s.j by FINSEQ_2:10, A5;
+    A11: y = s/.j by A9, A10, PARTFUN1:def 6;
+    per cases by XXREAL_0:1;
+    suppose i < j;
+      hence thesis by A6, A9, A8, A11, A2, ORDERS_2:def 5;
+    end;
+    suppose i = j;
+      hence thesis by A7, A10, A4;
+    end;
+    suppose j < i;
+      hence thesis by A6, A9, A8, A11, A2, ORDERS_2:def 5;
+    end;
+  end;
+  hence thesis by RELAT_2:def 6;
+end;
+
+theorem
+  for A being RelStr, B being Subset of A, s being FinSequence of A
+    st s is B-desc_ordering holds
+      the InternalRel of A is_connected_in B
+proof
+  let A be RelStr, B be Subset of A;
+  let s be FinSequence of A;
+  assume s is B-desc_ordering;
+  then Rev(Rev(s)) is B-desc_ordering;
+  then Rev(s) is B-asc_ordering by Th75;
+  hence thesis by Th83;
+end;
+
+theorem Th85:
+  for A being transitive RelStr, B, C being Subset of A,
+    s1 being FinSequence of A, x being Element of A
+  st
+    s1 is C-asc_ordering & not x in C & B = C \/ {x} &
+      for y being Element of A st y in C holds x <= y
+  holds
+    ex s2 being FinSequence of A st
+      s2 = <*x*> ^ s1 & s2 is B-asc_ordering
+proof
+  let A be transitive RelStr;
+  let B,C be Subset of A;
+  let s1 be FinSequence of A;
+  let x be Element of A;
+  assume that
+    A1: s1 is C-asc_ordering and
+    A2: not x in C and
+    A3: B = C \/ {x} and
+    A4: for y being Element of A st y in C holds x <= y;
+  A5: s1 is weakly-ascending by A1;
+  set sx = <*x*>;
+  B is non empty by A3;
+  then reconsider sx as FinSequence of the carrier of A by FINSEQ_1:74;
+  set s2 = sx ^ s1;
+  take s2;
+  thus s2 = <*x*> ^ s1;
+  A6: rng s2 = rng sx \/ rng s1 by FINSEQ_1:31
+    .= B by A3, A1, FINSEQ_1:38;
+  {x} misses C by A2, ZFMISC_1:50;
+  then rng sx misses rng s1 by A1, FINSEQ_1:38;
+  then A7: s2 is one-to-one by A1, FINSEQ_3:91;
+  for n,m being Nat st n in dom s2 & m in dom s2 & n < m holds
+    s2/.n <= s2/.m
+  proof
+    let n, m be Nat such that
+      A8: n in dom s2 and
+      A9: m in dom s2 and
+      A10: n < m;
+    per cases by A8, FINSEQ_1:25;
+    suppose n in dom sx;
+      then n in Seg 1 by FINSEQ_1:38;
+      then A11: n = 1 by FINSEQ_1:2, TARSKI:def 1;
+      then s2.n = x by FINSEQ_1:41;
+      then A12: s2/.n = x by A8, PARTFUN1:def 6;
+      s2/.m in C
+      proof
+        m in Seg len s2 by A9, FINSEQ_1:def 3;
+        then A13: m <= len s2 by FINSEQ_1:1;
+        A14: len sx < m by A10, A11, FINSEQ_1:40;
+        s2.m = s1.(m-len sx) by A13, A14, FINSEQ_1:24;
+        then A15: s2.m = s1.(m-1) by FINSEQ_1:40;
+        len sx + len s1 = len s2 by FINSEQ_1:22;
+        then 1 + len s1 = len s2 by FINSEQ_1:40;
+        then len s1 = len s2 - 1;
+        then A16: m-1 <= len s1 by A13, XREAL_1:9;
+        m is non zero by A10;
+        then reconsider m1 = m-1 as Nat by CHORD:1;
+        1 < m1 + 1 by A10, A11;
+        then 1 <= m1 by NAT_1:8;
+        then m1 in Seg len s1 by A16, FINSEQ_1:1;
+        then m1 in dom s1 by FINSEQ_1:def 3;
+        then s2.m in rng s1 by A15, FUNCT_1:3;
+        hence s2/.m in C by A1, A9, PARTFUN1:def 6;
+      end;
+      hence s2/.n <= s2/.m by A12, A4;
+    end;
+    suppose ex k being Nat st k in dom s1 & n=len sx + k;
+      then consider k being Nat such that A17: k in dom s1 & n=len sx + k;
+      s2.n = s1.k by A17, FINSEQ_1:def 7;
+      then s2/.n = s1.k by A8, PARTFUN1:def 6;
+      then A18: s2/.n = s1/.k by A17, PARTFUN1:def 6;
+      A19: m in dom sx or ex l being Nat st l in dom s1 & m=len sx + l
+        by A9, FINSEQ_1:25;
+      not m in dom sx
+      proof
+        assume m in dom sx;
+        then m in Seg len sx by FINSEQ_1:def 3;
+        then m in Seg 1 by FINSEQ_1:40;
+        then A20: m = 1 by FINSEQ_1:2, TARSKI:def 1;
+        k in Seg len s1 by A17, FINSEQ_1:def 3;
+        then 1 <= k by FINSEQ_1:1;
+        then 1 < k + 1 by NAT_1:13;
+        hence contradiction by A20, A10, A17, FINSEQ_1:40;
+      end;
+      then consider l being Nat such that
+        A21: l in dom s1 & m=len sx + l by A19;
+      s2.m = s1.l by A21, FINSEQ_1:def 7;
+      then s2/.m = s1.l by A9, PARTFUN1:def 6;
+      then A22: s2/.m = s1/.l by A21, PARTFUN1:def 6;
+      k < l by A17, A21, A10, XREAL_1:6;
+      then s1/.k <= s1/.l by A17, A21, A5;
+      hence s2/.n <= s2/.m by A18, A22;
+    end;
+  end;
+  then s2 is weakly-ascending;
+  hence thesis by A6, A7;
+end;
+
+theorem Th86:
+  for A being transitive RelStr, B, C being Subset of A,
+      s1 being FinSequence of A, x being Element of A
+  st s1 is C-asc_ordering & not x in C & B = C \/ {x} &
+    for y being Element of A st y in C holds y <= x
+  holds ex s2 being FinSequence of A st
+    s2 = s1 ^ <*x*> & s2 is B-asc_ordering
+proof
+  let A be transitive RelStr;
+  let B,C be Subset of A;
+  let s1 be FinSequence of A;
+  let x be Element of A;
+  assume that
+    A1: s1 is C-asc_ordering and
+    A2: not x in C and
+    A3: B = C \/ {x} and
+    A4: for y being Element of A st y in C holds y <= x;
+  A5: s1 is weakly-ascending by A1;
+  set sx = <*x*>;
+  B is non empty by A3;
+  then reconsider sx as FinSequence of the carrier of A by FINSEQ_1:74;
+  reconsider sx as FinSequence of A;
+  set s2 = s1 ^ sx;
+  take s2;
+  A6: rng s2 = rng sx \/ rng s1 by FINSEQ_1:31
+    .= B by A3, A1, FINSEQ_1:38;
+  {x} misses C by A2, ZFMISC_1:50;
+  then rng sx misses rng s1 by A1, FINSEQ_1:38;
+  then A7: s2 is one-to-one by A1, FINSEQ_3:91;
+  for n, m being Nat st n in dom s2 & m in dom s2 & n < m holds
+    s2/.n <= s2/.m
+  proof
+    let n, m being Nat such that
+      A8: n in dom s2 and
+      A9: m in dom s2 and
+      A10: n < m;
+    per cases by A9, FINSEQ_1:25;
+    suppose A11: m in dom s1;
+      then s2.m = s1.m by FINSEQ_1:def 7;
+      then s2/.m = s1.m by A9, PARTFUN1:def 6;
+      then A12: s2/.m = s1/.m by A11, PARTFUN1:def 6;
+      per cases by A8, FINSEQ_1:25;
+      suppose A13: n in dom s1;
+        then s2.n = s1.n by FINSEQ_1:def 7;
+        then s2/.n = s1.n by A8, PARTFUN1:def 6;
+        then A14: s2/.n = s1/.n by A13, PARTFUN1:def 6;
+        s1/.n <= s1/.m by A5, A11, A13, A10;
+        hence s2/.n <= s2/.m by A12, A14;
+      end;
+      suppose ex l being Nat st l in dom sx & n=len s1 + l;
+        then consider l being Nat such that A15: l in dom sx & n=len s1 + l;
+        m in Seg len s1 by A11, FINSEQ_1:def 3;
+        then A16: m <= len s1 by FINSEQ_1:1;
+        l in Seg 1 by A15, FINSEQ_1:def 8;
+        then l = 1 by FINSEQ_1:2, TARSKI:def 1;
+        then m < n by A15, A16, NAT_1:13;
+        hence thesis by A10;
+      end;
+    end;
+    suppose ex k being Nat st k in dom sx & m=len s1 + k;
+      then consider k being Nat such that A17: k in dom sx & m=len s1 + k;
+      k in Seg len sx by A17, FINSEQ_1:def 3;
+      then k in Seg 1 by FINSEQ_1:40;
+      then A18: k = 1 by FINSEQ_1:2, TARSKI:def 1;
+      then s2.m = x by A17, FINSEQ_1:42;
+      then A19: s2/.m = x by A9, PARTFUN1:def 6;
+      s2/.n in C
+      proof
+        per cases by A8, FINSEQ_1:25;
+        suppose A20: n in dom s1;
+          then A21: s2.n = s1.n by FINSEQ_1:def 7;
+          s1.n in rng s1 by A20, FUNCT_1:3;
+          hence s2/.n in C by A21, A1, A8, PARTFUN1:def 6;
+        end;
+        suppose ex l being Nat st l in dom sx & n=len s1 + l;
+          then consider l being Nat such that A22: l in dom sx & n=len s1 + l;
+          l in Seg len sx by A22, FINSEQ_1:def 3;
+          then l in Seg 1 by FINSEQ_1:40;
+          then m = n by A17, A22, A18, FINSEQ_1:2, TARSKI:def 1;
+          hence thesis by A10;
+        end;
+      end;
+      hence s2/.n <= s2/.m by A19, A4;
+    end;
+  end;
+  then s2 is weakly-ascending;
+  hence thesis by A6, A7;
+end;
+
+theorem
+  for A being transitive RelStr, B, C being Subset of A,
+    s1 being FinSequence of A, x being Element of A
+  st s1 is C-desc_ordering & not x in C & B = C \/ {x} &
+    for y being Element of A st y in C holds x <= y
+  holds
+    ex s2 being FinSequence of A st
+      s2 = s1 ^ <*x*> & s2 is B-desc_ordering
+proof
+  let A be transitive RelStr;
+  let B,C be Subset of A;
+  let s1 be FinSequence of A;
+  let x be Element of A;
+  assume that
+    A1: s1 is C-desc_ordering and
+    A2: not x in C & B = C \/ {x} &
+      for y being Element of A st y in C holds x <= y;
+  Rev(Rev(s1)) is C-desc_ordering by A1;
+  then Rev(s1) is C-asc_ordering by Th75;
+  then consider s2 being FinSequence of A such that
+    A3: s2 = <*x*> ^ Rev(s1) and
+    A4: s2 is B-asc_ordering by A2, Th85;
+  take Rev(s2);
+  thus Rev(s2) = Rev(Rev(s1)) ^ Rev(<*x*>) by A3, FINSEQ_5:64
+    .= s1 ^ <*x*> by FINSEQ_5:60;
+  thus Rev(s2) is B-desc_ordering by A4, Th75;
+end;
+
+theorem
+  for A being transitive RelStr, B, C being Subset of A,
+    s1 being FinSequence of A, x being Element of A
+  st s1 is C-desc_ordering & not x in C & B = C \/ {x} &
+    for y being Element of A st y in C holds y <= x
+  holds
+    ex s2 being FinSequence of A st
+      s2 = <*x*> ^ s1 & s2 is B-desc_ordering
+proof
+  let A be transitive RelStr;
+  let B,C be Subset of A;
+  let s1 be FinSequence of A;
+  let x be Element of A;
+  assume that
+    A1: s1 is C-desc_ordering and
+    A2: not x in C & B = C \/ {x} &
+      for y being Element of A st y in C holds y <= x;
+  Rev(Rev(s1)) is C-desc_ordering by A1;
+  then Rev(s1) is C-asc_ordering by Th75;
+  then consider s2 being FinSequence of A such that
+    A3: s2 = Rev(s1) ^ <*x*> and
+    A4: s2 is B-asc_ordering by A2, Th86;
+  take Rev(s2);
+  thus Rev(s2) = <*x*> ^ Rev(Rev(s1)) by A3, FINSEQ_5:63
+    .= <*x*> ^ s1;
+  thus Rev(s2) is B-desc_ordering by A4, Th75;
+end;
+
+theorem Th89:
+  for A being transitive RelStr, B being finite Subset of A st
+    the InternalRel of A is_connected_in B holds
+      ex s being FinSequence of A st s is B-asc_ordering
+proof
+  let A be transitive RelStr;
+  let B be finite Subset of A;
+  assume A1: the InternalRel of A is_connected_in B;
+  defpred P[Nat] means for C being Subset of A st C c= B & card C = $1 holds
+    ex s being FinSequence of A st s is C-asc_ordering;
+  A2: P[0]
+  proof
+    let C be Subset of A;
+    assume C c= B & card C = 0;
+    then A3: C = {}the carrier of A;
+    reconsider s = <*>the carrier of A as FinSequence of A;
+    take s;
+    thus thesis by A3;
+  end;
+  A4: for k be Nat st P[k] holds P[k + 1]
+  proof
+    let k be Nat;
+    assume A5: P[k];
+    for C being Subset of A st C c= B & card C = k+1 holds
+      ex s being FinSequence of A st s is C-asc_ordering
+    proof
+      let C be Subset of A;
+      assume A6: C c= B & card C = k+1;
+      per cases;
+      suppose k = 0;
+        then A7: card C = 1 by A6;
+        set x = the Element of C;
+        A8: C is non empty by A7;
+        then A9: {x} = C by A7, Th2;
+        then x in C;
+        then reconsider x as Element of A;
+        set s = <*x*>;
+        reconsider s as FinSequence of A by A8, FINSEQ_1:74;
+        take s;
+        thus thesis by A9, Th82;
+      end;
+      suppose k > 0;
+        A10: C is non empty by A6;
+        reconsider C as finite Subset of A by A6;
+        the InternalRel of A is_connected_in C by A1, A6, Th16;
+        then consider x being Element of A such that A11: x in C &
+          for y being Element of A st y in C & x <> y holds
+            x <= y by A10, Th31;
+        set D = C \ {x};
+        reconsider D as Subset of A;
+        A12: D c= C by XBOOLE_1:36;
+        then A13: D c= B by A6;
+        card D = card C - card {x} by A11, ZFMISC_1:31, CARD_2:44
+          .= k + 1 - 1 by A6, CARD_1:30
+          .= k;
+        then consider s1 being FinSequence of A such that
+          A14: s1 is D-asc_ordering by A5, A13;
+        A15: not x in D by ZFMISC_1:56;
+        A16: for y being Element of A st y in D holds
+          x <= y
+        proof
+          let y be Element of A such that A17: y in D;
+          A18: x <> y by A17, ZFMISC_1:56;
+          y in C by A17, A12;
+          hence thesis by A11, A18;
+        end;
+        C = D \/ {x} by A11, ZFMISC_1:116;
+        then consider s2 being FinSequence of A such that
+   A19: s2 = <*x*> ^ s1 & s2 is C-asc_ordering by A14, A16, A15, Th85;
+        take s2;
+        thus thesis by A19;
+      end;
+    end;
+    hence P[k+1];
+  end;
+  A20: for k being Nat holds P[k] from NAT_1:sch 2(A2, A4);
+  reconsider cardB = card B as Nat;
+  P[cardB] by A20;
+  hence thesis;
+end;
+
+theorem
+  for A being transitive RelStr, B being finite Subset of A st
+    the InternalRel of A is_connected_in B holds
+      ex s being FinSequence of A st s is B-desc_ordering
+proof
+  let A be transitive RelStr;
+  let B be finite Subset of A;
+  assume the InternalRel of A is_connected_in B;
+  then consider s being FinSequence of A such that
+    A1: s is B-asc_ordering by Th89;
+  take Rev s;
+  thus thesis by A1, Th75;
+end;
+
+theorem Th91:
+  for A being connected transitive RelStr, B being finite Subset of A holds
+    ex s being FinSequence of A st s is B-asc_ordering
+proof
+  let A be connected transitive RelStr, B be finite Subset of A;
+  the InternalRel of A is_connected_in the carrier of A by Def1;
+  hence thesis by Th16, Th89;
+end;
+
+theorem Th92:
+  for A being connected transitive RelStr, B being finite Subset of A holds
+    ex s being FinSequence of A st s is B-desc_ordering
+proof
+  let A be connected transitive RelStr, B be finite Subset of A;
+  consider s being FinSequence of A such that A1: s is B-asc_ordering by Th91;
+  take Rev s;
+  thus thesis by A1, Th75;
+end;
+
+registration
+  let A be connected transitive RelStr;
+  let B be finite Subset of A;
+  cluster B-asc_ordering for FinSequence of A;
+  existence by Th91;
+  cluster B-desc_ordering for FinSequence of A;
+  existence by Th92;
+end;
+
+theorem Th93:
+  for A being Preorder, B being Subset of A st
+      the InternalRel of A is_connected_in B
+    holds
+      the InternalRel of QuotientOrder(A) is_connected_in (proj A).:B
+proof
+  let A be Preorder, B be Subset of A;
+  set qa = QuotientOrder(A);
+  set car = the carrier of A;
+  set carq = the carrier of qa;
+  set int = the InternalRel of A;
+  set intq = the InternalRel of qa;
+  set C = (proj A).:B;
+  assume A1: int is_connected_in B;
+  for X, Y being object holds
+    X in C & Y in C & X <> Y implies [X,Y] in intq or [Y,X] in intq
+  proof
+    let X, Y be object;
+    assume that
+      A2: X in C & Y in C and
+      A3: X <> Y;
+    consider x being object such that
+      A4: x in dom proj A and
+      A5: x in B and
+      A6: X = (proj A).x by A2, FUNCT_1:def 6;
+    consider y being object such that
+      A7: y in dom proj A and
+      A8: y in B and
+      A9: Y = (proj A).y by A2, FUNCT_1:def 6;
+    per cases;
+    suppose A is empty;
+      hence thesis by A2;
+    end;
+    suppose A is non empty;
+      then reconsider A as non empty Preorder;
+      reconsider x, y as Element of A by A4, A7;
+      x <> y by A3, A6, A9;
+      then [x,y] in int or [y,x] in int by A1, A5, A8, RELAT_2:def 6;
+      then (proj A).x <= (proj A).y or (proj A).y <= (proj A).x by Th45,
+        ORDERS_2:def 5;
+      hence [X,Y] in intq or [Y,X] in intq by A6, A9, ORDERS_2:def 5;
+    end;
+  end;
+  hence thesis by RELAT_2:def 6;
+end;
+
+theorem Th94:
+  for A being Preorder, B being Subset of A,
+    s1 being FinSequence of A
+  st
+    s1 is B-asc_ordering
+  holds
+    ex s2 being FinSequence of QuotientOrder(A) st
+      s2 is ((proj A).:B)-asc_ordering
+proof
+  let A be Preorder, B be Subset of A;
+  let s1 be FinSequence of the carrier of A;
+  assume A1: s1 is B-asc_ordering;
+  then A2: the InternalRel of A is_connected_in B by Th83;
+  reconsider B as finite Subset of A by A1;
+  (proj A).:B is finite;
+  hence thesis by A2, Th93, Th89;
+end;
+
+theorem
+  for A being Preorder, B being Subset of A,
+    s1 being FinSequence of A
+  st
+    s1 is B-desc_ordering
+  holds
+    ex s2 being FinSequence of QuotientOrder(A) st
+      s2 is ((proj A).:B)-desc_ordering
+proof
+  let A be Preorder, B be Subset of A;
+  let s1 be FinSequence of the carrier of A;
+  assume s1 is B-desc_ordering;
+  then Rev(Rev(s1)) is B-desc_ordering;
+  then Rev(s1) is B-asc_ordering by Th75;
+  then consider s2 being FinSequence of QuotientOrder(A) such that
+    A1: s2 is ((proj A).:B)-asc_ordering by Th94;
+  take Rev(s2);
+  thus thesis by A1, Th75;
+end;

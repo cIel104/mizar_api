@@ -1,0 +1,1246 @@
+:: Introduction to Graph Enumerations
+::  by Sebastian Koch
+:: 
+:: Received March 31, 2023
+:: Copyright (c) 2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, FINSET_1, RELAT_1, FUNCT_1, XBOOLE_0, TARSKI, SUBSET_1,
+      FINSEQ_1, FUNCOP_1, ZFMISC_1, CARD_1, ARYTM_3, ORDINAL2, XXREAL_0,
+      PBOOLE, GLIB_000, RING_3, GLIB_002, PARTFUN1, FUNCT_2, CHORD, SCMYCIEL,
+      GLIB_006, GLIB_009, GLIB_010, GLIB_012, MOD_4, RELAT_2, GRAPH_1,
+      GLIB_001, ABIAN, TREES_1, EQREL_1, GLIB_013, GLIB_014, WELLORD1,
+      ORDERS_1, RCOMP_1, GLIB_015, GLENUM00;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, RELAT_2,
+      ORDINAL1, RELSET_1, PARTFUN1, FUNCT_2, BINOP_1, DOMAIN_1, EQREL_1,
+      FUNCOP_1, FUNCT_3, ORDERS_1, TOLER_1, FINSET_1, CARD_1, XCMPLX_0,
+      XXREAL_0, FINSEQ_1, ABIAN, GLIB_000, GLIB_001, GLIB_002, CHORD, GLIB_006,
+      GLIB_008, GLIB_009, GLIB_010, GLIB_012, GLIB_013, GLIB_014, GLIB_015;
+ constructors DOMAIN_1, CHORD, GLIB_002, GLIB_008, GLIB_010, GLIB_012,
+      ORDERS_1, GLIB_015, TOLER_1, COMPUT_1, EQREL_1, GLIB_013;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, FUNCT_1, ORDINAL1, FUNCOP_1,
+      FINSET_1, XREAL_0, NAT_1, FUNCT_2, RELSET_1, GLIB_000, CHORD, GLIB_002,
+      GLIB_006, GLIB_009, GLIB_008, GLIB_010, XTUPLE_0, ABIAN, GLIB_001,
+      MEMBERED, GLIB_012, GLIB_013, GLIB_014, GLIBPRE1, GLIB_015;
+ requirements ARITHM, BOOLE, NUMERALS, REAL, SUBSET;
+
+
+begin :: Subgraph set and Subgraph Relation
+
+reserve G, G1, G2 for _Graph, H for Subgraph of G;
+
+::$INSERT "SG" is short for "Subgraphs".
+definition
+  let G;
+  func G.allSG() -> Graph-membered set equals
+:: GLENUM00:def 1
+  { the plain inducedSubgraph of G,V,E
+      where V is non empty Subset of the_Vertices_of G,
+        E is Subset of the_Edges_of G
+      : E c= G.edgesBetween(V) };
+end;
+
+registration
+  let G be _finite _Graph;
+  cluster G.allSG() -> finite;
+end;
+
+theorem :: GLENUM00:1
+  G2 in G1.allSG() iff G2 is plain Subgraph of G1;
+
+theorem :: GLENUM00:2
+  H | _GraphSelectors in G.allSG();
+
+theorem :: GLENUM00:3
+  G | _GraphSelectors in G.allSG();
+
+definition
+  let G; let V be non empty Subset of the_Vertices_of G;
+  func createGraph(V) -> plain Subgraph of G equals
+:: GLENUM00:def 2
+  createGraph(V,{},the Function of {},V, the Function of {},V);
+end;
+
+registration
+  let G; let V be non empty Subset of the_Vertices_of G;
+  cluster createGraph(V) -> edgeless;
+end;
+
+theorem :: GLENUM00:4
+  for V being non empty Subset of the_Vertices_of G
+  holds createGraph(V) in G.allSG();
+
+theorem :: GLENUM00:5
+  for V being non empty Subset of the_Vertices_of G
+  for H being inducedSubgraph of G, V, {}
+  holds H == createGraph(V);
+
+theorem :: GLENUM00:6
+  for H being removeEdges of G, the_Edges_of G
+  holds H == createGraph([#]the_Vertices_of G);
+
+theorem :: GLENUM00:7
+  G is edgeless iff G == createGraph([#]the_Vertices_of G);
+
+theorem :: GLENUM00:8
+  for V being non empty Subset of the_Vertices_of G1
+  st V c= the_Vertices_of G2 holds createGraph(V) is Subgraph of G2;
+
+theorem :: GLENUM00:9
+  G is edgeless iff G.allSG() = the set of all createGraph(V)
+    where V is non empty Subset of the_Vertices_of G;
+
+definition
+  let G; let v be Vertex of G;
+  func createGraph(v) -> plain Subgraph of G equals
+:: GLENUM00:def 3
+  createGraph({v});
+end;
+
+registration
+  let G; let v be Vertex of G;
+  cluster createGraph(v) -> _trivial edgeless;
+end;
+
+theorem :: GLENUM00:10
+  for v being Vertex of G holds createGraph(v) in G.allSG();
+
+theorem :: GLENUM00:11
+  for v being Vertex of G, H being inducedSubgraph of G, {v}, {}
+  holds H == createGraph(v);
+
+theorem :: GLENUM00:12
+  for v being Vertex of G1 st v in the_Vertices_of G2
+  holds createGraph(v) is Subgraph of G2;
+
+definition
+  let G be non edgeless _Graph, e be Edge of G;
+  func createGraph(e) -> plain Subgraph of G means
+:: GLENUM00:def 4
+
+  ex V being non empty Subset of the_Vertices_of G,
+    S, T being Function of {e}, V
+  st it = createGraph(V,{e},S,T) &
+    {(the_Source_of G).e,(the_Target_of G).e} = V &
+    S = e .--> (the_Source_of G).e & T = e .--> (the_Target_of G).e;
+end;
+
+theorem :: GLENUM00:13
+  for G being non edgeless _Graph, e being Edge of G
+  holds the_Edges_of createGraph(e) = {e} & the_Vertices_of createGraph(e)
+    = {(the_Source_of G).e,(the_Target_of G).e};
+
+theorem :: GLENUM00:14
+  for G being non edgeless _Graph, e being Edge of G
+  holds e DJoins (the_Source_of G).e,(the_Target_of G).e,createGraph(e);
+
+theorem :: GLENUM00:15
+  for G being non edgeless _Graph, e being Edge of G, e0,v,w being object
+  st e0 DJoins v,w,createGraph(e)
+  holds e0 = e & v = (the_Source_of G).e & w = (the_Target_of G).e;
+
+theorem :: GLENUM00:16
+  for G being non edgeless _Graph, e being Edge of G, e0,v,w being object
+  st e0 Joins v,w,createGraph(e) holds e0 = e;
+
+registration
+  let G be non edgeless _Graph, e be Edge of G;
+  cluster createGraph(e) -> non edgeless non-multi connected _finite;
+end;
+
+theorem :: GLENUM00:17
+  for G being non edgeless _Graph, e being Edge of G
+  holds createGraph(e) is loopless iff not e in G.loops();
+
+theorem :: GLENUM00:18
+  for G being non edgeless _Graph, e being Edge of G
+  holds createGraph(e) is acyclic iff not e in G.loops();
+
+theorem :: GLENUM00:19
+  for G being non edgeless _Graph, e being Edge of G
+  holds createGraph(e) in G.allSG();
+
+theorem :: GLENUM00:20
+  for G being non edgeless _Graph, e being Edge of G, H being
+    inducedSubgraph of G, {(the_Source_of G).e, (the_Target_of G).e}, {e}
+  holds H == createGraph(e);
+
+theorem :: GLENUM00:21
+  for G being non edgeless _Graph, e being Edge of G
+  for V being Subset of the_Vertices_of G
+  for H being addVertices of createGraph(e), V
+  holds H is Subgraph of G;
+
+theorem :: GLENUM00:22
+  for G being edgeless _Graph, S being GraphUnionSet, G9 being GraphUnion of S
+  st (for v being Vertex of G ex H9 being Element of S st
+      v in the_Vertices_of H9)
+  holds G is Subgraph of G9;
+
+theorem :: GLENUM00:23
+  for G being non edgeless _Graph, S being GraphUnionSet
+  for G9 being GraphUnion of S
+  st (for v being Vertex of G ex H9 being Element of S st
+      v in the_Vertices_of H9) &
+    (for e being Edge of G ex H9 being Element of S st
+      createGraph(e) is Subgraph of H9)
+  holds G is Subgraph of G9;
+
+theorem :: GLENUM00:24
+  for G being edgeless _Graph, S being GraphUnionSet, G9 being GraphUnion of S
+  st (for v being Vertex of G holds createGraph(v) in S)
+  holds G is Subgraph of G9;
+
+theorem :: GLENUM00:25
+  for G being non edgeless _Graph, S being GraphUnionSet
+  for G9 being GraphUnion of S
+  st (for v being Vertex of G holds createGraph(v) in S) &
+    (for e being Edge of G holds createGraph(e) in S)
+  holds G is Subgraph of G9;
+
+theorem :: GLENUM00:26
+  for G being non edgeless _Graph, E being set, e being Edge of G
+  for H being removeEdges of G, E st not e in E
+  holds createGraph(e) is Subgraph of H;
+
+theorem :: GLENUM00:27
+  for G being non edgeless _Graph, H being removeLoops of G
+  for S being GraphUnionSet, G9 being GraphUnion of S
+  st (for v being Vertex of G ex H9 being Element of S st
+      v in the_Vertices_of H9) &
+    (for e being Edge of G st not e in G.loops() ex H9 being Element of S st
+      createGraph(e) is Subgraph of H9)
+  holds H is Subgraph of G9;
+
+theorem :: GLENUM00:28
+  for G being non edgeless _Graph, H being removeLoops of G
+  for S being GraphUnionSet, G9 being GraphUnion of S
+  st (for v being Vertex of G holds createGraph(v) in S) &
+    (for e being Edge of G st not e in G.loops() holds createGraph(e) in S)
+  holds H is Subgraph of G9;
+
+registration
+  let G;
+  cluster G.allSG() -> non empty \/-tolerating plain;
+end;
+
+definition
+  let G; let S be non empty Subset of G.allSG();
+  redefine mode Element of S -> Subgraph of G;
+end;
+
+theorem :: GLENUM00:29
+  G2.allSG() c= G1.allSG() iff G2 is Subgraph of G1;
+
+theorem :: GLENUM00:30
+  G1 == G2 iff G1.allSG() = G2.allSG();
+
+definition
+  let G1, G2; let F be PGraphMapping of G1, G2;
+  func SG2SGFunc(F) -> Function of G1.allSG(), G2.allSG() means
+:: GLENUM00:def 5
+
+  for H being plain Subgraph of G1 holds it.H = rng(F | H);
+end;
+
+registration
+  let G1, G2; let F be PGraphMapping of G1, G2;
+  cluster SG2SGFunc(F) -> non empty Graph-yielding;
+  cluster dom SG2SGFunc(F) -> Graph-membered;
+end;
+
+registration
+  let G1, G2; let F be PGraphMapping of G1, G2;
+  cluster dom SG2SGFunc(F) -> plain;
+end;
+
+theorem :: GLENUM00:31
+  for F being PGraphMapping of G1, G2
+  st F is weak_SG-embedding holds SG2SGFunc(F) is one-to-one;
+
+registration
+  let G1 be _Graph, G2 be G1-isomorphic _Graph, F be Isomorphism of G1, G2;
+  cluster SG2SGFunc(F) -> one-to-one;
+end;
+
+theorem :: GLENUM00:32
+  for F being PGraphMapping of G1, G2 st F is onto
+  holds rng SG2SGFunc(F) = G2.allSG();
+
+:: the other direction doesn't hold for all graphs, but for finite ones
+:: which is not proven here
+theorem :: GLENUM00:33
+  G2 is G1-Disomorphic implies G1.allSG(),G2.allSG() are_Disomorphic;
+
+theorem :: GLENUM00:34
+  G2 is G1-isomorphic implies G1.allSG(),G2.allSG() are_isomorphic;
+
+theorem :: GLENUM00:35
+  G is GraphUnion of G.allSG();
+
+theorem :: GLENUM00:36
+  (G is loopless iff G.allSG() is loopless) &
+  (G is non-multi iff G.allSG() is non-multi) &
+  (G is non-Dmulti iff G.allSG() is non-Dmulti) &
+  (G is simple iff G.allSG() is simple) &
+  (G is Dsimple iff G.allSG() is Dsimple) &
+  (G is acyclic iff G.allSG() is acyclic) &
+  (G is edgeless iff G.allSG() is edgeless);
+
+registration
+  let G be loopless _Graph;
+  cluster G.allSG() -> loopless;
+end;
+
+registration
+  let G be non-multi _Graph;
+  cluster G.allSG() -> non-multi;
+end;
+
+registration
+  let G be non-Dmulti _Graph;
+  cluster G.allSG() -> non-Dmulti;
+end;
+
+registration
+  let G be simple _Graph;
+  cluster G.allSG() -> simple;
+end;
+
+registration
+  let G be Dsimple _Graph;
+  cluster G.allSG() -> Dsimple;
+end;
+
+registration
+  let G be acyclic _Graph;
+  cluster G.allSG() -> acyclic;
+end;
+
+registration
+  let G be edgeless _Graph;
+  cluster G.allSG() -> edgeless;
+end;
+
+theorem :: GLENUM00:37
+  the_Vertices_of G.allSG() = (bool the_Vertices_of G) \ {{}};
+
+theorem :: GLENUM00:38
+  the_Edges_of G.allSG() = bool the_Edges_of G;
+
+definition
+  let G;
+  func SubgraphRel(G) -> Relation of G.allSG() means
+:: GLENUM00:def 6
+
+  for H1, H2 being Element of G.allSG() holds [H1,H2] in it iff
+    H1 is Subgraph of H2;
+end;
+
+theorem :: GLENUM00:39
+  [H | _GraphSelectors, G | _GraphSelectors] in SubgraphRel(G);
+
+theorem :: GLENUM00:40
+  field SubgraphRel(G) = G.allSG();
+
+theorem :: GLENUM00:41
+  SubgraphRel(G) partially_orders G.allSG();
+
+registration
+  let G;
+  cluster SubgraphRel(G) -> reflexive antisymmetric transitive
+    being_partial-order;
+end;
+
+theorem :: GLENUM00:42
+  G | _GraphSelectors is_maximal_in SubgraphRel(G);
+
+theorem :: GLENUM00:43
+  SubgraphRel(H) = (SubgraphRel G) |_2 H.allSG();
+
+theorem :: GLENUM00:44
+  for S being non empty Subset of G.allSG(), G9 being GraphUnion of S
+  st (SubgraphRel G) |_2 S is being_linear-order holds
+  for W being Walk of G9 ex H being Element of S st W is Walk of H;
+
+begin :: Induced Subgraph set
+
+definition
+  let G;
+  func G.allInducedSG() -> Subset of G.allSG() equals
+:: GLENUM00:def 7
+  the set of all the plain inducedSubgraph of G,V
+    where V is non empty Subset of the_Vertices_of G;
+end;
+
+theorem :: GLENUM00:45
+  G2 in G1.allInducedSG() iff
+    ex V being non empty Subset of the_Vertices_of G1
+    st G2 is plain inducedSubgraph of G1,V;
+
+registration
+  let G be vertex-finite _Graph;
+  cluster G.allInducedSG() -> finite;
+end;
+
+theorem :: GLENUM00:46
+  for V being non empty Subset of the_Vertices_of G
+  for H being inducedSubgraph of G, V
+  holds H | _GraphSelectors in G.allInducedSG();
+
+theorem :: GLENUM00:47
+  G | _GraphSelectors in G.allInducedSG();
+
+registration
+  let G;
+  cluster G.allInducedSG() -> non empty \/-tolerating plain;
+end;
+
+theorem :: GLENUM00:48
+  G2.allInducedSG() c= G1.allInducedSG() iff
+    ex V being non empty Subset of the_Vertices_of G1
+    st G2 is inducedSubgraph of G1,V;
+
+theorem :: GLENUM00:49
+  G1 == G2 iff G1.allInducedSG() = G2.allInducedSG();
+
+theorem :: GLENUM00:50
+  for F being PGraphMapping of G1, G2 st F is total onto
+  holds G2.allInducedSG() c= rng(SG2SGFunc(F) | G1.allInducedSG());
+
+theorem :: GLENUM00:51
+  for F being PGraphMapping of G1, G2 st F is total continuous
+  holds rng(SG2SGFunc(F) | G1.allInducedSG()) c= G2.allInducedSG();
+
+theorem :: GLENUM00:52
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds rng(SG2SGFunc(F) | G1.allInducedSG())  = G2.allInducedSG();
+
+theorem :: GLENUM00:53
+  G2 is G1-Disomorphic implies
+    G1.allInducedSG(),G2.allInducedSG() are_Disomorphic;
+
+theorem :: GLENUM00:54
+  G2 is G1-isomorphic implies
+    G1.allInducedSG(),G2.allInducedSG() are_isomorphic;
+
+theorem :: GLENUM00:55
+  G is GraphUnion of G.allInducedSG();
+
+theorem :: GLENUM00:56
+  (G is loopless iff G.allInducedSG() is loopless) &
+  (G is non-multi iff G.allInducedSG() is non-multi) &
+  (G is non-Dmulti iff G.allInducedSG() is non-Dmulti) &
+  (G is simple iff G.allInducedSG() is simple) &
+  (G is Dsimple iff G.allInducedSG() is Dsimple) &
+  (G is acyclic iff G.allInducedSG() is acyclic) &
+  (G is edgeless iff G.allInducedSG() is edgeless) &
+  (G is chordal iff G.allInducedSG() is chordal) &
+  (G is loopfull iff G.allInducedSG() is loopfull);
+
+registration
+  let G be loopless _Graph;
+  cluster G.allInducedSG() -> loopless;
+end;
+
+registration
+  let G be non-multi _Graph;
+  cluster G.allInducedSG() -> non-multi;
+end;
+
+registration
+  let G be non-Dmulti _Graph;
+  cluster G.allInducedSG() -> non-Dmulti;
+end;
+
+registration
+  let G be simple _Graph;
+  cluster G.allInducedSG() -> simple;
+end;
+
+registration
+  let G be Dsimple _Graph;
+  cluster G.allInducedSG() -> Dsimple;
+end;
+
+registration
+  let G be acyclic _Graph;
+  cluster G.allInducedSG() -> acyclic;
+end;
+
+registration
+  let G be edgeless _Graph;
+  cluster G.allInducedSG() -> edgeless;
+end;
+
+registration
+  let G be chordal _Graph;
+  cluster G.allInducedSG() -> chordal;
+end;
+
+registration
+  let G be loopfull _Graph;
+  cluster G.allInducedSG() -> loopfull;
+end;
+
+theorem :: GLENUM00:57
+  G is edgeless iff G.allInducedSG() = the set of all createGraph(V)
+    where V is non empty Subset of the_Vertices_of G;
+
+theorem :: GLENUM00:58
+  G is edgeless iff G.allSG() = G.allInducedSG();
+
+theorem :: GLENUM00:59
+  the_Vertices_of G.allInducedSG() = (bool the_Vertices_of G) \ {{}};
+
+begin :: Spanning Subgraph set
+
+::$INSERT The following functor could also be named G.allFactors().
+definition
+  let G;
+  func G.allSpanningSG() -> Subset of G.allSG() equals
+:: GLENUM00:def 8
+  { H where H is Element of [#]G.allSG() : H is spanning };
+end;
+
+theorem :: GLENUM00:60
+  G2 in G1.allSpanningSG() iff G2 is plain spanning Subgraph of G1;
+
+theorem :: GLENUM00:61
+  for H being spanning Subgraph of G
+  holds H | _GraphSelectors in G.allSpanningSG();
+
+theorem :: GLENUM00:62
+  G | _GraphSelectors in G.allSpanningSG();
+
+theorem :: GLENUM00:63
+  createGraph([#]the_Vertices_of G) in G.allSpanningSG();
+
+theorem :: GLENUM00:64
+  for G being non edgeless _Graph, e being Edge of G
+  for H being plain addVertices of createGraph(e), the_Vertices_of G
+  holds H in G.allSpanningSG();
+
+registration
+  let G be _Graph;
+  cluster G.allSpanningSG() -> non empty \/-tolerating plain;
+end;
+
+theorem :: GLENUM00:65
+  G2.allSpanningSG() c= G1.allSpanningSG() iff G2 is spanning Subgraph of G1;
+
+theorem :: GLENUM00:66
+  G1 == G2 iff G1.allSpanningSG() = G2.allSpanningSG();
+
+theorem :: GLENUM00:67
+  for F being PGraphMapping of G1, G2 st rng F_V = the_Vertices_of G2
+  holds rng(SG2SGFunc(F) | G1.allSpanningSG()) c= G2.allSpanningSG();
+
+theorem :: GLENUM00:68
+  for F being PGraphMapping of G1, G2 st F is onto & F_V is one-to-one total
+  holds rng(SG2SGFunc(F) | G1.allSpanningSG()) = G2.allSpanningSG();
+
+theorem :: GLENUM00:69
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds rng(SG2SGFunc(F) | G1.allSpanningSG()) = G2.allSpanningSG();
+
+theorem :: GLENUM00:70
+  G2 is G1-Disomorphic implies
+    G1.allSpanningSG(),G2.allSpanningSG() are_Disomorphic;
+
+theorem :: GLENUM00:71
+  G2 is G1-isomorphic implies
+    G1.allSpanningSG(),G2.allSpanningSG() are_isomorphic;
+
+theorem :: GLENUM00:72
+  G is GraphUnion of G.allSpanningSG();
+
+theorem :: GLENUM00:73
+  (G is loopless iff G.allSpanningSG() is loopless) &
+  (G is non-multi iff G.allSpanningSG() is non-multi) &
+  (G is non-Dmulti iff G.allSpanningSG() is non-Dmulti) &
+  (G is simple iff G.allSpanningSG() is simple) &
+  (G is Dsimple iff G.allSpanningSG() is Dsimple) &
+  (G is acyclic iff G.allSpanningSG() is acyclic) &
+  (G is edgeless iff G.allSpanningSG() is edgeless);
+
+registration
+  let G be loopless _Graph;
+  cluster G.allSpanningSG() -> loopless;
+end;
+
+registration
+  let G be non-multi _Graph;
+  cluster G.allSpanningSG() -> non-multi;
+end;
+
+registration
+  let G be non-Dmulti _Graph;
+  cluster G.allSpanningSG() -> non-Dmulti;
+end;
+
+registration
+  let G be simple _Graph;
+  cluster G.allSpanningSG() -> simple;
+end;
+
+registration
+  let G be Dsimple _Graph;
+  cluster G.allSpanningSG() -> Dsimple;
+end;
+
+registration
+  let G be acyclic _Graph;
+  cluster G.allSpanningSG() -> acyclic;
+end;
+
+registration
+  let G be edgeless _Graph;
+  cluster G.allSpanningSG() -> edgeless;
+end;
+
+theorem :: GLENUM00:74
+  G is edgeless iff G.allSpanningSG() = {G | _GraphSelectors};
+
+theorem :: GLENUM00:75
+  the_Vertices_of G.allSpanningSG() = { the_Vertices_of G };
+
+theorem :: GLENUM00:76
+  the_Edges_of G.allSpanningSG() = bool the_Edges_of G;
+
+theorem :: GLENUM00:77
+  G.allInducedSG() /\ G.allSpanningSG() = {G | _GraphSelectors};
+
+begin :: Forest Subgraph set
+
+definition
+  let G;
+  func G.allForests() -> Subset of G.allSG() equals
+:: GLENUM00:def 9
+  { H where H is Element of [#]G.allSG() : H is acyclic };
+end;
+
+theorem :: GLENUM00:78
+  G2 in G1.allForests() iff G2 is plain acyclic Subgraph of G1;
+
+theorem :: GLENUM00:79
+  for H being acyclic Subgraph of G holds H | _GraphSelectors in G.allForests()
+;
+
+theorem :: GLENUM00:80
+  G is acyclic iff G | _GraphSelectors in G.allForests();
+
+theorem :: GLENUM00:81
+  for V being non empty Subset of the_Vertices_of G
+  holds createGraph(V) in G.allForests();
+
+theorem :: GLENUM00:82
+  for v being Vertex of G holds createGraph(v) in G.allForests();
+
+theorem :: GLENUM00:83
+  for G being non edgeless _Graph, e being Edge of G st not e in G.loops()
+  holds createGraph(e) in G.allForests();
+
+theorem :: GLENUM00:84
+  for G being non edgeless _Graph, e being Edge of G
+  for V being Subset of the_Vertices_of G
+  for H being plain addVertices of createGraph(e), V
+  st not e in G.loops() holds H in G.allForests();
+
+registration
+  let G;
+  cluster G.allForests() -> non empty \/-tolerating plain acyclic simple;
+end;
+
+theorem :: GLENUM00:85
+  H.allForests() c= G.allForests();
+
+theorem :: GLENUM00:86
+  for G2 being loopless _Graph st G2.allForests() c= G1.allForests()
+  holds G2 is Subgraph of G1;
+
+theorem :: GLENUM00:87
+  for H being removeLoops of G holds G.allForests() = H.allForests();
+
+theorem :: GLENUM00:88
+  for G1, G2 being loopless _Graph
+  holds G1 == G2 iff G1.allForests() = G2.allForests();
+
+theorem :: GLENUM00:89
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G3 == G4 iff G1.allForests() = G2.allForests();
+
+theorem :: GLENUM00:90
+  for F being PGraphMapping of G1, G2 st F is weak_SG-embedding
+  holds rng(SG2SGFunc(F) | G1.allForests()) c= G2.allForests();
+
+theorem :: GLENUM00:91
+  for F being PGraphMapping of G1, G2 st F is one-to-one onto
+  holds G2.allForests() c= rng(SG2SGFunc(F) | G1.allForests());
+
+theorem :: GLENUM00:92
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds G2.allForests() = rng(SG2SGFunc(F) | G1.allForests());
+
+theorem :: GLENUM00:93
+  G2 is G1-Disomorphic implies G1.allForests(),G2.allForests() are_Disomorphic;
+
+theorem :: GLENUM00:94
+  G2 is G1-isomorphic implies G1.allForests(),G2.allForests() are_isomorphic;
+
+theorem :: GLENUM00:95
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  st G4 is G3-Disomorphic holds G1.allForests(),G2.allForests() are_Disomorphic
+;
+
+theorem :: GLENUM00:96
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  st G4 is G3-isomorphic holds G1.allForests(),G2.allForests() are_isomorphic;
+
+theorem :: GLENUM00:97
+  for H being removeLoops of G holds H is GraphUnion of G.allForests();
+
+theorem :: GLENUM00:98
+  G is loopless iff G is GraphUnion of G.allForests();
+
+theorem :: GLENUM00:99
+  the_Edges_of G = G.loops() iff G.allForests() is edgeless;
+
+theorem :: GLENUM00:100
+  the_Edges_of G = G.loops() iff G.allForests() = the set of all createGraph(V)
+    where V is non empty Subset of the_Vertices_of G;
+
+theorem :: GLENUM00:101
+  the_Vertices_of G.allForests() = (bool the_Vertices_of G) \ {{}};
+
+begin :: Spanning Forest Subgraph set
+
+definition
+  let G;
+  func G.allSpanningForests() -> Subset of G.allSG() equals
+:: GLENUM00:def 10
+  { H where H is Element of [#]G.allSG() : H is spanning acyclic };
+end;
+
+theorem :: GLENUM00:102
+  G2 in G1.allSpanningForests() iff G2 is plain spanning acyclic Subgraph of G1
+;
+
+theorem :: GLENUM00:103
+  G.allSpanningForests() = G.allSpanningSG() /\ G.allForests();
+
+theorem :: GLENUM00:104
+  for H being spanning acyclic Subgraph of G
+  holds H | _GraphSelectors in G.allSpanningForests();
+
+theorem :: GLENUM00:105
+  G is acyclic iff G | _GraphSelectors in G.allSpanningForests();
+
+theorem :: GLENUM00:106
+  createGraph([#]the_Vertices_of G) in G.allSpanningForests();
+
+theorem :: GLENUM00:107
+  for G being non edgeless _Graph, e being Edge of G
+  for H being plain addVertices of createGraph(e), the_Vertices_of G
+  st not e in G.loops() holds H in G.allSpanningForests();
+
+registration
+  let G;
+  cluster G.allSpanningForests() -> non empty \/-tolerating plain acyclic
+    simple;
+end;
+
+theorem :: GLENUM00:108
+  for H being spanning Subgraph of G
+  holds H.allSpanningForests() c= G.allSpanningForests();
+
+theorem :: GLENUM00:109
+  for G2 being loopless _Graph
+  holds G2.allSpanningForests() c= G1.allSpanningForests()
+  implies G2 is spanning Subgraph of G1;
+
+theorem :: GLENUM00:110
+  for H being removeLoops of G
+  holds G.allSpanningForests() = H.allSpanningForests();
+
+theorem :: GLENUM00:111
+  for G1, G2 being loopless _Graph
+  holds G1 == G2 iff G1.allSpanningForests() = G2.allSpanningForests();
+
+theorem :: GLENUM00:112
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G3 == G4 iff G1.allSpanningForests() = G2.allSpanningForests();
+
+theorem :: GLENUM00:113
+  for F being PGraphMapping of G1, G2
+  st F is weak_SG-embedding & rng F_V = the_Vertices_of G2
+  holds rng(SG2SGFunc(F) | G1.allSpanningForests()) c= G2.allSpanningForests();
+
+theorem :: GLENUM00:114
+  for F being PGraphMapping of G1, G2 st F is weak_SG-embedding onto
+  holds G2.allSpanningForests() = rng(SG2SGFunc(F) | G1.allSpanningForests());
+
+theorem :: GLENUM00:115
+  for G1, G2 being _Graph holds G2 is G1-Disomorphic implies
+    G1.allSpanningForests(),G2.allSpanningForests() are_Disomorphic;
+
+theorem :: GLENUM00:116
+  for G1, G2 being _Graph holds G2 is G1-isomorphic implies
+    G1.allSpanningForests(),G2.allSpanningForests() are_isomorphic;
+
+theorem :: GLENUM00:117
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G4 is G3-Disomorphic implies
+    G1.allSpanningForests(),G2.allSpanningForests() are_Disomorphic;
+
+theorem :: GLENUM00:118
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G4 is G3-isomorphic implies
+    G1.allSpanningForests(),G2.allSpanningForests() are_isomorphic;
+
+theorem :: GLENUM00:119
+  for H being removeLoops of G holds H is GraphUnion of G.allSpanningForests();
+
+theorem :: GLENUM00:120
+  G is loopless iff G is GraphUnion of G.allSpanningForests();
+
+theorem :: GLENUM00:121
+  the_Edges_of G = G.loops() iff G.allSpanningForests() is edgeless;
+
+theorem :: GLENUM00:122
+  the_Edges_of G = G.loops() iff for H being removeLoops of G
+    holds G.allSpanningForests() = {H | _GraphSelectors};
+
+theorem :: GLENUM00:123
+  the_Vertices_of G.allSpanningForests() = { the_Vertices_of G };
+
+begin :: Connected Subgraph set
+
+definition
+  let G;
+  func G.allConnectedSG() -> Subset of G.allSG() equals
+:: GLENUM00:def 11
+  { H where H is Element of [#]G.allSG() : H is connected };
+end;
+
+theorem :: GLENUM00:124
+  G2 in G1.allConnectedSG() iff G2 is plain connected Subgraph of G1;
+
+theorem :: GLENUM00:125
+  for H being connected Subgraph of G
+  holds H | _GraphSelectors in G.allConnectedSG();
+
+theorem :: GLENUM00:126
+  G is connected iff G | _GraphSelectors in G.allConnectedSG();
+
+theorem :: GLENUM00:127
+  for v being Vertex of G holds createGraph(v) in G.allConnectedSG();
+
+theorem :: GLENUM00:128
+  for G being non edgeless _Graph, e being Edge of G
+  holds createGraph(e) in G.allConnectedSG();
+
+registration
+  let G;
+  cluster G.allConnectedSG() -> non empty \/-tolerating plain connected;
+end;
+
+theorem :: GLENUM00:129
+  H.allConnectedSG() c= G.allConnectedSG();
+
+theorem :: GLENUM00:130
+  G2.allConnectedSG() c= G1.allConnectedSG() implies G2 is Subgraph of G1;
+
+theorem :: GLENUM00:131
+  G1 == G2 iff G1.allConnectedSG() = G2.allConnectedSG();
+
+theorem :: GLENUM00:132
+  for F being PGraphMapping of G1, G2 st F is total
+  holds rng(SG2SGFunc(F) | G1.allConnectedSG()) c= G2.allConnectedSG();
+
+theorem :: GLENUM00:133
+  for F being PGraphMapping of G1, G2 st F is one-to-one onto
+  holds G2.allConnectedSG() c= rng(SG2SGFunc(F) | G1.allConnectedSG());
+
+theorem :: GLENUM00:134
+  for F being PGraphMapping of G1, G2 st F is isomorphism
+  holds G2.allConnectedSG() = rng(SG2SGFunc(F) | G1.allConnectedSG());
+
+theorem :: GLENUM00:135
+  G2 is G1-Disomorphic implies
+    G1.allConnectedSG(),G2.allConnectedSG() are_Disomorphic;
+
+theorem :: GLENUM00:136
+  G2 is G1-isomorphic implies
+    G1.allConnectedSG(),G2.allConnectedSG() are_isomorphic;
+
+theorem :: GLENUM00:137
+  G is GraphUnion of G.allConnectedSG();
+
+begin :: Tree Subgraph set and Tree Relation
+
+definition
+  let G;
+  func G.allTrees() -> Subset of G.allSG() equals
+:: GLENUM00:def 12
+  { H where H is Element of [#]G.allSG() : H is Tree-like };
+end;
+
+theorem :: GLENUM00:138
+  G2 in G1.allTrees() iff G2 is plain Tree-like Subgraph of G1;
+
+theorem :: GLENUM00:139
+  G.allTrees() = G.allForests() /\ G.allConnectedSG();
+
+theorem :: GLENUM00:140
+  for H being Tree-like Subgraph of G holds H | _GraphSelectors in G.allTrees()
+;
+
+theorem :: GLENUM00:141
+  G is Tree-like iff G | _GraphSelectors in G.allTrees();
+
+theorem :: GLENUM00:142
+  for v being Vertex of G holds createGraph(v) in G.allTrees();
+
+theorem :: GLENUM00:143
+  for G being non edgeless _Graph, e being Edge of G
+  st not e in G.loops() holds createGraph(e) in G.allTrees();
+
+registration
+  let G;
+  cluster G.allTrees() -> non empty \/-tolerating plain Tree-like simple;
+end;
+
+theorem :: GLENUM00:144
+  H.allTrees() c= G.allTrees();
+
+theorem :: GLENUM00:145
+  for G2 being loopless _Graph st G2.allTrees() c= G1.allTrees()
+  holds G2 is Subgraph of G1;
+
+theorem :: GLENUM00:146
+  for H being removeLoops of G holds G.allTrees() = H.allTrees();
+
+theorem :: GLENUM00:147
+  for G1, G2 being loopless _Graph
+  holds G1 == G2 iff G1.allTrees() = G2.allTrees();
+
+theorem :: GLENUM00:148
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G3 == G4 iff G1.allTrees() = G2.allTrees();
+
+theorem :: GLENUM00:149
+  for F being PGraphMapping of G1, G2 st F is weak_SG-embedding
+  holds rng(SG2SGFunc(F) | G1.allTrees()) c= G2.allTrees();
+
+theorem :: GLENUM00:150
+  for F being PGraphMapping of G1, G2 st F is weak_SG-embedding onto
+  holds G2.allTrees() = rng(SG2SGFunc(F) | G1.allTrees());
+
+theorem :: GLENUM00:151
+  for G1, G2 being _Graph holds G2 is G1-Disomorphic implies
+    G1.allTrees(),G2.allTrees() are_Disomorphic;
+
+theorem :: GLENUM00:152
+  for G1, G2 being _Graph holds G2 is G1-isomorphic implies
+    G1.allTrees(),G2.allTrees() are_isomorphic;
+
+theorem :: GLENUM00:153
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G4 is G3-Disomorphic implies
+    G1.allTrees(),G2.allTrees() are_Disomorphic;
+
+theorem :: GLENUM00:154
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G4 is G3-isomorphic implies
+    G1.allTrees(),G2.allTrees() are_isomorphic;
+
+theorem :: GLENUM00:155
+  for H being removeLoops of G holds H is GraphUnion of G.allTrees();
+
+theorem :: GLENUM00:156
+  G is loopless iff G is GraphUnion of G.allTrees();
+
+theorem :: GLENUM00:157
+  the_Edges_of G = G.loops() iff G.allTrees() is edgeless;
+
+theorem :: GLENUM00:158
+  the_Edges_of G = G.loops() iff
+    G.allTrees() = the set of all createGraph(v) where v is Vertex of G;
+
+definition
+  let G;
+  func SubtreeRel(G) -> Relation of G.allTrees() equals
+:: GLENUM00:def 13
+  (SubgraphRel G) |_2 G.allTrees();
+end;
+
+theorem :: GLENUM00:159
+  for H1, H2 being plain Tree-like Subgraph of G
+  holds [H1,H2] in SubtreeRel(G) iff H1 is Subgraph of H2;
+
+theorem :: GLENUM00:160
+  field SubtreeRel(G) = G.allTrees();
+
+theorem :: GLENUM00:161
+  SubtreeRel(G) partially_orders G.allTrees();
+
+registration
+  let G;
+  cluster SubtreeRel(G) -> reflexive antisymmetric transitive
+    being_partial-order;
+end;
+
+theorem :: GLENUM00:162
+  SubtreeRel(H) = (SubtreeRel G) |_2 H.allTrees();
+
+theorem :: GLENUM00:163
+  for G being loopless _Graph
+  holds G is edgeless iff SubtreeRel(G) = id G.allTrees();
+
+theorem :: GLENUM00:164
+  for H being removeLoops of G holds SubtreeRel(G) = SubtreeRel(H);
+
+theorem :: GLENUM00:165
+  the_Edges_of G = G.loops() iff SubtreeRel(G) = id G.allTrees();
+
+theorem :: GLENUM00:166
+  G.allTrees() has_upper_Zorn_property_wrt SubtreeRel(G);
+
+registration
+  let G be connected _Graph;
+  ::$N every connected graph has a spanning tree
+  cluster plain spanning Tree-like for Subgraph of G;
+end;
+
+theorem :: GLENUM00:167
+  for G being connected _Graph, e being object
+  st e in the_Edges_of G \ G.loops()
+  ex T being plain spanning Tree-like Subgraph of G
+  st e in the_Edges_of T;
+
+begin :: Spanning Tree Subgraph set
+
+definition
+  let G;
+  func G.allSpanningTrees() -> Subset of G.allSG() equals
+:: GLENUM00:def 14
+  { H where H is Element of [#]G.allSG() : H is spanning Tree-like };
+end;
+
+theorem :: GLENUM00:168
+  G2 in G1.allSpanningTrees() iff
+    G2 is plain spanning acyclic Subgraph of G1 & G2 is connected;
+
+theorem :: GLENUM00:169
+  G.allSpanningTrees() = G.allSpanningSG() /\ G.allTrees();
+
+theorem :: GLENUM00:170
+  G.allSpanningTrees() = G.allConnectedSG() /\ G.allSpanningForests();
+
+theorem :: GLENUM00:171
+  for H being spanning acyclic Subgraph of G st H is connected
+  holds H | _GraphSelectors in G.allSpanningTrees();
+
+theorem :: GLENUM00:172
+  G is Tree-like iff G | _GraphSelectors in G.allSpanningTrees();
+
+theorem :: GLENUM00:173
+  G is connected iff G.allSpanningTrees() <> {};
+
+registration
+  let G be non connected _Graph;
+  cluster G.allSpanningTrees() -> empty;
+end;
+
+registration
+  let G be connected _Graph;
+  cluster G.allSpanningTrees() -> non empty Tree-like simple;
+end;
+
+theorem :: GLENUM00:174
+  for G being connected _Graph, H being connected spanning Subgraph of G
+  holds H.allSpanningTrees() c= G.allSpanningTrees();
+
+theorem :: GLENUM00:175
+  for G2 being loopless connected _Graph
+  holds G2.allSpanningTrees() c= G1.allSpanningTrees()
+  implies G2 is spanning Subgraph of G1;
+
+theorem :: GLENUM00:176
+  for H being removeLoops of G
+  holds G.allSpanningTrees() = H.allSpanningTrees();
+
+theorem :: GLENUM00:177
+  for G1, G2 being loopless connected _Graph
+  holds G1 == G2 iff G1.allSpanningTrees() = G2.allSpanningTrees();
+
+theorem :: GLENUM00:178
+  for G1, G2 being connected _Graph
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G3 == G4 iff G1.allSpanningTrees() = G2.allSpanningTrees();
+
+theorem :: GLENUM00:179
+  for F being PGraphMapping of G1, G2
+  st F is weak_SG-embedding & rng F_V = the_Vertices_of G2
+  holds rng(SG2SGFunc(F) | G1.allSpanningTrees()) c= G2.allSpanningTrees();
+
+theorem :: GLENUM00:180
+  for F being PGraphMapping of G1, G2 st F is weak_SG-embedding onto
+  holds G2.allSpanningTrees() = rng(SG2SGFunc(F) | G1.allSpanningTrees());
+
+theorem :: GLENUM00:181
+  G2 is G1-Disomorphic implies
+    G1.allSpanningTrees(),G2.allSpanningTrees() are_Disomorphic;
+
+theorem :: GLENUM00:182
+  G2 is G1-isomorphic implies
+    G1.allSpanningTrees(),G2.allSpanningTrees() are_isomorphic;
+
+theorem :: GLENUM00:183
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G4 is G3-Disomorphic implies
+    G1.allSpanningTrees(),G2.allSpanningTrees() are_Disomorphic;
+
+theorem :: GLENUM00:184
+  for G3 being removeLoops of G1, G4 being removeLoops of G2
+  holds G4 is G3-isomorphic implies
+    G1.allSpanningTrees(),G2.allSpanningTrees() are_isomorphic;
+
+theorem :: GLENUM00:185
+  for G being connected _Graph, H being removeLoops of G
+  holds H is GraphUnion of G.allSpanningTrees();
+
+theorem :: GLENUM00:186
+  for G being loopless connected _Graph
+  holds G is GraphUnion of G.allSpanningTrees();
+
+theorem :: GLENUM00:187
+  G is Tree-like iff G.allSpanningTrees() = { G | _GraphSelectors };
+
+theorem :: GLENUM00:188
+  G is connected iff the_Vertices_of G.allSpanningTrees() = {the_Vertices_of G}
+;
+
+begin :: Component Subgraph set
+
+definition
+  let G;
+  func G.allComponents() -> Subset of G.allSG() equals
+:: GLENUM00:def 15
+  { H where H is Element of [#]G.allSG() : H is Component-like };
+end;
+
+theorem :: GLENUM00:189
+  G2 in G1.allComponents() iff G2 is plain Component of G1;
+
+theorem :: GLENUM00:190
+  G.allComponents() c= G.allInducedSG() /\ G.allConnectedSG();
+
+theorem :: GLENUM00:191
+  for H being Component of G holds H | _GraphSelectors in G.allComponents();
+
+theorem :: GLENUM00:192
+  G is connected iff G | _GraphSelectors in G.allComponents();
+
+registration
+  let G;
+  cluster G.allComponents() -> non empty vertex-disjoint edge-disjoint
+    \/-tolerating plain connected;
+end;
+
+theorem :: GLENUM00:193
+  G2.allComponents() c= G1.allComponents() implies G2 is Subgraph of G1;
+
+theorem :: GLENUM00:194
+  G1 == G2 iff G1.allComponents() = G2.allComponents();
+
+theorem :: GLENUM00:195
+  for F being non empty one-to-one PGraphMapping of G1, G2 st F is isomorphism
+  holds G2.allComponents() = rng(SG2SGFunc(F) | G1.allComponents());
+
+theorem :: GLENUM00:196
+  G2 is G1-Disomorphic implies
+    G1.allComponents(),G2.allComponents() are_Disomorphic;
+
+theorem :: GLENUM00:197
+  G2 is G1-isomorphic implies
+    G1.allComponents(),G2.allComponents() are_isomorphic;
+
+theorem :: GLENUM00:198
+  G is GraphUnion of G.allComponents();
+
+theorem :: GLENUM00:199
+  (G is loopless iff G.allComponents() is loopless) &
+  (G is non-multi iff G.allComponents() is non-multi) &
+  (G is non-Dmulti iff G.allComponents() is non-Dmulti) &
+  (G is simple iff G.allComponents() is simple) &
+  (G is Dsimple iff G.allComponents() is Dsimple) &
+  (G is acyclic iff G.allComponents() is acyclic) &
+  (G is edgeless iff G.allComponents() is edgeless) &
+  (G is chordal iff G.allComponents() is chordal) &
+  (G is loopfull iff G.allComponents() is loopfull);
+
+registration
+  let G be loopless _Graph;
+  cluster G.allComponents() -> loopless;
+end;
+
+registration
+  let G be non-multi _Graph;
+  cluster G.allComponents() -> non-multi;
+end;
+
+registration
+  let G be non-Dmulti _Graph;
+  cluster G.allComponents() -> non-Dmulti;
+end;
+
+registration
+  let G be simple _Graph;
+  cluster G.allComponents() -> simple;
+end;
+
+registration
+  let G be Dsimple _Graph;
+  cluster G.allComponents() -> Dsimple;
+end;
+
+registration
+  let G be acyclic _Graph;
+  cluster G.allComponents() -> acyclic;
+end;
+
+registration
+  let G be edgeless _Graph;
+  cluster G.allComponents() -> edgeless;
+end;
+
+registration
+  let G be chordal _Graph;
+  cluster G.allComponents() -> chordal;
+end;
+
+registration
+  let G be loopfull _Graph;
+  cluster G.allComponents() -> loopfull;
+end;
+
+theorem :: GLENUM00:200
+  G is connected iff G.allComponents() = { G | _GraphSelectors };
+
+theorem :: GLENUM00:201
+  the_Vertices_of G.allComponents() = G.componentSet();
+
+theorem :: GLENUM00:202
+  G.numComponents() = card G.allComponents();
+

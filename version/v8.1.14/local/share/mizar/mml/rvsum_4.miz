@@ -1,0 +1,3147 @@
+:: Concatenation of Finite Sequences
+::  by Rafa{\l} Ziobro
+:: 
+:: Received February 27, 2019
+:: Copyright (c) 2019-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, SUBSET_1, FUNCT_1, NAT_1, TARSKI, ORDINAL1, FINSET_1,
+      RELAT_1, AFINSQ_1, ARYTM_1, ARYTM_3, FINSEQ_1, XXREAL_0, CARD_1,
+      XBOOLE_0, ORDINAL4, FINSEQ_5, RFINSEQ, CARD_3, XCMPLX_0, FUNCOP_1,
+      VALUED_0, PRGCOR_2, XREAL_0, SEQ_1, SERIES_1, VALUED_1, SQUARE_1,
+      COMPLEX1, REAL_1, NEWTON, COMSEQ_1, FUNCT_4, RVSUM_4, ASYMPT_1, SEQ_2,
+      BINOP_2, FINSOP_1, SERIES_3, FUNCT_7;
+ notations TARSKI, XBOOLE_0, SUBSET_1, XREAL_0, ORDINAL1, CARD_1, NUMBERS,
+      RELAT_1, FUNCT_1, XCMPLX_0, NAT_1, FINSET_1, XXREAL_0, AFINSQ_1, SEQ_1,
+      VALUED_1, RELSET_1, PARTFUN1, FUNCOP_1, BINOP_1, FINSEQ_1, VALUED_0,
+      SERIES_1, AFINSQ_2, NEWTON, COMSEQ_1, FUNCT_4, RFINSEQ, RVSUM_1,
+      COMSEQ_3, COMSEQ_2, COMPLEX1, BINOP_2, SERIES_3;
+ constructors NAT_D, RELSET_1, AFINSQ_2, REAL_1, FUNCT_4, SQUARE_1, RFINSEQ,
+      RVSUM_1, FOMODEL0, COMSEQ_3, COMSEQ_2, SEQ_1, RVSUM_2, WELLORD2, BINOP_2,
+      SETWISEO, SERIES_3;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, ORDINAL1, FUNCT_2, FINSET_1,
+      NUMBERS, XXREAL_0, XREAL_0, NAT_1, BINOP_2, CARD_1, FINSEQ_1, AFINSQ_1,
+      RELSET_1, ORDINAL3, VALUED_1, VALUED_0, MEMBERED, FINSEQ_2, AFINSQ_2,
+      NEWTON02, NEWTON04, NEWTON, NAT_6, XCMPLX_0, INT_1, FUNCOP_1, FUNCT_4,
+      COMSEQ_3, FOMODEL0, COMPLEX1, RVSUM_1, RFINSEQ, FINSEQ_5, RVSUM_2, SEQ_1;
+ requirements REAL, NUMERALS, SUBSET, BOOLE, ARITHM;
+ definitions TARSKI;
+ equalities VALUED_1, ORDINAL1, FINSEQ_1, AFINSQ_1;
+ expansions TARSKI, XBOOLE_0, FUNCT_1, ORDINAL1;
+ theorems TARSKI, FUNCT_1, NAT_1, RELAT_1, XBOOLE_0, XBOOLE_1, ORDINAL1,
+      CARD_1, XREAL_1, AFINSQ_1, XXREAL_0, VALUED_0, VALUED_1, XREAL_0,
+      SERIES_1, FUNCOP_1, FINSEQ_1, FUNCT_2, XCMPLX_0, INT_1, NEWTON, AFINSQ_2,
+      SEQ_1, NEWTON02, RFINSEQ, RVSUM_1, RVSUM_2, NEWTON04, COMSEQ_1, COMSEQ_3,
+      FUNCT_4, PARTFUN1, DBLSEQ_2, FINSEQ_3, XTUPLE_0, CSSPACE, RSSPACE,
+      COMPLEX1, BINOP_2, SERIES_3, FINSEQ_2, FINSEQ_5;
+ schemes AFINSQ_1, FINSEQ_1, NAT_1;
+
+begin :: Preliminaries
+
+registration
+  let a be Real, b be non negative Real;
+  cluster a -' (a+b) -> zero;
+  coherence
+  proof
+    a - (a+b) = -b & -b <= 0;
+    hence thesis by XREAL_0:def 2;
+  end;
+  reduce (a + b) -' a to b;
+  reducibility
+  proof
+    a + b - a >= 0;
+    hence thesis by XREAL_0:def 2;
+  end;
+end;
+
+registration
+  let n,m be Nat;
+  identify min(m,n) with n /\ m;
+  correctness
+  proof
+    per cases;
+    suppose
+      A1: n >= m; then
+      card Segm m c= card Segm n by NAT_1:40; then
+      m /\ n = m by XBOOLE_1:28;
+      hence thesis by A1,XXREAL_0:def 9;
+    end;
+    suppose
+      A1: m >= n; then
+      card Segm n c= card Segm m by NAT_1:40; then
+      m /\ n = n by XBOOLE_1:28;
+      hence thesis by A1,XXREAL_0:def 9;
+    end;
+  end;
+  identify n/\m with min (m,n);
+  correctness;
+  identify n\/m with max (m,n);
+  correctness
+  proof
+    per cases;
+    suppose
+      A1: n >= m; then
+      card Segm m c= card Segm n by NAT_1:40; then
+      m \/ n = n by XBOOLE_1:12;
+      hence thesis by A1,XXREAL_0:def 10;
+    end;
+    suppose
+      A1: m >= n; then
+      card Segm n c= card Segm m by NAT_1:40; then
+      m \/ n = m by XBOOLE_1:12;
+      hence thesis by A1,XXREAL_0:def 10;
+    end;
+  end;
+end;
+
+registration
+  let n,m be non negative Real;
+  reduce min (n+m,n) to n;
+  reducibility
+  proof
+    n+0 <= n+m by XREAL_1:6;
+    hence thesis by XXREAL_0:def 9;
+  end;
+  reduce max (n+m,n) to n+m;
+  reducibility
+  proof
+    n+0 <= n+m by XREAL_1:6;
+    hence thesis by XXREAL_0:def 10;
+  end;
+end;
+
+theorem CNM:
+  for f be Relation, n,m be Nat holds (f|(n+m))|n = f|n
+  proof
+    let f be Relation, n,m be Nat;
+    n /\ (n+m) = n;
+    hence thesis by RELAT_1:71;
+  end;
+
+theorem CNX:
+  for f be Function, n be Nat, m be non zero Nat holds (f|(n+m)).n = f.n
+  proof
+    let f be Function, n be Nat, m be non zero Nat;
+    set g = f|(n+m);
+    n + 0 < n + m by XREAL_1:6; then
+    n in Segm (n+m) by NAT_1:44;
+    hence thesis by FUNCT_1:49;
+  end;
+
+registration ::: ORDINAL1?
+  let D be non empty set, x be sequence of D, n be Nat;
+  reduce dom (x|n) to n;
+  reducibility
+  proof
+    dom x = NAT by FUNCT_2:def 1; then
+    n c= dom x by ORDINAL1:def 2,ORDINAL1:def 12;
+    hence thesis by RELAT_1:62;
+  end;
+  cluster x|n -> finite Sequence-like;
+  coherence;
+  cluster x|n -> n-element;
+  coherence
+  proof
+    n = len (x|n);
+    hence thesis by CARD_1:def 7;
+  end;
+end;
+
+begin :: Complex-Valued Sequences
+
+theorem MFG:
+  for f,g be complex-valued Function, X be set holds
+    (f(#)g)|X = f|X (#) g|X
+  proof
+    let f,g be complex-valued Function, X be set;
+    A1: dom (f|X) = dom f /\ X & dom (g|X) = dom g /\ X &
+    dom ((f(#)g)|X) = dom (f(#)g) /\ X by RELAT_1:61;
+    A2: dom (f (#) g) = dom f /\ dom g &
+    dom (f|X (#) g|X) = dom (f|X) /\ dom (g|X) by VALUED_1:def 4; then
+    A3: dom ((f(#)g)|X) = dom f /\ dom g /\ X by RELAT_1:61
+    .= (dom f /\ X) /\ (dom g /\ X) by XBOOLE_1:116;
+    for x be object st x in dom ((f(#)g)|X) holds
+    ((f(#)g)|X).x = (f|X (#) g|X).x
+    proof
+      let x be object; assume
+      B1: x in dom ((f(#)g)|X); then
+      x in dom f & x in dom g & x in X by A3,XBOOLE_0:def 4; then
+      x in dom (f|X) & x in dom (g|X) by RELAT_1:57; then
+      B3: (f|X).x = f.x & (g|X).x = g.x by FUNCT_1:47;
+      ((f(#)g)|X).x = (f(#)g).x by B1,FUNCT_1:47
+      .= f.x * g.x by B1,A1,VALUED_1:def 4
+      .= ((f|X)(#)(g|X)).x by B1,B3,A1,A2,A3,VALUED_1:def 4;
+      hence thesis;
+    end;
+    hence thesis by A1,A3,VALUED_1:def 4;
+  end;
+
+registration let D be non empty set; :::
+  let f,g be sequence of D;
+  cluster f +* g -> Sequence-like;
+  coherence by FUNCT_2:def 1;
+end;
+
+registration
+  let f be constant Complex_Sequence, n be Nat;
+  cluster f^\n -> constant;
+  coherence;
+end;
+
+registration
+  cluster empty-yielding for Complex_Sequence;
+  existence
+  proof
+    NAT --> 0 is sequence of COMPLEX by XCMPLX_0:def 2,FUNCOP_1:45;
+    hence thesis;
+  end;
+  cluster empty-yielding for Real_Sequence;
+  existence
+  proof
+    NAT --> 0 is sequence of REAL by XREAL_0:def 1,FUNCOP_1:45;
+    hence thesis;
+  end;
+  cluster empty-yielding -> natural-valued for Complex_Sequence;
+  coherence
+  proof
+    let f be Complex_Sequence;
+    assume f is empty-yielding; then
+    for x be object st x in dom f holds f.x is natural;
+    hence thesis by VALUED_0:def 12;
+  end;
+  cluster constant real-valued for Complex_Sequence;
+  existence
+  proof
+    NAT --> 0 is sequence of COMPLEX by XCMPLX_0:def 2,FUNCOP_1:45;
+    hence thesis;
+  end;
+end;
+
+:: seq <-> FinSeq in DBLSEQ_2:49 -- etc.
+theorem :: DBLSEQ_2:49 -- for FinSequence
+  for s being Real_Sequence, n being Nat holds
+  (Partial_Sums s).n = Sum(s|Segm(n+1)) by AFINSQ_2:56;
+
+definition
+  let c be Complex;
+  func seq_const c -> Complex_Sequence equals
+    NAT --> c;
+  coherence
+  proof
+    c in COMPLEX by XCMPLX_0:def 2;
+    hence thesis by FUNCOP_1:45;
+  end;
+end;
+
+registration
+  let c be Complex, n be Nat;
+  reduce (seq_const c).n to c;
+  reducibility by ORDINAL1:def 12,FUNCOP_1:7;
+end;
+
+theorem SFG:
+  for f,g be complex-valued Function, X be set holds
+  (f+g)|X = f|X + g|X
+  proof
+    let f,g be complex-valued Function, X be set;
+    A1: dom (f|X) = dom f /\ X & dom (g|X) = dom g /\ X &
+    dom ((f+g)|X) = dom (f+g) /\ X by RELAT_1:61;
+    A2: dom (f + g) = dom f /\ dom g &
+    dom (f|X + g|X) = dom (f|X) /\ dom (g|X) by VALUED_1:def 1; then
+    A3: dom ((f+g)|X) = dom f /\ dom g /\ X by RELAT_1:61
+    .= (dom f /\ X) /\ (dom g /\ X) by XBOOLE_1:116;
+    for x be object st x in dom ((f+g)|X) holds
+    ((f+g)|X).x = (f|X + g|X).x
+    proof
+      let x be object such that
+      B1: x in dom ((f+g)|X);
+      x in dom f & x in dom g & x in X by B1,A3,XBOOLE_0:def 4; then
+      x in dom (f|X) & x in dom (g|X) by RELAT_1:57; then
+      B3: (f|X).x = f.x & (g|X).x = g.x by FUNCT_1:47;
+      ((f+g)|X).x = (f+g).x by B1,FUNCT_1:47
+      .= f.x + g.x by B1,A1,VALUED_1:def 1
+      .= ((f|X)+(g|X)).x by B1,B3,A1,A2,A3,VALUED_1:def 1;
+      hence thesis;
+    end;
+    hence thesis by A1,A3,VALUED_1:def 1;
+  end;
+
+registration
+  let f be 1-element FinSequence;
+  reduce <*f.1*> to f;
+  reducibility
+  proof
+    <*f.1*>.1 = f.1 & len f = 1 by CARD_1:def 7;
+    hence thesis by FINSEQ_1:40;
+  end;
+end;
+
+registration
+  let f be 2-element FinSequence;
+  reduce <*f.1,f.2*> to f;
+  reducibility
+  proof
+    <*f.1,f.2*>.1 = f.1 & <*f.1,f.2*>.2 = f.2 & len f = 2
+      by CARD_1:def 7,FINSEQ_1:44;
+    hence thesis by FINSEQ_1:44;
+  end;
+end;
+
+registration
+  let f be 3-element FinSequence;
+  reduce <*f.1,f.2,f.3*> to f;
+  reducibility
+  proof
+    <*f.1,f.2,f.3*>.1 = f.1 & <*f.1,f.2,f.3*>.2 = f.2 &
+      <*f.1,f.2,f.3*>.3 = f.3 & len f = 3 by CARD_1:def 7,FINSEQ_1:45;
+    hence thesis by FINSEQ_1:45;
+  end;
+end;
+
+theorem
+  for f be complex-valued FinSequence holds Sum f = f.1 + Sum (f/^1)
+  proof
+    let f be complex-valued FinSequence;
+    reconsider f as FinSequence of COMPLEX by RVSUM_1:146;
+    Sum f = Sum ((f|1)^(f/^1))
+    .= Sum (f|1) + Sum (f/^1) by RVSUM_2:32;
+    hence thesis by NEWTON04:33;
+  end;
+
+theorem FIF:
+  for f be non empty complex-valued FinSequence holds
+    Product f = f.1 * Product (f/^1)
+  proof
+    let f be non empty complex-valued FinSequence;
+    reconsider f as FinSequence of COMPLEX by RVSUM_1:146;
+    reconsider g = (f|1) as 1-element FinSequence of COMPLEX;
+    A1: <*g.1*> = g;
+    Product f = Product ((f|1)^(f/^1))
+    .= (f.1) * Product (f/^1) by A1,RVSUM_2:43;
+    hence thesis;
+  end;
+
+LmFNK:
+  for n be Nat, f be (n+1)-element FinSequence holds f = (f|n)^<*f.(n+1)*>
+  proof
+    let n be Nat, f be (n+1)-element FinSequence;
+    A0: len f = n+1 & n+1 > n+ 0 by CARD_1:def 7,XREAL_1:6; then
+    A0a: len f = len (f|n) + 1 by FINSEQ_1:59
+    .= len ((f|n)^<*f.(n+1)*>) by FINSEQ_2:16;
+    for k be Nat st k in dom f holds
+    f.k = ((f|n)^<*f.(n+1)*>).k
+    proof
+      let k be Nat;
+      assume k in dom f; then
+      B2: 1 <= k <= len f by FINSEQ_3:25; then
+      per cases by A0,XXREAL_0:1;
+      suppose
+        k < n + 1; then
+        C1: k <= n by NAT_1:13;
+        len (f|n) = n by CARD_1:def 7; then
+        k in dom (f|n) by B2,C1,FINSEQ_3:25; then
+        ((f|n)^<*f.(n+1)*>).k = (f|n).k by FINSEQ_1:def 7
+        .= f.k by C1,B2,FINSEQ_1:1,FUNCT_1:49;
+        hence thesis;
+      end;
+      suppose
+        C1: k = n + 1;
+        len (f|n) = n by CARD_1:def 7;
+        hence thesis by C1;
+      end;
+    end;
+    hence thesis by A0a,FINSEQ_3:29;
+  end;
+
+theorem FNK:
+  for n be Nat, m be non zero Nat, f be (n+m)-element FinSequence holds
+    f|(n+1) = (f|n)^<*f.(n+1)*>
+  proof
+    let n be Nat, m be non zero Nat, f be (n+m)-element FinSequence;
+    A0: n+1 > n+0 by XREAL_1:6;
+    n+m >= n+1 by XREAL_1:6,NAT_1:14; then
+    len f >= n+1 by CARD_1:def 7; then
+    A1: len (f|(n+1)) = n+1 by FINSEQ_1:59;
+    n+1 >= 0+1 by XREAL_1:6; then
+    A2: ((f|(n+1))^(f/^(n+1))).(n+1) = (f|(n+1)).(n+1) by A1,FINSEQ_1:64;
+    f|(n+1) is (n+1)-element FinSequence by A1,CARD_1:def 7; then
+    f|(n+1) = ((f|(n+1))|n)^<*(f|(n+1)).(n+1)*> by LmFNK
+    .=(f|n)^<*f.(n+1)*> by A0,A2,FINSEQ_1:82;
+    hence thesis;
+  end;
+
+theorem PAP:
+  for f be complex-valued FinSequence, n be Nat holds
+    Product f = (Product (f|n)) * (Product (f/^n))
+  proof
+    let f be complex-valued FinSequence, n be Nat;
+    defpred P[Nat] means Product f = (Product (f|$1))*(Product (f/^$1));
+    A1: P[0] by RVSUM_2:42;
+    A2: for k be Nat holds P[k] implies P[k+1]
+    proof
+      let k be Nat such that
+      B1: P[k];
+      reconsider g = f/^k as complex-valued FinSequence;
+      per cases;
+      suppose
+        g is empty; then
+        (f/^k)/^1 is empty; then
+        C1: (f/^(k+1)) is empty by NEWTON04:35; then
+        (f|(k+1))^(f/^(k+1)) = f|(k+1) by FINSEQ_1:34;
+        hence thesis by C1,RVSUM_2:42;
+      end;
+      suppose
+        C1: g is non empty; then
+        C2: Product g = g.1 * Product (g/^1) by FIF
+        .= (f/^k).1 * Product (f/^(k+1)) by NEWTON04:35
+        .= f.(k+1)* Product (f/^(k+1)) by NEWTON04:38;
+        reconsider r = f.(k+1) as Complex;
+        len f > k by C1,FINSEQ_5:32; then
+        consider m be Nat such that
+        C4: len f = k + m by NAT_1:10;
+        reconsider m as non zero Nat by C1,C4;
+        f is (k+m)-element FinSequence by C4,CARD_1:def 7; then
+        C6: f|(k+1) = (f|k)^<*f.(k+1)*> by FNK;
+        Product f = Product (f|k) * f.(k+1) * Product (f/^(k+1)) by B1,C2
+        .= Product (f|(k+1)) * Product (f/^(k+1)) by C6,RVSUM_1:96;
+        hence thesis;
+      end;
+    end;
+    for x be Nat holds P[x] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+  end;
+
+theorem FAF:
+  for f,g be complex-valued FinSequence holds
+    Product (f^g) = (Product f) * (Product g)
+  proof
+    let f,g be complex-valued FinSequence;
+    Product (((f^g)|(len f))^((f^g)/^(len f))) = (Product f)*(Product g)
+      by PAP;
+    hence thesis;
+  end;
+
+begin :: On Product and Sum of Complex Sequences
+:: FINSOP_1 -- +*
+
+definition :: copied from SERIES_3:def 1
+  let s be Complex_Sequence;
+  func Partial_Product(s) -> Complex_Sequence means :PP:
+  it.0 = s.0 & for n be Nat holds it.(n+1) = it.n * s.(n+1);
+  existence
+  proof
+    deffunc U(Nat,Complex) = In($2 * s.($1+1),COMPLEX);
+    consider f being sequence of COMPLEX such that
+    A1: f.0 = s.0 & for n being Nat holds f.(n+1) = U(n,f.n)
+      from NAT_1:sch 12;
+    reconsider f as Complex_Sequence;
+    take f;
+    thus f.0 = s.0 by A1;
+    let n be Nat;
+    f.(n+1) = U(n,f.n) by A1;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let s1,s2 be Complex_Sequence such that
+    A1: (s1.0 = s.0 & for n be Nat holds (s1.(n+1) = s1.n * s.(n+1)))
+     & (s2.0 = s.0 & for n be Nat holds (s2.(n+1) = s2.n * s.(n+1)));
+    for n be Element of NAT holds s1.n=s2.n
+    proof
+      defpred P[Nat] means s1.$1=s2.$1;
+      B1: P[0] by A1;
+      B2: for n be Nat st P[n] holds P[n+1]
+      proof
+        let n be Nat;
+        assume s1.n = s2.n;
+        then s1.(n+1) = s2.n * s.(n+1) by A1
+        .= s2.(n+1) by A1;
+        hence thesis;
+      end;
+      for n be Nat holds P[n] from NAT_1:sch 2(B1,B2);
+      hence thesis;
+    end;
+    hence s1 = s2 by FUNCT_2:63;
+  end;
+end;
+
+theorem PPN:
+  for f be Complex_Sequence, n be Nat st f.n = 0 holds
+    (Partial_Product f).n = 0
+  proof
+    let f be Complex_Sequence, n be Nat such that
+    A1: f.n = 0;
+    per cases;
+    suppose n = 0;
+      hence thesis by A1,PP;
+    end;
+    suppose n > 0; then
+      reconsider m = n -1 as Nat;
+      (Partial_Product f).(m+1) = (Partial_Product f).m *f.(m+1) by PP;
+      hence thesis by A1;
+    end;
+  end;
+
+theorem PPM:
+  for f be Complex_Sequence, n,m be Nat st f.n = 0 holds
+    (Partial_Product f).(n+m) = 0
+  proof
+    let f be Complex_Sequence, n,m be Nat such that
+    A1: f.n = 0;
+    defpred P[Nat] means (Partial_Product f).(n+$1) = 0;
+    A2: P[0] by A1,PPN;
+    A3: for k be Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+      B1: P[k];
+      (Partial_Product f).(n+k+1) = (Partial_Product f).(n+k)* f.(n+k+1) by PP;
+      hence thesis by B1;
+    end;
+    for x be Nat holds P[x] from NAT_1:sch 2(A2,A3);
+    hence thesis;
+  end;
+
+definition
+  let c be Complex, n be non zero Nat;
+  redefine func c|^n equals
+  (Partial_Product (seq_const c)).(n-1);
+  compatibility
+  proof
+    defpred X[Nat] means (Partial_Product (seq_const c)).$1 = c|^($1+1);
+    A1: X[0]
+    proof
+      (Partial_Product (seq_const c)).0 = (seq_const c).0 by PP
+      .= c|^(0+1);
+      hence thesis;
+    end;
+    A2: for l be Nat holds X[l] implies X[l+1]
+    proof
+    let l be Nat;
+    assume
+    A3: X[l];
+    (Partial_Product (seq_const c)).(l+1) =
+      (Partial_Product (seq_const c)).l * (seq_const c).(l+1) by PP
+      .= c|^((l+1)+1) by A3,NEWTON:6;
+      hence thesis;
+    end;
+    A4: for k be Nat holds X[k] from NAT_1:sch 2(A1,A2);
+    for j be non zero Nat holds (Partial_Product (seq_const c)).(j-1) = c|^j
+    proof
+      let j be non zero Nat;
+      reconsider x = j - 1 as Nat;
+      (Partial_Product (seq_const c)).x = c|^(x+1) by A4
+      .= c|^j;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem COMSEQ324:
+  for n be Nat holds Partial_Product (seq_const 0c).n = 0
+  proof
+    let n be Nat;
+    (NAT --> 0).n = 0; then
+    Partial_Product (seq_const 0).(0+n) = 0 by PPM;
+    hence thesis;
+  end;
+
+registration
+  let k be Nat;
+  reduce (Partial_Product (seq_const 0)).k to 0;
+  reducibility
+  proof
+    (seq_const 0).0 = 0; then
+    0 = (Partial_Product (seq_const 0)).(0+k) by PPM;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster empty-yielding -> absolutely_summable for Complex_Sequence;
+  coherence
+  proof
+    let seq be Complex_Sequence;
+    assume seq is empty-yielding; then
+    for x be Nat holds seq.x = 0;
+    hence thesis by COMSEQ_3:51;
+  end;
+  cluster empty-yielding -> absolutely_summable for Real_Sequence;
+  coherence
+  proof
+    let seq be Real_Sequence;
+    assume seq is empty-yielding; then
+    for x be Nat holds seq.x = 0;
+    hence thesis by COMSEQ_3:3;
+  end;
+end;
+
+registration
+  reduce Partial_Sums (NAT --> 0) to (NAT --> 0);
+  reducibility
+  proof
+    dom (NAT --> 0) = NAT & for x be set st x in NAT holds (NAT --> 0).x
+      is Element of COMPLEX by XCMPLX_0:def 2; then
+    reconsider cseq = NAT --> 0 as Complex_Sequence by COMSEQ_1:1;
+    for n be Nat holds cseq.n = 0;
+    hence thesis by PARTFUN1:def 2,COMSEQ_3:24;
+  end;
+  reduce Partial_Product (seq_const 0) to (seq_const 0);
+  reducibility by COMSEQ324,PARTFUN1:def 2;
+  cluster -> Sequence-like for Complex_Sequence;
+  coherence by COMSEQ_1:1;
+  cluster summable for sequence of COMPLEX;
+  existence
+  proof
+    dom (NAT --> 0) = NAT &
+    for x be set st x in NAT holds (NAT --> 0).x is Element of COMPLEX
+      by XCMPLX_0:def 2; then
+    reconsider cseq = (NAT --> 0) as sequence of COMPLEX by COMSEQ_1:1;
+    cseq is summable;
+    hence thesis;
+  end;
+end;
+
+registration
+  let seq be empty-yielding Complex_Sequence;
+  cluster Sum seq -> zero;
+  coherence
+  proof
+    for x be Nat holds seq.x = 0;
+    hence thesis by CSSPACE:80;
+  end;
+end;
+
+registration ::: to RSSPACE
+  let seq be empty-yielding Real_Sequence;
+  cluster Sum seq -> zero;
+  coherence
+  proof
+    for x be Nat holds seq.x = 0;
+    hence thesis by RSSPACE:16;
+  end;
+end;
+
+begin :: XFinSequences
+
+registration ::: move to AFINSQ_1 and AFINSQ_2
+  let c be Complex;
+  cluster <%c%> -> complex-valued;
+  coherence;
+  reduce Sum <%c%> to c;
+  reducibility by AFINSQ_2:53;
+end;
+
+registration
+  let n be Nat;
+  cluster n-element for natural-valued XFinSequence;
+  existence
+  proof
+    card(n --> 0) = n; then
+    (n-->0) is n-element by CARD_1:def 7;
+    hence thesis;
+  end;
+  let k be object;
+  cluster (n --> k) -> n-element;
+  coherence
+  proof
+    card(n --> k) = n;
+    hence thesis by CARD_1:def 7;
+  end;
+end;
+
+registration
+  let n be Nat;
+  cluster n-element for XFinSequence;
+  existence
+  proof
+    n-->0 is n-element;
+    hence thesis;
+  end;
+  let f be n-element XFinSequence;
+  reduce f|n to f;
+  reducibility
+  proof
+    n = dom f by CARD_1:def 7;
+    hence thesis;
+  end;
+end;
+
+registration
+  let n,m be Nat, f be n-element XFinSequence;
+  reduce f|(n+m) to f;
+  reducibility
+  proof
+    f|(n+m) = f|(n/\(n+m)) by RELAT_1:71
+    .= f|n;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be 1-element XFinSequence;
+  reduce <%f.0%> to f;
+  reducibility
+  proof
+    <%f.0%>.0 = f.0 & len f = 1 by CARD_1:def 7;
+    hence thesis by AFINSQ_1:34;
+  end;
+end;
+
+registration
+  let f be 2-element XFinSequence;
+  reduce <%f.0,f.1%> to f;
+  reducibility
+  proof
+    <%f.0,f.1%>.0 = f.0 & <%f.0,f.1%>.1 = f.1 & len f = 2 by CARD_1:def 7;
+    hence thesis by AFINSQ_1:38;
+  end;
+end;
+
+registration
+  let f be 3-element XFinSequence;
+  reduce <%f.0,f.1,f.2%> to f;
+  reducibility
+  proof
+    <%f.0,f.1,f.2%>.0 = f.0 & <%f.0,f.1,f.2%>.1 = f.1 &
+      <%f.0,f.1,f.2%>.2 = f.2 & len f = 3 by CARD_1:def 7;
+    hence thesis by AFINSQ_1:39;
+  end;
+end;
+
+:: Segm
+
+theorem LmA:
+  for n,k be Nat st k in Segm (n+1) holds n - k is Nat
+  proof
+    let n,k be Nat such that
+    A1: k in Segm (n+1);
+    (n+1) > k by A1,NAT_1:44; then
+    n >= k by NAT_1:13; then
+    n - k >= k - k by XREAL_1:9;
+    hence thesis by INT_1:3;
+  end;
+
+theorem
+  for a,b be Complex, n,k be Nat st k in Segm (n+1)
+   ex c be object, l be Nat st l = n-k & c = a|^l*b|^k
+  proof
+    let a,b be Complex, n,k be Nat;
+    assume k in Segm (n+1); then
+    reconsider l1 = n - k as Nat by LmA;
+    a|^l1*b|^k is object;
+    hence thesis;
+  end;
+
+:: Extending XFinSequence
+
+definition
+  let f be complex-valued XFinSequence, seq be Complex_Sequence;
+  func f^seq -> Complex_Sequence equals
+  f \/ Shift (seq,len f);
+  correctness
+  proof
+    dom f misses dom (Shift (seq,len f)) by AFINSQ_1:72; then
+    reconsider g = f \/ Shift (seq,len f) as Function by PARTFUN1:51,56;
+    reconsider g as NAT-defined COMPLEX-valued Function;
+    A2: dom (f \/ (Shift (seq,len f))) = dom f \/ dom (Shift (seq,len f))
+      by XTUPLE_0:23;
+    for x be object holds x in dom g iff x in NAT
+    proof
+      let x be object;
+      x in NAT implies x in dom g
+      proof
+        assume x in NAT; then
+        reconsider x as Nat;
+        per cases;
+        suppose
+          x < len f; then
+          x in Segm len f by NAT_1:44;
+          hence thesis by A2,XBOOLE_0:def 3;
+        end;
+        suppose
+          x >= len f; then
+          consider k be Nat such that
+          B1: x = len f + k by NAT_1:10;
+          k in NAT by ORDINAL1:def 12; then
+          k in dom seq by COMSEQ_1:1; then
+          len f + k in dom (Shift (seq,len f)) by VALUED_1:24;
+          hence thesis by A2,B1,XBOOLE_0:def 3;
+        end;
+      end;
+      hence thesis;
+    end; then
+    A3: dom g = NAT by TARSKI:2;
+    for n be set st n in dom g holds g.n is Element of COMPLEX
+      by XCMPLX_0:def 2;
+    hence thesis by A3,COMSEQ_1:1;
+  end;
+end;
+
+definition :: equivalent to f null g
+  let seq be Complex_Sequence, f be Function;
+  func seq^f -> sequence of COMPLEX equals
+    seq;
+  coherence;
+end;
+
+theorem RSC:
+  for x be object holds
+    x is real-valued Complex_Sequence iff x is Real_Sequence
+  proof
+    let x be object;
+    L1: for x be Real_Sequence holds x is real-valued Complex_Sequence
+    proof
+      let x be Real_Sequence;
+      dom x = NAT & for k be Element of NAT holds x.k is Element of COMPLEX
+        by SEQ_1:2,XCMPLX_0:def 2;
+      hence thesis by COMSEQ_1:2;
+    end;
+    for x be real-valued Complex_Sequence holds x is Real_Sequence
+    proof
+      let x be real-valued Complex_Sequence;
+      dom x = NAT & for k be Nat holds x.k is real by COMSEQ_1:1;
+      hence thesis by SEQ_1:2;
+    end;
+    hence thesis by L1;
+  end;
+
+theorem ::R2C:
+  for rseq be Real_Sequence, cseq be Complex_Sequence st cseq = rseq
+  holds Partial_Product rseq = Partial_Product cseq
+  proof
+    let rseq be Real_Sequence, cseq be Complex_Sequence such that
+    A1: cseq = rseq;
+    A3: dom (Partial_Product cseq) = NAT by COMSEQ_1:1
+    .= dom (Partial_Product rseq) by SEQ_1:1;
+    for k be Nat holds (Partial_Product cseq).k = (Partial_Product rseq).k
+    proof
+      let k be Nat;
+      defpred P[Nat] means (Partial_Product cseq).$1 =
+        (Partial_Product rseq).$1;
+      B1: P[0]
+      proof
+        (Partial_Product cseq).0 = cseq.0 by PP
+        .= (Partial_Product rseq).0 by A1,SERIES_3:def 1;
+        hence thesis;
+      end;
+      B2: for j be Nat st P[j] holds P[j+1]
+      proof
+        let j be Nat such that
+        C1: P[j];
+        (Partial_Product cseq).(j+1) =
+          (Partial_Product cseq).j * cseq.(j+1) by PP
+        .= (Partial_Product rseq).(j+1) by A1,C1,SERIES_3:def 1;
+        hence thesis;
+      end;
+      for n be Nat holds P[n] from NAT_1:sch 2(B1,B2);
+      hence thesis;
+    end;
+    hence thesis by A3;
+  end;
+
+definition
+  let f be complex-valued XFinSequence, seq be Real_Sequence;
+  func f^seq -> Complex_Sequence equals
+  f \/ Shift (seq,len f);
+  correctness
+  proof
+    reconsider cseq = seq as real-valued Complex_Sequence by RSC;
+    f^cseq is Complex_Sequence;
+    hence thesis;
+  end;
+end;
+
+theorem
+  for rseq be Real_Sequence holds
+    <%>REAL^rseq is real-valued Complex_Sequence;
+
+:: may be used for conversion of Real_Sequences into Complex_Sequences
+
+definition
+  let f be Real_Sequence, g be Function;
+  func f^g -> real-valued sequence of COMPLEX equals
+  f;
+  correctness by RSC;
+end;
+
+registration
+  let f be complex-valued XFinSequence, seq be Complex_Sequence;
+  reduce (f^seq)|(dom f) to f;
+  reducibility
+  proof
+    for x be Nat st x in dom f holds f.x = ((f^seq)|(dom f)).x
+    proof
+      let x be Nat such that
+      A1: x in dom f;
+      A1a: f \/ (f^seq) = (f^seq) by XBOOLE_1:6;
+      (dom f) /\ ((dom f) \/ (dom (Shift (seq,len f)))) = dom f
+        by XBOOLE_1:21; then
+      x in dom f /\ dom (f^seq) by A1,XTUPLE_0:23; then
+      f.x = (f^seq).x by A1a,PARTFUN1:2
+      .= ((f^seq)|(dom f)).x by A1,FUNCT_1:49;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be complex-valued XFinSequence, seq be Real_Sequence;
+  reduce (f^seq)|(dom f) to f;
+  reducibility
+  proof
+    for x be Nat st x in dom f holds f.x = ((f^seq)|(dom f)).x
+    proof
+      let x be Nat such that
+      A1: x in dom f;
+      A1a: f \/ (f^seq) = (f^seq) by XBOOLE_1:6;
+      (dom f) /\ ((dom f) \/ (dom (Shift (seq,len f)))) = dom f
+        by XBOOLE_1:21; then
+      x in dom f /\ dom (f^seq) by A1,XTUPLE_0:23; then
+      f.x = (f^seq).x by A1a,PARTFUN1:2
+      .= ((f^seq)|(dom f)).x by A1,FUNCT_1:49;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem SCX:
+  for f be complex-valued XFinSequence, x be Nat holds
+    (f^(seq_const 0)).x = f.x
+  proof
+    let f be complex-valued XFinSequence, x be Nat;
+    NAT = dom (f^(seq_const 0)) by COMSEQ_1:1
+    .= dom (f \/ (Shift (seq_const 0, dom f))); then
+    (dom f) \/ (dom (Shift (seq_const 0, dom f))) = NAT by XTUPLE_0:23; then
+    A1: x in (dom f) \/ (dom (Shift (seq_const 0, dom f)))
+      by ORDINAL1:def 12;
+    A1a: Shift(seq_const 0,len f) \/ (f^(seq_const 0)) = (f^(seq_const 0))
+      by XBOOLE_1:6;
+    (dom (Shift (seq_const 0,len f))) /\ ((dom f) \/
+      (dom (Shift (seq_const 0,len f)))) =
+        dom (Shift (seq_const 0,len f)) by XBOOLE_1:21; then
+    A2: dom (Shift (seq_const 0,len f)) /\ dom (f^(seq_const 0)) =
+      dom (Shift (seq_const 0,len f)) by XTUPLE_0:23;
+    per cases;
+    suppose
+      x in dom f; then
+      (f^(seq_const 0)).x = ((f^(seq_const 0))|(len f)).x by FUNCT_1:49
+      .= f.x;
+      hence thesis;
+    end;
+    suppose
+      B1: not x in dom f; then
+      B2: x in dom (Shift (seq_const 0, dom f)) by A1,XBOOLE_0:def 3;
+      f.x = (seq_const 0).(len f - x) by B1,FUNCT_1:def 2
+      .= (Shift (seq_const 0, len f)).x
+      .= (f^(seq_const 0)).x by A1a,A2,B2,PARTFUN1:2;
+      hence thesis;
+    end;
+  end;
+
+theorem
+  for f be Real_Sequence holds f^f is real-valued Complex_Sequence;
+
+registration
+  let f be real-valued Complex_Sequence;
+  cluster Im f -> empty-yielding;
+  coherence
+  proof
+    for k be Nat st k in dom Im f holds (Im f).k = 0
+    proof
+      let k be Nat;
+      assume k in dom Im f; then
+      (Im f).k = Im (f.k) by COMSEQ_3:def 4
+      .= 0;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  reduce Re f to f;
+  reducibility
+  proof
+   for k be object st k in dom Re f holds (Re f).k = f.k
+   proof
+     let k be object;
+     assume k in dom Re f; then
+     (Re f).k = Re (f.k) by COMSEQ_3:def 3
+     .= f.k;
+     hence thesis;
+   end;
+   hence thesis by COMSEQ_3:def 3;
+ end;
+end;
+
+registration
+  cluster empty-yielding for Real_Sequence;
+  existence
+  proof
+    reconsider f = NAT --> 0 as real-valued sequence of COMPLEX
+      by XCMPLX_0:def 2,FUNCOP_1:45;
+    f is Real_Sequence by RSC;
+    hence thesis;
+  end;
+  cluster -> Sequence-like for Real_Sequence;
+  coherence by SEQ_1:1;
+end;
+
+registration
+  let r be Real;
+  cluster Re (r*<i>) -> zero;
+  coherence by COMPLEX1:10;
+  reduce Im (r*<i>) to r;
+  reducibility by COMPLEX1:11;
+end;
+
+registration
+  let f be complex-valued XFinSequence;
+  cluster Re f -> real-valued finite Sequence-like;
+  coherence
+  proof
+    dom Re f = dom f by COMSEQ_3:def 3;
+    hence thesis by AFINSQ_1:5;
+  end;
+  cluster Im f -> real-valued finite Sequence-like;
+  coherence
+  proof
+    dom Im f = dom f by COMSEQ_3:def 4;
+    hence thesis by AFINSQ_1:5;
+  end;
+  cluster Re f -> (len f)-element;
+  coherence
+  proof
+    dom (Re f) = dom f by COMSEQ_3:def 3;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster Im f -> (len f)-element;
+  coherence
+  proof
+    dom (Im f) = dom f by COMSEQ_3:def 4;
+    hence thesis by CARD_1:def 7;
+  end;
+end;
+
+registration
+  let f be complex-valued FinSequence;
+  cluster Re f -> real-valued FinSequence-like;
+  coherence
+  proof
+    dom (Re f) = dom f by COMSEQ_3:def 3
+    .= Seg (len f) by FINSEQ_1:def 3;
+    hence thesis by FINSEQ_1:def 2;
+  end;
+  cluster Im f -> real-valued FinSequence-like;
+  coherence
+  proof
+    dom Im f = dom f by COMSEQ_3:def 4
+      .= Seg len f by FINSEQ_1:def 3;
+    hence thesis by FINSEQ_1:def 2;
+  end;
+end;
+
+registration
+  let f be complex-valued Function;
+  reduce Re Re f to Re f;
+  reducibility
+  proof
+    for k be object st k in dom Re(Re f) holds Re(Re f).k = (Re f).k
+    proof
+      let k be object;
+      assume k in dom Re(Re f); then
+      (Re(Re f)).k = Re ((Re f).k) by COMSEQ_3:def 3
+      .= (Re f).k;
+      hence thesis;
+    end;
+    hence thesis by COMSEQ_3:def 3;
+  end;
+  reduce Re(Im f) to Im f;
+  reducibility
+  proof
+    for k be object st k in dom Re(Im f) holds Re(Im f).k = (Im f).k
+    proof
+      let k be object;
+      assume k in dom Re(Im f); then
+      (Re(Im f)).k = Re ((Im f).k) by COMSEQ_3:def 3
+      .= (Im f).k;
+      hence thesis;
+    end;
+    hence thesis by COMSEQ_3:def 3;
+  end;
+  cluster Im(Re f) -> empty-yielding;
+  coherence
+  proof
+    for k be object st k in dom (Im (Re f)) holds (Im (Re f)).k = 0
+    proof
+      let k be object;
+      assume k in dom (Im (Re f)); then
+      (Im (Re f)).k = Im ((Re f).k) by COMSEQ_3:def 4
+      .= 0;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  cluster Im(Im f) -> empty-yielding;
+  coherence
+  proof
+    for k be object st k in dom (Im (Im f)) holds (Im (Im f)).k = 0
+    proof
+      let k be object;
+      assume k in dom (Im (Im f)); then
+      (Im (Im f)).k = Im ((Im f).k) by COMSEQ_3:def 4
+      .= 0;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  reduce Re((Re f) + <i>(#)(Im f)) to Re f;
+  reducibility
+  proof
+    dom (Re f) = dom f & dom (Im f) = dom f by COMSEQ_3:def 3,def 4; then
+    dom (Re f) = dom (<i>(#)(Im f)) by VALUED_1:def 5; then
+    A2: dom (Re f) = dom (Re f) /\ dom (<i>(#)(Im f))
+    .= dom ((Re f) + <i>(#)(Im f)) by VALUED_1:def 1;
+    for k be object st k in dom Re(Re f + <i>(#)(Im f)) holds
+      Re(Re f + <i>(#)(Im f)).k = (Re f).k
+    proof
+      let k be object;
+      assume
+      B1: k in dom Re((Re f) + <i>(#)(Im f)); then
+      B2: k in dom ((Re f) + <i>(#)(Im f)) by COMSEQ_3:def 3; then
+      B3: k in (dom Re f) /\ (dom (<i>(#)(Im f))) by VALUED_1:def 1;
+      (Re((Re f) + <i>(#)(Im f))).k = Re (((Re f)+ <i>(#)(Im f)).k)
+        by B1,COMSEQ_3:def 3
+      .= Re ((Re f).k + (<i>(#)(Im f)).k) by B2,VALUED_1:def 1
+      .= Re ((Re f).k + <i>*(Im f).k) by B3,VALUED_1:def 5
+      .= Re ((Re f).k) + Re ((<i>*(Im f).k)) by COMPLEX1:8
+      .= (Re f).k + 0;
+      hence thesis;
+    end;
+    hence thesis by A2,COMSEQ_3:def 3;
+  end;
+  reduce Im((Re f) + <i>(#)(Im f)) to Im f;
+  reducibility
+  proof
+    A1: dom Re f = dom f & dom Im f = dom f by COMSEQ_3:def 3,def 4;
+    dom Im f = dom (<i>(#)(Im f)) by VALUED_1:def 5; then
+    A2: dom Im f = dom (Re f) /\ dom (<i>(#)(Im f)) by A1
+    .= dom ((Re f) + <i>(#)(Im f)) by VALUED_1:def 1;
+    for k be object st k in dom Im(Re f + <i>(#)(Im f)) holds
+      Im(Re f + <i>(#)(Im f)).k = (Im f).k
+    proof
+      let k be object;
+      assume
+      B1: k in dom Im((Re f) + <i>(#)(Im f)); then
+      B2: k in dom ((Re f) + <i>(#)(Im f)) by COMSEQ_3:def 4; then
+      B3: k in (dom Re f) /\ (dom (<i>(#)(Im f))) by VALUED_1:def 1;
+      (Im((Re f) + <i>(#)(Im f))).k = Im (((Re f)+ <i>(#)(Im f)).k)
+        by B1,COMSEQ_3:def 4
+      .= Im ((Re f).k + (<i>(#)(Im f)).k) by B2,VALUED_1:def 1
+      .= Im ((Re f).k + <i>*(Im f).k) by B3,VALUED_1:def 5
+      .= Im ((Re f).k) + Im ((<i>*(Im f).k)) by COMPLEX1:8
+      .= 0 + (Im f).k;
+      hence thesis;
+    end;
+    hence thesis by A2,COMSEQ_3:def 4;
+  end;
+  reduce ((Re f) + <i>(#)(Im f)) to f;
+  reducibility
+  proof
+    A1: dom Re f = dom f & dom (Im f) = dom f by COMSEQ_3:def 3,def 4;
+    dom Im f = dom (<i>(#)(Im f)) by VALUED_1:def 5; then
+    A2: dom Im f = dom (Re f) /\ dom (<i>(#)(Im f)) by A1
+    .= dom ((Re f) + <i>(#)(Im f)) by VALUED_1:def 1;
+    for k be object st k in dom (Re f + <i>(#)(Im f)) holds
+    (Re f + <i>(#)(Im f)).k = f.k
+    proof
+      let k be object such that
+      B1: k in dom (Re f + <i>(#)(Im f));
+      B2: Re (((Re f) + <i>(#)(Im f)).k) = (Re((Re f) + <i>(#)(Im f))).k
+        by A1,A2,B1,COMSEQ_3:def 3
+      .= Re (f.k) by B1,A1,A2,COMSEQ_3:def 3;
+      Im (((Re f) + <i>(#)(Im f)).k) = (Im(Re f + <i>(#)(Im f))).k
+        by A2,B1,COMSEQ_3:def 4
+      .= Im (f.k) by A2,B1,COMSEQ_3:def 4;
+      hence thesis by B2,COMPLEX1:3;
+    end;
+    hence thesis by A2,COMSEQ_3:def 4;
+  end;
+end;
+
+registration
+  let n be Nat;
+  cluster n-element for finite Function;
+  existence
+  proof
+    n --> 0 is finite Function;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be finite complex-valued Sequence, n be Nat;
+  cluster Shift (f,n) -> finite;
+  coherence;
+  cluster Shift (f,n) -> (len f)-element;
+  coherence
+  proof
+    card dom f = card (dom (Shift (f,n))) by CARD_1:5,VALUED_1:27
+    .= card (Shift (f,n)) by CARD_1:62;
+    hence thesis by CARD_1:def 7;
+  end;
+end;
+
+registration
+  cluster seq_const 0 -> empty-yielding;
+  coherence;
+end;
+
+definition
+  let f be complex-valued XFinSequence;
+  func Sequel f -> Complex_Sequence equals
+    (NAT --> 0) +* f;
+  coherence
+  proof
+    A1: dom ((NAT --> 0) +* f) = dom (NAT --> 0) \/ dom f by FUNCT_4:def 1
+    .= NAT \/ dom f
+    .= NAT;
+    for n be set st n in dom ((NAT --> 0) +* f) holds
+    ((NAT --> 0) +* f).n is Element of COMPLEX by XCMPLX_0:def 2;
+    hence thesis by A1,COMSEQ_1:1;
+  end;
+end;
+
+theorem SFX:
+  for f be complex-valued XFinSequence, x be Nat holds (Sequel f).x = f.x
+  proof
+    let f be complex-valued XFinSequence, x be Nat;
+    x in NAT by ORDINAL1:def 12; then
+    A1: x in (dom (NAT --> 0)) \/ (dom f) by XBOOLE_0:def 3;
+    per cases;
+    suppose
+      x in dom f;
+      hence thesis by A1,FUNCT_4:def 1;
+    end;
+    suppose
+      B1: not x in dom f; then
+      (Sequel f).x = (NAT --> 0).x by A1,FUNCT_4:def 1
+      .= 0;
+      hence thesis by B1,FUNCT_1:def 2;
+    end;
+  end;
+
+theorem
+  for f be complex-valued XFinSequence holds Sequel f = f^(seq_const 0)
+  proof
+    let f be complex-valued XFinSequence;
+    A1: dom (Sequel f) = dom (f^(seq_const 0))
+    proof
+      dom (Sequel f) = dom (NAT --> 0) \/ dom f by FUNCT_4:def 1
+      .= NAT \/ dom f
+      .= dom (f^(seq_const 0)) by COMSEQ_1:1;
+      hence thesis;
+    end;
+    for x be Nat holds (Sequel f).x = (f^(seq_const 0)).x
+    proof
+      let x be Nat;
+      (Sequel f).x = f.x & (f^(seq_const 0)).x = f.x by SCX,SFX;
+      hence thesis;
+    end;
+    hence thesis by A1;
+  end;
+
+theorem
+  for seq be Complex_Sequence holds seq = Re (seq) + <i>(#)Im (seq);
+
+theorem RSF:
+  for f be complex-valued XFinSequence holds
+   Re (Sequel f) = Sequel (Re f)
+   proof
+     let f be complex-valued XFinSequence;
+     dom Sequel f = NAT by COMSEQ_1:1; then
+     A2: dom Re Sequel f = NAT by COMSEQ_3:def 3;
+     for x be object st x in dom Re Sequel f holds
+       (Re(Sequel f)).x = (Sequel(Re f)).x
+     proof
+       let x be object; assume
+       B1: x in dom Re Sequel f; then
+       reconsider x as Nat;
+       B2: (Re(Sequel f)).x = Re ((Sequel f).x) by B1,COMSEQ_3:def 3
+       .= Re (f.x) by SFX;
+       B3: (Re f).x = (Sequel (Re f)).x by SFX;
+       per cases;
+       suppose
+         x in dom Re f;
+         hence thesis by B2,B3,COMSEQ_3:def 3;
+       end;
+       suppose
+         not x in dom Re f;
+         then C1: (Re f).x = 0 & not x in dom f
+           by COMSEQ_3:def 3,FUNCT_1:def 2; then
+         f.x = 0 by FUNCT_1:def 2;
+         hence thesis by B2,SFX,C1;
+       end;
+     end;
+     hence thesis by A2,COMSEQ_1:1;
+   end;
+
+theorem ISF:
+  for f be complex-valued XFinSequence holds
+   Im (Sequel f) = Sequel (Im f)
+   proof
+     let f be complex-valued XFinSequence;
+     dom Sequel f = NAT by COMSEQ_1:1; then
+     A2: dom Im (Sequel f) = NAT by COMSEQ_3:def 4;
+     for x be object st x in dom Im Sequel f holds
+       (Im(Sequel f)).x = (Sequel Im f).x
+     proof
+       let x be object; assume
+       B1: x in dom Im Sequel f; then
+       reconsider x as Nat;
+       B2: (Im(Sequel f)).x = Im ((Sequel f).x) by B1,COMSEQ_3:def 4
+       .= Im (f.x) by SFX;
+       B3: (Im f).x = (Sequel Im f).x by SFX;
+       per cases;
+       suppose
+         x in dom Im f;
+         hence thesis by B2,B3,COMSEQ_3:def 4;
+       end;
+       suppose
+         not x in dom Im f;
+         then C1: (Im f).x = 0 & not x in dom f
+           by COMSEQ_3:def 4,FUNCT_1:def 2; then
+         f.x = 0 by FUNCT_1:def 2;
+         hence thesis by B2,SFX,C1;
+       end;
+     end;
+     hence thesis by A2,COMSEQ_1:1;
+   end;
+
+theorem
+  for c be Complex holds 0 (#) (NAT --> c) = NAT --> 0
+  proof
+    let c be Complex;
+    A1: dom (0 (#) (NAT --> c)) = dom (NAT --> c) by VALUED_1:def 5
+    .= dom (NAT --> 0);
+    for k be object st k in dom (NAT --> 0) holds
+      (NAT --> 0).k = (0 (#) (NAT --> c)).k
+    proof
+      let k be object such that
+      B1: k in dom (NAT --> 0);
+      reconsider k as Nat by B1;
+      (NAT --> 0).k = 0 * (NAT --> c).k
+      .= (0 (#) (NAT --> c)).k by A1,B1,VALUED_1:def 5;
+      hence thesis;
+    end;
+    hence thesis by A1;
+  end;
+
+theorem FIC:
+  for seq be Complex_Sequence, x be Nat holds
+  (for k be Nat st k >= x holds seq.k = 0) implies seq is summable
+  proof
+    let seq be Complex_Sequence, x be Nat;
+    assume
+    A1: for k be Nat holds (k >= x implies seq.k = 0);
+    for k be Nat holds (seq^\x).k = 0
+    proof
+      let k be Nat;
+      B1: k + x >= 0 + x by XREAL_1:6;
+      (seq^\x).k = seq.(k+x) by NAT_1:def 3;
+      hence thesis by A1,B1;
+    end; then
+    seq^\x is empty-yielding;
+    hence thesis by COMSEQ_3:59;
+  end;
+
+theorem
+  for seq be Real_Sequence, x be Nat holds
+    (for k be Nat st k >= x holds seq.k = 0) implies seq is summable
+  proof
+    let seq be Real_Sequence, x be Nat;
+    assume
+    A1: for k be Nat st k >= x holds seq.k = 0;
+    for k be Nat holds (seq^\x).k = 0
+    proof
+      let k be Nat;
+      B1: k + x >= 0 + x by XREAL_1:6;
+      (seq^\x).k = seq.(k+x) by NAT_1:def 3;
+      hence thesis by A1,B1;
+    end; then
+    seq^\x is empty-yielding;
+    hence thesis by SERIES_1:13;
+  end;
+
+registration
+  let f be complex-valued XFinSequence;
+  cluster Sequel f -> summable;
+  coherence
+  proof
+    for k be Nat st k >= len f holds (Sequel f).k = 0
+    proof
+      let k be Nat such that
+      A1: k >= len f;
+      k in dom (NAT --> 0) by ORDINAL1:def 12; then
+      A2: k in dom (NAT --> 0) \/ dom f by XBOOLE_0:def 3;
+      not k in Segm len f by A1,NAT_1:44; then
+      ((NAT --> 0) +* f).k = (NAT --> 0).k by A2,FUNCT_4:def 1;
+      hence thesis;
+    end;
+    hence thesis by FIC;
+  end;
+end;
+
+:: Concatenation of (X)FinSequences
+
+definition
+  let f be XFinSequence, g be FinSequence;
+  func f ^ g -> XFinSequence means  :Def1:
+  dom it = (len f) + (len g) &
+  (for k be Nat st k in dom f holds it.k = f.k) &
+  for k be Nat st k in dom g holds it.(len f + k - 1) = g.k;
+  existence
+  proof
+    defpred P[Nat,object] means
+    (for k be Nat st k = $1 & k in dom f holds $2 = f.k) &
+    for k be Nat st k = $1 + 1 - len f & k in dom g holds $2 = g.k;
+    A1: for i be Nat st i in ((len f)+(len g)) ex y being object st P[i,y]
+    proof
+      let i be Nat;
+      per cases;
+      suppose
+        C1: i < len f;
+        C2: for k be Nat st k = i & k in dom f holds f.i = f.k;
+        i + (1 - len f) < len f + (1 - len f) by C1,XREAL_1:6; then
+        not i + 1 - len f in Seg (len g) by FINSEQ_1:1; then
+        for k be Nat st k = i - len f + 1 & k in dom g holds f.i = g.k
+          by FINSEQ_1:def 3;
+        hence thesis by C2;
+      end;
+      suppose
+        C1: i >= len f; then
+        not i in Segm (len f) by NAT_1:44; then
+        C3: for k be Nat st k = i & k in dom f holds g.(i + 1 - len f) = f.k;
+        i + (1 - len f) >= len f + (1 - len f) by C1,XREAL_1:6; then
+        reconsider j = i + 1 - len f as non zero Nat;
+        for k be Nat st k = i + 1 - len f &
+          k in dom g holds g.(i + 1 - len f) = g.k;
+        hence thesis by C3;
+      end;
+    end;
+    consider p being XFinSequence such that
+    A2: dom p = ((len f) + (len g)) &
+      for k be Nat st k in ((len f)+(len g)) holds P[k,p.k]
+        from AFINSQ_1:sch 1(A1);
+    A3: for k be Nat st k in dom f holds p.k = f.k
+    proof
+      let k be Nat; assume
+      B1: k in dom f; then
+      k in Segm len f; then
+      k < len f & len f + 0 <= (len f + len g) by NAT_1:44,XREAL_1:6; then
+      k < (len f + len g) by XXREAL_0:2; then
+      k in Segm ((len f) + (len g)) by NAT_1:44;
+      hence thesis by A2,B1;
+    end;
+    A4: for k be Nat st k in dom g holds p.(len f + k - 1) = g.k
+    proof
+      let k be Nat;
+      assume B1: k in dom g; then
+      B2: 1 <= k <= len g by FINSEQ_3:25; then
+      reconsider j = k - 1 as Nat;
+      (len g - 1) + 1  > (len g - 1) + 0 & len g - 1 >= j
+        by B2,XREAL_1:6,XREAL_1:9; then
+      len g > j by XXREAL_0:2; then
+      (len f + j) in Segm ((len f) + (len g)) by NAT_1:44,XREAL_1:6; then
+      p.(len f + k - 1) = g.((len f + k - 1) + 1 - len f) by A2,B1;
+      hence thesis;
+    end;
+    take p;
+    thus thesis by A2,A3,A4;
+  end;
+  uniqueness
+  proof
+    let G,H be XFinSequence;
+    assume
+    A1: dom G = len f + len g &
+    (for i be Nat st i in dom f holds G.i = f.i) &
+    for i be Nat st i in dom g holds G.(len f + i - 1) = g.i;
+    assume
+    A2: dom H = len f + len g &
+    (for i be Nat st i in dom f holds H.i = f.i) &
+    for i be Nat st i in dom g holds H.(len f + i - 1) = g.i;
+    for i be object st i in dom G holds G.i = H.i
+    proof
+      let i be object such that
+      B1: i in dom G;
+      reconsider i as Nat by B1;
+      H.i = G.i
+      proof
+        per cases;
+        suppose
+          C1: i in dom f; then
+          H.i = f.i by A2
+          .= G.i by A1,C1;
+          hence thesis;
+        end;
+        suppose
+          not i in dom f; then
+          not i in Segm (len f); then
+          i + (1 - len f) >= len f + (1 - len f) by NAT_1:44,XREAL_1:6; then
+          reconsider j = i + 1 - len f as non zero Nat;
+          i in Segm (len f + len g) by B1,A1; then
+          i + (1 - len f) < len f + len g + (1 - len f)
+            by NAT_1:44,XREAL_1:6; then
+          j < len g + 1; then
+S1:       1 <= j <= len g by NAT_1:13,NAT_1:14; then
+          H.(len f + j - 1) = g.j by A2,FINSEQ_3:25
+          .= G.(len f + j - 1) by A1,S1,FINSEQ_3:25;
+          hence thesis;
+        end;
+      end;
+      hence thesis;
+    end;
+    hence thesis by A1,A2;
+  end;
+end;
+
+definition
+  let f be FinSequence, g be XFinSequence;
+  func f ^ g -> FinSequence means :Def2:
+  dom it = Seg ((len f) + (len g)) &
+    (for k be Nat st k in dom f holds it.k = f.k) &
+  for k be Nat st k in dom g holds it.(len f + k + 1) = g.k;
+  existence
+  proof
+    defpred P[Nat,object] means
+    (for k be Nat st k = $1 & k in dom f holds $2 = f.k) &
+    for k be Nat st k = $1 - (len f + 1) & k in dom g holds $2 = g.k;
+    A1: for i be Nat st i in Seg ((len f)+(len g))
+      ex y being object st P[i,y]
+    proof
+      let i be Nat such that
+      i in Seg ((len f)+(len g));
+      per cases;
+      suppose
+        C1: i <= len f;
+        C2: for k be Nat st k = i & k in dom f holds f.i = f.k;
+        i < len f + 1 by C1,NAT_1:13; then
+        i - (len f + 1) < (len f + 1) - (len f + 1) by XREAL_1:9; then
+        for k be Nat st k = i - (len f + 1) & k in dom g holds f.i = g.k
+          by INT_1:3;
+        hence thesis by C2;
+      end;
+      suppose
+        C1: i > len f; then
+        not i in Seg (len f) by FINSEQ_1:1; then
+        C3: for k be Nat st k = i & k in dom f holds
+          g.(i - (len f + 1)) = f.k by FINSEQ_1:def 3;
+        i >= len f + 1 by C1,NAT_1:13; then
+        i - (len f + 1) >= (len f + 1) - (len f + 1) by XREAL_1:9; then
+        reconsider j = i - (len f + 1) as Nat by INT_1:3;
+        for k be Nat st k = i - (len f + 1) & k in dom g holds
+          g.(i - (len f + 1)) = g.k;
+        hence thesis by C3;
+      end;
+    end;
+    consider p being FinSequence such that
+    A2: dom p = Seg ((len f) + (len g)) &
+      for k be Nat st k in Seg ((len f)+(len g)) holds P[k,p.k]
+        from FINSEQ_1:sch 1(A1);
+    A3: for k be Nat st k in dom f holds p.k = f.k
+    proof
+      let k be Nat such that
+      B1: k in dom f;
+      B2: len f + 0 <= len f + len g by XREAL_1:6;
+      1 <= k <= len f by B1,FINSEQ_3:25; then
+      1 <= k <= (len f + len g) by B2,XXREAL_0:2; then
+      k in dom p by A2;
+      hence thesis by A2,B1;
+    end;
+    A4: for k be Nat st k in dom g holds p.(len f + k+1) = g.k
+    proof
+      let k be Nat such that
+      B1: k in dom g;
+      k in Segm (len g) by B1; then
+      k < len g by NAT_1:44; then
+      len g >= k + 1 by NAT_1:13; then
+      (len f) + (len g) >= (len f) + (k + 1) & (len f + k) + 1 >= 0 + 1
+        by XREAL_1:6; then
+      ((len f + 1) + k) in dom p by A2; then
+      p.(((len f)+1) + k) = g.((len f + 1) + k - (len f + 1)) by A2,B1;
+      hence thesis;
+    end;
+    take p;
+    thus thesis by A2,A3,A4;
+  end;
+  uniqueness
+  proof
+    let G,H be FinSequence;
+    assume
+    A1: dom G = Seg (len f + len g) &
+    (for i be Nat st i in dom f holds G.i = f.i) &
+    for i be Nat st i in dom g holds G.(len f + i + 1) = g.i;
+    assume
+    A2: dom H = Seg (len f + len g) &
+    (for i be Nat st i in dom f holds H.i = f.i) &
+    for i be Nat st i in dom g holds H.(len f + i + 1) = g.i;
+    for i be object st i in dom G holds G.i = H.i
+    proof
+      let i be object such that
+      B1: i in dom G;
+      B2: len G = len f + len g by A1,FINSEQ_1:def 3;
+      reconsider i as Nat by B1;
+      H.i = G.i
+      proof
+        per cases;
+        suppose
+          C1: i in dom f; then
+          H.i = f.i by A2
+          .= G.i by A1,C1;
+          hence thesis;
+        end;
+        suppose
+          not i in dom f; then
+          C0: (i < 1 or len f < i) & 1 <= i <= len G by B1,FINSEQ_3:25; then
+          len f + 1 <= i by NAT_1:13; then
+          len f + 1 - (len f + 1) <= i - (len f + 1) by XREAL_1:9; then
+          reconsider j = i - (len f + 1) as Nat by INT_1:3;
+          i - (len f + 1) <= len f + len g - (len f + 1)
+            by B2,C0,XREAL_1:9; then
+          j < len g - 1 + 1 by NAT_1:13; then
+          C1: j  in Segm (len g) by NAT_1:44; then
+          H.(len f + j + 1) = g.j by A2
+          .= G.(len f + j + 1) by A1,C1;
+          hence thesis;
+        end;
+      end;
+      hence thesis;
+    end;
+    hence thesis by A1,A2;
+  end;
+end;
+
+theorem XL1:
+  for f be XFinSequence, g be FinSequence holds
+    len (f^g) = len f + len g & len (g^f) = len f + len g
+  proof
+    let f be XFinSequence, g be FinSequence;
+    Seg (len f + len g) = dom (g^f) by Def2
+    .= Seg (len (g^f)) by FINSEQ_1:def 3;
+    hence thesis by Def1,FINSEQ_1:6;
+  end;
+
+registration
+  let n,m be Nat;
+  let f be n-element XFinSequence, g be m-element FinSequence;
+  cluster f^g -> (n+m)-element;
+  coherence
+  proof
+    len f = n & len g = m by CARD_1:def 7; then
+    len (f^g) = n + m by XL1;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster g^f -> (n+m)-element;
+  coherence
+  proof
+    len f = n & len g = m by CARD_1:def 7; then
+    len (g^f) = n + m by XL1;
+    hence thesis by CARD_1:def 7;
+  end;
+end;
+
+theorem XDF:
+  for f be XFinSequence, g be FinSequence, x be Nat holds
+    x in dom (f^g) iff (x in dom f or x + 1 - len f in dom g)
+  proof
+    let f be XFinSequence, g be FinSequence, x be Nat;
+    L1: x in dom (f^g) implies x in dom f or x + 1 - len f in dom g
+    proof
+      assume x in dom (f^g); then
+      A1: x in Segm(len f + len g) by Def1;
+      per cases;
+      suppose x < len f; then
+        x in Segm (len f) by NAT_1:44;
+        hence thesis;
+      end;
+      suppose len f <= x; then
+        len f < x + 1 by NAT_1:13; then
+        len f + 1 <= x + 1 by NAT_1:13; then
+        (len f + 1) - (len f + 1) <= (x + 1) - (len f + 1) by XREAL_1:9; then
+        reconsider y = x - len f as Nat by INT_1:3;
+        y + len f < len g + len f by A1,NAT_1:44; then
+        y < len g by XREAL_1:6; then
+        0 + 1 <= y + 1 & y + 1 <= len g by NAT_1:13;
+        hence thesis by FINSEQ_3:25;
+      end;
+    end;
+    (x in dom f or x + 1 - len f in dom g) implies x in dom (f^g)
+    proof
+      assume x in dom f or x + 1 - len f in dom g; then
+      per cases;
+      suppose
+        x in dom f; then
+        B1: x in Segm (len f);
+        0 + len f <= len f + len g by XREAL_1:6; then
+        x < len f + len g by B1,NAT_1:44,XXREAL_0:2; then
+        x in Segm(len f + len g) by NAT_1:44;
+        hence thesis by Def1;
+      end;
+      suppose
+        x + 1 - len f in dom g; then
+        x + 1 - len f <= len g by FINSEQ_3:25; then
+        x + 1 - len f + len f <= len g + len f by XREAL_1:6; then
+        x < len g + len f by NAT_1:13; then
+        x in Segm(len g + len f) by NAT_1:44;
+        hence thesis by Def1;
+      end;
+    end;
+    hence thesis by L1;
+  end;
+
+theorem FDX:
+  for f be FinSequence, g be XFinSequence, x be Nat holds
+  x in dom (f^g) iff (x in dom f or x - (len f + 1) in dom g)
+  proof
+    let f be FinSequence, g be XFinSequence, x be Nat;
+    thus x in dom (f^g) implies x in dom f or x - (len f + 1) in dom g
+    proof
+      assume x in dom (f^g); then
+      x in Seg (len f + len g) by Def2; then
+      A1: 1 <= x <= len f + len g by FINSEQ_1:1;
+      per cases;
+      suppose x <= len f; then
+        x in Seg (len f) by A1;
+        hence thesis by FINSEQ_1:def 3;
+      end;
+      suppose len f < x; then
+        len f + 1 <= x by NAT_1:13; then
+        (len f + 1) - (len f + 1) <= x - (len f + 1) by XREAL_1:9; then
+        reconsider y = x - (len f + 1) as Nat by INT_1:3;
+        y + (len f + 1) - len f  <= (len f + len g) - len f
+          by A1,XREAL_1:9; then
+        y + 1 <= len g; then
+        y < len g by NAT_1:13; then
+        y in Segm (len g) by NAT_1:44;
+        hence thesis;
+      end;
+    end;
+    assume x in dom f or x - (len f + 1) in dom g; then
+    per cases;
+    suppose
+      x in dom f; then
+      B1: 1 <= x <= len f by FINSEQ_3:25;
+      len f + 0 <= len f + len g by XREAL_1:6; then
+      1 <= x <= len f + len g by B1,XXREAL_0:2; then
+      x in Seg (len f + len g);
+      hence thesis by Def2;
+    end;
+    suppose
+  B1: x - (len f + 1) in dom g; then
+      reconsider y = x - (len f + 1) as Nat;
+      y in Segm (len g) by B1; then
+      y < len g by NAT_1:44; then
+      y + 1 <= len g by NAT_1:13; then
+      1 + 0 <= 1 + (y + len f) & y + 1 + len f <= len g + len f
+        by XREAL_1:6; then
+      x in Seg (len g + len f);
+      hence thesis by Def2;
+    end;
+  end;
+
+theorem FRX:
+  for f be FinSequence, g be XFinSequence holds
+  rng (f^g) = rng f \/ rng g & rng (g^f) = rng f \/ rng g
+  proof
+    let f be FinSequence, g be XFinSequence;
+    A1: rng (f^g) c= rng f \/ rng g
+    proof
+      let y be object;
+      assume y in rng (f^g); then
+      consider x be object such that
+      B2: x in dom (f^g) & (f^g).x = y by FUNCT_1:def 3;
+      reconsider x as Nat by B2;
+      y in rng f or y in rng g
+      proof
+        per cases by B2,FDX;
+        suppose
+          C1: x in dom f; then
+          f.x = y by Def2,B2;
+          hence thesis by C1,FUNCT_1:def 3;
+        end;
+        suppose
+          C1: (x - (len f + 1)) in dom g; then
+          g.(x - (len f + 1)) = (f^g).((x - (len f + 1)) + len f + 1) by Def2
+          .= y by B2;
+          hence thesis by C1,FUNCT_1:def 3;
+        end;
+      end;
+      hence thesis by XBOOLE_0:def 3;
+    end;
+    A2: rng f \/ rng g c= rng (f^g)
+    proof
+      let y be object;
+      assume y in (rng f) \/ (rng g); then
+      per cases by XBOOLE_0:def 3;
+      suppose
+        y in rng f; then
+        consider x be object such that
+        C1: x in dom f & f.x = y by FUNCT_1:def 3;
+        reconsider x as Nat by C1;
+        C2: x in dom (f^g) by C1,FDX;
+        (f^g).x = y by C1,Def2;
+        hence thesis by C2,FUNCT_1:def 3;
+      end;
+      suppose
+        y in rng g; then
+        consider x be object such that
+        C1: x in dom g & g.x = y by FUNCT_1:def 3;
+        reconsider x as Nat by C1;
+        (x + len f + 1) - (len f + 1) in dom g by C1; then
+        C2: (x + len f + 1) in dom (f^g) by FDX;
+        (f^g).(len f + x + 1) = y by C1,Def2;
+        hence thesis by C2,FUNCT_1:def 3;
+      end;
+    end;
+    A3: rng (g^f) c= rng f \/ rng g
+    proof
+      let y be object;
+      assume y in rng (g^f); then
+      consider x be object such that
+      B2: x in dom (g^f) & (g^f).x = y by FUNCT_1:def 3;
+      reconsider x as Nat by B2;
+      y in rng f or y in rng g
+      proof
+        per cases by B2,XDF;
+        suppose
+          C1: x in dom g; then
+          g.x = y by B2,Def1;
+          hence thesis by C1,FUNCT_1:def 3;
+        end;
+        suppose
+          C1: (x + 1 - len g) in dom f; then
+          f.(x + 1 - len g) = (g^f).((x + 1 - len g) + len g - 1) by Def1
+          .= y by B2;
+          hence thesis by C1,FUNCT_1:def 3;
+        end;
+      end;
+      hence thesis by XBOOLE_0:def 3;
+    end;
+    rng f \/ rng g c= rng (g^f)
+    proof
+      let y be object;
+      assume y in (rng f) \/ (rng g); then
+      per cases by XBOOLE_0:def 3;
+      suppose
+        y in rng f; then
+        consider x be object such that
+        C1: x in dom f & f.x = y by FUNCT_1:def 3;
+        reconsider x as Nat by C1;
+        1 <= x by C1,FINSEQ_3:25; then
+        reconsider k = x - 1 as Nat;
+        (len g + k) + 1 - len g  in dom f by C1; then
+        C2: (len g + k) in dom (g^f) by XDF;
+        (g^f).(len g + x - 1) = y by C1,Def1;
+        hence thesis by C2,FUNCT_1:def 3;
+      end;
+      suppose
+        y in rng g; then
+        consider x be object such that
+        C1: x in dom g & g.x = y by FUNCT_1:def 3;
+        reconsider x as Nat by C1;
+        C2: x in dom (g^f) by C1,XDF;
+        (g^f).x = y by C1,Def1;
+        hence thesis by C2,FUNCT_1:def 3;
+      end;
+    end;
+    hence thesis by A1,A2,A3;
+  end;
+
+theorem ::VALUED146:
+  for f be non empty XFinSequence,g be FinSequence holds
+  dom(f \/ (Shift(g,len f - 1))) = Segm (len f + len g)
+  proof
+    let f be non empty XFinSequence, g be FinSequence;
+    A0: dom (f \/ (Shift(g,len f - 1))) = dom f \/ dom (Shift (g,len f - 1))
+      by XTUPLE_0:23;
+    for x be object holds x in dom (f \/ (Shift(g,len f - 1))) iff
+      x in Segm (len f + len g)
+    proof
+      let x be object;
+      C1: x in dom (f \/ (Shift(g,len f -1))) implies
+        x in Segm (len f + len g)
+      proof
+        assume
+        D1: x in dom (f \/ (Shift(g,len f -1))); then
+        reconsider x as Nat;
+        per cases by A0,D1,XBOOLE_0:def 3;
+        suppose
+          x in dom f; then
+          x in Segm len f & len f + len g >= len f + 0 by XREAL_1:6; then
+          x < len f + len g by XXREAL_0:2, NAT_1:44;
+          hence thesis by NAT_1:44;
+        end;
+        suppose
+          x in dom Shift (g,len f - 1); then
+          x in {m + (len f - 1) where m is Nat: m in dom g}
+            by VALUED_1:def 12; then
+          consider m be Nat such that
+          E1: x = m + (len f - 1) & m in dom g;
+          m <= len g by E1,FINSEQ_3:25; then
+          m < len g + 1 by NAT_1:13; then
+          m + (len f -1) < (len g + 1) + (len f -1) by XREAL_1:6;
+          hence thesis by NAT_1:44,E1;
+        end;
+      end;
+      x in Segm (len f + len g) implies x in dom (f \/ (Shift(g,len f - 1)))
+      proof
+        assume
+        C1: x in Segm (len f + len g); then
+        reconsider x as Nat;
+        per cases;
+        suppose x < len f; then
+          x in Segm len f by NAT_1:44;
+          hence thesis by A0,XBOOLE_0:def 3;
+        end;
+        suppose
+          x >= len f; then
+      D1: (len f + len g) - len f > x - len f >= len f - len f
+            by C1,NAT_1:44,XREAL_1:9; then
+          reconsider k = x - len f as Nat by INT_1:3;
+          k in Segm len g by D1,NAT_1:44; then
+          k + 1 in Seg len g by NEWTON02:106; then
+          x - (len f - 1) in dom g by FINSEQ_1:def 3; then
+          (x - (len f - 1)) + (len f - 1) in dom (Shift (g,len f - 1))
+            by VALUED_1:24;
+          hence thesis by A0,XBOOLE_0:def 3;
+        end;
+      end;
+      hence thesis by C1;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+
+theorem ::VALUED146:
+  for f be FinSequence,g be XFinSequence holds
+  dom(f \/ (Shift(g,len f + 1))) = Seg (len f + len g)
+  proof
+    let f be FinSequence, g be XFinSequence;
+A0: dom (f \/ (Shift(g,len f + 1))) = dom f \/ dom (Shift (g,len f + 1))
+      by XTUPLE_0:23;
+    for x be object holds x in dom
+      (f \/ (Shift(g,len f + 1))) iff x in Seg (len f + len g)
+    proof
+      let x be object;
+  C1: x in dom (f \/ (Shift(g,len f + 1))) implies x in Seg (len f + len g)
+      proof
+        assume
+        D1: x in dom (f \/ (Shift(g,len f + 1))); then
+        reconsider x as Nat;
+        per cases by A0,D1,XBOOLE_0:def 3;
+        suppose
+          x in dom f; then
+          1 <= x <= len f & len f + len g >= len f + 0
+            by FINSEQ_3:25,XREAL_1:6; then
+          1 <= x <= len f + len g by XXREAL_0:2;
+          hence thesis;
+        end;
+        suppose
+          x in dom Shift (g,len f + 1); then
+          x in {m + (len f + 1) where m is Nat: m in dom g}
+            by VALUED_1:def 12; then
+          consider m be Nat such that
+          E1: x = m + (len f + 1) & m in dom g;
+          m in Segm len g by E1; then
+          m < len g by NAT_1:44; then
+          m + 1 <= len g  by NAT_1:13; then
+          0 + 1 <= (len f + m) + 1 & (m + 1) + len f <= len g + len f
+            by XREAL_1:6;
+          hence thesis by E1;
+        end;
+      end;
+      x in Seg (len f + len g) implies x in dom (f \/ (Shift(g,len f + 1)))
+      proof
+        assume
+        C1: x in Seg (len f + len g); then
+        reconsider x as Nat;
+        C2: 1 <= x <= len f + len g by C1,FINSEQ_1:1;
+        per cases by C1,FINSEQ_1:1;
+        suppose 1 <= x <= len f; then
+          x in dom f by FINSEQ_3:25;
+          hence thesis by A0,XBOOLE_0:def 3;
+        end;
+        suppose
+          x > len f; then
+          x >= len f + 1 by NAT_1:13; then
+          D1: (len f + len g) - len f >= x - len f >= (len f + 1) - len f
+            by C2,XREAL_1:9; then
+          reconsider k = x - len f as non zero Nat;
+          reconsider l = k - 1 as Nat;
+          l+1 in Seg (len g) by D1; then
+          l in Segm (len g) by NEWTON02:106; then
+          (x - (len f + 1)) + (len f + 1) in dom (Shift (g,len f + 1))
+            by VALUED_1:24;
+          hence thesis by A0,XBOOLE_0:def 3;
+        end;
+      end;
+      hence thesis by C1;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+
+registration
+  let f be complex-valued FinSequence;
+  cluster <%>COMPLEX^f -> complex-valued;
+  coherence
+  proof
+    for x be object st x in dom (<%>COMPLEX^f) holds
+      (<%>COMPLEX^f).x is complex
+    proof
+      let x be object; assume
+      A1: x in dom (<%>COMPLEX^f); then
+      reconsider x as Nat;
+      A2: len <%>COMPLEX = 0; then
+      dom (<%>COMPLEX^f) = 0 + len f by Def1; then
+      x in Segm len f by A1; then
+      x + 1 in Seg (len f) by NEWTON02:106; then
+      x+1 in dom f by FINSEQ_1:def 3; then
+      (<%>COMPLEX^f).(0+(x+1)-1) = f.(x+1) by A2,Def1;
+      hence thesis;
+    end;
+    hence thesis by VALUED_0:def 7;
+  end;
+end;
+
+registration
+  let f be complex-valued XFinSequence;
+  cluster <*>COMPLEX^f -> complex-valued;
+  coherence
+  proof
+    for x be object st x in dom (<*>COMPLEX^f) holds
+      (<*>COMPLEX^f).x is complex
+    proof
+      let x be object; assume
+      A1: x in dom (<*>COMPLEX^f); then
+      reconsider x as Nat;
+      A2: len <*>COMPLEX = 0; then
+      A3: dom (<*>COMPLEX^f) = Seg (0 + len f) by Def2; then
+      x >= 1 by A1,FINSEQ_1:1; then
+      reconsider y = x - 1  as Nat;
+      y + 1 in Seg (len f) by A1,A3; then
+      y in Segm (len f) by NEWTON02:106; then
+      (<*>COMPLEX^f).(0+y+1) = f.y by A2,Def2;
+      hence thesis;
+    end;
+    hence thesis by VALUED_0:def 7;
+  end;
+end;
+
+registration
+  let f be XFinSequence, g be FinSequence;
+  reduce (f^g)|(len f) to f;
+  reducibility
+  proof
+    len f + len g >= len f + 0 by XREAL_1:6; then
+    A0: len (f^g) >= len f by Def1; then
+    A1: len ((f^g)|(len f)) = len f by AFINSQ_1:54;
+    for i be Nat st i in dom f holds
+    ((f^g)|(len f)).i = f.i
+    proof
+      let i be Nat; assume
+      B1: i in dom f; then
+      f.i = (f^g).i by Def1;
+      hence thesis by A0,B1,AFINSQ_1:53;
+    end;
+    hence thesis by A1;
+  end;
+  reduce (g^f)|(len g) to g;
+  reducibility
+  proof
+    A1: dom (g ^ f) = Seg(len g + len f) by Def2;
+    A2: dom g = Seg len g by FINSEQ_1:def 3; then
+    dom g c= dom (g^f) by A1,NAT_1:12,FINSEQ_1:5; then
+    A3: dom g = dom(g ^ f) /\ dom g by XBOOLE_1:28;
+    for i be object st i in dom g holds (g^f).i = g.i by Def2;
+    hence thesis by A2,A3,FUNCT_1:46;
+  end;
+end;
+
+theorem
+  for D be set, f be XFinSequence, g be FinSequence of D holds
+  (f^g)/^(len f) = FS2XFS g
+  proof
+    let D be set, f be XFinSequence, g be FinSequence of D;
+    len (f^g) = len f + len g by Def1; then
+    A1: len ((f^g)/^(len f)) = len f + len g -' len f by AFINSQ_2:def 2
+    .= len g;
+    for i be Nat st i in dom ((f^g)/^(len f)) holds
+    ((f^g)/^(len f)).i = (FS2XFS g).i
+    proof
+      let i be Nat; assume
+      B1: i in dom ((f^g)/^(len f)); then
+      B2: i in Segm len g by A1; then
+      i+1 in Seg len g by NEWTON02:106; then
+      B4: i+1 in dom g by FINSEQ_1:def 3;
+      (FS2XFS g).i = g.(i+1) by B2,NAT_1:44,AFINSQ_1:def 8
+      .= (f^g).(len f + (i + 1) - 1) by B4,Def1
+      .= (f^g).(len f + i)
+      .= ((f^g)/^(len f)).i by B1,AFINSQ_2:def 2;
+      hence thesis;
+    end;
+    hence thesis by A1,AFINSQ_1:def 8;
+  end;
+
+theorem :: see NEWTON04:2
+  for f be XFinSequence holds
+    f is XFinSequence of rng f \/ {1} by RELAT_1:def 19,XBOOLE_1:7;
+
+theorem
+  for D be set, f be FinSequence, g be XFinSequence of D holds
+    (f^g)/^(len f) = XFS2FS g
+  proof
+    let D be set, f be FinSequence, g be XFinSequence of D;
+    len f + 0 <= len f + len g by XREAL_1:6; then
+    A0: len f <= len (f^g) by XL1;
+    A1: len g = (len f + len g) - len f
+    .= len (f^g) - len f by XL1
+    .= len ((f^g)/^(len f)) by A0,RFINSEQ:def 1;
+    len XFS2FS g = len g by AFINSQ_1:def 9; then
+    A3: dom XFS2FS g = Seg (len g) by FINSEQ_1:def 3
+    .= dom ((f^g)/^(len f)) by A1,FINSEQ_1:def 3;
+    for i be Nat st i in dom ((f^g)/^(len f)) holds
+    ((f^g)/^(len f)).i = (XFS2FS g).i
+    proof
+      let i be Nat; assume
+      B1: i in dom ((f^g)/^(len f)); then
+      i in Seg len g by A1,FINSEQ_1:def 3; then
+      B3: 1 <= i <= len g by FINSEQ_1:1; then
+      reconsider j = i - 1 as Nat;
+      j+1 in Seg (len g) by B1,A1,FINSEQ_1:def 3; then
+      B4:j in Segm len g by NEWTON02:106;
+      (XFS2FS g).(j+1) = g.((j+1)-'1) by B3,AFINSQ_1:def 9
+      .= (f^g).(len f + j + 1) by B4,Def2
+      .= (f^g).(len f + i)
+      .= ((f^g)/^(len f)).i by A0,B1,RFINSEQ:def 1;
+      hence thesis;
+    end;
+    hence thesis by A3;
+  end;
+
+definition
+  let D be set, f be XFinSequence of D;
+  redefine func XFS2FS f -> FinSequence of D equals
+  <*>D ^ f;
+  coherence
+  proof
+    rng XFS2FS f = rng f by AFINSQ_1:97;
+    hence thesis;
+  end;
+  compatibility
+  proof
+    reconsider h = <*>D as 0-element FinSequence;
+    reconsider z = len h as zero Nat;
+    reconsider k = len f as Nat;
+    reconsider g = f as k-element XFinSequence by CARD_1:def 7;
+    A1: dom (<*>D ^ f) = Seg (len (h ^ g)) by FINSEQ_1:def 3
+    .= Seg (len f) by CARD_1:def 7;
+    A2: Seg len f = Seg len XFS2FS f by AFINSQ_1:def 9
+    .= dom XFS2FS f by FINSEQ_1:def 3;
+    for l be Nat st l in dom (XFS2FS f) holds (<*>D^f).l = (XFS2FS f).l
+    proof
+      let l be Nat; assume
+      B1: l in dom XFS2FS f; then
+      B2: 1 <= l <= len f by A2,FINSEQ_1:1; then
+      reconsider j = l - 1 as Nat;
+      j + 1 <= len f by A2,B1,FINSEQ_1:1; then
+      j < len f by NAT_1:13; then
+      B3: j in Segm (len f) by NAT_1:44;
+      (h^g).l = (h^g).(z+j+1)
+      .= f.((j+1)-'1) by B3,Def2
+      .= (XFS2FS f).(j+1) by B2,AFINSQ_1:def 9;
+      hence thesis;
+    end;
+    hence thesis by A1,A2;
+  end;
+end;
+
+theorem DSS:
+  for D be set, f be XFinSequence of D holds dom Shift (f,1) = Seg len f
+  proof
+    let D be set, f be XFinSequence of D;
+    A1: for x be object st x in Seg len f holds x in dom Shift (f,1)
+    proof
+      let x be object; assume
+      B1: x in Seg len f; then
+      reconsider x as Nat;
+      x >= 1 by B1,FINSEQ_1:1; then
+      reconsider y = x - 1 as Nat;
+      y + 1 in Seg len f by B1; then
+      y in Segm (len f) by NEWTON02:106; then
+      y + 1 in dom (Shift (f,1)) by VALUED_1:24;
+      hence thesis;
+    end;
+    for x be object st x in dom Shift (f,1) holds x in Seg len f
+    proof
+      let x be object; assume
+      B1: x in dom Shift (f,1); then
+      reconsider x as Nat;
+      consider y be Nat such that
+      B2: y in dom f & x = y + 1 by B1,VALUED_1:39;
+      y in Segm (len f) by B2;
+      hence thesis by B2,NEWTON02:106;
+    end;
+    hence thesis by A1,TARSKI:2;
+  end;
+
+definition
+  let D be set, f be XFinSequence of D;
+  redefine func XFS2FS f -> FinSequence of D equals
+  Shift (f,1);
+  coherence 
+  proof
+    rng XFS2FS f = rng f by AFINSQ_1:97;
+    hence thesis;
+  end;
+  compatibility
+  proof
+    A1: dom (Shift (f,1)) = Seg len f by DSS;
+    A2: Seg len f = Seg len XFS2FS f by AFINSQ_1:def 9
+    .= dom (XFS2FS f) by FINSEQ_1:def 3;
+    for l be Nat st l in dom (XFS2FS f) holds
+    (Shift (f,1)).l = (XFS2FS f).l
+    proof
+      let l be Nat; assume
+      B1: l in dom XFS2FS f; then
+      B2: 1 <= l <= len f by A2,FINSEQ_1:1; then
+      reconsider j = l - 1 as Nat;
+      j + 1 <= len f by A2,B1,FINSEQ_1:1; then
+      j < len f by NAT_1:13; then
+      j in Segm (len f) by NAT_1:44; then
+      (Shift (f,1)).(j+1) = f.((j+1)-'1) by VALUED_1:def 12
+      .= (XFS2FS f).l by B2,AFINSQ_1:def 9;
+      hence thesis;
+    end;
+    hence thesis by A1,A2;
+  end;
+end;
+
+definition
+  let D be set, f be FinSequence of D;
+  redefine func FS2XFS f equals
+  <%>D ^ f;
+  compatibility
+  proof
+    reconsider h = <%>D as 0-element FinSequence;
+    reconsider z = len h as zero Nat;
+    reconsider k = len f as Nat;
+    reconsider g = f as k-element FinSequence by CARD_1:def 7;
+    A1: dom (<%>D ^ f) = z + k by Def1;
+    A2: len f = len (FS2XFS f) by AFINSQ_1:def 8;
+    for l be Nat st l in dom (FS2XFS f) holds
+    (<%>D^f).l = (FS2XFS f).l
+    proof
+      let l be Nat;
+      assume l in dom FS2XFS f; then
+      B2: l in Segm len f by AFINSQ_1:def 8; then
+      B3: l < len f by NAT_1:44;
+      reconsider j = l + 1 as non zero Nat;
+      1 <= j <= len f by B3,NAT_1:13,NAT_1:14; then
+      B4: j in dom f by FINSEQ_3:25;
+      (h^g).l = (h^g).(z+j-1)
+      .= f.j by B4,Def1
+      .= (FS2XFS f).l by B2,NAT_1:44,AFINSQ_1:def 8;
+      hence thesis;
+    end;
+    hence thesis by A1,A2;
+  end;
+end;
+
+theorem XFX:
+  for D be set, f,g be XFinSequence of D holds f^g = f^(XFS2FS g)
+  proof
+    let D be set, f,g be XFinSequence of D;
+    A1: len (f^g) = len f + len g by AFINSQ_1:17
+    .= len f + len (XFS2FS g) by AFINSQ_1:def 9
+    .= len (f^(XFS2FS g)) by XL1;
+    for k be Nat st k in dom (f^g) holds (f^g).k = (f^(XFS2FS g)).k
+    proof
+      let k be Nat;
+      assume k in dom (f^g); then
+      per cases by AFINSQ_1:20;
+      suppose
+        k in dom f; then
+        (f^g).k = f.k & (f^(XFS2FS g)).k = f.k by Def1,AFINSQ_1:def 3;
+        hence thesis;
+      end;
+      suppose
+        ex n be Nat st n in dom g & k = len f + n; then
+        consider
+        n be Nat such that
+        C1: n in dom g & k = len f + n;
+        n in Segm len g by C1; then
+        n < len g by NAT_1:44; then
+        C2: 0+1 <= n+1 <= len g by NAT_1:13; then
+        n+1 in Seg len g; then
+        n+1 in Seg len XFS2FS g by AFINSQ_1:def 9; then
+        C3: n+1 in dom XFS2FS g by FINSEQ_1:def 3;
+        (f^g).(len f + n) = g.((n+1)-'1) by C1,AFINSQ_1:def 3
+        .= (XFS2FS g).(n+1) by C2,AFINSQ_1:def 9
+        .= (f^(XFS2FS g)).(len f + (n+1) -1) by C3,Def1;
+        hence thesis by C1;
+      end;
+    end;
+    hence thesis by A1;
+  end;
+
+theorem FXF:
+  for D be set, f,g be FinSequence of D holds f^g = f^(FS2XFS g)
+  proof
+    let D be set, f,g be FinSequence of D;
+    A1: len (f^g) = len f + len g by FINSEQ_1:22
+    .= len f + len (FS2XFS g) by AFINSQ_1:def 8
+    .= len (f^(FS2XFS g)) by XL1;
+    for k be Nat st k in dom (f^g) holds (f^g).k = (f^(FS2XFS g)).k
+    proof
+      let k be Nat;
+      assume k in dom (f^g); then
+      per cases by FINSEQ_1:25;
+      suppose
+        k in dom f; then
+        (f^g).k = f.k & (f^(FS2XFS g)).k = f.k by Def2,FINSEQ_1:def 7;
+        hence thesis;
+      end;
+      suppose
+        ex n be Nat st n in dom g & k = len f + n; then
+        consider n be Nat such that
+        C1: n in dom g & k = len f + n;
+        1 <= n <= len g by C1,FINSEQ_3:25; then
+        reconsider m = n-1 as Nat;
+        C2: m + 1 <= len g by C1,FINSEQ_3:25; then
+        m < len g by NAT_1:13; then
+        m in Segm len g by NAT_1:44; then
+        C3: m in Segm len (FS2XFS g) by AFINSQ_1:def 8;
+        (f^g).(len f + n) = g.(m+1) by C1,FINSEQ_1:def 7
+        .= (FS2XFS g).m by C2,NAT_1:13,AFINSQ_1:def 8
+        .= (f^(FS2XFS g)).(len f + m + 1) by C3,Def2;
+        hence thesis by C1;
+      end;
+    end;
+    hence thesis by A1,FINSEQ_3:29;
+  end;
+
+registration
+  let f be XFinSequence of REAL;
+  reduce (Sequel f)|(dom f) to f;
+  reducibility;
+  cluster Shift (f,1) -> FinSequence-like;
+  coherence
+  proof
+    reconsider g = Sequel f as Real_Sequence by RSC;
+    Shift (g|(Segm len f),1) is FinSequence of REAL by DBLSEQ_2:46;
+    hence thesis;
+  end;
+  cluster (Sequel f)^\(dom f) -> empty-yielding;
+  coherence
+  proof
+    for x be Nat holds ((Sequel f)^\(dom f)).x = 0
+    proof
+      let x be Nat;
+      reconsider n = len f + x as Nat;
+      len f + x >= len f + 0 by XREAL_1:6; then
+      B1: not n in Segm len f by NAT_1:44;
+      ((Sequel f)^\(dom f)). x = (Sequel f).(len f + x) by NAT_1:def 3
+      .= f.n by SFX
+      .= 0 by B1, FUNCT_1:def 2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem FFX:
+  for D be set, f be FinSequence of D, g be XFinSequence of D holds
+  f^g = f^(XFS2FS g)
+  proof
+    let D be set, f be FinSequence of D, g be XFinSequence of D;
+    f^g = f^(FS2XFS(XFS2FS g))
+    .= f^(XFS2FS g) by FXF;
+    hence thesis;
+  end;
+
+theorem XFF:
+  for D be set, f be XFinSequence of D, g be FinSequence of D holds
+  f^g = f^(FS2XFS g)
+  proof
+    let D be set, f be XFinSequence of D, g be FinSequence of D;
+    f^g = f^(XFS2FS(FS2XFS g))
+    .= f^(FS2XFS g) by XFX;
+    hence thesis;
+  end;
+
+theorem SFF:
+  for D be set, f,g be FinSequence of D holds
+  FS2XFS (f^g) = (FS2XFS f)^(FS2XFS g)
+  proof
+    let D be set, f,g be FinSequence of D;
+    A1: len (FS2XFS (f^g)) = len (f^g) & len (FS2XFS f) = len f &
+      len (FS2XFS g) = len g by AFINSQ_1:def 8;
+    A1a: len (f^g) = len f + len g &
+      len((FS2XFS f)^(FS2XFS g)) = len (FS2XFS f) + len (FS2XFS g)
+        by FINSEQ_1:22,AFINSQ_1:def 3;
+    for x be Nat st x in dom FS2XFS (f^g) holds
+      (FS2XFS (f^g)).x = ((FS2XFS f)^(FS2XFS g)).x
+    proof
+      let x be Nat; assume
+      B1: x in dom FS2XFS (f^g); then
+      B1a: x in Segm (len (FS2XFS (f^g))); then
+      B2: (FS2XFS (f^g)).x = (f^g).(x+1) by A1,NAT_1:44,AFINSQ_1:def 8;
+      per cases by A1,A1a,B1,AFINSQ_1:20;
+      suppose
+        C1: x in dom FS2XFS f; then
+        C1a: x in Segm(len FS2XFS f); then
+        0 <= x < len (FS2XFS f) by NAT_1:44; then
+        0 + 1 <= x + 1 <= len f by A1,NAT_1:13; then
+        x+1 in dom f by FINSEQ_3:25; then
+        (f^g).(x+1) = f.(x+1) by FINSEQ_1:def 7
+        .= (FS2XFS f).x by A1,C1a,NAT_1:44,AFINSQ_1:def 8
+        .= ((FS2XFS f)^(FS2XFS g)).x by C1,AFINSQ_1:def 3;
+        hence thesis by B1a,A1,NAT_1:44,AFINSQ_1:def 8;
+      end;
+      suppose ex k be Nat st k in dom (FS2XFS g) & x = len (FS2XFS f) + k; then
+        consider k be Nat such that
+        C1: k in dom (FS2XFS g) & x = len (FS2XFS f) + k;
+        C1a: k in Segm (len (FS2XFS g)) by C1; then
+        k < len g by A1,NAT_1:44; then
+        0 + 1 <= k + 1 <= len g by NAT_1:13; then
+        k+1 in dom g by FINSEQ_3:25; then
+        (f^g).(len f+ (k+1)) = g.(k+1) by FINSEQ_1:def 7
+        .= (FS2XFS g).k by C1a,A1,NAT_1:44,AFINSQ_1:def 8
+        .= ((FS2XFS f)^(FS2XFS g)).(k+len f) by A1,C1,AFINSQ_1:def 3;
+        hence thesis by A1,B2,C1;
+      end;
+    end;
+    hence thesis by A1,A1a;
+  end;
+
+definition
+  let D be set, f be FinSequence of D, g be XFinSequence of D;
+  redefine func f^g -> FinSequence of D;
+  coherence
+  proof
+    rng f \/ rng g c= D; then
+    rng(f^g) c= D by FRX;
+    hence thesis by FINSEQ_1:def 4;
+  end;
+end;
+
+theorem
+  for D be set, f be FinSequence of D, g be XFinSequence of D holds
+  FS2XFS (f^g) = (FS2XFS f) ^ g
+  proof
+    let D be set, f be FinSequence of D, g be XFinSequence of D;
+    (FS2XFS f) ^ g = (FS2XFS f) ^ (FS2XFS(XFS2FS g))
+    .= FS2XFS (f ^(XFS2FS g)) by SFF
+    .= FS2XFS (f^FS2XFS(XFS2FS g)) by FXF;
+    hence thesis;
+  end;
+
+theorem SXX:
+  for D be set, f,g be XFinSequence of D holds
+    XFS2FS (f^g) = (XFS2FS f)^(XFS2FS g)
+  proof
+    let D be set, f,g be XFinSequence of D;
+    A1: len XFS2FS (f^g) = len (f^g) & len (XFS2FS f) = len f &
+      len(XFS2FS g) = len g by AFINSQ_1:def 9;
+    A1a: len (f^g) = len f + len g &
+    len ((XFS2FS f)^(XFS2FS g)) = len (XFS2FS f) + len (XFS2FS g)
+      by FINSEQ_1:22,AFINSQ_1:def 3; then
+    A2: dom XFS2FS (f^g) = dom ((XFS2FS f)^(XFS2FS g)) by A1,FINSEQ_3:29;
+    for x be Nat st x in dom XFS2FS (f^g) holds
+      (XFS2FS (f^g)).x = ((XFS2FS f)^(XFS2FS g)).x
+    proof
+      let x be Nat; assume
+      B1: x in dom XFS2FS (f^g); then
+      B2: 1 <= x <= len XFS2FS (f^g) by FINSEQ_3:25; then
+      reconsider k = x - 1 as Nat;
+      B3: (XFS2FS (f^g)).x = (f^g).((k+1)-'1) by A1,B2,AFINSQ_1:def 9;
+      per cases by A2,B1,FINSEQ_1:25;
+      suppose
+        C1: x in dom XFS2FS f; then
+        C2: 1 <= x <= len (XFS2FS f) by FINSEQ_3:25;
+        k+1 <= len f by C1,A1,FINSEQ_3:25; then
+        k < len f by NAT_1:13; then
+        k in Segm len f by NAT_1:44; then
+        (f^g).k = f.((k+1)-'1) by AFINSQ_1:def 3
+        .= (XFS2FS f).(k+1) by A1,C2,AFINSQ_1:def 9
+        .= ((XFS2FS f)^(XFS2FS g)).(k+1) by C1,FINSEQ_1:def 7;
+        hence thesis by B3;
+      end;
+      suppose
+        ex n be Nat st n in dom XFS2FS g & x = len (XFS2FS f) + n; then
+        consider n be Nat such that
+        C1: n in dom XFS2FS g & x = len (XFS2FS f) + n;
+        C2: 1 <= n <= len g by A1,C1,FINSEQ_3:25; then
+        reconsider m = n-1 as Nat;
+        m+1 <= len g by A1,C1,FINSEQ_3:25; then
+        m < len g by NAT_1:13; then
+        C2a: m in Segm (len g) by NAT_1:44;
+        (f^g).((k+1)-' 1) = (f^g).(len f + n -' 1) by AFINSQ_1:def 9,C1
+       .= (f^g).((len f + m + 1)-'1)
+        .= g.((m+1)-'1) by C2a,AFINSQ_1:def 3
+        .= (XFS2FS g).(m+1) by C2,AFINSQ_1:def 9
+        .= ((XFS2FS f)^(XFS2FS g)).x by C1,FINSEQ_1:def 7;
+        hence thesis by A1,B2,AFINSQ_1:def 9;
+      end;
+    end;
+    hence thesis by A1,A1a,FINSEQ_3:29;
+  end;
+
+definition
+  let D be set, f be XFinSequence of D, g be FinSequence of D;
+  redefine func f^g -> XFinSequence of D;
+  coherence
+  proof
+    rng f \/ rng g c= D; then
+    rng(f^g) c= D by FRX; then
+    for k be Nat st k in dom (f^g) holds (f^g).k in D by FUNCT_1:3;
+    hence thesis by AFINSQ_2:4;
+  end;
+end;
+
+theorem SSX:
+  for D be set, f be XFinSequence of D, g be FinSequence of D holds
+    XFS2FS(f^g) = (XFS2FS f)^g
+  proof
+    let D be set, f be XFinSequence of D, g be FinSequence of D;
+    (XFS2FS f)^(XFS2FS(FS2XFS g)) = XFS2FS (f^(FS2XFS g)) by SXX;
+    hence thesis by XFX;
+  end;
+
+theorem
+   for D be set, f,g be XFinSequence of D, h be FinSequence of D holds
+   (f^g)^h = f^(g^h) & (f^h)^g = f^(h^g) & (h^f)^g = h^(f^g)
+   proof
+     let D be set, f,g be XFinSequence of D, h be FinSequence of D;
+L1:  (f^g)^h = (f^g)^(FS2XFS h) by XFF
+     .= f^(g^(FS2XFS h)) by AFINSQ_1:27
+     .= f^(g^h) by XFF;
+     L2: (f^h)^g = f^(XFS2FS (FS2XFS h))^g
+     .= f^(FS2XFS h)^g by XFX
+     .= f^((FS2XFS h)^FS2XFS(XFS2FS g)) by AFINSQ_1:27
+     .= f^FS2XFS (h^(XFS2FS g)) by SFF
+     .= f^(h^(XFS2FS g)) by XFF
+     .= f^(h^g) by FFX;
+     (h^f)^g = (h^(FS2XFS(XFS2FS f)))^(XFS2FS(FS2XFS(XFS2FS g))) by FFX
+     .= h^(XFS2FS f)^(XFS2FS g) by FFX
+     .= h^((XFS2FS f)^(XFS2FS g)) by FINSEQ_1:32
+     .= h^XFS2FS(f^g) by SXX
+     .= h^(f^g) by FFX;
+     hence thesis by L1,L2;
+   end;
+
+:: Sums
+
+theorem
+  for f be complex-valued XFinSequence holds Sum (f|1) = f.0
+  proof
+    let f be complex-valued XFinSequence;
+    per cases;
+    suppose
+      not f is empty; then
+      1 <= len f by NAT_1:14; then
+      B2: len (f|1) = 1 by AFINSQ_1:54; then
+      0 in Segm (len (f|1)) by NAT_1:44; then
+      0 in dom f & 0 in 1 by RELAT_1:57; then
+      B3: 0 in (dom f) /\ 1 by XBOOLE_0:def 4;
+      Sum (f|1) = Sum <%(f|1).0%> by B2,AFINSQ_1:34
+      .= f.0 by B3,FUNCT_1:48;
+      hence thesis;
+    end;
+    suppose
+      f is empty;
+      hence thesis;
+    end;
+  end;
+
+registration
+  let n,m be Nat, f be (n+m)-element XFinSequence;
+  cluster f|n -> n-element;
+  coherence
+  proof
+    n+m >= n+0 by XREAL_1:6; then
+    len f >= n by CARD_1:def 7; then
+    Segm n c= Segm (len f) by NAT_1:39; then
+    n = Segm (len (f|n)) by RELAT_1:62;
+    hence thesis by CARD_1:def 7;
+  end;
+end;
+
+registration :: see AFINSQ_2
+  let n be Nat, p be n-element complex-valued XFinSequence;
+  cluster -p -> n-element;
+  coherence
+  proof
+    card (-p) = card (dom p) by VALUED_1:8
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster p" -> n-element;
+  coherence
+  proof
+    card (p") = card (dom p) by VALUED_1:def 7
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster p^2 -> n-element;
+  coherence
+  proof
+    card (p^2) = card (dom p) by VALUED_1:11
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster abs p -> n-element;
+  coherence
+  proof
+    card (abs p) = card (dom p) by VALUED_1:def 11
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster Rev p -> n-element;
+  coherence
+  proof
+    card (Rev p) = card p by AFINSQ_2:def 1
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  let m be Nat;
+  let q be (n+m)-element complex-valued XFinSequence;
+  reduce dom p /\ dom q to dom p;
+  reducibility
+  proof
+    (dom p) = Segm n  & (dom q) = Segm (m+n) by CARD_1:def 7;
+    hence thesis;
+  end;
+  cluster p+q -> n-element;
+  coherence
+  proof
+    card (p+q) = card (dom p /\ dom q) by VALUED_1:def 1
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster p-q -> n-element;
+  coherence;
+  cluster p(#)q -> n-element;
+  coherence
+  proof
+    card (p(#)q) = card (dom p /\ dom q) by VALUED_1:def 4
+    .= n by CARD_1:def 7;
+    hence thesis by CARD_1:def 7;
+  end;
+  cluster p/"q -> n-element;
+  coherence;
+end;
+
+registration
+  let n be Nat, p,q be n-element complex-valued XFinSequence;
+  cluster p+q -> n-element;
+  coherence
+  proof
+    q is (n+0)-element;
+    hence thesis;
+  end;
+  cluster p-q -> n-element;
+  coherence;
+  cluster p(#)q -> n-element;
+  coherence
+  proof
+    q is (n+0)-element;
+    hence thesis;
+  end;
+  cluster p/"q -> n-element;
+  coherence;
+end;
+
+theorem SPP:
+  for n be Nat, f1,f2 be n-element complex-valued XFinSequence holds
+  Sum (f1 + f2) = Sum f1 + Sum f2
+  proof
+    let n be Nat, f1, f2 be n-element complex-valued XFinSequence;
+    defpred P[Nat] means
+      for f1,f2 be $1-element complex-valued XFinSequence holds
+    Sum (f1 + f2) = Sum f1 + Sum f2;
+    A1: for k be Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+      B1: P[k];
+      for f1,f2 be (k+1)-element complex-valued XFinSequence holds
+        Sum (f1 + f2) = Sum f1 + Sum f2
+      proof
+        let f1,f2 be (k+1)-element complex-valued XFinSequence;
+        reconsider F = f1 + f2 as (k+1)-element complex-valued XFinSequence;
+        reconsider G = (f1 + f2)|k as k-element complex-valued XFinSequence;
+        reconsider g1 = f1|k as k-element complex-valued XFinSequence;
+        reconsider g2 = f2|k as k-element complex-valued XFinSequence;
+        C1: dom f1 = k+1 & dom f2 = k+1 & dom F = k+1 by CARD_1:def 7;
+        k + 0 < k + 1 by XREAL_1:6; then
+        C2: k in Segm (len f1) & k in Segm (len f2) & k in Segm (len F)
+          by C1,NAT_1:44; then
+        C3: Sum (f1|(k+1)) = Sum g1 + f1.k & Sum (f2|(k+1)) = Sum g2 + f2.k
+          by AFINSQ_2:65;
+        C4: Sum (g1 + g2) = Sum g1 + Sum g2 by B1;
+        Sum F = Sum (F|(k+1))
+        .= Sum G + F.k by C2,AFINSQ_2:65
+        .= (Sum g1 + Sum g2) + (f1 + f2).k by C4,SFG
+        .= Sum g1 + Sum g2 + (f1.k + f2.k) by C2,VALUED_1:def 1
+        .= Sum f1 + Sum f2 by C3;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+    A2: P[0];
+    for k be Nat holds P[k] from NAT_1:sch 2(A2,A1);
+    hence thesis;
+  end;
+
+theorem XCF:
+  for c be Complex holds XFS2FS <%c%> = <*c*>
+  proof
+    let c be Complex;
+    A1: len (XFS2FS <%c%>) = len <%c%> by AFINSQ_1:def 9;
+    A2: len <%c%> = 1 by AFINSQ_1:def 4; then
+    A3: dom (XFS2FS <%c%>) = Seg 1 & dom <*c*> = Seg 1
+      by A1,FINSEQ_1:def 3,FINSEQ_1:def 8;
+    for k be Nat st k in dom <*c*> holds (XFS2FS <%c%>).k = <*c*>.k
+    proof
+      let k be Nat;
+      assume k in dom <*c*>; then
+      k in Seg 1 by FINSEQ_1:def 8; then
+      1 <= k <= 1 by FINSEQ_1:1; then
+      B3: k = 1 by XXREAL_0:1; then
+      <*c*>.k = <%c%>.0
+      .= <%c%>.(1-'1) by XREAL_1:232
+      .= (XFS2FS <%c%>).k by A2,B3,AFINSQ_1:def 9;
+      hence thesis;
+    end;
+    hence thesis by A3;
+  end;
+
+begin :: Product of XFinSequences
+
+definition
+  let f be XFinSequence;
+  func XProduct f -> Element of COMPLEX equals
+  multcomplex "**" f;
+  correctness;
+end;
+
+theorem PFO:
+  for f be empty XFinSequence holds XProduct f = 1
+  proof
+    len <%>COMPLEX = 0;
+    hence thesis by BINOP_2:6,AFINSQ_2:def 8;
+  end;
+
+registration
+  let c be Complex;
+  reduce XProduct <%c%> to c;
+  reducibility
+  proof
+    c in COMPLEX by XCMPLX_0:def 2;
+    hence thesis by AFINSQ_2:37;
+  end;
+end;
+
+theorem A265:
+  for n be Nat, f be complex-valued XFinSequence st
+    n in dom f holds XProduct (f|n) * f.n = XProduct (f|(n+1))
+  proof
+    let n be Nat, f be complex-valued XFinSequence;
+    assume A1: n in dom f;
+    reconsider f1 = f as XFinSequence of COMPLEX;
+    multcomplex.(multcomplex "**" f|n, f.n) = multcomplex "**" f|(n+1)
+      by A1,AFINSQ_2:43;
+    hence thesis by BINOP_2:def 5;
+  end;
+
+theorem C265:
+  for n be Nat, f be Complex_Sequence holds
+    XProduct (f|n) * f.n = XProduct (f|(n+1))
+  proof
+    let n be Nat, f be Complex_Sequence;
+    reconsider g = f|(n+1) as complex-valued XFinSequence;
+    n + 0 < n + 1 by XREAL_1:6; then
+    A1: n in dom g by AFINSQ_1:86; then
+    XProduct (g|(n+1)) = (XProduct(g|n))*g.n by A265
+    .= (XProduct(f|((n+1)/\n)))*(f|(n+1)).n by RELAT_1:71
+    .= XProduct (f|n)*(f|(n+1)).n;
+    hence thesis by A1,FUNCT_1:47;
+  end;
+
+theorem
+  for f be non empty complex-valued XFinSequence holds XProduct (f|1) = f.0
+  proof
+    let f be non empty complex-valued XFinSequence;
+    1 <= len f by NAT_1:14; then
+    B2: len (f|1) = 1 by AFINSQ_1:54; then
+    0 in Segm (len (f|1)) by NAT_1:44; then
+    0 in dom f & 0 in 1 by RELAT_1:57; then
+    B3: 0 in (dom f) /\ 1 by XBOOLE_0:def 4;
+    XProduct (f|1) = XProduct <%(f|1).0%> by B2,AFINSQ_1:34
+    .= f.0 by B3,FUNCT_1:48;
+    hence thesis;
+  end;
+
+theorem
+  for n be Nat, f1,f2 be n-element complex-valued XFinSequence holds
+    XProduct (f1 (#) f2) = (XProduct f1) * (XProduct f2)
+  proof
+    let n be Nat, f1, f2 be n-element complex-valued XFinSequence;
+    defpred P[Nat] means
+      for f1,f2 be $1-element complex-valued XFinSequence holds
+    XProduct (f1 (#) f2) = XProduct f1 * XProduct f2;
+    A1: for k be Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+      B1: P[k];
+      for f1,f2 be (k+1)-element complex-valued XFinSequence holds
+        XProduct (f1 (#) f2) = XProduct f1 * XProduct f2
+      proof
+        let f1,f2 be (k+1)-element complex-valued XFinSequence;
+        reconsider F = f1 (#) f2 as (k+1)-element complex-valued XFinSequence;
+        reconsider G = (f1 (#) f2)|k as k-element complex-valued XFinSequence;
+        reconsider g1 = f1|k as k-element complex-valued XFinSequence;
+        reconsider g2 = f2|k as k-element complex-valued XFinSequence;
+        C1: dom f1 = k+1 & dom f2 = k+1 & dom F = k+1 by CARD_1:def 7;
+        k + 0 < k + 1 by XREAL_1:6; then
+        C2: k in Segm (len f1) & k in Segm (len f2) & k in Segm (len F)
+          by C1,NAT_1:44; then
+    C3: XProduct (f1|(k+1)) = XProduct g1 * f1.k &
+          XProduct (f2|(k+1)) = XProduct g2 * f2.k by A265;
+        C4: XProduct (g1 (#) g2) = XProduct g1 * XProduct g2 by B1;
+        XProduct F = XProduct (F|(k+1))
+        .= XProduct G * F.k by C2,A265
+        .= (XProduct g1 * XProduct g2) * (f1 (#) f2).k by C4,MFG
+        .= XProduct g1 * XProduct g2 * (f1.k * f2.k) by C2,VALUED_1:def 4
+        .= XProduct f1 * XProduct f2 by C3;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+A2: P[0]
+    proof
+      let f1,f2 be 0-element complex-valued XFinSequence;
+      XProduct (f1(#)f2) = 1 & XProduct f1 = 1 & XProduct f2 = 1 by PFO;
+      hence thesis;
+    end;
+    for k be Nat holds P[k] from NAT_1:sch 2(A2,A1);
+    hence thesis;
+  end;
+
+theorem
+  for f be Complex_Sequence, n be Nat holds
+    XProduct (f|(n+1)) = (Partial_Product f).n
+  proof
+    let f be Complex_Sequence, n be Nat;
+    defpred P[Nat] means XProduct (f|($1+1)) = (Partial_Product f).$1;
+    A1: P[0]
+    proof
+      XProduct (f|(0+1)) = XProduct (f|0) * f.0 by C265
+      .= 1*f.0 by PFO;
+      hence thesis by PP;
+    end;
+    A2: for k be Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+      B1: XProduct (f|(k+1)) = (Partial_Product f).k;
+      XProduct (f|((k+1)+1)) = (Partial_Product f).k * f.(k+1) by B1,C265;
+      hence thesis by PP;
+    end;
+    for x be Nat holds P[x] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+  end;
+
+theorem XPF:
+  for f be complex-valued XFinSequence holds Product XFS2FS f = XProduct f
+  proof
+    let f be complex-valued XFinSequence;
+    reconsider n = len f as Nat;
+    defpred P[Nat] means Product XFS2FS (f|$1) = XProduct (f|$1);
+    A1: P[0]
+    proof
+      1 * ( Product XFS2FS (f|0)) = XProduct (f|0) by PFO;
+      hence thesis;
+    end;
+    A2: for k be Nat holds P[k] implies P[k+1]
+    proof
+      let k be Nat such that
+      B1: P[k];
+      reconsider g = <%f.k%> as complex-valued XFinSequence;
+      per cases;
+      suppose
+        C0: k in dom f; then
+        C1: k + 1 <= len f by NAT_1:13,AFINSQ_1:86;
+        f|(k+1)|k = f|k & (f|(k+1)).k = f.k by CNM,CNX; then
+        f|(k+1) = (f|k)^<%f.k%> by C1,AFINSQ_1:54,AFINSQ_1:56; then
+        Product (XFS2FS (f|(k+1))) =
+          Product ((XFS2FS(f|k))^(XFS2FS <%f.k%>)) by SXX
+        .= Product (XFS2FS(f|k))* Product (XFS2FS <%f.k%>) by FAF
+        .= XProduct (f|k)* Product <*f.k*> by B1,XCF
+        .= XProduct (f|(k+1)) by C0,A265;
+        hence thesis;
+      end;
+      suppose not k in dom f; then
+        C1: k >= len f by AFINSQ_1:86;
+        k+1 >= k+0 by XREAL_1:6; then
+        f|k = f & (f|(k+1)) = f by C1,XXREAL_0:2,AFINSQ_1:52;
+        hence thesis by B1;
+      end;
+    end;
+    for x be Nat holds P[x] from NAT_1:sch 2(A1,A2); then
+    Product (XFS2FS (f|n)) = XProduct (f|n);
+    hence thesis;
+  end;
+
+theorem
+  for f be FinSequence of COMPLEX holds XProduct FS2XFS f = Product f
+  proof
+    let f be FinSequence of COMPLEX;
+    reconsider g = FS2XFS f as XFinSequence of COMPLEX;
+    XProduct g = Product XFS2FS g by XPF
+    .= Product f;
+    hence thesis;
+  end;
+
+theorem
+  for f be XFinSequence of COMPLEX, g be FinSequence of COMPLEX holds
+  XProduct (f^g) = XProduct f * Product g &
+  Product (g^f) = Product g * XProduct f
+  proof
+    let f be XFinSequence of COMPLEX, g be FinSequence of COMPLEX;
+    A1: XProduct (f^g) = Product XFS2FS (f^g) by XPF
+    .= Product ((XFS2FS f)^g) by SSX
+    .= Product (XFS2FS f) * Product g by FAF
+    .= XProduct f * Product g by XPF;
+    Product (g^f) = Product (g^(FS2XFS(XFS2FS f)))
+    .= Product (g^(XFS2FS f)) by FXF
+    .= Product g * Product (XFS2FS f) by FAF
+    .= Product g * XProduct f by XPF;
+    hence thesis by A1;
+  end;
+
+begin :: Sum of XFinSequences
+
+theorem XSF:
+  for f be XFinSequence of REAL holds Sum XFS2FS f = Sum f
+  proof
+    let f be XFinSequence of REAL;
+    per cases;
+    suppose
+      f is non empty; then
+      reconsider k = len f as non zero Nat;
+      reconsider n = k - 1 as Nat;
+      reconsider g = Sequel f as Real_Sequence by RSC;
+      Sum (XFS2FS f) = Sum (Shift (g|Segm(n+1),1))
+      .= (Partial_Sums g).n by DBLSEQ_2:49
+      .= Sum (g|(n+1)) by AFINSQ_2:56;
+      hence thesis;
+    end;
+    suppose
+      f is empty; then
+      Sum f = 0 & Sum (XFS2FS f) = 0;
+      hence thesis;
+    end;
+  end;
+
+theorem RSI:
+  for f be complex-valued XFinSequence holds
+    Sum f = (Sum Re f) + <i>*(Sum Im f)
+  proof
+    let f be complex-valued XFinSequence;
+    reconsider g = Re f as (len f)-element real-valued XFinSequence;
+    len (<i>(#)(Im f)) = dom (Im f) by VALUED_1:def 5
+    .= len f by CARD_1:def 7; then
+    reconsider h = <i>(#)Im f as (len f)-element complex-valued XFinSequence
+      by CARD_1:def 7;
+    Sum f = Sum (Re f + <i>(#) (Im f))
+    .= Sum g + Sum h by SPP
+    .= Sum (Re f) + <i>*(Sum (Im f)) by AFINSQ_2:64;
+    hence thesis;
+  end;
+
+theorem RSH:
+  for f be complex-valued Sequence, n be Nat holds
+  Re Shift (f,n) = Shift (Re f,n) & Im Shift (f,n) = Shift (Im f,n)
+  proof
+    let f be complex-valued Sequence, n be Nat;
+    A0: dom Re (Shift (f,n)) = dom Shift (f,n) & dom Re f = dom f
+      by COMSEQ_3:def 3; then
+    A1: dom Re(Shift (f,n)) = {m+n where m is Nat: m in dom f}
+      by VALUED_1:def 12
+    .= dom (Shift (Re f,n)) by A0,VALUED_1:def 12;
+    A0a: dom Im Shift (f,n) = dom Shift (f,n) & dom Im f = dom f
+      by COMSEQ_3:def 4; then
+    A2: dom Im Shift (f,n) = {m+n where m is Nat: m in dom f}
+      by VALUED_1:def 12
+    .= dom (Shift (Im f,n)) by A0a,VALUED_1:def 12;
+    A3: for x be object st x in dom Re Shift (f,n) holds
+      (Re (Shift (f,n))).x = (Shift (Re f,n)).x
+    proof
+      let x be object;
+      assume B1: x in dom (Re(Shift (f,n))); then
+      consider k be Nat such that
+      B2: k in dom f & x = k + n by A0,VALUED_1:39;
+      (Re (Shift (f,n))).x = Re ((Shift (f,n)).(k+n)) by B1,B2,COMSEQ_3:def 3
+      .= Re (f.k) by B2,VALUED_1:def 12
+      .= (Re f).k by A0,B2,COMSEQ_3:def 3
+      .= (Shift ((Re f),n)).(k+n) by A0,B2,VALUED_1:def 12;
+      hence thesis by B2;
+    end;
+    for x be object st x in dom (Im(Shift (f,n))) holds
+      (Im (Shift (f,n))).x = (Shift ((Im f),n)).x
+    proof
+      let x be object such that
+      B1: x in dom Im Shift (f,n);
+      consider k be Nat such that
+      B2: k in dom f & x = k + n by B1,A0a,VALUED_1:39;
+      (Im (Shift (f,n))).x = Im ((Shift (f,n)).(k+n)) by B1,B2,COMSEQ_3:def 4
+      .= Im (f.k) by B2,VALUED_1:def 12
+      .= (Im f).k by A0a,B2,COMSEQ_3:def 4
+      .= (Shift (Im f,n)).(k+n) by A0a,B2,VALUED_1:def 12;
+      hence thesis by B2;
+    end;
+    hence thesis by A1,A2,A3;
+  end;
+
+theorem
+  for f be complex-valued XFinSequence holds XFS2FS Re f = Re XFS2FS f &
+    XFS2FS Im f = Im XFS2FS f by RSH;
+
+theorem XSS:
+  for f be complex-valued XFinSequence holds Sum XFS2FS f = Sum f
+  proof
+    let f be complex-valued XFinSequence;
+    dom (Re(XFS2FS f)) = dom (XFS2FS f) by COMSEQ_3:def 3; then
+    len (Re(XFS2FS f)) = len (XFS2FS f) by FINSEQ_3:29
+    .= len f by AFINSQ_1:def 9; then
+    reconsider g = (Re (XFS2FS f)) as (len f)-element FinSequence of COMPLEX
+      by CARD_1:def 7,NEWTON02:103;
+    dom (<i>(#)(Im(XFS2FS f))) = dom (Im(XFS2FS f)) by VALUED_1:def 5
+    .= dom (XFS2FS f) by COMSEQ_3:def 4; then
+    len (<i>(#)(Im(XFS2FS f))) = len (XFS2FS f) by FINSEQ_3:29
+    .= len f by AFINSQ_1:def 9; then
+    reconsider h = <i>(#)(Im (XFS2FS f)) as (len f)-element FinSequence of
+      COMPLEX by CARD_1:def 7,NEWTON02:103;
+    Sum f= Sum (Re f) + <i>*Sum (Im f) by RSI
+    .= Sum (XFS2FS(Re f)) + <i>*Sum (Im f) by XSF
+    .= Sum (XFS2FS(Re f)) + <i>*Sum (XFS2FS(Im f)) by XSF
+    .= Sum (XFS2FS(Re f)) + <i>*Sum (Im(XFS2FS f)) by RSH
+    .= Sum (Re(XFS2FS f)) + <i>*Sum (Im(XFS2FS f)) by RSH
+    .= Sum (Re(XFS2FS f)) + Sum h by RVSUM_2:38
+    .= Sum (g + h) by RVSUM_2:40
+    .= Sum (XFS2FS f);
+    hence thesis;
+  end;
+
+theorem FSS:
+  for f be FinSequence of COMPLEX holds Sum FS2XFS f = Sum f
+  proof
+    let f be FinSequence of COMPLEX;
+    reconsider g = FS2XFS f as XFinSequence of COMPLEX;
+    Sum g = Sum XFS2FS g by XSS
+    .= Sum f;
+    hence thesis;
+  end;
+
+theorem SSF:
+  for f be real-valued XFinSequence holds Sum f = Sum Sequel f
+  proof
+    let f be real-valued XFinSequence;
+    reconsider g = Re Sequel f as summable Real_Sequence;
+    reconsider n = len f as Nat;
+    A2: Sum (Sequel f) = Sum g + Sum (Im (Sequel f))*<i> by COMSEQ_3:53
+    .= Sum g + 0*<i>
+    .= Sum g;
+    per cases;
+    suppose n = 0; then
+      f is empty; then
+      Sum f = 0 & Sum Sequel f = 0;
+      hence thesis;
+    end;
+    suppose n > 0; then
+      reconsider k = n-1 as Nat;
+      Sum g = (Partial_Sums g).k + Sum (g^\(k+1)) by SERIES_1:15
+      .= (Partial_Sums g).k + 0
+      .= Sum (g|(k+1)) by AFINSQ_2:56
+      .= Sum f;
+      hence thesis by A2;
+    end;
+  end;
+
+registration
+  cluster summable for real-valued Complex_Sequence;
+  existence
+  proof
+    Re Sequel <%>COMPLEX is summable;
+    hence thesis;
+  end;
+end;
+
+definition
+  let f be summable Complex_Sequence;
+  redefine func Re f -> summable real-valued Complex_Sequence;
+  coherence
+  proof
+    reconsider h = Re f as real-valued Complex_Sequence by RSC;
+    Partial_Sums h is convergent by SERIES_1:def 2;
+    hence thesis by COMSEQ_3:def 8;
+  end;
+  redefine func Im f -> summable real-valued Complex_Sequence;
+  coherence
+  proof
+    reconsider h = Im f as real-valued Complex_Sequence by RSC;
+    Partial_Sums h is convergent by SERIES_1:def 2;
+    hence thesis by COMSEQ_3:def 8;
+  end;
+end;
+
+theorem
+  for f be complex-valued XFinSequence holds Sum f = Sum Sequel f
+  proof
+    let f be complex-valued XFinSequence;
+    reconsider g = (Re (Sequel f)) as real-valued Complex_Sequence;
+    reconsider h = Im (Sequel f) as real-valued Complex_Sequence;
+    A1: Sum (Re f) = Sum (Sequel (Re f)) & Sum (Im f) = Sum (Sequel (Im f))
+      by SSF;
+    A2: Sequel (Re f) = Re (Sequel f) & Sequel (Im f) = Im (Sequel f)
+      by RSF,ISF;
+    Sum f = Sum (Sequel (Re f)) + <i>* Sum (Sequel (Im f)) by A1,RSI
+    .= Sum g + Sum (<i>(#)h) by A2,COMSEQ_3:56
+    .= Sum (g + <i>(#)h) by COMSEQ_3:54;
+    hence thesis;
+  end;
+
+theorem
+  for f be XFinSequence of COMPLEX, g be FinSequence of COMPLEX holds
+    Sum (f^g) = Sum f + Sum g & Sum (g^f) = Sum g + Sum f
+  proof
+    let f be XFinSequence of COMPLEX, g be FinSequence of COMPLEX;
+    A1: Sum (f^g) = Sum (f^(XFS2FS(FS2XFS g)))
+    .= Sum (f^(FS2XFS g)) by XFX
+    .= Sum f + Sum (FS2XFS g) by AFINSQ_2:55
+    .= Sum f + Sum g by FSS;
+    Sum (g^f) = Sum (g^(FS2XFS(XFS2FS f)))
+    .= Sum (g^(XFS2FS f)) by FXF
+    .= Sum g + Sum (XFS2FS f) by RVSUM_2:32
+    .= Sum g + Sum f by XSS;
+    hence thesis by A1;
+  end;
+

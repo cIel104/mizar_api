@@ -1,0 +1,1927 @@
+:: The Formalization of Decision Free {P}etri Net
+::  by Pratima K. Shah , Pauline N. Kawamoto and Mariusz Giero
+:: 
+:: Received March 31, 2014
+:: Copyright (c) 2014-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies PETRI_DF, NUMBERS, XBOOLE_0, FUNCT_1, SUBSET_1, RELAT_1, TARSKI,
+      PETRI, FUNCT_2, ARYTM_3, FINSEQ_1, PARTFUN1, XXREAL_0, CARD_1, CARD_3,
+      ORDINAL4, NAT_1, ARYTM_1, BOOLMARK, STRUCT_0, PNPROC_1, ZFMISC_1, INT_1,
+      FINSET_1, AOFA_I00, NET_1, FINSEQ_4, RFINSEQ, FINSEQ_6, JORDAN23;
+ notations TARSKI, XBOOLE_0, SUBSET_1,
+      ORDINAL1, NUMBERS, XCMPLX_0, NAT_1, FUNCT_1,
+      PARTFUN1, FUNCT_2, DOMAIN_1, XXREAL_0, STRUCT_0, ZFMISC_1, RELSET_1,
+      FINSEQ_1, PARTIT_2, PETRI, FINSET_1, NAT_D, WSIERP_1, RLAFFIN3, NET_1,
+      FINSEQ_6, FINSEQ_4, JORDAN23, RFINSEQ;
+ constructors PARTIT_2, NAT_D, WSIERP_1, RLAFFIN3, NET_1, FINSEQ_4, FINSEQ_6,
+      RFINSEQ, JORDAN23;
+ registrations XXREAL_0, XREAL_0, FINSEQ_1, ORDINAL1, CARD_1, RELSET_1,
+      STRUCT_0, XBOOLE_0, SUBSET_1, XTUPLE_0, FINSET_1, NAT_1, MEMBERED,
+      VALUED_0, PETRI;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ definitions XBOOLE_0, TARSKI, JORDAN23;
+ equalities PETRI, NET_1;
+ expansions FINSEQ_6;
+ theorems TARSKI, ZFMISC_1, PETRI, FUNCT_1, FUNCT_2, FINSEQ_1, FINSEQ_4, NAT_1,
+      FINSEQ_2, FINSEQ_3, RELAT_1, XBOOLE_0, XREAL_1, XXREAL_0, PARTFUN1,
+      SEQ_4, NAT_D, RLAFFIN3, BOOLMARK, NET_1, RVSUM_1, FINSEQ_5, RFINSEQ,
+      JORDAN23;
+ schemes NAT_1, DOMAIN_1, FUNCT_2, FINSEQ_1, FRAENKEL;
+
+begin :: Preliminaries
+
+reserve N for PT_net_Str, PTN for Petri_net, i for Nat;
+
+theorem Th10:
+  for x,y be Nat, f be FinSequence st
+  f/^1 is one-to-one & 1 < x & x <= len f & 1 < y & y <= len f & f.x = f.y
+  holds x = y
+  proof
+    let x,y be Nat, f be FinSequence;
+    assume
+B1: f/^1 is one-to-one & 1 < x & x <= len f & 1 < y & y <= len f & f.x = f.y;
+    then
+A68: 1 < len f by XXREAL_0:2;
+     reconsider xm1 = x - 1,ym1 = y - 1 as Element of NAT by NAT_1:21,B1;
+B8:  len (f/^1) = (len f) - 1 by RFINSEQ:def 1,A68;
+B9:  x + -1 <= len f + -1 by B1,XREAL_1:6;
+     1 < xm1 +1 by B1; then
+     1 <= xm1 & xm1 <= len (f/^1) by NAT_1:13,B9,B8; then
+B4:  xm1 in dom (f/^1) by FINSEQ_3:25;
+B9a: y + -1 <= len f + -1 by B1,XREAL_1:6;
+     1 < ym1 +1 by B1;then
+     1 <= ym1 & ym1 <= len (f/^1) by NAT_1:13,B9a,B8; then
+B5:  ym1 in dom (f/^1) by FINSEQ_3:25;
+     (f/^1).xm1 = f.(xm1+1) by RFINSEQ:def 1,B4,A68
+     .= f.(ym1+1) by B1 .= (f/^1).ym1 by RFINSEQ:def 1,B5,A68;then
+     xm1 = ym1 by B1,FUNCT_1:def 4,B4,B5;
+     hence x = y;
+   end;
+
+theorem Lm1:
+  for D be non empty set, f be non empty FinSequence of D
+  st f is circular holds f.1 = f.len f
+  proof
+    let D be non empty set, f be non empty FinSequence of D;
+    assume
+A4: f is circular;
+A2: 0+1 <= len f by NAT_1:13;then
+A1: 1 in dom f by FINSEQ_3:25;
+A3: len f in dom f by FINSEQ_3:25,A2;
+    thus f.1 = f/.1 by PARTFUN1:def 6,A1
+    .= f.len f by PARTFUN1:def 6,A3,A4;
+  end;
+
+registration
+  let D be non empty set;
+  let a,b be Element of D;
+  cluster <*a,b,a*> -> circular for FinSequence of D;
+  coherence
+  proof
+    set f = <*a,b,a*>;
+A8: len f = 3 by FINSEQ_1:45;
+A1: f.3 = a by FINSEQ_1:45;
+K1: 1 in dom f by A8,FINSEQ_3:25;
+K2: len f in dom f by FINSEQ_3:25,A8;
+    f/.1 = f.1 by PARTFUN1:def 6,K1
+        .= f.len f by A8,FINSEQ_1:45,A1
+        .= f/.(len f) by PARTFUN1:def 6,K2;
+    hence thesis;
+  end;
+end;
+
+theorem Th13:
+  for a,b be object st a <> b holds <*a,b,a*> is almost-one-to-one
+  proof
+    let a,b be object;
+    assume
+Z1: a <> b;
+    set f = <*a,b,a*>;
+    let i,j be Nat;
+    assume
+Z2: i in dom f & j in dom f & (i <> 1 or j <> len f) & (i <> len f or j <> 1)
+    & f.i = f.j;
+A8: len f = 3 by FINSEQ_1:45;then
+A1: 1 <= i & i <= 3 by FINSEQ_3:25,Z2;
+A1a: 1 <= j & j <= 3 by FINSEQ_3:25,Z2,A8;
+A12: f.1 = a & f.2 = b & f.3 = a by FINSEQ_1:45;
+    1 = i or 1 < i by A1,XXREAL_0:1;then
+    1 = i or 1+1<=i by NAT_1:13;then
+    1 = i or 2=i or 2 < i by XXREAL_0:1;then
+A2: 1 = i or 2=i or 2+1 <= i by NAT_1:13;
+    1 = j or 1 < j by A1a,XXREAL_0:1;then
+    1 = j or 1+1<=j by NAT_1:13;then
+    1 = j or 2=j or 2 < j by XXREAL_0:1;then
+A3: 1 = j or 2=j or 2+1 <= j by NAT_1:13;then
+    per cases by A1a,XXREAL_0:1,A1, A2;
+    suppose (1 = i or 3 = i) & j <> 2;
+      hence i = j by A8,Z2,A3,XXREAL_0:1,A1a;
+    end;
+    suppose (1 = j or 3 = j) & i <> 2;
+      hence i = j by A8,Z2,XXREAL_0:1,A1, A2;
+    end;
+    suppose 1 = i & 2 = j or 2 = i & 1 = j or 2 = i & 2 = j or 2 = i & 3 = j
+      or 3 = i & 2 = j;
+      hence i = j by Z2,Z1,A12;
+    end;
+  end;
+
+definition
+  let X be set;
+  let Y be non empty set;
+  let P be finite Subset of X;
+  let M0 be Function of X,Y;
+  mode Enumeration of M0, P -> FinSequence of Y means
+  :Def12:
+  len it = len the Enumeration of P &
+  for i st i in dom it holds
+  it.i = M0.((the Enumeration of P).i) if P is non empty
+  otherwise it = <*>Y;
+  existence
+  proof
+    ex p be FinSequence of Y st
+    len p = len the Enumeration of P &
+    for i st i in dom p holds p.i = M0.((the Enumeration of P).i)
+    proof
+      deffunc F(Nat) = M0.((the Enumeration of P).$1);
+      consider p being FinSequence such that
+ A1:  len p = len the Enumeration of P &
+      for i be Nat st i in dom p holds p.i = F(i) from FINSEQ_1:sch 2;
+      rng p c= Y
+      proof
+        let y be object;
+        assume y in rng p; then
+        consider x be object such that
+ A2:    x in dom p & y = p.x by FUNCT_1:def 3;
+        reconsider x as Element of NAT by A2;
+ A3:    y = F(x) by A1,A2;
+        x in dom the Enumeration of P by A2, FINSEQ_3:29, A1; then
+        (the Enumeration of P).x in rng the Enumeration of P by FUNCT_1:3;
+        then (the Enumeration of P).x in P by RLAFFIN3:def 1;
+        hence y in Y by A3, FUNCT_2:5;
+      end; then
+      reconsider p as FinSequence of Y by FINSEQ_1:def 4;
+      take p;
+      thus thesis by A1;
+    end;
+    hence P is non empty implies ex p be FinSequence of Y st
+    len p = len the Enumeration of P &
+    for i st i in dom p holds p.i = M0.((the Enumeration of P).i);
+    thus P is empty implies ex p be FinSequence of Y st p = <*>Y;
+  end;
+  consistency;
+end;
+
+definition
+  func PetriNet -> Petri_net equals
+  PT_net_Str(# {0},{1},[#] ({0},{1}),[#] ({1},{0}) #);
+  coherence by PETRI:def 1, PETRI:def 2;
+end;
+
+notation
+  let N;
+  synonym places_and_trans_of N for Elements N;
+end;
+
+registration
+  let PTN;
+  cluster places_and_trans_of PTN -> non empty;
+  coherence;
+end;
+
+reserve fs for FinSequence of places_and_trans_of PTN;
+
+definition
+  let PTN,fs;
+  func places_of fs -> finite Subset of PTN equals
+  { p where p is place of PTN : p in rng fs };
+  coherence
+  proof
+    defpred P[set] means $1 in rng fs;
+    deffunc F(set) = $1;
+A2: rng fs is finite;
+A1: {F(p) where p is place of PTN : p in rng fs}
+      is finite from FRAENKEL:sch 21(A2);
+    {p where p is place of PTN : P[p]}
+      is Subset of the carrier of PTN from DOMAIN_1:sch 7;
+    hence thesis by A1;
+  end;
+  func transitions_of fs -> finite Subset of the carrier' of PTN equals
+  {t where t is transition of PTN : t in rng fs};
+  coherence
+  proof
+    defpred P[set] means $1 in rng fs;
+    deffunc F(set) = $1;
+A2: rng fs is finite;
+A1: {F(t) where t is transition of PTN : t in rng fs}
+      is finite from FRAENKEL:sch 21(A2);
+    {t where t is transition of PTN : P[t]}
+      is Subset of the carrier' of PTN from DOMAIN_1:sch 7;
+    hence thesis by A1;
+  end;
+end;
+
+begin :: The number of tokens in a circuit
+
+:: Relation Between P and NAT
+definition
+  let N;
+  func nat_marks_of N -> FUNCTION_DOMAIN of the carrier of N, NAT equals
+  Funcs(the carrier of N, NAT);
+  correctness;
+end;
+
+definition
+  let N;
+  mode marking of N is Element of nat_marks_of N;
+end;
+
+:: Generation of nat marking and summation of that
+definition
+  let N;
+  let P be finite Subset of N;
+  let M0 be marking of N;
+  func num_marks(P, M0) -> Element of NAT equals
+  Sum (the Enumeration of M0,P);
+  coherence;
+end;
+
+begin
+:: Decision-Free Petri Net Concept and Properties of Circuits in Petri Nets
+
+definition
+  let IT be Petri_net;
+  attr IT is decision_free_like means  :Def1:
+  for s being place of IT holds
+  ((ex t being transition of IT st [t, s] in the T-S_Arcs of IT) &
+  (for t1, t2 being transition of IT
+  st [t1, s] in the T-S_Arcs of IT &
+  [t2, s] in the T-S_Arcs of IT holds t1 = t2)) &
+  ((ex t being transition of IT st
+  [s, t] in the S-T_Arcs of IT) &
+  (for t1, t2 being transition of IT
+  st [s, t1] in the S-T_Arcs of IT &
+  [s, t2] in the S-T_Arcs of IT holds t1 = t2));
+end;
+
+:: directed_path_like Attribute for
+:: FinSequence of places_and_trans_of Petri_net
+
+definition
+  let PTN;
+  let IT be FinSequence of places_and_trans_of PTN;
+  attr IT is directed_path_like means
+  :Def5:
+  len IT >= 3 & len IT mod 2 = 1 &
+  (for i st i mod 2 = 1 & i + 1 < len IT holds
+  [IT.i, IT.(i+1)] in the S-T_Arcs of PTN &
+  [IT.(i+1),IT.(i+2)] in the T-S_Arcs of PTN)
+  & IT.len IT in the carrier of PTN;
+end;
+
+theorem Th12:
+  for fs be FinSequence of places_and_trans_of PetriNet st fs = <*0,1,0*>
+  holds fs is directed_path_like
+  proof
+    let fs be FinSequence of places_and_trans_of PetriNet;
+    assume
+L1: fs = <*0,1,0*>;
+A12: fs.1 = 0 & fs.2 = 1 & fs.3 = 0 by FINSEQ_1:45,L1;
+     set N = PetriNet;
+     thus fs is directed_path_like
+     proof
+       2 mod 2 = 0 by NAT_D:25;then
+L3:    2 + 1 mod 2 = 1 by NAT_D:16;
+L4:    now
+         let i;
+         assume
+A16:     i mod 2 = 1 & i + 1 < len fs;
+         0 mod 2 = 0 by NAT_D:26;then
+         0 < i by A16;then
+A17:     0+1 <= i by NAT_1:13;
+         now
+           assume 1 < i;then
+           1+1<=i by NAT_1:13;then
+           2+1<=i+1 by XREAL_1:6;
+           hence contradiction by A16,FINSEQ_1:45, L1;
+         end;then
+A11:     i = 1 by XXREAL_0:1,A17;
+A15:     0 in {0} & 1 in {1} by TARSKI:def 1;
+         thus [fs.i, fs.(i+1)] in (the S-T_Arcs of N) &
+         [fs.(i+1),fs.(i+2)] in (the T-S_Arcs of N)
+         by A11, A12,ZFMISC_1:def 2, A15;
+       end;
+       fs.len fs = 0 by A12,FINSEQ_1:45, L1;
+       hence thesis by FINSEQ_1:45,L1,L3,L4,TARSKI:def 1;
+     end;
+   end;
+
+registration
+  let PTN;
+  cluster directed_path_like -> non empty
+    for FinSequence of places_and_trans_of PTN;
+  coherence;
+end;
+
+:: With_directed_path Mode for place\transition Nets
+definition
+  let IT be Petri_net;
+  attr IT is With_directed_path means  :Def9:
+  ex fs being FinSequence of places_and_trans_of IT st
+    fs is directed_path_like;
+end;
+
+:: directed_circuit_like Attribute for FinSequence of
+::  places_and_trans_of PetriNet
+
+definition
+  let PTN;
+  attr PTN is With_directed_circuit means
+  :Def7:
+  ex fs st fs is directed_path_like circular almost-one-to-one;
+end;
+
+registration
+  cluster PetriNet -> decision_free_like With_directed_circuit Petri;
+  coherence
+  proof
+    set N = PetriNet;
+    now
+      let s be place of N;
+      thus ex t being transition of N st [t, s] in the T-S_Arcs of N
+      proof
+        reconsider t = 1 as transition of N by TARSKI:def 1;
+        take t;
+        thus thesis;
+      end;
+      thus for t1, t2 being transition of N st
+      [t1, s] in the T-S_Arcs of N &
+      [t2, s] in the T-S_Arcs of N holds t1 = t2
+      proof
+        let t1, t2 be transition of N;
+        assume [t1, s] in the T-S_Arcs of N &
+        [t2, s] in the T-S_Arcs of N;
+        t1 = 1 by TARSKI:def 1;
+        hence t1 = t2 by TARSKI:def 1;
+      end;
+      thus ex t being transition of N st [s, t] in the S-T_Arcs of N
+      proof
+        reconsider t = 1 as transition of N by TARSKI:def 1;
+        take t;
+        thus thesis;
+      end;
+      thus for t1, t2 being transition of N st
+      [s, t1] in the S-T_Arcs of N &
+      [s, t2] in the S-T_Arcs of N holds t1 = t2
+      proof
+        let t1, t2 be transition of N;
+        assume [s, t1] in the S-T_Arcs of N &
+        [s, t2] in the S-T_Arcs of N;
+        t1 = 1 by TARSKI:def 1;
+        hence t1 = t2 by TARSKI:def 1;
+      end;
+    end;
+    hence N is decision_free_like;
+A5: 0 in the carrier of N by TARSKI:def 1;
+    1 in the carrier' of N by TARSKI:def 1;then
+    reconsider a0=0, a1=1 as Element of places_and_trans_of N
+    by A5,XBOOLE_0:def 3;
+    reconsider fs = <*a0,a1,a0*> as FinSequence of places_and_trans_of N;
+    fs is directed_path_like & fs is circular & fs is almost-one-to-one
+      by Th12,Th13;
+    hence N is With_directed_circuit;
+    Flow N c= [:the carrier of N, the carrier' of N:]
+      \/ [:the carrier' of N, the carrier of N:];
+    hence N is Petri by NET_1:def 2,ZFMISC_1:11;
+  end;
+end;
+
+registration
+  cluster With_directed_circuit Petri decision_free_like for Petri_net;
+  existence
+  proof
+    take PetriNet;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster With_directed_circuit -> With_directed_path for Petri_net;
+  coherence;
+end;
+
+registration
+  cluster With_directed_path for Petri_net;
+  existence
+  proof
+    take PetriNet;
+    thus thesis;
+  end;
+end;
+
+registration
+  let Dftn be With_directed_path Petri_net;
+  cluster directed_path_like for FinSequence of places_and_trans_of Dftn;
+  existence by Def9;
+end;
+
+ reserve Dftn for With_directed_path Petri_net;
+ reserve dct for directed_path_like FinSequence of places_and_trans_of Dftn;
+
+theorem Thd:
+  [dct.1, dct.2] in the S-T_Arcs of Dftn
+  proof
+A3: 1 mod 2 = 1 by NAT_D:14;
+    len dct >= 3 by Def5;then
+    1 + 1 < len dct by XXREAL_0:2;
+    hence thesis by Def5, A3;
+  end;
+
+theorem The:
+  [dct.(len dct -1), dct.(len dct)] in the T-S_Arcs of Dftn
+  proof
+    len dct >= 3 by Def5;then
+    reconsider ln2 = len dct - 2 as Element of NAT by NAT_1:21, XXREAL_0:2;
+F8: 1 = (ln2 + 2) mod 2 by Def5
+    .= ((ln2 mod 2) + (2 mod 2)) mod 2 by NAT_D:66
+    .= ((ln2 mod 2) + 0) mod 2 by NAT_D:25
+    .= ln2 mod 2 by NAT_D:65;
+    len dct + (-1) < len dct by XREAL_1:30; then
+    [dct.(ln2 + 1), dct.(ln2 + 2)] in the T-S_Arcs of Dftn by Def5, F8;
+    hence thesis;
+  end;
+
+reserve Dftn for With_directed_path Petri Petri_net,
+  dct for directed_path_like FinSequence of places_and_trans_of Dftn;
+
+theorem Thc:
+  dct.i in places_of dct & i in dom dct implies i mod 2 = 1
+  proof
+    assume that
+T2: dct.i in places_of dct and
+T4: i in dom dct;
+     consider p be place of Dftn such that
+T3:  p = dct.i & p in rng dct by T2;
+E1:  1 <= i & i <= len dct by T4,FINSEQ_3:25;
+E41: i = len dct or i < len dct by XXREAL_0:1,E1;
+     i mod 2 = 1
+     proof
+       assume
+E6:    i mod 2 <> 1;
+       reconsider i1 = i - 1 as Element of NAT by NAT_1:21,T4, FINSEQ_3:25;
+       now
+         assume i1 mod 2 = 0;then
+         i1 + 1 mod 2 = 1 by NAT_D:16;
+         hence contradiction by E6;
+       end;then
+       i1 mod 2 = 1 by NAT_D:12;then
+       [dct.i1,dct.(i1+1)] in the S-T_Arcs of Dftn by E6,E41,Def5;then
+       dct.(i1+1) in the carrier' of Dftn by ZFMISC_1:87;
+       hence contradiction by XBOOLE_0:3,NET_1:def 2,T3;
+     end;
+     hence thesis;
+   end;
+
+theorem Thcc:
+  dct.i in transitions_of dct & i in dom dct implies i mod 2 = 0
+  proof
+    assume that
+T2: dct.i in transitions_of dct and
+T4: i in dom dct;
+L1: [dct.(len dct - 1),dct.len dct] in the T-S_Arcs of Dftn by The;
+    consider t be transition of Dftn such that
+T3: t = dct.i & t in rng dct by T2;
+T5: 1 <= i & i <= len dct by T4,FINSEQ_3:25;
+    i <> len dct
+    proof
+      assume i = len dct;then
+      dct.i in the carrier of Dftn by L1,ZFMISC_1:87;
+      hence contradiction by NET_1:def 2,XBOOLE_0:3,T3;
+    end;then
+    i < len dct by XXREAL_0:1,T5;then
+H4: i+1 <= len dct by NAT_1:13;
+    assume i mod 2 <> 0;then
+H1: i mod 2 = 2-1 by NAT_D:12;
+    i+1<>len dct
+    proof
+      assume
+H6:   i+1 = len dct;then
+      reconsider p = dct.(i+1) as place of Dftn by L1,ZFMISC_1:87;
+      1 <= 1+i by NAT_1:11;then
+H5:   i+1 in dom dct by FINSEQ_3:25,H6;then
+      p in rng dct by FUNCT_1:3;then
+      p in places_of dct;then
+      i+1 mod 2 = 1 by Thc,H5;
+      hence contradiction by NAT_D:69, H1;
+    end;then
+    i + 1 < len dct by XXREAL_0:1,H4;then
+    [dct.i,dct.(i+1)] in the S-T_Arcs of Dftn by Def5,H1;then
+    dct.i in the carrier of Dftn by ZFMISC_1:87;
+    hence contradiction by XBOOLE_0:3,T3,NET_1:def 2;
+  end;
+
+theorem Thf:
+  dct.i in transitions_of dct & i in dom dct implies
+  [dct.(i-1),dct.i] in the S-T_Arcs of Dftn
+  & [dct.i,dct.(i+1)] in the T-S_Arcs of Dftn
+  proof
+    assume
+H1: dct.i in transitions_of dct & i in dom dct;
+L1:  [dct.(len dct - 1),dct.len dct] in the T-S_Arcs of Dftn by The;
+     reconsider im1 = i - 1 as Element of NAT by NAT_1:21,FINSEQ_3:25,H1;
+     consider t be transition of Dftn such that
+H6:  t = dct.i & t in rng dct by H1;
+H4:  1 <= i & i <= len dct by FINSEQ_3:25,H1;
+     now
+       assume im1 mod 2 = 0;then
+       im1 + 1 mod 2 = 1 by NAT_D:16;
+       hence contradiction by Thcc,H1;
+     end;then
+H2:  im1 mod 2 = 1 by NAT_D:12;
+     i <> len dct
+     proof
+       assume i = len dct;then
+       dct.i in the carrier of Dftn by L1,ZFMISC_1:87;
+       hence contradiction by H6,NET_1:def 2 ,XBOOLE_0:3;
+     end;then
+H3:  im1 + 1 < len dct by XXREAL_0:1,H4;
+     hence [dct.(i-1),dct.i] in the S-T_Arcs of Dftn by Def5,H2;
+     [dct.(im1+1),dct.(im1+2)] in the T-S_Arcs of Dftn by Def5,H2,H3;
+     hence thesis;
+   end;
+
+theorem Thg:
+  dct.i in places_of dct & 1 < i & i < len dct implies
+  [dct.(i-2),dct.(i-1)] in the S-T_Arcs of Dftn
+  & [dct.(i-1),dct.i] in the T-S_Arcs of Dftn
+  & [dct.i,dct.(i+1)] in the S-T_Arcs of Dftn
+  & [dct.(i+1),dct.(i+2)] in the T-S_Arcs of Dftn & 3 <= i
+  proof
+    assume
+H1: dct.i in places_of dct & 1 < i & i < len dct; then
+P1: i in dom dct by FINSEQ_3:25;then
+H4: i mod 2 = 1 by Thc,H1;
+L1: [dct.(len dct - 1),dct.len dct] in the T-S_Arcs of Dftn by The;
+L2: [dct.1,dct.2] in the S-T_Arcs of Dftn by Thd;
+    consider p be place of Dftn such that
+H6: p = dct.i & p in rng dct by H1;
+H8: 1+1 <= i by H1,NAT_1:13;then
+    reconsider im2 = i - 2 as Element of NAT by NAT_1:21;
+    now
+      assume im2 mod 2 = 0;then
+      im2 + 1 mod 2 = 1 mod 2 by NAT_D:17 .= 2 - 1 by NAT_D:14;then
+      im2 + 1 + 1 mod 2 = 0 by NAT_D:69;
+      hence contradiction by Thc,H1, P1;
+    end;then
+H2: im2 mod 2 = 1 by NAT_D:12;
+P2: i - 1 < len dct by H1,XREAL_1:147;then
+    [dct.im2,dct.(im2+1)] in the S-T_Arcs of Dftn by Def5,H2;
+    hence [dct.(i-2),dct.(i-1)] in the S-T_Arcs of Dftn;
+    [dct.(im2+1),dct.(im2+2)] in the T-S_Arcs of Dftn by Def5,H2,P2;
+    hence [dct.(i-1),dct.i] in the T-S_Arcs of Dftn;
+H9: i+1<= len dct by NAT_1:13,H1;
+    i + 1 <> len dct
+    proof
+      assume i + 1 = len dct;then
+      dct.(i+1-1) in the carrier' of Dftn by L1,ZFMISC_1:87;
+      hence contradiction by NET_1:def 2,XBOOLE_0:3,H6;
+    end;then
+H5: i+1<len dct by XXREAL_0:1,H9;
+    hence [dct.i,dct.(i+1)] in the S-T_Arcs of Dftn by Def5,H4;
+    thus [dct.(i+1),dct.(i+2)] in the T-S_Arcs of Dftn by Def5,H5,H4;
+    2 <> i
+    proof
+      assume i = 2;then
+      dct.i in the carrier' of Dftn by L2,ZFMISC_1:87;
+      hence contradiction by NET_1:def 2,H6,XBOOLE_0:3;
+    end;then
+    2 < i by XXREAL_0:1,H8;then
+    2+1<=i by NAT_1:13;
+    hence 3 <= i;
+  end;
+
+begin :: Firable and Firing Conditions for Transitions with natural marking
+
+reserve M0 for marking of PTN,
+       t for transition of PTN,
+       Q,Q1 for FinSequence of the carrier' of PTN;
+
+definition
+  let PTN,M0,t;
+  pred t is_firable_at M0 means
+  for m being Nat holds m in M0.:*'{t} implies m > 0;
+end;
+
+notation
+  let PTN,M0,t;
+  antonym t is_not_firable_at M0 for t is_firable_at M0;
+end;
+
+definition
+  let PTN,M0,t;
+  func Firing(t, M0) -> marking of PTN means
+  :Def11:
+  for s being place of PTN holds
+  (s in *'{t} & not s in {t}*' implies it.s = M0.s -1) &
+  (s in {t}*' & not s in *'{t} implies it.s = M0.s + 1) &
+  ((s in *'{t} & s in {t}*') or (not s in *'{t} & not s in {t}*')
+  implies it.s = M0.s) if t is_firable_at M0
+  otherwise it = M0;
+  existence
+  proof
+    defpred P[place of PTN, set] means
+    ( $1 in *'{t} & not $1 in {t}*' implies $2 = M0.$1 -1) &
+    ( $1 in {t}*' & not $1 in *'{t} implies $2 = M0.$1 + 1) &
+    (($1 in *'{t} & $1 in {t}*') or (not $1 in *'{t} & not $1 in {t}*')
+    implies $2 = M0.$1);
+    thus t is_firable_at M0 implies ex M be marking of PTN st
+    for s being place of PTN holds P[s, M.s]
+    proof
+      assume
+A1:   t is_firable_at M0;
+A2:   now
+        let x be Element of PTN;
+        per cases;
+        suppose
+S1:       x in *'{t} & not x in {t}*';
+          dom M0 = the carrier of PTN by FUNCT_2:def 1;then
+          [x, M0.x] in M0 by FUNCT_1:def 2;then
+          M0.x in M0.:*'{t} by RELAT_1:def 13, S1; then
+          reconsider M0x = M0.x - 1 as Element of NAT by NAT_1:20, A1;
+          P[x, M0x] by S1;
+          hence ex y being Element of NAT st P[x, y];
+        end;
+        suppose x in {t}*' & not x in *'{t};
+          hence ex y being Element of NAT st P[x, y];
+        end;
+        suppose
+          (x in *'{t} & x in {t}*') or (not x in *'{t} & not x in {t}*');
+          hence ex y being Element of NAT st P[x, y];
+        end;
+      end;
+      consider M being Function of the carrier of PTN, NAT such that
+A3:   for x being Element of the carrier of PTN holds P[x, M.x]
+      from FUNCT_2:sch 3(A2);
+      reconsider M as marking of PTN by FUNCT_2:8;
+      take M;
+      thus thesis by A3;
+    end;
+    thus not t is_firable_at M0 implies ex M be marking of PTN st M = M0;
+  end;
+  uniqueness
+  proof
+    let M1, M2 be marking of PTN;
+    defpred P[marking of PTN] means
+    for s being place of PTN holds
+    ( s in *'{t} & not s in {t}*' implies $1.s = M0.s -1) &
+    ( s in {t}*' & not s in *'{t} implies $1.s = M0.s + 1) &
+    ((s in *'{t} & s in {t}*') or (not s in *'{t} & not s in {t}*') implies
+    $1.s = M0.s);
+    thus t is_firable_at M0 & P[M1] & P[M2] implies M1 = M2
+    proof
+      assume
+A4:   t is_firable_at M0 & P[M1] & P[M2];
+      for x being object st x in the carrier of PTN holds M1.x = M2.x
+      proof
+        let x be object;
+        assume x in the carrier of PTN;
+        then reconsider x1 = x as place of PTN;
+        per cases;
+        suppose
+S1:       x in *'{t} & not x in {t}*';
+          hence M1.x = M0.x -1 by A4
+                   .= M2.x by S1, A4;
+        end;
+        suppose
+S2:       x in {t}*' & not x in *'{t};
+          hence M1.x = M0.x + 1 by A4
+                    .= M2.x by S2, A4;
+        end;
+        suppose
+S3:       (x in *'{t} & x in {t}*') or (not x in *'{t} & not x in {t}*');
+          thus M1.x = M1.x1
+          .= M0.x by S3, A4
+          .= M2.x1 by S3, A4
+          .= M2.x;
+        end;
+      end;
+      hence M1 = M2 by FUNCT_2:12;
+    end;
+    thus not t is_firable_at M0 & M0 = M1 & M0 = M2 implies M1 = M2;
+  end;
+  correctness;
+end;
+
+definition
+  let PTN,M0,Q;
+  pred Q is_firable_at M0 means
+  Q = {} or
+  ex M being FinSequence of nat_marks_of PTN st len Q = len M &
+  Q/.1 is_firable_at M0 & M/.1 = Firing(Q/.1, M0) &
+  for i st i < len Q & i > 0 holds
+  Q/.(i+1) is_firable_at M/.i & M/.(i+1) = Firing(Q/.(i+1), M/.i);
+end;
+
+notation
+  let PTN,M0,Q;
+  antonym Q is_not_firable_at M0 for Q is_firable_at M0;
+end;
+
+definition
+  let PTN,M0,Q;
+  func Firing(Q, M0) -> marking of PTN means
+  :Defb:
+  it = M0 if Q = {}
+  otherwise
+  ex M being FinSequence of nat_marks_of PTN st len Q = len M & it = M/.len M
+  & M/.1 = Firing(Q/.1, M0)
+  & for i st i < len Q & i > 0 holds M/.(i+1) = Firing(Q/.(i+1),M/.i);
+  existence
+  proof
+    defpred P2[Nat] means for Q being FinSequence of the
+    carrier' of PTN st $1 = len Q holds (Q = {} implies ex M1 being
+    marking of PTN st M1 = M0) & (Q <> {} implies ex M2 being
+    marking of PTN st ex M being FinSequence of nat_marks_of PTN st len Q
+    = len M & M2 = M/.len M & M/.1 = Firing(Q/.1, M0)
+    & for i st i < len Q & i > 0 holds M/.(i+1) = Firing(Q/.(i+1), M/.i));
+A1: now
+      let n be Nat;
+      assume
+A2:   P2[n];
+      thus P2[n+1]
+      proof
+      let Q be FinSequence of the carrier' of PTN such that
+A3:   n+1 = len Q;
+      thus Q = {} implies ex M1 being marking of PTN st M1 = M0;
+      thus Q <> {} implies ex M2 being marking of PTN, M being
+      FinSequence of nat_marks_of PTN st len Q = len M & M2 = M/.len M & M/.1 =
+      Firing(Q/.1, M0) & for i st i < len Q & i > 0
+      holds M/.(i+1) = Firing(Q/.(i+1), M/.i)
+      proof
+        assume Q <> {};
+        then len Q <> 0;
+        then consider Q1 being FinSequence of the carrier' of PTN,
+        t being transition of PTN such that
+A4:      Q = Q1 ^ <*t*> by FINSEQ_2:19;
+A5:      n + 1 = len Q1 + 1 by A3,A4,FINSEQ_2:16;
+         per cases;
+         suppose
+A6:       Q1 = {};
+          take M2 = Firing(t, M0);
+          take M = <*M2*>;
+A7:       len Q = len Q1 + len <*t*> by A4,FINSEQ_1:22
+             .= 0 + 1 by FINSEQ_1:39,A6;
+          hence len Q = len M by FINSEQ_1:39;
+          hence M2 = M/.len M by A7,FINSEQ_4:16;
+          Q = <*t*> by A4,A6,FINSEQ_1:34;
+          then Q/.1 = t by FINSEQ_4:16;
+          hence M/.1 = Firing(Q/.1, M0) by FINSEQ_4:16;
+          let i;
+          assume i < len Q & i > 0;
+          hence thesis by A7,NAT_1:13;
+        end;
+        suppose
+A8:       Q1 <> {}; then
+          0 + 1 < len Q1 + 1 by XREAL_1:6;
+          then 1 <= len Q1 by NAT_1:13; then
+A10:      1 in dom Q1 by FINSEQ_3:25;
+A11:      len Q = len Q1 + len<*t*> by A4,FINSEQ_1:22
+               .= len Q1 + 1 by FINSEQ_1:40;
+          consider B2 being marking of PTN, B being FinSequence of
+          nat_marks_of PTN such that
+A12:      len Q1 = len B and
+A13:      B2 = B/.len B and
+A14:      B/.1 = Firing(Q1/.1,M0) and
+A15:      for i st i < len Q1 & i > 0 holds B
+           /.(i+1) = Firing(Q1/.(i+1),B/.i) by A2,A5,A8;
+          take M2 = Firing(t,B2);
+          take M = B ^ <*M2*>;
+A16:      len M = len B + len<*M2*> by FINSEQ_1:22
+             .=len B + 1 by FINSEQ_1:40;
+          hence len Q = len M by A12,A11;
+          thus M2 = M/.len M by A16,FINSEQ_4:67;
+          0 + 1 < len B + 1 by A12,A8,XREAL_1:6;then
+A17:      1 <= len B by NAT_1:13;
+          then 1 in dom B by FINSEQ_3:25;
+          hence M/.1 = B/.1 by FINSEQ_4:68
+             .= Firing(Q/.1, M0) by A4,A14,A10,FINSEQ_4:68;
+          let i such that
+A18:      i < len Q and
+A19:      i > 0;
+          thus M/.(i+1) = Firing(Q/.(i+1), M/.i)
+          proof
+            1 <= i + 1 & i + 1 <= len Q1 + 1 by A11,A18,NAT_1:12,13; then
+A20:        Seg (len Q1 + 1) = Seg (len Q1) \/ {len Q1 + 1} &
+            i + 1 in Seg (len Q1 + 1) by FINSEQ_1:9,FINSEQ_1:1;
+            per cases by A20,XBOOLE_0:def 3;
+            suppose
+A21:         i + 1 in Seg len Q1;
+             then i + 1 <= len B by A12,FINSEQ_1:1;
+             then i + 1 <= len B + 1 by NAT_1:12; then
+A22:         i <= len B by XREAL_1:6;
+             0 + 1 < i + 1 by A19,XREAL_1:6;
+             then 1 <= i by NAT_1:13; then
+A23:         i in dom B by A22,FINSEQ_3:25;
+             i + 1 <= len Q1 by A21,FINSEQ_1:1;
+             then i < len Q1 by NAT_1:13; then
+A24:         B/.(i+1) = Firing(Q1/.(i+1), B/.i) by A15,A19;
+             i+1 in dom Q1 by A21,FINSEQ_1:def 3; then
+A25:         Q1/.(i+1) = Q/.(i+1) by A4,FINSEQ_4:68;
+             i+1 in dom B by A12,A21,FINSEQ_1:def 3;
+             then B/.(i+1) = M/.(i+1) by FINSEQ_4:68;
+             hence thesis by A24,A25,A23,FINSEQ_4:68;
+           end;
+           suppose
+A26:         i + 1 in {len Q1 + 1};
+A27:         len B in dom B by A17,FINSEQ_3:25;
+A28:         i + 1 = len Q1 + 1 by A26,TARSKI:def 1;
+             then M/.(i+1) = M2 & Q/.(i+1) = t by A4,A12,FINSEQ_4:67;
+            hence thesis by A12,A13,A28,A27,FINSEQ_4:68;
+           end;
+          end;
+        end;
+      end;
+    end;
+  end;
+A29: P2[0];
+    for n being Nat holds P2[n] from NAT_1:sch 2(A29,A1);
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let B1,B2 be marking of PTN;
+    thus Q = {} & B1 = M0 & B2 = M0 implies B1 = B2;
+    assume Q <> {};
+    given M1 being FinSequence of nat_marks_of PTN such that
+A30: len Q = len M1 and
+A31: B1 = M1/.len M1 and
+A32: M1/.1 = Firing(Q/.1, M0) and
+A33: for i st i < len Q & i > 0 holds M1/.(i+1) = Firing(Q/.(i+1), M1/.i);
+A34: dom M1 = Seg len Q by A30,FINSEQ_1:def 3;
+     given M2 being FinSequence of nat_marks_of PTN such that
+A35: len Q = len M2 and
+A36: B2 = M2/.len M2 and
+A37: M2/.1 = Firing(Q/.1, M0) and
+A38: for i st i < len Q & i > 0 holds M2/.(i + 1) =
+     Firing(Q/.(i + 1), M2/.i);
+     defpred P2[Nat] means $1 in Seg len Q implies M1/.$1 = M2/.$1;
+A39: now
+      let j be Nat;
+      assume
+A40:  P2[j];
+      now
+        assume
+A41:    j + 1 in Seg len Q;
+        per cases;
+        suppose
+          j = 0;
+          hence M1/.(j + 1) = M2/.(j + 1) by A32,A37;
+        end;
+        suppose
+A42:      j <> 0;
+          j + 1 <= len Q & j < j + 1 by A41,FINSEQ_1:1,XREAL_1:29; then
+A44:      j < len Q by XXREAL_0:2;
+          1 <= j by A42,NAT_1:14;then
+B2:       j in dom Q by A44,FINSEQ_3:25;
+          thus M1/.(j + 1) = Firing(Q/.(j+1), M1/.j) by A33,A44,A42
+          .= M2/.(j + 1) by A38,A44,A42,A40,FINSEQ_1:def 3,B2;
+        end;
+      end;
+      hence P2[j + 1];
+    end;
+A45: P2[0] by FINSEQ_1:1;
+A46: for j being Nat holds P2[j] from NAT_1:sch 2(A45,A39);
+    now
+      let j be Nat;
+      assume
+A47:  j in dom M1; then
+A48:  j in dom M2 by A35,A34,FINSEQ_1:def 3;
+      thus M1.j = M1/.j by A47,PARTFUN1:def 6
+        .= M2/.j by A46,A34,A47
+        .= M2.j by A48,PARTFUN1:def 6;
+    end;
+    hence B1 = B2 by A30,A31,A35,A36,FINSEQ_2:9;
+  end;
+  correctness;
+end;
+
+theorem
+  Firing(t, M0) = Firing(<*t*>, M0)
+  proof
+    set Q = <*t*>;
+    consider M be FinSequence of nat_marks_of PTN such that
+A1: len Q = len M & Firing(Q, M0) = M/.len M & M/.1 = Firing(Q/.1, M0) &
+    for i st i < len Q & i > 0 holds M/.(i+1) = Firing(Q/.(i+1),M/.i) by Defb;
+    thus Firing(<*t*>, M0) = Firing(<*t*>/.1, M0) by A1,FINSEQ_1:39
+    .= Firing(t, M0) by FINSEQ_4:16;
+ end;
+
+theorem
+  t is_firable_at M0 iff <*t*> is_firable_at M0
+  proof
+    hereby
+      set M = <*Firing(<*t*>/.1, M0)*>;
+A1:   M/.1 = Firing(<*t*>/.1, M0) by FINSEQ_4:16;
+A2:   now
+A3:     len <*t*> = 0 + 1 by FINSEQ_1:39;
+        let i;
+        assume i < len <*t*> & i > 0;
+        hence <*t*>/.(i+1) is_firable_at M/.i &
+        M/.(i+1) = Firing(<*t*>/.(i+1), M/.i) by A3,NAT_1:13;
+      end;
+      assume t is_firable_at M0; then
+A4:   <*t*>/.1 is_firable_at M0 by FINSEQ_4:16;
+      len <*t*> = 1 by FINSEQ_1:39
+      .= len M by FINSEQ_1:39;
+      hence <*t*> is_firable_at M0 by A4,A1,A2;
+    end;
+    assume <*t*> is_firable_at M0;
+    hence t is_firable_at M0 by FINSEQ_4:16;
+  end;
+
+theorem
+  Firing(Q^Q1, M0) = Firing(Q1, Firing(Q,M0))
+  proof
+    now
+    per cases;
+    case
+A1:   Q = {} & Q1 = {};then
+A2:   Q^Q1 = {} by FINSEQ_1:34;
+      Firing(Q1,Firing(Q,M0)) = Firing(Q1,M0) by A1,Defb .= M0 by A1,Defb;
+      hence thesis by A2,Defb;
+    end;
+    case
+A3:   Q = {} & Q1 <> {};
+      then Firing(Q^Q1,M0) = Firing(Q1,M0) by FINSEQ_1:34;
+      hence thesis by A3,Defb;
+    end;
+    case
+A4:   Q <> {} & Q1 = {};
+      then Firing(Q^Q1,M0) = Firing(Q,M0) by FINSEQ_1:34;
+      hence thesis by A4,Defb;
+    end;
+    case
+A5:   Q <> {} & Q1 <> {};
+      then consider M3 being FinSequence of nat_marks_of PTN such that
+A6:   len Q = len M3 & Firing(Q,M0) = M3/.len M3 and
+A7:   M3/.1 = Firing(Q/.1,M0) and
+A8:   for i st i < len Q & i > 0
+      holds M3/.(i+1) = Firing(Q/.(i+1),M3/.i) by Defb;
+      consider M being FinSequence of nat_marks_of PTN such that
+A9:   len (Q^Q1) = len M and
+A10:  Firing(Q^Q1,M0) = M/.len M and
+A11:  M/.1 = Firing((Q^Q1)/.1,M0) and
+A12:  for i st i < len (Q^Q1) & i > 0 holds M/.
+      (i+1) = Firing((Q^Q1)/.(i+1),M/.i) by A5,Defb;
+      defpred P2[Nat] means 1+$1<=len Q
+      implies M/.(1+$1)=M3/.(1+$1);
+      0+len Q<len Q + len Q1 by XREAL_1:6, A5;then
+A13:  len Q<len (Q^Q1) by FINSEQ_1:22;
+A14:  now
+        let k be Nat;
+        assume
+A16:    P2[k];
+        now
+          assume
+A17:      1+(k+1)<=len Q; then
+A18:      (Q^Q1)/.(1+(k+1))=Q/.(1+(k+1)) by BOOLMARK:7,NAT_1:11;
+A19:      1+k<len Q by A17,NAT_1:13;
+          then 1+k<len (Q^Q1) by A13,XXREAL_0:2;
+          then M/.(1+(k+1)) = Firing(Q/.(1+(k+1)),M3/.(1+k))
+          by A12,A16,A17,A18,NAT_1:13;
+          hence M/.(1+(k+1)) = M3/.(1+(k+1)) by A8,A19;
+        end;
+        hence P2[k+1];
+      end;
+      reconsider m = len Q - 1 as Element of NAT by A5,NAT_1:20;
+      let i be Element of NAT;
+A20:  0+1<=len Q1 by NAT_1:13,A5;
+      consider M4 being FinSequence of nat_marks_of PTN such that
+A21:  len Q1 = len M4 and
+A22:  Firing(Q1,Firing(Q,M0)) = M4/.len M4 and
+A23:  M4/.1 = Firing(Q1/.1,Firing(Q,M0)) and
+A24:  for i st i < len Q1 & i > 0
+      holds M4/.(i+1) = Firing(Q1/.(i+1),M4/.i) by A5,Defb;
+      consider k being Nat such that
+A25:  len M4 = k + 1 by A5,A21,NAT_1:6;
+A26:  P2[0] by A11,A7,BOOLMARK:7;
+A27:  for k being Nat holds P2[k] from NAT_1:sch 2(A26,A14);
+      defpred P2[Nat] means 1+$1<=len Q1
+      implies M/.(len Q+1+$1)= M4/.(1+$1);
+A28:  now
+        let k be Nat;
+        assume
+A29:    P2[k];
+A30:    len Q + 1+k+1 = len Q + 1 + (k+1) & 0<len Q + k + 1;
+        now
+          assume
+A32:      1+(k+1)<=len Q1; then
+A33:      (Q^Q1)/.(len Q+(1+(k+1)))=Q1/.(1+(k+1)) by NAT_1:11,SEQ_4:136;
+A34:      1+k<len Q1 by A32,NAT_1:13;
+          then len Q+(1+k) < len Q+ len Q1 by XREAL_1:6;
+          then len Q+1+k < len (Q^Q1) by FINSEQ_1:22;
+          then M/.(len Q+1+(k+1)) = Firing(Q1/.(1+(k+1)),M4/.(1+k))
+          by A12,A30,A29,A32,A33,NAT_1:13;
+          hence M/.(len Q+1+(k+1)) = M4/.(1+(k+1)) by A24,A34;
+        end;
+        hence P2[k+1];
+      end;
+      M/.(len Q+1+0)= Firing((Q^Q1)/.(len Q+1),M/.(1+m)) by A12,A13
+        .=Firing((Q^Q1)/.(len Q+1),Firing(Q,M0)) by A6,A27
+        .=M4/.(1+0) by A23,A20,SEQ_4:136; then
+A35:  P2[0];
+A36:  for k being Nat holds P2[k] from NAT_1:sch 2(A35,A28);
+      M/.len M = M/.(len Q +(1+k)) by A9,A21,A25,FINSEQ_1:22
+        .= M/.(len Q +1+k)
+        .= M4/.len M4 by A21,A36,A25;
+      hence thesis by A10,A22;
+    end;
+  end;
+  hence thesis;
+end;
+
+theorem
+  Q^Q1 is_firable_at M0
+  implies Q1 is_firable_at Firing(Q, M0) & Q is_firable_at M0
+  proof
+    assume
+A1: Q^Q1 is_firable_at M0;
+    now
+      per cases;
+      case Q = {} & Q1 = {};
+        hence thesis;
+      end;
+      case
+A2:     Q = {} & Q1 <> {};
+        hence Q is_firable_at M0;
+        Q^Q1 = Q1 by A2,FINSEQ_1:34;
+        hence Q1 is_firable_at Firing(Q, M0) by A1, A2, Defb;
+      end;
+      case
+A3:     Q <> {} & Q1 = {};
+        hence Q1 is_firable_at Firing(Q, M0);
+        thus Q is_firable_at M0 by A1, A3, FINSEQ_1:34;
+      end;
+      case
+A4:     Q <> {} & Q1 <> {};
+        let i;
+A5:     0+1<=len Q1 by NAT_1:13, A4;then
+A6:   Q1/.1 = (Q^Q1)/.(len Q + 1) by SEQ_4:136;
+      reconsider m = len Q - 1 as Element of NAT by A4,NAT_1:20;
+      consider M4 being FinSequence of nat_marks_of PTN such that
+A7:   len Q1 = len M4 and
+      Firing(Q1, Firing(Q,M0)) = M4/.len M4 and
+A8:   M4/.1 = Firing(Q1/.1, Firing(Q,M0)) and
+A9:   for i st i < len Q1 & i > 0
+      holds M4/.(i+1) = Firing(Q1/.(i+1),M4/.i) by A4,Defb;
+      consider M3 being FinSequence of nat_marks_of PTN such that
+A10:  len Q = len M3 and
+A11:  Firing(Q,M0) = M3/.len M3 and
+A12:  M3/.1 = Firing(Q/.1,M0) and
+A13:  for i st i < len Q & i > 0 holds M3/.(i+1) = Firing(Q/.(i+1),M3/.i)
+      by A4,Defb;
+      consider j being Nat such that
+A14:  len M3 = j + 1 by A4,A10,NAT_1:6;
+      consider M being FinSequence of nat_marks_of PTN such that
+      len (Q^Q1) = len M and
+A15:  (Q^Q1)/.1 is_firable_at M0 and
+A16:  M/.1 = Firing((Q^Q1)/.1,M0) and
+A17:  for i st i < len (Q^Q1) & i > 0 holds (Q^Q1)/.(i+1) is_firable_at M/.i
+      & M/.(i+1) = Firing((Q^Q1)/.(i+1),M/.i) by A1,A4;
+      defpred P2[Nat] means
+      1 + $1 <= len Q implies M/.(1 + $1)=M3/.(1 + $1);
+      0 + len Q < len Q + len Q1 by XREAL_1:6,A4;then
+A18:  len Q < len (Q^Q1) by FINSEQ_1:22;
+A19:  now
+        let k be Nat;
+        assume
+A21:    P2[k];
+        now
+          assume
+A22:      1 + (k+1)<= len Q; then
+A23:      (Q^Q1)/.(1+(k+1)) = Q/.(1+(k+1)) by BOOLMARK:7,NAT_1:11;
+A24:      1 + k < len Q by A22,NAT_1:13;
+          then 1 + k < len (Q^Q1) by A18,XXREAL_0:2;
+          then M/.(1 + (k+1)) = Firing(Q/.(1+(k+1)),M3/.(1+k))
+          by A17,A21,A22,A23,NAT_1:13;
+          hence M/.(1+(k+1)) = M3/.(1+(k+1)) by A13, A24;
+        end;
+        hence P2[k+1];
+      end;
+A25:  P2[0] by A16,A12,BOOLMARK:7;
+A26:  for k being Nat holds P2[k] from NAT_1:sch 2(A25,A19);
+A27:  now
+        let i;
+        assume that
+A28:    i < len Q and
+A29:    i > 0;
+        consider j being Nat such that
+A30:    i = j + 1 by A29,NAT_1:6;
+A33:    i + 1 >= 1 & i + 1 <= len Q by A28,NAT_1:11,13;then
+        i + 1 in dom Q by FINSEQ_3:25;then
+A31:    (Q^Q1)/.(i+1) = Q/.(i+1) by FINSEQ_4:68;
+A32:    M/.i = M3/.i by A26,A28,A30;
+A34:    i < len (Q^Q1) by A18,A28,XXREAL_0:2;
+        then M/.(i+1) = Firing((Q^Q1)/.(i+1),M/.i) by A17,A29;
+        hence Q/.(i+1) is_firable_at M3/.i & M3/.(i+1) = Firing(Q/.(i+1),M3/.i)
+        by A17,A26,A29,A34,A31,A32,A33;
+      end;
+      defpred P2[Nat] means 1+$1<=len Q1 implies M/.(len Q+1+$1)= M4/.(1+$1);
+A35:  now
+        let k be Nat;
+        assume
+A36:    P2[k];
+A37:    len Q + 1 + k+1 = len Q + 1 + (k+1) & 0<len Q + k + 1;
+        now
+          assume
+A39:      1 + (k+1) <= len Q1; then
+A40:      (Q^Q1)/.(len Q+(1+(k+1))) = Q1/.(1+(k+1)) by NAT_1:11,SEQ_4:136;
+A41:      1+k < len Q1 by A39,NAT_1:13;
+          then len Q+(1+k) < len Q+ len Q1 by XREAL_1:6;
+          then len Q+1+k < len (Q^Q1) by FINSEQ_1:22;
+          then M/.(len Q+1+(k+1)) = Firing(Q1/.(1+(k+1)),M4/.(1+k))
+            by A17,A37,A36,A39,A40,NAT_1:13;
+          hence M/.(len Q+1+(k+1)) = M4/.(1+(k+1)) by A9,A41;
+        end;
+        hence P2[k+1];
+      end;
+      M/.(len Q+1+0)= Firing((Q^Q1)/.(len Q+1),M/.(1+m)) by A17,A18
+      .=Firing((Q^Q1)/.(len Q+1),Firing(Q,M0)) by A10,A11,A26
+      .=M4/.(1+0) by A8,A5,SEQ_4:136;then
+A43:  P2[0];
+A44:  for k being Nat holds P2[k] from NAT_1:sch 2(A43,A35);
+A45:  now
+        let i such that
+A46:    i < len Q1 and
+A47:    i > 0;
+        consider j being Nat such that
+A48:    i = j + 1 by A47,NAT_1:6;
+        len Q + 1 + j = len Q + (j + 1);then
+A49:    M/.(len Q + i) = M4/.i by A44,A46,A48;
+a52:    i + 1 >= 1 & i + 1 <= len Q1 by A46,NAT_1:11,13;then
+A50:    i + 1 in dom Q1 by FINSEQ_3:25;
+A51:    (Q^Q1)/.(len Q+i+1) = (Q^Q1)/.(len Q+(i+1))
+        .= Q1/.(i+1) by A50,FINSEQ_4:69;
+A52:    len Q + 1 + i = len Q + i + 1;
+        len (Q^Q1) = len Q + len Q1 by FINSEQ_1:22;then
+A53:    len Q + i < len (Q^Q1) by A46,XREAL_1:6;
+        M/.(len Q+i+1) = Firing((Q^Q1)/.(len Q+i+1),M/.(len Q+i))
+          by A17,A53,A4;
+        hence Q1/.(i+1) is_firable_at M4/.i &
+        M4/.(i+1) = Firing(Q1/.(i+1),M4/.i)
+          by A17,A44,A53,A51,A49,A52,A47,a52;
+      end;
+      M/.len M3 = M3/.len M3 by A10,A26,A14;
+      hence Q1 is_firable_at Firing(Q,M0) by A11,A7,A8,A45,A17,A10,A4,A18,A6;
+      0+1<=len Q by A4,NAT_1:13;
+      then Q/.1 is_firable_at M0 by A15,BOOLMARK:7;
+      hence Q is_firable_at M0 by A10,A12,A27;
+    end;
+  end;
+  hence thesis;
+end;
+
+begin
+:: The theorem stating that the number of tokens in a circuit
+:: remains the same after any firing sequence
+
+theorem Thb:
+  for Dftn being With_directed_path Petri decision_free_like Petri_net,
+  dct being directed_path_like FinSequence of places_and_trans_of Dftn,
+  t being transition of Dftn st dct is circular
+  & ex p1 being place of Dftn st p1 in places_of dct &
+  ([p1, t] in the S-T_Arcs of Dftn or [t, p1] in the T-S_Arcs of Dftn)
+  holds t in transitions_of dct
+  proof
+    let Dftn be With_directed_path Petri decision_free_like Petri_net,
+    dct be directed_path_like FinSequence of places_and_trans_of Dftn,
+    t be transition of Dftn;
+  set P = places_of dct;
+  assume that
+L1: dct is circular and
+L2: ex p1 being place of Dftn st p1 in P
+    & ([p1, t] in the S-T_Arcs of Dftn or [t, p1] in the T-S_Arcs of Dftn);
+    consider p1 being place of Dftn such that
+A5: p1 in P and
+A6: [p1, t] in the S-T_Arcs of Dftn or [t, p1] in the T-S_Arcs of Dftn by L2;
+    consider p1n be place of Dftn such that
+A9: p1n = p1 & p1n in rng dct by A5;
+    consider i be object such that
+A11: i in dom dct and
+A12: dct.i = p1 by FUNCT_1:def 3, A9;
+     reconsider i as Element of NAT by A11;
+E1:  1 <= i & i <= len dct by A11, FINSEQ_3:25;
+E10: i mod 2 = 1 by Thc, A5, A11, A12;
+F3:  [dct.1, dct.2] in the S-T_Arcs of Dftn by Thd;
+H1:  3 <= len dct by Def5;then
+G4:  2 <= len dct by XXREAL_0:2;then
+F2:  2 in dom dct by FINSEQ_3:25;
+F3a: [dct.(len dct -1), dct.(len dct)] in the T-S_Arcs of Dftn by The;
+     reconsider ln1 = len dct - 1 as Element of NAT
+       by NAT_1:21,XXREAL_0:2,H1;
+P2:  2 + -1 <= len dct + -1 by XREAL_1:6,G4;
+     len dct + -1 < len dct by XREAL_1:30;then
+F2a: ln1 in dom dct by FINSEQ_3:25,P2;
+     per cases by XXREAL_0:1, E1;
+     suppose
+F4:    1 = i or i = len dct;
+       per cases by A6;
+       suppose
+F10:     [p1, t] in the S-T_Arcs of Dftn;
+         reconsider t1 = dct.2 as transition of Dftn by ZFMISC_1:87, F3;
+         [p1, t1] in the S-T_Arcs of Dftn by F3,Lm1,L1,A12, F4;then
+         t= t1 by Def1, F10; then
+         t in rng dct by FUNCT_1:3, F2;
+         hence thesis;
+       end;
+       suppose
+F10a:    [t,p1] in the T-S_Arcs of Dftn;
+         reconsider tn1 = dct.(len dct - 1)
+         as transition of Dftn by ZFMISC_1:87,F3a;
+         [tn1, p1] in the T-S_Arcs of Dftn by F3a, Lm1,L1,A12, F4;then
+         tn1 = t by Def1, F10a;then
+         t in rng dct by FUNCT_1:3, F2a;
+         hence thesis;
+       end;
+     end;
+     suppose
+F41:   1 < i & i < len dct;
+       per cases by A6;
+       suppose
+B8:      [p1, t] in the S-T_Arcs of Dftn;
+F40:     i + 1 <= len dct by NAT_1:13, F41;
+         now
+           assume
+E24:       i + 1 = len dct;
+           i mod 2 = 2 - 1 by Thc, A5, A11, A12;then
+           i + 1 mod 2 = 0 by NAT_D:69;
+           hence contradiction by Def5, E24;
+         end;then
+E12:     i + 1 < len dct by XXREAL_0:1,F40;
+         [p1, dct.(i+1)] in the S-T_Arcs of Dftn by A12,Def5,E10,E12;then
+         reconsider t1 = dct.(i+1) as transition of Dftn by ZFMISC_1:87;
+A20:     i+1 in dom dct by FINSEQ_3:25,NAT_1:11,F40;
+         [p1, t1] in the S-T_Arcs of Dftn by A12,Def5,E10,E12;then
+         t = t1 by Def1,B8;
+         then t in rng dct by FUNCT_1:3,A20;
+         hence thesis;
+       end;
+       suppose
+B8a:     [t, p1] in the T-S_Arcs of Dftn;
+F46:     1 + 1 <= i by F41, NAT_1:13;
+         reconsider i1 = i - 2 as Element of NAT by NAT_1:21,F46;
+P5:      i + (-1) < len dct by F41,XREAL_1:36;
+         1 = i1 + 2 mod 2 by Thc,A5,A11,A12
+         .= ((i1 mod 2) + (2 mod 2)) mod 2 by NAT_D:66
+         .= ((i1 mod 2) + 0) mod 2 by NAT_D:25
+         .= i1 mod 2 by NAT_D:65;then
+P8:      [dct.(i1 + 1), dct.(i1 + 2)] in the T-S_Arcs of Dftn by Def5,P5;
+         then
+         reconsider t0 = dct.(i1 + 1) as transition of Dftn by ZFMISC_1:87;
+         2 + (-1) <= i + (-1) by XREAL_1:6,F46;then
+P6:      i1 + 1 in dom dct by FINSEQ_3:25,P5;
+         t0 = t by Def1,B8a, A12,P8;then
+         t in rng dct by FUNCT_1:3,P6;
+         hence thesis;
+       end;
+     end;
+   end;
+
+definition
+  mode Decision_free_PT is
+    With_directed_circuit Petri decision_free_like Petri_net;
+end;
+
+registration
+  let Dftn be With_directed_circuit Petri_net;
+  cluster directed_path_like circular almost-one-to-one
+    for FinSequence of places_and_trans_of Dftn;
+  existence by Def7;
+end;
+
+definition
+  let Dftn be With_directed_circuit Petri_net;
+  mode Circuit_of_places_and_trans of Dftn is
+    directed_path_like circular almost-one-to-one
+    FinSequence of places_and_trans_of Dftn;
+end;
+
+theorem Th7:
+  for Dftn being Decision_free_PT,
+  dct being Circuit_of_places_and_trans of Dftn,
+  M0 being marking of Dftn, t being transition of Dftn
+  holds num_marks(places_of dct, M0) = num_marks(places_of dct, Firing(t, M0))
+  proof
+    let Dftn be With_directed_circuit Petri Decision_free_PT,
+    dct be Circuit_of_places_and_trans of Dftn,
+    M0 be marking of Dftn, t be transition of Dftn;
+A65a: dct/^1 is one-to-one by JORDAN23:14;
+    set P = places_of dct;
+A21: len dct >= 3 by Def5;then
+     1 <= len dct by XXREAL_0:2; then
+X1:  1 in dom dct by FINSEQ_3:25;
+L2:  [dct.(len dct - 1),dct.len dct] in the T-S_Arcs of Dftn by The;
+L1:  [dct.1,dct.2] in the S-T_Arcs of Dftn by Thd;then
+    reconsider dct1 = dct.1 as place of Dftn by ZFMISC_1:87;
+    dct1 in rng dct by FUNCT_1:3,X1;then
+K23: dct.1 in P;
+    set pl = the Enumeration of P;
+    set FM0 = Firing(t, M0),
+    mM0 = the Enumeration of M0,P,
+    mFM0 = the Enumeration of FM0,P;
+    per cases;
+    suppose
+A10:  t is_firable_at M0;
+      per cases;
+      suppose
+        t in transitions_of dct;then
+        consider t1 be transition of Dftn such that
+A46:    t1 = t & t1 in rng dct;
+        consider n be object such that
+A47:    n in dom dct & dct.n = t by FUNCT_1:def 3,A46;
+G2:     dct.n in transitions_of dct by A46,A47;
+        reconsider n as Element of NAT by A47;
+K12:    1 <= n & n <= len dct by A47,FINSEQ_3:25;
+K8:     t in {t} by TARSKI:def 1;
+        per cases by A21,XXREAL_0:1;
+        suppose
+K10:      len dct = 3;
+K13:      1 mod 2 = 1 by NAT_D:14;
+          (2*1) mod 2 = 0 by NAT_D:13;then
+K14:      (2+1) mod 2 = 1 by K13,NAT_D:17;
+X4:       n mod 2 = 0 by Thcc,G2,A47;then
+          n <> 1 & n <> 3 by NAT_D:14,K14;then
+          1 < n & n < 3 by K12,K10,XXREAL_0:1;then
+X5:       1+1 <= n by NAT_1:13;
+          n < 2 + 1 by K12,K10,XXREAL_0:1,K14,X4;then
+          n <= 2 by NAT_1:13;then
+K7:       t = dct.2 by A47,XXREAL_0:1,X5;
+K21:      rng pl = {dct.1}
+          proof
+            thus rng pl c= {dct.1}
+            proof
+              let x be object;
+              assume x in rng pl;then
+              x in P by RLAFFIN3:def 1;then
+              consider p be place of Dftn such that
+K24:          p = x & p in rng dct;
+              consider y be object such that
+K25:          y in dom dct & dct.y = p by FUNCT_1:def 3,K24;
+              reconsider y as Element of NAT by K25;
+K26:          1 <= y & y <= 3 by FINSEQ_3:25,K25,K10;then
+              1 = y or 1 < y by XXREAL_0:1;then
+X7:           1 = y or 1+1 <= y by NAT_1:13;
+X6:           3 = y or y < 2+1 by K26,XXREAL_0:1;
+K34:          y <> 2 by XBOOLE_0:3,NET_1:def 2,K25,K7;
+              x = dct.1 by K24,K25,NAT_1:22,X6,X7,K34, Lm1,K10;
+              hence x in {dct.1} by TARSKI:def 1;
+            end;
+            let x be object;
+            assume x in {dct.1};then
+            x = dct.1 by TARSKI:def 1;
+            hence x in rng pl by RLAFFIN3:def 1,K23;
+          end;
+          pl <> {} by K21;then
+X7:       len pl >= 0+1 by NAT_1:13;
+A24:      len pl = 1
+          proof
+            assume len pl <> 1;then
+            len pl > 1 by XXREAL_0:1,X7;then
+            len pl >= 1+1 by NAT_1:13;then
+K47:        2 in dom pl by FINSEQ_3:25;then
+K45:        pl.2 in rng pl by FUNCT_1:def 3;
+K46:        1 in dom pl by X7,FINSEQ_3:25;then
+K49:        pl.1 in rng pl by FUNCT_1:def 3;
+            pl.2 = dct.1 by TARSKI:def 1,K21,K45
+            .= pl.1 by K21,K49,TARSKI:def 1;
+            hence contradiction by FUNCT_1:def 4,K46,K47;
+          end;then
+A25:      len mFM0 = 1 by Def12,K23;
+A26:      len mM0 = 1 by Def12,A24,K23;
+          pl = <*dct.1*> by FINSEQ_1:39,A24,K21;then
+K9:       pl.1 = dct.1 by FINSEQ_1:40;
+          reconsider pl1 = pl.1 as place of Dftn by L1,ZFMISC_1:87,K9;
+K11:      pl.1 = dct.3 by K10,K9,Lm1;
+          consider f be S-T_arc of Dftn such that
+K5:       f = [pl1,t] by K7,K9,L1;
+K4:       pl1 in *'{t} by K5,K8;
+          consider g be T-S_arc of Dftn such that
+K5a:      g = [t,pl1] by K10,K7,K11,L2;
+K4a:      pl1 in {t}*' by K8,K5a;
+K2:       dom mM0 = dom mFM0 by FINSEQ_3:29,A25,A26;
+          now
+            let x be Element of NAT;
+            assume
+C13b:       x in dom mM0;then
+            1 <= x & x <= len mM0 by FINSEQ_3:25;then
+K3:         x = 1 by NAT_1:25,A26;
+            hence mM0.x = M0.pl1 by Def12,C13b,K23
+            .= FM0.pl1 by Def11,K4,A10,K4a
+            .= mFM0.x by K2,C13b,Def12,K23,K3;
+          end;
+          hence num_marks(P, Firing(t, M0)) = num_marks(P, M0)
+          by PARTFUN1:5,K2;
+        end;
+        suppose
+A74:      len dct > 3;
+A81:      1 < len dct by A74,XXREAL_0:2;
+A53a:     1 <= n by FINSEQ_3:25,A47;
+A53b:     2 < len dct by XXREAL_0:2,A74;
+          now
+            assume 1 = n;then
+            dct.n in the carrier of Dftn by L1,ZFMISC_1:87;
+            hence contradiction by XBOOLE_0:3,NET_1:def 2,A47;
+          end;then
+A62:      1 < n by A53a,XXREAL_0:1;then
+A48:      1+1 <= n by NAT_1:13;
+A80:      1 < n + 1 by A53a,NAT_1:16;
+A53:      n <= len dct by A47,FINSEQ_3:25;
+          now
+            assume n = len dct;then
+            dct.n in the carrier of Dftn by L2,ZFMISC_1:87;
+            hence contradiction by XBOOLE_0:3,NET_1:def 2,A47;
+          end;then
+          n < len dct by A53,XXREAL_0:1;then
+A82:      n+1 <= len dct by NAT_1:13;
+          reconsider nm1 = n - 1 as Element of NAT by FINSEQ_3:26,A47;
+A78:      2 + (-1) <= n + (-1) by A48,XREAL_1:6;
+A87:      nm1 < len dct by XXREAL_0:2, A53,XREAL_1:146;then
+G3:       nm1 in dom dct by FINSEQ_3:25,A78;
+A56:      [dct.nm1,dct.n] in the S-T_Arcs of Dftn by Thf,G2,A47;
+          [dct.n,dct.(n+1)] in the T-S_Arcs of Dftn by Thf,G2,A47;then
+          reconsider q = dct.nm1, r = dct.(n+1)
+          as place of Dftn by ZFMISC_1:87,A56;
+          reconsider qt = [q,t] as S-T_arc of Dftn by Thf,G2,A47;
+          reconsider tr = [t,r] as T-S_arc of Dftn by Thf,G2,A47;
+A50:      q in rng dct by FUNCT_1:3,G3;
+          n+1 in dom dct by FINSEQ_3:25,A80,A82;then
+A50a:     r in rng dct by FUNCT_1:3;
+A57:      q <> r
+          proof
+            assume
+A79:        q = r;
+            per cases by XXREAL_0:1,A78;
+            suppose
+A85:          1 = nm1;then
+              dct.len dct = r by Lm1,A79;
+              hence contradiction by A65a,Th10,A81,A74, A85;
+            end;
+            suppose
+A86:          1 < nm1;
+              nm1 <> n+1;
+              hence contradiction by A86,A87,A80,A82,A65a,Th10,A79;
+            end;
+          end;
+E1:       now
+            let s be place of Dftn;
+            assume
+D9:         s in rng dct;
+            consider ns be object such that
+D1:         ns in dom dct & dct.ns = s by FUNCT_1:def 3,D9;
+G5:         dct.ns in places_of dct by D9,D1;
+            reconsider ns as Element of NAT by D1;
+D2:         1 <= ns & ns <= len dct by D1,FINSEQ_3:25;
+            thus s <> r implies not s in {t}*'
+            proof
+              assume
+D10:          s <> r & s in {t}*';then
+              consider f being T-S_arc of Dftn, tt being transition of Dftn
+              such that
+A61:          tt in {t} & f = [tt,s] by PETRI:8;
+              per cases by D2,XXREAL_0:1;
+              suppose
+A72:            1 = ns or ns = len dct;
+                reconsider lm1 = len dct - 1 as Element of NAT
+                by NAT_1:21,A21,XXREAL_0:2;
+                3 + (-1) < len dct + (-1) by A74,XREAL_1:8;then
+D11:            1 < lm1 & lm1 <= len dct by XREAL_1:146,XXREAL_0:2;
+                [dct.lm1,dct.len dct] in the T-S_Arcs of Dftn by The; then
+                consider g be Element of the T-S_Arcs of Dftn such that
+A63a:           g = [dct.lm1,dct.len dct];
+                reconsider t1 = dct.lm1 as transition of Dftn
+                  by ZFMISC_1:87,A63a;
+                g = [t1,s] by A63a,A72,Lm1,D1;then
+                dct.lm1 = tt by A61,Def1
+                       .= dct.n by A47,TARSKI:def 1,A61;then
+                lm1 = n by A65a,Th10,D11,A62,A53;
+                hence contradiction by D10,D1,A72,Lm1;
+              end;
+              suppose
+D6:             1 < ns & ns < len dct;then
+                1+1 <= ns by NAT_1:13;then
+                reconsider nsm2 = ns - 2 as Element of NAT by NAT_1:21;
+                reconsider nsm1 = ns - 1 as Element of NAT by NAT_1:21,D6;
+A63:            [dct.(ns-1),dct.ns] in the T-S_Arcs of Dftn by Thg,D6,G5;
+                reconsider g = [dct.(ns-1),dct.ns]
+                  as Element of the T-S_Arcs of Dftn by Thg,D6,G5;
+                reconsider t1 = dct.(ns-1) as transition of Dftn
+                  by ZFMISC_1:87,A63;
+                3 <= ns by Thg,D6,G5;then
+                3+(-1) <= ns + (-1) by XREAL_1:6;then
+D8:             1 < ns-1 & ns-1 <= len dct by D6,XXREAL_0:2,XREAL_1:146;
+                g = [t1,s] by D1;then
+                dct.nsm1 = tt by A61,Def1 .= dct.n
+                  by A47,TARSKI:def 1,A61;then
+                dct.(ns-1+1) = dct.(n+1) by A65a,Th10,D8,A62,A53;
+                hence contradiction by D1,D10;
+              end;
+            end;
+            thus s <> q implies not s in *'{t}
+            proof
+              assume
+D10a:         s <> q & s in *'{t};then
+              consider f being S-T_arc of Dftn, tt being transition of Dftn
+              such that
+A61b:         tt in {t} & f = [s,tt] by PETRI:6;
+              per cases by D2,XXREAL_0:1;
+              suppose
+A72b:           1 = ns or ns = len dct;
+                [dct.1,dct.2] in the S-T_Arcs of Dftn by Thd;then
+                consider g be Element of the S-T_Arcs of Dftn such that
+A63b:           g = [dct.1,dct.2];
+                reconsider t1 = dct.2 as transition of Dftn
+                by ZFMISC_1:87,A63b;
+                g = [s,t1] by A63b,A72b,Lm1,D1;then
+                dct.2 = tt by A61b,Def1
+                      .= dct.n by A47,TARSKI:def 1,A61b;then
+                2 = n by A65a,Th10,A62,A53,A53b;
+                hence contradiction by D10a,A72b,Lm1,D1;
+              end;
+              suppose
+D6:             1 < ns & ns < len dct;then
+A63bb:          [dct.ns,dct.(ns+1)] in the S-T_Arcs of Dftn by Thg,G5;
+                reconsider g = [s,dct.(ns+1)]
+                as Element of the S-T_Arcs of Dftn by Thg,G5, D1,D6;
+                reconsider t1 = dct.(ns+1) as transition of Dftn
+                  by ZFMISC_1:87,A63bb;
+D8:             1 < ns+1 & ns+1 <= len dct by D6,NAT_1:13;
+                g = [s,t1];then
+                dct.(ns+1) = tt by A61b,Def1
+                 .= dct.n by A47,TARSKI:def 1,A61b;then
+                ns+1 - 1 = n - 1 by A65a,Th10,D8,A62,A53;
+                hence contradiction by D1,D10a;
+              end;
+            end;
+          end;
+E1con:    for s being place of Dftn st s in rng dct
+          & s <> q & s <> r holds not s in *'{t} & not s in {t}*' by E1;
+E1cona:   for s being place of Dftn st s in rng dct &
+          s <> r & s <> q holds not s in *'{t} & not s in {t}*' by E1;
+A59:      qt = [q,t];
+A58:      t in {t} by TARSKI:def 1;then
+A30a:     q in *'{t} & not q in {t}*' by A59,A50,A57,E1;
+A59a:     tr = [t,r];
+A30b:     r in {t}*' & not r in *'{t} by A59a,A50a,A57,E1,A58;
+          set nq = q .. pl,nr = r .. pl,
+          nqm1 = nq -' 1, nrm1 = nr -' 1;
+A44:      len mM0 = len the Enumeration of P by Def12,K23
+          .= len mFM0 by Def12,K23;
+          q in P by A50;then
+A32a:     q in rng pl by RLAFFIN3:def 1;
+          r in P by A50a;then
+A32:      r in rng pl by RLAFFIN3:def 1;
+gen:      now
+            let n1,n2 be Element of NAT,
+            p1,p2 be place of Dftn;
+            assume
+L3:         n2 = p2 .. pl & n1 = p1 .. pl;
+            set n2m1 = n2 -' 1, n1m1 = n1 -' 1;
+            assume that
+S1:         n2 > n1 and
+A32a:       p1 in rng pl and
+A32:        p2 in rng pl and
+L4:         for s be place of Dftn st
+              s in rng dct & s <> p2 & s <> p1 holds
+            (not s in *'{t} & not s in {t}*') and
+L5:         p2 in *'{t} & not p2 in {t}*' & p1 in {t}*' & not p1 in *'{t}
+            or p1 in *'{t} & not p1 in {t}*' & p2 in {t}*' & not p2 in *'{t};
+A39a:       n2 in dom pl by FINSEQ_4:20,A32,L3;then
+A40:        1 <= n2 & n2 <= len pl by FINSEQ_3:25; then
+A36:        n2 <= len mM0 by Def12,K23;then
+A41:        n2 in dom mM0 by FINSEQ_3:25,A40;
+A43:        n2m1 < n2 by XREAL_1:237,FINSEQ_3:25,A39a;
+C18a:       p2 = pl.n2 by FINSEQ_4:19,A32,L3;
+C18:        p1 = pl.n1 by FINSEQ_4:19,A32a,L3;
+A39:        n1 in dom pl by FINSEQ_4:20,A32a,L3;then
+A37:        1 <= n1 by FINSEQ_3:25;
+C19:        n1 <= len pl by A39,FINSEQ_3:25;
+C11:        n1m1 < n1 by XREAL_1:237,FINSEQ_3:25,A39;
+X12:        n2m1+1>n1 by XREAL_1:235,FINSEQ_3:25,A39a,S1;then
+A35:        n2m1 >= n1 by NAT_1:13;then
+C4:         n1m1 < n2m1 by XXREAL_0:2,C11;
+            set mM0b2 = mM0 | n2m1,mFM0b2 = mFM0 | n2m1;
+A27:        mM0 = mM0b2 ^ <*mM0.n2*> ^ (mM0/^n2) by FINSEQ_5:84,A36,A40
+            .= mM0b2 ^ <*mM0/.n2*> ^ (mM0/^n2) by PARTFUN1:def 6,A41;
+A36a:       n2 <= len mFM0 by Def12,K23,A40;then
+A41a:       n2 in dom mFM0 by FINSEQ_3:25,A40;
+A27a:       mFM0 = mFM0b2 ^ <*mFM0.n2*> ^ (mFM0/^n2) by FINSEQ_5:84,A36a,A40
+            .= mFM0b2 ^ <*mFM0/.n2*> ^ (mFM0/^n2) by PARTFUN1:def 6,A41a;
+F1:         n2m1 <= len mM0 by A36,A43,XXREAL_0:2;
+A42:        len mM0b2 = n2m1 by FINSEQ_1:59,A36,A43,XXREAL_0:2;
+A42a:       len mFM0b2 = n2m1 by FINSEQ_1:59,A36a,A43,XXREAL_0:2;
+A33a:       n1 <= len mM0b2 by A35,FINSEQ_1:59,A36,A43,XXREAL_0:2;
+A33:        n1 <= len mFM0b2 by NAT_1:13,X12, A42a;then
+A34:        n1 in dom mFM0b2 by FINSEQ_3:25,A37;
+A34a:       n1 in dom mM0b2 by FINSEQ_3:25,A33a,A37;
+            n1 <= len mFM0 by S1,A36a,XXREAL_0:2;then
+A31:        n1 in dom mFM0 by FINSEQ_3:25,A37;
+C12:        n1 < len mM0 by XXREAL_0:2,A36,S1; then
+A31b:       n1 in dom mM0 by FINSEQ_3:25,A37;
+G1:         mM0b2 = (mM0b2 | n1m1) ^ <*mM0b2.n1*> ^ (mM0b2/^n1)
+              by FINSEQ_5:84,A33a,A37
+            .= (mM0b2 | n1m1) ^ <*mM0b2/.n1*> ^ (mM0b2/^n1)
+              by PARTFUN1:def 6,A34a;
+G2:         mFM0b2 = (mFM0b2 | n1m1)^<*mFM0b2.n1*>^(mFM0b2/^n1)
+              by FINSEQ_5:84,A33,A37
+            .= (mFM0b2 | n1m1) ^ <*mFM0b2/.n1*> ^ (mFM0b2/^n1)
+             by PARTFUN1:def 6,A34;
+A29f:       mM0b2/.n1 + 1+ mM0/.n2 -1 = mFM0b2/.n1 + mFM0/.n2
+            proof
+A29g:         mM0b2/.n1 = (mM0 | n2m1).n1 by PARTFUN1:def 6,A34a
+              .= mM0.n1 by FINSEQ_3:112,A35
+              .= M0.(pl.n1) by K23,Def12,A31b
+              .= M0.p1 by FINSEQ_4:19,A32a,L3;
+A29h:         FM0.p1 = FM0.(pl.n1) by FINSEQ_4:19,A32a,L3
+              .= mFM0.n1 by K23,Def12,A31
+              .= mFM0b2.n1 by FINSEQ_3:112,A35
+              .= mFM0b2/.n1 by PARTFUN1:def 6,A34;
+A29i:         mM0/.n2 = mM0.n2 by PARTFUN1:def 6,A41
+              .= M0.(pl.n2) by K23,Def12,A41
+              .= M0.p2 by FINSEQ_4:19,A32,L3;
+A29j:         FM0.p2 = FM0.(pl.n2) by FINSEQ_4:19,A32,L3
+              .= mFM0.n2 by K23,Def12,A41a
+              .= mFM0/.n2 by PARTFUN1:def 6,A41a;
+              per cases by L5;
+              suppose
+A29k:           p2 in *'{t} & not p2 in {t}*' & p1 in {t}*' & not p1 in *'{t};
+A29m:           mM0b2/.n1 + 1 = mFM0b2/.n1 by A29h,Def11,A29k,A10, A29g;
+                mM0/.n2 - 1 = mFM0/.n2 by A29j,A29i,Def11,A29k,A10;
+                hence thesis by A29m;
+              end;
+              suppose
+A29l:           p1 in *'{t} & not p1 in {t}*' & p2 in {t}*' & not p2 in *'{t};
+A29n:           mM0b2/.n1 - 1 = mFM0b2/.n1 by A29h,Def11,A29l,A10,A29g;
+                mM0/.n2 + 1 = mFM0/.n2 by A29j,Def11,A29l,A10,A29i;
+                hence thesis by A29n;
+              end;
+            end;
+A29:        mM0b2 | n1m1 = mFM0b2 | n1m1
+            proof
+              n1m1 <= len mM0b2 by FINSEQ_1:59,A36,A43,XXREAL_0:2,C4; then
+C6:           len (mM0b2 | n1m1) = n1m1 by FINSEQ_1:59;
+              len (mFM0b2 | n1m1)= n1m1
+                by FINSEQ_1:59,A42a,C11,XXREAL_0:2,A35;then
+C1:           dom (mM0b2 | n1m1) = dom (mFM0b2 | n1m1) by FINSEQ_3:29,C6;
+              now
+                let x be Element of NAT;
+                assume
+C13:            x in dom (mM0b2 | n1m1);then
+C5:             x <= n1m1 by C6,FINSEQ_3:25; then
+C17:            x < n1 by XXREAL_0:2,C11;then
+C20:            1 <= x & x <= len mM0 by C12,XXREAL_0:2,C13,FINSEQ_3:25;then
+C10:            x in dom mM0 by FINSEQ_3:25;
+C10a:           x in dom mFM0 by A44,FINSEQ_3:25,C20;
+                x <= len pl by C17,C19,XXREAL_0:2;then
+C21:            x in dom pl by FINSEQ_3:25,C20;then
+                pl.x in rng pl by FUNCT_1:3;then
+                pl.x in P by RLAFFIN3:def 1;then
+                consider plx be place of Dftn such that
+C15:            plx = pl.x & plx in rng dct;
+C16:            plx <> p1 by FUNCT_1:def 4,C5,C11,A39,C18,C21,C15;
+                plx <> p2 by FUNCT_1:def 4,A39a,C18a,C21,C15,C17,S1;then
+C14:            not plx in *'{t} & not plx in {t}*' by L4,C15,C16;
+                thus (mM0b2 | n1m1).x = mM0b2.x by FINSEQ_3:112,C5
+                .= mM0.x by FINSEQ_3:112,XXREAL_0:2,C4,C5
+                .= M0.plx by K23,Def12,C15,C10
+                .= FM0.plx by Def11,C14,A10
+                .= mFM0.x by K23,Def12,C10a,C15
+                .= mFM0b2.x by FINSEQ_3:112,XXREAL_0:2,C4,C5
+                .= (mFM0b2 | n1m1).x by FINSEQ_3:112,C5;
+              end;
+              hence thesis by PARTFUN1:5,C1;
+            end;
+A29b:       mM0b2/^n1 = mFM0b2/^n1
+            proof
+C6b:          len (mM0b2/^n1) = n2m1 -n1 by RFINSEQ:def 1,A42, A35;
+              len (mFM0b2/^n1) = n2m1 -n1 by RFINSEQ:def 1,A35,A42a;then
+C1b:          dom (mM0b2/^n1) = dom (mFM0b2/^n1) by FINSEQ_3:29,C6b;
+              now
+                let x be Element of NAT;
+                assume
+C13b:           x in dom (mM0b2/^n1);then
+C18b:           1 <= x & x <= len (mM0b2/^n1) by FINSEQ_3:25;then
+C17b:           1+0 <= x+n1 by XREAL_1:7;
+X13:            x+n1 <= len (mM0b2/^n1) + n1 by XREAL_1:6,C18b;then
+X14:            x+n1 <= len mM0 by F1,XXREAL_0:2, C6b;then
+C10b:           x+n1 in dom mM0 by FINSEQ_3:25,C17b;
+C10bb:          x+n1 in dom mFM0 by A44,FINSEQ_3:25,C17b,X14;
+                x+n1 < n2 by XXREAL_0:2,A43,C6b,X13;then
+                x+n1 <= len pl by A40,XXREAL_0:2;then
+C21b:           x+n1 in dom pl by FINSEQ_3:25,C17b;then
+                pl.(x+n1) in rng pl by FUNCT_1:3;then
+                pl.(x+n1) in P by RLAFFIN3:def 1;then
+                consider plxpn1 be place of Dftn such that
+C15b:           plxpn1 = pl.(x+n1) & plxpn1 in rng dct;
+C16b:           plxpn1 <> p2 by FUNCT_1:def 4,A39a,C18a,C21b,C15b,A43,C6b,X13;
+                n1 + 0 < n1 + x by XREAL_1:29,C18b;then
+                plxpn1 <> p1 by FUNCT_1:def 4,A39,C18,C21b,C15b;then
+C14b:           not plxpn1 in *'{t} & not plxpn1 in {t}*' by L4,C16b,C15b;
+                thus (mM0b2/^n1).x = mM0b2.(x+n1) by RFINSEQ:def 1,C13b,A33a
+                .= mM0.(x+n1) by FINSEQ_3:112,C6b,X13
+                .= M0.plxpn1 by K23,Def12,C15b,C10b
+                .= FM0.plxpn1 by Def11,C14b,A10
+                .= mFM0.(x+n1) by K23,Def12,C10bb,C15b
+                .= mFM0b2.(x+n1) by FINSEQ_3:112,C6b,X13
+                .= (mFM0b2/^n1).x by RFINSEQ:def 1,C13b,C1b,A33;
+              end;
+              hence thesis by PARTFUN1:5,C1b;
+            end;
+A29c:       mM0/^n2 = mFM0/^n2
+            proof
+C6c:          len (mM0/^n2) = (len mM0) - n2 by RFINSEQ:def 1,A36;
+              len (mFM0/^n2)= (len mFM0) - n2 by RFINSEQ:def 1,A36a;then
+C1c:          dom (mM0/^n2) = dom (mFM0/^n2) by FINSEQ_3:29,A44,C6c;
+              now
+                let x be Element of NAT;
+                assume
+C13c:           x in dom (mM0/^n2);then
+C18c:           1 <= x & x <= len (mM0/^n2) by FINSEQ_3:25;then
+C17c:           1 + 0 <= x+n2 by XREAL_1:7;
+X15:            x+n2 <= len (mM0/^n2) + n2 by XREAL_1:6,C18c;then
+C10cc:          x+n2 in dom mFM0 by A44,FINSEQ_3:25,C17c,C6c;
+C10c:           x+n2 in dom mM0 by FINSEQ_3:25,C17c,C6c,X15;
+C22:            x+n2 > n2 by XREAL_1:29,C18c;
+                x+n2 <= len pl by Def12,K23,C6c,X15;then
+C21c:           x+n2 in dom pl by FINSEQ_3:25,C17c;then
+                pl.(x+n2) in rng pl by FUNCT_1:3;then
+                pl.(x+n2) in P by RLAFFIN3:def 1;then
+                consider plxpn2 be place of Dftn such that
+C15c:           plxpn2 = pl.(x+n2) & plxpn2 in rng dct;
+C16c:           plxpn2 <> p2 by FUNCT_1:def 4,A39a,C18a,C21c,C15c,C22;
+                n1 + 0 < n2 + x by XREAL_1:8,S1;then
+                plxpn2 <> p1 by FUNCT_1:def 4,A39,C18,C21c,C15c;then
+C14c:           not plxpn2 in *'{t} & not plxpn2 in {t}*' by L4,C16c,C15c;
+                thus (mM0/^n2).x = mM0.(x+n2) by RFINSEQ:def 1,A36,C13c
+                .= M0.plxpn2 by K23,Def12,C15c, C10c
+                .= FM0.plxpn2 by Def11,C14c,A10
+                .= mFM0.(x+n2) by K23,Def12,C10cc,C15c
+                .= (mFM0/^n2).x by RFINSEQ:def 1,C13c,C1c,A36a;
+              end;
+              hence thesis by PARTFUN1:5,C1c;
+            end;
+            thus num_marks(P, M0)
+            = Sum ((mM0b2 | n1m1) ^ <*mM0b2/.n1*> ^ (mM0b2/^n1)
+            ^ <*mM0/.n2*>) + Sum (mM0/^n2) by RVSUM_1:75,G1,A27
+            .= Sum ((mM0b2 | n1m1) ^ <*mM0b2/.n1*> ^ (mM0b2/^n1))
+            + Sum <*mM0/.n2*> + Sum (mM0/^n2) by RVSUM_1:75
+            .= Sum ((mM0b2 | n1m1) ^ <*mM0b2/.n1*>) + Sum (mM0b2/^n1)
+            + Sum <*mM0/.n2*> + Sum (mM0/^n2) by RVSUM_1:75
+            .= Sum (mM0b2 | n1m1) + Sum <*mM0b2/.n1*> + Sum (mM0b2/^n1)
+            + Sum <*mM0/.n2*> + Sum (mM0/^n2) by RVSUM_1:75
+            .= Sum (mM0b2 | n1m1) + Sum <*mM0b2/.n1*> + Sum (mM0b2/^n1)
+            + mM0/.n2 + Sum (mM0/^n2) by RVSUM_1:73
+            .= Sum (mM0b2 | n1m1) + mM0b2/.n1 + Sum (mM0b2/^n1)
+            + mM0/.n2 + Sum (mM0/^n2) by RVSUM_1:73
+            .= Sum (mFM0b2 | n1m1) + mFM0b2/.n1 + Sum (mFM0b2/^n1)
+            + mFM0/.n2 + Sum (mFM0/^n2) by A29,A29b,A29c,A29f
+            .= Sum (mFM0b2 | n1m1) + Sum <*mFM0b2/.n1*> + Sum (mFM0b2/^n1)
+            + mFM0/.n2 + Sum (mFM0/^n2) by RVSUM_1:73
+            .= Sum (mFM0b2 | n1m1) + Sum <*mFM0b2/.n1*> + Sum (mFM0b2/^n1)
+            + Sum <*mFM0/.n2*> + Sum (mFM0/^n2) by RVSUM_1:73
+            .= Sum ((mFM0b2 | n1m1) ^ <*mFM0b2/.n1*>) + Sum (mFM0b2/^n1)
+            + Sum <*mFM0/.n2*> + Sum (mFM0/^n2) by RVSUM_1:75
+            .= Sum ((mFM0b2 | n1m1) ^ <*mFM0b2/.n1*> ^ (mFM0b2/^n1))
+            + Sum <*mFM0/.n2*> + Sum (mFM0/^n2) by RVSUM_1:75
+            .= Sum ((mFM0b2 | n1m1) ^ <*mFM0b2/.n1*> ^ (mFM0b2/^n1)
+            ^ <*mFM0/.n2*>) + Sum (mFM0/^n2) by RVSUM_1:75
+            .= num_marks(P, Firing(t, M0)) by RVSUM_1:75, A27a,G2;
+          end;
+          nq <> nr
+          proof
+            assume
+A59:        nq = nr;
+            q = pl.nr by A59,FINSEQ_4:19,A32a
+            .= r by FINSEQ_4:19,A32;
+            hence contradiction by A57;
+          end;then
+          per cases by XXREAL_0:1;
+          suppose
+            nq > nr;
+            hence num_marks(P, M0) = num_marks(P, Firing(t, M0))
+            by gen,A32,A32a,E1con,A30a,A30b;
+          end;
+          suppose
+            nr > nq;
+            hence num_marks(P, M0) = num_marks(P, Firing(t, M0))
+            by gen,A32,A32a,E1cona,A30a,A30b;
+          end;
+        end;
+      end;
+      suppose
+A9:     not t in transitions_of dct;
+        set EF = the Enumeration of Firing(t, M0),P,
+        E = the Enumeration of M0, P;
+A15:    len EF = len the Enumeration of P by Def12,K23;
+        len the Enumeration of P = len E by Def12,K23;then
+A4:     dom EF = dom E by FINSEQ_3:29,A15;
+        now
+          let x be Element of NAT;
+          assume
+A6:       x in dom EF; then
+          x in dom the Enumeration of P by FINSEQ_3:29,A15;then
+A18:      (the Enumeration of P).x in rng the Enumeration of P
+            by FUNCT_1:3;then
+          reconsider s = (the Enumeration of P).x as place of Dftn;
+A14:      s in P by RLAFFIN3:def 1,A18;
+A7:       now
+            assume s in *'{t} & not s in {t}*';then
+            consider f being S-T_arc of Dftn,t1 being transition of Dftn
+            such that
+A13:        t1 in {t} & f = [s,t1] by PETRI:6;
+            t1 = t by TARSKI:def 1,A13;
+            hence contradiction by A9,Thb,A14, A13;
+          end;
+P1:       now
+            assume s in {t}*' & not s in *'{t};then
+            consider f being T-S_arc of Dftn,t1 being transition of Dftn
+            such that
+A13a:       t1 in {t} & f = [t1,s] by PETRI:8;
+            t1 = t by TARSKI:def 1,A13a;
+            hence contradiction by A9,Thb,A14,A13a;
+          end;
+          thus EF.x = (Firing(t,M0)).s by Def12,K23,A6
+          .= M0.((the Enumeration of P).x) by A10,Def11,A7,P1
+          .= E.x by Def12,K23,A6,A4;
+        end;
+        hence num_marks(P, Firing(t, M0)) = num_marks(P, M0) by PARTFUN1:5,A4;
+      end;
+    end;
+    suppose not t is_firable_at M0;
+      hence thesis by Def11;
+    end;
+  end;
+
+theorem
+  for Dftn being Decision_free_PT,
+  dct being Circuit_of_places_and_trans of Dftn,
+  M0 being marking of Dftn, Q being FinSequence of the carrier' of Dftn holds
+  num_marks(places_of dct, M0) = num_marks(places_of dct, Firing(Q, M0))
+  proof
+    let Dftn be With_directed_circuit Petri Decision_free_PT,
+    dct be Circuit_of_places_and_trans of Dftn,
+    M0 be marking of Dftn,
+    Q be FinSequence of the carrier' of Dftn;
+    set P = places_of dct, F = Firing(Q, M0);
+    per cases;
+    suppose
+C1:   Q <> {};then
+      consider M being FinSequence of nat_marks_of Dftn such that
+A2:   len Q = len M and
+A2a:  F = M/.len M and
+A2b:  M/.1 = Firing(Q/.1, M0) and
+A2c:  for i st i < len Q & i > 0
+      holds M/.(i+1) = Firing(Q/.(i+1),M/.i) by Defb;
+      defpred R[Nat] means 1<=$1 & $1 <= len Q implies
+      num_marks(P,M/.1) = num_marks(P,M/.$1);
+A5:   R[0];
+A4:   now
+        let i;
+        assume
+A10:    R[i];
+        thus R[i+1]
+        proof
+          assume
+A9:       1 <= i+1 & i+1 <= len Q;then
+X1:       i < len Q by NAT_1:13;
+          per cases;
+          suppose 0 = i;
+            hence num_marks(P,M/.1) = num_marks(P,M/.(i+1));
+          end;
+          suppose
+S2:         0 < i;then
+            0 + 1 <= i by NAT_1:13;
+            hence num_marks(P,M/.1)
+             = num_marks(P,Firing(Q/.(i+1),M/.i)) by Th7,A10,NAT_1:13,A9
+            .= num_marks(P,M/.(i+1)) by A2c,S2,X1;
+          end;
+        end;
+      end;
+A6:   for i holds R[i] from NAT_1:sch 2(A5,A4);
+      0+1 <= len Q by NAT_1:13,C1;then
+      num_marks(P,M/.1) = num_marks(P,M/.len M) by A2, A6;
+      hence num_marks(P, M0) = num_marks(P, Firing(Q, M0)) by A2a,A2b,Th7;
+    end;
+    suppose Q = {};
+      hence thesis by Defb;
+    end;
+  end;

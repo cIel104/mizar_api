@@ -1,0 +1,1996 @@
+:: Elementary Number Theory Problems. {P}art {VI}
+::  by Adam Grabowski
+:: 
+:: Received September 30, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, NAT_1, RELAT_1, FUNCT_1, XXREAL_0, ARYTM_3, XCMPLX_0,
+      CARD_1, INT_1, NEWTON, INT_2, ARYTM_1, SUBSET_1, XBOOLE_0, TARSKI,
+      FINSET_1, ABIAN, SQUARE_1, ZFMISC_1, ORDINAL1, POWER, REAL_1, VALUED_0,
+      REALSET1, NUMBER06, PYTHTRIP, NUMPOLY1, EUCLID_3, FUNCT_7, ORDINAL2,
+      FINSEQ_1, ASYMPT_1, AFINSQ_1, PRE_FF;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ORDINAL1, CARD_1, NUMBERS,
+      XCMPLX_0, RELAT_1, FUNCT_1, FINSET_1, FUNCT_2, PARTFUN1, FINSEQ_1,
+      VALUED_0, XREAL_0, INT_1, INT_2, NAT_1, XXREAL_0, POWER, SQUARE_1,
+      NEWTON, ABIAN, SEQ_1, AFINSQ_1, PRE_FF, PYTHTRIP, NUMPOLY1;
+ constructors NAT_D, RELSET_1, NEWTON, ABIAN, PEPIN, PYTHTRIP, SERIES_1,
+      NUMPOLY1, SEQ_1, PRE_FF, NEWTON03;
+ registrations ORDINAL1, RELSET_1, FINSET_1, NUMBERS, XCMPLX_0, XXREAL_0,
+      XREAL_0, NAT_1, INT_1, MEMBERED, VALUED_0, CARD_1, SQUARE_1, NEWTON,
+      NEWTON03, FOMODEL0, ABIAN, NAT_6, POWER, LIOUVIL1, FUNCT_2, XBOOLE_0,
+      FUNCT_1, NUMPOLY1, RVSUM_1, SEQ_1;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ equalities SQUARE_1, ORDINAL1;
+ expansions ORDINAL1, INT_1, INT_2;
+ theorems NEWTON, WSIERP_1, INT_1, INT_2, NEWTON02, NAT_D, NEWTON03, PEPIN,
+      NUMBER02, ORDINAL1, XREAL_1, XXREAL_0, NAT_1, XCMPLX_1, NAT_3, PYTHTRIP,
+      FUNCT_1, TARSKI, CARD_1, POWER, PREPOWER, SEQM_3, NUMPOLY1, NEWTON05,
+      FIB_NUM, MOEBIUS2, XREAL_0, FUNCT_2, NUMBERS, ABIAN, VALUED_0, FINSEQ_1,
+      RELAT_1, PRE_FF, FIB_NUM2, NAT_2;
+ schemes NAT_1, PRE_CIRC, FUNCT_2, SEQ_1;
+
+begin :: Preliminaries
+
+theorem LemmaDivides:
+  for p being Prime st 3 divides p holds
+    p = 3 by INT_2:def 4;
+
+registration
+  cluster even for Prime;
+  existence
+  proof
+    2 divides 2;
+    hence thesis by INT_2:28;
+  end;
+end;
+
+theorem
+  for p being even Prime holds
+    p = 2 by INT_2:def 4,ABIAN:def 1;
+
+theorem PQCoprime:
+  for p,q being Prime st p <> q holds
+    p,q are_coprime
+  proof
+    let p,q be Prime;
+    assume
+A1: p <> q;
+    p gcd q <> p
+    proof
+      assume p gcd q = p; then
+      p divides q by INT_2:def 2; then
+      p = q or p = 1 by INT_2:def 4;
+      hence thesis by A1,INT_2:def 4;
+    end;
+    hence thesis by NEWTON03:46;
+  end;
+
+definition let f be integer-valued Function;
+  attr f is with_all_coprime_terms means
+    for i,j being Nat st i in dom f & j in dom f & i <> j holds
+      f.i, f.j are_coprime;
+end;
+
+theorem RestrictedXFin:
+  for f being sequence of REAL,
+      n being Nat holds
+    f | n is XFinSequence
+  proof
+    let f be sequence of REAL,
+        n be Nat;
+    dom f = NAT by FUNCT_2:def 1; then
+    dom (f|Segm n) = Segm n; then
+    f | n is finite Sequence-like;
+    hence thesis;
+  end;
+
+begin :: Arithmetic Progressions
+
+definition let f be real-valued Function;
+  attr f is AP-like means :APLikeDef:
+    for i,k being Nat st
+      i in dom f & i+1 in dom f & k in dom f & k+1 in dom f holds
+      f.(i+1) - f.i = f.(k+1) - f.k;
+end;
+
+definition let f be real-valued FinSequence;
+  attr f is fAP-like means
+    for i being Nat st i in dom f & i+1 in dom f & i+2 in dom f holds
+      f.(i+2) - f.(i+1) = f.(i+1) - f.i;
+end;
+
+registration
+  cluster constant -> fAP-like for real-valued FinSequence;
+  coherence
+  proof
+    let f be real-valued FinSequence;
+    assume
+A1: f is constant;
+    for i being Nat st i in dom f & i+1 in dom f & i+2 in dom f holds
+      f.(i+2) - f.(i+1) = f.(i+1) - f.i
+    proof
+      let i be Nat;
+      assume
+A3:   i in dom f & i+1 in dom f & i+2 in dom f; then
+      f.(i+2) = f.(i+1) by A1,FUNCT_1:def 10;
+      hence thesis by A1,A3,FUNCT_1:def 10;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster constant -> AP-like for sequence of REAL;
+  coherence
+  proof
+    let f be sequence of REAL;
+    assume
+A1: f is constant;
+AA: dom f = NAT by FUNCT_2:def 1;
+    for i,k being Nat st i in dom f & k in dom f holds
+      f.(i+1) - f.i = f.(k+1) - f.k
+    proof
+      let i,k be Nat;
+      assume
+A4:   i in dom f & k in dom f; then
+A7:   f.(i+1) = f.i by A1,AA,FUNCT_1:def 10;
+      f.(k+1) = f.k by A1,AA,A4,FUNCT_1:def 10;
+      hence thesis by A7;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster id NAT -> AP-like;
+  coherence
+  proof
+    set f = id NAT;
+    for i,k being Nat st i in dom f & k in dom f holds
+      f.(k+1) - f.k = f.(i+1) - f.i
+    proof
+      let i,k be Nat;
+      assume i in dom f & k in dom f;
+A7:   f.(i+1) - f.i = i+1 - i by ORDINAL1:def 12,FUNCT_1:18;
+      f.(k+1) - f.k = k+1 - k by ORDINAL1:def 12,FUNCT_1:18
+                   .= 1;
+      hence thesis by A7;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster id REAL -> AP-like;
+  coherence
+  proof
+    set f = id REAL;
+    for i,k being Nat st i in dom f & k in dom f holds
+      f.(k+1) - f.k = f.(i+1) - f.i
+    proof
+      let i,k be Nat;
+      assume i in dom f & k in dom f;
+A8:   f.(i+1) = i+1 & f.i = i by XREAL_0:def 1,FUNCT_1:18;
+      f.(k+1) = k+1 & f.k = k by XREAL_0:def 1,FUNCT_1:18; then
+      f.(k+1) - f.k = 1;
+      hence thesis by A8;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster AP-like for sequence of REAL;
+  existence
+  proof
+    reconsider f = id NAT as sequence of REAL by FUNCT_2:7,NUMBERS:19;
+    f is AP-like;
+    hence thesis;
+  end;
+end;
+
+:: if not constant, it should be either increasing or decreasing
+
+registration :: increasing
+  cluster AP-like for real-valued Function;
+  existence
+  proof
+    take id NAT;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster AP-like for integer-valued
+    real-valued XFinSequence;
+  existence
+  proof
+    reconsider ii = id NAT as sequence of REAL
+      by FUNCT_2:7,NUMBERS:19;
+    set n = the Nat;
+    set f = ii | n;
+A1: f is XFinSequence by RestrictedXFin;
+    for i,k being Nat st i in dom f & i+1 in dom f &
+      k in dom f & k+1 in dom f holds
+        f.(k+1) - f.k = f.(i+1) - f.i
+    proof
+      let i,k be Nat;
+      assume
+B1:   i in dom f & i+1 in dom f &
+        k in dom f & k+1 in dom f; then
+B2:   f.(k+1) = ii.(k+1) by FUNCT_1:47
+             .= k+1;
+B3:   f.(i+1) = ii.(i+1) by B1,FUNCT_1:47
+             .= i+1;
+B4:   f.i = ii.i by B1,FUNCT_1:47
+         .= i by FUNCT_1:18,ORDINAL1:def 12;
+      f.k = ii.k by B1,FUNCT_1:47
+         .= k by FUNCT_1:18,ORDINAL1:def 12; then
+      f.(k+1) - f.k = f.(i+1) - f.i by B2,B3,B4;
+      hence thesis;
+    end; then
+    f is AP-like;
+    hence thesis by A1;
+  end;
+end;
+
+registration let f be AP-like real-valued Function;
+  let n be Nat;
+  cluster f | n -> AP-like;
+  coherence
+  proof
+    set ff = f | n;
+    for i,k being Nat st i in dom ff & k in dom ff &
+       i+1 in dom ff & k+1 in dom ff holds
+      ff.(i+1) - ff.i = ff.(k+1) - ff.k
+    proof
+      let i,k be Nat;
+A0:   dom ff c= dom f by RELAT_1:60;
+      assume
+a1:   i in dom ff & k in dom ff &
+        i+1 in dom ff & k+1 in dom ff; then
+A2:   f.(i+1) = ff.(i+1) & ff.(k+1) = f.(k+1) by FUNCT_1:47;
+      f.i = ff.i & ff.k = f.k by a1,FUNCT_1:47;
+      hence thesis by A2,a1,A0,APLikeDef;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  mode Arithmetic_Progression is AP-like sequence of REAL;
+end;
+
+:: Constructor for arithmetic progressions
+
+definition let a, r be Real;
+  func ArProg (a,r) -> sequence of REAL means :ArDefRec:
+    it.0 = a &
+    for i being Nat holds it.(i+1) = it.i + r;
+  correctness
+  proof
+    reconsider A = a as Element of REAL by XREAL_0:def 1;
+    deffunc F(Nat,Real) = In ($2 + r, REAL);
+A1: (ex f being sequence of REAL st f.0 = A &
+      for i being Nat holds f.(i+1) = F(i, f.i)) &
+   for f1, f2 being sequence of REAL st
+    (f1.0 = A & for i being Nat holds f1.(i+1) = F(i, f1.i)) &
+    (f2.0 = A & for i being Nat holds f2.(i+1) = F(i,f2.i)) holds f1 = f2
+       from PRE_CIRC:sch 3;
+    thus ex f being sequence of REAL st
+    f.0 = a &
+    for i being Nat holds f.(i+1) = f.i + r
+    proof
+      consider f being sequence of REAL such that
+A2:   f.0 = A &
+      for i being Nat holds f.(i+1) = F(i, f.i) by A1;
+      take f;
+      thus f.0 = a by A2;
+      let i be Nat;
+      f.(i+1) = In (f.i + r, REAL) by A2
+             .= f.i + r;
+      hence thesis;
+    end;
+    for f1, f2 be sequence of REAL st
+    (f1.0 = A & for i being Nat holds f1.(i+1) = f1.i + r) &
+    (f2.0 = A & for i being Nat holds f2.(i+1) = f2.i + r) holds
+    f1 = f2
+    proof
+      let f1, f2 be sequence of REAL such that
+A3:   (f1.0 = A & for i being Nat holds f1.(i+1) = f1.i + r) and
+A4:   (f2.0 = A & for i being Nat holds f2.(i+1) = f2.i + r);
+A5:   for i being Nat holds f1.(i+1) = F(i, f1.i) by A3;
+      for i being Nat holds f2.(i+1) = F(i, f2.i) by A4;
+      hence thesis by A1,A3,A4,A5;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let a,r be Real;
+  cluster ArProg (a,r) -> AP-like;
+  coherence
+  proof
+    set f = ArProg (a,r);
+    for i,k being Nat holds
+      f.(i+1) - f.i = f.(k+1) - f.k
+    proof
+      let i,k be Nat;
+A1:   f.(i+1) = f.i + r by ArDefRec;
+      f.(k+1) = f.k + r by ArDefRec;
+      hence thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem LemmaDiffConst:
+  for f being Arithmetic_Progression,
+      i being Nat holds
+    f.(i+1) - f.i = f.1 - f.0
+  proof
+    let f be Arithmetic_Progression,
+        i be Nat;
+    dom f = NAT by FUNCT_2:def 1; then
+    i in dom f & 0 in dom f & 1 in dom f & i+1 in dom f
+      by ORDINAL1:def 12; then
+    f.(i+1) - f.i = f.(0+1) - f.0 by APLikeDef;
+    hence thesis;
+  end;
+
+definition let f be Arithmetic_Progression;
+  func difference f -> Real equals
+  f.1 - f.0;
+  coherence;
+end;
+
+theorem APAsArProg:
+  for f being Arithmetic_Progression holds
+    f = ArProg (f.0,difference f)
+  proof
+    let f be Arithmetic_Progression;
+    set a = f.0;
+    set r = f.1 - f.0;
+    defpred P[Nat] means f.$1 = ArProg(a,r).$1;
+A2: P[0] by ArDefRec;
+A3: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat;
+      assume
+a5:   P[k];
+      f.(k+1) - f.k = r by LemmaDiffConst; then
+      f.(k+1) = f.k + r;
+      hence thesis by a5,ArDefRec;
+    end;
+S1: for n being Nat holds P[n] from NAT_1:sch 2(A2,A3);
+    for n being Element of NAT holds f.n = ArProg(a,r).n by S1;
+    hence thesis by FUNCT_2:def 8;
+  end;
+
+:: Lemma stating that for every AP-like you can get ArProg
+
+theorem ArDefNth:
+  for a,r being Real,
+      i being Nat holds
+    ArProg (a,r).i = a + i * r
+  proof
+    let a,r be Real,
+        i be Nat;
+    defpred P[Nat] means ArProg (a,r).$1 = a + $1 * r;
+    ArProg (a,r).0 = a + 0 * r by ArDefRec; then
+A1: P[0];
+A2: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat;
+      assume
+A3:   P[k];
+      ArProg (a,r).(k+1) = ArProg (a,r).k + r by ArDefRec;
+      hence thesis by A3;
+    end;
+    for n being Nat holds P[n] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+  end;
+
+registration let a,r be Integer;
+  cluster ArProg (a,r) -> integer-valued;
+  coherence
+  proof
+    set f = ArProg (a,r);
+AA: dom f = NAT by FUNCT_2:def 1;
+    for x being object st x in dom f holds f.x is integer
+    proof
+      let x be object;
+      assume x in dom f; then
+      reconsider i = x as Nat by AA;
+      defpred P[Nat] means f.$1 is integer;
+B1:   P[0] by ArDefRec;
+B2:   for k being Nat st P[k] holds P[k+1]
+      proof
+        let k be Nat;
+        assume
+C1:     P[k];
+        f.(k+1) = f.k + r by ArDefRec;
+        hence thesis by C1;
+      end;
+      for n being Nat holds P[n] from NAT_1:sch 2(B1,B2); then
+      P[i];
+      hence thesis;
+    end;
+    hence thesis by VALUED_0:def 11;
+  end;
+end;
+
+registration
+  cluster integer-valued for Arithmetic_Progression;
+  existence
+  proof
+    take ArProg (1,1);
+    thus thesis;
+  end;
+end;
+
+registration let a be Integer;
+  let r be non zero Integer;
+  cluster ArProg (a,r) -> non constant;
+  coherence
+  proof
+    set f = ArProg (a,r);
+    set i = the Nat;
+    assume f is constant; then
+A2: f.i = f.(i+1) by VALUED_0:23;
+    f.(i+1) = f.i + r by ArDefRec; then
+    r = 0 by A2;
+    hence thesis;
+  end;
+end;
+
+registration let a be Real;
+  let r be positive Real;
+  cluster ArProg (a,r) -> increasing;
+  coherence
+  proof
+    set f = ArProg (a,r);
+    for i being Nat holds f.i < f.(i+1)
+    proof
+      let i be Nat;
+      f.(i+1) = f.i + r by ArDefRec;
+      hence thesis by XREAL_1:29;
+    end;
+    hence thesis by SEQM_3:def 6;
+  end;
+end;
+
+registration let a be Real;
+  let r be non positive Real;
+  cluster ArProg (a,r) -> non-increasing;
+  coherence
+  proof
+    set f = ArProg (a,r);
+    for i being Nat holds f.i >= f.(i+1)
+    proof
+      let i be Nat;
+      f.(i+1) = f.i + r by ArDefRec;
+      hence thesis by XREAL_1:32;
+    end;
+    hence thesis by SEQM_3:def 9;
+  end;
+end;
+
+registration let a be Real;
+  let r be negative Real;
+  cluster ArProg (a,r) -> decreasing;
+  coherence
+  proof
+    set f = ArProg (a,r);
+    for i being Nat holds f.i > f.(i+1)
+    proof
+      let i be Nat;
+      f.(i+1) = f.i + r by ArDefRec;
+      hence thesis by XREAL_1:30;
+    end;
+    hence thesis by SEQM_3:def 7;
+  end;
+end;
+
+registration let a be Real;
+  let r be non negative Real;
+  cluster ArProg (a,r) -> non-decreasing;
+  coherence
+  proof
+    set f = ArProg (a,r);
+    for i being Nat holds f.i <= f.(i+1)
+    proof
+      let i be Nat;
+      f.(i+1) = f.i + r by ArDefRec;
+      hence thesis by XREAL_1:31;
+    end;
+    hence thesis by SEQM_3:def 8;
+  end;
+end;
+
+registration let a be Real;
+  cluster ArProg (a,0) -> constant;
+  coherence
+  proof
+    set f = ArProg (a,0);
+    for i being Nat holds f.i = f.(i+1)
+    proof
+      let i be Nat;
+      f.(i+1) = f.i + 0 by ArDefRec;
+      hence thesis;
+    end;
+    hence thesis by VALUED_0:25;
+  end;
+end;
+
+registration
+  cluster constant for Arithmetic_Progression;
+  existence
+  proof
+    take ArProg (0,0);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster increasing non-decreasing for Arithmetic_Progression;
+  existence
+  proof
+    take ArProg (0,1);
+    thus thesis;
+  end;
+  cluster decreasing non-increasing for Arithmetic_Progression;
+  existence
+  proof
+    take ArProg (0,-1);
+    thus thesis;
+  end;
+end;
+
+registration let f be increasing Arithmetic_Progression;
+  cluster difference f -> positive;
+  coherence
+  proof
+    f.(1+0) > f.0 by SEQM_3:def 6;
+    hence thesis by XREAL_1:50;
+  end;
+end;
+
+registration let f be decreasing Arithmetic_Progression;
+  cluster difference f -> negative;
+  coherence
+  proof
+    f.(1+0) < f.0 by SEQM_3:def 7;
+    hence thesis by XREAL_1:49;
+  end;
+end;
+
+registration let f be non-increasing Arithmetic_Progression;
+  cluster difference f -> non positive;
+  coherence
+  proof
+    f.(1+0) <= f.0 by SEQM_3:def 9;
+    hence thesis by XREAL_1:47;
+  end;
+end;
+
+registration let f be non-decreasing Arithmetic_Progression;
+  cluster difference f -> non negative;
+  coherence
+  proof
+    f.(1+0) >= f.0 by SEQM_3:def 8;
+    hence thesis by XREAL_1:48;
+  end;
+end;
+
+registration let f be constant Arithmetic_Progression;
+  cluster difference f -> zero;
+  coherence
+  proof
+    dom f = NAT by FUNCT_2:def 1; then
+    f.1 = f.0 by FUNCT_1:def 10;
+    hence thesis;
+  end;
+end;
+
+theorem LemmaIntProg:
+  for f being Arithmetic_Progression st
+    ex i being Nat st f.i is Integer &
+    difference f is Integer holds
+      f is integer-valued
+  proof
+    let f be Arithmetic_Progression;
+    assume ex i being Nat st f.i is Integer &
+    difference f is Integer; then
+    consider i being Nat such that
+A1: f.i is Integer & difference f is Integer;
+    defpred P[Nat] means f.$1 is integer;
+A2: ex k being Nat st P[k] by A1;
+A3: for k being Nat st k <> 0 & P[k]
+    ex n being Nat st n < k & P[n]
+    proof
+      let k be Nat;
+      assume
+BB:   k <> 0 & P[k]; then
+      difference f = f.(k-1+1) - f.(k-1) by LemmaDiffConst; then
+b1:   f.(k-1) = f.k - difference f;
+      reconsider n = k-1 as Nat by BB; :::: repeated
+      take n;
+      thus thesis by b1,XREAL_1:44,BB,A1;
+    end;
+z1: P[0] from NAT_1:sch 7(A2,A3);
+    for n being object st n in dom f holds f.n is integer
+    proof
+      let n be object;
+SS:   dom f = NAT by FUNCT_2:def 1;
+      assume n in dom f; then
+      reconsider nn = n as Nat by SS;
+      f = ArProg(f.0,difference f) by APAsArProg;
+      hence thesis by A1,z1;
+    end;
+    hence thesis by VALUED_0:def 11;
+  end;
+
+begin :: Problem 50
+:: Prove that Fibonacci's sequence (defined by conditions u_1 = u_2 = 1,
+:: u_{n+2} = u_n + u_{n+1}, n = 1,2,...) contains an infinite increasing
+:: sequence such that every two terms of this sequence are relatively prime.
+
+definition let n be Nat;
+  attr n is Fibonacci means
+    ex k being Nat st n = Fib (k);
+end;
+
+registration
+  cluster Fibonacci for Nat;
+  existence
+  proof
+    take 1;
+    thus thesis by PRE_FF:1;
+  end;
+end;
+
+::: restated for non zero Fibonacci
+
+theorem FibGe2:
+  for n being Nat st Fib n > 1 holds
+    n > 2
+  proof
+    let n be Nat;
+    assume
+A1: Fib n > 1;
+    assume n <= 2; then
+    n = 2 or n < 2 by XXREAL_0:1;
+    hence thesis by A1,FIB_NUM2:47,PRE_FF:1,NAT_1:23;
+  end;
+
+theorem LemmaFib0:
+  for k being Nat st k > 0 holds
+    Fib k > 0
+  proof
+    let k be Nat;
+    assume k > 0; then
+    k >= 1 + 0 by NAT_1:13;
+    hence thesis by PRE_FF:1,FIB_NUM2:45;
+  end;
+
+theorem FiboLeq:
+  for k,m being Nat st
+    Fib k < Fib (m + 1) & 1 < k holds
+      Fib k <= Fib m
+  proof
+    let k,m be Nat;
+    assume that
+A1: Fib k < Fib (m + 1) and
+A0: 1 < k;
+    k < m+1 by A1,FIB_NUM2:45; then
+    k <= m by NAT_1:13; then
+    per cases by XXREAL_0:1;
+    suppose k = m;
+      hence thesis;
+    end;
+    suppose k < m;
+      hence thesis by A0,FIB_NUM2:46;
+    end;
+  end;
+
+Th46: ::: FIB_NUM2:46 revised
+  for k,n being Nat st k <> 1 & k < n holds Fib (k) < Fib (n)
+  proof
+    let k,n be Nat;
+    assume
+A1: k <> 1 & k < n; then
+    per cases by NAT_1:25;
+    suppose k > 1;
+      hence thesis by A1,FIB_NUM2:46;
+    end;
+    suppose k = 0;
+      hence thesis by A1,LemmaFib0,PRE_FF:1;
+    end;
+  end;
+
+theorem Th48: ::: FIB_NUM2:48 revised
+  for k,n being Nat st k <> 1 & n <> 1 holds
+    Fib k = Fib n implies k = n
+proof
+    let k, n be Nat;
+    assume that
+A0: k <> 1 & n <> 1 and
+A1: Fib k = Fib n and
+A2: k <> n;
+   per cases by A2,XXREAL_0:1;
+    suppose A3: k < n;
+      per cases by A0,XXREAL_0:1;
+      suppose k < 1;
+        then k = 0 by NAT_1:14;
+        then Fib k = 0 by PRE_FF:1;
+        hence contradiction by A1,A3,LemmaFib0;
+      end;
+      suppose k > 1;
+        hence contradiction by A1,A3,Th46;
+      end;
+    end;
+    suppose A4: n < k;
+      per cases by A0,XXREAL_0:1;
+      suppose n < 1;
+        then n = 0 by NAT_1:14;
+        then Fib n = 0 by PRE_FF:1;
+        hence contradiction by A1,A4,LemmaFib0;
+      end;
+      suppose n > 1;
+        hence contradiction by A1,A4,FIB_NUM2:46;
+      end;
+    end;
+  end;
+
+theorem FibGe2a:
+  for n being Nat st n > 2 holds
+    Fib n >= 2
+  proof
+    let n be Nat;
+    assume n > 2; then
+    n >= 2 + 1 by NAT_1:13;
+    hence thesis by FIB_NUM2:22,45;
+  end;
+
+theorem FibGe3:
+  for n being Nat st n > 3 holds
+    Fib n >= 3
+  proof
+    let n be Nat;
+    assume n > 3; then
+    n >= 3 + 1 by NAT_1:13;
+    hence thesis by FIB_NUM2:23,FIB_NUM2:45;
+  end;
+
+theorem LemmaGe1:
+  for m,n being Nat st m < n & m > 3 holds
+    Fib n - Fib m > 1
+  proof
+    let m,n be Nat;
+    assume
+A1: m < n & m > 3; then
+    m + 1 <= n by NAT_1:13; then
+A3: Fib (m+1) - Fib m <= Fib n - Fib m by XREAL_1:9,FIB_NUM2:45;
+    reconsider m1 = m - 1 as Element of NAT by INT_1:5,A1,XXREAL_0:2;
+a2: Fib (m1+1+1) = Fib (m1+1) + Fib m1 by PRE_FF:1;
+    m - 1 > 3 - 1 by A1,XREAL_1:14; then
+    Fib m1 >= 2 by FibGe2a; then
+    Fib n - Fib m >= 2 by A3,a2,XXREAL_0:2;
+    hence thesis by XXREAL_0:2;
+  end;
+
+theorem LemmaGe2a:
+  for m,n being Nat st m < n & m > 4 holds
+    Fib n - Fib m > 2
+  proof
+    let m,n be Nat;
+    assume
+A1: m < n & m > 4; then
+    m + 1 <= n by NAT_1:13; then
+A3: Fib (m+1) - Fib m <= Fib n - Fib m by XREAL_1:9,FIB_NUM2:45;
+    reconsider m1 = m - 1 as Element of NAT by INT_1:5,A1,XXREAL_0:2;
+A2: Fib (m1+1+1) = Fib (m1+1) + Fib m1 by PRE_FF:1;
+    m - 1 > 4 - 1 by A1,XREAL_1:14; then
+    Fib m1 >= 3 by FibGe3; then
+    Fib n - Fib m >= 3 by A3,XXREAL_0:2,A2;
+    hence thesis by XXREAL_0:2;
+  end;
+
+definition let f be sequence of REAL;
+  attr f is Fibonacci-valued means
+    for n being Nat holds
+      ex fn being Nat st fn = f.n & fn is Fibonacci;
+end;
+
+registration
+  cluster Fibonacci-valued -> integer-valued for sequence of REAL;
+  coherence
+  proof
+    let f be sequence of REAL;
+    assume
+A1: f is Fibonacci-valued;
+    for x being object st x in dom f holds f.x is integer
+    proof
+      let x be object;
+      assume x in dom f; then
+      x in NAT by FUNCT_2:def 1; then
+      consider fn being Nat such that
+A2:   fn = f.x & fn is Fibonacci by A1;
+      thus thesis by A2;
+    end;
+    hence thesis by VALUED_0:def 11;
+  end;
+end;
+
+registration
+  cluster Fibonacci-valued for sequence of REAL;
+  existence
+  proof
+    take f = seq_const 0;
+    for n being Nat holds
+      ex fn being Nat st fn = f.n & fn is Fibonacci
+    proof
+      let n be Nat;
+      take f.n;
+      thus thesis by PRE_FF:1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let n be Nat;
+  cluster Fib n -> Fibonacci;
+  coherence;
+end;
+
+theorem Problem50: :: Problem 50
+  ex f being Fibonacci-valued sequence of REAL st
+     f is increasing with_all_coprime_terms
+  proof
+    deffunc F(Nat) = Fib primenumber $1;
+    consider f being sequence of REAL such that
+A1: for n being Nat holds f.n = F(n) from SEQ_1:sch 1;
+    for n being Nat holds f.n < f.(n+1)
+    proof
+      let n be Nat;
+B3:   1 < primenumber n by INT_2:def 4;
+B1:   f.n = Fib (primenumber n) by A1;
+B4:   f.(n+1) = Fib primenumber (n+1) by A1;
+      n < n+1 by NAT_1:13; then
+      primenumber n < primenumber (n+1) by MOEBIUS2:21;
+      hence thesis by B1,B4,B3,FIB_NUM2:46;
+    end; then
+T1: f is increasing by SEQM_3:def 6;
+    for n being Nat holds
+      ex fn being Nat st fn = f.n & fn is Fibonacci
+    proof
+      let n be Nat;
+      f.n = Fib (primenumber n) by A1;
+      hence thesis;
+    end; then
+    f is Fibonacci-valued; then
+    reconsider f as Fibonacci-valued sequence of REAL;
+    for i,j being Nat st i in dom f & j in dom f & i <> j holds
+      f.i, f.j are_coprime
+    proof
+      let i,j be Nat;
+      assume
+A2:   i in dom f & j in dom f & i <> j;
+A3:   f.i = Fib (primenumber i) by A1;
+A4:   f.j = Fib (primenumber j) by A1;
+      primenumber i <> primenumber j
+      proof
+        per cases by A2,XXREAL_0:1;
+        suppose i < j;
+          hence thesis by MOEBIUS2:21;
+        end;
+        suppose i > j;
+          hence thesis by MOEBIUS2:21;
+        end;
+      end; then
+      primenumber i, primenumber j are_coprime by PQCoprime;
+      hence thesis by A3,A4,FIB_NUM:5,PRE_FF:1;
+    end; then
+    f is with_all_coprime_terms;
+    hence thesis by T1;
+  end;
+
+registration
+  cluster Fibonacci-valued increasing with_all_coprime_terms
+    for integer-valued sequence of REAL;
+  existence by Problem50;
+end;
+
+begin :: Triangular Numbers
+
+theorem ThreeConsecutive: ::: similar to NEWTON02:188
+  for n being Nat holds
+    3 divides n or 3 divides n+1 or 3 divides n+2
+  proof
+    let n be Nat;
+    3 divides n-1 iff 3 divides n+2
+    proof
+      hereby assume
+C1:     3 divides n-1;
+        3 divides n - 1 + 3 by C1,WSIERP_1:4;
+        hence 3 divides n+2;
+      end;
+      assume 3 divides n+2; then
+      3 divides n+2-3 by PREPOWER:94;
+      hence thesis;
+    end;
+    hence thesis by NEWTON02:188;
+  end;
+
+theorem ::: see NUMBER02:24
+  for n being Nat holds
+    4 divides n or 4 divides n+1 or 4 divides n+2 or 4 divides n+3
+  proof
+    let n be Nat;
+    assume
+CC: not (4 divides n or 4 divides n+1 or 4 divides n+2 or 4 divides n+3);
+    consider k being Nat such that
+C1: n = 4*k or n = 4*k+1 or n = 4*k+2 or n = 4*k+3 by NUMBER02:24;
+    per cases by C1;
+    suppose n = 4 * k;
+      hence thesis by CC;
+    end;
+    suppose
+c2:   n = 4 * k + 1;
+      4 divides 4 * (k + 1);
+      hence thesis by c2,CC;
+    end;
+    suppose
+c2:   n = 4 * k + 2;
+      4 divides 4 * (k + 1);
+      hence thesis by c2,CC;
+    end;
+    suppose
+c2:   n = 4 * k + 3;
+      4 divides 4 * (k + 1);
+      hence thesis by c2,CC;
+    end;
+  end;
+
+theorem LemmaCong:
+  for n,k,l being Nat holds
+    3 divides n + l iff 3 divides n + l + 3 * k
+  proof
+    let n,k,l be Nat;
+    hereby assume
+A1:   3 divides n + l;
+      3 divides 3 * k;
+      hence 3 divides n + l + 3 * k by A1,WSIERP_1:4;
+    end;
+    assume
+A1: 3 divides n + l + 3 * k;
+    3 divides 3 * k; then
+    3 divides n + l + 3 * k - 3 * k by A1,PREPOWER:94;
+    hence 3 divides n + l;
+  end;
+
+definition let f be Function;
+  attr f is triangular-valued means
+    for n being object holds
+      f.n is triangular;
+end;
+
+registration
+  cluster triangular -> integer for number;
+  coherence;
+end;
+
+registration
+  cluster triangular-valued -> integer-valued for sequence of REAL;
+  coherence
+  proof
+    let f be sequence of REAL;
+    assume
+A0: f is triangular-valued;
+    for n being object holds f.n is integer
+    proof
+      let n be object;
+      f.n is triangular by A0;
+      hence thesis;
+    end;
+    hence thesis by VALUED_0:11;
+  end;
+end;
+
+registration
+  cluster triangular-valued for integer-valued sequence of REAL;
+  existence
+  proof
+    reconsider a = 0 as Nat;
+    take f = seq_const a;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster <*0*> -> triangular-valued for FinSequence;
+  coherence
+  proof
+    set f = <*0*>;
+    for n being object holds f.n is triangular
+    proof
+      let n be object;
+      per cases;
+      suppose n in dom f; then
+        n in Seg 1 by FINSEQ_1:def 8; then
+        n = 1 by TARSKI:def 1,FINSEQ_1:2;
+        hence thesis by FINSEQ_1:def 8;
+      end;
+      suppose not n in dom f;
+        hence thesis by FUNCT_1:def 2;
+      end;
+    end;
+    hence thesis;
+  end;
+end;
+
+begin :: Problem 52
+:: Prove that there exist arbitrarily long arithmetic progressions formed
+:: of different positive integers such that every two terms of these
+:: progressions are relatively prime.
+
+theorem LemmaFor52:
+  for m,k,l being Nat st k <> l & 1 <= k <= m & 1 <= l <= m holds
+    m! * k + 1, m! * l + 1 are_coprime
+  proof
+    let m,k,l be Nat;
+    assume
+S1: k <> l & 1 <= k <= m & 1 <= l <= m;
+    assume not m! * k + 1, m! * l + 1 are_coprime; then
+    consider d being non zero Nat such that
+A1: d <> 1 & d divides m! * k + 1 & d divides m! * l + 1 by MOEBIUS2:5;
+    per cases by S1,XXREAL_0:1;
+    suppose
+      k < l; then
+b1:   l - k > k - k by XREAL_1:14;
+a1:   d divides l * (m! * k + 1) by A1,NAT_D:9;
+      d divides k * (m! * l + 1) by A1,NAT_D:9; then
+A2:   d divides (l * (m! * k + 1) - k * (m! * l + 1)) by a1,PREPOWER:94;
+A3:   l - k <= m - k by S1,XREAL_1:13;
+      m - k < m by S1,XREAL_1:44; then
+A5:   l - k < m by A3,XXREAL_0:2;
+      d <= l - k by b1,A2,NAT_D:7; then
+      d <= m by A5,XXREAL_0:2; then
+      d divides m! * k by NAT_D:9,NEWTON:41;
+      hence thesis by A1,WSIERP_1:15,NAT_D:10;
+    end;
+    suppose
+      k > l; then
+b1:   k - l > l - l by XREAL_1:14;
+a1:   d divides l * (m! * k + 1) by A1,NAT_D:9;
+      d divides k * (m! * l + 1) by A1,NAT_D:9; then
+A2:   d divides (k * (m! * l + 1) - l * (m! * k + 1)) by a1,PREPOWER:94;
+A3:   k - l <= m - l by S1,XREAL_1:13;
+      m - l < m by S1,XREAL_1:44; then
+A5:   k - l < m by A3,XXREAL_0:2;
+      d <= k - l by b1,A2,NAT_D:7; then
+      d <= m by A5,XXREAL_0:2; then
+      d divides m! * k by NAT_D:9,NEWTON:41;
+      hence thesis by A1,WSIERP_1:15,NAT_D:10;
+    end;
+  end;
+
+theorem :: Problem 52
+  for n being Nat holds
+   ex f being AP-like integer-valued XFinSequence st
+     dom f >= n &
+     f is with_all_coprime_terms
+  proof
+    let n be Nat;
+    set f = ArProg (n! + 1, n!);
+    reconsider ff = f | n as integer-valued XFinSequence by RestrictedXFin;
+SS: for k being Nat holds
+      f.k = n! * (k+1) + 1
+    proof
+      let k be Nat;
+      f.k = n! + 1 + n! * k by ArDefNth
+         .= n! * (k + 1) + 1;
+      hence thesis;
+    end;
+S0: for k being Nat st k + 1 <= n holds
+      ff.k = n! * (k+1) + 1
+    proof
+      let k be Nat;
+      assume k + 1 <= n; then
+      k < n by NAT_1:13; then
+      k in Segm n by NAT_1:44; then
+      ff.k = f.k by FUNCT_1:49;
+      hence thesis by SS;
+    end;
+    dom f = NAT by FUNCT_2:def 1; then
+t2: dom (f|Segm n) = Segm n;
+    for i,j being Nat st i in dom ff & j in dom ff & i <> j holds
+      ff.i, ff.j are_coprime
+    proof
+      let i,j be Nat;
+      assume
+S1:   i in dom ff & j in dom ff & i <> j; then
+S2:   i + 1 <> j + 1;
+S6:   1 <= i + 1 & 1 <= j + 1 by NAT_1:12;
+      i < n & j < n by NAT_1:44,S1,t2; then
+S4:   i + 1 <= n & j + 1 <= n by NAT_1:13; then
+      ff.i = n! * (i + 1) + 1 & ff.j = n! * (j + 1) + 1 by S0;
+      hence thesis by S4,S6,S2,LemmaFor52;
+    end; then
+    ff is with_all_coprime_terms;
+    hence thesis by t2;
+  end;
+
+begin :: Problem 54
+:: Prove that there exist infinitely many triplets of
+:: positive integers x,y,z st x(x+1), y(y+1), z(z+1) form
+:: an increasing arithmetic progression.
+
+definition let x,y,z be Real;
+  pred x,y,z form_an_AP means
+    y - x = z - y;
+end;
+
+theorem :: Problem 54
+  for x,y,z being Nat st
+    y = 5 * x + 2 & z = 7 * x + 3 holds
+      x * (x + 1), y * (y + 1), z * (z + 1) form_an_AP &
+        x < y < z
+  proof
+    let x,y,z be Nat;
+    assume
+A1: y = 5 * x + 2 & z = 7 * x + 3;
+t0: 1 * x <= 5 * x by XREAL_1:64;
+TT: 5 * x + 0 < 5 * x + 2 by XREAL_1:8;
+    5 * x <= 7 * x by XREAL_1:64;
+    hence thesis by TT,A1,XREAL_1:8,t0,XXREAL_0:2;
+  end;
+
+theorem :: Problem 54
+  {<*x,y,z*> where x is Real, y is Real, z is Real :
+     x*(x+1), y*(y+1), z*(z+1) form_an_AP } is infinite
+  proof
+    set AP = {<*x,y,z*> where x is Real, y is Real, z is Real :
+       x*(x+1), y*(y+1), z*(z+1) form_an_AP };
+    reconsider x = 1 as Nat;
+    reconsider y = 5 * x + 2 as Nat;
+    reconsider z = 7 * x + 3 as Nat;
+    x * (x + 1), y * (y + 1), z * (z + 1) form_an_AP; then
+    <*1,5*1+2,7*1+3*> in AP; then
+    reconsider AP as non empty set;
+    defpred P[Element of REAL, Element of AP] means
+      $2 = <*$1,5*$1+2,7*$1+3*>;
+AA: for x being Element of REAL
+    ex y being Element of AP st P[x,y]
+    proof
+      let x be Element of REAL;
+      set y = 5 * x + 2;
+      set z = 7 * x + 3;
+      x * (x + 1), y * (y + 1), z * (z + 1) form_an_AP; then
+      <*x,5*x+2,7*x+3*> in AP; then
+      reconsider yy = <*x,5*x+2,7*x+3*> as Element of AP;
+      take yy;
+      thus thesis;
+    end;
+    consider f being Function of REAL, AP such that
+A0: for x being Element of REAL holds
+    P[x,f.x] from FUNCT_2:sch 3(AA);
+A1: dom f is infinite by FUNCT_2:def 1;
+    for x1,x2 being object st
+    x1 in REAL & x2 in REAL & f.x1 = f.x2 holds x1 = x2
+    proof
+      let x1,x2 be object;
+      assume
+B0:   x1 in REAL & x2 in REAL & f.x1 = f.x2; then
+      reconsider xx1 = x1, xx2 = x2 as Element of REAL;
+      f.xx1 = <*xx1,5*xx1+2,7*xx1+3*> by A0; then
+      <*xx1,5*xx1+2,7*xx1+3*> = <*xx2,5*xx2+2,7*xx2+3*> by A0,B0;
+      hence thesis by FINSEQ_1:78;
+    end; then
+A2: f is one-to-one by FUNCT_2:19;
+    rng f c= AP by RELAT_1:def 19;
+    hence thesis by A1,A2,CARD_1:59;
+  end;
+
+begin :: Problem 55
+:: Find all rectangular triangles with integer sides forming
+:: an arithmetic progression.
+
+theorem
+  for a,b,c being Nat st
+    a ^2 + b ^2 = c ^2 &
+    a,b,c form_an_AP holds
+   ex i being Integer st
+    a = 3 * i & b = 4 * i & c = 5 * i
+  proof
+    let a,b,c be Nat;
+    assume
+A1: a ^2 + b ^2 = c ^2 &
+    a,b,c form_an_AP;
+    set r = b - a;
+    per cases;
+    suppose
+A2:   b <> 0;
+      (b - r) ^2 + b ^2 = (b + r) ^2 by A1; then
+      b = 4 * r * b / b by A2,XCMPLX_1:89; then
+A4:   b = 4 * r by A2,XCMPLX_1:89; then
+B1:   a = 3 * r;
+B2:   c = 5 * r by A4,A1;
+      reconsider rr = r as Integer;
+      take rr;
+      thus thesis by B1,B2;
+    end;
+    suppose
+C1:   b = 0;
+      take i = 0;
+      thus thesis by C1,A1;
+    end;
+  end;
+
+begin :: Problem 56
+:: Find an increasing arithmetic progression with the least possible
+:: difference, formed of positive integers and containing no triangular number.
+
+registration let k be Nat;
+  cluster Triangle (4 * k + 1) -> odd;
+  coherence
+  proof
+A0: 2 * (2 * k) is even;
+    Triangle (4 * k + 1) = (4 * k + 1) * (4 * k + 1 + 1) / 2
+      by NUMPOLY1:19; then
+    Triangle (4 * k + 1) = (4 * k + 1) * (2 * k + 1);
+    hence thesis by A0;
+  end;
+end;
+
+registration let k be Nat;
+  cluster Triangle (4 * k) -> even;
+  coherence
+  proof
+    Triangle (4 * k) = (4 * k) * (4 * k + 1) / 2
+      by NUMPOLY1:19; then
+    Triangle (4 * k) = (2 * k) * (4 * k + 1);
+    hence thesis;
+  end;
+end;
+
+theorem Divides3Triangle2:
+  for n being Nat holds
+    3 divides Triangle (3 * n + 2)
+  proof
+    let n be Nat;
+a1: (3 * n + 2) * (n + 1) is even
+    proof
+      per cases;
+      suppose n is even;
+        hence thesis;
+      end;
+      suppose n is odd;
+        hence thesis;
+      end;
+    end;
+    Triangle (3 * n + 2) = (3 * n + 2) * (3 * n + 2 + 1) / 2
+      by NUMPOLY1:19; then
+    Triangle (3 * n + 2) = 3 * ((3 * n + 2) * (n + 1) / 2);
+    hence thesis by a1;
+  end;
+
+theorem Divides3Triangle:
+  for n being Nat holds
+    3 divides Triangle (3 * n)
+  proof
+    let n be Nat;
+A0: 2 * 1 + 1 is odd;
+a1: n * (3 * n + 1) is even
+    proof
+      per cases;
+      suppose n is even;
+        hence thesis;
+      end;
+      suppose
+        n is odd;
+        hence thesis by A0;
+      end;
+    end;
+    Triangle (3 * n) = (3 * n) * (3 * n + 1) / 2
+      by NUMPOLY1:19; then
+    Triangle (3 * n) = 3 * (n * (3 * n + 1) / 2);
+    hence thesis by a1;
+  end;
+
+theorem Not3DividesTriangle:
+  for n being Nat holds
+    3 divides Triangle (3 * n + 1) - 1
+  proof
+    let n be Nat;
+    Triangle (3 * n + 1) = (3 * n + 1) * (3 * n + 1 + 1) / 2
+      by NUMPOLY1:19; then
+    Triangle (3 * n + 1) - 1 = 3 * (3 * ((n + 1) * n) / 2);
+    hence thesis;
+  end;
+
+theorem Lemma3ArProg:
+  for i being Nat holds not 3 divides ArProg (2,3).i
+  proof
+    let i be Nat;
+    assume 3 divides ArProg (2,3).i; then
+A1: 3 divides 2 + 3 * i by ArDefNth;
+    3 divides 3 * i; then
+    3 divides 2 + 3 * i - 3 * i by A1,PREPOWER:94;
+    hence thesis by INT_2:28;
+  end;
+
+theorem
+  {i where i is Nat : ArProg (0,1).i is triangular} is infinite
+  proof
+    set X = {i where i is Nat : ArProg (0,1).i is triangular};
+    for m being Nat ex n be Nat st n >= m & n in X
+    proof
+      let m be Nat;
+A3:   Triangle (2 * m) is triangular by NUMPOLY1:def 2;
+A2:   Triangle (2 * m) = (2 * m) * (2*m+1) / 2 by NUMPOLY1:19
+                    .= m * (2*m+1);
+a4:   ArProg (0,1).(m*(2*m+1)) = 0 + 1 * (m * (2 * m + 1)) by ArDefNth;
+      set n = m * (2 * m + 1);
+      2 * m + 1 >= 1 by NAT_1:12; then
+AA:   m * (2 * m + 1) >= m * 1 by NAT_1:4;
+      n in X by A3,a4,A2;
+      hence thesis by AA;
+    end;
+    hence thesis by PYTHTRIP:9;
+  end;
+
+theorem
+  {i where i is Nat : ArProg (0,2).i is triangular} is infinite
+  proof
+    set X = {i where i is Nat : ArProg (0,2).i is triangular};
+    for m being Nat ex n be Nat st n >= m & n in X
+    proof
+      let m be Nat;
+A3:   Triangle (4 * m) is triangular by NUMPOLY1:def 2;
+A2:   Triangle (4*m) = (4*m) * (4*m+1) / 2 by NUMPOLY1:19
+                    .= (2*m) * (4*m+1);
+a4:   ArProg (0,2).(m*(4*m+1)) = 0 + 2 * (m * (4 * m + 1)) by ArDefNth;
+      4 * m + 1 >= 1 by NAT_1:12; then
+AA:   m * (4 * m + 1) >= m * 1 by NAT_1:4;
+      m * (4 * m + 1) in X by A3,a4,A2;
+      hence thesis by AA;
+    end;
+    hence thesis by PYTHTRIP:9;
+  end;
+
+theorem
+  {i where i is Nat : ArProg (1,2).i is triangular} is infinite
+  proof
+    set X = {i where i is Nat : ArProg (1,2).i is triangular};
+    for m being Nat ex n be Nat st n >= m & n in X
+    proof
+      let m be Nat;
+A3:   Triangle (4 * m + 1) is triangular by NUMPOLY1:def 2;
+      Triangle (4 * m + 1) = (4 * m + 1) * (4 * m+1+1) / 2 by NUMPOLY1:19
+                    .= 2 * (m*(4*m) + 3*m) + 1; then
+A4:   Triangle (4*m+1) = ArProg (1,2).(m*(4*m)+3*m) by ArDefNth;
+      set n = m * (4 * m) + 3 * m;
+      4 * m + 3 >= 1 by NAT_1:12; then
+a1:   m * (4 * m + 3) >= m * 1 by NAT_1:4;
+      n in X by A3,A4;
+      hence thesis by a1;
+    end;
+    hence thesis by PYTHTRIP:9;
+  end;
+
+theorem LemmaBono:
+  for i being Nat holds
+    not 3 divides ArProg (2,3).i - 1
+  proof
+    let i be Nat;
+    assume 3 divides ArProg (2,3).i - 1; then
+    3 divides ((2 + 3 * i) - 1) by ArDefNth; then
+    3 divides (1 + 3 * i) & 3 divides (3 * i); then
+    3 divides (1 + 3 * i - 3 * i) by PREPOWER:94;
+    hence thesis by NAT_D:7;
+  end;
+
+theorem :: Problem 56
+  for i being Nat holds ArProg (2,3).i is non triangular
+  proof
+    let i be Nat;
+    assume ArProg (2,3).i is triangular; then
+    consider k being Nat such that
+A1: ArProg (2,3).i = Triangle k by NUMPOLY1:def 2;
+    per cases by NUMBER02:23;
+    suppose ex u being Nat st k = 3 * u + 1; then
+      consider u being Nat such that
+E1:   k = 3 * u + 1;
+      3 divides Triangle (3 * u + 1) - 1 by Not3DividesTriangle;
+      hence thesis by LemmaBono,A1,E1;
+    end;
+    suppose ex u being Nat st k = 3 * u + 2; then
+      consider u being Nat such that
+D1:   k = 3 * u + 2;
+      thus thesis by A1,Lemma3ArProg,D1,Divides3Triangle2;
+    end;
+    suppose ex u being Nat st k = 3 * u; then
+      consider u being Nat such that
+C1:   k = 3 * u;
+      thus thesis by A1,Lemma3ArProg,C1,Divides3Triangle;
+    end;
+  end;
+
+begin :: Problem 60
+:: Prove that there are no four consecutive positive integers such that
+:: each of them is a power of a positive integer with an integer exponent > 1.
+
+definition let n be Nat;
+  attr n is perfect_power means :PerPowDef:
+    ex x being Nat, k being Nat st
+      k > 1 &
+      n = x |^ k;
+end;
+
+theorem
+  ex n being Nat st
+    n is perfect_power & n+1 is perfect_power
+  proof
+    take 8;
+    3 to_power 2 = 3 * 3 by NEWTON:81;
+    hence thesis by POWER:61;
+  end;
+
+registration
+  cluster even perfect_power for Nat;
+  existence
+  proof
+    take 4;
+A1: 2 * 2 is even;
+    2 |^2 is perfect_power;
+    hence thesis by A1,NEWTON:81;
+  end;
+end;
+
+theorem FourDivPower: :: NEWTON05:84 for squares
+  for n being even Nat, k being Nat st k > 1 holds
+    4 divides n |^ k
+  proof
+    let n be even Nat,
+        k be Nat;
+    assume k > 1; then
+    1 + 1 <= k by NAT_1:13; then
+A2: n |^ 2 divides n |^ k by NEWTON:89;
+    4 divides (n |^ 2) by NEWTON05:84;
+    hence thesis by A2,INT_2:9;
+  end;
+
+theorem FourPerfectPower:
+  for n being even perfect_power Nat holds
+    4 divides n
+  proof
+    let n be even perfect_power Nat;
+    consider x being Nat, k being Nat such that
+A1: k > 1 &
+    n = x |^ k by PerPowDef;
+    2 divides x by INT_2:28,NAT_3:5,A1,ABIAN:def 1;
+    hence thesis by A1,FourDivPower;
+  end;
+
+theorem Four2NotPerfect:
+  for k being Nat holds
+    4 * k + 2 is not perfect_power
+  proof
+    let k be Nat;
+a5: 2 * (2 * k + 1) is even;
+    assume 4 * k + 2 is perfect_power; then
+A2: 4 divides 4 * k + 2 by a5,FourPerfectPower;
+    4 divides 4 * k; then
+    4 divides 4 * k + 2 - 4 * k by A2,PREPOWER:94;
+    hence thesis by INT_2:28;
+  end;
+
+theorem PrimesNotPowers:
+  for p being Prime holds
+    p is not perfect_power
+  proof
+    let p be Prime;
+A0: p > 1 by INT_2:def 4;
+    assume p is perfect_power; then
+    consider x being Nat, k being Nat such that
+A1: k > 1 &
+    p = x |^ k;
+    x |^ 1 = x; then
+    per cases by A1,INT_2:def 4,NEWTON:89;
+    suppose x = 1;
+      hence thesis by A1,INT_2:def 4;
+    end;
+    suppose x = p; then
+      p |^ 1 = p |^ k by A1;
+      hence thesis by A1,A0,PEPIN:30;
+    end;
+  end;
+
+registration
+  cluster prime -> non perfect_power for Nat;
+  coherence by PrimesNotPowers;
+end;
+
+registration
+  cluster square -> perfect_power for Nat;
+  coherence
+  proof
+    let n be Nat;
+    assume n is square; then
+    consider k being Nat such that
+A1: n = k ^2 by PYTHTRIP:def 3;
+    n = k |^ 2 by A1,NEWTON:81;
+    hence thesis;
+  end;
+end;
+
+theorem :: Problem 60
+  not ex n being Nat st
+    n is perfect_power & n+1 is perfect_power &
+      n+2 is perfect_power & n+3 is perfect_power
+  proof
+    assume ex n being Nat st
+    n is perfect_power & n+1 is perfect_power &
+      n+2 is perfect_power & n+3 is perfect_power; then
+    consider n being Nat such that
+A1: n is perfect_power & n+1 is perfect_power &
+      n+2 is perfect_power & n+3 is perfect_power;
+    consider k being Nat such that
+A3: n = 4*k or n = 4*k+1 or n = 4*k+2 or n = 4*k+3
+      by NUMBER02:24;
+    per cases by A3;
+    suppose n = 4 * k;
+      hence thesis by A1,Four2NotPerfect;
+    end;
+    suppose n = 4 * k + 1; then
+      n + 1 = 4 * k + 2;
+      hence thesis by A1,Four2NotPerfect;
+    end;
+    suppose n = 4 * k + 2;
+      hence thesis by A1,Four2NotPerfect;
+    end;
+    suppose n = 4 * k + 3; then
+      n + 3 = 4 * (k+1) + 2;
+      hence thesis by A1,Four2NotPerfect;
+    end;
+  end;
+
+begin :: Problem 64
+:: Find all increasing arithmetic progressions formed of three terms
+:: of the Fibonacci sequence (see Problem 50), and prove that there are no
+:: increasing arithmetic progressions formed of four terms of this sequence.
+
+theorem Problem64Part1: :: Problem 64 with zeros excluded
+  for k,l,m being Nat st 0 < k < l < m &
+    :::: two exceptions implicitly stated
+       not (k = 2 & l = 3 & m = 4) &
+       not (k = 1 & l = 4 & m = 5) &
+    Fib (m) - Fib (l) = Fib (l) - Fib (k) & Fib l - Fib k > 0 holds
+       l > 2 & k = l - 2 & m = l + 1  :: niekoniecznie, dla k = 2 jest OK
+  proof
+    let k,l,m be Nat;
+    set uk = Fib k, ul = Fib l, um = Fib m;
+    assume
+A1: 0 < k < l < m &
+    not (k = 2 & l = 3 & m = 4) &
+    not (k = 1 & l = 4 & m = 5) &
+    Fib m - Fib l = Fib l - Fib k &
+    Fib l - Fib k > 0; then
+    k >= 1 + 0 by NAT_1:13; then
+II: l > 1 by A1,XXREAL_0:2;
+sO: Fib l > 1
+    proof
+      assume Fib l <= 1; then
+      Fib l < 1+1 by NAT_1:13; then
+Ia:   Fib l = 0 or Fib l = 1 by NAT_1:23;
+      Fib l - Fib k + Fib k > 0 + Fib k by A1,XREAL_1:8; then
+      Fib k = 0 by Ia,NAT_1:14;
+      hence thesis by A1,LemmaFib0;
+    end; then
+SO: l > 2 by FibGe2; then
+    l >= 2+1 by NAT_1:13; then
+Y1: m > 3 by A1,XXREAL_0:2;
+h1: Fib l < Fib (l+1) by II,FIB_NUM2:44;
+    um = ul + ul - uk by A1; then
+H1: um < ul + ul by XREAL_1:44,A1,LemmaFib0;
+    ul + ul < ul + Fib (l+1) by h1,XREAL_1:8; then
+    ul + ul < Fib (l+1+1) by PRE_FF:1; then
+XX: Fib m < Fib (l+1+1) by H1,XXREAL_0:2;
+    l + 1 <= m by A1,NAT_1:13; then
+S2: um >= Fib (l+1) by FIB_NUM2:45;
+JK: m in NAT by ORDINAL1:def 12;
+    m > 1 by Y1,XXREAL_0:2; then
+dd: Fib m <= Fib (l+1) by XX,FiboLeq; then
+dx: Fib m = Fib (l+1) by S2,XXREAL_0:1;
+    reconsider l1 = l - 1 as Nat by A1;
+    reconsider l2 = l - 2 as Element of NAT by SO,INT_1:5;
+    per cases;
+    suppose
+D1:   k = 1;
+K1:   Fib l2 + Fib (l2+1) = Fib (l2+1+1) by PRE_FF:1;
+x2:   Fib (l1+1+1) = Fib (l1+1) + Fib l1 by PRE_FF:1;
+      2 * ul - um = ul - (Fib(l+1) - ul) by dx; then
+      l2 = 1 or l2 = 2 by FIB_NUM2:47,D1,PRE_FF:1,K1,A1,x2; then
+      per cases;
+      suppose
+        l = 3;
+        hence thesis by dx,A1,JK,FIB_NUM2:48,D1;
+      end;
+      suppose
+        l = 4;
+        hence thesis by A1,D1,dx,JK,FIB_NUM2:48;
+      end;
+    end;
+    suppose
+JA:   k <> 1;
+      per cases;
+      suppose
+Ss:     l2 = 1; then
+        3 - Fib 3 = Fib 3 - Fib k by FIB_NUM2:23,dd,A1,S2,XXREAL_0:1;
+        hence thesis by dx,A1,Ss,FIB_NUM2:47,48,22,II,JK;
+      end;
+      suppose
+ja:     l2 <> 1;
+K1:     Fib l2 + Fib (l2+1) = Fib (l2+1+1) by PRE_FF:1;
+X2:     Fib (l1+1+1) = Fib (l1+1) + Fib l1 by PRE_FF:1;
+        l <> 0 by sO,FibGe2; then
+LL:     m > 1 & l+1 <> 1 by Y1,XXREAL_0:2;
+        2 * ul - um = ul - (Fib(l+1) - ul) by dx;
+        hence thesis by sO,LL,JA,ja,Th48,K1,A1,X2,FibGe2;
+      end;
+    end;
+  end;
+
+theorem
+  Fib 1 - Fib 0 <> Fib 2 - Fib 1 by FIB_NUM2:21,PRE_FF:1;
+
+theorem
+  Fib 1 - Fib 0 = Fib 3 - Fib 1 by FIB_NUM2:22,PRE_FF:1;
+
+theorem
+  Fib 2 - Fib 0 = Fib 3 - Fib 2 by FIB_NUM2:21,22,PRE_FF:1;
+
+theorem :: Solution of Problem 64 not included in Sierpinski 250
+  Fib 3 - Fib 2 = Fib 4 - Fib 3 by FIB_NUM2:23,22,21;
+
+theorem Fib5:
+  Fib 5 = 5
+  proof
+    Fib (3+1+1) = Fib (3+1) + Fib 3 by PRE_FF:1;
+    hence thesis by FIB_NUM2:22,23;
+  end;
+
+theorem :: Solution of Problem 64 not included in Sierpinski 250
+  Fib 5 - Fib 4 = Fib 4 - Fib 1 by FIB_NUM2:23,PRE_FF:1,Fib5;
+
+theorem :: Problem 64 for four terms
+  not ex k,l,m,n being Nat st 0 < k < l < m < n &
+    Fib (m) - Fib (l) = Fib (l) - Fib (k) = Fib n - Fib m &
+      Fib l - Fib k > 0
+  proof
+    assume ex k,l,m,n being Nat st 0 < k < l < m < n &
+    Fib (m) - Fib (l) = Fib (l) - Fib (k) = Fib n - Fib m &
+      Fib l - Fib k > 0; then
+    consider k,l,m,n being Nat such that
+A1: 0 < k < l < m < n &
+    Fib (m) - Fib (l) = Fib (l) - Fib (k) = Fib n - Fib m &
+      Fib l - Fib k > 0;
+    per cases;
+    suppose
+      not (k = 2 & l = 3 & m = 4) &
+      not (k = 1 & l = 4 & m = 5); then
+A2:   l > 2 & k = l - 2 & m = l + 1 by A1,Problem64Part1; then
+      n >= l + 1 + 1 by A1,NAT_1:13; then
+P1:   Fib n >= Fib (l+2) by FIB_NUM2:45;
+      Fib (l+1+1) = Fib (l+1) + Fib l by PRE_FF:1; then
+S1:   Fib (l+2) - Fib (l+1) = Fib l;
+      reconsider l1 = l - 1 as Element of NAT by A2,INT_1:5,XXREAL_0:2;
+b2:   l - 1 > 2 - 1 by A2,XREAL_1:14;
+B1:   Fib n - Fib (l+1) >= Fib l by S1,P1,XREAL_1:13;
+ba:   l > l1 by XREAL_1:44;
+      Fib (l1+1+1) = Fib (l1+1) + Fib l1 by PRE_FF:1;
+      hence thesis by A1,A2,ba,B1,b2,FIB_NUM2:46;
+    end;
+    suppose not
+      (not (k = 2 & l = 3 & m = 4) &
+      not (k = 1 & l = 4 & m = 5)); then
+      per cases;
+      suppose
+SU:     k = 2 & l = 3 & m = 4; then
+        Fib l - Fib k = 1 by FIB_NUM2:21,22;
+        hence thesis by A1,LemmaGe1,SU;
+      end;
+      suppose
+SU:     k = 1 & l = 4 & m = 5; then
+        Fib l - Fib k = 2 by FIB_NUM2:23,PRE_FF:1;
+        hence thesis by A1,LemmaGe2a,SU;
+      end;
+    end;
+  end;
+
+begin :: Problem 70, for 10
+:: Find all arithmetic progressions with difference 10 formed of more
+:: than two primes.
+
+theorem :: Problem 70, for 10
+  for f being Arithmetic_Progression,
+      p1,p2,p3 being Prime st
+    difference f = 10 &
+      ex i being Nat st
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) holds
+    p1 = 3
+  proof
+    let f be Arithmetic_Progression;
+    let p1,p2,p3 be Prime;
+    assume
+A1: difference f = 10 &
+      ex i being Nat st
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2);
+    consider i being Nat such that
+A2: p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) by A1;
+B1: 3 divides p1 + 1 iff 3 divides p1 + 1 + 3 * 3 by LemmaCong;
+B2: 3 divides p1 + 2 iff 3 divides p1 + 2 + 3 * 6 by LemmaCong;
+cc: f.(i+1+1) - f.(i+1) = 10 by A1,LemmaDiffConst; then
+C2: p2 + 10 = p3 by A2;
+c1: f.(i+1) - f.i = 10 by A1,LemmaDiffConst; then
+CC: 3 divides p1 or 3 divides p2 or 3 divides p3
+      by A2,cc,B1,B2,ThreeConsecutive;
+C3: not 3 divides p2
+    proof
+      assume 3 divides p2; then
+      p2 = 3 by INT_2:def 4; then
+      p1 = 3 - 10 by c1,A2;
+      hence thesis by INT_2:def 4;
+    end;
+    not 3 divides p3
+    proof
+      assume 3 divides p3; then
+      p3 = 3 or p3 = 1 by INT_2:def 4; then
+      p2 = 3 - 10 by C2,INT_2:def 4;
+      hence thesis by INT_2:def 4;
+    end;
+    hence thesis by INT_2:def 4,CC,C3;
+  end;
+
+theorem :: Problem 70 a, for 10
+  not ex f being Arithmetic_Progression st
+    difference f = 10 &
+      ex p1,p2,p3,p4 being Prime, i being Nat st
+      p1,p2,p3,p4 are_mutually_distinct & ::: implied by difference = 10
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) & p4 = f.(i+3)
+  proof
+    given f being Arithmetic_Progression such that
+A1: difference f = 10 & ex p1,p2,p3,p4 being Prime, i be Nat st
+      p1,p2,p3,p4 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) & p4 = f.(i+3);
+    reconsider f as integer-valued Arithmetic_Progression by A1,LemmaIntProg;
+    consider p1,p2,p3,p4 being Prime, i be Nat such that
+A2: p1,p2,p3,p4 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) & p4 = f.(i+3) by A1;
+b1: p2 - p1 = difference f by A2,LemmaDiffConst;
+    p3 = f.(i+1+1) by A2; then
+b2: p3 - p2 = difference f by A2,LemmaDiffConst;
+    p4 = f.(i+2+1) by A2; then
+bb: p4 - p3 = difference f by A2,LemmaDiffConst;
+K1: 3 divides p1+1 iff 3 divides p1+1+3*3 by LemmaCong;
+    3 divides p1+2 iff 3 divides p1+2+3*6 by LemmaCong; then
+    per cases by b2,A1,b1,K1,ThreeConsecutive,LemmaDivides;
+    suppose
+aa:   p1 = 3; then
+      p4 = 3 * 11 by bb,A1,b1,b2; then
+      11 divides p4; then
+      33 is not prime by aa,bb,A1,b1,b2;
+      hence thesis by aa,bb,A1,b1,b2;
+    end;
+    suppose
+      p2 = 3; then
+      p1 = 3 - 10 by A1,b1;
+      hence thesis by INT_2:def 4;
+    end;
+    suppose
+      p3 = 3; then
+      p2 = 3 - 10 by A1,b2;
+      hence thesis by INT_2:def 4;
+    end;
+  end;
+
+begin :: Problem 71
+:: Find all arithmetic progressions with difference 100 formed of more
+:: than two primes.
+
+theorem :: Problem 71 a, for 100
+  not ex f being Arithmetic_Progression st
+    difference f = 100 &
+      ex p1,p2,p3 being Prime, i being Nat st
+      p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2)
+  proof
+    given f being Arithmetic_Progression such that
+A1: difference f = 100 & ex p1,p2,p3 being Prime, i be Nat st
+      p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2);
+    reconsider f as integer-valued Arithmetic_Progression by A1,LemmaIntProg;
+    consider p1,p2,p3 being Prime, i be Nat such that
+A2: p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) by A1;
+b1: p2 - p1 = difference f by A2,LemmaDiffConst;
+    f.(i+1+1) = p3 by A2; then
+b2: p3 - p2 = difference f by A2,LemmaDiffConst;
+K1: 3 divides p1+1 iff 3 divides p1+1+3*33 by LemmaCong;
+    3 divides p1+2 iff 3 divides p1+2+3*66 by LemmaCong; then
+    per cases by LemmaDivides,b1,b2,A1,K1,ThreeConsecutive;
+    suppose
+AA:   p1 = 3;
+      203 = 7 * 29; then
+      7 divides 203; then
+      203 is not prime;
+      hence thesis by AA,b1,b2,A1;
+    end;
+    suppose
+      p2 = 3; then
+      p1 = 3 - 100 by b1,A1;
+      hence thesis by INT_2:def 4;
+    end;
+    suppose
+      p3 = 3; then
+      p2 = 3 - 100 by b2,A1; then
+      p2 < 0;
+      hence thesis;
+    end;
+  end;
+
+theorem :: As above, similarly for difference = 1000
+  not ex f being Arithmetic_Progression st
+    difference f = 1000 &
+      ex p1,p2,p3 being Prime, i being Nat st
+      p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2)
+  proof
+    given f being Arithmetic_Progression such that
+A1: difference f = 1000 & ex p1,p2,p3 being Prime, i be Nat st
+      p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2);
+    reconsider f as integer-valued Arithmetic_Progression by A1,LemmaIntProg;
+    consider p1,p2,p3 being Prime, i be Nat such that
+A2: p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) by A1;
+b1: p2 - p1 = difference f by A2,LemmaDiffConst;
+    p3 = f.(i+1+1) by A2; then
+b2: p3 - p2 = difference f by A2,LemmaDiffConst;
+K1: 3 divides p1+1 iff 3 divides p1+1+3*333 by LemmaCong;
+    3 divides p1+2 iff 3 divides p1+2+3*666 by LemmaCong; then
+    per cases by LemmaDivides,b2,A1,b1,K1,ThreeConsecutive;
+    suppose
+AA:   p1 = 3;
+      1003 = 17 * 59; then
+
+::: ERROR in Sierpinski 250: 17 * 53 = 1003 which is simple typo
+
+      17 divides 1003; then
+      1003 is not prime;
+      hence thesis by AA,b1,A1;
+    end;
+    suppose
+      p2 = 3; then
+      p1 = 3 - 1000 by b1,A1; then
+      p1 < 0;
+      hence thesis;
+    end;
+    suppose
+      p3 = 3; then
+      p2 = 3 - 1000 by b2,A1; then
+      p2 < 0;
+      hence thesis;
+    end;
+  end;
+
+begin :: Problem 73
+:: Give an example of an infinite increasing arithmetic progression formed
+:: of positive integers such that no term of this progression can be
+:: represented as a sum or a difference of two primes.
+
+definition let k be Integer;
+  attr k is not_representable_by_sum_or_difference_of_two_primes means
+    not ex p1,p2 being Prime st
+      k = p1 + p2 or k = p1 - p2;
+end;
+
+definition let f be integer-valued sequence of REAL;
+  attr f is with_terms_not_representable_by_sum_or_diff_of_two_primes means
+    for i being Nat holds
+      f.i is not_representable_by_sum_or_difference_of_two_primes;
+end;
+
+theorem Lemma30kOdd:
+  for k being Integer holds
+    30 * k + 7 is odd
+  proof
+    let k be Integer;
+A1: 30 * k = 2 * (15 * k);
+    7 = 3 * 2 + 1;
+    hence thesis by A1;
+  end;
+
+theorem Lemma73:
+  for k being Nat st k >= 1 holds
+    30 * k + 7 is not_representable_by_sum_or_difference_of_two_primes
+  proof
+    let k be Nat;
+    assume
+AA: k >= 1;
+    assume
+    not 30 * k + 7 is not_representable_by_sum_or_difference_of_two_primes;
+      then
+    consider p,q being Prime such that
+A1: 30 * k + 7 = p + q or 30 * k + 7 = p - q;
+    p is even or q is even by A1,Lemma30kOdd; then
+    per cases by INT_2:def 4,ABIAN:def 1;
+    suppose
+S1:   q = 2;
+      per cases by A1;
+      suppose
+ss:     30 * k + 7 = p + q; then
+        p = 5 * (6 * k + 1) by S1; then
+        5 divides p; then
+        p = 5 by INT_2:def 4; then
+        k = 0 by S1,ss;
+        hence thesis by AA;
+      end;
+      suppose
+ss:     30 * k + 7 = p - q; then
+        p = 3 * (10 * k + 3) by S1; then
+        3 divides p; then
+s0:     p = 3 by INT_2:def 4;
+        10 * k >= 10 * 1 by AA,XREAL_1:66; then
+        10 * k + 3 >= 10 * 1 + 3 by XREAL_1:6;
+        hence thesis by s0,ss,S1;
+      end;
+    end;
+    suppose
+S1:   p = 2;
+      per cases by A1;
+      suppose
+s0:     30 * k + 7 = p + q; then
+        q = 5 * (6 * k + 1) by S1; then
+        5 divides q; then
+        q = 5 by INT_2:def 4; then
+        k = 0 by s0,S1;
+        hence thesis by AA;
+      end;
+      suppose
+        30 * k + 7 = p - q; then
+        -q = 30 * k + 5 by S1;
+        hence thesis;
+      end;
+    end;
+  end;
+
+registration :: Problem 73
+  cluster ArProg (37,30) ->
+    with_terms_not_representable_by_sum_or_diff_of_two_primes;
+  coherence
+  proof
+    set f = ArProg (37,30);
+    for i being Nat holds
+    f.i is not_representable_by_sum_or_difference_of_two_primes
+    proof
+      let i be Nat;
+      f.i = 37 + 30 * i by ArDefNth
+         .= 7 + 30 * (i + 1);
+      hence thesis by Lemma73,NAT_1:12;
+    end;
+    hence thesis;
+  end;
+end;

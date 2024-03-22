@@ -1,0 +1,742 @@
+:: Intuitionistic Propositional Calculus in the Extended Framework with Modal 
+:: Operator, {P}art {II } (Negation, Deduction Theorem for IPC)
+::  by Takao Inou\'e and Riku Hanaoka
+:: 
+:: Received April 30, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, CARD_1, ORDINAL4, SUBSET_1, NUMBERS, ARYTM_3, RELAT_1,
+      TARSKI, XBOOLE_0, FUNCT_1, QC_LANG2, XBOOLEAN, INTPRO_1, INTPRO_2,
+      ZFMISC_1, MCART_1, NAT_1, XXREAL_0, FINSET_1, ARYTM_1, ORDINAL1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, NUMBERS, XCMPLX_0, NAT_1,
+      FUNCT_1, FINSEQ_1, INTPRO_1, ZFMISC_1, XTUPLE_0, MCART_1, DOMAIN_1,
+      QC_LANG1, QC_LANG2, CQC_LANG, XXREAL_0, FINSET_1, ENUMSET1;
+ constructors NAT_1, FINSEQ_1, NUMBERS, INTPRO_1, DOMAIN_1, XXREAL_0, XREAL_0,
+      CQC_THE1, XTUPLE_0, CQC_LANG, ENUMSET1, RELSET_1;
+ registrations SUBSET_1, ORDINAL1, FUNCT_1, FINSEQ_1, INTPRO_1, XBOOLE_0,
+      RELSET_1, XREAL_0, CQC_LANG, LUKASI_1, FINSET_1, XXREAL_0, CARD_1, NAT_1,
+      XTUPLE_0;
+ requirements NUMERALS, BOOLE, SUBSET, REAL, ARITHM;
+
+
+begin :: The notion of proof in intuitionistic setting
+
+ reserve i,j,n,k,l for Nat;
+ reserve T,S,X,Y,Z for Subset of MC-wff;
+ reserve p,q,r,t,F,H,G for Element of MC-wff;
+ reserve s,U,V for MC-formula;
+
+definition
+  let p,q be Element of MC-wff;
+  func p 'equiv' q -> Element of MC-wff equals
+:: INTPRO_2:def 1
+  (p => q) '&' (q => p);
+end;
+
+definition
+  func Proof_Step_Kinds_IPC -> set equals
+:: INTPRO_2:def 2
+  {k: k <= 10};
+end;
+
+theorem :: INTPRO_2:1
+  0 in Proof_Step_Kinds_IPC & ... & 10 in Proof_Step_Kinds_IPC;
+
+registration
+  cluster Proof_Step_Kinds_IPC -> non empty;
+end;
+
+registration
+  cluster Proof_Step_Kinds_IPC -> finite;
+end;
+
+reserve f,g for FinSequence of [:MC-wff,Proof_Step_Kinds_IPC:];
+
+theorem :: INTPRO_2:2
+  for n being Nat holds 1 <= n & n <= len f implies
+  (f.n)`2 = 0 or ... or (f.n)`2 = 10;
+
+definition
+  let PR be (FinSequence of [:MC-wff,Proof_Step_Kinds_IPC:]),n be Nat,X;
+  pred PR,n is_a_correct_step_wrt_IPC X means
+:: INTPRO_2:def 3
+
+  (PR.n)`1 in X if (PR.n)`2 = 0,
+  ex p,q st (PR.n)`1 = p => (q => p) if (PR.n)`2 = 1,
+  ex p,q,r st (PR.n)`1 = (p => (q => r)) => ((p => q) => (p => r))
+  if (PR.n)`2 = 2,
+  ex p,q st (PR.n)`1 = (p '&' q) => p if (PR.n)`2 = 3,
+  ex p,q st (PR.n)`1 = (p '&' q) => q if (PR.n)`2 = 4,
+  ex p,q st (PR.n)`1 = p => (q => (p '&' q)) if (PR.n)`2 = 5,
+  ex p,q st (PR.n)`1 = p => (p 'or' q) if (PR.n)`2 = 6,
+  ex p,q st (PR.n)`1 = q => (p 'or' q) if (PR.n)`2 = 7,
+  ex p,q,r st (PR.n)`1 = (p => r) => ((q => r) => ((p 'or' q) => r))
+  if (PR.n)`2 = 8,
+  ex p st (PR.n)`1 = FALSUM => p if (PR.n)`2 = 9,
+  ex i,j,p,q st 1 <= i & i < n & 1 <= j & j < i & p = (PR.j)`1 &
+  q = (PR.n)`1 & (PR.i)`1 = p => q if (PR.n)`2 = 10;
+end;
+
+definition
+  let X,f;
+  pred f is_a_proof_wrt_IPC X means
+:: INTPRO_2:def 4
+  f <> {} & for n st 1 <= n & n <= len f holds
+  f,n is_a_correct_step_wrt_IPC X;
+end;
+
+theorem :: INTPRO_2:3
+  f is_a_proof_wrt_IPC X implies rng f <> {};
+
+theorem :: INTPRO_2:4
+  f is_a_proof_wrt_IPC X implies 1 <= len f;
+
+theorem :: INTPRO_2:5
+  f is_a_proof_wrt_IPC X implies (f.1)`2 = 0 or ... or (f.1)`2 = 10;
+
+theorem :: INTPRO_2:6
+  1 <= n & n <= len f implies
+  (f,n is_a_correct_step_wrt_IPC X iff f^g,n is_a_correct_step_wrt_IPC X);
+
+theorem :: INTPRO_2:7
+  1 <= n & n <= len g & g,n is_a_correct_step_wrt_IPC X implies
+  (f^g),(n+len f) is_a_correct_step_wrt_IPC X;
+
+theorem :: INTPRO_2:8
+  f is_a_proof_wrt_IPC X & g is_a_proof_wrt_IPC X implies f^g
+  is_a_proof_wrt_IPC X;
+
+theorem :: INTPRO_2:9
+  f is_a_proof_wrt_IPC X & X c= Y implies f is_a_proof_wrt_IPC Y;
+
+theorem :: INTPRO_2:10
+  f is_a_proof_wrt_IPC X & 1 <= l & l <= len f implies (f.l)`1 in CnIPC(X);
+
+definition
+  let f;
+  assume
+ f <> {};
+  func Effect_IPC(f) -> Element of MC-wff equals
+:: INTPRO_2:def 5
+
+  (f.(len f))`1;
+end;
+
+theorem :: INTPRO_2:11
+  f is_a_proof_wrt_IPC X implies Effect_IPC(f) in CnIPC(X);
+
+begin
+
+theorem :: INTPRO_2:12
+  X c= {F: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = F};
+
+theorem :: INTPRO_2:13
+  for X holds Y = {p: ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p}
+  implies Y is IPC_theory;
+
+theorem :: INTPRO_2:14
+  for X holds {p: ex f st f is_a_proof_wrt_IPC X &
+  Effect_IPC(f) = p} = CnIPC(X);
+
+theorem :: INTPRO_2:15
+  p in CnIPC(X) iff ex f st f is_a_proof_wrt_IPC X & Effect_IPC(f) = p;
+
+theorem :: INTPRO_2:16
+  p in CnIPC(X) implies ex Y st Y c= X & Y is finite & p in CnIPC(Y);
+
+begin :: The intuitionistic provable relation
+
+definition
+  let X,s;
+  pred X |-_IPC s means
+:: INTPRO_2:def 6
+
+  s in CnIPC(X);
+end;
+
+definition
+  let s;
+  pred |-_IPC s means
+:: INTPRO_2:def 7
+  {}(MC-wff)|-_IPC s;
+end;
+
+theorem :: INTPRO_2:17
+  X |-_IPC p => (q => p);
+
+theorem :: INTPRO_2:18
+  X |-_IPC (p => (q => r)) => ((p => q) => (p => r));
+
+theorem :: INTPRO_2:19
+  X |-_IPC p '&' q => p;
+
+theorem :: INTPRO_2:20
+  X |-_IPC p '&' q => q;
+
+theorem :: INTPRO_2:21
+  X |-_IPC p => (q => (p '&' q));
+
+theorem :: INTPRO_2:22
+  X |-_IPC p => (p 'or' q);
+
+theorem :: INTPRO_2:23
+  X |-_IPC q => (p 'or' q);
+
+theorem :: INTPRO_2:24
+  X |-_IPC (p => r) => ((q => r) => ((p 'or' q) => r));
+
+theorem :: INTPRO_2:25
+  X |-_IPC FALSUM => p;
+
+theorem :: INTPRO_2:26
+  X |-_IPC p & X |-_IPC p => q implies X |-_IPC q;
+
+theorem :: INTPRO_2:27
+  |-_IPC p => (q => p);
+
+theorem :: INTPRO_2:28
+  |-_IPC (p => (q => r)) => ((p => q) => (p => r));
+
+theorem :: INTPRO_2:29
+  |-_IPC p '&' q => p;
+
+theorem :: INTPRO_2:30
+  |-_IPC p '&' q => q;
+
+theorem :: INTPRO_2:31
+  |-_IPC p => (q => (p '&' q));
+
+theorem :: INTPRO_2:32
+  |-_IPC p => (p 'or' q);
+
+theorem :: INTPRO_2:33
+  |-_IPC q => (p 'or' q);
+
+theorem :: INTPRO_2:34
+  |-_IPC (p => r) => ((q => r) => ((p 'or' q) => r));
+
+theorem :: INTPRO_2:35
+  |-_IPC FALSUM => p;
+
+theorem :: INTPRO_2:36  :: Modus Ponens
+  |-_IPC p & |-_IPC p => q implies |-_IPC q;
+
+definition
+  let s;
+  attr s is valid_IPC means
+:: INTPRO_2:def 8
+  {}(MC-wff)|-_IPC s;
+end;
+
+definition
+  let s;
+  redefine attr s is valid_IPC means
+:: INTPRO_2:def 9
+  s in IPC-Taut;
+end;
+
+theorem :: INTPRO_2:37
+  p is valid_IPC implies X |-_IPC p;
+
+theorem :: INTPRO_2:38
+  p => (q => p) is valid_IPC;
+
+theorem :: INTPRO_2:39
+  (p => (q => r)) => ((p => q) => (p => r)) is valid_IPC;
+
+theorem :: INTPRO_2:40
+  p '&' q => p is valid_IPC;
+
+theorem :: INTPRO_2:41
+  p '&' q => q is valid_IPC;
+
+theorem :: INTPRO_2:42
+  p => (q => (p '&' q)) is valid_IPC;
+
+theorem :: INTPRO_2:43
+  p => (p 'or' q) is valid_IPC;
+
+theorem :: INTPRO_2:44
+  q => (p 'or' q) is valid_IPC;
+
+theorem :: INTPRO_2:45
+  (p => r) => ((q => r) => ((p 'or' q) => r)) is valid_IPC;
+
+theorem :: INTPRO_2:46
+  FALSUM => p is valid_IPC;
+
+theorem :: INTPRO_2:47 :: Modus Ponens for valid_IPC
+  p is valid_IPC & p => q is valid_IPC implies q is valid_IPC;
+
+ reserve X,T for Subset of MC-wff;
+ reserve F,G,H,p,q,r,t for Element of MC-wff;
+ reserve s,h for MC-formula;
+ reserve f for FinSequence of [:MC-wff,Proof_Step_Kinds_IPC:];
+ reserve i,j for Element of NAT;
+
+begin :: The first deduction theorem for IPC
+
+theorem :: INTPRO_2:48
+  X |-_IPC p => p;
+
+theorem :: INTPRO_2:49
+  X |-_IPC IVERUM;
+
+theorem :: INTPRO_2:50
+  X|-_IPC p implies X|-_IPC q => p;
+
+theorem :: INTPRO_2:51
+  p is valid_IPC implies X |-_IPC p;
+
+theorem :: INTPRO_2:52  :: Deduction theorem
+ (X \/ {F})|-_IPC G implies X |-_IPC F => G;
+
+begin :: A family of deduction theorems for IPC
+
+ reserve F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,G for MC-formula;
+ reserve x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x for Element of MC-wff;
+
+definition
+  let x1,x2,x3 be Element of MC-wff;
+  redefine func {x1,x2,x3} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4,x5 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7,x8 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7,x8} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7,x8,x9 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7,x8,x9} -> Subset of MC-wff;
+end;
+
+definition
+  let x1,x2,x3,x4,x5,x6,x7,x8,x9,x10 be Element of MC-wff;
+  redefine func {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10} -> Subset of MC-wff;
+end;
+
+theorem :: INTPRO_2:53
+  {F}|-_IPC G implies |-_IPC F => G;
+
+theorem :: INTPRO_2:54
+  {F1,F2}|-_IPC G implies {F2} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:55
+  {F1,F2,F3} |-_IPC G implies {F2,F3} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:56
+  {F1,F2,F3,F4} |-_IPC G implies  {F2,F3,F4} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:57
+  {F1,F2,F3,F4,F5} |-_IPC G implies {F2,F3,F4,F5} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:58
+  {F1,F2,F3,F4,F5,F6} |-_IPC G implies
+  {F2,F3,F4,F5,F6} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:59
+  {F1,F2,F3,F4,F5,F6,F7} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:60
+  {F1,F2,F3,F4,F5,F6,F7,F8} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7,F8} |-_IPC F1 => G;
+
+theorem :: INTPRO_2:61
+  {F1,F2,F3,F4,F5,F6,F7,F8,F9} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7,F8,F9} |-_IPC F1 => G;
+
+reserve x1,x2,x3,x4,x5,x6,x7,x8,x9,x10 for object;
+
+theorem :: INTPRO_2:62
+  {x1,x2,x3,x4,x5,x6,x7,x8,x9,x10} = {x2,x3,x4,x5,x6,x7,x8,x9,x10} \/ {x1};
+
+theorem :: INTPRO_2:63
+  {F1,F2,F3,F4,F5,F6,F7,F8,F9,F10} |-_IPC G implies
+  {F2,F3,F4,F5,F6,F7,F8,F9,F10} |-_IPC F1 => G;
+
+begin :: Intuitionistic provable formulas and theorems
+
+theorem :: INTPRO_2:64
+  {p} |-_IPC p;
+
+theorem :: INTPRO_2:65
+  (X |-_IPC p & X c= Y) implies Y |-_IPC p;
+
+theorem :: INTPRO_2:66
+  p in X implies X |-_IPC p;
+
+theorem :: INTPRO_2:67
+  p in X implies p in CnIPC(X);
+
+theorem :: INTPRO_2:68
+  p in IPC-Taut implies |-_IPC p;
+
+theorem :: INTPRO_2:69
+  |-_IPC p implies p in IPC-Taut;
+
+theorem :: INTPRO_2:70
+  p in IPC-Taut iff |-_IPC p;
+
+theorem :: INTPRO_2:71
+  |-_IPC p => ((p => FALSUM) => FALSUM);
+
+theorem :: INTPRO_2:72
+  {p '&' q} |-_IPC p;
+
+theorem :: INTPRO_2:73
+  {p '&' q} |-_IPC q;
+
+theorem :: INTPRO_2:74
+  |-_IPC ((p => q) '&' (p => (q => FALSUM))) => (p => FALSUM);
+
+theorem :: INTPRO_2:75
+  |-_IPC (p => FALSUM) => (p => q);
+
+theorem :: INTPRO_2:76
+  |-_IPC ((p => r) '&' (q => r)) => ((p 'or' q) => r);
+
+theorem :: INTPRO_2:77
+  |-_IPC (p '&' (p => q)) => q;
+
+theorem :: INTPRO_2:78
+  |-_IPC p => ((((p => FALSUM) => FALSUM) => FALSUM) => FALSUM);
+
+theorem :: INTPRO_2:79
+  |-_IPC ((p => FALSUM) 'or' q) => (p => q);
+
+theorem :: INTPRO_2:80
+  |-_IPC (p => q) => ((q => FALSUM) => (p => FALSUM));
+
+theorem :: INTPRO_2:81
+  |-_IPC ((p => FALSUM)'or' (q => FALSUM)) => ((p '&' q)=> FALSUM);
+
+theorem :: INTPRO_2:82
+  for p,q be MC-formula holds
+  |-_IPC p & |-_IPC q implies  |-_IPC p '&' q;
+
+theorem :: INTPRO_2:83
+  |-_IPC p => q & |-_IPC q => p implies  |-_IPC p 'equiv' q;
+
+theorem :: INTPRO_2:84
+  |-_IPC p => p;
+
+theorem :: INTPRO_2:85
+  |-_IPC p 'equiv' p;
+
+theorem :: INTPRO_2:86
+  |-_IPC ((p '&' q) => FALSUM) => (p => (q => FALSUM));
+
+theorem :: INTPRO_2:87
+  |-_IPC (p => (q => FALSUM)) => ((p '&' q) => FALSUM);
+
+theorem :: INTPRO_2:88
+  |-_IPC ((p '&' q) => FALSUM) 'equiv' (p => (q => FALSUM));
+
+theorem :: INTPRO_2:89
+  |-_IPC ((p '&' q) => FALSUM) => (q => (p => FALSUM));
+
+theorem :: INTPRO_2:90
+  |-_IPC (q => (p => FALSUM)) => ((p '&' q) => FALSUM);
+
+theorem :: INTPRO_2:91
+  |-_IPC (q => (p => FALSUM)) 'equiv' ((p '&' q) => FALSUM);
+
+theorem :: INTPRO_2:92
+  |-_IPC p => (q => (((p '&' q) => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:93
+  |-_IPC q => (p => (((p '&' q) => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:94
+  |-_IPC p => (((p '&' q) => FALSUM) => (q => FALSUM));
+
+theorem :: INTPRO_2:95
+  |-_IPC q => (((p '&' q) => FALSUM) => (p => FALSUM));
+
+theorem :: INTPRO_2:96
+  |-_IPC ((p 'or' q) => FALSUM) =>((p => FALSUM) '&' (q => FALSUM));
+
+theorem :: INTPRO_2:97
+  |-_IPC ((p => FALSUM) '&' (q => FALSUM)) => ((p 'or' q) => FALSUM);
+
+theorem :: INTPRO_2:98
+  |-_IPC ((p 'or' q) => FALSUM) 'equiv' ((p => FALSUM) '&' (q => FALSUM));
+
+theorem :: INTPRO_2:99
+  |-_IPC (p '&' (p => FALSUM)) => FALSUM;
+
+theorem :: INTPRO_2:100
+  |-_IPC FALSUM 'equiv' (p '&' (p => FALSUM));
+
+theorem :: INTPRO_2:101
+  |-_IPC (p => FALSUM) => (((p => FALSUM) => FALSUM) => FALSUM);
+
+theorem :: INTPRO_2:102
+  |-_IPC (((p => FALSUM) => FALSUM) => FALSUM) => (p => FALSUM);
+
+theorem :: INTPRO_2:103
+  |-_IPC (p => FALSUM) 'equiv' (((p => FALSUM) => FALSUM) => FALSUM);
+
+theorem :: INTPRO_2:104
+  |-_IPC ((p => FALSUM) => q) => ((((p => FALSUM) => FALSUM) => FALSUM) => q);
+
+theorem :: INTPRO_2:105
+  |-_IPC (p => q) => (((p => FALSUM)=> FALSUM) => ((q => FALSUM)=> FALSUM));
+
+theorem :: INTPRO_2:106
+  |-_IPC (p '&' (q => FALSUM)) => ((p => q) => FALSUM);
+
+theorem :: INTPRO_2:107
+  |-_IPC (((p => q) => FALSUM) => FALSUM) => (((p => FALSUM) => FALSUM) =>
+  ((q => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:108
+  |-_IPC (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM)) =>
+  (((p => q) => FALSUM) => FALSUM);
+
+theorem :: INTPRO_2:109
+  |-_IPC (((p => q) => FALSUM)=> FALSUM) 'equiv'
+  (((p => FALSUM) => FALSUM) => ((q => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:110
+  |-_IPC (((p '&' q) => FALSUM) => FALSUM) => (((p => FALSUM) => FALSUM) '&'
+  ((q => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:111
+  |-_IPC (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM)) =>
+  (((p '&' q) => FALSUM) => FALSUM);
+
+theorem :: INTPRO_2:112
+ |-_IPC (((p '&' q) => FALSUM)=> FALSUM) 'equiv'
+        (((p => FALSUM) => FALSUM) '&' ((q => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:113
+ |-_IPC (((p => q) => FALSUM)=> FALSUM) =>
+          (p => ((q => FALSUM) => FALSUM));
+
+theorem :: INTPRO_2:114 :: Restricted cut rule, No.1
+  (|-_IPC r) & ({r} |-_IPC q) implies |-_IPC q;
+
+theorem :: INTPRO_2:115  :: Restricted cut rule, No.2
+  (X |-_IPC r) & (X \/ {r} |-_IPC q) implies X |-_IPC q;
+
+theorem :: INTPRO_2:116 :: Cut rule
+  (X |-_IPC r) & (Y \/ {r} |-_IPC q) implies X \/ Y |-_IPC q;
+
+theorem :: INTPRO_2:117 :: Introduction => to premiss, No.1
+  (|-_IPC p) & ({r} |-_IPC q) implies {p => r} |-_IPC q;
+
+theorem :: INTPRO_2:118  :: Introduction => to premiss, No.2
+  (X |-_IPC p) & (X \/ {r} |-_IPC q) implies X \/ {p => r} |-_IPC q;
+
+theorem :: INTPRO_2:119
+  {q} |-_IPC q 'or' r;
+
+theorem :: INTPRO_2:120
+  {r} |-_IPC q 'or' r;
+
+theorem :: INTPRO_2:121 :: Introduction 'or' to premiss, No.1
+  ({p} |-_IPC r & {q} |-_IPC r) implies {p 'or' q} |-_IPC r;
+
+theorem :: INTPRO_2:122  :: Introduction 'or' to premiss, No.2
+  (X \/ {p} |-_IPC r & X \/ {q} |-_IPC r) implies X \/ {p 'or' q} |-_IPC r;
+
+theorem :: INTPRO_2:123 :: Introduction 'or' to premiss
+  (X \/ {p} |-_IPC r & Y \/ {q} |-_IPC r) implies
+    (X \/ Y) \/ {p 'or' q} |-_IPC r;
+
+theorem :: INTPRO_2:124
+ |-_IPC (p =>(q 'or' (p => r))) => (p =>(q 'or' r));
+
+theorem :: INTPRO_2:125
+ |-_IPC p => ((p => FALSUM) => q);
+
+theorem :: INTPRO_2:126
+  |-_IPC (p => q) => (((q '&' r)=> FALSUM) => ((p '&' r)=> FALSUM));
+
+theorem :: INTPRO_2:127
+  |-_IPC (p => q) => (((q 'or' r)=> FALSUM) => ((p 'or' r)=> FALSUM));
+
+definition
+  let p be Element of MC-wff;
+  redefine func neg p -> Element of MC-wff equals
+:: INTPRO_2:def 10
+  (p => FALSUM);
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^2 p -> Element of MC-wff equals
+:: INTPRO_2:def 11
+  ((p => FALSUM) => FALSUM);
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^3 p -> Element of MC-wff equals
+:: INTPRO_2:def 12
+  (((p => FALSUM) => FALSUM) => FALSUM);
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^4 p -> Element of MC-wff equals
+:: INTPRO_2:def 13
+  ((((p => FALSUM) => FALSUM) => FALSUM) => FALSUM);
+end;
+
+definition
+  let p be Element of MC-wff;
+  func neg^5 p -> Element of MC-wff equals
+:: INTPRO_2:def 14
+  (((((p => FALSUM) => FALSUM) => FALSUM) => FALSUM) => FALSUM);
+end;
+
+theorem :: INTPRO_2:128
+  |-_IPC p => neg neg p;
+
+theorem :: INTPRO_2:129
+  |-_IPC p => neg^2 p;
+
+theorem :: INTPRO_2:130
+  |-_IPC ((p => q) '&' (p => neg q)) => neg p;
+
+theorem :: INTPRO_2:131
+  |-_IPC (neg p) => (p => q);
+
+theorem :: INTPRO_2:132
+  |-_IPC p => neg neg neg neg p;
+
+theorem :: INTPRO_2:133
+  |-_IPC ((neg p) 'or' q) => (p => q);
+
+theorem :: INTPRO_2:134
+  |-_IPC (p => q) => ((neg q) => neg p);
+
+theorem :: INTPRO_2:135
+  |-_IPC ((neg p) 'or' (neg q)) => neg (p '&' q);
+
+theorem :: INTPRO_2:136
+  |-_IPC (neg (p '&' q)) => (p => neg q);
+
+theorem :: INTPRO_2:137
+  |-_IPC (p => (neg q)) => neg (p '&' q);
+
+theorem :: INTPRO_2:138
+  |-_IPC (neg (p '&' q)) 'equiv' (p => neg q);
+
+theorem :: INTPRO_2:139
+  |-_IPC (neg (p '&' q)) => (q => neg p);
+
+theorem :: INTPRO_2:140
+  |-_IPC (q => neg p) => neg (p '&' q);
+
+theorem :: INTPRO_2:141
+  |-_IPC (q => neg p) 'equiv' neg (p '&' q);
+
+theorem :: INTPRO_2:142
+  |-_IPC p => (q => neg neg (p '&' q));
+
+theorem :: INTPRO_2:143
+  |-_IPC q => (p => neg neg (p '&' q));
+
+theorem :: INTPRO_2:144
+  |-_IPC p => ((neg (p '&' q)) => neg q);
+
+theorem :: INTPRO_2:145
+  |-_IPC q => ((neg (p '&' q)) => neg p);
+
+theorem :: INTPRO_2:146
+  |-_IPC (neg (p 'or' q)) => ((neg p) '&' neg q);
+
+theorem :: INTPRO_2:147
+  |-_IPC ((neg p) '&' neg q) => neg (p 'or' q);
+
+theorem :: INTPRO_2:148
+  |-_IPC (neg (p 'or' q)) 'equiv' ((neg p) '&' neg q);
+
+theorem :: INTPRO_2:149
+  |-_IPC (p '&' neg p) => FALSUM;
+
+theorem :: INTPRO_2:150
+  |-_IPC FALSUM 'equiv' (p '&' neg p);
+
+theorem :: INTPRO_2:151
+  |-_IPC (neg p) => neg neg neg p;
+
+theorem :: INTPRO_2:152
+  |-_IPC (neg neg neg p) => neg p;
+
+theorem :: INTPRO_2:153
+  |-_IPC (neg p) 'equiv' neg neg neg p;
+
+theorem :: INTPRO_2:154
+  |-_IPC ((neg p) => q) => ((neg neg neg p) => q);
+
+theorem :: INTPRO_2:155
+  |-_IPC (p => q) => ((neg neg p) => neg neg q);
+
+theorem :: INTPRO_2:156
+  |-_IPC (p '&' neg q) => neg (p => q);
+
+theorem :: INTPRO_2:157
+  |-_IPC (neg neg (p => q)) => ((neg neg p) => (neg neg q));
+
+theorem :: INTPRO_2:158
+  |-_IPC ((neg neg p) => neg neg q) => neg neg (p => q);
+
+theorem :: INTPRO_2:159
+  |-_IPC (neg neg (p => q)) 'equiv' ((neg neg p) => neg neg q);
+
+theorem :: INTPRO_2:160
+  |-_IPC (neg neg (p '&' q)) => ((neg neg p) '&' neg neg q);
+
+theorem :: INTPRO_2:161
+  |-_IPC ((neg neg p) '&' (neg neg q)) => neg neg (p '&' q);
+
+theorem :: INTPRO_2:162
+  |-_IPC (neg neg (p '&' q)) 'equiv' ((neg neg p) '&' neg neg q);
+
+theorem :: INTPRO_2:163
+  |-_IPC (neg neg (p => q)) => (p => neg neg q);
+
+theorem :: INTPRO_2:164
+  |-_IPC p => ((neg p) => q);
+
+theorem :: INTPRO_2:165
+  |-_IPC (p => q) => ((neg (q '&' r)) => neg (p '&' r));
+
+theorem :: INTPRO_2:166
+  |-_IPC (p => q) => ((neg (q 'or' r)) => neg (p 'or' r));

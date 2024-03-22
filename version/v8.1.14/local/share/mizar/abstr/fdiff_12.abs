@@ -1,0 +1,384 @@
+:: Differentiation on Interval
+::  by Noboru Endou
+:: 
+:: Received March 31, 2023
+:: Copyright (c) 2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, REAL_1, SUBSET_1, SEQ_1, FDIFF_1, XXREAL_0, CARD_1,
+      COMPLEX1, FUNCT_1, RELAT_1, ARYTM_3, NAT_1, ARYTM_1, VALUED_1, SEQ_2,
+      ORDINAL2, SQUARE_1, VALUED_0, XXREAL_2, FUNCT_2, TARSKI, RCOMP_1,
+      XXREAL_1, PARTFUN1, XBOOLE_0, FCONT_1, FUNCT_7, INTEGRA5, ZFMISC_1,
+      PROB_1, MEMBERED, SEQ_4, MEASURE5, FDIFF_3, SUPINF_1, LIMFUNC1, LIMFUNC2,
+      LIMFUNC3, FDIFF_12;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ORDINAL1, XXREAL_3, XCMPLX_0,
+      XREAL_0, NUMBERS, XXREAL_0, COMPLEX1, XXREAL_1, MEMBERED, LIMFUNC1,
+      XXREAL_2, RELSET_1, SUPINF_1, SUPINF_2, FUNCT_1, PARTFUN1, PARTFUN2,
+      FUNCT_2, FCONT_1, NAT_1, VALUED_0, VALUED_1, SQUARE_1, PROB_1, RCOMP_1,
+      MEASURE5, SEQ_1, RFUNCT_1, SEQ_2, SEQ_4, FDIFF_1, FDIFF_3, INTEGRA5,
+      LIMFUNC2, LIMFUNC3;
+ constructors FCONT_1, RELSET_1, SQUARE_1, COMPLEX1, COMSEQ_2, MEASURE6,
+      MESFUNC5, INTEGRA5, LIMFUNC1, PARTFUN2, FDIFF_1, INTEGRA2, SEQ_4,
+      FDIFF_3, LIMFUNC2, LIMFUNC3, REAL_1, RVSUM_1, RECDEF_1;
+ registrations XREAL_0, RELSET_1, RCOMP_1, MEMBERED, XBOOLE_0, NUMBERS,
+      VALUED_0, VALUED_1, FUNCT_2, XXREAL_2, FCONT_3, SQUARE_1, RELAT_1,
+      ORDINAL1, XXREAL_0, NAT_1, FDIFF_1, MEASURE5, SUBSET_1, SEQ_2, SEQ_4;
+ requirements NUMERALS, BOOLE, SUBSET, REAL, ARITHM;
+
+
+begin  :: Preliminaries
+
+theorem :: FDIFF_12:1  :: relaxation of FDIFF_2:23
+for A,B be open Subset of REAL, f1,f2 be PartFunc of REAL,REAL st
+  f1 is_differentiable_on A & rng(f1|A) c= B &
+  f2 is_differentiable_on B holds
+  f2*f1 is_differentiable_on A & (f2*f1)`|A = ((f2`|B)*f1) (#) (f1`|A);
+
+theorem :: FDIFF_12:2
+for I be Interval holds
+ ].inf I,sup I.[ is open Subset of REAL & ].inf I,sup I.[ c= I;
+
+theorem :: FDIFF_12:3
+for I be Interval, x be Real st x in I & x <> inf I & x <> sup I holds
+ x in ].inf I,sup I.[;
+
+theorem :: FDIFF_12:4
+for f be PartFunc of REAL,REAL, I be Interval, x be Real st
+ f is_right_differentiable_in x & x in I & x <> sup I holds
+  f|I is_right_differentiable_in x;
+
+theorem :: FDIFF_12:5
+for f be PartFunc of REAL,REAL, I be Interval, x be Real st
+ f is_left_differentiable_in x & x in I & x <> inf I holds
+  f|I is_left_differentiable_in x;
+
+theorem :: FDIFF_12:6
+for X be set, f1,f2 be PartFunc of X,REAL st dom f1 = dom f2 holds
+ (f1 + f2) - f2 = f1 & (f1 - f2) + f2 = f1;
+
+begin :: Differentiation on Intervals
+
+definition
+  let f be PartFunc of REAL,REAL, I be non empty Interval;
+  pred f is_differentiable_on_interval I means
+:: FDIFF_12:def 1
+  I c= dom f & inf I < sup I &
+  (inf I in I implies f is_right_differentiable_in lower_bound I) &
+  (sup I in I implies f is_left_differentiable_in upper_bound I) &
+  f is_differentiable_on ].inf I,sup I.[;
+end;
+
+definition
+  let f be PartFunc of REAL,REAL, I be interval non empty Subset of REAL;
+  assume  f is_differentiable_on_interval I;
+  func f`\I -> PartFunc of REAL,REAL means
+:: FDIFF_12:def 2
+  dom it = I &
+  for x be Real st x in I holds
+   (x = inf I implies it.x = Rdiff(f,x)) &
+   (x = sup I implies it.x = Ldiff(f,x)) &
+   (x <> inf I & x <> sup I implies it.x = diff(f,x));
+end;
+
+theorem :: FDIFF_12:7
+for f be PartFunc of REAL,REAL, a,b be Real st a < b &
+ f is_differentiable_on_interval ['a,b'] holds
+ f is_differentiable_on ].a,b.[;
+
+theorem :: FDIFF_12:8
+for f be PartFunc of REAL,REAL, a,b be Real st a <= b &
+ f is_differentiable_on_interval ['a,b'] holds
+ (f`\['a,b']).a = Rdiff(f,a) & (f`\['a,b']).b = Ldiff(f,b) &
+ for x be Real st x in ].a,b.[ holds (f`\['a,b']).x = diff(f,x);
+
+theorem :: FDIFF_12:9
+for f be PartFunc of REAL,REAL, I be Interval, x be Real st
+ f|I is_right_differentiable_in x holds
+  f is_right_differentiable_in x & Rdiff(f|I,x) = Rdiff(f,x);
+
+theorem :: FDIFF_12:10
+for f be PartFunc of REAL,REAL, I be Interval, x be Real st
+ f|I is_left_differentiable_in x holds
+  f is_left_differentiable_in x & Ldiff(f|I,x) = Ldiff(f,x);
+
+theorem :: FDIFF_12:11
+for f be PartFunc of REAL,REAL, I be non empty Interval holds
+ f is_differentiable_on_interval I iff
+ (I c= dom f & for x be Real st x in I holds
+  (x = inf I implies f|I is_right_differentiable_in x) &
+  (x = sup I implies f|I is_left_differentiable_in x) &
+  (x in ].inf I,sup I.[ implies f is_differentiable_in x));
+
+theorem :: FDIFF_12:12
+for f be PartFunc of REAL,REAL, I be non empty Interval st I is open_interval
+ holds f is_differentiable_on I iff f is_differentiable_on_interval I;
+
+theorem :: FDIFF_12:13
+for f be PartFunc of REAL,REAL, x0,r be Real st
+ f is_right_differentiable_in x0 & rng f = {r} holds Rdiff(f,x0) = 0;
+
+theorem :: FDIFF_12:14
+for f be PartFunc of REAL,REAL, x0,r be Real st
+ f is_left_differentiable_in x0 & rng f = {r} holds Ldiff(f,x0) = 0;
+
+theorem :: FDIFF_12:15
+for f be PartFunc of REAL,REAL, I be non empty Interval st
+ I c= dom f & inf I < sup I & (ex r be Real st rng f = {r}) holds
+   f is_differentiable_on_interval I &
+   for x be Real st x in I holds (f`\I).x = 0;
+
+theorem :: FDIFF_12:16
+for f be PartFunc of REAL,REAL, x0 be Real st
+ dom f c= left_open_halfline x0 & f is_Lcontinuous_in x0
+  holds f is_continuous_in x0;
+
+theorem :: FDIFF_12:17
+for f be PartFunc of REAL,REAL, x0 be Real st
+ dom f c= right_open_halfline x0 & f is_Rcontinuous_in x0
+  holds f is_continuous_in x0;
+
+begin :: Fundamental Properties
+
+theorem :: FDIFF_12:18
+for f be PartFunc of REAL,REAL, I be non empty Interval st
+ I c= dom f & inf I < sup I & f|I = id I holds
+  f is_differentiable_on_interval I &
+  for x be Real st x in I holds (f`\I).x = 1;
+
+theorem :: FDIFF_12:19
+for f1,f2 be PartFunc of REAL,REAL, I be non empty Interval st
+ I c= dom(f1+f2) & f1 is_differentiable_on_interval I &
+ f2 is_differentiable_on_interval I holds
+  f1+f2 is_differentiable_on_interval I &
+  (f1+f2)`\I = f1`\I + f2`\I &
+  for x be Real st x in I holds ((f1+f2)`\I).x = (f1`\I).x + (f2`\I).x;
+
+theorem :: FDIFF_12:20
+for f1,f2 be PartFunc of REAL,REAL, I be non empty Interval st
+ I c= dom(f1-f2) & f1 is_differentiable_on_interval I &
+ f2 is_differentiable_on_interval I holds
+  f1-f2 is_differentiable_on_interval I &
+  (f1-f2)`\I = f1`\I - f2`\I &
+  for x be Real st x in I holds ((f1-f2)`\I).x = (f1`\I).x - (f2`\I).x;
+
+theorem :: FDIFF_12:21
+for f be PartFunc of REAL,REAL, x0, r be Real st
+ f is_right_differentiable_in x0 holds
+  r(#)f is_right_differentiable_in x0 & Rdiff(r(#)f,x0) = r*Rdiff(f,x0);
+
+theorem :: FDIFF_12:22
+for f be PartFunc of REAL,REAL, x0, r be Real st
+ f is_left_differentiable_in x0 holds
+  r(#)f is_left_differentiable_in x0 & Ldiff(r(#)f,x0) = r*Ldiff(f,x0);
+
+theorem :: FDIFF_12:23
+for f be PartFunc of REAL,REAL, I be non empty Interval, r be Real st
+ f is_differentiable_on_interval I holds
+  r(#)f is_differentiable_on_interval I &
+  (r(#)f)`\I = r(#)(f`\I) &
+  for x be Real st x in I holds ((r(#)f)`\I).x = r*(f`\I).x;
+
+theorem :: FDIFF_12:24
+for f1,f2 be PartFunc of REAL,REAL, I be non empty Interval st
+ f1 is_differentiable_on_interval I & f2 is_differentiable_on_interval I
+ holds
+  f1(#)f2 is_differentiable_on_interval I &
+  (f1(#)f2)`\I = f2(#)(f1`\I) + f1(#)(f2`\I) &
+  for x be Real st x in I holds
+   ((f1(#)f2)`\I).x = (f2.x)*(f1`\I).x + (f1.x)*(f2`\I).x;
+
+theorem :: FDIFF_12:25
+for f1 be PartFunc of REAL,REAL, f2 be PartFunc of REAL,REAL,
+ I be non empty Interval st I c= dom(f1/f2) &
+ f1 is_differentiable_on_interval I & f2 is_differentiable_on_interval I
+ holds f1/f2 is_differentiable_on_interval I &
+  (f1/f2)`\I = ((f1`\I)(#)f2 - (f2`\I)(#)f1)/(f2^2) &
+  for x be Real st x in I holds
+   ((f1/f2)`\I).x = ((f1`\I).x * f2.x - (f2`\I).x * f1.x)/(f2.x)^2;
+
+begin :: One-Sided Continuity
+
+theorem :: FDIFF_12:26
+for f be PartFunc of REAL,REAL, x0 be Real st
+ x0 in dom f & f is_continuous_in x0 holds
+  f is_Lcontinuous_in x0 & f is_Rcontinuous_in x0;
+
+theorem :: FDIFF_12:27
+for x0 be Real, f be PartFunc of REAL,REAL holds
+ f is_Lcontinuous_in x0 iff
+ x0 in dom f &
+ for e be Real st 0<e ex d be Real st 0 < d &
+  for x be Real st x in dom f & x0-d < x & x < x0 holds
+    |. f.x - f.x0 .| < e;
+
+theorem :: FDIFF_12:28
+for x0 be Real, f be PartFunc of REAL,REAL holds
+ f is_Rcontinuous_in x0 iff
+ x0 in dom f &
+ for e be Real st 0<e ex d be Real st 0 < d &
+  for x be Real st x in dom f & x0 < x & x < x0+d holds
+    |. f.x - f.x0 .| < e;
+
+theorem :: FDIFF_12:29
+for f be PartFunc of REAL,REAL, x0 be Real st
+ f is_Lcontinuous_in x0 & f is_Rcontinuous_in x0
+ holds f is_continuous_in x0;
+
+theorem :: FDIFF_12:30
+for x0 be Real, f be PartFunc of REAL,REAL st f is_Lcontinuous_in x0 &
+ (for r be Real st r<x0 ex g be Real st r<g & g<x0 & g in dom f)
+ holds f is_left_convergent_in x0 & lim_left(f,x0) = f.x0;
+
+theorem :: FDIFF_12:31
+for x0 be Real, f be PartFunc of REAL,REAL st f is_Rcontinuous_in x0 &
+ (for r be Real st x0<r ex g be Real st g<r & x0<g & g in dom f)
+ holds f is_right_convergent_in x0 & lim_right(f,x0) = f.x0;
+
+theorem :: FDIFF_12:32
+for f be PartFunc of REAL,REAL, x0 be Real st
+ x0 in dom f & f is_right_convergent_in x0 & lim_right(f,x0) = f.x0
+  holds f is_Rcontinuous_in x0;
+
+theorem :: FDIFF_12:33
+for x0 be Real, f be PartFunc of REAL,REAL st
+ x0 in dom f & f is_left_convergent_in x0 & lim_left(f,x0) = f.x0
+  holds f is_Lcontinuous_in x0;
+
+theorem :: FDIFF_12:34
+for f be PartFunc of REAL,REAL, x0 be Real st
+ f is_convergent_in x0 & lim(f,x0) = f.x0 holds f is_continuous_in x0;
+
+reserve h for non-zero 0-convergent Real_Sequence;
+reserve c for constant Real_Sequence;
+
+theorem :: FDIFF_12:35
+for f be PartFunc of REAL,REAL, x0 be Real st f is_Rcontinuous_in x0 holds
+ f|(right_closed_halfline x0) is_continuous_in x0;
+
+theorem :: FDIFF_12:36
+for f be PartFunc of REAL,REAL, x0 be Real st f is_Lcontinuous_in x0 holds
+ f|(left_closed_halfline x0) is_continuous_in x0;
+
+theorem :: FDIFF_12:37
+for f be PartFunc of REAL,REAL, I be non empty Interval st
+ f is_differentiable_on_interval I holds f|I is continuous;
+
+theorem :: FDIFF_12:38
+for f be PartFunc of REAL,REAL, I,J be non empty Interval st
+ f is_differentiable_on_interval I & J c= I & inf J < sup J holds
+  f is_differentiable_on_interval J &
+  for x be Real st x in J holds (f`\I).x = (f`\J).x;
+
+theorem :: FDIFF_12:39
+for f be PartFunc of REAL,REAL, Z be open Subset of REAL,
+ I be non empty Interval st I c= Z & inf I < sup I &
+ f is_differentiable_on Z holds f is_differentiable_on_interval I;
+
+begin :: Chain Rule
+
+reserve R,R1,R2 for RestFunc;
+reserve L,L1,L2 for LinearFunc;
+
+theorem :: FDIFF_12:40
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_right_differentiable_in x0 & f2 is_differentiable_in f1.x0 holds
+ f2*f1 is_right_differentiable_in x0 &
+ Rdiff(f2*f1,x0) = diff(f2,f1.x0)*Rdiff(f1,x0);
+
+theorem :: FDIFF_12:41
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_left_differentiable_in x0 & f2 is_differentiable_in f1.x0 holds
+ f2*f1 is_left_differentiable_in x0 &
+ Ldiff(f2*f1,x0) = diff(f2,f1.x0)*Ldiff(f1,x0);
+
+theorem :: FDIFF_12:42
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_right_differentiable_in x0 & f2 is_right_differentiable_in f1.x0 &
+ (for r1 be Real st r1 > 0 ex r0 be Real st r0>0 &
+   [.x0,x0+r0.] c= dom([.f1.x0,f1.x0+r1.]|`f1)) holds
+  f2*f1 is_right_differentiable_in x0 &
+  Rdiff(f2*f1,x0) = Rdiff(f2,f1.x0)*Rdiff(f1,x0);
+
+theorem :: FDIFF_12:43
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_left_differentiable_in x0 & f2 is_right_differentiable_in f1.x0 &
+  (for r1 be Real st r1 > 0 ex r0 be Real st r0 > 0 &
+    [.x0-r0,x0.] c= dom([.f1.x0,f1.x0+r1.]|`f1)) holds
+  f2*f1 is_left_differentiable_in x0 &
+  Ldiff(f2*f1,x0) = Rdiff(f2,f1.x0)*Ldiff(f1,x0);
+
+theorem :: FDIFF_12:44
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_differentiable_in x0 & f2 is_right_differentiable_in f1.x0 &
+   (for r1 be Real st r1 > 0 ex r0 be Real st r0 > 0 &
+    [.x0-r0,x0+r0.] c= dom([.f1.x0,f1.x0+r1.]|`f1)) holds
+  f2*f1 is_differentiable_in x0 &
+  diff(f2*f1,x0) = Rdiff(f2,f1.x0)*diff(f1,x0);
+
+theorem :: FDIFF_12:45
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_right_differentiable_in x0 & f2 is_left_differentiable_in f1.x0 &
+  (for r1 be Real st r1 > 0 ex r0 be Real st r0 > 0 &
+    [.x0,x0+r0.] c= dom([.f1.x0-r1,f1.x0.]|`f1)) holds
+  f2*f1 is_right_differentiable_in x0 &
+  Rdiff(f2*f1,x0) = Ldiff(f2,f1.x0)*Rdiff(f1,x0);
+
+theorem :: FDIFF_12:46
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_left_differentiable_in x0 & f2 is_left_differentiable_in f1.x0 &
+   (for r1 be Real st r1 > 0 ex r0 be Real st r0 > 0 &
+    [.x0-r0,x0.] c= dom([.f1.x0-r1,f1.x0.]|`f1)) holds
+  f2*f1 is_left_differentiable_in x0 &
+  Ldiff(f2*f1,x0) = Ldiff(f2,f1.x0)*Ldiff(f1,x0);
+
+theorem :: FDIFF_12:47
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_differentiable_in x0 & f2 is_left_differentiable_in f1.x0 &
+   (for r1 be Real st r1 > 0 ex r0 be Real st r0 > 0 &
+    [.x0-r0,x0+r0.] c= dom([.f1.x0-r1,f1.x0.]|`f1)) holds
+  f2*f1 is_differentiable_in x0 &
+  diff(f2*f1,x0) = Ldiff(f2,f1.x0)*diff(f1,x0);
+
+theorem :: FDIFF_12:48
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_right_differentiable_in x0 & f2 is_right_differentiable_in f1.x0 &
+ (ex r be Real st r > 0 & f1|([.x0,x0+r.]) is non-decreasing) holds
+  f2*f1 is_right_differentiable_in x0 &
+  Rdiff(f2*f1,x0) = Rdiff(f2,f1.x0)*Rdiff(f1,x0);
+
+theorem :: FDIFF_12:49
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_left_differentiable_in x0 & f2 is_right_differentiable_in f1.x0 &
+ (ex r be Real st r > 0 & f1|([.x0-r,x0.]) is non-increasing) holds
+  f2*f1 is_left_differentiable_in x0 &
+  Ldiff(f2*f1,x0) = Rdiff(f2,f1.x0)*Ldiff(f1,x0);
+
+theorem :: FDIFF_12:50
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_right_differentiable_in x0 & f2 is_left_differentiable_in f1.x0 &
+ (ex r be Real st r > 0 & f1|([.x0,x0+r.]) is non-increasing) holds
+  f2*f1 is_right_differentiable_in x0 &
+  Rdiff(f2*f1,x0) = Ldiff(f2,f1.x0)*Rdiff(f1,x0);
+
+theorem :: FDIFF_12:51
+for x0 be Real, f1,f2 be PartFunc of REAL,REAL st
+ f1 is_left_differentiable_in x0 & f2 is_left_differentiable_in f1.x0 &
+ (ex r be Real st r > 0 & f1|([.x0-r,x0.]) is non-decreasing) holds
+  f2*f1 is_left_differentiable_in x0 &
+  Ldiff(f2*f1,x0) = Ldiff(f2,f1.x0)*Ldiff(f1,x0);
+
+theorem :: FDIFF_12:52
+for f1,f2 be PartFunc of REAL,REAL, I,J be non empty Interval st
+ f1 is_differentiable_on_interval I & f2 is_differentiable_on_interval J &
+ f1.:I c= J holds
+  f2*f1 is_differentiable_on_interval I
+  & (f2*f1)`\I = ((f2`\J)*f1)(#)(f1`\I);

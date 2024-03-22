@@ -1,0 +1,1939 @@
+:: Processes in {P}etri nets
+::  by Grzegorz Bancerek , Mitsuru Aoki , Akio Matsumoto and Yasunari Shidama
+::
+:: Received December 20, 2002
+:: Copyright (c) 2002-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, SUBSET_1, XXREAL_0, CARD_1, FINSEQ_1, RELAT_1, TARSKI,
+      XBOOLE_0, NAT_1, ARYTM_3, FUNCT_1, FUNCOP_1, ARYTM_1, PETRI, NET_1,
+      MCART_1, FUNCT_2, FUNCT_7, PARTFUN1, ORDINAL4, VALUED_1, PNPROC_1;
+ notations TARSKI, XBOOLE_0, DOMAIN_1, XTUPLE_0, RELAT_1, FUNCT_1, SUBSET_1,
+      PARTFUN1, CARD_1, FINSEQ_1, FUNCT_2, FUNCOP_1, ORDINAL1, NUMBERS,
+      XCMPLX_0, NAT_1, NAT_D, MCART_1, FINSEQ_2, FUNCT_7, INT_1, XXREAL_0,
+      PRE_POLY, VALUED_1;
+ constructors WELLORD2, DOMAIN_1, REAL_1, FUNCT_7, NAT_D, RELSET_1, PRE_POLY,
+      XTUPLE_0, FINSEQ_6;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, ORDINAL1, XREAL_0, FINSEQ_1,
+      FUNCT_7, FINSEQ_6, VALUED_0, VALUED_1, FUNCT_2, MEMBERED, CARD_1, NAT_1,
+      XTUPLE_0;
+ requirements BOOLE, SUBSET, REAL, NUMERALS, ARITHM;
+ definitions TARSKI, XBOOLE_0, FUNCOP_1;
+ equalities TARSKI;
+ expansions TARSKI, XBOOLE_0;
+ theorems TARSKI, NAT_1, FUNCT_1, FUNCT_2, RELSET_1, FUNCOP_1, XBOOLE_1,
+      RELAT_1, INT_1, FINSEQ_1, FUNCT_7, XBOOLE_0, TREES_2, FINSEQ_3, ENUMSET1,
+      ZFMISC_1, GRFUNC_1, FINSEQ_6, XREAL_1, XXREAL_0, ORDINAL1, PARTFUN1,
+      VALUED_1, XTUPLE_0;
+ schemes NAT_1, FUNCT_1, FINSEQ_1, CLASSES1;
+
+begin :: Markings on Petri nets
+
+reserve i,j,k,l for Nat,
+  x,x1,x2,y1,y2 for set;
+
+definition
+  let P be set;
+  mode marking of P is Function of P,NAT;
+end;
+
+reserve P,p,x,y,x1,x2 for set,
+  m1,m2,m3,m4,m for marking of P,
+  i,j,j1,j2,k,k1,k2,l,l1 for Nat;
+
+notation
+  let P be set;
+  let m be marking of P;
+  let p be object;
+  synonym m multitude_of p for m.p;
+end;
+
+scheme MarkingLambda { P() -> set, F(object) -> Element of NAT }:
+  ex m being Function of P(),NAT st
+    for p st p in P() holds m.p = F(p)
+proof
+  consider m being Function such that
+A1: dom m = P() and
+A2: for p being object st p in P() holds m.p = F(p) from FUNCT_1:sch 3;
+  rng m c= NAT
+  proof
+    let y be object;
+    assume y in rng m;
+    then consider x being object such that
+A3: x in dom m and
+A4: y = m.x by FUNCT_1:def 3;
+    y = F(x) by A1,A2,A3,A4;
+    hence thesis;
+  end;
+  then reconsider m as marking of P() by A1,FUNCT_2:67,RELSET_1:4;
+  take m;
+  thus thesis by A2;
+end;
+
+definition
+  let P,m1,m2;
+
+  redefine pred m1 = m2 means
+  for p being object st p in P holds m1 multitude_of p = m2 multitude_of p;
+  compatibility
+  proof
+    thus m1 = m2 implies
+    for p be object st p in P holds m1 multitude_of p = m2 multitude_of p;
+A1: dom m1 = P by FUNCT_2:def 1;
+    dom m2 = P by FUNCT_2:def 1;
+    hence (for p being object st p in P
+holds m1 multitude_of p = m2 multitude_of p)
+    implies m1 = m2 by A1,FUNCT_1:2;
+  end;
+end;
+
+definition
+  let P;
+  func {$} P -> marking of P equals
+  P --> 0;
+  coherence;
+end;
+
+definition
+  let P be set;
+  let m1, m2 be marking of P;
+  pred m1 c= m2 means
+
+  for p being set st p in P holds
+  m1 multitude_of p <= m2 multitude_of p;
+  reflexivity;
+end;
+
+Lm1: p in P implies ({$}P).p = 0 by FUNCOP_1:7;
+
+theorem Th1:
+  {$}P c= m
+by Lm1;
+
+theorem Th2:
+  m1 c= m2 & m2 c= m3 implies m1 c= m3
+proof
+  assume that
+A1: m1 c= m2 and
+A2: m2 c= m3;
+  let p;
+  assume
+A3: p in P;
+  then
+A4: m1.p <= m2.p by A1;
+  m2.p <= m3.p by A2,A3;
+  hence thesis by A4,XXREAL_0:2;
+end;
+
+definition
+  let P be set;
+  let m1, m2 be marking of P;
+  redefine func m1 + m2 -> marking of P means
+  :Def4:
+  for p being set st p in P holds
+  it multitude_of p = (m1 multitude_of p)+(m2 multitude_of p);
+  coherence
+  proof
+    dom (m1+m2) = P by FUNCT_2:def 1;
+    hence thesis;
+  end;
+  compatibility
+  proof
+    let m be marking of P;
+    thus m = m1+m2 implies for p being set st p in P holds
+    m multitude_of p = (m1 multitude_of p)+(m2 multitude_of p) by VALUED_1:1;
+    assume
+A1: for p being set st p in P holds
+    m multitude_of p = (m1 multitude_of p)+(m2 multitude_of p);
+A2: dom m = P by FUNCT_2:def 1;
+A3: dom (m1+m2) = dom m1 /\ dom m2 by VALUED_1:def 1
+      .= P /\ dom m2 by FUNCT_2:def 1
+      .= P /\ P by FUNCT_2:def 1;
+    now
+      let x be object;
+      assume
+A4:   x in dom m;
+      hence m.x = m1.x+m2.x by A1,A2
+        .= (m1+m2).x by A2,A3,A4,VALUED_1:def 1;
+    end;
+    hence thesis by A2,A3,FUNCT_1:2;
+  end;
+end;
+
+theorem
+  m + {$}P = m
+proof
+  now
+    let p;
+    assume p in P;
+    then ({$}P).p = 0 by Lm1;
+    hence m.p = m.p + ({$}P).p;
+  end;
+  hence thesis by Def4;
+end;
+
+definition
+  let P be set;
+  let m1, m2 be marking of P such that
+A1: m2 c= m1;
+  func m1 - m2 -> marking of P means
+  :Def5:
+  for p being set st p in P holds
+  it multitude_of p = (m1 multitude_of p)-(m2 multitude_of p);
+  existence
+  proof
+    deffunc F(set) = (m1 multitude_of $1)-'(m2 multitude_of $1);
+    consider m being marking of P such that
+A2: for p st p in P holds m multitude_of p = F(p) from MarkingLambda;
+    take m;
+    let p;
+    assume
+A3: p in P;
+    then
+A4: (m1 multitude_of p) >= (m2 multitude_of p) by A1;
+    thus m multitude_of p = (m1 multitude_of p)-'(m2 multitude_of p) by A2,A3
+      .= (m1 multitude_of p)-(m2 multitude_of p) by A4,XREAL_1:233;
+  end;
+  uniqueness
+  proof
+    let M1, M2 be marking of P such that
+A5: for p being set st p in P holds
+    M1 multitude_of p = (m1 multitude_of p) - (m2 multitude_of p) and
+A6: for p st p in P holds
+    M2 multitude_of p = (m1 multitude_of p) - (m2 multitude_of p);
+    let p be object;
+    assume
+A7: p in P;
+    hence
+    M1 multitude_of p = (m1 multitude_of p) - (m2 multitude_of p) by A5
+      .= M2 multitude_of p by A6,A7;
+  end;
+end;
+
+theorem Th4:
+  m1 c= m1 + m2
+proof
+  let p;
+  assume p in P;
+  then (m1 + m2) multitude_of p = (m1 multitude_of p)+(m2 multitude_of p)
+  by Def4;
+  hence thesis by NAT_1:11;
+end;
+
+theorem
+  m - {$}P = m
+proof
+A1: now
+    let p;
+    assume p in P;
+    then ({$}P).p = 0 by Lm1;
+    hence m.p = m.p - ({$}P).p;
+  end;
+  {$}P c= m by Th1;
+  hence thesis by A1,Def5;
+end;
+
+theorem
+  m1 c= m2 & m2 c= m3 implies m3 - m2 c= m3 - m1
+proof
+  assume that
+A1: m1 c= m2 and
+A2: m2 c= m3;
+A3: m1 c= m3 by A1,A2,Th2;
+  let p;
+  assume
+A4: p in P;
+  then
+A5: m1.p <= m2.p by A1;
+A6: (m3-m1).p = m3.p - m1.p by A3,A4,Def5;
+  (m3-m2).p = m3.p - m2.p by A2,A4,Def5;
+  hence thesis by A5,A6,XREAL_1:10;
+end;
+
+theorem Th7:
+  (m1 + m2) - m2 = m1
+proof
+  let p be object;
+  assume
+A1: p in P;
+  m2 c= (m1 + m2) by Th4;
+  hence ((m1 + m2) - m2).p = (m1 + m2) .p - m2.p by A1,Def5
+    .= m1.p + m2.p - m2.p by A1,Def4
+    .= m1.p;
+end;
+
+theorem Th8:
+  m c= m1 & m1 c= m2 implies m1 - m c= m2 - m
+proof
+  assume
+A1: m c= m1;
+  assume
+A2: m1 c= m2;
+  let p;
+  assume
+A3: p in P;
+A4: m c= m2 by A1,A2,Th2;
+  m1.p <= m2.p by A2,A3;
+  then (m1.p - m.p) <= (m2.p - m.p) by XREAL_1:9;
+  then (m1 - m).p <= m2.p - m.p by A1,A3,Def5;
+  hence thesis by A3,A4,Def5;
+end;
+
+theorem Th9:
+  m1 c= m2 implies m2 + m3 -m1 = m2 - m1 + m3
+proof
+  assume
+A1: m1 c= m2;
+  let p be object;
+  assume
+A2: p in P;
+  m2 c= m2 + m3 by Th4;
+  then
+A3: m1 c= m2 + m3 by A1,Th2;
+  (m2 - m1 + m3).p = (m2 - m1).p + m3.p by A2,Def4
+    .= m3.p + (m2.p - m1.p) by A1,A2,Def5
+    .= m3.p + m2.p - m1.p
+    .= (m3 + m2).p - m1.p by A2,Def4
+    .= (m2 + m3 - m1).p by A2,A3,Def5;
+  hence thesis;
+end;
+
+theorem
+  m1 c= m2 & m2 c= m1 implies m1 = m2
+proof
+  assume
+A1: m1 c= m2;
+  assume
+A2: m2 c= m1;
+  let p be object;
+  assume
+A3: p in P;
+  then
+A4: m1.p <= m2.p by A1;
+  m2.p <= m1.p by A2,A3;
+  hence thesis by A4,XXREAL_0:1;
+end;
+
+theorem Th11:
+  (m1 + m2) + m3 = m1 + (m2 + m3)
+proof
+  let p be object;
+  assume
+A1: p in P;
+  then
+A2: ((m1 + m2) + m3).p = (m1 + m2).p + m3.p by Def4
+    .= m1.p + m2.p + m3.p by A1,Def4;
+  (m1 + (m2 + m3)).p = m1.p + (m2 + m3).p by A1,Def4
+    .= m1.p + (m2.p + m3.p) by A1,Def4
+    .= m1.p + m2.p + m3.p;
+  hence thesis by A2;
+end;
+
+theorem
+  m1 c= m2 & m3 c= m4 implies m1 + m3 c= m2 + m4
+proof
+  assume
+A1: m1 c= m2;
+  assume
+A2: m3 c= m4;
+  let p;
+  assume
+A3: p in P;
+  then
+A4: m1.p <= m2.p by A1;
+  m3.p <= m4.p by A2,A3;
+  then
+A5: m1.p + m3.p <= m2.p + m4.p by A4,XREAL_1:7;
+  (m1 + m3).p = m1.p + m3.p by A3,Def4;
+  hence thesis by A3,A5,Def4;
+end;
+
+theorem
+  m1 c= m2 implies m2 - m1 c= m2
+proof
+  assume
+A1: m1 c= m2;
+  let p;
+  assume p in P;
+  then
+A2: (m2 - m1).p = m2.p - m1.p by A1,Def5;
+  m2.p - 0 = m2.p;
+  hence thesis by A2,XREAL_1:13;
+end;
+
+theorem Th14:
+  m1 c= m2 & m3 c= m4 & m4 c= m1 implies m1 - m4 c= m2 - m3
+proof
+  assume
+A1: m1 c= m2;
+  assume
+A2: m3 c= m4;
+  assume
+A3: m4 c= m1;
+  then m4 c= m2 by A1,Th2;
+  then
+A4: m3 c= m2 by A2,Th2;
+  let p;
+  assume
+A5: p in P;
+  then
+A6: m1.p <= m2.p by A1;
+A7: m3.p <= m4.p by A2,A5;
+A8: (m2 - m3).p = m2.p - m3.p by A4,A5,Def5;
+  (m1 - m4).p = m1.p - m4.p by A3,A5,Def5;
+  hence thesis by A6,A7,A8,XREAL_1:13;
+end;
+
+theorem Th15:
+  m1 c= m2 implies m2 = (m2 - m1) + m1
+proof
+  assume
+A1: m1 c= m2;
+  let p be object;
+  assume
+A2: p in P;
+  then ((m2 - m1) + m1).p = (m2 - m1).p + m1.p by Def4
+    .= m2.p - m1.p + m1.p by A1,A2,Def5
+    .= m2.p;
+  hence thesis;
+end;
+
+theorem Th16:
+  (m1 + m2) - m1 = m2
+proof
+A1: m1 c= m1 + m2 by Th4;
+  let p be object;
+  assume
+A2: p in P;
+  then ((m1 + m2) - m1).p = (m1 + m2).p - m1.p by A1,Def5
+    .= m1.p + m2.p - m1.p by A2,Def4
+    .= m2.p;
+  hence thesis;
+end;
+
+theorem Th17:
+  m2 + m3 c= m1 implies (m1 - m2) - m3 = m1 - (m2 + m3)
+proof
+  assume m2 + m3 c= m1;
+  then (m1 - m2) - m3 = ((m1 - (m2 + m3)) + (m2 + m3)) - m2 - m3 by Th15
+    .= (((m1 - (m2 + m3) + m3) + m2) - m2) - m3 by Th11
+    .= ((m1 - (m2 + m3)) + m3) - m3 by Th16
+    .= m1 - (m2 + m3) by Th16;
+  hence thesis;
+end;
+
+theorem
+  m3 c= m2 & m2 c= m1 implies m1 - (m2 - m3) = (m1 - m2) + m3
+proof
+  assume
+A1: m3 c= m2;
+  assume
+A2: m2 c= m1;
+A3: m2 - m3 c= m3 + (m2 - m3) by Th4;
+A4: m2 = m3 + (m2 - m3) by A1,Th15;
+  then (m3 + (m2 - m3)) - (m2 - m3) c= m1 - (m2 - m3) by A2,A3,Th14;
+  then
+A5: m3 c= m1 - (m2 - m3) by Th16;
+  thus (m1 - m2) + m3 = ((m1 - (m2 - m3)) - m3) + m3 by A2,A4,Th17
+    .= m1 - (m2 - m3) by A5,Th15;
+end;
+
+begin :: Transitions and firing
+
+definition
+  let P;
+  mode transition of P -> set means
+    :Def6:
+    ex m1,m2 st it=[m1,m2];
+  existence
+  proof
+    set m1 = the marking of P;
+    take [m1, m1];
+    thus thesis;
+  end;
+end;
+
+reserve t,t1,t2 for transition of P;
+
+notation
+  let P,t;
+  synonym Pre t for t`1;
+  synonym Post t for t`2;
+end;
+
+definition
+  let P,t;
+  redefine func Pre t -> marking of P;
+  coherence
+  proof
+    ex m1,m2 st t = [m1,m2] by Def6;
+    hence thesis;
+  end;
+  redefine func Post t -> marking of P;
+  coherence
+  proof
+    ex m1, m2 st t = [m1, m2] by Def6;
+    hence thesis;
+  end;
+end;
+
+definition
+  let P, m, t;
+  func fire(t,m) -> marking of P equals
+  :Def7:
+  (m - Pre t) + Post t if Pre t c= m otherwise m;
+  coherence;
+  consistency;
+end;
+
+theorem
+  (Pre t1) + (Pre t2) c= m implies
+  fire(t2, fire(t1,m)) = (m - (Pre t1) - Pre t2) + (Post t1) + (Post t2)
+proof
+  assume
+A1: (Pre t1) + (Pre t2) c= m;
+A2: (Pre t1) c= (Pre t1) + (Pre t2) by Th4;
+  then
+A3: (Pre t1) c= m by A1,Th2;
+  then
+A4: fire(t1, m) = m - (Pre t1) + (Post t1) by Def7;
+A5: Pre t2 = (Pre t2) + (Pre t1) - (Pre t1) by Th7;
+A6: (Pre t1) + (Pre t2) - (Pre t1) c= m - (Pre t1) by A1,A2,Th8;
+  m - (Pre t1) c= m - (Pre t1) + (Post t1) by Th4;
+  then (Pre t2) c= fire(t1, m) by A4,A5,A6,Th2;
+  hence fire(t2, fire(t1, m)) = fire(t1, m)- (Pre t2) + (Post t2) by Def7
+    .= (m - (Pre t1) + (Post t1)) - (Pre t2) + (Post t2) by A3,Def7
+    .= (m - (Pre t1) - (Pre t2)) + (Post t1) + (Post t2) by A1,A2,A5,Th8,Th9;
+end;
+
+definition
+  let P, t;
+  func fire t -> Function means
+  : Def8:
+  dom it = Funcs(P, NAT) &
+  for m being marking of P holds it.m = fire(t,m);
+  existence
+  proof
+    defpred P[object,object] means ex m st m = $1 & $2 = fire(t, m);
+A1: for x being object st x in Funcs(P, NAT) ex y being object st P[x,y]
+    proof
+      let x be object;
+      assume x in Funcs(P, NAT);
+      then reconsider m = x as marking of P by FUNCT_2:66;
+      take fire(t, m);
+      thus thesis;
+    end;
+    consider f being Function such that
+A2: dom f = Funcs(P, NAT) and
+A3: for x being object st x in Funcs(P, NAT) holds P[x,f.x]
+        from CLASSES1:sch 1(A1);
+    take f;
+    thus dom f = Funcs(P, NAT) by A2;
+    let m;
+    m in Funcs(P, NAT) by FUNCT_2:8;
+    then P[m,f.m] by A3;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function such that
+A4: dom f1 = Funcs(P, NAT) and
+A5: for m being marking of P holds f1.m = fire(t,m) and
+A6: dom f2 = Funcs(P, NAT) and
+A7: for m being marking of P holds f2.m = fire(t,m);
+    now
+      let x be object;
+      assume x in dom f1;
+      then reconsider m = x as marking of P by A4,FUNCT_2:66;
+      thus f1.x = fire(t,m) by A5
+        .= f2.x by A7;
+    end;
+    hence thesis by A4,A6,FUNCT_1:2;
+  end;
+end;
+
+theorem Th20:
+  rng fire t c= Funcs(P, NAT)
+proof
+  let y be object;
+  assume y in rng fire t;
+  then consider x being object such that
+A1: x in dom fire t and
+A2: y = (fire t).x by FUNCT_1:def 3;
+  dom fire t = Funcs(P, NAT) by Def8;
+  then reconsider m=x as marking of P by A1,FUNCT_2:66;
+  y = fire(t,m) by A2,Def8;
+  hence thesis by FUNCT_2:8;
+end;
+
+theorem
+  fire(t2, fire(t1,m)) = ((fire t2)*(fire t1)).m
+proof
+  dom fire t1 = Funcs(P, NAT) by Def8;
+  then
+A1: m in dom(fire t1) by FUNCT_2:8;
+  thus fire(t2, fire(t1,m)) = (fire t2).fire(t1,m) by Def8
+    .= (fire t2).((fire t1).m) by Def8
+    .= ((fire t2)*(fire t1)).m by A1,FUNCT_1:13;
+end;
+
+definition
+  let P;
+  mode Petri_net of P -> non empty set means
+    :Def9:
+    for x being set st x in it holds x is transition of P;
+  existence
+  proof
+    set t = the transition of P;
+    take {t};
+    thus thesis by TARSKI:def 1;
+  end;
+end;
+
+reserve N for Petri_net of P;
+
+definition
+  let P, N;
+  redefine mode Element of N -> transition of P;
+  coherence by Def9;
+end;
+
+reserve e, e1,e2 for Element of N;
+
+begin :: Firing sequences of transitions
+
+definition
+  let P, N;
+  mode firing-sequence of N is Element of N*;
+end;
+
+reserve C,C1,C2,C3,fs,fs1,fs2 for firing-sequence of N;
+
+definition
+  let P, N, C;
+  func fire C -> Function means
+  :Def10:
+  ex F being Function-yielding FinSequence st it = compose(F, Funcs(P, NAT)) &
+  len F = len C & for i being Element of NAT st i in dom C
+  holds F.i = fire (C /. i qua Element of N);
+  existence
+  proof
+    deffunc G(set) = fire (C/.$1 qua Element of N);
+    consider F being FinSequence such that
+A1: len F = len C and
+A2: for k being Nat st k in dom F holds F.k = G(k) from FINSEQ_1:sch 2;
+A3: dom F = Seg len F by FINSEQ_1:def 3;
+A4: dom C = Seg len C by FINSEQ_1:def 3;
+    F is Function-yielding
+    proof
+      let x be object;
+      assume
+A5:   x in dom F;
+      then reconsider i = x as Element of NAT;
+      F.x = fire (C/.i qua Element of N) by A2,A5;
+      hence thesis;
+    end;
+    then reconsider F as Function-yielding FinSequence;
+    take f = compose(F, Funcs(P, NAT)), F;
+    thus f = compose(F, Funcs(P, NAT));
+    thus thesis by A1,A2,A3,A4;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function;
+    given F1 being Function-yielding FinSequence such that
+A6: f1 = compose(F1, Funcs(P, NAT)) and
+A7: len F1 = len C and
+A8: for i being Element of NAT st i in dom C
+    holds F1.i = fire (C/.i qua Element of N);
+    given F2 being Function-yielding FinSequence such that
+A9: f2 = compose(F2, Funcs(P, NAT)) and
+A10: len F2 = len C and
+A11: for i being Element of NAT st i in dom C
+    holds F2.i = fire (C/.i qua Element of N);
+A12: dom F1 = Seg len F1 by FINSEQ_1:def 3;
+A13: dom F2 = Seg len F2 by FINSEQ_1:def 3;
+A14: dom C = Seg len C by FINSEQ_1:def 3;
+    now
+      let i be Nat;
+      assume
+A15:  i in dom C;
+      then F1.i = fire (C/.i qua Element of N) by A8;
+      hence F1.i = F2.i by A11,A15;
+    end;
+    hence thesis by A6,A7,A9,A10,A12,A13,A14,FINSEQ_1:13;
+  end;
+end;
+
+:: Firing of empty firing-sequence <*>N
+
+theorem
+  fire(<*>N) = id Funcs(P, NAT)
+proof
+  consider F being Function-yielding FinSequence such that
+A1: fire(<*>N) = compose(F, Funcs(P, NAT)) and
+A2: len F = len <*>N and
+  for i being Element of NAT st i in dom <*>N holds
+  F.i = fire ((<*>N)/.i qua Element of N) by Def10;
+  F = {} by A2;
+  hence thesis by A1,FUNCT_7:39;
+end;
+
+:: Firing of firing-sequence with one translation <*e*>
+
+theorem Th23:
+  fire <*e*> = fire e
+proof
+  consider F being Function-yielding FinSequence such that
+A1: fire <*e*> = compose(F, Funcs(P, NAT)) and
+A2: len F = len <*e*> and
+A3: for i being Element of NAT st i in dom <*e*> holds
+  F.i = fire (<*e*>/.i qua Element of N) by Def10;
+A4: len <*e*> = 1 by FINSEQ_1:40;
+A5: <*e*>.1 = e by FINSEQ_1:40;
+  dom <*e*> = {1} by FINSEQ_1:2,def 8;
+  then
+A6: 1 in dom <*e*> by TARSKI:def 1;
+  then
+A7: <*e*>/.1 = <*e*>.1 by PARTFUN1:def 6;
+  F.1 = fire (<*e*>/.1 qua Element of N) by A3,A6;
+  then
+A8: F = <*fire e*> by A2,A4,A5,A7,FINSEQ_1:40;
+  dom fire e c= Funcs(P,NAT) by Def8;
+  hence thesis by A1,A8,FUNCT_7:46;
+end;
+
+theorem Th24:
+  (fire e)*id Funcs(P, NAT) = fire e
+proof
+A1: compose(<*fire e*>, Funcs(P, NAT)) = (fire e)*id Funcs(P, NAT)
+  by FUNCT_7:45;
+  dom fire e c= Funcs(P, NAT) by Def8;
+  hence thesis by A1,FUNCT_7:46;
+end;
+
+:: Firing of firing-sequence with two translations <*e1,e2*>
+
+theorem
+  fire <*e1,e2*> = (fire e2)*(fire e1)
+proof
+  consider F being Function-yielding FinSequence such that
+A1: fire <*e1,e2*> = compose(F, Funcs(P, NAT)) and
+A2: len F = len <*e1,e2*> and
+A3: for i being Element of NAT st i in dom <*e1,e2*> holds
+  F.i = fire (<*e1,e2*>/.i qua Element of N) by Def10;
+A4: len <*e1,e2*> = 2 by FINSEQ_1:44;
+A5: <*e1,e2*>.1 = e1 by FINSEQ_1:44;
+A6: <*e1,e2*>.2 = e2 by FINSEQ_1:44;
+A7: dom <*e1,e2*> = {1,2} by A4,FINSEQ_1:2,def 3;
+A8: 1 in {1,2} by TARSKI:def 2;
+A9: 2 in {1,2} by TARSKI:def 2;
+A10: <*e1,e2*>/.1 = <*e1,e2*>.1 by A7,A8,PARTFUN1:def 6;
+A11: <*e1,e2*>/.2 = <*e1,e2*>.2 by A7,A9,PARTFUN1:def 6;
+A12: F.1 = fire e1 by A3,A5,A7,A8,A10;
+  F.2 = fire e2 by A3,A6,A7,A9,A11;
+  then
+A13: F = <*fire e1,fire e2*> by A2,A4,A12,FINSEQ_1:44;
+  (fire e1)*id Funcs(P, NAT) = fire e1 by Th24;
+  then (fire e2)*(fire e1)*id Funcs(P, NAT) = (fire e2)*(fire e1)
+  by RELAT_1:36;
+  hence thesis by A1,A13,FUNCT_7:51;
+end;
+
+theorem Th26:
+  dom fire C = Funcs(P, NAT) & rng fire C c= Funcs(P, NAT)
+proof
+  defpred P[Nat] means for F being Function-yielding FinSequence st
+  len F = $1 & for i st i in dom F ex t st F.i = fire t
+  holds dom compose(F, Funcs(P, NAT)) = Funcs(P, NAT) &
+  rng compose(F, Funcs(P, NAT)) c= Funcs(P, NAT);
+A1: P[0]
+  proof
+    let F be Function-yielding FinSequence;
+    assume len F = 0;
+    then F = {};
+    then compose(F, Funcs(P, NAT)) = id Funcs(P, NAT) by FUNCT_7:39;
+    hence thesis;
+  end;
+A2: for k st P[k] holds P[k + 1]
+  proof
+    let k such that
+A3: for G being Function-yielding FinSequence st len G = k &
+    for i st i in dom G ex t st G.i = fire t
+    holds dom compose(G, Funcs(P, NAT)) = Funcs(P, NAT) &
+    rng compose(G, Funcs(P, NAT)) c= Funcs(P, NAT);
+    let F be Function-yielding FinSequence such that
+A4: len F = k+1 and
+A5: for i st i in dom F ex t st F.i = fire t;
+    consider G being FinSequence, x being set such that
+A6: F = G^<*x*> and
+A7: len G = k by A4,TREES_2:3;
+    reconsider G as Function-yielding FinSequence by A6,FUNCT_7:23;
+    0 qua Nat+1 <= k+1 by XREAL_1:7;
+    then k+1 in dom F by A4,FINSEQ_3:25;
+    then consider t such that
+A8: F.(k+1) = fire t by A5;
+    x = F.(k+1) by A6,A7,FINSEQ_1:42;
+    then
+A9: compose(F, Funcs(P, NAT)) = (fire t)*compose(G, Funcs(P, NAT))
+    by A6,A8,FUNCT_7:41;
+A10: dom fire t = Funcs(P, NAT) by Def8;
+A11: rng fire t c= Funcs(P, NAT) by Th20;
+A12: for i st i in dom G ex t st G.i = fire t
+    proof
+      let i;
+A13:  dom G c= dom F by A6,FINSEQ_1:26;
+      assume
+A14:  i in dom G;
+      then G.i = F.i by A6,FINSEQ_1:def 7;
+      hence thesis by A5,A13,A14;
+    end;
+    then
+A15: dom compose(G, Funcs(P, NAT)) = Funcs(P, NAT) by A3,A7;
+A16: rng compose(G, Funcs(P, NAT)) c= Funcs(P, NAT) by A3,A7,A12;
+    rng compose(F, Funcs(P, NAT)) c= rng fire t by A9,RELAT_1:26;
+    hence thesis by A9,A10,A11,A15,A16,RELAT_1:27;
+  end;
+A17: P[k] from NAT_1:sch 2(A1,A2);
+  consider F being Function-yielding FinSequence such that
+A18: fire C = compose(F, Funcs(P, NAT)) and
+A19: len F = len C and
+A20: for i being Element of NAT st i in dom C holds
+  F.i = fire (C/.i qua Element of N) by Def10;
+  for i st i in dom F ex t st F.i = fire t
+  proof
+    let i;
+    assume
+A21: i in dom F;
+A22: dom F = Seg len F by FINSEQ_1:def 3;
+A23: dom C = Seg len C by FINSEQ_1:def 3;
+    reconsider t = C/.i as Element of N;
+    take t;
+    thus thesis by A19,A20,A21,A22,A23;
+  end;
+  hence thesis by A17,A18,A19;
+end;
+
+:: Firing of compound firing-sequence
+
+theorem Th27:
+  fire (C1^C2) = (fire C2)*(fire C1)
+proof
+  consider F being Function-yielding FinSequence such that
+A1: fire (C1^C2) = compose(F, Funcs(P, NAT)) and
+A2: len F = len (C1^C2) and
+A3: for i being Element of NAT st i in dom (C1^C2) holds
+  F.i = fire ((C1^C2)/.i qua Element of N) by Def10;
+  consider F1 being Function-yielding FinSequence such that
+A4: fire C1 = compose(F1, Funcs(P, NAT)) and
+A5: len F1 = len C1 and
+A6: for i being Element of NAT st i in dom C1 holds
+  F1.i = fire (C1/.i qua Element of N) by Def10;
+  consider F2 being Function-yielding FinSequence such that
+A7: fire C2 = compose(F2, Funcs(P, NAT)) and
+A8: len F2 = len C2 and
+A9: for i being Element of NAT st i in dom C2 holds
+  F2.i = fire (C2/.i qua Element of N) by Def10;
+A10: rng fire C1 c= Funcs(P, NAT) by Th26;
+  len F = len C1 + len C2 by A2,FINSEQ_1:22;
+  then
+A11: dom F = Seg (len F1 + len F2) by A5,A8,FINSEQ_1:def 3;
+A12: for k be Nat st k in dom F1 holds F.k = F1.k
+  proof
+    let k be Nat;
+    assume
+A13: k in dom F1;
+A14: dom F1 = Seg len F1 by FINSEQ_1:def 3;
+A15: dom F1 = Seg len C1 by A5,FINSEQ_1:def 3;
+A16: dom F1 = dom C1 by A5,A14,FINSEQ_1:def 3;
+A17: k in dom C1 by A13,A15,FINSEQ_1:def 3;
+A18: dom C1 c= dom (C1^C2) by FINSEQ_1:26;
+    then
+A19: F.k = fire ((C1^C2)/.k qua Element of N) by A3,A17;
+A20: (C1^C2)/.k = (C1^C2).k by A17,A18,PARTFUN1:def 6;
+A21: (C1^C2).k = C1.k by A13,A16,FINSEQ_1:def 7;
+    C1.k = C1/.k by A13,A16,PARTFUN1:def 6;
+    hence thesis by A6,A13,A16,A19,A20,A21;
+  end;
+  for k be Nat st k in dom F2 holds F.(len F1 + k) = F2.k
+  proof
+    let k be Nat;
+    assume
+A22: k in dom F2;
+    dom F2 = Seg len F2 by FINSEQ_1:def 3;
+    then
+A23: dom F2 = dom C2 by A8,FINSEQ_1:def 3;
+    then
+A24: len F1 + k in dom (C1^C2) by A5,A22,FINSEQ_1:28;
+    reconsider lFk = len F1 + k as Element of NAT by ORDINAL1:def 12;
+A25: F.(len F1 + k) = fire ((C1^C2)/.lFk qua Element of N)
+    by A3,A5,A22,A23,FINSEQ_1:28;
+A26: (C1^C2)/.(len F1 + k) = (C1^C2).(len F1 +k) by A24,PARTFUN1:def 6;
+A27: (C1^C2).(len F1 + k) = C2.k by A5,A22,A23,FINSEQ_1:def 7;
+    C2.k = C2/.k by A22,A23,PARTFUN1:def 6;
+    hence thesis by A9,A22,A23,A25,A26,A27;
+  end;
+  then F = F1^F2 by A11,A12,FINSEQ_1:def 7;
+  hence thesis by A1,A4,A7,A10,FUNCT_7:48;
+end;
+
+theorem
+  fire (C^<*e*>) = (fire e)*(fire C)
+proof
+  fire (C^<*e*>) = (fire <*e*>)*(fire C) by Th27;
+  hence thesis by Th23;
+end;
+
+definition
+  let P, N, C, m;
+  func fire(C, m) -> marking of P equals
+  (fire C).m;
+  coherence
+  proof
+A1: dom fire C = Funcs(P, NAT) by Th26;
+A2: rng fire C c= Funcs(P, NAT) by Th26;
+    m in dom fire C by A1,FUNCT_2:8;
+    then [m,(fire C).m] in fire C by FUNCT_1:def 2;
+    then (fire C).m in rng fire C by XTUPLE_0:def 13;
+    hence thesis by A2,FUNCT_2:66;
+  end;
+end;
+
+begin :: Sequential composition
+
+definition
+  let P, N;
+  mode process of N is Subset of N*;
+end;
+
+reserve R, R1, R2, R3, P1, P2 for process of N;
+
+definition
+  let P, N, R1, R2;
+  func R1 before R2 -> process of N equals
+  {C1^C2: C1 in R1 & C2 in R2};
+  coherence
+  proof
+    set X = {C1^C2: C1 in R1 & C2 in R2};
+    X c= N*
+    proof
+      let x be object;
+      assume x in X;
+      then ex C1,C2 st x = C1^C2 & C1 in R1 & C2 in R2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let P, N;
+  let R1, R2 be non empty process of N;
+  cluster R1 before R2 -> non empty;
+  coherence
+  proof
+    consider fs1 being object such that
+A1: fs1 in R1 by XBOOLE_0:def 1;
+    consider fs2 being object such that
+A2: fs2 in R2 by XBOOLE_0:def 1;
+    reconsider fs1,fs2 as firing-sequence of N by A1,A2;
+    fs1^fs2 in R1 before R2 by A1,A2;
+    hence thesis;
+  end;
+end;
+
+theorem Th29:
+  (R1 \/ R2) before R = (R1 before R) \/ (R2 before R)
+proof
+  thus (R1 \/ R2) before R c= (R1 before R) \/ (R2 before R)
+  proof
+    let x be object;
+    assume x in (R1 \/ R2) before R;
+    then consider fs1, fs such that
+A1: x = fs1^fs and
+A2: fs1 in R1 \/ R2 and
+A3: fs in R;
+    fs1 in R1 or fs1 in R2 by A2,XBOOLE_0:def 3;
+    then x in {a1^a where a1,a is firing-sequence of N: a1 in R1 & a in R} or
+    x in {b2^b where b2,b is firing-sequence of N: b2 in R2 & b in R} by A1,A3;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+  let x be object;
+  assume
+A4: x in (R1 before R) \/ (R2 before R);
+  per cases by A4,XBOOLE_0:def 3;
+  suppose x in R1 before R;
+    then consider fs1, fs such that
+A5: x = fs1^fs and
+A6: fs1 in R1 and
+A7: fs in R;
+    fs1 in R1 \/ R2 by A6,XBOOLE_0:def 3;
+    hence thesis by A5,A7;
+  end;
+  suppose x in R2 before R;
+    then consider fs2, fs such that
+A8: x = fs2^fs and
+A9: fs2 in R2 and
+A10: fs in R;
+    fs2 in R1 \/ R2 by A9,XBOOLE_0:def 3;
+    hence thesis by A8,A10;
+  end;
+end;
+
+theorem Th30:
+  R before (R1 \/ R2) = (R before R1) \/ (R before R2)
+proof
+  thus R before (R1 \/ R2) c= (R before R1) \/ (R before R2)
+  proof
+    let x be object;
+    assume x in R before (R1 \/ R2);
+    then consider fs, fs1 such that
+A1: x = fs^fs1 and
+A2: fs in R and
+A3: fs1 in R1 \/ R2;
+    fs1 in R1 or fs1 in R2 by A3,XBOOLE_0:def 3;
+    then x in {a^a1 where a,a1 is firing-sequence of N: a in R & a1 in R1} or
+    x in {b^b2 where b,b2 is firing-sequence of N: b in R & b2 in R2} by A1,A2;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+  let x be object;
+  assume
+A4: x in (R before R1) \/ (R before R2);
+  per cases by A4,XBOOLE_0:def 3;
+  suppose x in R before R1;
+    then consider fs, fs1 such that
+A5: x = fs^fs1 and
+A6: fs in R and
+A7: fs1 in R1;
+    fs1 in R1 \/ R2 by A7,XBOOLE_0:def 3;
+    hence thesis by A5,A6;
+  end;
+  suppose x in R before R2;
+    then consider fs, fs2 such that
+A8: x = fs^fs2 and
+A9: fs in R and
+A10: fs2 in R2;
+    fs2 in R1 \/ R2 by A10,XBOOLE_0:def 3;
+    hence thesis by A8,A9;
+  end;
+end;
+
+theorem Th31:
+  {C1} before {C2} = {C1^C2}
+proof
+  thus {C1} before {C2} c= {C1^C2}
+  proof
+    let x be object;
+    assume x in {C1} before {C2};
+    then consider fs1, fs2 such that
+A1: x = fs1^fs2 and
+A2: fs1 in {C1} and
+A3: fs2 in {C2};
+A4: fs1 = C1 by A2,TARSKI:def 1;
+    fs2 = C2 by A3,TARSKI:def 1;
+    hence thesis by A1,A4,TARSKI:def 1;
+  end;
+  let x be object;
+  assume x in {C1^C2};
+  then
+A5: x = C1^C2 by TARSKI:def 1;
+A6: C1 in {C1} by TARSKI:def 1;
+  C2 in {C2} by TARSKI:def 1;
+  hence thesis by A5,A6;
+end;
+
+theorem
+  {C1,C2} before {C} = {C1^C, C2^C}
+proof
+  thus
+  {C1,C2} before {C} = ({C1} \/ {C2}) before {C} by ENUMSET1:1
+    .= ({C1} before {C}) \/ ({C2} before {C}) by Th29
+    .= {C1^C} \/ ({C2} before {C}) by Th31
+    .= {C1^C} \/ {C2^C} by Th31
+    .= {C1^C, C2^C} by ENUMSET1:1;
+end;
+
+theorem
+  {C} before {C1,C2} = {C^C1, C^C2}
+proof
+  thus
+  {C} before {C1,C2} = {C} before ({C1} \/ {C2}) by ENUMSET1:1
+    .= ({C} before {C1}) \/ ({C} before {C2}) by Th30
+    .= {C^C1} \/ ({C} before {C2}) by Th31
+    .= {C^C1} \/ {C^C2} by Th31
+    .= {C^C1, C^C2} by ENUMSET1:1;
+end;
+
+begin :: Concurrent composition
+
+definition
+  let P, N, R1, R2;
+  func R1 concur R2 -> process of N equals
+  {C: ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 &
+  Seq q1 in R1 & Seq q2 in R2};
+  coherence
+  proof
+    set X = {C: ex q1,q2 being FinSubsequence st C = q1 \/ q2 &
+    q1 misses q2 & Seq q1 in R1 & Seq q2 in R2};
+    X c= N*
+    proof
+      let x be object;
+      assume x in X;
+      then ex C st x = C & ex q1,q2 being FinSubsequence st C = q1 \/ q2 &
+      q1 misses q2 & Seq q1 in R1 & Seq q2 in R2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  commutativity
+  proof
+    let R,R1,R2;
+    assume
+A1: R = {C1: ex q1,q2 being FinSubsequence st C1 = q1 \/ q2 &
+    q1 misses q2 & Seq q1 in R1 & Seq q2 in R2};
+    thus R c= {C2: ex q1,q2 being FinSubsequence st C2 = q1 \/ q2 &
+    q1 misses q2 & Seq q1 in R2 & Seq q2 in R1}
+    proof
+      let x be object;
+      assume x in R;
+      then
+A2:   ex C1 st ( x = C1)&( ex q1,q2 being FinSubsequence st C1 =
+      q1 \/ q2 & q1 misses q2 & Seq q1 in R1 & Seq q2 in R2) by A1;
+      thus thesis by A2;
+    end;
+    let x be object;
+    assume x in {C2: ex q1,q2 being FinSubsequence st C2 = q1 \/ q2 &
+    q1 misses q2 & Seq q1 in R2 & Seq q2 in R1};
+    then ex C2 st ( x = C2)&( ex q1,q2 being FinSubsequence st C2 =
+    q1 \/ q2 & q1 misses q2 & Seq q1 in R2 & Seq q2 in R1);
+    hence thesis by A1;
+  end;
+end;
+
+theorem Th34:
+  (R1 \/ R2) concur R = (R1 concur R) \/ (R2 concur R)
+proof
+  thus (R1 \/ R2) concur R c= (R1 concur R) \/ (R2 concur R)
+  proof
+    let x be object;
+    assume x in (R1 \/ R2) concur R;
+    then consider C such that
+A1: x = C and
+A2: ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 & Seq
+    q1 in R1 \/ R2 & Seq q2 in R;
+    consider q1,q2 being FinSubsequence such that
+A3: C = q1 \/ q2 and
+A4: q1 misses q2 and
+A5: Seq q1 in R1 \/ R2 and
+A6: Seq q2 in R by A2;
+    Seq q1 in R1 or Seq q1 in R2 by A5,XBOOLE_0:def 3;
+    then x in {C1: ex q1,q2 being FinSubsequence st C1 = q1 \/ q2 & q1
+    misses q2 & Seq q1 in R1 & Seq q2 in R} or
+    x in {C2: ex q1,q2 being FinSubsequence st C2 = q1 \/ q2 & q1 misses q2
+    & Seq q1 in R2 & Seq q2 in R} by A1,A3,A4,A6;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+  let x be object;
+  assume
+A7: x in (R1 concur R) \/ (R2 concur R);
+  per cases by A7,XBOOLE_0:def 3;
+  suppose x in R1 concur R;
+    then consider C such that
+A8: x = C and
+A9: ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 & Seq
+    q1 in R1 & Seq q2 in R;
+    consider q1,q2 being FinSubsequence such that
+A10: C = q1 \/ q2 and
+A11: q1 misses q2 and
+A12: Seq q1 in R1 and
+A13: Seq q2 in R by A9;
+    Seq q1 in R1 \/ R2 by A12,XBOOLE_0:def 3;
+    hence thesis by A8,A10,A11,A13;
+  end;
+  suppose x in R2 concur R;
+    then consider C such that
+A14: x = C and
+A15: ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 & Seq
+    q1 in R2 & Seq q2 in R;
+    consider q1,q2 being FinSubsequence such that
+A16: C = q1 \/ q2 and
+A17: q1 misses q2 and
+A18: Seq q1 in R2 and
+A19: Seq q2 in R by A15;
+    Seq q1 in R1 \/ R2 by A18,XBOOLE_0:def 3;
+    hence thesis by A14,A16,A17,A19;
+  end;
+end;
+
+theorem Th35:
+  {<*e1*>} concur {<*e2*>} = {<*e1,e2*>, <*e2,e1*>}
+proof
+  set C1 = <*e1*>, C2 = <*e2*>;
+  set R1 = {C1}, R2 = {C2};
+  thus {C1} concur {C2} c= {<*e1,e2*>, <*e2,e1*>}
+  proof
+    let x be object;
+    assume x in {C1} concur {C2};
+    then consider C such that
+A1: x = C and
+A2: ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 & Seq
+    q1 in R1 & Seq q2 in R2;
+    consider q1,q2 being FinSubsequence such that
+A3: C = q1 \/ q2 and
+A4: q1 misses q2 and
+A5: Seq q1 in R1 and
+A6: Seq q2 in R2 by A2;
+A7: Seq q1 = C1 by A5,TARSKI:def 1;
+A8: Seq q2 = C2 by A6,TARSKI:def 1;
+    consider i being Element of NAT such that
+A9: q1 = {[i,e1]} by A7,FINSEQ_3:159;
+    consider j being Element of NAT such that
+A10: q2 = {[j,e2]} by A8,FINSEQ_3:159;
+A11: [i,e1] in q1 by A9,TARSKI:def 1;
+A12: [j,e2] in q2 by A10,TARSKI:def 1;
+A13: C = {[i,e1], [j,e2]} by A3,A9,A10,ENUMSET1:1;
+    then i = 1 & j = 1 & e1 = e2 or i = 1 & j = 2 or i = 2 & j = 1
+            by FINSEQ_1:98;
+    then C = <*e1,e2*> or C = <*e2,e1*>
+       by A4,A11,A12,A13,FINSEQ_1:99,XBOOLE_0:3;
+    hence thesis by A1,TARSKI:def 2;
+  end;
+  let x be object;
+  assume
+A14: x in {<*e1,e2*>, <*e2,e1*>};
+  per cases by A14,TARSKI:def 2;
+  suppose
+A15: x = <*e1,e2*>;
+    then
+A16: x = {[1,e1], [2,e2]} by FINSEQ_1:99
+      .= {[1,e1]} \/ {[2,e2]} by ENUMSET1:1;
+    reconsider q1 = {[1,e1]}, q2 = {[2,e2]} as FinSubsequence by FINSEQ_1:96;
+    [1,e1] <> [2,e2] by XTUPLE_0:1;
+    then not [1,e1] in q2 by TARSKI:def 1;
+    then
+A17: q1 misses q2 by ZFMISC_1:50;
+A18: Seq q1 = <*e1*> by FINSEQ_3:157;
+A19: Seq q2 = <*e2*> by FINSEQ_3:157;
+A20: <*e1*> in R1 by TARSKI:def 1;
+    <*e2*> in R2 by TARSKI:def 1;
+    hence thesis by A15,A16,A17,A18,A19,A20;
+  end;
+  suppose
+A21: x = <*e2,e1*>;
+    then
+A22: x = {[1,e2], [2,e1]} by FINSEQ_1:99
+      .= {[1,e2]} \/ {[2,e1]} by ENUMSET1:1;
+    reconsider q1 = {[2,e1]}, q2 = {[1,e2]} as FinSubsequence by FINSEQ_1:96;
+    [1,e2] <> [2,e1] by XTUPLE_0:1;
+    then not [2,e1] in q2 by TARSKI:def 1;
+    then
+A23: q1 misses q2 by ZFMISC_1:50;
+A24: Seq q1 = <*e1*> by FINSEQ_3:157;
+A25: Seq q2 = <*e2*> by FINSEQ_3:157;
+A26: <*e1*> in R1 by TARSKI:def 1;
+    <*e2*> in R2 by TARSKI:def 1;
+    hence thesis by A21,A22,A23,A24,A25,A26;
+  end;
+end;
+
+theorem
+  {<*e1*>,<*e2*>} concur {<*e*>} = {<*e1,e*>, <*e2,e*>, <*e,e1*>, <*e,e2*>}
+proof
+  {<*e1*>,<*e2*>} = {<*e1*>} \/ {<*e2*>} by ENUMSET1:1;
+  then
+A1: {<*e1*>,<*e2*>} concur {<*e*>}
+  = {<*e1*>} concur {<*e*>} \/ {<*e2*>} concur {<*e*>} by Th34;
+A2: {<*e1*>} concur {<*e*>} = {<*e1,e*>,<*e,e1*>} by Th35;
+  {<*e2*>} concur {<*e*>} = {<*e2,e*>,<*e,e2*>} by Th35;
+  hence {<*e1*>,<*e2*>} concur {<*e*>}
+  = {<*e1,e*>, <*e,e1*>, <*e2,e*>, <*e,e2*>} by A1,A2,ENUMSET1:5
+    .= {<*e1,e*>, <*e2,e*>, <*e,e1*>, <*e,e2*>} by ENUMSET1:62;
+end;
+
+theorem
+  (R1 before R2) before R3 = R1 before (R2 before R3)
+proof
+  thus (R1 before R2) before R3 c= R1 before (R2 before R3)
+  proof
+    let x be object;
+    assume x in (R1 before R2) before R3;
+    then consider C1,C2 such that
+A1: x = C1^C2 and
+A2: C1 in (R1 before R2) and
+A3: C2 in R3;
+    consider fs1,fs2 such that
+A4: C1 = fs1^fs2 and
+A5: fs1 in R1 and
+A6: fs2 in R2 by A2;
+A7: x = fs1^(fs2^C2) by A1,A4,FINSEQ_1:32;
+    consider C3 such that
+A8: C3 = fs2^C2 and
+A9: fs2 in R2 and
+A10: C2 in R3 by A3,A6;
+    C3 in R2 before R3 by A8,A9,A10;
+    hence thesis by A5,A7,A8;
+  end;
+  let x be object;
+  assume x in R1 before (R2 before R3);
+  then consider C1,C2 such that
+A11: x = C1^C2 and
+A12: C1 in R1 and
+A13: C2 in R2 before R3;
+  consider fs1,fs2 such that
+A14: C2 = fs1^fs2 and
+A15: fs1 in R2 and
+A16: fs2 in R3 by A13;
+A17: x = (C1^fs1)^fs2 by A11,A14,FINSEQ_1:32;
+  consider C such that
+A18: C = C1^fs1 and
+A19: C1 in R1 and
+A20: fs1 in R2 by A12,A15;
+  C in R1 before R2 by A18,A19,A20;
+  hence thesis by A16,A17,A18;
+end;
+
+notation
+ let p be FinSubsequence;
+ let i be Element of NAT;
+ synonym i Shift p for Shift(p,i);
+end;
+
+reserve q,q1,q2,q3,q4 for FinSubsequence,
+        p1,p2 for FinSequence;
+
+theorem
+  (R1 concur R2) concur R3 = R1 concur (R2 concur R3)
+proof
+  thus (R1 concur R2) concur R3 c= R1 concur (R2 concur R3)
+  proof
+    let x be object;
+    assume x in (R1 concur R2) concur R3;
+    then consider C1 such that
+A1: x = C1 and
+A2: ex q1,q2 st C1 = q1 \/ q2 & q1 misses q2 & Seq q1 in R1 concur R2 &
+    Seq q2 in R3;
+    consider q1,q2 such that
+A3: C1 = q1 \/ q2 and
+A4: q1 misses q2 and
+A5: Seq q1 in R1 concur R2 and
+A6: Seq q2 in R3 by A2;
+    consider C2 such that
+A7: Seq q1 = C2 and
+A8: ex q3,q4 st C2 = q3 \/ q4 & q3 misses q4 & Seq q3 in R1 & Seq q4 in
+    R2
+    by A5;
+    consider q3,q4 such that
+A9: C2 = q3 \/ q4 and
+A10: q3 misses q4 and
+A11: Seq q3 in R1 and
+A12: Seq q4 in R2 by A8;
+    consider n1 being Nat such that
+A13: dom q1 c= Seg n1 by FINSEQ_1:def 12;
+A14: q3 c= Seq q1 by A7,A9,XBOOLE_1:7;
+A15: q4 c= Seq q1 by A7,A9,XBOOLE_1:7;
+    Sgm dom q1 is one-to-one by A13,FINSEQ_3:92;
+    then
+A16: (Sgm dom q1).:dom q3 misses (Sgm dom q1).:dom q4
+   by A10,A14,A15,FUNCT_1:66,112;
+A17: rng ((Sgm dom q1)|dom q3) = (Sgm dom q1).:dom q3 by RELAT_1:115;
+A18: rng ((Sgm dom q1)|dom q4) = (Sgm dom q1).:dom q4 by RELAT_1:115;
+    then
+A19: q1|rng((Sgm dom q1)|dom q3) misses q1|rng((Sgm dom q1)|dom q4) by A16,A17,
+RELAT_1:187;
+A20: dom Sgm dom q1 = dom (q3 \/ q4) by A7,A9,FINSEQ_1:100
+      .= dom q3 \/ dom q4 by XTUPLE_0:23;
+A21: q1|rng((Sgm dom q1)|dom q3) \/ q1|rng((Sgm dom q1)|dom q4)
+    = q1|(rng((Sgm dom q1)|dom q3) \/ rng((Sgm dom q1)|dom q4)) by RELAT_1:78
+      .= q1|((Sgm dom q1).:(dom q3 \/ dom q4)) by A17,A18,RELAT_1:120
+      .= q1|rng((Sgm dom q1)|(dom Sgm dom q1)) by A20,RELAT_1:115
+      .= q1|rng Sgm dom q1
+      .= q1|dom q1 by FINSEQ_1:50
+      .= q1;
+A22: q1 c= C1 by A3,XBOOLE_1:7;
+A23: q1|rng((Sgm dom q1)|dom q3) c= q1 by A21,XBOOLE_1:7;
+A24: q1|rng((Sgm dom q1)|dom q4) c= q1 by A21,XBOOLE_1:7;
+    rng C1 = rng q1 \/ rng q2 by A3,RELAT_1:12;
+    then
+A25: rng q1 c= rng C1 by XBOOLE_1:7;
+A26: rng q1 = rng Seq q1 by FINSEQ_1:101;
+A27: rng Seq q1 c= rng C1 by A25,FINSEQ_1:101;
+A28: rng Seq q1 = rng q3 \/ rng q4 by A7,A9,RELAT_1:12;
+    then
+A29: rng q3 c= rng Seq q1 by XBOOLE_1:7;
+    rng q3 = rng Seq q3 by FINSEQ_1:101;
+    then
+A30: rng Seq q3 c= rng C1 by A27,A29;
+A31: rng q4 c= rng Seq q1 by A28,XBOOLE_1:7;
+    rng q4 = rng Seq q4 by FINSEQ_1:101;
+    then
+A32: rng Seq q4 c= rng C1 by A27,A31;
+    reconsider q5 = q1|rng((Sgm dom q1)|dom q3),
+    q6 = q1|rng((Sgm dom q1)|dom q4) as FinSubsequence;
+    reconsider fs = C1 as FinSequence of rng C1 by FINSEQ_1:def 4;
+    reconsider fs1 = Seq q1 as FinSequence of rng C1 by A25,A26,FINSEQ_1:def 4;
+    reconsider fs2 = Seq q3 as FinSequence of rng C1 by A30,FINSEQ_1:def 4;
+    reconsider fs3 = Seq q4 as FinSequence of rng C1 by A32,FINSEQ_1:def 4;
+    reconsider fss = q1, fss1 = q5, fss2 = q6 as Subset of fs
+    by A22,A23,A24,XBOOLE_1:1;
+    reconsider fss3 = q3, fss4 = q4 as Subset of fs1 by A7,A9,XBOOLE_1:7;
+A33: Seq fss3 = fs2;
+    fss1 = fss|rng((Sgm dom fss)|dom fss3);
+    then
+A34: Seq q3 = Seq q5 by A33,FINSEQ_6:154;
+A35: Seq fss4 = fs3;
+A36: fss2 = fss|rng((Sgm dom fss)|dom fss4);
+    q1 /\ q2 = {} by A4;
+    then
+A37: q5 /\ q2 \/ q6 /\ q2 = {} by A21,XBOOLE_1:23;
+    then
+A38: q5 /\ q2 = {};
+    q6 /\ q2 = {} by A37;
+    then
+A39: q6 misses q2;
+A40: q1 c= C1 by A3,XBOOLE_1:7;
+A41: q2 c= C1 by A3,XBOOLE_1:7;
+    q6 c= q1 by A21,XBOOLE_1:7;
+    then q6 c= C1 by A40;
+    then
+A42: dom q6 misses dom q2 by A39,A41,FUNCT_1:112;
+    then reconsider q7 = q6 \/ q2 as Function by GRFUNC_1:13;
+A43: dom C1 = dom q1 \/ dom q2 by A3,XTUPLE_0:23
+      .= (dom q5 \/ dom q6) \/ dom q2 by A21,XTUPLE_0:23
+      .= dom q5 \/ (dom q6 \/ dom q2) by XBOOLE_1:4
+      .= dom q5 \/ dom q7 by XTUPLE_0:23;
+    then
+A44: dom q7 c= dom C1 by XBOOLE_1:7;
+A45: dom C1 = Seg len C1 by FINSEQ_1:def 3;
+    then reconsider q7 as FinSubsequence by A44,FINSEQ_1:def 12;
+A46: C1 = q5 \/ q7 by A3,A21,XBOOLE_1:4;
+A47: q5 /\ q7 = q5 /\ q6 \/ q5 /\ q2 by XBOOLE_1:23;
+    q5 /\ q6 = {} by A19;
+    then
+A48: q5 misses q7 by A38,A47;
+A49: rng Seq q7 = rng q7 by FINSEQ_1:101;
+    rng C1 = rng q7 \/ rng q5 by A46,RELAT_1:12;
+    then
+A50: rng Seq q7 c= rng C1 by A49,XBOOLE_1:7;
+    rng C1 c= N by FINSEQ_1:def 4;
+    then rng Seq q7 c= N by A50;
+    then Seq q7 is FinSequence of N by FINSEQ_1:def 4;
+    then reconsider C3 = Seq q7 as firing-sequence of N by FINSEQ_1:def 11;
+A51: dom Seq q7 = Seg len Seq q7 by FINSEQ_1:def 3;
+A52: dom (q6*Sgm dom q7) c= dom Sgm dom q7 by RELAT_1:25;
+A53: dom (q2*Sgm dom q7) c= dom Sgm dom q7 by RELAT_1:25;
+A54: dom (q6*Sgm dom q7) c= dom Seq q7 by A52,FINSEQ_1:100;
+    dom (q2*Sgm dom q7) c= dom Seq q7 by A53,FINSEQ_1:100;
+    then reconsider q8 = q6*Sgm dom q7, q9 = q2*Sgm dom q7 as FinSubsequence
+    by A51,A54,FINSEQ_1:def 12;
+A55: C3 = q7*Sgm dom q7 by FINSEQ_1:def 14
+      .= q8 \/ q9 by RELAT_1:32;
+A56: dom q8 = (Sgm dom q7)"dom q6 by RELAT_1:147;
+A57: dom q9 = (Sgm dom q7)"dom q2 by RELAT_1:147;
+    dom q2 /\ dom q6 = {} by A42;
+    then (Sgm dom q7)"(dom q6 /\ dom q2) = {};
+    then (Sgm dom q7)"dom q6 /\ (Sgm dom q7)"dom q2 = {} by FUNCT_1:68;
+    then
+A58: (Sgm dom q7)"dom q6 misses (Sgm dom q7)"dom q2;
+A59: dom q6 c= dom q6 \/ dom q2 by XBOOLE_1:7;
+A60: dom q2 c= dom q6 \/ dom q2 by XBOOLE_1:7;
+A61: dom q6 c= dom q7 by A59,XTUPLE_0:23;
+A62: dom q2 c= dom q7 by A60,XTUPLE_0:23;
+A63: dom q6 c= rng Sgm dom q7 by A61,FINSEQ_1:50;
+A64: dom q2 c= rng Sgm dom q7 by A62,FINSEQ_1:50;
+A65: dom q8 = (Sgm dom q7)"dom q6 by RELAT_1:147;
+A66: dom q9 = (Sgm dom q7)"dom q2 by RELAT_1:147;
+A67: rng ((Sgm dom q7)|dom q8) = rng ((dom q6)|`(Sgm dom q7))
+           by A65,FUNCT_1:113
+      .= dom q6 by A63,RELAT_1:89;
+A68: dom q8 c= dom Sgm dom q7 by RELAT_1:25;
+A69: dom q9 c= dom Sgm dom q7 by RELAT_1:25;
+A70: (Sgm dom q7)*(Sgm dom q8) = Sgm rng ((Sgm dom q7)|dom q8)
+    by A43,A45,A68,FINSEQ_6:129,XBOOLE_1:7;
+A71: Seq q8 = (q6*Sgm dom q7)*(Sgm dom q8) by FINSEQ_1:def 14
+      .= q6*((Sgm dom q7)*(Sgm dom q8)) by RELAT_1:36
+      .= Seq q6 by A67,A70,FINSEQ_1:def 14;
+A72: rng ((Sgm dom q7)|dom q9) = rng ((dom q2)|`(Sgm dom q7))
+             by A66,FUNCT_1:113
+      .= dom q2 by A64,RELAT_1:89;
+A73: (Sgm dom q7)*(Sgm dom q9) = Sgm rng ((Sgm dom q7)|dom q9)
+    by A43,A45,A69,FINSEQ_6:129,XBOOLE_1:7;
+A74: Seq q9 = (q2*Sgm dom q7)*(Sgm dom q9) by FINSEQ_1:def 14
+      .= q2*((Sgm dom q7)*(Sgm dom q9)) by RELAT_1:36
+      .= Seq q2 by A72,A73,FINSEQ_1:def 14;
+    Seq q8 in R2 by A12,A35,A36,A71,FINSEQ_6:154;
+then ex ss1,ss2 being FinSubsequence st C3 = ss1 \/ ss2 & ss1 misses ss2 & Seq
+    ss1 in R2 & Seq ss2 in R3 by A6,A55,A56,A57,A58,A74,RELAT_1:179;
+    then Seq q7 in R2 concur R3;
+    hence thesis by A1,A11,A34,A46,A48;
+  end;
+  let x be object;
+  assume x in R1 concur (R2 concur R3);
+  then consider C1 such that
+A75: x = C1 and
+A76: ex q1,q2 st C1 = q1 \/ q2 & q1 misses q2 & Seq q1 in R1 & Seq q2 in
+  R2 concur R3;
+  consider q1,q2 such that
+A77: C1 = q1 \/ q2 and
+A78: q1 misses q2 and
+A79: Seq q1 in R1 and
+A80: Seq q2 in R2 concur R3 by A76;
+  consider C2 such that
+A81: Seq q2 = C2 and
+A82: ex q3,q4 st C2 = q3 \/ q4 & q3 misses q4 & Seq q3 in R2 & Seq q4 in
+  R3
+  by A80;
+  consider q3,q4 such that
+A83: C2 = q3 \/ q4 and
+A84: q3 misses q4 and
+A85: Seq q3 in R2 and
+A86: Seq q4 in R3 by A82;
+  consider n1 being Nat such that
+A87: dom q2 c= Seg n1 by FINSEQ_1:def 12;
+A88: q3 c= Seq q2 by A81,A83,XBOOLE_1:7;
+A89: q4 c= Seq q2 by A81,A83,XBOOLE_1:7;
+  Sgm dom q2 is one-to-one by A87,FINSEQ_3:92;
+  then
+A90: (Sgm dom q2).:dom q3 misses (Sgm dom q2).:dom q4
+   by A84,A88,A89,FUNCT_1:66,112;
+A91: rng ((Sgm dom q2)|dom q3) = (Sgm dom q2).:dom q3 by RELAT_1:115;
+A92: rng ((Sgm dom q2)|dom q4) = (Sgm dom q2).:dom q4 by RELAT_1:115;
+  then
+A93: q2|rng((Sgm dom q2)|dom q3) misses q2|rng((Sgm dom q2)|dom q4)
+  by A90,A91,RELAT_1:187;
+A94: dom Sgm dom q2 = dom Seq q2 by FINSEQ_1:100
+    .= dom q3 \/ dom q4 by A81,A83,XTUPLE_0:23;
+A95: q2|rng((Sgm dom q2)|dom q3) \/ q2|rng((Sgm dom q2)|dom q4)
+  = q2|(rng((Sgm dom q2)|dom q3) \/ rng ((Sgm dom q2)|dom q4)) by RELAT_1:78
+    .= q2|((Sgm dom q2).:(dom q3 \/ dom q4)) by A91,A92,RELAT_1:120
+    .= q2|rng((Sgm dom q2)|(dom Sgm dom q2)) by A94,RELAT_1:115
+    .= q2|rng Sgm dom q2
+    .= q2|dom q2 by FINSEQ_1:50
+    .= q2;
+A96: q2 c= C1 by A77,XBOOLE_1:7;
+A97: q2|rng((Sgm dom q2)|dom q3) c= q2 by A95,XBOOLE_1:7;
+A98: q2|rng((Sgm dom q2)|dom q4) c= q2 by A95,XBOOLE_1:7;
+  rng C1 = rng q1 \/ rng q2 by A77,RELAT_1:12;
+  then
+A99: rng q2 c= rng C1 by XBOOLE_1:7;
+A100: rng q2 = rng Seq q2 by FINSEQ_1:101;
+A101: rng Seq q2 c= rng C1 by A99,FINSEQ_1:101;
+A102: rng Seq q2 = rng q3 \/ rng q4 by A81,A83,RELAT_1:12;
+  then
+A103: rng q3 c= rng Seq q2 by XBOOLE_1:7;
+  rng q3 = rng Seq q3 by FINSEQ_1:101;
+  then
+A104: rng Seq q3 c= rng C1 by A101,A103;
+A105: rng q4 c= rng Seq q2 by A102,XBOOLE_1:7;
+  rng q4 = rng Seq q4 by FINSEQ_1:101;
+  then
+A106: rng Seq q4 c= rng C1 by A101,A105;
+  reconsider q5 = q2|rng((Sgm dom q2)|dom q3),
+  q6 = q2|rng((Sgm dom q2)|dom q4) as FinSubsequence;
+  reconsider fs = C1 as FinSequence of rng C1 by FINSEQ_1:def 4;
+  reconsider fs1 = Seq q2 as FinSequence of rng C1 by A99,A100,FINSEQ_1:def 4;
+  reconsider fs2 = Seq q3 as FinSequence of rng C1 by A104,FINSEQ_1:def 4;
+  reconsider fs3 = Seq q4 as FinSequence of rng C1 by A106,FINSEQ_1:def 4;
+  reconsider fss = q2, fss1 = q5, fss2 = q6 as Subset of fs by A96,A97,A98,
+XBOOLE_1:1;
+  reconsider fss3 = q3, fss4 = q4 as Subset of fs1 by A81,A83,XBOOLE_1:7;
+A107: Seq fss3 = fs2;
+A108: fss1 = fss|rng((Sgm dom fss)|dom fss3 );
+A109: Seq fss4 = fs3;
+  fss2 = fss|rng((Sgm dom fss)|dom fss4 );
+  then
+A110: Seq q4 = Seq q6 by A109,FINSEQ_6:154;
+  q1 /\ q2 = {} by A78;
+  then
+A111: q1 /\ q5 \/ q1 /\ q6 = {} by A95,XBOOLE_1:23;
+  then
+A112: q1 /\ q5 = {};
+A113: q1 /\ q6 = {} by A111;
+A114: q1 misses q5 by A112;
+A115: q1 c= C1 by A77,XBOOLE_1:7;
+A116: q2 c= C1 by A77,XBOOLE_1:7;
+  q5 c= q2 by A95,XBOOLE_1:7;
+  then q5 c= C1 by A116;
+  then
+A117: dom q1 misses dom q5 by A114,A115,FUNCT_1:112;
+  then reconsider q7 = q1 \/ q5 as Function by GRFUNC_1:13;
+A118: dom C1 = dom q1 \/ dom q2 by A77,XTUPLE_0:23
+    .= dom q1 \/ (dom q5 \/ dom q6) by A95,XTUPLE_0:23
+    .= (dom q1 \/ dom q5) \/ dom q6 by XBOOLE_1:4
+    .= dom q7 \/ dom q6 by XTUPLE_0:23;
+  then
+A119: dom q7 c= dom C1 by XBOOLE_1:7;
+A120: dom C1 = Seg len C1 by FINSEQ_1:def 3;
+  then reconsider q7 as FinSubsequence by A119,FINSEQ_1:def 12;
+A121: C1 = q7 \/ q6 by A77,A95,XBOOLE_1:4;
+A122: q7 /\ q6 = q1 /\ q6 \/ q5 /\ q6 by XBOOLE_1:23;
+  q5 /\ q6 = {} by A93;
+  then
+A123: q7 misses q6 by A113,A122;
+A124: rng Seq q7 = rng q7 by FINSEQ_1:101;
+  rng C1 = rng q7 \/ rng q6 by A121,RELAT_1:12;
+  then
+A125: rng Seq q7 c= rng C1 by A124,XBOOLE_1:7;
+  rng C1 c= N by FINSEQ_1:def 4;
+  then rng Seq q7 c= N by A125;
+  then Seq q7 is FinSequence of N by FINSEQ_1:def 4;
+  then reconsider C3 = Seq q7 as firing-sequence of N by FINSEQ_1:def 11;
+A126: dom Seq q7 = Seg len Seq q7 by FINSEQ_1:def 3;
+A127: dom (q1*Sgm dom q7) c= dom Sgm dom q7 by RELAT_1:25;
+A128: dom (q5*Sgm dom q7) c= dom Sgm dom q7 by RELAT_1:25;
+A129: dom (q1*Sgm dom q7) c= dom Seq q7 by A127,FINSEQ_1:100;
+  dom (q5*Sgm dom q7) c= dom Seq q7 by A128,FINSEQ_1:100;
+  then reconsider q8 = q1*Sgm dom q7, q9 = q5*Sgm dom q7 as FinSubsequence
+  by A126,A129,FINSEQ_1:def 12;
+A130: C3 = q7*Sgm dom q7 by FINSEQ_1:def 14
+    .= q8 \/ q9 by RELAT_1:32;
+A131: dom q8 = (Sgm dom q7)"dom q1 by RELAT_1:147;
+A132: dom q9 = (Sgm dom q7)"dom q5 by RELAT_1:147;
+  dom q1 /\ dom q5 = {} by A117;
+  then (Sgm dom q7)"(dom q1 /\ dom q5) = {};
+  then (Sgm dom q7)"dom q1 /\ (Sgm dom q7)"dom q5 = {} by FUNCT_1:68;
+  then
+A133: (Sgm dom q7)"dom q1 misses (Sgm dom q7)"dom q5;
+A134: dom q1 c= dom q1 \/ dom q5 by XBOOLE_1:7;
+A135: dom q5 c= dom q1 \/ dom q5 by XBOOLE_1:7;
+A136: dom q1 c= dom q7 by A134,XTUPLE_0:23;
+A137: dom q5 c= dom q7 by A135,XTUPLE_0:23;
+A138: dom q1 c= rng Sgm dom q7 by A136,FINSEQ_1:50;
+A139: dom q5 c= rng Sgm dom q7 by A137,FINSEQ_1:50;
+A140: dom q8 = (Sgm dom q7)"dom q1 by RELAT_1:147;
+A141: dom q9 = (Sgm dom q7)"dom q5 by RELAT_1:147;
+A142: rng ((Sgm dom q7)|dom q8) = rng ((dom q1)|`(Sgm dom q7))
+           by A140,FUNCT_1:113
+    .= dom q1 by A138,RELAT_1:89;
+A143: dom q8 c= dom Sgm dom q7 by RELAT_1:25;
+A144: dom q9 c= dom Sgm dom q7 by RELAT_1:25;
+A145: (Sgm dom q7)*(Sgm dom q8) = Sgm rng ((Sgm dom q7)|dom q8)
+  by A118,A120,A143,FINSEQ_6:129,XBOOLE_1:7;
+A146: Seq q8 = (q1*Sgm dom q7)*(Sgm dom q8) by FINSEQ_1:def 14
+    .= q1*((Sgm dom q7)*(Sgm dom q8)) by RELAT_1:36
+    .= Seq q1 by A142,A145,FINSEQ_1:def 14;
+A147: rng ((Sgm dom q7)|dom q9) = rng ((dom q5)|`(Sgm dom q7))
+           by A141,FUNCT_1:113
+    .= dom q5 by A139,RELAT_1:89;
+A148: (Sgm dom q7)*(Sgm dom q9) = Sgm rng ((Sgm dom q7)|dom q9)
+  by A118,A120,A144,FINSEQ_6:129,XBOOLE_1:7;
+  Seq q9 = (q5*Sgm dom q7)*(Sgm dom q9) by FINSEQ_1:def 14
+    .= q5*((Sgm dom q7)*(Sgm dom q9)) by RELAT_1:36
+    .= Seq q5 by A147,A148,FINSEQ_1:def 14;
+  then Seq q9 in R2 by A85,A107,A108,FINSEQ_6:154;
+then ex ss1,ss2 being FinSubsequence st C3 = ss1 \/ ss2 & ss1 misses ss2 & Seq
+  ss1 in R1 & Seq ss2 in R2 by A79,A130,A131,A132,A133,A146,RELAT_1:179   ;
+  then Seq q7 in R1 concur R2;
+  hence thesis by A75,A86,A110,A121,A123;
+end;
+
+theorem
+  R1 before R2 c= R1 concur R2
+proof
+  let x be object;
+  assume
+A1: x in R1 before R2;
+  then reconsider C = x as firing-sequence of N;
+  consider C1,C2 such that
+A2: x = C1^C2 and
+A3: C1 in R1 and
+A4: C2 in R2 by A1;
+  set q1 = C1, q2 = (len C1) Shift C2;
+  reconsider q1 as FinSequence;
+A5: C = q1 \/ q2 by A2,VALUED_1:49;
+A6: q1 misses q2 by VALUED_1:50;
+A7: Seq q1 in R1 by A3,FINSEQ_3:116;
+  Seq q2 in R2 by A4,VALUED_1:46;
+  hence thesis by A5,A6,A7;
+end;
+
+theorem
+  R1 c= P1 & R2 c= P2 implies R1 before R2 c= P1 before P2
+proof
+  assume that
+A1: R1 c= P1 and
+A2: R2 c= P2;
+  let x be object;
+  assume x in R1 before R2;
+  then ex C1,C2 st ( x = C1^C2)&( C1 in R1)&( C2 in R2);
+  hence thesis by A1,A2;
+end;
+
+theorem
+  R1 c= P1 & R2 c= P2 implies R1 concur R2 c= P1 concur P2
+proof
+  assume that
+A1: R1 c= P1 and
+A2: R2 c= P2;
+  let x be object;
+  assume x in R1 concur R2;
+  then ex C st
+  x = C & ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 &
+  Seq q1 in R1 & Seq q2 in R2;
+  hence thesis by A1,A2;
+end;
+
+Lm2: for p1,p2 being FinSequence, q1,q2 being FinSubsequence st
+q1 c= p1 & q2 c= p2 holds dom (q1 \/ len p1 Shift q2) c= dom (p1^p2)
+proof
+  let p1,p2 be FinSequence, q1,q2 be FinSubsequence;
+  assume that
+A1: q1 c= p1 and
+A2: q2 c= p2;
+A3: dom q1 c= dom p1 by A1,GRFUNC_1:2;
+A4: dom q2 c= dom p2 by A2,GRFUNC_1:2;
+  let x be object;
+  assume x in dom (q1 \/ len p1 Shift q2);
+  then
+A5: x in (dom q1 \/ dom (len p1 Shift q2)) by XTUPLE_0:23;
+A6: dom (p1^p2) = Seg (len p1 + len p2) by FINSEQ_1:def 7;
+A7: now
+    assume
+A8: x in dom q1;
+A9: dom p1 = Seg len p1 by FINSEQ_1:def 3;
+    len p1 <= len p1 + len p2 by INT_1:6;
+    then Seg len p1 c= Seg (len p1 + len p2) by FINSEQ_1:5;
+    hence thesis by A3,A6,A8,A9;
+  end;
+  now
+    assume
+A10: x in dom (len p1 Shift q2);
+A11: dom (len p1 Shift q2) c= dom (len p1 Shift p2)
+    proof
+      let x be object;
+      assume
+A12:  x in dom (len p1 Shift q2);
+A13:  dom (len p1 Shift p2) =
+          {k+len p1 where k is Nat: k in dom p2} by VALUED_1:def 12;
+      dom (len p1 Shift q2) =
+          {k+len p1 where k is Nat: k in dom q2} by VALUED_1:def 12;
+      then ex k being Nat st ( x = k+len p1)&( k in dom q2) by A12;
+      hence thesis by A4,A13;
+    end;
+    dom (p1^p2) = dom (p1 \/ len p1 Shift p2) by VALUED_1:49
+      .= dom p1 \/ dom (len p1 Shift p2) by XTUPLE_0:23;
+    then dom (len p1 Shift p2) c= dom (p1^p2) by XBOOLE_1:7;
+    then dom (len p1 Shift q2) c= dom (p1^p2) by A11;
+    hence thesis by A10;
+  end;
+  hence thesis by A5,A7,XBOOLE_0:def 3;
+end;
+
+Lm3: for p1 being FinSequence, q1,q2 being FinSubsequence st
+q1 c= p1 holds q1 misses ((len p1) Shift q2) by VALUED_1:50,XBOOLE_1:63;
+
+theorem
+  (R1 concur R2) before (P1 concur P2) c= (R1 before P1) concur (R2 before P2)
+proof
+  let x be object;
+  assume x in (R1 concur R2) before (P1 concur P2);
+  then consider C1,C2 such that
+A1: x = C1^C2 and
+A2: C1 in R1 concur R2 and
+A3: C2 in P1 concur P2;
+  consider C3 such that
+A4: C1 = C3 and
+A5: ex q1,q2 st C3 = q1 \/ q2 & q1 misses q2 & Seq q1 in R1 & Seq q2 in
+  R2
+  by A2;
+  consider q1,q2 such that
+A6: C3 = q1 \/ q2 and
+A7: q1 misses q2 and
+A8: Seq q1 in R1 and
+A9: Seq q2 in R2 by A5;
+  consider C4 being firing-sequence of N such that
+A10: C2 = C4 and
+A11: ex q3,q4 st C4 = q3 \/ q4 & q3 misses q4 & Seq q3 in P1 & Seq q4 in
+  P2
+  by A3;
+  consider q3,q4 such that
+A12: C4 = q3 \/ q4 and
+A13: q3 misses q4 and
+A14: Seq q3 in P1 and
+A15: Seq q4 in P2 by A11;
+  reconsider C = C1^C2 as firing-sequence of N;
+  reconsider q5 = len C1 Shift q3, q6 = len C1 Shift q4 as FinSubsequence;
+A16: q1 c= C1 by A4,A6,XBOOLE_1:7;
+A17: q2 c= C1 by A4,A6,XBOOLE_1:7;
+A18: q3 c= C2 by A10,A12,XBOOLE_1:7;
+A19: q4 c= C2 by A10,A12,XBOOLE_1:7;
+A20: C1 c= C1^C2 by FINSEQ_6:10;
+  then
+A21: q1 c= C1^C2 by A16;
+A22: q2 c= C1^C2 by A17,A20;
+  reconsider ss = C2 as FinSubsequence;
+A23: q5 c= len C1 Shift ss by A10,A12,VALUED_1:52,XBOOLE_1:7;
+A24: q6 c= len C1 Shift ss by A10,A12,VALUED_1:52,XBOOLE_1:7;
+A25: len C1 Shift C2 c= C1^C2 by VALUED_1:53;
+  then
+A26: q5 c= C1^C2 by A23;
+A27: q6 c= C1^C2 by A24,A25;
+A28: dom q1 misses dom q5 by A16,A21,A26,Lm3,FUNCT_1:112;
+  dom q2 misses dom q6 by A17,A22,A27,Lm3,FUNCT_1:112;
+  then reconsider ss1 = q1 \/ q5, ss2 = q2 \/ q6 as Function by A28,GRFUNC_1:13
+;
+A29: dom C = Seg len C by FINSEQ_1:def 3;
+A30: dom ss1 c= dom C by A16,A18,Lm2;
+  dom ss2 c= dom C by A17,A19,Lm2;
+  then reconsider ss1, ss2 as FinSubsequence by A29,A30,FINSEQ_1:def 12;
+A31: ss1 \/ ss2 = q1 \/ (len C1 Shift q3) \/ q2 \/ (len C1 Shift q4)
+  by XBOOLE_1:4
+    .= (q1 \/ q2) \/ (len C1 Shift q3) \/ (len C1 Shift q4)
+  by XBOOLE_1:4
+    .= C1 \/ ((len C1 Shift q3) \/ (len C1 Shift q4))
+  by A4,A6,XBOOLE_1:4
+    .= C1 \/ (len C1 Shift C2) by A10,A12,A13,VALUED_1:55
+    .= C by VALUED_1:49;
+A32: ss1 /\ q2 = q1 /\ q2 \/ (len C1 Shift q3) /\ q2 by XBOOLE_1:23;
+  ss1 /\ (len C1 Shift q4) = q1 /\ (len C1 Shift q4) \/ (len C1 Shift q3)
+  /\ (len C1 Shift q4) by XBOOLE_1:23;
+  then
+A33: ss1 /\ ss2 = (q1 /\ q2 \/ (len C1 Shift q3) /\ q2) \/ (q1 /\
+  (len C1 Shift q4) \/ (len C1 Shift q3) /\ (len C1 Shift q4)) by A32,
+XBOOLE_1:23;
+A34: q1 /\ q2 = {} by A7;
+A35: (len C1 Shift q3) misses q2 by A4,A6,Lm3,XBOOLE_1:7;
+A36: q1 misses (len C1 Shift q4) by A4,A6,Lm3,XBOOLE_1:7;
+A37: (len C1 Shift q3) /\ q2 = {} by A35;
+A38: q1 /\ (len C1 Shift q4) = {} by A36;
+  dom q3 misses dom q4 by A13,A18,A19,FUNCT_1:112;
+  then dom (len C1 Shift q3) misses dom (len C1 Shift q4) by VALUED_1:54;
+  then (len C1 Shift q3) misses (len C1 Shift q4) by RELAT_1:179   ;
+  then ss1 /\ ss2 = {} by A33,A34,A37,A38;
+  then
+A39: ss1 misses ss2;
+A40: ex ss3 being FinSubsequence st ( ss3 = ss1)&( (Seq q1)^(Seq
+  q3) = Seq ss3) by A16,A18,VALUED_1:64;
+A41: ex ss4 being FinSubsequence st ( ss4 = ss2)&( (Seq q2)^(Seq
+  q4) = Seq ss4) by A17,A19,VALUED_1:64;
+A42: Seq ss1 in R1 before P1 by A8,A14,A40;
+  Seq ss2 in R2 before P2 by A9,A15,A41;
+  hence thesis by A1,A31,A39,A42;
+end;
+
+registration
+  let P, N;
+  let R1, R2 be non empty process of N;
+  cluster R1 concur R2 -> non empty;
+  coherence
+  proof
+    consider fs1 being object such that
+A1: fs1 in R1 by XBOOLE_0:def 1;
+    consider fs2 being object such that
+A2: fs2 in R2 by XBOOLE_0:def 1;
+    reconsider fs1, fs2 as firing-sequence of N by A1,A2;
+    reconsider C = fs1^fs2 as firing-sequence of N;
+A3: C = fs1 \/ (len fs1 Shift fs2) by VALUED_1:49;
+A4: fs1 misses (len fs1 Shift fs2) by VALUED_1:50;
+A5: fs1 = Seq fs1 by FINSEQ_3:116;
+    Seq (len fs1 Shift fs2) in R2 by A2,VALUED_1:46;
+    then C in R1 concur R2 by A1,A3,A4,A5;
+    hence thesis;
+  end;
+end;
+
+begin  :: Neutral process
+
+definition
+  let P;
+  let N be Petri_net of P;
+  func NeutralProcess(N) -> non empty process of N equals
+  {<*>N};
+  coherence;
+end;
+
+definition
+  let P;
+  let N be Petri_net of P;
+  let t be Element of N;
+  func ElementaryProcess(t) -> non empty process of N equals
+  {<*t*>};
+  coherence;
+end;
+
+theorem
+  NeutralProcess(N) before R = R
+proof
+  thus NeutralProcess(N) before R c= R
+  proof
+    let x be object;
+    assume x in (NeutralProcess(N) before R);
+    then consider C1,C such that
+A1: x = C1^C and
+A2: C1 in NeutralProcess(N) and
+A3: C in R;
+    C1 = <*>N by A2,TARSKI:def 1;
+    hence thesis by A1,A3,FINSEQ_1:34;
+  end;
+  let x be object;
+  assume
+A4: x in R;
+  then reconsider C = x as Element of N*;
+A5: <*>N in NeutralProcess(N) by TARSKI:def 1;
+  x = (<*>N)^C by FINSEQ_1:34;
+  hence thesis by A4,A5;
+end;
+
+theorem
+  R before NeutralProcess(N) = R
+proof
+  thus R before NeutralProcess N c= R
+  proof
+    let x be object;
+    assume x in R before NeutralProcess N;
+    then consider C1,C such that
+A1: x = C1^C and
+A2: C1 in R and
+A3: C in NeutralProcess(N);
+    C = <*>N by A3,TARSKI:def 1;
+    hence thesis by A1,A2,FINSEQ_1:34;
+  end;
+  let x be object;
+  assume
+A4: x in R;
+  then reconsider C = x as Element of N*;
+A5: <*>N in NeutralProcess(N) by TARSKI:def 1;
+  x = C^(<*>N) by FINSEQ_1:34;
+  hence thesis by A4,A5;
+end;
+
+theorem
+  NeutralProcess(N) concur R = R
+proof
+  thus NeutralProcess(N) concur R c= R
+  proof
+    let x be object;
+    assume x in NeutralProcess(N) concur R;
+    then consider C such that
+A1: x = C and
+A2: ex q1,q2 being FinSubsequence st C = q1 \/ q2 & q1 misses q2 & Seq
+    q1 in {<*>N} & Seq q2 in R;
+    consider q1,q2 being FinSubsequence such that
+A3: C = q1 \/ q2
+    and q1 misses q2 and
+A4: Seq q1 in {<*>N} and
+A5: Seq q2 in R by A2;
+    Seq q1 = {} by A4,TARSKI:def 1;
+    then q1 = {} by FINSEQ_1:97;
+    hence thesis by A1,A3,A5,FINSEQ_3:116;
+  end;
+  let x be object;
+  assume
+A6: x in R;
+  then reconsider C = x as firing-sequence of N;
+  reconsider q1 = <*>N, q2 = C as FinSubsequence;
+A7: Seq q2 = C by FINSEQ_3:116;
+A8: {} \/ q2 = C;
+A9: Seq q1 = q1 by FINSEQ_3:116;
+A10: q1 in {<*>N} by TARSKI:def 1;
+  q1 misses q2;
+  hence thesis by A6,A7,A8,A9,A10;
+end;

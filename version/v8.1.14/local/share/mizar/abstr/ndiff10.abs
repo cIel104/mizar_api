@@ -1,0 +1,408 @@
+:: Inverse Function Theorem -- Part {I}
+::  by Kazuhisa Nakasho and Yuichi Futa
+:: 
+:: Received March 30, 2021
+:: Copyright (c) 2021-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, REAL_1, ZFMISC_1, NORMSP_1, PRE_TOPC, PARTFUN1, FUNCT_1,
+      NAT_1, FDIFF_1, SUBSET_1, RELAT_1, LOPBAN_1, RCOMP_1, SQUARE_1, TARSKI,
+      ARYTM_3, ALGSTR_0, PRALG_1, FUNCT_2, ARYTM_1, SUPINF_2, FCONT_1,
+      STRUCT_0, CARD_1, XXREAL_0, XBOOLE_0, FINSEQ_1, RLVECT_1, CFCONT_1,
+      NDIFF_7, MCART_1, METRIC_1, LOPBAN_2, FUNCOP_1, NDIFF10, VECTMETR,
+      MSSUBFAM, COMPLEX1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, ORDINAL1,
+      RELSET_1, PARTFUN1, FUNCT_2, FUNCOP_1, BINOP_1, NUMBERS, XCMPLX_0,
+      XXREAL_0, XREAL_0, SQUARE_1, NAT_1, FINSEQ_1, FINSEQ_2, STRUCT_0,
+      PRE_TOPC, RLVECT_1, VECTSP_1, NORMSP_0, NORMSP_1, VFUNCT_1, EUCLID,
+      LOPBAN_1, LOPBAN_2, LOPBAN_5, LOPBAN_7, NFCONT_1, NDIFF_1, MAZURULM,
+      NDIFF_2, PRVECT_3, NDIFF_7, NDIFF_8, LOPBAN13;
+ constructors SQUARE_1, VFUNCT_1, NDIFF_1, RELSET_1, RSSPACE3, LOPBAN_3,
+      NDIFF_2, DOMAIN_1, NDIFF_7, NDIFF_8, LOPBAN_5, LOPBAN_7, LOPBAN13,
+      RVSUM_1;
+ registrations RELSET_1, STRUCT_0, XREAL_0, MEMBERED, FUNCT_1, FUNCT_2,
+      LOPBAN_1, LOPBAN_2, PRVECT_3, VALUED_0, XTUPLE_0, NDIFF_7, RELAT_1,
+      NDIFF_8, SQUARE_1, NORMSP_3;
+ requirements SUBSET, REAL, BOOLE, NUMERALS;
+
+
+begin :: Preliminaries
+
+reserve S,T,W,Y for RealNormSpace;
+reserve f,f1,f2 for PartFunc of S,T;
+reserve Z for Subset of S;
+reserve i,n for Nat;
+
+theorem :: NDIFF10:1
+  for X,Y be RealNormSpace,
+      f be PartFunc of X,Y,
+      A be Subset of X,
+      B be Subset of Y
+  st dom f = A
+   & f is_continuous_on A
+   & A is open
+   & B is open
+  holds f"B is open;
+
+theorem :: NDIFF10:2
+  for X,Y be RealNormSpace,
+        x be Point of X,
+        y be Point of Y,
+        z be Point of [:X,Y:],
+    r1,r2 be Real st 0 < r1 & 0 < r2 & z = [x,y]
+  holds
+    ex s be Real
+    st s = min(r1, r2) & s > 0
+     & Ball(z,s) c= [:Ball(x,r1), Ball(y,r2):];
+
+theorem :: NDIFF10:3
+  for X,Y be RealNormSpace,
+        V be Subset of [:X,Y:]
+  holds
+    V is open
+  iff
+   (for x be Point of X, y be Point of Y
+    st [x,y] in V
+    ex r1,r2 be Real
+     st 0 < r1 & 0 < r2
+      & [:Ball(x,r1),Ball(y,r2):] c= V);
+
+theorem :: NDIFF10:4
+  for X,Y be RealNormSpace,
+        V be Subset of [:X,Y:],
+        D be Subset of X
+  st D is open & V = [:D,the carrier of Y:]
+  holds V is open;
+
+theorem :: NDIFF10:5
+  for X,Y be RealNormSpace,
+        V be Subset of [:X,Y:],
+        D be Subset of Y
+  st D is open & V = [:the carrier of X,D:]
+  holds V is open;
+
+begin :: A map to reverse the order of product of two norm spaces
+
+theorem :: NDIFF10:6
+  for x,y be Real, u,v being Element of REAL 2
+   st u = <*x,y*> & v = <*y,x*>
+  holds |.u.| = |.v.|;
+
+definition
+  let X,Y be RealNormSpace;
+  func Exch(X,Y) -> LinearOperator of [:X,Y:],[:Y,X:]
+  means
+:: NDIFF10:def 1
+
+    it is one-to-one onto isometric
+  & for x be Point of X,y be Point of Y
+    holds it.(x,y) = [y,x];
+end;
+
+theorem :: NDIFF10:7
+  for X,Y be RealNormSpace,
+        Z be Subset of [:X,Y:],
+      x,y be object
+  holds
+    [x,y] in Z iff [y,x] in (Exch(Y,X)) " Z;
+
+theorem :: NDIFF10:8
+  for X,Y be RealNormSpace,
+        Z be non empty set,
+        f be PartFunc of [:X,Y:],Z,
+        I be Function of [:Y,X:],[:X,Y:]
+   st ( for y be Point of Y, x be Point of X
+        holds I.(y,x) = [x,y] )
+  holds
+    dom(f*I) = I"(dom f)
+  & for x be Point of X, y be Point of Y
+    holds (f*I).(y,x) = f.(x,y);
+
+theorem :: NDIFF10:9
+  for X,Y,Z be RealNormSpace,
+          f be PartFunc of Y,Z,
+          I be LinearOperator of X,Y,
+          V be Subset of Y
+   st f is_differentiable_on V
+    & I is one-to-one onto isometric
+  holds
+    for y be Point of Y st y in V
+    holds (f`| V).y = (((f*I)`| I"V )/.(I".y)) * I";
+
+theorem :: NDIFF10:10
+  for X,Y,Z be RealNormSpace,
+          V be Subset of Y,
+          g be PartFunc of Y,Z,
+          I be LinearOperator of X,Y
+   st I is one-to-one onto isometric
+    & g is_differentiable_on V
+  holds
+      g`|V is_continuous_on V
+    iff
+      (g*I)`| (I"V) is_continuous_on (I"V);
+
+theorem :: NDIFF10:11
+  for X,Y,Z be RealNormSpace,
+          f be PartFunc of [:X,Y:],Z,
+          U be Subset of [:X,Y:],
+          I be Function of [:Y,X:],[:X,Y:]
+   st ( for y be Point of Y,x be Point of X
+        holds I.(y,x) = [x,y] )
+  holds
+    for a be Point of X, b be Point of Y,
+        u be Point of [:X,Y:],
+        v be Point of [:Y,X:]
+     st u in U & u = [a,b] & v = [b,a]
+    holds
+      f*reproj1(u) = (f*I)*reproj2(v)
+    & f*reproj2(u) = (f*I)*reproj1(v);
+
+theorem :: NDIFF10:12
+  for X,Y,Z be RealNormSpace,
+          f be PartFunc of [:X,Y:],Z,
+          U be Subset of [:X,Y:],
+          I be LinearOperator of [:Y,X:],[:X,Y:]
+   st U = dom f
+    & f is_differentiable_on U
+    & I is one-to-one onto isometric
+    & ( for y be Point of Y,x be Point of X
+        holds I.(y,x) = [x,y] )
+  holds
+    for a be Point of X, b be Point of Y,
+        u be Point of [:X,Y:],
+        v be Point of [:Y,X:]
+     st u in U & u = [a,b] & v = [b,a]
+    holds
+    ( f is_partial_differentiable_in`1 u
+        iff
+     f*I is_partial_differentiable_in`2 v )
+    &
+    ( f is_partial_differentiable_in`2 u
+        iff
+     f*I is_partial_differentiable_in`1 v );
+
+theorem :: NDIFF10:13
+  for X,Y,Z be RealNormSpace,
+          f be PartFunc of [:X,Y:],Z,
+          U be Subset of [:X,Y:],
+          I be LinearOperator of [:Y,X:],[:X,Y:]
+   st U = dom f
+    & f is_differentiable_on U
+    & I is one-to-one onto isometric
+    & ( for y be Point of Y,x be Point of X
+        holds I.(y,x) = [x,y] )
+  holds
+    for a be Point of X, b be Point of Y,
+        u be Point of [:X,Y:],
+        v be Point of [:Y,X:]
+     st u in U & u = [a,b] & v = [b,a]
+    holds
+      partdiff`1(f,u) = partdiff`2(f*I,v)
+    & partdiff`2(f,u) = partdiff`1(f*I,v);
+
+begin :: Application of implicit function theorem
+
+theorem :: NDIFF10:14
+  for F be RealNormSpace,
+    G,E be non trivial RealBanachSpace,
+      Z be Subset of [:E,F:],
+      f be PartFunc of [:E,F:], G,
+      a be Point of E,
+      b be Point of F,
+      c be Point of G,
+      z be Point of [:E,F:]
+  st Z is open & dom f = Z
+   & f is_differentiable_on Z
+   & f `| Z is_continuous_on Z
+   & [a,b] in Z & f.(a,b) = c
+   & z = [a,b]
+   & partdiff`1(f,z) is invertible
+  holds
+    ex r1,r2 be Real
+    st 0 < r1 & 0 < r2
+     & [:cl_Ball(a,r1),Ball(b,r2):] c= Z
+     & ( for y be Point of F st y in Ball(b,r2) holds
+         ex x be Point of E
+         st x in Ball(a,r1) & f.(x,y) = c )
+     & ( for y be Point of F st y in Ball(b,r2) holds
+         for x1,x2 be Point of E
+         st x1 in Ball(a,r1) & x2 in Ball(a,r1)
+          & f.(x1,y) = c & f.(x2,y) = c
+         holds x1 = x2 )
+     & ( ex g be PartFunc of F,E
+         st dom g = Ball(b,r2) & rng g c= Ball(a,r1)
+          & g is_continuous_on Ball(b,r2)
+          & g.b = a
+          & ( for y be Point of F st y in Ball(b,r2)
+              holds f.(g.y,y) = c )
+          & g is_differentiable_on Ball(b,r2)
+          & g `| Ball(b,r2) is_continuous_on Ball(b,r2)
+          & ( for y be Point of F, z be Point of [:E,F:]
+              st y in Ball(b,r2) & z = [g.y,y]
+              holds diff(g,y) = - ( Inv partdiff`1(f,z)) * partdiff`2(f,z) )
+          & ( for y be Point of F, z be Point of [:E,F:]
+              st y in Ball(b,r2) & z =[g.y,y]
+              holds partdiff`1(f,z) is invertible ) )
+     & ( for g1,g2 be PartFunc of F,E
+         st dom g1 = Ball(b,r2)
+          & rng g1 c= Ball(a,r1)
+          & ( for y be Point of F st y in Ball(b,r2)
+              holds f.(g1.y,y) = c )
+          & dom g2 = Ball(b,r2)
+          & rng g2 c= Ball(a,r1)
+          & ( for y be Point of F st y in Ball(b,r2)
+              holds f.(g2.y,y) = c )
+         holds g1 = g2);
+
+theorem :: NDIFF10:15
+  for E,F be non trivial RealBanachSpace,
+      D be Subset of E,
+      f be PartFunc of E,F,
+      f1 be PartFunc of [:E,F:],F,
+      Z be Subset of [:E,F:]
+   st D is open & dom f = D & D <> {}
+    & f is_differentiable_on D
+    & f `| D is_continuous_on D
+    & Z = [:D,the carrier of F:]
+    & dom f1 = Z
+    & for s be Point of E,
+          t be Point of F
+       st s in D
+      holds f1.(s,t) = f/.s - t
+  holds
+    f1 is_differentiable_on Z
+  & f1 `| Z is_continuous_on Z
+  & for x be Point of E,y be Point of F,
+        z be Point of [:E,F:]
+     st x in D & z = [x,y]
+    holds
+      ex I be Point of R_NormSpace_of_BoundedLinearOperators(F,F)
+      st I = id (the carrier of F)
+       & partdiff`1(f1,z) = diff(f,x)
+       & partdiff`2(f1,z) = -I;
+
+theorem :: NDIFF10:16
+  for E,F be non trivial RealBanachSpace,
+      Z be Subset of E,
+      f be PartFunc of E,F,
+      a be Point of E,
+      b be Point of F
+  st Z is open & dom f = Z
+   & f is_differentiable_on Z
+   & f `| Z is_continuous_on Z
+   & a in Z & f.a = b
+   & diff(f,a) is invertible
+  holds
+    ex r1,r2 be Real
+    st
+      0 < r1 & 0 < r2
+     & cl_Ball(a,r1) c= Z
+     & (for y be Point of F st y in Ball(b,r2) holds
+         ex x be Point of E
+         st x in Ball(a,r1) & f/.x = y)
+     & (for y be Point of F st y in Ball(b,r2) holds
+         for x1,x2 be Point of E
+         st x1 in Ball(a,r1) & x2 in Ball(a,r1)
+          & f/.x1 = y & f/.x2 = y
+         holds x1 = x2 )
+     & (ex g be PartFunc of F,E
+         st dom g = Ball(b,r2) & rng g c= Ball(a,r1)
+          & g is_continuous_on Ball(b,r2)
+          & g.b = a
+          & ( for y be Point of F st y in Ball(b,r2)
+              holds f/.(g/.y) = y )
+          & g is_differentiable_on Ball(b,r2)
+          & g `| Ball(b,r2) is_continuous_on Ball(b,r2)
+          & ( for y be Point of F
+              st y in Ball(b,r2)
+              holds diff(g,y) = Inv diff(f,g/.y) )
+          & ( for y be Point of F
+              st y in Ball(b,r2)
+              holds diff(f,g/.y) is invertible ) )
+     & ( for g1,g2 be PartFunc of F,E
+         st dom g1 = Ball(b,r2)
+          & rng g1 c= Ball(a,r1)
+          & ( for y be Point of F st y in Ball(b,r2)
+              holds f/.(g1.y) = y )
+          & dom g2 = Ball(b,r2)
+          & rng g2 c= Ball(a,r1)
+          & ( for y be Point of F st y in Ball(b,r2)
+              holds f/.(g2.y) = y )
+         holds g1 = g2 );
+
+begin :: Inverse function theorem for class C^1 functions
+
+theorem :: NDIFF10:17
+  for E,F be non trivial RealBanachSpace,
+      Z be Subset of E,
+      f be PartFunc of E,F,
+      a be Point of E,
+      b be Point of F
+  st Z is open & dom f = Z
+   & f is_differentiable_on Z
+   & f `| Z is_continuous_on Z
+   & a in Z & f.a = b
+   & diff(f,a) is invertible
+  holds
+    ex A be Subset of E,B be Subset of F,
+       g be PartFunc of F,E
+    st A is open & B is open
+     & A c= dom f
+     & a in A & b in B
+     & f.:A = B
+     & dom g = B & rng g = A
+     & dom(f|A) = A & rng(f|A) = B
+     & (f|A) is one-to-one
+     & g is one-to-one
+     & g = (f|A)"
+     & (f|A) = g"
+     & g.b = a
+     & g is_continuous_on B
+     & g is_differentiable_on B
+     & g `| B is_continuous_on B
+     & ( for y be Point of F st y in B
+         holds diff(f,g/.y) is invertible )
+     & ( for y be Point of F st y in B
+         holds diff(g,y) = Inv diff(f,g/.y) );
+
+theorem :: NDIFF10:18
+  for E,F be non trivial RealBanachSpace,
+      Z be Subset of E,
+      f be PartFunc of E,F,
+      a be Point of E,
+      b be Point of F
+  st Z is open & dom f = Z
+   & f is_differentiable_on Z
+   & f `| Z is_continuous_on Z
+   & a in Z & f.a = b
+   & diff(f,a) is invertible
+  holds
+   ( for r1 be Real st 0 < r1
+     holds
+       ex r2 be Real
+       st 0 < r2 & Ball(b,r2) c= f.: Ball(a,r1) );
+
+theorem :: NDIFF10:19
+  for E,F be non trivial RealBanachSpace,
+        Z be Subset of E,
+        f be PartFunc of E,F
+  st Z is open & dom f = Z
+   & f is_differentiable_on Z
+   & f `| Z is_continuous_on Z
+   & ( for x be Point of E st x in Z
+       holds diff(f,x) is invertible )
+  holds
+    ( for x be Point of E,r1 be Real st x in Z & 0 < r1
+      holds
+        ex y be Point of F,r2 be Real
+        st y = f.x & 0 < r2 & Ball(y,r2) c= f.: Ball(x,r1) )
+    & f.:Z is open;
