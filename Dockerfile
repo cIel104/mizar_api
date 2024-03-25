@@ -1,4 +1,5 @@
-FROM node:16.17
+# bullseyeでないとフォーマッタとリンターが正常に動作しない
+FROM node:16.17-bullseye
 
 COPY . .
 
