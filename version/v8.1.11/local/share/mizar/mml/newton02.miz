@@ -1,0 +1,3608 @@
+:: Fermat's Little Theorem via Divisibility of {N}ewton's Binomial
+::  by Rafa{\l} Ziobro
+:: 
+:: Received June 30, 2015
+:: Copyright (c) 2015-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies ABIAN, NUMBERS, NAT_1, INT_1, FINSEQ_1, ARYTM_3, XXREAL_0,
+      CARD_1, ARYTM_1, INT_2, COMPLEX1, RELAT_1, REAL_1, XCMPLX_0, XREAL_0,
+      ORDINAL1, ORDINAL4, NEWTON, POWER, PREPOWER, FUNCT_1, CARD_3, SUBSET_1,
+      TARSKI, RFINSEQ, XBOOLE_0, REALSET1, PARTFUN1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, XCMPLX_0, XREAL_0, NUMBERS,
+      XXREAL_0, ABIAN, POWER, INT_1, INT_2, NEWTON, ABSVALUE, PREPOWER,
+      RELAT_1, FUNCT_1, RECDEF_1, PARTFUN1, RFINSEQ, RVSUM_1, FINSEQ_1,
+      IRRAT_1;
+ constructors ABIAN, SQUARE_1, NAT_D, NEWTON, POWER, PREPOWER, RFINSEQ,
+      WSIERP_1, RECDEF_1, RELSET_1;
+ registrations ABIAN, ORDINAL1, XXREAL_0, XREAL_0, NAT_1, INT_1, NEWTON,
+      XCMPLX_0, WSIERP_1, POWER, NEWTON01, NAT_6, FUNCT_1, NUMBERS, FINSEQ_1,
+      XBOOLE_0, VALUED_0, CARD_1, RVSUM_1, RELAT_1, NAT_3, INT_6, LAGRA4SQ;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ equalities FINSEQ_1;
+ expansions ABIAN, INT_1, INT_2;
+ theorems INT_2, NAT_1, ABSVALUE, INT_1, EULER_1, PREPOWER, NEWTON, XCMPLX_1,
+      GR_CY_3, XREAL_1, XXREAL_0, NAT_D, ABIAN, WSIERP_1, XREAL_0, COMPLEX1,
+      POWER, RADIX_2, INT_4, NEWTON01, NAT_5, INT_6, TAYLOR_2, NAT_6, PEPIN,
+      INT_5, PYTHTRIP, NAT_3, SERIES_4, NUMERAL2, SEQ_2, FINSEQ_1, FUNCT_1,
+      RFINSEQ, FINSEQ_2, RVSUM_1, FINSEQ_3, RELAT_1, FINSEQ_5, ORDINAL1,
+      IRRAT_1, GROUP_17, NAT_4, ASYMPT_1, PARTFUN1, MATRIXC1, TOPREALC;
+ schemes NAT_1;
+
+begin :: Divisibility of Newton's Binomial
+
+reserve a,b,c,d,m,x,n,j,k,l for Nat,
+  t,u,v,z for Integer,
+  f,F for FinSequence of NAT;
+reserve p,q,r,s for real number;
+
+registration
+  let a be Complex;
+  reduce 1*a|^0 to 1;
+  reducibility by NEWTON:4;
+end;
+
+registration
+  let n be non zero Nat;
+  reduce 0|^n to 0;
+  reducibility by NEWTON:84;
+end;
+
+registration
+  let a be Nat;
+  reduce |.a.| to a;
+  reducibility by ABSVALUE:29;
+end;
+
+registration
+  let a be Nat;
+  reduce a gcd 0 to a;
+  reducibility by NEWTON:52;
+end;
+
+registration
+  let t,z;
+  reduce (t mod z) mod z to t mod z;
+  reducibility by NUMERAL2:14;
+end;
+
+registration
+  let t;
+  reduce 0 mod t to 0;
+  reducibility by INT_1:73;
+end;
+
+registration
+  let u,z;
+  reduce (0 + u*z) mod z to 0;
+  reducibility
+  proof
+    thus (0 + u*z) mod z = 0 mod z by EULER_1:12
+    .= 0;
+  end;
+end;
+
+registration
+  let r be non zero Real;
+  let n be even natural number;
+  cluster r |^ n -> positive;
+  coherence
+  proof
+    per cases;
+    suppose r > 0; then
+      r|^n > 0 by PREPOWER:6;
+      hence thesis;
+    end;
+    suppose r < 0; then
+      A1: |.r.| = -r & -r > 0 by ABSVALUE:def 1; then
+      r|^n = ((-1)*|.r.|)|^n
+      .= (-1)^n *|.r.||^n by NEWTON:7
+      .= 1*|.r.|^n;
+      hence thesis by A1,PREPOWER:6;
+    end;
+  end;
+end;
+
+:: some remarks on divisibility of the differences of like powers
+
+theorem Th1:
+  t gcd z = -t gcd z
+  proof
+    t gcd z = |.t.| gcd |.z.| by INT_2:34
+    .= |.-t.| gcd |.z.| by COMPLEX1:52
+    .= -t gcd z by INT_2:34;
+    hence thesis;
+  end;
+
+  :: copied from GCD_1:3;
+  LmGCD: for a,b,c,d be Integer holds
+  b divides a & d divides c implies (b * d) divides (a * c)
+  proof
+    let a,b,c,d be Integer;
+    assume that
+    A1: b divides a and
+    A2: d divides c;
+    consider t such that
+    A3: b * t = a by A1;
+    consider z such that
+    A4: d * z = c by A2;
+    (b * d) * (t * z) = a * c by A3,A4;
+    hence thesis;
+  end;
+
+::see also NAT_3:1
+theorem
+  t divides z & u divides v implies t*u divides z*v by LmGCD;
+
+theorem Th3:
+  t divides z iff t gcd z = |.t.|
+  proof
+    |.t.| in NAT & |.z.| in NAT by INT_1:3; then
+    consider k,l such that
+    A1: k = |.t.| & l = |.z.|;
+    k divides l iff k gcd l = k by NEWTON:49,INT_2:def 2;
+    hence thesis by A1,INT_2:34,INT_2:16;
+  end;
+
+theorem
+  t*u divides z*u iff |.u.|*(t gcd z) = |.u.|*|.t.|
+  proof
+    A1: t*u divides z*u iff t*u gcd z*u = |.t*u.| by Th3;
+    t*u gcd z*u = |.u.|*(t gcd z) by INT_6:16;
+    hence thesis by A1,COMPLEX1:65;
+  end;
+
+  Lm0c: (a+u*b) gcd b = a gcd b
+  proof
+    b divides u*b; then
+    A0: b gcd u*b = |.b.| by Th3 .= b;
+    per cases;
+    suppose a <> 0;
+      hence thesis by EULER_1:16;
+    end;
+    suppose
+      a = 0;
+      hence thesis by A0;
+    end;
+  end;
+
+  Lm0d: (t+u*z) gcd z = t gcd z
+  proof
+    A0: z <= 0 implies (t + u*z) gcd z = t gcd z
+    proof
+      assume
+      A1: z <= 0; then
+      A1a: -z in NAT by INT_1:3;
+      per cases;
+      suppose t>=0; then
+        A2: t in NAT & -z in NAT by A1,INT_1:3;
+        (t+u*z) gcd z = t + (-u)*(-z) gcd -z by Th1
+        .= t gcd -z by A2,Lm0c;
+        hence thesis by Th1;
+      end;
+      suppose t<0; then
+        A3: -t in NAT by INT_1:3;
+        (t + u*z) gcd z = -(-t-u*z) gcd -z by Th1
+        .= (-t + u*(-z)) gcd -z by Th1
+        .= -t gcd -z by A1a,A3,Lm0c
+        .= -t gcd z by Th1
+        .= t gcd z by Th1;
+        hence thesis;
+      end;
+    end;
+    z > 0 implies (t + u*z) gcd z = t gcd z
+    proof
+      assume
+      A1: z > 0; then
+      A1a: z in NAT by INT_1:3;
+      per cases;
+      suppose t>=0; then
+        t in NAT & z in NAT by A1,INT_1:3;
+        hence thesis by Lm0c;
+      end;
+      suppose t<0; then
+        A3: -t in NAT by INT_1:3;
+        (t + u*z) gcd z = -(-t-u*z) gcd z
+        .= (-t + (-u)*z) gcd z by Th1
+        .= -t gcd z by A1a,A3,Lm0c
+        .= t gcd z by Th1;
+        hence thesis;
+      end;
+    end;
+    hence thesis by A0;
+  end;
+
+theorem Th5:
+  (t+u*z) gcd z = t gcd z & (t-u*z) gcd z = t gcd z
+  proof
+    (t-u*z) gcd z = t gcd z
+    proof
+      (t-u*z) gcd z = ((t-u*z) + u*z) gcd z by Lm0d
+      .= t gcd z;
+      hence thesis;
+    end;
+    hence thesis by Lm0d;
+  end;
+
+  Lm1: b>0 & k>0 & a+b > k & a+b divides k*a|^n implies not a,b are_coprime
+  proof
+    assume
+    A1: b>0 & k>0 & a+b > k & a+b divides k*a|^n;
+    defpred P[Nat] means a+b divides k*a|^$1 implies not a,b are_coprime;
+    L1: P[0]
+    proof
+      k*a|^0 = k*1 by NEWTON:4;
+      hence thesis by A1,INT_2:27;
+    end;
+    L2: P[x] implies P[x+1]
+    proof
+      assume
+      B1: P[x];
+      B2: a|^(x+1) = a|^x*a by NEWTON:6;
+      a,b are_coprime & not (a+b) divides k*a|^x implies
+        not (a+b) divides k*a|^(x+1)
+      proof
+        assume
+        C1: a,b are_coprime & not (a+b) divides k*a|^x; then
+        1 = b+1*a gcd a by A1,EULER_1:16; then
+        a+b,a are_coprime; then
+        not a+b divides k*a|^x*a by C1,INT_2:25;
+        hence thesis by B2;
+      end;
+      hence thesis by B1;
+    end;
+    for c be Nat holds P[c] from NAT_1:sch 2(L1,L2);
+    hence thesis by A1;
+  end;
+
+  Lm2: t divides ((t+z)|^x - z|^x) implies t divides (t+z)|^x*z - z|^(x+1)
+  proof
+    assume t divides ((t+z)|^x - z|^x); then
+    t divides ((t+z)|^x - z|^x)*z by INT_2:2; then
+    t divides (t+z)|^x*z - z|^x*z;
+    hence thesis by NEWTON:6;
+  end;
+
+theorem Th6:
+  n>0 implies t divides t|^n
+  proof
+    t in INT by INT_1:def 2; then
+    consider k such that
+    A1: t = k or t = -k by INT_1:def 1;
+    t|^n = k|^n or t|^n = -k|^n by A1,POWER:1,2; then
+    A2: |.k.| = |.t.| & |.k|^n.| = |.t|^n.| by A1,COMPLEX1:52;
+    assume n>0; then
+    k|^1 divides k|^n by NEWTON:89,NAT_1:14;
+    hence thesis by A2,INT_2:16;
+  end;
+
+  Lm5a: a is odd & a gcd b = 1 implies a gcd 2*b = 1
+  proof
+    assume
+    A1: a is odd & a gcd b = 1; then
+    A2: a,b are_coprime;
+    a,2|^1 are_coprime by A1,NAT_5:3; then
+    a,2*b are_coprime by A2,INT_2:26;
+    hence thesis;
+  end;
+
+  Lm5b: a is even & a gcd b = 1 implies a gcd 2*b = 2
+  proof
+    assume
+    A1: a is even & a gcd b = 1;
+    a,b are_coprime by A1; then
+    a gcd (b*2) = a gcd 2 by INT_6:19;
+    hence thesis by A1,NEWTON:49;
+  end;
+
+  Lm5: b,c are_coprime implies 2*b + c gcd c <= 2
+  proof
+    assume
+    A1: b,c are_coprime;
+    A3: (2*b + c*1) gcd c = 2*b gcd c by EULER_1:8;
+    per cases;
+    suppose
+      c is odd;
+      then 2*b gcd c = 1 by A1,Lm5a;
+      hence thesis by A3;
+    end;
+    suppose
+      c is even;
+      hence thesis by A1,A3,Lm5b;
+    end;
+  end;
+
+  Lm6: a>0 & a = (a gcd b)*k & b = (a gcd b)*l implies k gcd l = 1
+  proof
+    assume
+    A1: a>0 & a = (a gcd b)*k & b = (a gcd b)*l; then
+    A2: a gcd b > 0;
+    k > 0 by A1; then
+    (a gcd b)*1 = (a gcd b)*(k gcd l) by A1,EULER_1:15;
+    hence thesis by XCMPLX_1:5,A2;
+  end;
+
+theorem Th7:
+  a|^n gcd b|^n = (a gcd b)|^n
+  proof
+    a gcd b = k implies a|^n gcd b|^n = k|^n
+    proof
+      assume
+      A0: a gcd b = k; then
+      consider l be Nat such that
+      A2: a = k * l by INT_2:21,NAT_D:def 3;
+      consider m be Nat such that
+      A3: b = k * m by A0,INT_2:21,NAT_D:def 3;
+      per cases;
+      suppose
+        A4: a > 0; then
+        l gcd m = 1 by A0,A2,A3,Lm6; then
+        A6: l|^n gcd m|^n = 1 by WSIERP_1:12;
+a10:    l > 0 by A2,A4;
+        k|^n = (k|^n)*(l|^n gcd m|^n) by A6
+        .= (k|^n)*(l|^n) gcd (k|^n)*(m|^n) by a10,EULER_1:15
+        .= k|^n*l|^n gcd (k*m)|^n by NEWTON:7
+        .= a|^n gcd b|^n by A2,A3,NEWTON:7;
+        hence thesis;
+      end;
+      suppose
+        A14: a = 0; then
+        A16: a|^n = 0 or n < 1 by NEWTON:11;
+        n = 0 implies a|^n = 1 & b|^n=1 & k|^n = 1 by NEWTON:4;
+        hence thesis by A0,A14,A16,NAT_1:14,NAT_D:32;
+      end;
+    end;
+    hence thesis;
+  end;
+
+theorem Th8:
+  a > b & a,b are_coprime implies (a+b) gcd (a-b) <= 2
+  proof
+    assume
+    A1: a > b & a,b are_coprime; then
+    consider c such that
+    A2: a = b + c by NAT_1:10;
+    c+1*b,b are_coprime by A1,A2; then
+    c,b are_coprime by Th5; then
+    2*b + c gcd c <= 2 by Lm5;
+    hence thesis by A2;
+  end;
+
+theorem Th9:
+  t gcd z is even iff t is even & z is even
+  proof
+    t gcd z is even implies t is even & z is even
+    proof
+      assume
+      A1: t gcd z is even;
+      t gcd z divides t & t gcd z divides z by INT_2:21;
+      hence thesis by A1;
+    end;
+    hence thesis by INT_2:def 2;
+  end;
+
+theorem Th10:
+  t divides ((t+z)|^n - z|^n) & z divides ((t+z)|^n - t|^n)
+  proof
+    defpred P[Nat] means t divides ((t+z)|^$1 - z|^$1)
+    & z divides ((t+z)|^$1 - t|^$1);
+    A1: P[0]
+    proof
+      (t+z)|^0 = 1 & z|^0 = 1 & t|^0 = 1 by NEWTON:4;
+      hence thesis by INT_1:def 4,INT_1:11;
+    end;
+    A2: P[x] implies P[x+1]
+    proof
+      assume
+      A2a: P[x]; then
+      A4: t divides (t+z)|^x*z -z|^(x+1) by Lm2;
+      A5: z divides (t+z)|^x*t -t|^(x+1) by Lm2,A2a;
+      A6: t divides (t+z)|^x*t & z divides (t+z)|^x*z; then
+      A7: t divides (t+z)|^x*t+((t+z)|^x*z - z|^(x+1)) by WSIERP_1:4,A4;
+      A3: (t+z)|^(x+1) = (t+z)|^x*(t+z)|^1 by NEWTON:8
+      .= (t+z)|^x*t+(t+z)|^x*z;
+      z divides (t+z)|^x*z+((t+z)|^x*t - t|^(x+1)) by WSIERP_1:4,A5,A6;
+      hence thesis by A3,A7;
+    end;
+    for m holds P[m] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+  end;
+
+theorem Th11:
+  u divides (u+z)|^n iff u divides z|^n
+  proof
+    A0: u divides (u+z)|^n - z|^n by Th10;
+    consider t such that
+    A1: t = - z|^n;
+    A2: u divides (u+z)|^n + t by A0,A1; then
+    A3: u divides t implies u divides (u+z)|^n by INT_2:1;
+    u divides (u+z)|^n implies u divides t by INT_2:1,A2;
+    hence thesis by A1,A3,INT_2:10;
+  end;
+
+theorem
+  t divides (t+z)|^n implies t divides (t+z)|^n + z|^n
+  proof
+    assume
+    A0: t divides (t+z)|^n;
+    then t divides z|^n by Th11;
+    hence thesis by WSIERP_1:4,A0;
+  end;
+
+theorem
+  (t+u) divides ((t+2*u)|^n - u|^n)
+  proof
+    (t+u) divides ((t+u+u)|^n -u|^n) by Th10;
+    hence thesis;
+  end;
+
+theorem Th14:
+  l>0 & t divides z implies t divides z|^l
+  proof
+    assume
+    A0: l>0 & t divides z;
+    then consider n be Nat such that
+    A1: l = 1+n by NAT_1:10,14;
+    z|^(1+n) = z|^1*z|^n by NEWTON:8
+    .= z*z|^n;
+    hence thesis by A0,A1,INT_2:2;
+  end;
+
+theorem Th15:
+  t divides z implies t|^n divides z|^n
+  proof
+    assume
+    A1: t divides z;
+    |.t.| in NAT & |.z.| in NAT by INT_1:3; then
+    consider a,b such that
+    A2: a = |.t.| & b = |.z.|;
+    A3: |.t.||^n = |.t|^n.| & |.z.||^n = |.z|^n.| by TAYLOR_2:1;
+    (a gcd b)|^n = |.t.||^n gcd |.z.||^n by A2,Th7
+    .= t|^n gcd z|^n by A3,INT_2:34; then
+    t|^n gcd z|^n = |.a.||^n by A1,A2,INT_2:16,Th3
+    .= |.t|^n.| by A2,TAYLOR_2:1;
+    hence thesis by Th3;
+  end;
+
+theorem
+  n>0 & not t divides (t+z)|^n implies not t divides z
+  proof
+    assume n>0 & not t divides (t+z)|^n;
+    then not t divides t+z by Th14;
+    hence thesis by WSIERP_1:4;
+  end;
+
+theorem Th17:
+  m>0 implies t*z divides (t+z)|^m - (t|^m + z|^m)
+  proof
+    assume m>0; then
+    consider n such that
+    A0: m = 1+n by NAT_1:14,10;
+    t*z divides (t+z)|^(n+1) - (t|^(n+1) + z|^(n+1))
+    proof
+      defpred P[Nat] means
+        t*z divides ((t+z)|^($1+1) - (t|^($1+1) + z|^($1+1)));
+      A1: P[0] by INT_2:12;
+      A2: P[x] implies P[x+1]
+      proof
+        assume
+        P[x]; then
+    B2: t*z divides ((t+z)|^(x+1) - (t|^(x+1) + z|^(x+1)))*(t+z) by INT_2:2;
+        B3: ((t+z)|^(x+1) - (t|^(x+1) + z|^(x+1)))*(t+z) =
+        (t+z)|^(x+1)*(t+z) - t|^(x+1)*t - z*t|^(x+1) - t*z|^(x+1) - z|^(x+1)*z
+        .= (t+z)|^(x+1+1) - t|^(x+1)*t- z*t|^(x+1) - t*z|^(x+1) - z|^(x+1)*z
+          by NEWTON:6
+        .= (t+z)|^(x+1+1) - t|^(x+1+1)- z*t|^(x+1) - t*z|^(x+1) - z|^(x+1)*z
+          by NEWTON:6
+        .= (t+z)|^(x+1+1) - t|^(x+1+1)- z*(t|^x*t) - t*z|^(x+1) - z|^(x+1)*z
+          by NEWTON:6
+        .= (t+z)|^(x+1+1) - t|^(x+1+1)- z*t|^x*t - t*(z|^x*z) - z|^(x+1)*z
+          by NEWTON:6
+        .= (t+z)|^(x+1+1) - t|^(x+1+1) - z*(t|^x*t) - t*(z|^x*z) - z|^(x+1+1)
+          by NEWTON:6
+        .= (t+z)|^(x+1+1) -t|^(x+1+1)- z|^(x+1+1) + t*z*(-t|^x - z|^x);
+        t*z divides t*z*(-t|^x - z|^x);
+        hence thesis by B2,B3,INT_2:1;
+      end;
+      for m holds P[m] from NAT_1:sch 2(A1,A2);
+      hence thesis;
+    end;
+    hence thesis by A0;
+  end;
+
+theorem Th18:
+  t-z divides t|^m - z|^m
+  proof
+    (t-z) divides ((t-z)+z)|^n iff (t-z) divides z|^n by Th11;
+    hence thesis by Th10;
+  end;
+
+theorem Th19:
+  n>0 implies t*z divides (t-z)|^n - (t|^n + (-z)|^n)
+  proof
+    n>0 implies t*(-z) divides (t+(-z))|^n - (t|^n + (-z)|^n) by Th17; then
+    n>0 implies -(t*z) divides (t+(-z))|^n - (t|^n + (-z)|^n);
+    hence thesis by INT_2:10;
+  end;
+
+theorem Th20:
+  t*z divides (t+z)|^n - (t-z)|^n + ((-z)|^n - z|^n)
+  proof
+ A1:(t+z)|^n - (t|^n + z|^n) =
+    (t+(-z))|^n - (t|^n + (-z)|^n) + ((t+z)|^n -(t-z)|^n + ((-z)|^n - z|^n));
+    per cases;
+    suppose n = 0; then
+      1*(t+z)|^n - 1*(t-z)|^n + (1*(-z)|^n - 1*z|^n) = 0;
+      hence thesis by INT_2:12;
+    end;
+    suppose n>0; then
+      t*z divides (t-z)|^n - (t|^n + (-z)|^n) & t*z divides
+        (t+z)|^n - (t|^n + z|^n) by Th17,Th19;
+      hence thesis by A1,INT_2:1;
+    end;
+  end;
+
+theorem
+  n>0 implies t divides (t+z)|^n + (t|^n - z|^n)
+  proof
+    assume n>0; then
+A1: t divides -t|^n by INT_2:10,Th6;
+    t divides (t+z)|^n - z|^n + t|^n +(-t|^n) by Th10;
+    hence thesis by A1,INT_2:1;
+  end;
+
+theorem Th22:
+  u divides t+z & u divides t-z implies u divides 2*t & u divides 2*z
+  proof
+A0: t + z = (t + t) + (z-t) & t + z = (t-z) + (z + z);
+    assume
+A1: u divides t+z & u divides t-z; then
+    u divides -(t-z) by INT_2:10;
+    hence thesis by A0,A1,INT_2:1;
+  end;
+
+theorem
+  t*z divides (t+z)|^(2*n) - (t-z)|^(2*n)
+  proof
+    (-z)|^(2*n) = z|^(2*n) by POWER:1; then
+    (-z)|^(2*n) - z|^(2*n) = 0; then
+    t*z divides (t+z)|^(2*n) - (t-z)|^(2*n) + 0 by Th20;
+    hence thesis;
+  end;
+
+theorem
+  n>0 implies t*z divides (t-z)|^(2*n) - (t|^(2*n) + z|^(2*n))
+  proof
+    (-z)|^(2*n) = z|^(2*n) by POWER:1;
+    hence thesis by Th19;
+  end;
+
+theorem
+  t*z divides (t-z)|^(2*n+1) - (t|^(2*n+1) - z|^(2*n+1))
+  proof
+    A1: (-z)|^(2*n+1) = -z|^(2*n+1) by POWER:2;
+    t*z divides (t-z)|^(2*n+1) - (t|^(2*n+1) + (-z)|^(2*n+1)) by Th19;
+    hence thesis by A1;
+  end;
+
+theorem
+  k>0 & x divides a+k & x divides a-k implies x <= 2*k
+  proof
+    assume
+    A1: k>0;
+    x divides a+k & x divides a-k implies x divides 2*a & x divides 2*k
+      by Th22;
+    hence thesis by A1,NAT_D:7;
+  end;
+
+:: gcd
+
+theorem
+  k>0 implies a gcd b <= a gcd b*k
+  proof
+    assume
+    k>0; then
+    b*k = 0 iff b = 0; then
+    A1: a gcd b*k = 0 implies a gcd b = 0 by INT_2:5;
+    A2: a gcd b divides b & a gcd b divides a by INT_2:def 2; then
+    a gcd b divides b*k by INT_2:2;
+    hence thesis by A1,A2,INT_2:22,27;
+  end;
+
+theorem
+  n > 0 implies (a gcd b) gcd b|^n = a gcd b
+  proof
+    assume n > 0; then
+    A2: n >= 1 by NAT_1:14;
+    (a gcd b) gcd b|^n = a gcd (b gcd b|^n) by NEWTON:48
+    .= a gcd b|^1 by A2,NEWTON:49,89
+    .= a gcd b;
+    hence thesis;
+  end;
+
+  Lm6: t+z,z are_coprime implies t+z,t are_coprime
+  proof
+    assume t+z, z are_coprime; then
+    1 = t+1*z gcd z .= t gcd z by Th5
+    .= z+1*t gcd t by Th5;
+    hence thesis;
+  end;
+
+theorem
+  t+z,t are_coprime iff t+z,z are_coprime by Lm6;
+
+theorem
+  a,b are_coprime & a*b = c|^n implies ex k st k|^n = a
+  proof
+    assume
+    A1: a,b are_coprime & a*b = c|^n;
+    consider k such that
+    A3: k = a gcd c;
+    per cases;
+    suppose
+      B1: n = 0; then
+      a = 1|^0 by A1,NAT_1:15,NEWTON:4;
+      hence thesis by B1;
+    end;
+    suppose
+      n> 0 & a = 0; then
+      a = a|^n by NEWTON:11,NAT_1:14;
+      hence thesis;
+    end;
+    suppose b = 0; then
+      a = 1|^n by A1;
+      hence thesis;
+    end;
+    suppose
+      B1: n > 0 & a > 0 & b > 0; then
+      consider m such that
+      B2: n = 1 + m by NAT_1:10,14;
+      B3: a|^m,b are_coprime by A1,WSIERP_1:10;
+      k|^n = a|^n gcd c|^n by A3,Th7
+      .= a|^m*a gcd a*b by A1,B2,NEWTON:6
+      .= a*1 by B3,B1,EULER_1:15;
+      hence thesis;
+    end;
+  end;
+
+theorem Th31:
+  for a,b st a,b are_coprime & a + b > 2 holds
+    a+b divides a|^n+b|^n iff not a+b divides a|^n-b|^n
+  proof
+    let a,b such that
+    A1: a,b are_coprime & a + b > 2;
+    A2: b > 0
+    proof
+      assume not thesis; then
+      b = 0;
+      hence contradiction by A1;
+    end;
+    A3: not (a+b) divides 2*a|^n by A1,A2,Lm1;
+    (a+b) divides a|^n-b|^n implies not (a+b divides a|^n+b|^n)
+    proof
+      assume not thesis; then
+      a+b divides (a|^n+b|^n +(a|^n -b|^n)) by WSIERP_1:4;
+      hence contradiction by A3;
+    end;
+    hence thesis by NEWTON01:38;
+  end;
+
+theorem
+  a,b are_coprime & a + b > 2 & n is odd implies not a+b divides a|^n-b|^n
+  proof
+    assume
+    A1: a,b are_coprime & a + b > 2 & n is odd; then
+    consider k such that
+    A2: n = 2*k+1 by ABIAN:9;
+    a+b divides a|^n+b|^n by A2,NEWTON01:35;
+    hence thesis by A1,Th31;
+  end;
+
+theorem
+  a,b are_coprime & a + b > 2 & n is even implies not  a+b divides a|^n+b|^n
+  proof
+    assume
+    A1: a,b are_coprime & a + b > 2 & n is even; then
+    a+b divides a|^n-b|^n by NEWTON01:36;
+    hence thesis by A1,Th31;
+  end;
+
+theorem Th27:
+  a,b are_coprime implies a*b,(a|^(n+1) + b|^(n+1)) are_coprime
+  proof
+    assume a,b are_coprime; then
+    a|^(n+1), b|^(n+1) are_coprime by WSIERP_1:11; then
+    (a|^(n+1)+1*b|^(n+1)) gcd b|^(n+1) = 1 &
+      (b|^(n+1)+1*a|^(n+1)) gcd a|^(n+1) = 1 by Th5; then
+    (a|^(n+1)+b|^(n+1))*1, b*b|^n are_coprime &
+      (a|^(n+1)+b|^(n+1))*1, a*a|^n are_coprime by NEWTON:6; then
+    (a|^(n+1)+b|^(n+1)), b are_coprime & (a|^(n+1)+b|^(n+1)), a are_coprime
+      by NEWTON01:41;
+    hence thesis by INT_2:26;
+  end;
+
+theorem Th28:
+  a,b are_coprime implies a*b,(a|^(n+1) - b|^(n+1)) are_coprime
+  proof
+    A1: b*b|^n = |.b|^(n+1).| by NEWTON:6;
+    A2: a*a|^n = |.a|^(n+1).| by NEWTON:6;
+    A3: |.(a|^(n+1)-b|^(n+1)).| =  |.-(a|^(n+1)-b|^(n+1)).| by COMPLEX1:52;
+    assume a,b are_coprime; then
+    a|^(n+1), b|^(n+1) are_coprime by WSIERP_1:11; then
+    (a|^(n+1)-1*b|^(n+1)) gcd b|^(n+1) = 1 & (b|^(n+1)-1*a|^(n+1)) gcd
+      a|^(n+1) = 1 by Th5; then
+    |.a|^(n+1)-b|^(n+1).|*1, b*b|^n are_coprime &
+      |.a|^(n+1)-b|^(n+1).|*1, a*a|^n are_coprime by A1,A2,A3,INT_2:34; then
+    |.a|^(n+1)-b|^(n+1).|, b are_coprime & |.a|^(n+1)-b|^(n+1).|, a
+      are_coprime by NEWTON01:41; then
+    |.a|^(n+1)-b|^(n+1).|,a*b are_coprime by INT_2:26;
+    hence thesis by INT_6:14;
+  end;
+
+theorem Th29:
+  q>0 & n>0 implies ex r st q = r|^n
+  proof
+    assume q>0 & n>0; then
+    q>0 & n>=1 by NAT_1:14; then
+    A2: q = (n -Root q)|^n by PREPOWER:19;
+    n -Root q in REAL by XREAL_0:def 1;
+    hence thesis by A2;
+  end;
+
+theorem
+  k>0 & a+b > k & a+b divides k*a implies not a,b are_coprime
+  proof
+    assume
+    A1: k>0 & a+b > k & a+b divides k*a;
+    per cases;
+    suppose
+      B1: b > 0;
+      B2: not a+b, a are_coprime by A1,INT_2:25,27;
+      assume not thesis; then
+      1 = b+1*a gcd a by B1,EULER_1:16;
+      hence contradiction by B2;
+    end;
+    suppose
+      b = 0;
+      hence thesis by A1,NAT_1:14;
+    end;
+  end;
+
+theorem
+  k>1 implies not k divides (k+1)|^n
+  proof
+    assume k>1; then
+    not k divides 1|^n by NAT_D:7;
+    hence thesis by Th11;
+  end;
+
+theorem
+  a>1 & b>0 & a gcd b = 1 implies not a divides (a+b)|^n
+  proof
+    assume
+    A0: a>1 & b>0 & a gcd b =1;
+    then a gcd b|^n = 1 by WSIERP_1:12;
+    then not a divides a gcd b|^n by WSIERP_1:15,A0;
+    then not a divides b|^n by INT_2:def 2;
+    hence thesis by Th11;
+  end;
+
+:: inequalities (see also SERIES_3)
+
+theorem Th40:
+  for c st c > 0
+  for r,s be non negative Real holds r < s iff r|^c < s|^c
+  proof
+    let c such that
+    A0: c > 0;
+    let r,s be non negative Real;
+    (r < s implies r|^c < s|^c) & (r|^c < s|^c implies r < s)
+    proof
+      A0a: r < s implies r|^c < s|^c
+      proof
+        assume
+        A1: r < s; then
+        s|^c > 0 by PREPOWER:6; then
+        A2: r = 0 implies s|^c > r|^c by A0,NAT_1:14,NEWTON:11;
+        r>0 implies r to_power c < s to_power c by A0,A1,POWER:37;
+        hence thesis by A2;
+      end;
+      s = 0 implies s|^c = 0 by A0,NAT_1:14,NEWTON:11; then
+      r > 0 & s = 0 implies r|^c > s|^c by PREPOWER:6;
+      hence thesis by A0a,PREPOWER:9;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  for r,s be non negative Real holds
+    r >= s implies r|^n >= s|^n
+  proof
+    let r,s be non negative Real;
+    n = 0 implies r|^n = 1 & s|^n = 1 by NEWTON:4;
+    hence thesis by Th40;
+  end;
+
+theorem
+  a>0 & n>0 implies ex r st a|^n + b|^n = r|^n by Th29;
+
+theorem
+  for a holds ex b st b|^(n+1) <= a & a < (b+1)|^(n+1)
+  proof
+    defpred P[Nat] means ex b st b|^(n+1) <= $1 & $1 < (b+1)|^(n+1);
+    A1: P[0]
+    proof
+      0|^(n+1) <= 0 & 0 < (0+1)|^(n+1);
+      hence thesis;
+    end;
+    A2: P[k] implies P[k+1]
+    proof
+      assume P[k]; then consider b such that
+      A3: b|^(n+1) <= k & k < (b+1)|^(n+1);
+      A4: b + 1 > b + 0 & (b+1)+1 > (b+1) + 0 by XREAL_1:6;
+      k+1 <= (b+1)|^(n+1) by A3,NAT_1:13; then
+      per cases by XXREAL_0:1;
+      suppose
+        A5: k+1 < (b+1)|^(n+1);
+        k+1 > b|^(n+1) by A3,NAT_1:13;
+        hence thesis by A5;
+      end;
+      suppose
+        A5: k+1 = (b+1)|^(n+1); then
+        k+1 < (b+1+1)|^(n+1) by A4,Th40;
+        hence thesis by A5;
+      end;
+    end;
+    for x holds P[x] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+  end;
+
+theorem
+  n>0 & a>b & a,b are_coprime implies (a|^n+b|^n) gcd (a|^n -b|^n) <= 2
+  proof
+    assume n>0 & a>b & a,b are_coprime; then
+    a|^n > b|^n & a|^n, b|^n are_coprime by Th40,WSIERP_1:11;
+    hence thesis by Th8;
+  end;
+
+theorem
+  a+b divides c & a,c are_coprime implies a,b are_coprime
+  proof
+    assume
+    A1: a+b divides c & a,c are_coprime; then
+    consider k such that
+    A2: c = (a+b)*k by NAT_D:def 3;
+    1 = a gcd ((b*k) + k*a) by A1,A2
+    .= a gcd b*k by Th5; then
+    a*1, k*b are_coprime;
+    hence thesis by NEWTON01:41;
+  end;
+
+  Lm20: t is even & t,u are_coprime implies u is odd
+  proof
+    A1: 2*0+1 is odd;
+    assume not thesis;
+    hence contradiction by A1,Th9;
+  end;
+
+theorem
+  t,z are_coprime & t,u are_coprime & t is even implies
+    u + z is even & u - z is even & u*z is odd
+  proof
+    assume t,z are_coprime & t,u are_coprime & t is even; then
+    z is odd & u is odd by Lm20;
+    hence thesis;
+  end;
+
+theorem
+  a,b are_coprime & c is even & a|^n + b|^n = c|^n implies
+    a+b is even & a-b is even
+  proof
+    assume
+    A1: a,b are_coprime & c is even & a|^n + b|^n = c|^n;
+    n = 0 implies 1*a|^n +1*b|^n > 1*c|^n; then
+    (a is even & b is even) or (a is odd & b is odd) by A1;
+    hence thesis;
+  end;
+
+theorem
+  a is even & a,b are_coprime implies (a-b),(a+b) are_coprime
+  proof
+    assume
+    A1: a is even & a,b are_coprime; then
+    not 2 divides (a gcd b) by NAT_D:7; then
+    A2: b is odd by A1,INT_2:def 2; then
+    A3: ((a+b) gcd (a-b)) is odd by A1,Th9;
+    A4: (a+b) gcd (a-b) <> 0 by A2,INT_2:5;
+    per cases by A1,A2,XXREAL_0:1;
+    suppose
+      a > b; then
+      (a+b) gcd (a-b) <= 2 by A1,Th8; then
+      (a+b) gcd (a-b) < 2 by A3,XXREAL_0:1;
+      hence thesis by A4,NAT_1:23;
+    end;
+    suppose
+      a < b; then
+      (a+b) gcd (b-a) <= 2 by A1,Th8; then
+      (a+b) gcd -(b-a) <= 2 by Th1; then
+      (a+b) gcd (a-b) < 2 by A3,XXREAL_0:1;
+      hence thesis by A4,NAT_1:23;
+    end;
+  end;
+
+theorem
+  a,b are_coprime implies (a+b),(a*b) are_coprime
+  proof
+    assume a,b are_coprime; then
+    a + 1*b gcd b = 1 & b+1*a gcd a = 1 by Th5;
+    hence thesis by WSIERP_1:7;
+  end;
+
+theorem Th50:
+  not 3 divides a*b implies 3 divides (a+b)*(a-b)
+  proof
+    assume not 3 divides a*b; then
+    not 3 gcd a = |.3.| & not 3 gcd b = |.3.| by INT_2:2,Th3; then
+    A3: 3,a|^2 are_coprime & 3,b|^2 are_coprime by PEPIN:2,41,WSIERP_1:10; then
+    3 gcd a|^2 <> |.3.|; then
+    not a|^2-0,0 are_congruent_mod 3 by Th3; then
+    A4: a|^2, 1 are_congruent_mod 3 by NAT_6:15;
+    3 gcd b|^2 <> |.3.| by A3; then
+    not b|^2-0,0 are_congruent_mod 3 by Th3; then
+    b|^2, 1 are_congruent_mod 3 by NAT_6:15; then
+    a|^2 - b|^2, 1-1 are_congruent_mod 3 by A4,INT_1:17;
+    hence thesis by NEWTON01:1;
+  end;
+
+  Lm33: 3 divides (a+b)*(a-b)+a*b implies 3 divides a
+  proof
+    assume
+    A1: 3 divides (a+b)*(a-b) + a*b;
+    L1: 3 divides a*b
+    proof
+      assume
+      A2: not 3 divides a*b; then
+      3 divides (a+b)*(a-b) by Th50;
+      hence contradiction by A1,A2,INT_2:1;
+    end;
+    L2: 3 divides (a+b)*(a-b)
+    proof
+      assume
+      A2: not 3 divides (a+b)*(a-b); then
+      3 divides a*b by Th50;
+      hence contradiction by A1,A2,INT_2:1;
+    end;
+    assume
+    C1: not 3 divides a; then
+    C2: 3 divides b by L1,NAT_6:7,PEPIN:41; then
+    C3: 3 divides -b by INT_2:10;
+    per cases by L2,INT_5:7,PEPIN:41;
+    suppose 3 divides (a+b);
+      hence contradiction by C1,C2,INT_2:1;
+    end;
+    suppose 3 divides (a+(-b));
+      hence contradiction by C1,C3,INT_2:1;
+    end;
+  end;
+
+  Lm34: 3 divides (a+b)*(a-b)+a*b implies 3 divides b
+  proof
+    assume
+    A1: 3 divides (a+b)*(a-b) + a*b;
+    L1: 3 divides a*b
+    proof
+      assume
+      A2: not 3 divides a*b; then
+      3 divides (a+b)*(a-b) by Th50;
+      hence contradiction by A1,A2,INT_2:1;
+    end;
+    3 divides (a+b)*(a-b)
+    proof
+      assume
+      A2: not 3 divides (a+b)*(a-b); then
+      3 divides a*b by Th50;
+      hence contradiction by A1,A2,INT_2:1;
+    end; then
+    3 divides a+b or 3 divides a-b by INT_5:7,PEPIN:41; then
+    L3: 3 divides (a+b) or 3 divides -(a-b) by INT_2:10;
+    assume
+    C1: not 3 divides b; then
+    C2: 3 divides a by L1,NAT_6:7,PEPIN:41; then
+    C3: 3 divides -a by INT_2:10;
+    per cases by L3;
+    suppose 3 divides (a+b);
+      hence contradiction by C1,C2,INT_2:1;
+    end;
+    suppose 3 divides (b+(-a));
+      hence contradiction by C1,C3,INT_2:1;
+    end;
+  end;
+
+theorem Th51:
+  3 divides (a+b)*(a-b)+a*b iff 3 divides a & 3 divides b
+  proof
+    3 divides a & 3 divides b implies 3 divides (a+b) by WSIERP_1:4;
+    hence thesis by Lm33,Lm34,WSIERP_1:5;
+  end;
+
+theorem
+  b|^2 = a*(a-b) implies 3 divides a & 3 divides b
+  proof
+    assume b|^2 = a*(a-b); then
+    0 = b|^2 - a*a + a*b
+     .= b|^2 - a|^2 + a*b by NEWTON:81
+     .= (b-a)*(b+a) + a*b by NEWTON01:1; then
+    3 divides (b-a)*(b+a) + a*b by INT_2:12;
+    hence thesis by Th51;
+  end;
+
+theorem
+  a,b are_coprime implies not 3 divides (a+b)*(a-b)+ a*b
+  proof
+    assume a,b are_coprime; then
+    not 3 divides a or not 3 divides b by PYTHTRIP:def 1;
+    hence thesis by Th51;
+  end;
+
+theorem
+  a > b & a + b >= 2|^(n+1) implies a > 2|^n
+  proof
+    assume
+    A1: a > b & a + b >= 2|^(n+1); then
+    a + a > a + b by XREAL_1:6; then
+    2*a > 2|^(n+1) by A1,XXREAL_0:2; then
+    2*a > 2*2|^n by NEWTON:6;
+    hence thesis by XREAL_1:66;
+  end;
+
+theorem Th55: :: see SERIES_3:6
+  a<>b implies 2*a*b < a|^2 + b|^2
+  proof
+    A0: a*a = a|^2 & b*b = b|^2 by NEWTON:81;
+    assume a <> b; then
+    (a - b) is non zero real & 2 is even; then
+    A1: (a - b)|^2 > 0;
+    assume not thesis; then
+    2*a*b -2*a*b >= a|^2 + b|^2 - 2*a*b by XREAL_1:9; then
+    0 >= (a-b)*(a-b) by A0;
+    hence contradiction by A1,NEWTON:81;
+  end;
+
+theorem
+  n>0 & a<>b implies 2*(a|^n)*(b|^n) < a|^(2*n) + b|^(2*n)
+  proof
+    A0: (a|^n)|^2 = a|^(2*n) & (b|^n)|^2 = b|^(2*n) by NEWTON:9;
+    assume n>0 & a<>b; then
+    n>=1 & (a>b or b>a) by NAT_1:14,XXREAL_0:1; then
+    a|^n <> b|^n by PREPOWER:10;
+    hence thesis by A0,Th55;
+  end;
+
+theorem
+  b>0 implies ex n st b >= 2|^n & b < 2|^(n+1)
+  proof
+    assume b > 0; then
+    consider a such that
+    A0: b = 1+a by NAT_1:10,14;
+    ex n st (a+1) >= 2|^n & (a+1) < 2|^(n+1)
+    proof
+      defpred P[Nat] means ex n st ($1+1) >= 2|^n & ($1+1) <2|^(n+1);
+      (0+1) >= 1*2|^0 & (0+1) < 2|^(0+1); then
+      A1: P[0];
+      A2: P[k] implies P[k+1]
+      proof
+        assume P[k]; then consider n such that
+        B1: (k+1) >= 2|^n & k+1 < 2|^(n+1);
+        per cases;
+        suppose
+          C1: k+1+1 < 2|^(n+1);
+          k+1+1 > k+1+0 by XREAL_1:6; then
+          k+1+1 >= 2|^n by B1,XXREAL_0:2;
+          hence thesis by C1;
+        end;
+        suppose
+          C1: k+1+1 >= 2|^(n+1);
+          2*(k+1) < 2*2|^(n+1) by B1,XREAL_1:68; then
+          C2: 2*k + 2 < 2|^(n+1+1) by NEWTON:6;
+          (k+2)+0 <= k+2 + k by XREAL_1:6; then
+          k+1+1 < 2|^(n+1+1) by C2,XXREAL_0:2;
+          hence thesis by C1;
+        end;
+      end;
+      for c be Nat holds P[c] from NAT_1:sch 2(A1,A2);
+      hence thesis;
+    end;
+    hence thesis by A0;
+  end;
+
+:: division by 4
+
+theorem Th58:
+  for a,b be odd Nat holds (4 divides a + b iff not 4 divides a - b)
+  proof
+    let a,b be odd Nat;
+    a+b is even & a-b is even; then
+    2 divides a+b & 2 divides a - b; then
+    consider t,z such that
+    A3: a + b = 2*t & a - b = 2*z;
+    A5: t is odd iff z is even
+    proof
+      a = t + z & b = t-z by A3;
+      hence thesis;
+    end;
+    A6: 2*(2 gcd z) = |.2.|*(2 gcd z)
+      .= 2*2 gcd 2*z by INT_6:16;
+    A7: 2*2 divides (a+b) implies not 2*2 divides (a-b)
+    proof
+      assume (2*2) divides a+b; then
+      |.(2*2).| = 2*2 gcd (2*t) by A3,Th3
+      .=|.2.|*(t gcd 2) by INT_6:16; then
+      2*2 gcd 2*z <> |.4.| by A5,A6,Th3;
+      hence thesis by A3,Th3;
+    end;
+    (not 2*2 divides (a+b)) implies 2*2 divides (a-b)
+    proof
+      assume not (2*2) divides a+b; then
+      not |.(2*2).| = 2*2 gcd (2*t) by A3,Th3; then
+      not |.(2*2).| =|.2.|*(t gcd 2) by INT_6:16; then
+      2*2 gcd 2*z = |.4.| by A5,A6,Th3;
+      hence thesis by A3,Th3;
+    end;
+    hence thesis by A7;
+  end;
+
+theorem
+  b+c gcd b = 1 & c is odd implies 2*b + c gcd c = 1
+  proof
+    assume
+    A1: b+c gcd b =1 & c is odd; then
+    c + b*1 gcd b = 1; then
+    A2: c gcd b = 1 by EULER_1:8;
+    (2*b + c*1) gcd c = 2*b gcd c by EULER_1:8;
+    hence thesis by A1,A2,Lm5a;
+  end;
+
+theorem
+  a + b = k*a + k*b & a*b > 0 implies k = 1
+  proof
+    assume
+    A0: a + b = k*a + k*b & a*b > 0; then
+    (k-1)*(a + b) = 0; then
+    a + b = 0 or k -1 = 0; then
+    a = 0 or k = 1;
+    hence thesis by A0;
+  end;
+
+theorem
+  t*z = t+z implies t=z
+  proof
+    assume t*z = t+z; then
+    0 = (t-1)*(z-1) - 1; then
+    (t-1 = 1 & z-1 = 1) or (t-1 = -1 & z-1 = -1) by INT_1:9;
+    hence thesis;
+  end;
+
+theorem Th62:
+  (2*n+1)|^2 = 4*n*(n+1)+1
+  proof
+    thus (2*n+1)|^2 = (2*n+1)*(2*n+1) by NEWTON:81
+    .= 4*n*(n+1)+1;
+  end;
+
+theorem
+  a is odd & b is odd implies 8 divides a|^2 - b|^2
+  proof
+    assume
+    A0: a is odd & b is odd; then consider k such that
+    A1: a = 2*k + 1 by ABIAN:9;
+    consider n such that
+    A1a: b = 2*n + 1 by A0,ABIAN:9;
+    (k is even or (k+1) is even) & (n is even or (n+1) is even); then
+    k*(k+1) - n*(n+1) is even; then
+    A2: 2*4 divides 4*(k*(k+1) - n*(n+1)) by INT_6:8;
+    a|^2 - b|^2  =  (2*k+1)|^2 -(4*n*(n+1)+1) by A1,A1a,Th62
+    .= (4*k*(k+1)+1) - (4*n*(n+1)+1) by Th62
+    .= 4*(k*(k+1) - n*(n+1));
+    hence thesis by A2;
+  end;
+
+  Lm60:
+  for a,b,m be odd Nat holds 4 divides a + b implies 4 divides a|^m + b|^m
+  proof
+    let a,b,m be odd Nat;
+    consider n such that
+    A0: m = 2*n+1 by ABIAN:9;
+    assume
+    A1: 4 divides a + b;
+    a+b divides a|^(2*n+1)+b|^(2*n+1) by NEWTON01:35;
+    hence thesis by A0,A1,INT_2:9;
+  end;
+
+theorem Th64:
+  for a,b be odd Nat holds 4 divides a - b implies 4 divides a|^n-b|^n
+  proof
+    let a,b be odd Nat;
+    assume
+    A1: 4 divides a - b;
+    a-b divides a|^n - b|^n by NEWTON01:33;
+    hence thesis by A1,INT_2:9;
+  end;
+
+theorem Th65:
+  for a,b be odd Nat, m be even Nat holds 4 divides a|^(m) - b|^(m)
+  proof
+    let a,b be odd Nat, m be even Nat;
+    consider n such that
+    L0: m = 2*n by ABIAN:def 2;
+    L1: 4 divides a + b implies 4 divides a|^(m)-b|^(m)
+    proof
+      assume
+      A1: 4 divides a + b;
+      a+b divides a|^(m)-b|^(m) by NEWTON01:36,L0;
+      hence thesis by A1,INT_2:9;
+    end;
+    4 divides a - b implies 4 divides a|^(m)-b|^(m) by Th64;
+    hence thesis by L1,Th58;
+  end;
+
+theorem
+  t is even & not 4 divides t implies ex u st u = t/2 & u is odd
+  proof
+    assume
+    A1: t is even & not 4 divides t; then
+    consider u such that
+    A2: t = 2*u by ABIAN:11;
+    not 2*2 divides 2*u by A1,A2; then
+    u = t/2 & u is odd by A2,LmGCD;
+    hence thesis;
+  end;
+
+  Lm63: a is even & not 4 divides a implies ex b st b = a/2 & b is odd
+  proof
+    assume
+    A1: a is even & not 4 divides a; then
+    consider b such that
+    A2: a = 2*b;
+    not 2*2 divides 2*b by A1,A2; then
+    b = a/2 & b is odd by A2,LmGCD;
+    hence thesis;
+  end;
+
+theorem Th67:
+  a is odd & 2|^n divides a*b implies 2|^n divides b
+  proof
+    assume
+    A1: a is odd & 2|^n divides a*b; then
+    2|^n,a are_coprime by NAT_5:3;
+    hence thesis by A1,WSIERP_1:29;
+  end;
+
+theorem Th68:
+  for a,b,m be odd Nat holds 4 divides a|^m + b|^m iff 4 divides a + b
+  proof
+    let a,b,m be odd Nat;
+    consider n such that
+    L0: m = 2*n+1 by ABIAN:9;
+    4 divides a|^(2*n+1)+b|^(2*n+1) implies 4 divides a + b
+    proof
+      B2: 2|^2 = 2*2 by NEWTON:81;
+      A1: 4 divides a|^(2*n) - b|^(2*n) by Th65;
+      A2: 4 divides (a|^(2*n) - b|^(2*n))*((a|^1 - b|^1)/2) by Th65,INT_2:2;
+      consider l such that
+      A3: l = (a|^(2*n)+b|^(2*n))/2 & l is odd by A1,Th58,Lm63;
+      A4: a|^(2*n+1)+b|^(2*n+1)=((a|^(2*n)+b|^(2*n))*(a|^1+b|^1)+
+      (a|^(2*n)-b|^(2*n))*(a|^1-b|^1))/2 by NEWTON01:8
+      .= (a|^(2*n)+b|^(2*n))*(a|^1+b|^1)/2 +
+      (a|^(2*n)-b|^(2*n))*(a|^1-b|^1)/2;
+      assume 4 divides a|^(2*n+1)+b|^(2*n+1); then
+      2|^2 divides ((a|^(2*n) + b|^(2*n))/2)*(a|^1+b|^1) by B2,A2,A4,INT_2:1;
+      hence thesis by B2,A3,Th67;
+    end;
+    hence thesis by L0,Lm60;
+  end;
+
+theorem
+  for a,b,m be odd Nat holds 4 divides a-b iff not 4 divides a|^m + b|^m
+  proof
+    let a,b,m be odd Nat;
+    thus 4 divides a-b implies not 4 divides a|^m + b|^m
+    proof
+      assume 4 divides a-b; then
+      not 4 divides a + b by Th58;
+      hence thesis by Th68;
+    end;
+    assume not 4 divides a|^m + b|^m; then
+    not 4 divides a + b by Th68;
+    hence thesis by Th58;
+  end;
+
+theorem
+  a|^2 + b|^2 = c|^2 implies ex t st b|^2 = (2*a+t)*t
+  proof
+    assume a|^2+b|^2 = c|^2; then
+    b|^2 = c|^2 - a|^2
+    .= (c-a)*(c+a) by NEWTON01:1
+    .= (c-a)*((c-a)+2*a);
+    hence thesis;
+  end;
+
+theorem
+  b|^2 = (2*a+t)*t implies ex c st a|^2 + b|^2 = c|^2
+  proof
+    assume b|^2 = (2*a+t)*t; then
+    A1: b|^2 = ((a+t)+ a)*((a+t)-a)
+    .= (a+t)|^2 - a|^2 by NEWTON01:1;
+    |.a+t.| in NAT by INT_1:3; then
+    consider c such that
+    A2: c =|.a+t.|;
+    c|^2 = (a+t)|^2 or c|^2 = (-(a+t))|^2 by A2,ABSVALUE:1; then
+    c|^2 = (a+t)|^2 by WSIERP_1:1;
+    hence thesis by A1;
+  end;
+
+  Lm40: a is odd & b is odd implies a|^2+b|^2 <> c|^2
+  proof
+    a is odd & b is odd & c is even implies a|^2+b|^2 <> c|^2
+    proof
+      assume
+      A1: a is odd & b is odd & c is even; then
+      4 divides a|^1 - b|^1 or 4 divides (a|^1+b|^1) by Th58; then
+      4 divides (a|^1-b|^1)*(a|^1+b|^1) by INT_2:2; then
+      4 divides a|^2 - b|^2 by NEWTON01:1; then
+      A2: not 4 divides a|^2 + b|^2 by A1,Th58;
+      2*2 divides c*c by A1,LmGCD;
+      hence thesis by A2,NEWTON:81;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  a is odd & b is odd & m is even implies a|^m + b|^m <> c|^m
+  proof
+    a is odd & b is odd implies a|^(2*n) + b|^(2*n) <> c|^(2*n)
+    proof
+  A1: a|^(2*n) = (a|^n)|^2 & b|^(2*n) = (b|^n)|^2 & c|^(2*n) = (c|^n)|^2
+        by NEWTON:9;
+      assume a is odd & b is odd;
+      hence thesis by A1,Lm40;
+    end;
+    hence thesis;
+  end;
+
+theorem Th73:
+  t,z|^n are_coprime & n > 0 implies t,z are_coprime
+  proof
+    assume
+    A1: t,z|^n are_coprime & n > 0; then
+    A2: t divides t|^n & z divides z|^n by Th6;
+    t gcd z divides t & t gcd z divides z by INT_2:def 2; then
+    A3: t gcd z divides t|^n & t gcd z divides z|^n by A2,INT_2:2;
+    t|^n, z|^n are_coprime by A1,WSIERP_1:10;
+    hence thesis by A3,INT_2:13,22;
+  end;
+
+theorem Th74:
+  a,b are_coprime implies
+    (a+b)|^2 gcd (a|^2 + b|^2 - (n-2)*a*b) = a|^2 + b|^2 - (n-2)*a*b gcd n
+  proof
+    A0: a|^2 = a*a & b|^2 = b*b by NEWTON:81;
+    assume
+    A1: a,b are_coprime;
+    A2: (a+b)|^2 = (a+b)*(a+b) by NEWTON:81
+    .= (a|^2+b|^2 - (n-2)*a*b) + n*a*b by A0;
+    a|^(0+1)+b|^(0+1),a*b are_coprime by A1,Th27; then
+    (a+b)|^2,a*b are_coprime by WSIERP_1:10; then
+    1 = (a+b)|^2 - n*(a*b) gcd a*b by Th5
+    .=(a|^2+b|^2 -(n-2)*a*b) + n*a*b - n*a*b gcd a*b by A2; then
+    A4: (a|^2+b|^2 -(n-2)*a*b),(a*b) are_coprime;
+    (a+b)|^2 gcd (a|^2+b|^2 -(n-2)*a*b) =
+    n*a*b+1*(a|^2+b|^2 -(n-2)*a*b) gcd (a|^2+b|^2 -(n-2)*a*b) by A2
+    .= n*(a*b) gcd (a|^2+b|^2 -(n-2)*a*b) by Th5
+    .= n gcd (a|^2+b|^2 - (n-2)*a*b) by A4,INT_6:19;
+    hence thesis;
+  end;
+
+theorem
+  a,b are_coprime implies (a+b),(a|^2 + b|^2 + a*b) are_coprime
+  proof
+    assume
+    A1: a,b are_coprime;
+    A2: |. a|^2 + b|^2 - (1-2)*a*b .| in NAT by INT_1:3;
+    (a+b)|^2 gcd (a|^2 + b|^2 + a*b) =
+      |. a|^2 + b|^2 - (1-2)*a*b .| gcd |.1.| by A1,Th74
+    .= 1 by NEWTON:51,A2; then
+    (a+b)|^2, (a|^2 + b|^2 + a*b) are_coprime;
+    hence thesis by Th73;
+  end;
+
+theorem
+  a,b are_coprime implies
+    (a-b)|^2 gcd (a|^2 + b|^2 + (n-2)*a*b) = a|^2 + b|^2 + (n-2)*a*b gcd n
+  proof
+    A0: a|^2 = a*a & b|^2 = b*b by NEWTON:81;
+    assume
+    A1: a,b are_coprime;
+    A2: (a-b)|^2 = (a-b)*(a-b) by NEWTON:81
+    .= (a|^2 + b|^2 + (n-2)*a*b) - n*a*b by A0;
+    a|^(0+1)-b|^(0+1),a*b are_coprime by A1,Th28; then
+    (a-b)|^2,a*b are_coprime by WSIERP_1:10; then
+    1 = (a-b)|^2 + n*(a*b) gcd a*b by Th5
+    .=(a|^2+b|^2 +(n-2)*a*b) - n*a*b + n*a*b gcd a*b by A2; then
+    A4: (a|^2+b|^2 +(n-2)*a*b),(a*b) are_coprime;
+    (a-b)|^2 gcd (a|^2+b|^2 +(n-2)*a*b) =
+    -n*a*b+1*(a|^2+b|^2 +(n-2)*a*b) gcd (a|^2+b|^2 +(n-2)*a*b) by A2
+    .= (-n)*(a*b) gcd (a|^2+b|^2 +(n-2)*a*b) by Th5
+    .= (-n) gcd (a|^2+b|^2 + (n-2)*a*b) by A4,INT_6:19;
+    hence thesis by Th1;
+  end;
+
+theorem Th77:
+  a divides k*(a*n+1) iff a divides k
+  proof
+    a divides k*(a*n+1) implies a divides k
+    proof
+      assume a divides k*(a*n+1); then
+      A1: a divides k*a*n + k*1;
+      a divides a*(k*n);
+      hence thesis by A1,INT_2:1;
+    end;
+    hence thesis by INT_2:2;
+  end;
+
+theorem
+  for n be positive Nat holds a divides k*(a|^n+1) iff a divides k
+  proof
+    let n be positive Nat;
+    consider k such that
+    A1: n = 1 + k by NAT_1:10,14;
+    a|^(1+k) = a*a|^k by NEWTON:6;
+    hence thesis by A1,Th77;
+  end;
+
+theorem
+  for a,b be positive Nat holds a mod b = b mod a implies a = b
+  proof
+    let a,b be positive Nat;
+    per cases by XXREAL_0:1;
+    suppose
+      a < b; then
+      a mod b = a by NAT_D:24;
+      hence thesis by NAT_D:1;
+    end;
+    suppose
+      b < a; then
+      b mod a = b by NAT_D:24;
+      hence thesis by NAT_D:1;
+    end;
+    suppose b = a;
+      hence thesis;
+    end;
+  end;
+
+theorem Th80:
+  k*(a*n+1) mod a = k mod a
+  proof
+    thus k*(a*n+1) mod a = (a*(k*n) + k) mod a
+    .= k mod a by NAT_D:21;
+  end;
+
+theorem Th81:
+  for n be positive Nat holds k*(a|^n+1) mod a = k mod a
+  proof
+    let n be positive Nat;
+    consider k such that
+    A1: n = 1 + k by NAT_1:10,14;
+    a|^(1+k) = a*a|^k by NEWTON:6;
+    hence thesis by A1,Th80;
+  end;
+
+theorem Th82:
+  for n be positive Nat holds k*(a|^n+1)|^m mod a = k mod a
+  proof
+    let n be positive Nat;
+    per cases by NAT_1:25;
+    suppose
+      C1: a > 1;
+      (a|^n+1)|^m mod a = ((a|^n+1) mod a)|^m mod a by GR_CY_3:30; then
+      k*(a|^n+1)|^m mod a = k*((1*(a|^n+1) mod a)|^m mod a) mod a by RADIX_2:3
+      .= k*((1 mod a)|^m mod a) mod a by Th81
+      .= k*(1|^m mod a) mod a by C1, NAT_D:14
+      .= k*1 mod a by RADIX_2:3;
+      hence thesis;
+    end;
+    suppose
+      a = 1; then
+      k*(a|^n+1)|^m mod a = 0 & k mod a = 0 by RADIX_2:1;
+      hence thesis;
+    end;
+    suppose
+      a = 0;
+      hence thesis;
+    end;
+  end;
+
+theorem Th83:
+  for n be positive Nat holds
+    b*(a|^n+1)|^m + c*(a|^n+1)|^l mod a = b+c mod a
+  proof
+    let n be positive Nat;
+    A1: b*(a|^n+1)|^m mod a = b mod a & c*(a|^n+1)|^l mod a = c mod a by Th82;
+    b*(a|^n+1)|^m + c*(a|^n+1)|^l mod a
+    = ((b mod a) + (c mod a))mod a by A1,NAT_D:66
+    .= b+c mod a by NAT_D:66;
+    hence thesis;
+  end;
+
+theorem
+  for a,n be positive Nat holds
+    a divides b*(a|^n+1)|^m + c*(a|^n+1)|^l iff a divides b+c
+  proof
+    let a,n be positive Nat;
+    b*(a|^n+1)|^m + c*(a|^n+1)|^l mod a = 0 iff b+c mod a = 0 by Th83;
+    hence thesis by PEPIN:6;
+  end;
+
+theorem
+  |.t.| < a implies t mod a = |.t.| or t mod a = a -|.t.|
+  proof
+    assume |.t.| < a; then
+    A2: t < a & t > -a by SEQ_2:1;
+    per cases;
+    suppose
+      B1: t >= 0; then
+      t mod a = t by A2,NAT_D:63;
+      hence thesis by B1,ABSVALUE:def 1;
+    end;
+    suppose
+      B1: t < 0; then
+      t mod a = a + t by A2,NAT_D:63
+      .= a - (-t)
+      .= a -|.t.| by B1,ABSVALUE:def 1;
+      hence thesis;
+    end;
+  end;
+
+theorem
+  -t mod a = (u*a - (t mod a)) mod a
+  proof
+    thus (u*a - (t mod a)) mod a =
+      ((((0+u*a)mod a) -((t mod a)mod a))mod a) by INT_6:7
+    .= ((0 mod a)-(t mod a))mod a
+    .= (0-t) mod a by INT_6:7
+    .= -t mod a;
+  end;
+
+:: division by 3
+
+  Lm3: t mod 3 = 0 or t mod 3 = 1 or t mod 3 = 2
+  proof
+    A1: (t mod 3) in NAT by INT_1:3,57;
+    (t mod 3) mod 3 = t mod 3; then
+    t mod 3 < 2+1 by A1,NAT_D:1;
+    hence thesis by A1,NAT_1:22,23;
+  end;
+
+  LmMod: for n be odd Nat holds 2|^n mod 3 = 2
+  proof
+    let n be odd Nat;
+    consider m such that
+    L0: n = 2*m +1 by ABIAN:9;
+    defpred P[Nat] means 2|^(2*$1+1) mod 3 = 2;
+    L1: P[0] by NAT_D:63;
+    L2: P[k] implies P[k+1]
+    proof
+      assume
+      A1: P[k];
+      A2: 1 = 1 mod 3 by NAT_D:63
+      .= 1*3 + 1 mod 3 by NAT_D:21
+      .= 2*2 mod 3
+      .= 2|^2 mod 3 by NEWTON:81;
+      2 = (2*1 mod 3) by NAT_D:63
+      .= 2|^(2*k+1)*2|^2 mod 3 by A1,A2,NAT_D:67
+      .= 2|^(2*k+1+2) mod 3 by NEWTON:8
+      .= 2|^(2*(k+1)+1) mod 3;
+      hence thesis;
+    end;
+    for c be Nat holds P[c] from NAT_1:sch 2(L1,L2);
+    hence thesis by L0;
+  end;
+
+theorem Th87:
+  for n be odd Nat holds t|^n mod 3 = t mod 3
+  proof
+    let n be odd Nat;
+    per cases by Lm3;
+    suppose
+      A1: t mod 3 = 0; then
+      0 = (t mod 3)|^n mod 3;
+      hence thesis by A1,GR_CY_3:30;
+    end;
+    suppose
+      A1: t mod 3 = 1; then
+      1 = (t mod 3)|^n mod 3;
+      hence thesis by A1,GR_CY_3:30;
+    end;
+    suppose
+      A1: t mod 3 = 2; then
+      2 = (t mod 3)|^n mod 3 by LmMod;
+      hence thesis by A1,GR_CY_3:30;
+    end;
+  end;
+
+theorem Th88:
+  (t + (u mod z))mod z = (t+u) mod z
+  proof
+    thus (t+(u mod z)) mod z = ((t mod z + ((u mod z) mod z)) mod z) mod z
+      by NAT_D:66
+    .= (t+u) mod z by NAT_D:66;
+  end;
+
+  LmSum: a+b-c mod 3 = ((a mod 3) + (b mod 3) + 2*(c mod 3)) mod 3
+  proof
+    thus (a+b-c) mod 3 = ((a+b-c)+c*3) mod 3 by EULER_1:12
+    .= (a+(b+2*c)) mod 3
+    .= ((a mod 3)+((b+2*c) mod 3)) mod 3 by NAT_D:66
+    .= (((a mod 3) mod 3) +(((b mod 3) + (c+c mod 3)) mod 3)) mod 3 by NAT_D:66
+    .= (((a mod 3) mod 3) +(((b mod 3) + (((c mod 3)+(c mod 3))
+      mod 3)) mod 3)) mod 3 by NAT_D:66
+    .= (((a mod 3) mod 3) +(((b mod 3) + (((c mod 3)+(c mod 3)))) mod 3))
+      mod 3 by Th88
+    .= (((a mod 3)) +(((b mod 3) + (((c mod 3)+(c mod 3)))))) mod 3 by Th88
+    .= ((a mod 3) + (b mod 3) + 2*(c mod 3)) mod 3;
+  end;
+
+theorem Th89:
+  for n be odd Nat holds (a+b-c) mod 3 = (a|^n+b|^n-c|^n) mod 3
+  proof
+    let n be odd Nat;
+A1: (a|^n mod 3) = (a mod 3) & (b|^n mod 3) = (b mod 3) & (c|^n mod 3) =
+      (c mod 3) by Th87;
+    (a+b-c) mod 3 = ((a mod 3) + (b mod 3) + 2*(c mod 3)) mod 3 by LmSum
+    .=  (a|^n+b|^n-c|^n) mod 3 by A1,LmSum;
+    hence thesis;
+  end;
+
+theorem Th90:
+  for k be positive Nat holds t mod k = k - 1 iff (t+1) mod k = 0
+  proof
+    let k be positive Nat;
+    thus t mod k = k - 1 implies (t+1) mod k = 0
+    proof
+      assume
+      A1: t mod k = k - 1;
+      0 = (0 + 1*k) mod k
+      .= (1 + (t mod k)) mod k by A1
+      .= (1 + t) mod k by Th88;
+      hence thesis;
+    end;
+    assume
+    A1: (t+1) mod k = 0;
+    (k-1)+1 > (k-1)+0 by XREAL_1:6; then
+    k - 1 = ((k -1) + ((t+1) mod k)) mod k by A1,NAT_D:24
+      .= ((k -1) + (t +1)) mod k by Th88
+      .= (t + 1*k) mod k
+      .= t mod k by EULER_1:12;
+    hence thesis;
+  end;
+
+  LmABC: 3 divides u + t + z implies 3 divides u*t*z or
+  (u mod 3 = t mod 3 & t mod 3 = z mod 3)
+  proof
+    assume
+    A1: 3 divides u + t + z; then
+    A2: (u+t+z) mod 3 = 0 by INT_1:62;
+    A3: (u+t) mod 3 = ((u mod 3) + (t mod 3)) mod 3 by NAT_D:66;
+    per cases by Lm3;
+    suppose u mod 3 = 0; then
+      3 divides u by INT_1:62; then
+      3 divides u*(t*z) by INT_2:2;
+      hence thesis;
+    end;
+    suppose
+      B1: u mod 3 = 1;
+      per cases by Lm3;
+      suppose t mod 3 = 0; then
+        3 divides t by INT_1:62; then
+        3 divides t*(u*z) by INT_2:2;
+        hence thesis;
+      end;
+      suppose
+        C1: t mod 3 = 1; then
+        (u+t) mod 3 = 3-1 by B1,A3,NAT_D:24; then
+        ((u+t)+1) mod 3 = ((u+t)+z) mod 3 by A2,Th90; then
+        (u+t+z),(u+t+1) are_congruent_mod 3 by NAT_D:64; then
+        z,1 are_congruent_mod 3; then
+        z mod 3 = 1 mod 3 by NAT_D:64
+        .= 1 by NAT_D:14;
+        hence thesis by C1,B1;
+      end;
+      suppose
+        t mod 3 = 2; then
+        u+t mod 3 = 0 by B1,A3,NAT_D:25; then
+        3 divides (u+t) by INT_1:62; then
+        3 divides z by A1,INT_2:1;
+        hence thesis by INT_2:2;
+      end;
+    end;
+    suppose
+      B1: u mod 3 = 2;
+      per cases by Lm3;
+      suppose t mod 3 = 0; then
+        3 divides t by INT_1:62; then
+        3 divides t*(u*z) by INT_2:2;
+        hence thesis;
+      end;
+      suppose
+        t mod 3 = 1; then
+        u+t mod 3 = 0 by B1,A3,NAT_D:25; then
+        3 divides (u+t) by INT_1:62; then
+        3 divides z by A1,INT_2:1;
+        hence thesis by INT_2:2;
+      end;
+      suppose
+        C1: t mod 3 = 2; then
+        C2: (u+t) mod 3 = (1+3) mod 3 by B1,A3
+        .= ((1 mod 3) + (3 mod 3)) mod 3 by NAT_D:66
+        .= 1+(3 mod 3) mod 3 by RADIX_2:2
+        .= 1+ 0 mod 3 by NAT_D:25
+        .= 1 by NAT_D:14;
+        ((u+t)+2) mod 3 = ((2 mod 3)+((u+t)mod 3))mod 3 by NAT_D:66
+        .= 2+1 mod 3 by NAT_D:24,C2
+        .= ((u+t)+z) mod 3 by A2,NAT_D:25; then
+        (u+t+z),(u+t+2) are_congruent_mod 3 by NAT_D:64; then
+        z,2 are_congruent_mod 3; then
+        z mod 3 = 2 mod 3 by NAT_D:64
+        .= 2 by NAT_D:24;
+        hence thesis by B1,C1;
+      end;
+    end;
+  end;
+
+  LmAB3: u + t = z implies 3 divides u*t*z or 3 divides u - t
+  proof
+    assume u + t = z; then
+    3 divides (u+t-z)+3*z; then
+    3 divides u + t + 2*z; then
+    3 divides u*t*(2*z) or (u mod 3) = (t mod 3) by LmABC; then
+    3 divides 2*(u*t*z) or u,t are_congruent_mod 3 by NAT_D:64;
+    hence thesis by PEPIN:41,INT_2:25,28,30;
+  end;
+
+theorem
+  a|^2 + b|^2 = c|^2 implies 3 divides a*b*c
+  proof
+    A0: a|^2*b|^2*c|^2 = (a*b)|^2*c|^2 by NEWTON:7
+    .= (a*b*c)|^2 by NEWTON:7;
+    assume
+    A1: a|^2 + b|^2 = c|^2; then
+    per cases by LmAB3;
+    suppose
+      3 divides a|^2*b|^2*c|^2;
+      hence thesis by A0,NAT_3:5,PEPIN:41;
+    end;
+    suppose
+      3 divides a|^2 - b|^2 & not 3 divides a|^2*b|^2*c|^2; then
+      B2: not 3 divides (a|^2)*(b|^2*c|^2) & not 3 divides (b|^2)*(a|^2*c|^2)
+      & not 3 divides (c|^2)*(b|^2*a|^2); then
+      not 3 divides a|^2 & not 3 divides b|^2 & not 3 divides c|^2
+        by INT_2:2; then
+      not 3 divides a & not 3 divides b & not 3 divides c by Th14; then
+      not 3 divides (c*a) by INT_5:7,PEPIN:41; then
+      3 divides (c+a)*(c-a) by Th50; then
+      3 divides c|^2 - a|^2 by NEWTON01:1;
+      hence thesis by A1,B2,INT_2:2;
+    end;
+  end;
+
+theorem
+  for a,n be non zero Nat holds t mod a = z mod a implies
+    t|^n mod a = z|^n mod a
+  proof
+    let a,n be non zero Nat;
+    assume t mod a = z mod a; then
+    t|^n,z|^n are_congruent_mod a by NAT_D:64,GR_CY_3:34;
+    hence thesis by NAT_D:64;
+  end;
+
+theorem
+  3 divides t-z implies 3 divides t|^n - z|^n
+  proof
+    3 divides (t-z) & (t-z) divides (t|^n - z|^n) implies
+      3 divides (t|^n - z|^n) by INT_2:9;
+    hence thesis by Th18;
+  end;
+
+theorem
+  for n be odd Nat holds 3 divides (a+b-c) iff 3 divides (a|^n+b|^n-c|^n)
+  proof
+    let n be odd Nat;
+    thus 3 divides (a+b-c) implies 3 divides (a|^n+b|^n-c|^n)
+    proof
+      assume 3 divides a+b-c; then
+      a+b-c mod 3 = 0 by INT_1:62; then
+      (a|^n+b|^n-c|^n) mod 3 = 0 by Th89;
+      hence thesis by INT_1:62;
+    end;
+    assume 3 divides a|^n+b|^n-c|^n; then
+    a|^n+b|^n-c|^n mod 3 = 0 by INT_1:62; then
+    (a+b-c) mod 3 = 0 by Th89;
+    hence thesis by INT_1:62;
+  end;
+
+theorem
+  (t+u-z)|^2,(t|^2+u|^2+z|^2) are_congruent_mod 2
+  proof
+    (t-z+u)|^2=t|^2+z|^2+u|^2-2*t*z+2*t*u-2*z*u by SERIES_4:3; then
+    (t-z+u)|^2 - (t|^2+z|^2+u|^2) = 2*(t*u-t*z-z*u);
+    hence thesis;
+  end;
+
+  LmTUZ:  (t+u+z)|^3,(t|^3+u|^3+z|^3) are_congruent_mod 3
+  proof
+    (t+u+z)|^3 = (t|^3+u|^3+z|^3) + (3*t|^2*u+3*t|^2*z) +
+      (3*u|^2*t+3*u|^2*z)+(3*
+    z|^2*t+3*z|^2*u)+6*t*u*z by SERIES_4:8; then
+    (t+u+z)|^3 - (t|^3+u|^3+z|^3) =
+    3*((t|^2*u+t|^2*z)+ (u|^2*t+u|^2*z) + (z|^2*t+z|^2*u) + 2*t*u*z);
+    hence thesis;
+  end;
+
+theorem
+  (t+u-z)|^3,(t|^3+u|^3-z|^3) are_congruent_mod 3
+  proof
+    2*1+1 is odd; then
+    A1: (-z)|^3 = -z|^3 by POWER:2;
+    (t+u+(-z))|^3,(t|^3+u|^3+(-z)|^3) are_congruent_mod 3 by LmTUZ;
+    hence thesis by A1;
+  end;
+
+theorem
+  6 divides a|^3 - a
+  proof
+    3 divides a*1 or 3 divides (a+1)*(a-1) by Th50; then
+    A1: 3 divides (a-1)*(a+1)*(a*1) by INT_2:2;
+    a is even or (a+1) is even; then
+    A2: a*(a+1)*(a-1) is even;
+    2*1+1 is odd; then
+    A3: 3,2|^1 are_coprime by NAT_5:3;
+    a|^(2+1) - a = a|^2*a - a by NEWTON:6
+    .= (a|^2 -1|^2)*a*1
+    .= (a-1)*(a+1)*a*1 by NEWTON01:1; then
+    |.3.| divides |.a|^3 - a.| & |.2.| divides |.a|^3 - a.|
+      by A1,A2,INT_2:16; then
+    |.3*2.| divides |.a|^3 - a.| by PEPIN:4,A3;
+    hence thesis by INT_2:16;
+  end;
+
+theorem
+  for a,b,c be odd Nat holds
+    3 divides t|^a + t|^b + t|^c
+  proof
+    let a,b,c be odd Nat;
+    A1: t|^a mod 3 = t mod 3 & t|^b mod 3 = t mod 3 & t|^c mod 3 = t mod 3
+      by Th87;
+    (t|^a + t|^b + t|^c) mod 3 = (t|^a + t|^b + (t|^c mod 3)) mod 3 by Th88
+    .= ((t|^c mod 3) + t|^a + t|^b) mod 3
+    .= ((t|^c mod 3) + t|^a + (t|^b mod 3))mod 3 by Th88
+    .= ((t|^c mod 3) + (t|^b mod 3) + t|^a)mod 3
+    .= ((t|^c mod 3) + (t|^b mod 3) + (t|^a mod 3))mod 3 by Th88
+    .= (0+3*(t mod 3)) mod 3 by A1
+    .= 0;
+    hence thesis by INT_1:62;
+  end;
+
+theorem
+  2|^m - 1 divides 2|^(2*m+1) - 2 & 2|^m + 1 divides 2|^(2*m+1) - 2
+  proof
+    2|^(2*m+1) - 2 = 2*2|^(2*m) - 2 by NEWTON:6
+    .= (2|^(2*m) - 1|^m)*2
+    .= ((2|^m)|^2 - (1|^m)|^2)*2 by NEWTON:9
+    .= ((2|^m) - (1|^m))*((2|^m) + (1|^m))*2 by NEWTON01:1
+    .= (2|^m - 1)*((2|^m + 1)*2);
+    hence thesis by INT_1:def 3,INT_2:2;
+  end;
+
+theorem Th100:
+  (u + t + z) is even implies u*t*z is even
+  proof
+    assume
+    A1: u + t + z is even;
+    per cases;
+    suppose u is even;
+      hence thesis;
+    end;
+    suppose
+      B1: u is odd;
+      per cases;
+      suppose t is even;
+        hence thesis;
+      end;
+      suppose
+        t is odd; then
+        z is even by A1,B1;
+        hence thesis;
+      end;
+    end;
+  end;
+
+theorem
+  t|^n + u|^n = z|^n implies 2|^n divides (t*u*z)|^n
+  proof
+    assume t|^n + u|^n = z|^n; then
+    t|^n + u|^n +(-z|^n) = 0; then
+    t|^n + u|^n +(-z|^n) is even; then
+    t|^n*u|^n*(-z|^n) is even by Th100; then
+    -(t|^n*u|^n*z|^n) is even; then
+    t|^n*u|^n*z|^n is even by INT_2:10; then
+    t is even or u is even or z is even; then
+    t*u*z is even;
+    hence thesis by Th15;
+  end;
+
+theorem
+  t|^n,t|^m are_congruent_mod t-1
+  proof
+    per cases;
+    suppose n >= m;
+      then consider k such that
+      B2: n = m + k by NAT_1:10;
+      t|^(m+k) = t|^m * t|^k by NEWTON:8; then
+      t|^(m+k) - t|^m = t|^m*(t|^k-1|^k);
+      hence thesis by B2,Th18,INT_2:2;
+    end;
+    suppose m >= n;
+      then consider k such that
+      B2: m = n + k by NAT_1:10;
+      t|^(n+k) = t|^n * t|^k by NEWTON:8; then
+      t|^(n+k) - t|^n = t|^n*(t|^k-1|^k); then
+      (t-1) divides t|^m - t|^n by B2,Th18,INT_2:2; then
+      (t-1) divides -(-t|^n + t|^m) by INT_2:10;
+      hence thesis;
+    end;
+  end;
+
+begin :: Fermat's Little Theorem Revisited
+
+reserve a,b,c,d,m,x,n,k,l for Nat,
+  t,z for Integer,
+  f,F,G for FinSequence of REAL;
+reserve q,r,s for real number;
+reserve D for set;
+
+theorem Th1:
+  for f be FinSequence holds
+    f is D-valued iff f is FinSequence of D
+  proof
+    let f be FinSequence;
+    f is D-valued implies f is FinSequence of D
+    proof
+      assume f is D-valued; then
+      rng f c= D by RELAT_1:def 19;
+      hence thesis by FINSEQ_1:def 4;
+    end;
+    hence thesis;
+  end;
+
+:: Seg vs Segm
+
+theorem Th2:
+  k+1 in Seg n iff k < n
+  proof
+    thus k+1 in Seg n implies k < n
+    proof
+      assume k+1 in Seg n; then
+      k + 1 <= n by FINSEQ_1:1;
+      hence k < n by NAT_1:13;
+    end;
+    thus thesis by FINSEQ_3:11;
+  end;
+
+theorem Th3: :: AFINSEQ_1:Lm1
+  n+1 <= len f iff n+1 in dom f
+  proof
+    thus n+1 <= len f implies n+1 in dom f
+    proof assume n+1 <= len f; then
+      n < len f by NAT_1:13;
+      then n+1 in Seg len f by Th2;
+      hence n+1 in dom f by FINSEQ_1:def 3;
+    end;
+    assume n+1 in dom f;
+    then n+1 in Seg len f by FINSEQ_1:def 3; then
+    n < len f by Th2;
+    hence n+1 <= len f by NAT_1:13;
+  end;
+
+theorem
+  k in Segm n iff k+1 in Seg n by Th2,NAT_1:44;
+
+theorem Th7:
+  n in dom f & 1 <= m & m <= n implies f.m = (f|n).m
+  proof
+    assume
+    A1: n in dom f & 1 <= m & m <= n; then
+    m in Seg n;
+    hence thesis by A1, RFINSEQ:6;
+  end;
+
+theorem
+  f is FinSequence of D implies
+    f|n is FinSequence of D & f/^n is FinSequence of D
+  proof
+    assume
+    A1: f is FinSequence of D;
+    (f|n)^(f/^n) = f by RFINSEQ:8;
+    hence thesis by A1,FINSEQ_1:36;
+  end;
+
+theorem Th9:
+  n in dom f implies (f|n).1 = f.1
+  proof
+    assume
+    A1: n in dom f; then
+    n >= 1 by FINSEQ_3:24,NAT_1:14;
+    hence thesis by A1,Th7;
+  end;
+
+theorem Th10:
+  for f be FinSequence of REAL st n in dom f holds len(f|n) = n
+  proof
+    let f be FinSequence of REAL;
+    assume n in dom f; then
+    n <= len f by FINSEQ_3:25;
+    hence thesis by FINSEQ_1:59;
+  end;
+
+registration
+  let s;
+  cluster <*s*> -> REAL-valued;
+  coherence by TOPREALC:19;
+end;
+
+registration
+  let D;
+  let f be D-valued FinSequence;
+  let n;
+  cluster (f|n) -> D-valued;
+  coherence;
+end;
+
+registration
+  let D;
+  let f be FinSequence of D;
+  let n;
+  cluster (f/^n) -> D-valued;
+  coherence;
+end;
+
+theorem for f be FinSequence of COMPLEX holds
+  k in dom (f|n) implies k in dom f
+  proof
+    let f be FinSequence of COMPLEX;
+    assume k in dom (f|n); then
+    k in dom ((f|n)^(f/^n)) by FINSEQ_2:15;
+    hence thesis by RFINSEQ:8;
+  end;
+
+registration
+  let n;
+  cluster {}/^n -> empty;
+  coherence
+  proof
+    reconsider f = <*>NAT as FinSequence of NAT;
+    A1: f/^(len f) = {} by RFINSEQ:27;
+    per cases;
+    suppose
+      n = 0;
+      hence thesis by A1;
+    end;
+    suppose
+      n > 0; then
+      n > len {};
+      hence thesis by RFINSEQ:def 1;
+    end;
+  end;
+end;
+
+registration
+  let f,n;
+  cluster (f|n)/^n -> empty;
+  coherence
+  proof
+    per cases;
+    suppose
+      A1: n > 0;
+      len (f|n) = n or not n in dom f by Th10; then
+      len (f|n) = n or n < 1 or n > len f by FINSEQ_3:25; then
+      len (f|n) <= n by FINSEQ_1:58,A1,NAT_1:14;
+      hence thesis by FINSEQ_5:32;
+    end;
+    suppose
+      n = 0; then
+      (f|n) = {};
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let D;
+  let f be D-valued FinSequence;
+  let n;
+  cluster (f/^n) -> D-valued;
+  coherence
+  proof
+    rng f c= D by RELAT_1:def 19; then
+    f is FinSequence of D by FINSEQ_1:def 4;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be FinSequence of NAT,n;
+  cluster f.n -> natural;
+  coherence;
+end;
+
+registration
+  let f be FinSequence of NAT,n,k;
+  cluster (f|n).k -> natural;
+  coherence;
+  cluster ((f|n)/^1).k -> natural;
+  coherence;
+end;
+
+theorem Th14:
+  Sum(f^F) = Sum(f) + Sum(F)
+  proof
+    f is FinSequence of COMPLEX & F is FinSequence of COMPLEX by RVSUM_1:146;
+    hence thesis by MATRIXC1:46;
+  end;
+
+theorem Th15:
+  for f be FinSequence of REAL holds
+    k in dom (f/^n) & n in dom f implies n+k in dom f
+  proof
+    let f be FinSequence of REAL;
+    assume
+    A1: k in dom (f/^n) & n in dom f; then
+    len (f|n) + k in dom ((f|n)^(f/^n)) by FINSEQ_1:28; then
+    n+k in dom ((f|n)^(f/^n)) by A1,Th10;
+    hence thesis by RFINSEQ:8;
+  end;
+
+theorem Th16:
+  for k be positive Nat holds n+k in dom f implies k in dom (f/^n)
+  proof
+    let k be positive Nat;
+    A0: k >= 1 by NAT_1:14;
+    assume n+k in dom f; then
+    A2: n+k <= len f by FINSEQ_3:25; then
+    A3: n+k-n <= len f - n by XREAL_1:9;
+    n + k > n +0 by XREAL_1:6; then
+    len f > n by A2,XXREAL_0:2; then
+    k <= len (f/^n) by A3,RFINSEQ:def 1;
+    hence thesis by A0,FINSEQ_3:25;
+  end;
+
+theorem Th17:
+  for n be positive Nat st n+1 = len f holds
+    Sum f = Sum((f|n)/^1) + f.1 + f.(n+1)
+  proof
+    let n be positive Nat such that
+    A0: n+1 = len f;
+    A2: f =(f|n)^<*f.(n+1)*> by A0,RFINSEQ:7;
+    n >= 1 & len f >= n by A0,NAT_1:13,14; then
+    A2a: n in dom f by FINSEQ_3:25;
+    n+1 > n+0 by XREAL_1:6; then
+    A3: len (f|n) > 0 by A0,FINSEQ_1:59;
+    <*f.(n+1)*> is FinSequence of REAL by RVSUM_1:145; then
+    Sum f = Sum (f|n) + Sum <*f.(n+1)*> by Th14,A2
+    .= Sum (f|n) + f.(n+1) by RVSUM_1:73
+    .= ((f|n).1 + Sum((f|n)/^1)) + f.(n+1) by A3,IRRAT_1:17;
+    hence thesis by A2a,Th9;
+  end;
+
+theorem
+  n+1 = len f implies (f/^n) = <*f.(n+1)*>
+  proof
+    assume n+1 = len f; then
+    (f|n)^<*f.(n+1)*> = f by RFINSEQ:7
+    .= (f|n)^(f/^n) by RFINSEQ:8;
+    hence thesis by FINSEQ_1:33;
+  end;
+
+theorem
+  ((f|n)/^1) is not empty implies len ((f|n)/^1) <= len f - 1
+  proof
+    assume (f|n)/^1 is not empty; then
+    (f|n) is not empty; then
+    A2: 1 in dom (f|n) by FINSEQ_5:6;
+    (f|n) = ((f|n)|1)^((f|n)/^1) by RFINSEQ:8; then
+    len (f|n) = len ((f|n)|1) + len((f|n)/^1) by FINSEQ_1:22; then
+    A3: len ((f|n)/^1) + 1 = len (f|n) by A2,Th10;
+    len (f|n)-1 <= len f -1 by XREAL_1:9,FINSEQ_5:16;
+    hence thesis by A3;
+  end;
+
+theorem Th20:
+  ((f|n)/^1) is not empty implies len ((f|n)/^1) < n
+  proof
+    assume (f|n)/^1 is not empty; then
+    (f|n) is not empty; then
+    A2: 1 in dom (f|n) by FINSEQ_5:6;
+    (f|n) = ((f|n)|1)^((f|n)/^1) by RFINSEQ:8; then
+    len (f|n) = len ((f|n)|1) + len((f|n)/^1) by FINSEQ_1:22; then
+    A3: len ((f|n)/^1) + 1 = len (f|n) by A2,Th10;
+    len (f|n) <= n by FINSEQ_5:17;
+    hence thesis by A3,NAT_1:13;
+  end;
+
+:: n choose k
+
+theorem Th21:
+  n is prime & k <> 0 & k <> n implies n divides (n choose k)
+  proof
+    assume
+    A1: n is prime & k <> 0 & k <> n; then
+    per cases by XXREAL_0:1;
+    suppose
+      k > n; then
+      n choose k = 0 by NEWTON:def 3;
+      hence thesis by NAT_D:6;
+    end;
+    suppose
+      B1: k < n; then
+      consider m such that
+      B1a: n = 1 + m by NAT_1:14,10;
+      B1b: k!,n are_coprime by A1,B1,NAT_4:19,GROUP_17:5;
+      consider l such that
+      B2: n = k + l by B1,NAT_1:10;
+      k+l > 0+l by A1,XREAL_1:6; then
+      B3a: l!,n are_coprime by A1,B2,NAT_4:19,GROUP_17:5;
+      l = n - k by B2; then
+      n choose k = (n!)/((k!) * (l!)) by B1,NEWTON:def 3; then
+      (n choose k)*((k!)*(l!)) = n! by XCMPLX_1:87; then
+      (n choose k)*((k!)*(l!)) = m!*n by B1a,NEWTON:15; then
+      n divides ((n choose k)*(k!))*(l!); then
+      n divides (n choose k)*(k!) by B3a,INT_2:25;
+      hence thesis by B1b,INT_2:25;
+    end;
+  end;
+
+:: factorial
+
+theorem Th22:
+  b >= 2 implies (b+1)! > 2|^b
+  proof
+    defpred P[Nat] means ($1+1)! > 2|^$1;
+    A1: P[2]
+    proof
+      B1: (2+1)! = 2*3 by NEWTON:14,15;
+      2|^(2) = 2*2 by NEWTON:81;
+      hence thesis by B1;
+    end;
+    A2: for k be Nat st k >= 2 & P[k] holds P[k+1]
+    proof
+      let k be Nat;
+      assume
+      B1: k>=2 & (k+1)! > 2|^k; then
+      k+2 > 2+0 by XREAL_1:6; then
+      (k+1)!*(k+1+1) > 2|^k*2 by B1,XREAL_1:96; then
+      (k+1)!*(k+1+1) > 2|^(k+1) by NEWTON:6;
+      hence thesis by NEWTON:15;
+    end;
+    for x be Nat st x >= 2 holds P[x] from NAT_1:sch 8(A1,A2);
+    hence thesis;
+  end;
+
+  Lm3: for b be positive Nat holds b divides (b+c)!
+  proof
+    let b be positive Nat;
+    b+c >= b+0 by XREAL_1:6;
+    hence thesis by NEWTON:41;
+  end;
+
+  Lm4: for a,b be positive Nat holds a,b! are_coprime implies a,b are_coprime
+  proof
+    let a,b be positive Nat;
+    assume
+    A1: a,b! are_coprime;
+    b divides (b+0)! by Lm3;
+    hence thesis by A1,WSIERP_1:15,NEWTON:57;
+  end;
+
+theorem Th23:
+  b > 1 iff b! > 1
+  proof
+    thus b > 1 implies b! > 1
+    proof
+      assume b > 1; then
+      b >= 1+1 by NAT_1:13;
+      hence thesis by ASYMPT_1:55;
+    end;
+    thus thesis by ASYMPT_1:56,NEWTON:13;
+  end;
+
+theorem Th24:
+  b >= 2 implies b! < b|^b
+  proof
+    defpred P[Nat] means $1! < $1|^$1;
+    A1: P[2]
+    proof
+      2|^(2) = 2*2 by NEWTON:81;
+      hence thesis by NEWTON:14;
+    end;
+    A2: for k be Nat st k >= 2 & P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+      B1: k >= 2 & k! < k|^k;
+      B2: k >= 1 by B1,XXREAL_0:2;
+      k+1 > k +0 by XREAL_1:6; then
+      (k+1)|^k > k|^k by B2,PREPOWER:10; then
+      B3: (k+1)|^k*(k+1) > k|^k*(k+1) by XREAL_1:68;
+      k!*(k+1) < k|^k*(k+1) by B1,XREAL_1:68; then
+      k!*(k+1) < (k+1)|^k*(k+1) by B3,XXREAL_0:2;then
+      (k+1)! < (k+1)|^k*(k+1) by NEWTON:15;
+      hence thesis by NEWTON:6;
+    end;
+    for x be Nat st x >= 2 holds P[x] from NAT_1:sch 8(A1,A2);
+    hence thesis;
+  end;
+
+theorem
+  (b+1)! >= 2|^b
+  proof
+    per cases by NAT_1:23;
+    suppose b >=2;
+      hence thesis by Th22;
+    end;
+    suppose
+      b = 0;
+      hence thesis by NEWTON:4,13;
+    end;
+    suppose
+      b = 1;
+      hence thesis by NEWTON:14;
+    end;
+  end;
+
+theorem
+  b! <= b|^b
+  proof
+    per cases by NAT_1:23;
+    suppose b >=2;
+      hence thesis by Th24;
+    end;
+    suppose
+      b = 0;
+      hence thesis by NEWTON:4,12;
+    end;
+    suppose
+      b = 1;
+      hence thesis by NEWTON:13;
+    end;
+  end;
+
+theorem
+  b>0 & a,b! are_coprime implies a,b are_coprime
+  proof
+    assume
+    A1: b > 0 & a,b! are_coprime;
+    per cases;
+    suppose
+      a = 0; then
+      b <= 1 by A1,Th23; then
+      b < 1+1 by NAT_1:13; then
+      b = 1 or b = 0 by NAT_1:23;
+      hence thesis by A1,NEWTON:51;
+    end;
+    suppose a>0;
+      hence thesis by A1,Lm4;
+    end;
+  end;
+
+theorem
+  a,(a+b)! are_coprime implies a = 1 or (a = 0 & (b = 0 or b = 1))
+  proof
+    assume
+    A1: a,(a+b)! are_coprime;
+    per cases;
+    suppose
+      B1: a = 0; then
+      b <= 1 by A1,Th23; then
+      b < 1+1 by NAT_1:13;
+      hence thesis by B1,NAT_1:23;
+    end;
+    suppose a>0;
+      hence thesis by A1,Lm3,NEWTON:49;
+    end;
+  end;
+
+theorem Th29:
+  for n st n in dom f &
+    m in dom ((f|n)/^1) holds ((f|n)/^1).m = f.(m+1)
+  proof
+    let n such that
+    A0: n in dom f;
+    set F = (f|n);
+    assume
+    A1: m in dom ((f|n)/^1);
+    A1a:  m+1 >= 0+1 by XREAL_1:6;
+    (f|n) <> {} by A1; then
+    A2: 1 in dom (f|n) by FINSEQ_5:6; then
+    m+1 <= len (f|n) by A1,Th15,Th3; then
+    A4: m+1 <= n by A0,Th10;
+    (((f|n))/^1).m = (((f|n))/^1)/.m by A1, PARTFUN1:def 6
+    .= (f|n)/.(1+m) by A1,FINSEQ_5:27
+    .= (f|n).(1+m) by A1,A2,Th15,PARTFUN1:def 6
+    .= f.(1+m) by A0,Th7,A1a,A4;
+    hence thesis;
+  end;
+
+:: Newton_Coeff
+
+registration
+  let n;
+  cluster Newton_Coeff n -> non empty;
+  coherence
+  proof
+    len (Newton_Coeff n) = n + 1 by NEWTON:def 5;
+    hence thesis;
+  end;
+end;
+
+registration
+  let n,m;
+  cluster (Newton_Coeff n).m -> natural;
+  coherence
+  proof
+    per cases;
+    suppose
+      A0: m in dom (Newton_Coeff n); then
+      consider k such that
+      A1: m = 1+k by NAT_1:10, FINSEQ_3:25;
+      k = m - 1 by A1; then
+      (Newton_Coeff n).m = n choose k by A0,NEWTON:def 5;
+      hence thesis;
+    end;
+    suppose
+      not m in dom (Newton_Coeff n);
+      hence thesis by FUNCT_1:def 2;
+    end;
+  end;
+end;
+
+registration
+  let n;
+  cluster Newton_Coeff n -> NAT-valued;
+  coherence
+  proof
+    for k st k in dom(Newton_Coeff n) holds (Newton_Coeff n).k in NAT
+      by ORDINAL1:def 12;
+    hence thesis by FINSEQ_2:12;
+  end;
+end;
+
+registration
+  let h be FinSequence of NAT;
+  cluster Sum h -> natural;
+  coherence
+  proof
+    A1: for n st n in dom h holds h.n >= 0;
+    Sum h is integer; then
+    Sum h is Element of NAT by A1,RVSUM_1:84,INT_1:3;
+    hence thesis;
+  end;
+end;
+
+theorem Th30:
+  n > 0 implies n in dom (Newton_Coeff n)
+  proof
+    assume n>0; then
+    A1: n in Seg n by FINSEQ_1:3;
+    dom (Newton_Coeff n) = Seg (len (Newton_Coeff n)) by FINSEQ_1:def 3
+    .= Seg (n+1) by NEWTON:def 5;
+    hence thesis by A1,FINSEQ_2:8;
+  end;
+
+theorem
+  (Newton_Coeff n) is FinSequence of NAT
+proof
+  for k st k in dom(Newton_Coeff n) holds (Newton_Coeff n).k in NAT;
+  hence thesis by FINSEQ_2:12;
+end;
+
+theorem Th32:
+  (Newton_Coeff n).(n+1) = 1
+  proof
+    A1: len (Newton_Coeff n) = n+1 by NEWTON:def 5; then
+    A2: n = len(Newton_Coeff n) - 1;
+    n+1 in dom (Newton_Coeff n) by A1,Th3; then
+    (Newton_Coeff n).(n+1) = n choose n by A2,NEWTON:def 5;
+    hence thesis by NEWTON:21;
+  end;
+
+theorem Th33:
+  (Newton_Coeff k).1 = 1
+  proof
+    ((1,1) In_Power k).1 = 1
+    proof
+      thus ((1,1) In_Power k).1 = 1|^k by NEWTON:28
+      .= 1;
+    end;
+    hence thesis by NEWTON:31;
+  end;
+
+theorem Th34:
+  for n be positive Nat holds
+  Sum(Newton_Coeff n) =
+    Sum(((Newton_Coeff n)|n)/^1) + (Newton_Coeff n).1 + (Newton_Coeff n).(n+1)
+  proof
+    let n be positive Nat;
+    len Newton_Coeff n = n+1 by NEWTON:def 5; then
+    A2: Newton_Coeff n =((Newton_Coeff n)|n)^<*(Newton_Coeff n).(n+1)*>
+      by RFINSEQ:7;
+    A2a: n in dom Newton_Coeff n by Th30;
+    A3: len ((Newton_Coeff n)|n) > 0;
+    <*(Newton_Coeff n).(n+1)*> is FinSequence of REAL by RVSUM_1:145; then
+    Sum(Newton_Coeff n) = Sum ((Newton_Coeff n)|n) +
+      Sum <*(Newton_Coeff n).(n+1)*> by Th14,A2
+    .= Sum ((Newton_Coeff n)|n) + (Newton_Coeff n).(n+1) by RVSUM_1:73
+    .= (((Newton_Coeff n)|n).1 + Sum(((Newton_Coeff n)|n)/^1)) +
+      (Newton_Coeff n).(n+1) by A3,IRRAT_1:17;
+    hence thesis by A2a,Th9;
+  end;
+
+theorem Th35:
+  for n be positive Nat holds
+    Sum(Newton_Coeff n) = Sum(((Newton_Coeff n)|n)/^1) + 2
+  proof
+    let n be positive Nat;
+    Sum(Newton_Coeff n) = Sum(((Newton_Coeff n)|n)/^1) +
+      (Newton_Coeff n).1 + (Newton_Coeff n).(n+1) by Th34
+    .= Sum(((Newton_Coeff n)|n)/^1) + (Newton_Coeff n).1 + 1 by Th32
+    .= Sum(((Newton_Coeff n)|n)/^1) + 1 + 1 by Th33;
+    hence thesis;
+  end;
+
+theorem
+  Sum(Newton_Coeff n) = Sum ((Newton_Coeff n)|n) + 1
+  proof
+    A0: Newton_Coeff n is FinSequence of NAT by Th1;
+    A1: (Newton_Coeff n).(n+1) = ((1,1)In_Power n).(n+1) by NEWTON:31
+    .= 1^n by NEWTON:29;
+    A2: n+1 = len (Newton_Coeff n) by NEWTON:def 5;
+    n+1 >= 0+1 by XREAL_1:6; then
+    A3: n+1 in dom (Newton_Coeff n) by FINSEQ_3:25,A2;
+    (Newton_Coeff n)
+    = ((Newton_Coeff n)|n)^<*(Newton_Coeff n)/.(n+1)*> by A0,A2,FINSEQ_5:21
+    .= ((Newton_Coeff n)|n)^<*(Newton_Coeff n).(n+1)*> by A3,PARTFUN1:def 6;
+    hence thesis by A1,RVSUM_1:74;
+  end;
+
+theorem
+  len((Newton_Coeff n)|n) = n
+  proof
+    len (Newton_Coeff n) = n+1 by NEWTON:def 5; then
+    n < len (Newton_Coeff n) by NAT_1:13;
+    hence thesis by FINSEQ_1:59;
+  end;
+
+theorem Th38:
+  m in dom (((Newton_Coeff n)|n)/^1) implies
+    (((Newton_Coeff n)|n)/^1).m = (Newton_Coeff n).(m+1)
+  proof
+    A1: n = 0 implies ((Newton_Coeff n)|n) = {};
+    n>0 implies n in dom (Newton_Coeff n) by Th30;
+    hence thesis by A1,Th29;
+  end;
+
+theorem Th39:
+  n is prime implies n divides (((Newton_Coeff n)|n)/^1).k
+  proof
+    L1: n is prime & k >= n implies n divides (((Newton_Coeff n)|n)/^1).k
+    proof
+      assume
+      A1: n is prime & k >= n; then
+      n in dom (Newton_Coeff n) by Th30; then
+      k >= len ((Newton_Coeff n)|n) by A1,Th10; then
+      k+1 > len ((Newton_Coeff n)|n) by NAT_1:13; then
+      not k+1 in dom ((Newton_Coeff n)|n) by FINSEQ_3:25; then
+      not k in dom (((Newton_Coeff n)|n)/^1) by FINSEQ_5:26; then
+      (((Newton_Coeff n)|n)/^1).k = {} by FUNCT_1:def 2;
+      hence thesis by NAT_D:6;
+    end;
+    n is prime & k < n implies n divides (((Newton_Coeff n)|n)/^1).k
+    proof
+      A0: k = (k+1) - 1;
+      assume
+      A1: n is prime & k < n;
+      per cases;
+      suppose
+        A1aa: k > 0; then
+        A1a: k+1 > 0+1 & k+1 < n+1 & len(Newton_Coeff n) = n+1
+          by A1,XREAL_1:8,NEWTON:def 5; then
+        A2: k+1 in dom (Newton_Coeff n) by FINSEQ_3:25;
+        n in dom (Newton_Coeff n) by A1,Th30; then
+        A3: len((Newton_Coeff n)|n) = n by Th10;
+        k+1 <= n by A1,NAT_1:13; then
+        (k)+1 in dom ((Newton_Coeff n)|n) by A1a,A3,FINSEQ_3:25; then
+        k in dom (((Newton_Coeff n)|n)/^1) by A1aa,Th16; then
+        (((Newton_Coeff n)|n)/^1).(k) = (Newton_Coeff n).(k+1) by Th38
+        .= (n) choose (k) by A0,A2,NEWTON:def 5;
+        hence thesis by A1,A1aa,Th21;
+      end;
+      suppose k = 0; then
+        not k in dom (((Newton_Coeff n)|n)/^1) by FINSEQ_3:25; then
+        (((Newton_Coeff n)|n)/^1).k = {} by FUNCT_1:def 2;
+        hence thesis by NAT_D:6;
+      end;
+    end;
+    hence thesis by L1;
+  end;
+
+theorem Th40:
+  for n be prime Nat holds n divides 2|^n - 2
+  proof
+    let n be prime Nat;
+    reconsider h = (Newton_Coeff n) as FinSequence of NAT by Th1;
+    reconsider f = (((Newton_Coeff n)|n)/^1) as FinSequence of NAT by Th1;
+    A2: for k st k in dom f holds n divides f.k by Th39;
+    Sum h = Sum f + 2 by Th35; then
+    2|^n = Sum f +2 by NEWTON:32;
+    hence thesis by A2,INT_4:36;
+  end;
+
+registration
+  let k be positive Nat;
+  let n;
+  cluster n|^k - n -> natural;
+  coherence
+  proof
+    k >= 1 by NAT_1:14; then
+    n|^k >= n or n < 1 by PREPOWER:12; then
+    n|^k - n >= n - n or n = 0 by XREAL_1:9,NAT_1:14; then
+    n|^k - n is Element of NAT by INT_1:3;
+    hence thesis;
+    end;
+end;
+
+theorem
+  for k,n be prime Nat holds n*k divides (2|^n - 2)*(2|^k -2)
+  proof
+    let k,n be prime Nat;
+    n divides 2|^n - 2 & k divides 2|^k -2 by Th40;
+    hence thesis by NAT_3:1;
+  end;
+
+theorem
+  for n be odd Prime st n = 2*k + 1
+  holds n divides (2|^k - 1) iff not n divides (2|^k + 1)
+  proof
+    let n be odd Prime such that
+    A1: n = 2*k + 1;
+    not 2 divides n; then
+    A2: not n divides 2 by INT_2:28,30,PYTHTRIP:def 2;
+    A3: n divides (2|^k - 1) or n divides (2|^k + 1)
+    proof
+      n divides (2|^(2*k+1) - 2) by A1,Th40; then
+      n divides (2|^(2*k)*2 - 2) by NEWTON:6; then
+      n divides 2*(2|^(2*k) - 1|^2); then
+      n divides (2|^(2*k) - 1) by A2,INT_5:7; then
+      n divides (2|^k)|^2 - 1|^2 by NEWTON:9; then
+      n divides (2|^k-1)*(2|^k+1) by NEWTON01:1;
+      hence thesis by INT_5:7;
+    end;
+    (2|^k + 1) - (2|^k - 1) = 2;
+    hence thesis by A2,INT_5:1,A3;
+  end;
+
+definition
+  let n be natural number;
+  func n\ -> FinSequence of REAL equals
+  (1,1) In_Power n;
+  coherence;
+end;
+
+registration
+  let n;
+  identify n\ with Newton_Coeff n;
+  correctness by NEWTON:31;
+  identify Newton_Coeff n with n\;
+  correctness;
+end;
+
+:: The use of this registration would make most of the above code unnecessary. I leave it as an illustration.
+
+:: In_Power
+
+theorem Th43:
+  n > 0 implies n in dom ((a,b) In_Power n)
+  proof
+    assume n>0; then
+    A1: n in Seg n by FINSEQ_1:3;
+    dom ((a,b) In_Power n) = Seg (len ((a,b) In_Power n)) by FINSEQ_1:def 3
+    .= Seg (n+1) by NEWTON:def 4;
+    hence thesis by A1,FINSEQ_2:8;
+  end;
+
+registration
+  let a,b,n,m;
+  cluster ((a,b) In_Power n).m -> natural;
+  coherence
+  proof
+    per cases;
+    suppose
+      A0: m in dom ((a,b) In_Power n); then
+      consider k such that
+      A1: m = 1+k by NAT_1:10,FINSEQ_3:25;
+      len ((a,b) In_Power n) = n+1 by NEWTON:def 4; then
+      n >= k by A0,FINSEQ_3:25,A1,XREAL_1:6; then
+      consider l such that
+      A2: n = k+l by NAT_1:10;
+      k = m - 1 & l = n - k by A1,A2; then
+      ((a,b) In_Power n).m = (n choose k)*a|^l*b|^k by A0,NEWTON:def 4;
+      hence thesis;
+    end;
+    suppose
+      not m in dom ((a,b) In_Power n);
+      hence thesis by FUNCT_1:def 2;
+    end;
+  end;
+end;
+
+registration
+  let a,b,n;
+  cluster (a,b) In_Power n -> NAT-valued;
+  coherence
+  proof
+    for k st k in dom ((a,b) In_Power n) holds
+      ((a,b) In_Power n).k in NAT by ORDINAL1:def 12;
+    hence thesis by FINSEQ_2:12;
+  end;
+end;
+
+  Lm1: ((a,b) In_Power (k+l)).(k+1) = ((k+l) choose k)*(a|^l)*(b|^k)
+  proof
+    k+l >= k+0 by XREAL_1:6; then
+    ((a,b) In_Power (k+l)).(k+1) = ((k+l) choose k) * (a^((k+l)-k)) * (b^k)
+      by IRRAT_1:19
+    .= ((k+l) choose k) * (a|^l) * (b|^k) by POWER:41;
+    hence thesis;
+  end;
+
+theorem
+  (k+l) is prime & k > 0 & l > 0 implies
+    (k+l) divides ((a,b) In_Power (k+l)).(k+1)
+  proof
+    assume
+    A1: (k+l) is prime & k > 0 & l > 0; then
+    k+l > k+0 by XREAL_1:6; then
+    A2: (k+l) divides ((k+l) choose k) by A1,Th21;
+    ((k+l)choose k) divides ((k+l) choose k)*((a|^l)*(b|^k)); then
+    consider x such that
+    A3: ((k+l) choose k)*((a|^l)*(b|^k)) = (k+l)*x by A2,INT_2:9,NAT_D:def 3;
+    ((a,b) In_Power (k+l)).(k+1) = ((k+l) choose k)*(a|^l)*(b|^k) by Lm1
+    .=(k+l)*x by A3;
+    hence thesis;
+  end;
+
+Lm5:
+  m in dom ((((a,b) In_Power n)|n)/^1) implies
+    ((((a,b) In_Power n)|n)/^1).m = ((a,b) In_Power n).(m+1)
+  proof
+    A1: n = 0 implies (((a,b) In_Power n)|n) = {};
+    n>0 implies n in dom ((a,b) In_Power n) by Th43;
+    hence thesis by A1,Th29;
+  end;
+
+theorem Th45:
+  a<>0 implies ((a,b) In_Power m).1 <> 0
+  proof
+    assume
+    A1: a<>0;
+    ((a,b) In_Power m).1 = a |^m by NEWTON:28;
+    hence thesis by A1;
+  end;
+
+theorem
+  for m be non zero Nat holds a = 0 iff ((a,b) In_Power m).1 = 0
+  proof
+    for m be non zero Nat holds a = 0 implies ((a,b) In_Power m).1 = 0
+    proof
+      let m be non zero Nat;
+      assume
+      A1: a = 0;
+      ((a,b) In_Power m).1 = a|^m by NEWTON:28;
+      hence thesis by A1;
+    end;
+    hence thesis by Th45;
+  end;
+
+theorem
+  ((a,b) In_Power m).1=0 implies m<>0
+  proof
+    assume
+    A1: ((a,b) In_Power m).1=0;
+    a|^0 = 1 by NEWTON:4;
+    hence thesis by A1, NEWTON:28;
+  end;
+
+theorem Th48:
+  for m be positive Nat holds
+  Sum (a,b) In_Power m = a|^m + b|^m + Sum ((((a,b) In_Power m)|m)/^1)
+  proof
+  let m be positive Nat;
+  len ((a,b) In_Power m) = m + 1 by NEWTON:def 4; then
+  Sum ((a,b) In_Power m) = Sum(((a,b) In_Power m)|m/^1) +
+  ((a,b) In_Power m).1 + ((a,b) In_Power m).(m+1) by Th17
+  .= Sum(((a,b) In_Power m)|m/^1) + a|^m + ((a,b) In_Power m).(m+1)
+    by NEWTON:28
+  .= Sum(((a,b) In_Power m)|m/^1) + a|^m + b|^m by NEWTON:29;
+  hence thesis;
+end;
+
+theorem
+  Sum((a,b) In_Power (m+n)) = Sum((a,b) In_Power m)*Sum((a,b) In_Power n)
+  proof
+    Sum((a,b) In_Power (m+n)) = (a+b)|^(m+n) by NEWTON:30
+    .=(a+b)|^m*(a+b)|^n by NEWTON:8
+    .= Sum((a,b) In_Power m)*(a+b)|^n by NEWTON:30
+    .= Sum((a,b) In_Power m)*Sum((a,b) In_Power n) by NEWTON:30;
+    hence thesis;
+  end;
+
+theorem Th50:
+  l>0 implies ex x st ((a,b) In_Power (k+l)).(k+1) = a*x
+  proof
+    assume l>0;
+    then consider n such that
+    A3: l = 1+n by NAT_1:10,14;
+    consider x such that
+    A4: x = ((k+l) choose k)*(a|^n)*(b|^k);
+    ((a,b) In_Power (k+l)).(k+1)=((k+l) choose k)*(a|^l)*(b|^k) by Lm1
+    .= ((k+l) choose k)*(a|^1*a|^n)*(b|^k) by A3,NEWTON:8
+    .= a*x by A4;
+    hence thesis;
+  end;
+
+theorem
+  m>0 implies ex k st ((a,b) In_Power m).1 = a*k
+  proof
+    m>0 implies ex k st ((a,b) In_Power (m+0)).(0+1) = a*k by Th50;
+    hence thesis;
+  end;
+
+theorem
+  l>0 implies ex x st ((a,b) In_Power (k+l)).l = a*x
+  proof
+    assume l>0;
+    then consider n be Nat such that
+    A3: l = 1+n by NAT_1:10,14;
+    set m=k+1;
+    consider x such that
+    A4: x = ((m+n) choose n)*(a|^k)*(b|^n);
+    ((a,b) In_Power (k+l)).l = ((m+n) choose n)*(a|^m)*(b|^n) by Lm1,A3
+    .= ((m+n) choose n)*(a|^1*a|^k)*(b|^n) by NEWTON:8
+    .= a*x by A4;
+    hence thesis;
+  end;
+
+theorem
+  for n st n = ((a,b) In_Power (k+l)).(k+1) & l>0 holds a divides n
+  proof
+    let n;
+    assume n = ((a,b) In_Power (k+l)).(k+1) & l>0; then
+    consider x such that
+    A2: n = a*x by Th50;
+    thus thesis by A2;
+  end;
+
+theorem Th54:
+  for n be prime Nat, a,b be positive Nat holds
+    n*a*b divides (((a,b) In_Power n)|n/^1).k
+  proof
+    let n be prime Nat, a,b be positive Nat;
+L1: not k in dom (((a,b) In_Power n)|n/^1) implies
+      n*a*b divides ((((a,b)In_Power n)|n)/^1).k
+    proof
+      assume not k in dom (((a,b) In_Power n)|n/^1); then
+      ((((a,b) In_Power n)|n)/^1).k = {} by FUNCT_1:def 2;
+      hence thesis by NAT_D:6;
+    end;
+    n is prime & k in dom (((a,b) In_Power n)|n/^1) implies
+      n*a*b divides ((((a,b) In_Power n)|n)/^1).k
+    proof
+      A0: k = (k+1) - 1;
+      assume
+      A1: n is prime & k in dom (((a,b) In_Power n)|n/^1); then
+      A2:(((a,b) In_Power n)|n/^1) is not empty;
+      A3: k >= 1 & k <= len (((a,b) In_Power n)|n/^1) by FINSEQ_3:25,A1; then
+      A3a: k < n by A2,Th20,XXREAL_0:2; then
+      A4: k+1 < n+1 & k+1 > 1 by A1,FINSEQ_3:25,NAT_1:13,XREAL_1:6;
+      A4a: n-k > k-k by A3a,XREAL_1:9;
+      consider l such that
+      A4b: n = k + l by A3a,NAT_1:10;
+      A4d: l = n-k by A4b;
+      len ((a,b) In_Power n) = n+1 by NEWTON:def 4; then
+      A6: k+1 in dom ((a,b) In_Power n) by A4, FINSEQ_3:25;
+      A7: ((((a,b) In_Power n)|n)/^1).(k) = ((a,b) In_Power n).(k+1)
+        by A1,Lm5
+      .= (n choose k) * a|^l * b|^k by A0,A4d,A6,NEWTON:def 4;
+      A8: n divides (n choose k) by A3,A3a,Th21;
+      a divides a|^l & b divides b|^k by A4a,A4b,A3,NAT_3:3; then
+      a*b divides a|^l*b|^k by NAT_3:1; then
+      n*(a*b) divides (n choose k) *(a|^l * b|^k) by A8,NAT_3:1;
+      hence thesis by A7;
+    end;
+    hence thesis by L1;
+  end;
+
+theorem Th55:
+  for n be prime Nat, a,b be positive Nat holds
+    n*a*b divides (a+b)|^n - (a|^n + b|^n)
+  proof
+    let n be prime Nat, a,b be positive Nat;
+    reconsider g = ((a,b) In_Power n) as FinSequence of NAT by Th1;
+    reconsider h = (((a,b) In_Power n)|n)/^1 as FinSequence of NAT by Th1;
+    A1: for k st k in dom h holds n*a*b divides h.k by Th54;
+    Sum g = a|^n + b|^n + Sum h by Th48; then
+    (a+b)|^n = Sum h + a|^n + b|^n by NEWTON:30;
+    hence thesis by A1,INT_4:36;
+  end;
+
+theorem Th56:
+  for n be prime Nat holds n*a divides (a+1)|^n - (a|^n + 1)
+  proof
+    let n be prime Nat;
+    L1: a > 0 implies n*a*1 divides (a+1)|^n - (a|^n + 1|^n) by Th55;
+    a = 0 implies n*a divides (a+1)|^n - (a|^n + 1);
+    hence thesis by L1;
+  end;
+
+theorem
+  for a,b be positive Nat holds
+    2*a*b divides (a+b)|^2 - (a|^2 + b|^2) by Th55,INT_2:28;
+
+theorem Th58:
+  for n be prime Nat holds n divides a|^n - a
+  proof
+    let n be prime Nat;
+    defpred P[Nat] means n divides $1|^n - $1;
+    L1: P[0] by INT_2:12;
+    L2: P[k] implies P[k+1]
+    proof
+      assume
+      A0: P[k];
+      n*k divides (k+1)|^n - (k|^n + 1) by Th56; then
+      n divides (k+1)|^n - (k|^n + 1) by INT_2:2,INT_1:def 3; then
+      n divides k|^n - k + ((k+1)|^n - (k|^n + 1)) by A0,WSIERP_1:4;
+      hence thesis;
+    end;
+    for x be Nat holds P[x] from NAT_1:sch 2(L1,L2);
+    hence thesis;
+  end;
+
+theorem Th59:
+  for k be Nat st k+1 is prime & not k+1 divides a
+    holds k+1 divides a|^k - 1
+  proof
+    let k be Nat such that
+    A1: k+1 is prime and
+    A2: not k+1 divides a;
+    k+1 divides a|^(k+1) - a by A1,Th58; then
+    k+1 divides a|^k*a - a by NEWTON:6; then
+    k+1 divides a*(a|^k - 1);
+    hence thesis by A1,A2,INT_5:7;
+  end;
+
+theorem Th60:
+  for n be prime Nat holds n divides a+b iff n divides a|^n + b|^n
+  proof
+    let n be prime Nat;
+    n divides a|^n - a & n divides b|^n - b by Th58; then
+    A1: n divides (a|^n - a) + (b|^n - b) by WSIERP_1:4;
+    A2: a|^n + b|^n = (a+b) + ((a|^n + b|^n) - (a + b));
+    hence n divides a+b implies n divides a|^n + b|^n by A1,WSIERP_1:4;
+    assume n divides a|^n + b|^n;
+    hence thesis by A1,A2,INT_2:1;
+  end;
+
+theorem
+  163 divides (a+b) iff 163 divides a|^163 + b|^163 by NAT_4:35,Th60;
+
+theorem Th62:
+  for n be prime Nat holds n divides a iff n divides a|^n
+  proof
+    let n be prime Nat;
+    a divides a|^n by NAT_3:3;
+    hence thesis by NAT_D:4, NAT_3:5;
+  end;
+
+theorem Th63:
+  for n be prime Nat holds n divides a|^n + 1 iff n divides a+1
+  proof
+    let n be prime Nat;
+    n divides a|^n + 1|^n iff n divides a+1 by Th60;
+    hence thesis;
+  end;
+
+theorem
+  for n be prime Nat holds
+    n divides a|^n + b|^n iff n divides (a+b)|^n by Th60,Th62;
+
+theorem
+  7 divides a|^7 + 1 iff 7 divides a+1 by Th63,NAT_4:26;
+
+theorem
+  not 7 divides a implies 7 divides a|^6 - 1
+  proof
+    assume not 7 divides a; then
+    A1: not a gcd 7 = 7 by INT_2:def 2;
+    7 divides a|^(6+1) - a by NAT_4:26,Th58; then
+    7 divides a|^6*a - a by NEWTON:6; then
+    7 divides a*(a|^6 - 1);
+    hence thesis by A1,NAT_4:26,PEPIN:2,INT_2:25;
+  end;
+
+theorem
+  for n be prime Nat, a,b be positive Nat holds
+    n*a*b divides (a+b)|^(k*n) - (a|^n + b|^n)|^k
+proof
+  let n be prime Nat, a,b be positive Nat;
+  (a+b)|^n - (a|^n + b|^n) divides ((a+b)|^n)|^k - (a|^n + b|^n)|^k
+    by NEWTON01:33; then
+  A1: (a+b)|^n - (a|^n + b|^n) divides (a+b)|^(k*n) - (a|^n + b|^n)|^k
+    by NEWTON:9;
+  n*a*b divides (a+b)|^n - (a|^n + b|^n) by Th55;
+  hence thesis by A1,INT_2:9;
+end;
+
+theorem
+  for n be prime Nat, a,b be positive Nat holds
+  n*a*b divides (a+t)|^n - (a|^n + b|^n) implies
+    n*a*b divides (a+b)|^n - (a+t)|^n
+  proof
+    let n be prime Nat, a,b be positive Nat;
+    assume
+    A1: n*a*b divides (a+t)|^n - (a|^n + b|^n);
+    n*a*b divides -((a+b)|^n - (a|^n + b|^n)) by INT_2:10,Th55; then
+    n*a*b divides ((a|^n + b|^n) - (a+b)|^n) + ((a+t)|^n - (a|^n + b|^n))
+      by A1,WSIERP_1:4; then
+    n*a*b divides -((a+b)|^n - (a+t)|^n);
+    hence thesis by INT_2:10;
+  end;
+
+theorem
+  for n be prime Nat, a,b,c be positive Nat holds
+  n*a*b divides c-b implies n*a*b divides (a|^n + b|^n) - (a+c)|^n
+  proof
+    let n be prime Nat, a,b,c be positive Nat;
+    assume n*a*b divides c-b; then
+    n*a*b divides -(b-c); then
+    A1:  n*a*b divides b-c by INT_2:10;
+    (a+b) - (a+c)  divides (a+b)|^n - (a+c)|^n by NEWTON01:33; then
+    A3: n*a*b divides (a+b)|^n - (a+c)|^n by A1,INT_2:9;
+    n*a*b divides -((a+b)|^n - (a|^n + b|^n)) by INT_2:10,Th55; then
+    n*a*b divides (a+b)|^n - (a+c)|^n + -((a+b)|^n - (a|^n + b|^n))
+      by A3,WSIERP_1:4;
+    hence thesis;
+  end;
+
+theorem Th70:
+  for p be prime Nat st p = 2*n+1 holds
+  p divides a or p divides a|^n-1 or p divides a|^n+1
+  proof
+    let p be prime Nat such that
+    A1: p = 2*n+1;
+    a|^(2*n+1) - a = a|^(2*n)*a - a by NEWTON:6
+    .= a*(a|^(2*n) - 1)
+    .= a*((a|^n)|^2 - 1|^2) by NEWTON:9
+    .= a*((a|^n - 1)*(a|^n + 1)) by NEWTON01:1; then
+    p divides a or p divides ((a|^n - 1)*(a|^n + 1)) by A1,Th58,INT_5:7;
+    hence thesis by INT_5:7;
+  end;
+
+theorem
+  for p be prime Nat st not p divides a holds
+    ex n st p divides a|^n - 1 & 0 < n & n < p
+  proof
+    let p be prime Nat such that
+    A0: not p divides a;
+    p > 1 by INT_2:def 4; then
+    p >= 1+1 by NAT_1:13; then
+    consider k such that
+    A1: p = 2 + k by NAT_1:10;
+    p = (k+1) + 1 by A1; then
+    p divides (a|^(k+1) - 1) by A0,Th59;
+    hence thesis by A1,XREAL_1:6;
+  end;
+
+theorem
+  5 divides a|^3 - 1 iff 5 divides a - 1
+  proof
+    L1: 5 divides a|^3 - 1 implies 5 divides a - 1
+    proof
+      A1: 5 divides (a|^5 - a) by PEPIN:59,Th58;
+      assume
+      A2: 5 divides a|^3 - 1; then
+a2b:  a|^3 <> 0 by INT_2:13;
+      A3: a divides a|^3 by NAT_3:3;
+      5 divides (-a|^2)*(a|^3 - 1) by A2,INT_2:2; then
+      5 divides -a|^2*a|^3 + a|^2; then
+      5 divides -a|^(2+3) + a|^2 by NEWTON:8;then
+      5 divides (-a|^5 + a|^2) + (a|^5 - a) by WSIERP_1:4,A1; then
+      5 divides a|^2 - a; then
+      5 divides a*a - a by NEWTON:81; then
+      A4: 5 divides a*(a-1);
+      not 5 divides (a|^3-1) + 1 by A2,a2b,NEWTON:39; then
+      not 5 divides a by A3,INT_2:9;
+      hence thesis by A4,PEPIN:59,INT_5:7;
+    end;
+    a - 1 divides a|^3 - 1|^3 by NEWTON01:33;
+    hence thesis by L1,INT_2:9;
+  end;
+
+theorem Th73:
+  for k st k+1 is prime holds k+1 divides a|^(n*k+1) - a
+  proof
+    let k such that
+    A1: k+1 is prime;
+    per cases;
+    suppose k+1 divides a; then
+      k+1 divides a*(a|^(n*k) - 1) by INT_2:2; then
+      k+1 divides a*a|^(n*k) - a;
+      hence thesis by NEWTON:6;
+    end;
+    suppose not k+1 divides a; then
+      B1: k+1 divides a|^k - 1 by A1,Th59;
+      a|^k - 1|^k divides a|^k|^n - 1|^k|^n by NEWTON01:33; then
+      k+1 divides  a|^k|^n - 1|^k|^n by B1,INT_2:9; then
+      k+1 divides (a|^(n*k) - 1) by NEWTON:9; then
+      k+1 divides a*(a|^(n*k) - 1) by INT_2:2; then
+      k+1 divides a*a|^(n*k) - a;
+      hence thesis by NEWTON:6;
+    end;
+  end;
+
+theorem Th74:
+  2 divides a|^(n+1) - a
+  proof
+    1+1 divides a|^(n*1+1) - a by INT_2:28,Th73;
+    hence thesis;
+  end;
+
+theorem Th75:
+  3 divides a|^(2*n+1) - a
+  proof
+    2+1 divides a|^(2*n+1) - a by PEPIN:41,Th73;
+    hence thesis;
+  end;
+
+theorem Th76:
+  5 divides a|^(4*n+1) - a
+  proof
+    4+1 divides a|^(4*n+1) - a by PEPIN:59,Th73;
+    hence thesis;
+  end;
+
+theorem Th77:
+  7 divides a|^(6*n+1) - a
+  proof
+    6+1 divides a|^(6*n+1) - a by NAT_4:26,Th73;
+    hence thesis;
+  end;
+
+theorem Th78:
+  for k,l st k <> l & k+1 is odd prime & l+1 is odd prime
+  holds 2*(k+1)*(l+1) divides a|^(k*l+1) - a
+  proof
+    let k,l such that
+    A0: k <> l and
+    A1: k+1 is odd prime & l+1 is odd prime;
+    A2: k+1 <> l+1 by A0;
+    k+1 divides a|^(k*l+1) - a & l+1 divides  a|^(k*l+1) - a by A1,Th73;  then
+    A5: (k+1)*(l+1) divides a|^(k*l+1) - a by A1,A2,INT_2:30,PEPIN:4;
+    A6: (k+1)*(l+1),2|^1 are_coprime by A1,NAT_5:3;
+    2 divides a|^(1*(k*l)+1) - a by Th74; then
+    2*((k+1)*(l+1)) divides a|^(k*l+1) - a by A5,A6,PEPIN:4;
+    hence thesis;
+  end;
+
+theorem
+  154 divides a|^61 - a
+  proof
+    6+1 is odd prime & 10+1 is odd prime by NAT_4:26,27; then
+    2*(6+1)*(10+1) divides a|^(6*10+1) - a by Th78;
+    hence thesis;
+  end;
+
+theorem
+  6 divides a|^(2*n+1) - a
+  proof
+    A1: 2 divides  a|^(2*n+1) - a by Th74;
+    3 divides a|^(2*n+1) - a by Th75; then
+    2*3 divides a|^(2*n+1) - a by INT_2:28,30,PEPIN:41,A1,PEPIN:4;
+    hence thesis;
+  end;
+
+theorem
+  30 divides a|^(4*n+1) - a
+  proof
+    A0: 2,5 are_coprime & 3,5 are_coprime by INT_2:28,30,PEPIN:41,59;
+    A1: 2 divides  a|^(4*n+1) - a by Th74;
+    3 divides a|^(2*(2*n)+1) - a by Th75; then
+    A2: 2*3 divides a|^(4*n+1) - a by INT_2:28,30,PEPIN:41,A1,PEPIN:4;
+    5 divides a|^(4*n+1) - a by Th76; then
+    5*(2*3) divides a|^(4*n+1) - a by A0,EULER_1:14,A2,PEPIN:4;
+    hence thesis;
+  end;
+
+theorem
+  42 divides a|^(6*n+1) - a
+  proof
+    A0: 2,7 are_coprime & 3,7 are_coprime by INT_2:28,30,PEPIN:41,NAT_4:26;
+    A1: 2 divides  a|^(6*n+1) - a by Th74;
+    3 divides a|^(2*(3*n)+1) - a by Th75; then
+    A2: 2*3 divides a|^(6*n+1) - a by INT_2:28,30,PEPIN:41,A1,PEPIN:4;
+    7 divides a|^(6*n+1) - a by Th77; then
+    7*(2*3) divides a|^(6*n+1) - a by A0,EULER_1:14,A2,PEPIN:4;
+    hence thesis;
+  end;
+
+theorem
+  for n be prime Nat holds n divides a|^(n+k) - a|^(k+1)
+  proof
+    let n be prime Nat;
+    a|^(n+k) - a|^(k+1) = a|^n *a|^k - a|^(k+1) by NEWTON:8
+    .= a|^n * a|^k - a|^k *a by NEWTON:6
+    .= a|^k*(a|^n - a);
+    hence thesis by Th58,INT_2:2;
+  end;
+
+theorem Th84:
+  for n st 2*n+1 is prime for k st 2*n > k & k > 1
+  holds not 2*n+1 divides a|^n - k & not 2*n+1 divides a|^n + k
+  proof
+    let n such that
+    A1: 2*n + 1 is prime;
+    set p = 2*n+1;
+    2*n <> 0 by A1; then
+    A1a: n > 0;
+    let k such that
+    A1b: 2*n > k & k > 1;
+    A1c: k-1 > 1-1 by A1b,XREAL_1:9;
+    A1d: (k-1)+2 > (k-1)+1 > (k-1)+0 by XREAL_1:6;
+    2*n+1 > k+1 by A1b, XREAL_1:6; then
+    2*n+1 > k+1 & 2*n+1 > k by A1d,XXREAL_0:2; then
+    A2: 2*n+1 > k+1 & 2*n+1 > k & 2*n+1 > k-1 by A1d,XXREAL_0:2;
+    A3: p divides a or p divides a|^n - 1 or p divides a|^n + 1 by A1,Th70;
+    a divides a|^n by A1a,NAT_3:3; then
+    p divides a implies p divides a|^n by INT_2:9; then
+    A4: p divides (-1)*(a|^n) or p divides (-1)*(a|^n -1) or
+      p divides (-1)*(a|^n + 1) by A3,INT_2:2;
+    assume not thesis; then
+    p divides (-a|^n) + (a|^n - k) or
+    p divides (-a|^n) + (a|^n + k) or
+    p divides (-a|^n -1) + (a|^n - k) or
+    p divides (-a|^n -1) + (a|^n + k) or
+    p divides (-a|^n +1) + (a|^n - k) or
+    p divides (-a|^n +1) + (a|^n + k) by A4,WSIERP_1:4; then
+    p divides -k or p divides k or p divides -(1+k) or
+      p divides -1+k or p divides -(k-1) or p divides 1+k;
+    hence contradiction by A1b,A1c,A2,INT_2:27,INT_2:10;
+  end;
+
+theorem Th85:
+  not 5 divides a|^2 - 2 & not 5 divides a|^2 + 2 &
+    not 5 divides a|^2 - 3 & not 5 divides a|^2 + 3
+  proof
+    5 = 2*2 + 1;
+    hence thesis by Th84,PEPIN:59;
+  end;
+
+:: Pythagorean triples
+
+theorem
+  a|^2 + b|^2 = c|^2 implies 5 divides a or 5 divides b or 5 divides c
+  proof
+    assume
+    A1: a|^2 + b|^2 = c|^2;
+    A1a: a|^2 + (b|^2 - 1) = (c|^2 -1) &
+      (a|^2 - 2) + (b|^2 + 1) = (c|^2 -1) by A1;
+    A1b: a|^2 + (b|^2 + 1) = (c|^2 +1) &
+      (a|^2 + 2) + (b|^2 - 1) = (c|^2 +1) by A1;
+    A2: 2*2+1 = 5; then
+    per cases by Th70,PEPIN:59;
+    suppose
+      5 divides c;
+      hence thesis;
+    end;
+    suppose
+      B1: 5 divides c|^2 - 1;
+      per cases by A2,Th70,PEPIN:59;
+      suppose 5 divides b;
+        hence thesis;
+      end;
+      suppose 5 divides b|^2 - 1; then
+        5 divides a|^2 by A1a,B1,INT_2:1;
+        hence thesis by NAT_3:5,PEPIN:59;
+      end;
+      suppose 5 divides b|^2 + 1;
+        hence thesis by A1a,B1,INT_2:1,Th85;
+      end;
+    end;
+    suppose
+      B2: 5 divides c|^2 + 1;
+      per cases by A2,Th70,PEPIN:59;
+      suppose 5 divides b;
+        hence thesis;
+      end;
+      suppose 5 divides b|^2 + 1; then
+        5 divides a|^2 by A1b,B2,INT_2:1;
+        hence thesis by NAT_3:5,PEPIN:59;
+      end;
+      suppose 5 divides b|^2 - 1;
+        hence thesis by A1b,B2,INT_2:1,Th85;
+      end;
+    end;
+  end;
+
+theorem Th87:
+  not 7 divides a|^3 - 2 & not 7 divides a|^3 + 2 &
+    not 7 divides a|^3 - 3 & not 7 divides a|^3 + 3
+  & not 7 divides a|^3 - 4 & not 7 divides a|^3 + 4 &
+    not 7 divides a|^3 - 5 & not 7 divides a|^3 + 5
+  proof
+    7 = 2*3 + 1;
+    hence thesis by Th84,NAT_4:26;
+  end;
+
+theorem Th88:
+  2 divides 2|^n - 1 iff n = 0
+  proof
+    L1: 2 divides 2|^n - 1 implies n = 0
+    proof
+      assume
+      A1: not thesis; then
+      2 divides 2|^n & not 2 divides -1 by NAT_3:3,INT_2:13;
+      hence contradiction by A1;
+    end;
+    n = 0 implies 2|^n - 1 = 1 - 1 by NEWTON:4;
+    hence thesis by INT_2:12,L1;
+  end;
+
+theorem
+  2|^(k+l) divides 2|^(n+k) - 2|^k implies l = 0 or n = 0
+  proof
+    A0: 2|^(k+l) = 2|^k*2|^l & 2|^(n+k) = 2|^n*2|^k by NEWTON:8;
+    assume 2|^(k+l) divides 2|^(n+k) - 2|^k; then
+    A2: (2|^k)*(2|^l) divides (2|^k)*(2|^n - 1) by A0;
+    reconsider a = 2|^n - 1 as Element of NAT by INT_1:3;
+    reconsider b = 2|^l as Element of NAT by ORDINAL1:def 12;
+    reconsider c = 2|^k as Element of NAT by ORDINAL1:def 12;
+    A3: b divides a or c = 0 by A2,PYTHTRIP:7;
+    2 divides 2|^l or l = 0 by NAT_3:3;
+    hence thesis by Th88,INT_2:9,A3;
+  end;
+
+theorem Th90:
+  3 divides b or 3 divides b-1 or 3 divides b+1
+  proof
+    2*1+1 = 3 & b|^1 = b;
+    hence thesis by Th70,PEPIN:41;
+  end;
+
+theorem Th91:
+  not 3 divides b implies not 3 divides b|^2 + c|^2
+  proof
+  L1: not 3 divides b & not 3 divides c implies not 3 divides b|^2 + c|^2
+  proof
+    assume
+    A0: not 3 divides b & not 3 divides c;
+    2+1 = 3; then
+    3 divides b|^2 - 1 & 3 divides c|^2 - 1 by A0,Th59,PEPIN:41; then
+    A1: 3 divides (b|^2 -1) + (c|^2 - 1) by WSIERP_1:4;
+    b|^2 + c|^2 = (b|^2 + c|^2 - 2) + 2;
+    hence thesis by A1,INT_2:1,27;
+  end;
+  not 3 divides b & 3 divides c implies not 3 divides b|^2 + c|^2
+  proof
+    assume
+    A1: not 3 divides b & 3 divides c;
+    c divides c|^2 by NAT_3:3; then
+    not 3 divides b|^2 & 3 divides c|^2 by INT_2:9,A1,NAT_3:5,PEPIN:41;
+    hence thesis by INT_2:1;
+  end;
+  hence thesis by L1;
+end;
+
+theorem Th92:
+  not 3 divides b|^2 + 1 & not 3 divides b|^2 - 2
+  proof
+    A1: (b|^2 + 1) = 3 + (b|^2 - 2);
+      not 3 divides 1|^2 + b|^2 by INT_2:27,Th91;
+    hence thesis by A1,WSIERP_1:4;
+  end;
+
+theorem
+  not 3 divides b|^3 + b|^2 - b + 1
+  proof
+    A0: (b|^2 + 1) + (b|^3 - b) = b|^3 + b|^2 - b + 1;
+    not 3 divides b|^2 + 1 by Th92;
+    hence thesis by A0,PEPIN:41,Th58,INT_2:1;
+  end;
+
+theorem Th94: for a be positive Nat holds
+  b,c are_coprime & a+1 divides b implies not a+1 divides c
+  proof
+    let a be positive Nat;
+    assume
+    A1: b,c are_coprime & a+1 divides b;
+    A2: a+1 > 0+1 by XREAL_1:6;
+    assume not thesis;
+    hence contradiction by A1,A2,PYTHTRIP:def 1;
+  end;
+
+theorem Th95: b,c are_coprime implies not 3 divides b|^2 + c|^2
+  proof
+    assume
+    A1: b,c are_coprime;
+    2+1 divides b implies not 2+1 divides c by A1,Th94;
+    hence thesis by Th91;
+  end;
+
+theorem Th96: for p be prime Nat holds p divides a implies p divides a|^(n+1)
+  proof
+    let p be prime Nat;
+    assume p divides a; then
+    p divides a*a|^n by INT_2:2;
+    hence thesis by NEWTON:6;
+  end;
+
+theorem
+  b,c are_coprime & b|^2 + c|^2 = a|^2 implies not 3 divides a
+  proof
+    b,c are_coprime & b|^2 + c|^2 = a|^2 implies
+      not 3 divides a|^(1+1) by Th95;
+    hence thesis by Th96,PEPIN:41;
+  end;
+
+theorem Th98:
+  for p be prime Nat holds p divides a + b implies
+    p divides a|^(2*n+1) + b|^(2*n+1)
+  proof
+    let p be prime Nat;
+   A1:  a+b divides a|^(2*n+1) + b|^(2*n+1) by NEWTON01:35;
+    assume p divides a + b;
+    hence thesis by A1,INT_2:9;
+  end;
+
+theorem
+  for p be prime Nat holds
+    not p divides a|^(2*n+1) + b|^(2*n+1) & p divides a|^2 - b|^2
+  implies p divides a - b
+  proof
+    let p be prime Nat;
+    assume not p divides a|^(2*n+1) + b|^(2*n+1) & p divides a|^2 - b|^2; then
+    not p divides a + b & p divides (a+b)*(a-b) by NEWTON01:1,Th98;
+    hence thesis by INT_5:7;
+  end;
+
+theorem 3 divides a*b or 3 divides a+b or 3 divides a-b
+  proof
+    per cases;
+    suppose 3 divides a or 3 divides b;
+      hence thesis by INT_2:2;
+    end;
+    suppose not 3 divides a & not 3 divides b; then
+      per cases by Th90;
+      suppose
+        3 divides a+1 & 3 divides b+1; then
+        3 divides (a+1)-(b+1) by INT_5:1;
+        hence thesis;
+      end;
+      suppose
+        3 divides a - 1 & 3 divides b - 1; then
+        3 divides (a-1) - (b-1) by INT_5:1;
+        hence thesis;
+      end;
+      suppose
+        3 divides a - 1 & 3 divides b + 1;then
+        3 divides (a-1)+(b+1) by WSIERP_1:4;
+        hence thesis;
+      end;
+      suppose
+        3 divides a + 1 & 3 divides b - 1;then
+        3 divides (a+1)+ (b-1) by WSIERP_1:4;
+        hence thesis;
+      end;
+    end;
+  end;
+
+theorem
+  not 3 divides a & not 3 divides b implies
+    3 divides a|^(2*n+1) + b|^(2*n+1) or 3 divides a|^(2*n+1) - b|^(2*n+1)
+  proof
+    assume not 3 divides a & not 3 divides b; then
+    per cases by Th90;
+    suppose
+      3 divides a+1 & 3 divides b+1; then
+      3 divides (a+1) - (b+1) & a - b divides a|^(2*n+1) - b|^(2*n+1)
+        by INT_5:1, NEWTON01:33;
+      hence thesis by INT_2:9;
+    end;
+    suppose
+      3 divides a - 1 & 3 divides b - 1; then
+      3 divides (a-1) - (b-1) & a - b divides a|^(2*n+1) - b|^(2*n+1)
+        by INT_5:1, NEWTON01:33;
+      hence thesis by INT_2:9;
+    end;
+    suppose
+      3 divides a - 1 & 3 divides b + 1; then
+      3 divides (a-1) + (b+1) & a + b divides a|^(2*n+1) + b|^(2*n+1)
+        by WSIERP_1:4, NEWTON01:35;
+      hence thesis by INT_2:9;
+    end;
+    suppose
+      3 divides a + 1 & 3 divides b - 1; then
+      3 divides (a+1) + (b-1) & a + b divides a|^(2*n+1) + b|^(2*n+1)
+        by WSIERP_1:4, NEWTON01:35;
+      hence thesis by INT_2:9;
+    end;
+  end;
+
+theorem
+  a|^3 + b|^3 = c|^3 implies 7 divides a or 7 divides b or 7 divides c
+  proof
+    assume
+    A1:  a|^3 + b|^3 = c|^3;
+    A1a: a|^3 + (b|^3 - 1) = (c|^3 -1) & (a|^3 - 2) + (b|^3 + 1) =
+      (c|^3 -1) by A1;
+    A1b: a|^3 + (b|^3 + 1) = (c|^3 +1) & (a|^3 + 2) + (b|^3 - 1) =
+      (c|^3 +1) by A1;
+    A2: 2*3+1 = 7; then
+    per cases by Th70,NAT_4:26;
+    suppose
+      7 divides c;
+      hence thesis;
+    end;
+    suppose
+      B1: 7 divides c|^3 - 1;
+      per cases by A2,Th70,NAT_4:26;
+      suppose 7 divides b;
+        hence thesis;
+      end;
+      suppose
+        7 divides b|^3 - 1; then
+        7 divides a|^3 by A1a,B1,INT_2:1;
+        hence thesis by NAT_3:5,NAT_4:26;
+      end;
+      suppose 7 divides b|^3 + 1;
+        hence thesis by A1a,B1,INT_2:1,Th87;
+      end;
+    end;
+    suppose
+      B2: 7 divides c|^3 + 1;
+      per cases by A2,Th70,NAT_4:26;
+      suppose 7 divides b;
+        hence thesis;
+      end;
+      suppose 7 divides b|^3 + 1; then
+        7 divides a|^3 by A1b,B2,INT_2:1;
+        hence thesis by NAT_3:5,NAT_4:26;
+      end;
+      suppose 7 divides b|^3 - 1;
+        hence thesis by A1b,B2,INT_2:1,Th87;
+      end;
+    end;
+  end;

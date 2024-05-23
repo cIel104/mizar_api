@@ -1,0 +1,1010 @@
+:: Maximum Number of Steps Taken by Modular Exponentiation and Euclidean 
+:: Algorithm
+::  by Hiroyuki Okazaki , Koich Nagao and Yuichi Futa
+:: 
+:: Received March 11, 2019
+:: Copyright (c) 2019-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies XBOOLE_0, FINSEQ_1, FINSEQ_2, RELAT_1, FUNCT_1, COMPLEX1,
+      PARTFUN1, NAT_1, SUBSET_1, NUMBERS, INT_1, INT_2, CARD_1, ARYTM_1,
+      XXREAL_0, ARYTM_3, ORDINAL4, NTALGO_1, POWER, NEWTON, BINARI_6, NTALGO_2,
+      MARGREL1, BINARITH, XBOOLEAN, BINARI_3, FUNCOP_1, SEQ_1, SQUARE_1,
+      ASYMPT_1, ASYMPT_2, EUCLID, ASYMPT_0, PRE_FF, FIB_NUM, BINARI_2;
+ notations TARSKI, XBOOLE_0, SUBSET_1, RELAT_1, FUNCT_1, ORDINAL1,
+      PARTFUN1, FUNCOP_1,
+      NUMBERS, XCMPLX_0, XXREAL_0, SQUARE_1, NAT_1, INT_1, COMPLEX1, NAT_D,
+      FINSEQ_1, FINSEQ_2, MARGREL1, SEQ_1, NEWTON, BINARITH, BINARI_2,
+      BINARI_3, BINARI_6, POWER, ASYMPT_0, ASYMPT_1, EUCLID, ASYMPT_2,
+      NTALGO_1, INT_2, PRE_FF, FIB_NUM;
+ constructors SQUARE_1, NAT_D, SERIES_1, RELSET_1, FUNCSDOM, ASYMPT_0,
+      ASYMPT_1, NEWTON, ASYMPT_2, NTALGO_1, PRE_FF, FIB_NUM, BINARITH,
+      BINARI_2, BINARI_6, TREES_3, EUCLID, BINARI_3;
+ registrations ORDINAL1, XCMPLX_0, XXREAL_0, XREAL_0, NAT_1, MEMBERED,
+      VALUED_0, SQUARE_1, XBOOLE_0, RELAT_1, INT_1, ASYMPT_0, POWER, FINSEQ_1,
+      ASYMPT_1, PARTFUN3, NEWTON, FIB_NUM3, FINSEQ_2, EUCLID, CARD_1, REAL_3,
+      COMPLEX1, MARGREL1, NEWTON04, ORDINAL2;
+ requirements NUMERALS, BOOLE, SUBSET, REAL, ARITHM;
+ equalities SQUARE_1, FIB_NUM, MARGREL1, FINSEQ_1, FINSEQ_2, BINARITH;
+ expansions FUNCT_1, FUNCT_2, ASYMPT_2;
+ theorems TARSKI, FUNCT_1, FUNCT_2, NAT_1, ABSVALUE, XBOOLE_0, XCMPLX_1,
+      FUNCOP_1, XREAL_1, XXREAL_0, ORDINAL1, INT_1, ASYMPT_0, ASYMPT_1, POWER,
+      PRE_FF, SQUARE_1, FINSEQ_2, ASYMPT_2, NTALGO_1, FINSEQ_1, FIB_NUM4,
+      NAT_2, FIB_NUM3, FINSEQ_5, FINSEQ_4, RADIX_2, NAT_D, FINSEQ_3, BINARI_6,
+      MARGREL1, BINARITH, NAT_4, BINARI_2, BINARI_3, EULER_2, XBOOLEAN,
+      FIB_NUM2;
+ schemes NAT_1, RECDEF_2;
+
+begin :: Right--to--left Binary Algorithm for Modular Exponentiation
+
+definition
+  let F be Element of BOOLEAN*;
+  let x be object;
+  redefine func F.x -> Nat;
+  correctness;
+end;
+
+definition
+  let n,m be Nat;
+  redefine func n to_power m -> Nat;
+  coherence;
+end;
+
+definition
+  let a,b be object,c be Nat;
+  func BinBranch(a,b,c) equals :defBB:
+  a if c = 0 otherwise b;
+  correctness;
+end;
+
+definition
+  let a,b,c be Nat;
+  redefine func BinBranch(a,b,c) -> Nat;
+  coherence by defBB;
+end;
+
+Lm1:for a, n, m be Element of NAT holds
+ex A,B be sequence of NAT st
+A.0 = a mod m & B.0 = 1
+&
+for i be Nat holds
+A.(i+1) = (A.i)*(A.i) mod m &
+B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.n).(i+1))
+proof
+  let a,n,m be Element of NAT;
+  defpred P1[Nat,Nat,Nat,Nat,Nat] means
+  $4 = $2*$2 mod m
+  & $5 = BinBranch($3,$3*$2 mod m,(Nat2BL.n).($1+1));
+  A1: for i being Nat,
+  x,y being Element of NAT
+  ex x1,y1 being Element of NAT
+  st P1[i,x,y,x1,y1]
+  proof
+    let i be Nat,
+        x,y be Element of NAT;
+    set x1 = x*x mod m;
+    set y1 = BinBranch(y,y*x mod m,(Nat2BL.n).(i+1));
+    x1 is Element of NAT & y1 is Element of NAT by ORDINAL1:def 12;
+    hence thesis;
+  end;
+  consider A be sequence of NAT,B be sequence of NAT such that
+A2:
+  A.0 = a mod m & B.0 = 1
+  &
+  for n being Nat
+  holds P1[ n,A.n,B.n,A.(n + 1),B.(n + 1)] from RECDEF_2:sch 3(A1);
+  take A,B;
+  thus thesis by A2;
+end;
+
+Lm2:for a,n,m be Element of NAT,
+A1,B1,A2,B2 be sequence of NAT st
+( A1.0 = a & B1.0 = 1 &
+for i be Nat holds
+A1.(i+1) = (A1.i)*(A1.i) mod m &
+B1.(i+1) = BinBranch((B1.i),(B1.i)*(A1.i) mod m,(Nat2BL.n).(i+1))
+)
+&
+( A2.0 = a & B2.0 = 1 &
+for i be Nat holds
+A2.(i+1) = (A2.i)*(A2.i) mod m &
+B2.(i+1) = BinBranch((B2.i),(B2.i)*(A2.i) mod m,(Nat2BL.n).(i+1))
+)
+holds A1 = A2 & B1 = B2
+proof
+  let a,n,m be Element of NAT;
+  let A1,B1,A2,B2 be sequence of NAT;
+  assume
+A1: A1.0 = a & B1.0 = 1
+  & for i be Nat holds
+  A1.(i+1) = (A1.i)*(A1.i) mod m &
+  B1.(i+1) = BinBranch((B1.i),(B1.i)*(A1.i) mod m,(Nat2BL.n).(i+1));
+  assume
+A2: A2.0 = a & B2.0 = 1
+  & for i be Nat holds
+  A2.(i+1) = (A2.i)*(A2.i) mod m &
+  B2.(i+1) = BinBranch((B2.i),(B2.i)*(A2.i) mod m,(Nat2BL.n).(i+1));
+  defpred P[Nat] means A1.$1 = A2.$1 & B1.$1 = B2.$1;
+  A3: P[0] by A1,A2;
+  A4: for i being Nat st P[i] holds P[i+1]
+  proof
+    let i be Nat;
+    assume A5:P[i];
+    A6: A1.(i+1) = (A1.i)*(A1.i) mod m by A1
+    .= A2.(i+1) by A2,A5;
+    B1.(i+1) = BinBranch((B1.i),(B1.i)*(A1.i) mod m,(Nat2BL.n).(i+1)) by A1
+    .= B2.(i+1) by A2,A5;
+    hence P[i+1] by A6;
+  end;
+  for i being Nat holds P[i] from NAT_1:sch 2(A3,A4);
+  hence thesis;
+end;
+
+definition
+  let a, n, m be Element of NAT;
+  func ALGO_BPOW(a,n,m) -> Element of NAT means :Def1:
+  ex A,B be sequence of NAT st
+  it = B. (LenBSeq n)
+  &
+  A.0 = a mod m & B.0 = 1 &
+  ( for i be Nat holds
+  A.(i+1) = (A.i)*(A.i) mod m &
+  B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.n).(i+1))
+  );
+  existence
+  proof
+    consider A,B be sequence of NAT such that A1:
+    A.0 = a mod m & B.0 = 1 &
+    for i be Nat holds
+    A.(i+1) = (A.i)*(A.i) mod m &
+    B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.n).(i+1)) by Lm1;
+    set K = B. (LenBSeq n);
+    K is Element of NAT;
+    hence thesis by A1;
+  end;
+  uniqueness by Lm2;
+end;
+
+theorem CBPOW1:
+  for a,m,i be Nat, A be sequence of NAT st
+  A.0 = a mod m & (for j be Nat holds A.(j+1) = (A.j)*(A.j) mod m)
+  holds A.i = a to_power (2 to_power i) mod m
+  proof
+    let a,m,i be Nat, A be sequence of NAT;
+    assume
+    AS0: A.0 = a mod m & (for i be Nat holds A.(i+1) = (A.i)*(A.i) mod m );
+    defpred P[Nat] means A.($1) = a to_power (2 to_power $1) mod m;
+    a to_power (2 to_power 0) mod m = a to_power 1 mod m by POWER:24
+    .= a mod m; then
+    L1: P[0] by AS0;
+    L2: for i be Nat st P[i] holds P[i+1]
+    proof
+      let i be Nat;
+      assume P[i]; then
+      (A.i)*(A.i) mod m = a|^((2 to_power 1)*(2 to_power i)) mod m by NAT_4:11
+      .= a to_power (2 to_power (i+1)) mod m by POWER:27;
+      hence thesis by AS0;
+    end;
+    for i be Nat holds P[i] from NAT_1:sch 2(L1,L2);
+    hence thesis;
+  end;
+  CBPOW2:
+  for a,m,i,n be Nat, A be sequence of NAT st
+  a <> 0 &
+  A.0 = a mod m & (for j be Nat holds A.(j+1) = (A.j)*(A.j) mod m)
+  holds (a to_power n mod m)*(A.i) mod m = a to_power (n + 2 to_power i) mod m
+  proof
+    let a,m,i,n be Nat, A be sequence of NAT;
+    assume AS0: a <> 0 & A.0 = a mod m &
+    (for i be Nat holds A.(i+1) = (A.i)*(A.i) mod m); then
+    A.i = a to_power (2 to_power i) mod m by CBPOW1; then
+    (a to_power n mod m)*(A.i) mod m
+    =(a to_power n )*(a to_power (2 to_power i)) mod m by NAT_D:67
+    .= a to_power (n + 2 to_power i) mod m by POWER:27,AS0;
+    hence thesis;
+  end;
+
+theorem
+  LenBSeq 0 = 1 by BINARI_6:def 1;
+
+theorem EXL1:
+  LenBSeq 1 = 1
+  proof
+X1: 2 to_power 0 <= 1 by POWER:24;
+    1 < 2 to_power (0 + 1);
+    hence thesis by BINARI_6:def 1,X1;
+  end;
+
+theorem
+  for x be Nat st 2 <= x holds 1 < LenBSeq x
+  proof
+    let x be Nat;
+    assume
+AS0:2 <= x; then
+    consider n be Nat such that
+P3: 2 to_power n <= x & x < 2 to_power (n + 1)
+      & LenBSeq x = n+1 by BINARI_6:def 1;
+    n <> 0 by AS0,P3; then
+    0 + 1 < n+1 by XREAL_1:8;
+    hence thesis by P3;
+  end;
+
+theorem EXL2:
+  for n be Nat st 0 < n holds
+  LenBSeq n = [\ log(2,n) /] +1
+  proof
+    let n be Nat;
+    assume 0 < n; then
+    consider x be Nat such that
+LCX:2 to_power x <= n & n < 2 to_power (x + 1) &
+      LenBSeq n = x+1 by BINARI_6:def 1;
+    log(2,2 to_power x) = x by POWER:def 3; then
+    LT1: x <= log(2,n) by LCX, ASYMPT_2:7;
+    log(2,2 to_power (x+1)) = x+1 by POWER:def 3; then
+    log(2,n) < x+1 by LCX,POWER:57; then
+    log(2,n) - 1 < x+1-1 by XREAL_1:14;
+    hence thesis by LCX,LT1,INT_1:def 6;
+  end;
+
+theorem zerobs:
+  Nat2BL.0 = <* 0 *>
+  proof
+    LenBSeq 0 = 1 by BINARI_6:def 1; then
+    Nat2BL.0 = 1 -BinarySequence 0 by BINARI_6:def 2
+    .= <* 0 *> by BINARI_3:25,BINARI_6:4;
+    hence thesis;
+  end;
+
+theorem
+  Nat2BL.1 = <*1*>
+  proof
+    X1: 1 = 2 to_power 0 by POWER:24;
+    Nat2BL.1 = 1 -BinarySequence 1 by BINARI_6:def 2,EXL1
+    .= 0*0 ^ <*1*> by X1,BINARI_3:28
+    .= <*1*> by FINSEQ_1:34;
+    hence thesis;
+  end;
+
+theorem MMS1:
+  for n be Element of NAT st 0 < n holds
+    (Nat2BL.n).(LenBSeq n) = 1
+  proof
+    let n be Element of NAT;
+    assume AS: 0 < n;
+    assume AC: (Nat2BL.n).(LenBSeq n) <> 1;
+    L1: Nat2BL.n = (LenBSeq n) -BinarySequence n by BINARI_6:def 2;
+    reconsider x = Nat2BL.n as Element of BOOLEAN*;
+    LAC: not x in {y where y is Element of BOOLEAN*: y.(len y) =1 }
+    proof
+      assume x in {y where y is Element of BOOLEAN*: y.(len y) =1 };
+      then ex y be Element of BOOLEAN* st x=y & y.(len y) =1;
+      hence contradiction by AC,L1,FINSEQ_3:153;
+    end;
+    0 in NAT; then
+    PO: 0 in dom Nat2BL by FUNCT_2:def 1;
+    n in NAT; then
+    TLL: n in dom Nat2BL by FUNCT_2:def 1; then
+    x in rng Nat2BL by FUNCT_1:3; then
+    x in {y where y is Element of BOOLEAN*: y.(len y) =1 }
+    or x in { <* 0 *> } by BINARI_6:11,XBOOLE_0:def 3; then
+    Nat2BL.n = <* 0 *> by TARSKI:def 1,LAC;
+    hence contradiction by AS,TLL,PO,zerobs, BINARI_6:12;
+  end;
+
+theorem
+  Nat2BL.2 = <*0,1*>
+  proof
+    X1: 2 = 2 to_power 1;
+    LenBSeq 2 = [\ log(2,2) /] +1 by EXL2
+    .= [\ 1 /] + 1 by POWER:52
+    .= 1+1 by INT_1:25; then
+    Nat2BL.2 = 2 -BinarySequence 2 by BINARI_6:def 2
+    .= <*0,1*> by BINARI_6:4,X1,BINARI_3:28;
+    hence thesis;
+  end;
+
+theorem
+  Nat2BL.3 = <*1,1*>
+  proof
+    X0: 2 + 1 < 2 to_power 2 by POWER:60;
+    X1: 2 = 2 to_power 1;
+    log(2,3) < log(2,4) by POWER:57; then
+    log(2,3) < 2 by POWER:60,POWER:def 3; then
+    X4: log(2,3) -1 < 2-1 by XREAL_1:14;
+    log(2,2) < log(2,3) by POWER:57; then
+    1 < log(2,3) by POWER:52; then
+    X5:[\ log(2,3) /] = 1 by INT_1:def 6,X4;
+    LenBSeq 3 = [\ log(2,3) /] +1 by EXL2
+    .= 2 by X5; then
+    X2: Nat2BL.3 = 2 -BinarySequence 3 by BINARI_6:def 2
+    .= (2 -BinarySequence 2) + (Bin1 2) by BINARI_3:33,X0;
+    X3: 2 -BinarySequence 2 = <* FALSE *> ^<*TRUE *>
+      by XBOOLEAN:def 1,def 2,BINARI_6:4,X1,BINARI_3:28;
+    X5: (Bin1 2) = <*TRUE*> ^ <* FALSE *> by BINARI_3:10,BINARI_2:7;
+    set z1 = <*FALSE*>;
+    set z2 = <*TRUE*>;
+    X7: carry (z1,z2) /.1 = FALSE by BINARITH:def 2;
+    X70: z1 /.1 = FALSE by FINSEQ_4:16;
+    X71: z2 /.1 = TRUE by FINSEQ_4:16; then
+    X6: add_ovfl (<*FALSE*>,<*TRUE*>)
+    = FALSE 'or' (FALSE '&' FALSE) 'or' (TRUE '&' FALSE)
+      by MARGREL1:13,X7,X70
+    .= FALSE by MARGREL1:13;
+    2 -BinarySequence 2 + (Bin1 2)
+    = ( <*FALSE*> + <*TRUE*> ) ^ <* ((TRUE 'xor' FALSE)
+    'xor' (add_ovfl (<*FALSE*>,<*TRUE*>)))*> by BINARITH:19,X3, X5
+    .= <*TRUE*> ^ <* (TRUE
+    'xor' (add_ovfl (<*FALSE*>,<*TRUE*>)))*> by BINARITH:8, BINARI_3:17
+    .= <*TRUE*> ^ <*TRUE*> by X6,BINARITH:8;
+    hence thesis by X2,XBOOLEAN:def 2;
+  end;
+
+theorem
+  Nat2BL.4 = <*0,0,1*>
+  proof
+    LenBSeq 4 = [\ log(2,4) /] +1 by EXL2
+    .= [\ 2 /] +1 by POWER:def 3,POWER:60
+    .= 2+1 by INT_1:25
+    .= 3; then
+    Nat2BL.4 = 3 -BinarySequence 4 by BINARI_6:def 2
+    .= 0*2 ^<*1*> by BINARI_3:28,POWER:60
+    .= <*0,0,1*> by BINARI_6:5,BINARI_6:4;
+    hence thesis;
+  end;
+
+theorem
+  for n be Nat holds Nat2BL. (2|^n) = (0*n) ^ <*1*>
+  proof
+    let n be Nat;
+    X1: 2|^n = 2 to_power n;
+    X3: LenBSeq (2|^n) = [\ log(2,(2|^n)) /] +1 by EXL2
+    .= [\ n /] +1 by X1,POWER:def 3
+    .= n+1 by INT_1:25;
+    2|^n is Element of NAT by ORDINAL1:def 12; then
+    Nat2BL.(2|^n) = (n+1) -BinarySequence (2|^n) by X3,BINARI_6:def 2
+    .= (0*n) ^<*1*> by BINARI_3:28,X1;
+    hence thesis;
+  end;
+
+theorem
+  for m be Element of NAT holds ALGO_BPOW(0,0,m) = 1
+  proof
+    let m be Element of NAT;
+    consider A,B be sequence of NAT such that
+    ASC:
+    ALGO_BPOW(0,0,m) = B. (LenBSeq 0) &
+    A.0 = 0 mod m & B.0 = 1 &
+    ( for i be Nat holds
+    A.(i+1) = (A.i)*(A.i) mod m &
+    B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.0).(i+1))) by Def1;
+    ALGO_BPOW(0,0,m) = B.1 by ASC,BINARI_6:def 1
+    .= BinBranch((B.0),(B.0)*(A.0) mod m,(Nat2BL.0).(0+1)) by ASC
+    .= 1 by ASC,defBB,zerobs;
+    hence thesis;
+  end;
+
+theorem
+  for n,m be Element of NAT st 0 < n holds
+  ALGO_BPOW(0,n,m) = 0
+  proof
+    let n,m be Element of NAT;
+    assume AS: 0 < n;
+    consider A,B be sequence of NAT such that
+    ASC:
+    ALGO_BPOW(0,n,m) = B. (LenBSeq n) &
+    A.0 = 0 mod m & B.0 = 1 &
+    ( for i be Nat holds
+    A.(i+1) = (A.i)*(A.i) mod m &
+    B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.n).(i+1))) by Def1;
+    (LenBSeq n)-1 in NAT by INT_1:5,NAT_1:14;
+    then reconsider fs = (LenBSeq n)-1 as Nat;
+    QW:A.fs = 0 to_power (2 to_power fs) mod m by CBPOW1,ASC
+    .= 0 mod m by POWER:42;
+    ALGO_BPOW(0,n,m)
+     = BinBranch((B.fs),(B.fs)*(A.fs) mod m,(Nat2BL.n).(fs+1)) by ASC
+    .= BinBranch((B.fs),(B.fs)*(A.fs) mod m,1) by MMS1,AS
+    .= 0 by QW,defBB;
+    hence thesis;
+  end;
+
+theorem
+  for a,n,m be Element of NAT st 0 < n & m <= 1 holds
+  ALGO_BPOW(a,n,m) = 0
+  proof
+    let a,n,m be Element of NAT;
+    assume AS: 0 < n & m <= 1;
+    consider A,B be sequence of NAT such that
+    ASC:
+    ALGO_BPOW(a,n,m) = B. (LenBSeq n) &
+    A.0 = a mod m & B.0 = 1 &
+    ( for i be Nat holds
+    A.(i+1) = (A.i)*(A.i) mod m &
+    B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.n).(i+1))) by Def1;
+    (LenBSeq n)-1 in NAT by INT_1:5,NAT_1:14;
+    then reconsider fs= (LenBSeq n)-1 as Nat;
+    m = 0 or m =1 by NAT_1:25,AS;then
+    LZEROM: (B.fs)*(A.fs) mod m = 0 by RADIX_2:1;
+    ALGO_BPOW(a,n,m)
+    = BinBranch((B.fs),(B.fs)*(A.fs) mod m,(Nat2BL.n).(fs+1)) by ASC
+    .= BinBranch((B.fs),(B.fs)*(A.fs) mod m,1) by MMS1,AS
+    .= 0 by LZEROM,defBB;
+    hence thesis;
+  end;
+
+theorem
+  for a,n,m be Element of NAT st a <> 0 & 1 < m holds
+  ALGO_BPOW(a,n,m) = a to_power n mod m
+  proof
+    let a, n,m be Element of NAT;
+    assume AS: a <> 0 & 1 < m;
+    consider A,B be sequence of NAT such that
+    ASC:
+    ALGO_BPOW(a,n,m) = B. (LenBSeq n) &
+    A.0 = a mod m & B.0 = 1 &
+    ( for i be Nat holds
+    A.(i+1) = (A.i)*(A.i) mod m &
+    B.(i+1) = BinBranch((B.i),(B.i)*(A.i) mod m,(Nat2BL.n).(i+1))) by Def1;
+    set NBS = Nat2BL.n;
+    NBS = (LenBSeq n)-BinarySequence n by BINARI_6:def 2; then
+    reconsider NBS as Tuple of (LenBSeq n),BOOLEAN;
+    defpred P[Nat] means
+    $1 < LenBSeq n implies
+    (
+    ex SUBBS be Tuple of ($1+1), BOOLEAN st
+    SUBBS = (Nat2BL.n) | ($1 +1) &
+    B.($1 +1) = (a to_power Absval(SUBBS)) mod m);
+    LC1:P[0]
+    proof
+      NBS| (0 +1) = <* NBS.1 *> by FINSEQ_5:20;
+      reconsider NBS0 = NBS| (0 +1) as Tuple of 1, BOOLEAN;
+      PCJJ:
+      B.(0+1) = BinBranch((B.0),(B.0)*(A.0) mod m,(Nat2BL.n).(0+1)) by ASC;
+      then
+      PCC0:B.1 = BinBranch(1,a mod m, (Nat2BL.n).1) by EULER_2:5,ASC;
+      per cases by BINARITH:14;
+      suppose LCT: NBS0 = <*TRUE*>; then
+        LCT1:Absval(NBS0) = 1 by BINARITH:16;
+        <* NBS.1 *>.1 = <* TRUE*>.1 by FINSEQ_5:20,LCT; then
+        B.1 = (a to_power 1) mod m by defBB,PCC0,XBOOLEAN:def 2;
+        hence thesis by LCT1;
+      end;
+      suppose LCF: NBS0 = <*FALSE*>; then
+        LCF1:Absval(NBS0) = 0 by BINARITH:15;
+        <* NBS.1 *>.1 = <* FALSE*>.1 by FINSEQ_5:20,LCF; then
+        B.1 = 1 by defBB,ASC,PCJJ,XBOOLEAN:def 1
+        .= 1 mod m by NAT_D:14,AS
+        .=(a to_power 0) mod m by POWER:24;
+        hence thesis by LCF1;
+      end;
+    end;
+    LC2: for i be Nat st P[i] holds P[i+1]
+    proof
+      let i be Nat;
+      assume ASPi:P[i];
+      assume I1: i+1 < LenBSeq n;
+      i < LenBSeq n
+      proof
+        assume
+    COV:i >= LenBSeq n;
+        i + 1 - 1 < LenBSeq n -0 by I1,XREAL_1:14;
+        hence contradiction by COV;
+      end; then
+      consider SUBBS be Tuple of (i+1), BOOLEAN such that
+      CLa: SUBBS = (Nat2BL.n) | (i +1) &
+      B.(i + 1) = (a to_power Absval(SUBBS)) mod m by ASPi;
+      set j = i + 1;
+      thus ex SUBBS1 be Tuple of (j+1), BOOLEAN st
+      SUBBS1 = (Nat2BL.n) | (j +1) &
+        B.(j +1) = (a to_power Absval(SUBBS1)) mod m
+      proof
+        LINT:j+1 <= LenBSeq n by INT_1:7,I1;
+        1 <= j+1 by NAT_1:11; then
+        j +1 in Seg(LenBSeq n) by LINT; then
+        CHO:j+1 in dom NBS by FINSEQ_1:89;
+        set SUBBS1 = (Nat2BL.n) | (j +1);
+        Lhyo:j+1 <= len NBS by FINSEQ_3:153,LINT;
+        Sho:SUBBS1 is Element of BOOLEAN* by FINSEQ_1:def 11;
+        len SUBBS1 = min(j+1,len NBS) by FINSEQ_2:21; then
+        len SUBBS1 = j+1 by Lhyo,XXREAL_0:def 9; then
+        SUBBS1 in (j+1)-tuples_on BOOLEAN by Sho; then
+        reconsider SUBBS1 as Tuple of (j+1), BOOLEAN;
+        set BC=IFEQ(NBS.(j+1),FALSE,0,2 to_power j);
+        CCL2:SUBBS1= SUBBS^<*NBS.(j+1)*> by FINSEQ_5:10,CLa,CHO;
+        PO:NBS.(j+1) is Element of BOOLEAN by FINSEQ_1:84,CHO;
+        reconsider X = NBS.(j+1) as Nat;
+        ZZ: Absval(SUBBS1) = Absval(SUBBS)+BC by BINARITH:20,CCL2,PO;
+        LMT1: B.(j+1) = BinBranch((B.j),(B.j)*(A.j) mod m,X) by ASC;
+        take SUBBS1;
+        thus SUBBS1 = (Nat2BL.n) | (j +1);
+        thus B.(j +1) = (a to_power Absval(SUBBS1)) mod m
+        proof
+          per cases;
+          suppose LPP:X= 0; then
+            BC = 0 by FUNCOP_1:def 8,XBOOLEAN:def 1;
+            hence thesis by ZZ,CLa,LMT1,defBB,LPP;
+          end;
+          suppose LPP1:X<>0; then
+            B.(j+1) = (B.j)*(A.j) mod m by LMT1,defBB
+            .= a to_power ((Absval(SUBBS)) + 2 to_power j) mod m
+              by CBPOW2,ASC,AS,CLa;
+            hence thesis by FUNCOP_1:def 8,XBOOLEAN:def 1,LPP1,ZZ;
+          end;
+        end;
+      end;
+    end;
+    LC3: for i be Nat holds P[i] from NAT_1:sch 2(LC1,LC2);
+    (LenBSeq n)-1 in NAT by INT_1:5,NAT_1:14;
+    then reconsider fs = (LenBSeq n)-1 as Nat;
+    consider FSBS be Tuple of (fs+1), BOOLEAN such that
+    Lcfs: FSBS = (Nat2BL.n) | (fs +1) &
+    B.(fs +1) = (a to_power Absval(FSBS)) mod m by LC3,XREAL_1:44;
+    reconsider FSBS as Tuple of LenBSeq n, BOOLEAN;
+    dom NBS = Seg LenBSeq n by FINSEQ_1:89;
+    hence thesis by ASC,BINARI_6:10,Lcfs;
+  end;
+
+begin :: Lame's Theorem
+
+theorem LFIB5:
+  Fib(5) = 5
+  proof
+    Fib(5) = Fib((3+1)+1)
+    .= Fib(3) + Fib(3+1) by PRE_FF:1
+    .= 5 by FIB_NUM2:22,23;
+    hence thesis;
+  end;
+
+theorem THTU:
+  1 < tau
+  proof
+    tau -1 = - tau_bar; then
+    0+1 < tau -1+1 by XREAL_1:6;
+    hence thesis;
+  end;
+
+theorem THTU2:
+  tau < 2
+  proof
+    |. tau_bar .| = - tau_bar by ABSVALUE:def 1; then
+    (- tau_bar) -1 < 0 by XREAL_1:49,FIB_NUM4:5; then
+    tau -2 +2 < 0+2 by XREAL_1:6;
+    hence thesis;
+  end;
+
+theorem THTU3:
+  log(tau,10) < 5
+  proof
+    [\ (tau to_power 5 )/sqrt 5 + 1/2 /] = 5 by FIB_NUM4:18,LFIB5; then
+    5 -1/2 <= (tau to_power 5 )/sqrt 5 + 1/2 -1/2
+      by XREAL_1:9,INT_1:def 6; then
+    9/2*(sqrt 5) <= ((tau to_power 5 )/(sqrt 5))*(sqrt 5) by XREAL_1:64;
+    then 9/2*(sqrt 5) <= (tau to_power 5 )/((sqrt 5)/(sqrt 5)) by XCMPLX_1:81;
+    then WEQ:
+    9/2*(sqrt 5) <= (tau to_power 5 )/(1) by XCMPLX_1:60;
+    9/2*(sqrt 5) -10 =(9*(sqrt 5) -20)/2 /((9*(sqrt 5) +20)/(9*(sqrt 5) +20))
+    by XCMPLX_1:51
+    .=(9*(sqrt 5) -20) /((9*(sqrt 5) +20)/(9*(sqrt 5) +20))/2 by XCMPLX_1:48
+    .=((9*(sqrt 5) -20) *(9*(sqrt 5) +20))
+    /(9*(sqrt 5) +20)/2 by XCMPLX_1:77
+    .=(81*(sqrt 5)^2 -400)/(9*(sqrt 5) +20)/2
+    .=(81*5 -400)/(9*(sqrt 5) +20)/2 by SQUARE_1:def 2
+    .=5/(9*(sqrt 5) +20)/2; then
+    10 < 9/2*(sqrt 5) -10 +10 by XREAL_1:29; then
+    10 < (tau to_power 5) by WEQ,XXREAL_0:2; then
+    log(tau,10) < log(tau,(tau to_power 5)) by POWER:57,THTU; then
+    log(tau,10) < 5*log(tau,tau) by POWER:55,THTU; then
+    log(tau,10) < 5*1 by POWER:52,THTU;
+    hence thesis;
+  end;
+
+theorem LTAUPOW:
+  for n be Nat st 3 <= n holds tau to_power (n-2) < Fib(n)
+  proof
+    let n be Nat;
+    defpred P[Nat] means tau to_power ($1 -2) < Fib($1);
+    A1: for k being Nat st k>=3 holds
+    (for i being Nat st i>=3 holds i<k implies P[i]) implies P[k]
+    proof
+      let k be Nat;
+      assume
+      A2: k>=3;
+      assume
+      A3: for i being Nat st i>=3 holds i<k implies P[i];
+      LL:(3<= k & k <=3+1) or 4 < k by A2;
+      now per cases by LL, NAT_1:9;
+        case k=3;
+          tau to_power 1 = tau;
+          hence P[3] by FIB_NUM2:22,THTU2;
+        end;
+        case k=4;
+          tau to_power (4-2)=tau to_power (0+2)
+          .=tau to_power 0 + tau to_power (0+1) by FIB_NUM3:9
+          .= 1 + tau by POWER:24; then
+          tau to_power (4-2) < 1 +2 by THTU2,XREAL_1:6;
+          hence P[4] by FIB_NUM2:23;
+        end;
+        case LC4A: 4<k; then
+          k -4 in NAT by INT_1:5; then
+          reconsider z = k -4 as Nat;
+          4-3 < k -0 by XREAL_1:14,LC4A; then
+          k -1 in NAT by INT_1:5; then
+          reconsider x = k -1 as Nat;
+          4-2 < k -0 by XREAL_1:14,LC4A; then
+          k -2 in NAT by INT_1:5; then
+          reconsider y = k -2 as Nat;
+          4+1 <= k by INT_1:7,LC4A; then
+          5-2 <= k-2 & 5-2 <= k - 1 by XREAL_1:13; then
+          3 <= x & 3 <= y & x < k & y < k by XREAL_1:44; then
+          tau to_power (x -2) < Fib(x) &
+          tau to_power (y -2) < Fib(y) by A3; then
+          tau to_power (z) +tau to_power (z+1)
+            < Fib(x) + Fib(y) by XREAL_1:8; then
+          tau to_power (z+2) < Fib(x) + Fib(y) by FIB_NUM3:9; then
+          tau to_power (k-2) < Fib((y+1)+1) by PRE_FF:1;
+          hence P[k];
+        end;
+      end;
+      hence thesis;
+    end;
+    for k being Nat st k>=3 holds P[k] from NAT_1:sch 9(A1);
+    hence thesis;
+  end;
+
+theorem
+  for a,b be Element of INT st
+  |.a.| > |.b.| & b > 1 holds
+  ex A,B be sequence of NAT,
+     C be Real_Sequence,
+     n be Element of NAT st
+  A.0 = |.a.| & B.0 = |.b.| &
+  (for i be Nat holds
+  A.(i+1) = B.i &
+  B.(i+1) = A.i mod B.i) &
+  n = (min*{i where i is Nat: B.i = 0} ) &
+  a gcd b = A.n &
+  Fib(n+1) <= |. b .| &
+  n <= 5*[/ log(10,|. b .|) \] &
+  n <= C.(|. b .|) & C is polynomially-bounded
+  proof
+    let a,b be Element of INT;
+    assume ASKARI: |.a.| > |.b.| & b > 1;
+    consider A,B be sequence of NAT such that
+L1: A.0 = |.a.| & B.0 = |.b.| &
+    (for i be Nat holds
+    A.(i+1) = B.i &
+    B.(i+1) = A.i mod B.i) &
+    ALGO_GCD(a,b) = A. (min*{i where i is Nat: B.i = 0} )
+    by NTALGO_1:def 1;
+    consider n be Element of NAT such that CC1:
+    n = (min*{i where i is Nat: B.i = 0} ) &
+    ALGO_GCD(a,b) = A. n by L1;
+    Lm5:for a,b be Element of INT,
+    A,B be sequence of NAT
+    st
+    (A.0 = |.a.| & B.0 = |.b.|
+    &
+    (for i be Nat holds A.(i+1) = B.i & B.(i+1) = A.i mod B.i))
+    holds
+    {i where i is Nat: B.i = 0} is non empty Subset of NAT
+    proof
+      let a,b be Element of INT,
+          A,B be sequence of NAT;
+      assume A1:
+      A.0 = |.a.| & B.0 = |.b.|
+      &
+      (for i be Nat holds A.(i+1) = B.i & B.(i+1) = A.i mod B.i);
+      A2:for x be object st x in {i where i is Nat: B.i = 0}
+      holds x in NAT
+      proof let x be object;
+        assume x in {i where i is Nat: B.i = 0};
+        then ex i be Nat st x=i & B.i = 0;
+        hence x in NAT by ORDINAL1:def 12;
+      end;
+      ex m0 be Nat st B.m0 = 0
+      proof
+        assume A3: not ex m0 be Nat st B.m0 = 0;
+        A4: for i be Nat holds B.(i+1) <= B.i -1
+        proof
+          let i be Nat;
+          A5:B.i <> 0 by A3;
+          B.(i+1) = A.i mod B.i by A1; then
+          B.(i+1) +1 <= B.i by NAT_1:13,A5,INT_1:58; then
+          B.(i+1) +1 -1 <= B.i -1 by XREAL_1:9;
+          hence B.(i+1) <= B.i -1;
+        end;
+        defpred P[Nat] means B.$1 <= B.0 - $1;
+        A6: P[0];
+        A7: for i be Nat st P[i] holds P[i+1]
+        proof
+          let i be Nat;
+          assume A8:P[i];
+          A9: B.(i+1) <= B.i -1 by A4;
+          B.i -1 <= (B.0 - i) -1 by A8,XREAL_1:9;
+          hence P[i+1] by A9,XXREAL_0:2;
+        end;
+        A10: for i be Nat holds P[i] from NAT_1:sch 2(A6,A7); then
+        B.(B.0) <=B.0 - (B.0);
+        hence contradiction by A3,NAT_1:14;
+      end; then
+      consider m0 be Nat such that
+      A11: B.m0 = 0;
+      m0 in {i where i is Nat: B.i = 0} by A11;
+      hence thesis by A2,TARSKI:def 3;
+    end;
+    KL11:{i where i is Nat: B.i = 0} is non empty Subset of NAT by L1,Lm5;
+    then n in {i where i is Nat: B.i = 0} by NAT_1:def 1,CC1;
+    then ex i be Nat st n =i & B.i = 0; then
+    LNNZ: n <> 0 by ASKARI,L1; then
+    NIZ: n-1 is Nat by NAT_1:20;
+    LX1: B.(n-1) <> 0
+    proof
+      assume B.(n-1) = 0; then
+      n-1 in {i where i is Nat: B.i = 0} by NIZ; then
+      n <= n -1 by CC1,NAT_1:def 1,KL11; then
+      n < n-1 +1 by XREAL_1:145;
+      hence contradiction;
+    end;
+    B11: for i be Nat st i< n holds B.i > 0
+    proof
+      let i be Nat;
+      assume WHHO:i < n;
+      assume 0 >= B.i; then
+      B.i = 0; then
+      i in {i where i is Nat: B.i = 0};
+      hence contradiction by WHHO,CC1,NAT_1:def 1,KL11;
+    end;
+    A4: for i be Nat st i < n holds B.(i+1) <= B.i -1
+    proof
+      let i be Nat;
+      assume i < n; then
+      A5:B.i <> 0 by B11;
+      B.(i+1) = A.i mod B.i by L1; then
+      B.(i+1) +1 <= B.i by NAT_1:13,A5,INT_1:58; then
+      B.(i+1) +1 -1 <= B.i -1 by XREAL_1:9;
+      hence B.(i+1) <= B.i -1;
+    end;
+    defpred P[Nat] means $1 <= n implies B.$1 <= B.0 - $1;
+    A6: P[0];
+    A7: for i be Nat st P[i] holds P[i+1]
+    proof
+      let i be Nat;
+      assume A8:P[i];
+      assume B8:i + 1 <= n; then
+      i < n by XXREAL_0:2,NAT_1:16; then
+      A9: B.(i+1) <= B.i -1 by A4;
+      B.i -1 <= (B.0 - i) -1 by A8,B8,XXREAL_0:2,NAT_1:16,XREAL_1:9;
+      hence thesis by A9,XXREAL_0:2;
+    end;
+    A70: for i be Nat holds P[i] from NAT_1:sch 2(A6,A7);
+    LC0P:n <= B.0
+    proof
+      assume H1P:n > B.0;
+      H2: B.n <= B.0 - n by A70;
+      B.0 - n < n - n by H1P,XREAL_1:9;
+      hence contradiction by H2;
+    end;
+    A.n = A.( (n-1)+1)
+    .= B.(n-1) by L1,NIZ; then
+    ASTS: 0 + 1 <= A.n by INT_1:7,LX1;
+    LKA1: for j be Nat st j <n holds A.(j+1) < A.j
+    proof
+      let j be Nat;
+      assume CCC1: j < n;
+      now per cases;
+        case 0 < j; then
+          0 + 1 <= j by INT_1:7; then
+          j - 1 in NAT by INT_1:5; then
+          reconsider k = j - 1 as Nat;
+          AME1:A.(k+1) = B.k & A.((k+1)+1) =B.(k+1) by L1;
+          j - 1 < n by CCC1,XREAL_1:51; then
+          B.(k+1) <= B.k - 1 by A4; then
+          B.(k+1) + 1 <= B.k - 1 + 1 by XREAL_1:6;
+          hence thesis by AME1,NAT_1:13;
+        end;
+        case j=0;
+          hence thesis by L1,ASKARI;
+        end;
+      end;
+      hence thesis;
+    end;
+    ZM:
+    1 < n implies Fib(3) <= A.(n-1)
+    proof
+      assume 1 < n; then
+      1-1 < n-1 by XREAL_1:9; then
+      PZ1: 0 < n-1 & n-1 is Nat by LNNZ,NAT_1:20;
+      n-1 <n - 0 by XREAL_1:15; then
+      A.((n-1)+1) < A.(n-1) by LKA1,PZ1; then
+      1 < A.(n-1) by ASTS,XXREAL_0:2; then
+      1+1 <= A.(n-1) by INT_1:7;
+      hence thesis by FIB_NUM2:22;
+    end;
+    TRMT:
+    for i be Nat st 0 < i & i < n holds
+      A.(i+2) + A.(i+1) <= A.i
+    proof
+      let i be Nat;
+      assume LP11: 0 < i & i < n; then
+      B.(i+1) <= B.i -1 by A4; then
+      LK1: B.(i+1) <= A.(i+1) - 1 by L1;
+      LX: A.(i+1) <= A.i by LP11,LKA1;
+      A.i mod B.i <= A.(i+1) - 1 by L1,LK1; then
+      A.i mod A.(i+1) <= A.(i+1) - 1 by L1; then
+      CLL1:A.i mod A.(i+1) + 0 < A.(i+1) - 1 + 1 by XREAL_1:8; then
+      A.i div A.(i+1) >= 1 by NAT_2:13,LX; then
+      LCP:
+      A.(i+2) + A.(i+1)
+      <= A.(i+2) + (A.i div A.(i+1))*(A.(i+1)) by XREAL_1:6,XREAL_1:151;
+      A.(i+2) = A.((i+1)+1)
+      .= B.(i+1) by L1
+      .= A.i mod B.i by L1
+      .= A.i mod A.(i+1) by L1
+      .= A.i - (A.i div A.(i+1))*(A.(i+1)) by INT_1:def 10,CLL1;
+      hence thesis by LCP;
+    end;
+    LEMM1:
+    for i be Nat st i < n holds Fib(i+2) <= A.(n-i)
+    proof
+      defpred P[Nat] means $1 < n implies Fib($1 + 2) <= A.(n - $1);
+      0+1 <= n by INT_1:7,LNNZ; then
+      HYY1:1 < n+1 by NAT_1:13;
+      LLLCT:
+      now per cases by HYY1,NAT_1:22;
+        case n = 1;
+          hence P[1];
+        end;
+        case 1 < n;
+          thus P[1] by ZM;
+        end;
+      end;
+      A1: for k being Nat st k>=2 holds
+      (for i being Nat st i>=2 holds i<k implies P[i]) implies P[k]
+      proof
+        let k be Nat;
+        assume
+        A2: k >= 2;
+        assume
+        A3: for i being Nat st i>=2 holds i<k implies P[i];
+        AU4: for i being Nat holds i<k implies P[i]
+        proof
+          let i be Nat;
+          assume NNNH: i < k;
+          now per cases by NAT_1:23;
+            case i = 0;
+              hence thesis by ASTS,FIB_NUM2:21;
+            end;
+            case i=1;
+              hence thesis by LLLCT;
+            end;
+            case 2<=i;
+              hence thesis by A3,NNNH;
+            end;
+          end;
+          hence thesis;
+        end;
+        k - 1 in NAT by INT_1:5,A2,XXREAL_0:2; then
+        reconsider x = k - 1 as Nat;
+        k - 2 in NAT by A2,INT_1:5;
+        then reconsider y = k - 2 as Nat;
+        LLZZ:x <k & y < k by XREAL_1:44;
+        LLZ:P[x] & P[y] by AU4,XREAL_1:44;
+        now per cases;
+          case LLAQ: k < n; then
+            n - k in NAT by INT_1:5;
+            then reconsider z = n-k as Nat;
+            ZEE:z < n by XREAL_1:231,A2;
+            now per cases;
+              case z = 0;
+                hence P[k];
+              end;
+              case 0 <z; then
+                SDD:A.(z+2) + A.(z+1) <= A.z by TRMT,ZEE;
+                LYY: Fib(x+2) + Fib(y+2) <=
+                  A.(z+2) + A.(z+1) by XREAL_1:7,LLAQ,LLZ,LLZZ,XXREAL_0:2;
+                Fib(x+2) + Fib(y+2) = Fib(((y+2)+1)+1) by PRE_FF:1
+                .= Fib(k+2);
+                hence P[k] by SDD,XXREAL_0:2,LYY;
+              end;
+            end;
+            hence P[k];
+          end;
+          case n <= k;
+            hence P[k];
+          end;
+        end;
+        hence P[k];
+      end;
+      A10: for k being Nat st k>=2 holds P[k] from NAT_1:sch 9(A1);
+      for i be Nat st i <= n holds P[i]
+      proof
+        let i be Nat;
+        i < 1+1 or 2 <= i; then
+        LLP1:i <= 1 or 2 <= i by INT_1:7;
+        now per cases by LLP1,NAT_1:25;
+          case i = 0;
+            thus P[0] by ASTS,FIB_NUM2:21;
+          end;
+          case i = 1;
+            thus P[1] by LLLCT;
+          end;
+          case 2 <= i;
+            hence thesis by A10;
+          end;
+        end;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+    reconsider m = n-1 as Nat by LNNZ,NAT_1:20;
+    n-1 < n - 0 by XREAL_1:15; then
+    G1P:Fib(m+2) <=A.(n-m) by LEMM1;
+    G2P:A.1 = A.(0+1)
+    .= |. b .| by L1;
+    0+1 <= n by INT_1:7,LNNZ; then
+    HYY1:1 < n+1 by NAT_1:13;
+    CLAME:
+    n <= 5*[/ log(10,|. b .|) \]
+    proof
+      now per cases by HYY1,NAT_1:22;
+        case TKK:n = 1;
+          b <= |. b .| by ABSVALUE:4;
+          then 1 < |. b .| by XXREAL_0:2,ASKARI;
+          then log(10,1) < log(10,|. b .|) by POWER:57;
+          then 0 < log(10,|. b .|) by POWER:51;
+          then 0 < [/ log(10,|. b .|) \] by INT_1:def 7; then
+          0+1 <= 5*[/ log(10,|. b .|) \] by INT_1:7;
+          hence thesis by TKK;
+        end;
+        case GF: 1 < n;
+          then 1+1<=n by INT_1:7; then
+          2+1<= n+1 by XREAL_1:6; then
+          tau to_power ((n+1)-2) < Fib(n+1) by LTAUPOW; then
+          GCV:tau to_power (n-1) < |. b .| by XXREAL_0:2,G2P,G1P;
+          1-1 <n-1 by XREAL_1:9,GF; then
+          0 < tau to_power (n-1) by THTU,POWER:35; then
+          log(tau,tau to_power (n-1) ) <=
+            log(tau, |. b .| ) by ASYMPT_2:7,GCV,THTU; then
+          (n-1)*log(tau,tau) <= log(tau, |. b .|) by POWER:55,THTU; then
+          (n-1)*1 <= log(tau, |. b .|) by POWER:52,THTU; then
+          FAW: n-1 <= log(tau,10)*log(10,|. b .|) by POWER:56,THTU,ASKARI;
+          b <= |. b .| by ABSVALUE:4; then
+          1 < |. b .| by XXREAL_0:2,ASKARI; then
+          log(10,1) < log(10,|. b .|) by POWER:57; then
+          0 < log(10,|. b .|) by POWER:51; then
+          log(tau,10)*log(10,|. b .|) < 5*log(10,|. b .|)
+            by XREAL_1:68,THTU3; then
+          MB3:n-1 < 5*log(10,|. b .|) by FAW,XXREAL_0:2;
+          log(10,|. b .|) <= [/ log(10,|. b .|) \] by INT_1:def 7; then
+          5*log(10,|. b .|) <= 5*[/ log(10,|. b .|) \] by XREAL_1:64; then
+          n-1 < 5*[/ log(10,|. b .|) \] by XXREAL_0:2,MB3; then
+          n-1+1 <= 5*[/ log(10,|. b .|) \] by INT_1:7;
+          hence n <= 5*[/ log(10,|. b .|) \];
+        end;
+      end;
+      hence thesis;
+    end;
+    reconsider C = seq_n^(1) as Real_Sequence;
+    set nb = |.b.|;
+    LC2P:C.(|. b .|) = |. b .| to_power 1 by ASYMPT_1:def 3,ASKARI;
+    LC1P:(seq_n^(1)) in Big_Oh(seq_n^1) by ASYMPT_0:10;
+    take A,B,C,n;
+    thus A.0 = |.a.| & B.0 = |.b.| &
+    (for i be Nat holds
+    A.(i+1) = B.i &
+    B.(i+1) = A.i mod B.i) &
+    n = (min*{i where i is Nat: B.i = 0} ) &
+    a gcd b = A.n &
+    Fib(n+1) <= |. b .| &
+    n <= 5*[/ log(10,|. b .|) \] &
+    n <= C.(|. b .|) & C is polynomially-bounded
+    by L1,LC1P,LC2P,CC1,NTALGO_1:2,CLAME,G2P,G1P,LC0P;
+  end;

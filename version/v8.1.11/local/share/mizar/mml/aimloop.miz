@@ -1,0 +1,4566 @@
+:: {AIM } Loops and the {AIM } Conjecture
+::  by Chad E. Brown and Karol P\kak
+:: 
+:: Received August 29, 2019
+:: Copyright (c) 2019-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies STRUCT_0, ALGSTR_0, BINOP_1, SUBSET_1, SETFAM_1, ABIAN, KNASTER,
+      FUNCT_1, RELAT_1, XBOOLE_0, ALGSTR_1, ZFMISC_1, GROUP_6, GROUP_9,
+      MESFUNC1, VECTSP_1, TARSKI, REALSET1, COHSP_1, ARYTM_3, FUNCT_2,
+      PRE_TOPC, QC_LANG1, AUTGROUP, AIMLOOP, FUNCT_5, GROUP_1, FUNCOP_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, REALSET1, RELAT_1, FUNCT_1,
+      PARTFUN1, FUNCT_2, BINOP_1, FUNCOP_1, STRUCT_0, ALGSTR_0, ALGSTR_1,
+      GROUP_1, VECTSP_1, ABIAN, KNASTER, FUNCT_5;
+ constructors BINOP_2, ALGSTR_1, REALSET1, VECTSP_2, GR_CY_1, RELSET_1, ABIAN,
+      KNASTER, FUNCT_5;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, FUNCT_1, KNASTER, PARTFUN1,
+      FUNCT_2, REALSET1, STRUCT_0, ALGSTR_0, ALGSTR_1, VECTSP_1, RELSET_1,
+      FUNCOP_1;
+ requirements BOOLE, SUBSET;
+ definitions TARSKI, XBOOLE_0, FUNCT_2, GROUP_1, COHSP_1, ALGSTR_0, ALGSTR_1;
+ equalities BINOP_1, STRUCT_0, REALSET1, ALGSTR_0;
+ expansions XBOOLE_0, TARSKI, BINOP_1, VECTSP_1;
+ theorems TARSKI, XBOOLE_0, XBOOLE_1, SUBSET_1, KNASTER, ZFMISC_1, FUNCT_1,
+      FUNCT_2, RELAT_1, ALGSTR_0, ALGSTR_1, REALSET1, ABIAN, RING_3, SYSREL,
+      FUNCT_5;
+ schemes FUNCT_2, FUNCT_7, SUBSET_1;
+
+begin :: Loops - Introduction
+
+::We define division operations on loops,
+::inner mappings T, L and R, commutators and associators
+::and basic attributes of interest. We also consider
+::subloops and homomorphisms. Particular subloops are
+::the nucleus and center of a loop and kernels of homomorphisms.
+
+reserve Q,Q1,Q2 for multLoop;
+reserve x,y,z,w,u,v for Element of Q;
+
+definition
+  let X be 1-sorted;
+  mode Permutation of X is Permutation of the carrier of X;
+  let Y be 1-sorted;
+  func Funcs(X,Y) -> set equals
+    Funcs(the carrier of X,the carrier of Y);
+  coherence;
+end;
+
+registration
+  let X,Y be 1-sorted;
+  cluster Funcs(X,Y) -> functional;
+  coherence;
+end;
+
+definition
+  let Q be invertible left_mult-cancelable non empty multLoopStr,
+      x,y be Element of Q;
+  func x \ y -> Element of Q means :Def2:
+    x * it = y;
+  existence by ALGSTR_1:def 6;
+  uniqueness by ALGSTR_0:def 20;
+end;
+
+definition
+  let Q be invertible right_mult-cancelable non empty multLoopStr,
+      x,y be Element of Q;
+  func x / y -> Element of Q means :Def3:
+    it * y = x;
+  existence by ALGSTR_1:def 6;
+  uniqueness by ALGSTR_0:def 21;
+end;
+
+registration
+  let Q,x,y;
+  reduce x \ (x * y) to y;
+  reducibility by Def2;
+  reduce x * (x \ y) to y;
+  reducibility by Def2;
+  reduce (x * y) / y to x;
+  reducibility by Def3;
+  reduce (x / y) * y to x;
+  reducibility by Def3;
+end;
+
+definition
+  let Q be invertible left_mult-cancelable non empty multLoopStr,
+      u,x be Element of Q;
+  func T_map(u,x) -> Element of Q equals
+    x \ (u * x);
+  coherence;
+end;
+
+definition
+  let Q be invertible left_mult-cancelable non empty multLoopStr,
+      u,x,y be Element of Q;
+  func L_map(u,x,y) -> Element of Q equals
+    (y * x) \ (y * (x * u));
+  coherence;
+end;
+
+definition
+  let Q be invertible right_mult-cancelable non empty multLoopStr,
+    u,x,y be Element of Q;
+  func R_map(u,x,y) -> Element of Q equals
+    ((u * x) * y) / (x * y);
+  coherence;
+end;
+
+definition
+  let Q;
+  attr Q is satisfying_TT means
+    for u,x,y be Element of Q holds
+      T_map(T_map(u,x),y) = T_map(T_map(u,y),x);
+  attr Q is satisfying_TL means
+    for u,x,y,z be Element of Q holds
+      T_map(L_map(u,x,y),z) = L_map(T_map(u,z),x,y);
+  attr Q is satisfying_TR means
+    for u,x,y,z be Element of Q holds
+      T_map(R_map(u,x,y),z) = R_map(T_map(u,z),x,y);
+  attr Q is satisfying_LR means
+    for u,x,y,z,w be Element of Q holds
+      L_map(R_map(u,x,y),z,w) = R_map(L_map(u,z,w),x,y);
+  attr Q is satisfying_LL means
+    for u,x,y,z,w be Element of Q holds
+      L_map(L_map(u,x,y),z,w) = L_map(L_map(u,z,w),x,y);
+  attr Q is satisfying_RR means
+    for u,x,y,z,w be Element of Q holds
+      R_map(R_map(u,x,y),z,w) = R_map(R_map(u,z,w),x,y);
+end;
+
+definition
+  let Q,x,y;
+  func K_op(x,y) -> Element of Q equals
+    (y * x) \ (x * y);
+  coherence;
+end;
+
+definition
+  let Q,x,y,z;
+  func a_op(x,y,z) -> Element of Q equals
+    (x * (y * z)) \ ((x * y) * z);
+  coherence;
+end;
+
+definition
+  let Q be multLoop;
+  attr Q is satisfying_aa1 means :Def15:
+    for x,y,z,u,w be Element of Q holds a_op(a_op(x,y,z),u,w) = 1.Q;
+  attr Q is satisfying_aa2 means :Def16:
+    for x,y,z,u,w be Element of Q holds a_op(x,a_op(y,z,u),w) = 1.Q;
+  attr Q is satisfying_aa3 means :Def17:
+    for x,y,z,u,w be Element of Q holds a_op(x,y,a_op(z,u,w)) = 1.Q;
+  attr Q is satisfying_Ka means :Def18:
+    for x,y,z,u be Element of Q holds K_op(a_op(x,y,z),u) = 1.Q;
+  attr Q is satisfying_aK1 means :Def19:
+    for x,y,z,u be Element of Q holds a_op(K_op(x,y),z,u) = 1.Q;
+  attr Q is satisfying_aK2 means :Def20:
+    for x,y,z,u be Element of Q holds a_op(x,K_op(y,z),u) = 1.Q;
+  attr Q is satisfying_aK3 means :Def21:
+    for x,y,z,u be Element of Q holds a_op(x,y,K_op(z,u)) = 1.Q;
+end;
+
+registration
+  cluster strict satisfying_TT satisfying_TL satisfying_TR satisfying_LR
+                 satisfying_LL satisfying_RR
+                 satisfying_aa1 satisfying_aa2 satisfying_aa3
+                 satisfying_Ka satisfying_aK1 satisfying_aK2 satisfying_aK3
+    for multLoop;
+  existence
+  proof
+    Trivial-multLoopStr is satisfying_TT satisfying_TL satisfying_TR
+       satisfying_LR satisfying_LL satisfying_RR
+       satisfying_aa1 satisfying_aa2 satisfying_aa3
+      satisfying_Ka satisfying_aK1 satisfying_aK2 satisfying_aK3 by ALGSTR_1:9;
+    hence thesis;
+  end;
+end;
+
+theorem Th1:
+  x * y = u & x * z = u implies y = z
+proof
+  assume x * y = u & x * z = u;
+  then x \ (x * y) = x \ (x * z);
+  hence thesis;
+end;
+
+theorem Th2:
+  y * x = u & z * x = u implies y = z
+proof
+  assume y * x = u & z * x = u;
+  then (y * x) / x = (z * x) / x;
+  hence thesis;
+end;
+
+theorem
+  x * y = x * z implies y = z by Th1;
+
+theorem
+  y * x = z * x implies y = z by Th2;
+
+registration
+  let Q,x;
+  reduce 1.Q \ x to x;
+  reducibility
+  proof
+    1.Q * x = x;
+    hence thesis;
+  end;
+  reduce x / 1.Q to x;
+  reducibility
+  proof
+    x * 1.Q = x;
+    hence thesis;
+  end;
+  let y;
+  reduce y / (x \ y) to x;
+  reducibility
+  proof
+    x * (x \ y) = y;
+    hence thesis;
+  end;
+  reduce (y / x) \ y to x;
+  reducibility
+  proof
+    (y / x) * x = y;
+    hence thesis;
+  end;
+end;
+
+theorem Th5:
+  x \ x = 1.Q
+proof
+  x * 1.Q = x;
+  hence thesis;
+end;
+
+theorem Th6:
+  x / x = 1.Q
+proof
+  1.Q * x = x;
+  hence thesis;
+end;
+
+theorem
+  x \ y = 1.Q implies x = y
+proof
+  assume x \ y = 1.Q;
+  then x * 1.Q = y;
+  hence thesis;
+end;
+
+theorem
+  x / y = 1.Q implies x = y
+proof
+  assume x / y = 1.Q;
+  then 1.Q * y = x;
+  hence x = y;
+end;
+
+theorem Th9:
+  a_op(x,y,z) = 1.Q implies x*(y*z) = (x*y)*z
+proof
+  assume a_op(x,y,z) = 1.Q;
+  then (x*(y*z)) * 1.Q = ((x*y)*z);
+  hence thesis;
+end;
+
+theorem Th10:
+  K_op(x,y) = 1.Q implies x*y = y*x
+proof
+  assume K_op(x,y) = 1.Q;
+  then (y*x) * 1.Q = x*y;
+  hence thesis;
+end;
+
+theorem
+  a_op(x,y,z) = 1.Q implies L_map(z,y,x) = z
+proof
+  assume a_op(x,y,z) = 1.Q;
+  then L_map(z,y,x) = (x*y) \ ((x*y)*z) by Th9;
+  hence thesis;
+end;
+
+definition
+  let Q;
+  defpred P1[Element of Q] means
+    for y,z holds ($1 * y) * z = $1 * (y * z);
+  defpred P2[Element of Q] means
+    for x,z holds (x * $1) * z = x * ($1 * z);
+  defpred P3[Element of Q] means
+    for x,y holds (x * y) * $1 = x * (y * $1);
+  defpred PC[Element of Q] means
+    for y holds $1 * y = y * $1;
+  func Nucl_l Q -> Subset of Q means :Def22:
+    x in it iff for y,z holds (x * y) * z = x * (y * z);
+  existence
+  proof
+    set N = {x : P1[x]};
+    N c= the carrier of Q
+    proof
+      let x be object;
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & P1[x1];
+      hence thesis;
+    end;
+    then reconsider N as Subset of Q;
+    take N;
+    let x;
+    now
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & P1[x1];
+      hence P1[x];
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let X1,X2 be Subset of Q such that
+     A1: for x being Element of Q holds x in X1 iff P1[x]
+    and A2: for x being Element of Q holds x in X2 iff P1[x];
+    thus thesis from SUBSET_1:sch 2(A1,A2);
+  end;
+  func Nucl_m Q -> Subset of Q means
+  :Def23:
+  y in it iff for x,z holds (x * y) * z = x * (y * z);
+  existence
+  proof
+    set N = {x : P2[x]};
+    N c= the carrier of Q
+    proof
+      let x be object;
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & P2[x1];
+      hence thesis;
+    end;
+    then reconsider N as Subset of Q;
+    take N;
+    let x;
+    now
+      assume x in N;
+      then ex x1 be Element of Q st
+      x = x1 & P2[x1];
+      hence P2[x];
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let X1,X2 be Subset of Q such that
+     A3: for x being Element of Q holds x in X1 iff P2[x] and
+     A4: for x being Element of Q holds x in X2 iff P2[x];
+    thus thesis from SUBSET_1:sch 2(A3,A4);
+  end;
+  func Nucl_r Q -> Subset of Q means
+  :Def24:
+  z in it iff for x,y holds (x * y) * z = x * (y * z);
+  existence
+  proof
+    set N = {x : P3[x]};
+    N c= the carrier of Q
+    proof
+      let x be object;
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & P3[x1];
+      hence thesis;
+    end;
+    then reconsider N as Subset of Q;
+    take N;
+    let x;
+    x in N implies P3[x]
+    proof
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & P3[x1];
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let X1,X2 be Subset of Q such that
+        A6: for x being Element of Q holds x in X1 iff P3[x]
+    and A7: for x being Element of Q holds x in X2 iff P3[x];
+    thus thesis from SUBSET_1:sch 2(A6,A7);
+  end;
+  func Comm Q -> Subset of Q means
+  :Def25:
+  x in it iff for y holds x * y = y * x;
+  existence
+  proof
+    set N = {x : PC[x]};
+    N c= the carrier of Q
+    proof
+      let x be object;
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & PC[x1];
+      hence thesis;
+    end;
+    then reconsider N as Subset of Q;
+    take N;
+    let x;
+    x in N implies PC[x]
+    proof
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & PC[x1];
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let X1,X2 be Subset of Q such that
+        A9: for x being Element of Q holds x in X1 iff PC[x]
+    and A10: for x being Element of Q holds x in X2 iff PC[x];
+    thus thesis from SUBSET_1:sch 2(A9,A10);
+  end;
+end;
+
+definition
+  let Q;
+  func Nucl Q -> Subset of Q equals
+    Nucl_l Q /\ Nucl_m Q /\ Nucl_r Q;
+  coherence;
+end;
+
+theorem Th12:
+  x in Nucl Q iff x in Nucl_l Q & x in Nucl_m Q & x in Nucl_r Q
+proof
+  thus x in Nucl Q implies x in Nucl_l Q & x in Nucl_m Q & x in Nucl_r Q
+  proof
+    assume A1: x in Nucl Q;
+    then x in Nucl_l Q /\ Nucl_m Q by XBOOLE_0:def 4;
+    hence thesis by XBOOLE_0:def 4, A1;
+  end;
+  assume that A2: x in Nucl_l Q & x in Nucl_m Q
+  and A3: x in Nucl_r Q;
+  x in Nucl_l Q /\ Nucl_m Q by XBOOLE_0:def 4, A2;
+  hence x in Nucl Q by XBOOLE_0:def 4, A3;
+end;
+
+definition
+  let Q;
+  func Cent Q -> Subset of Q equals
+  Comm Q /\ Nucl Q;
+  coherence;
+end;
+
+definition
+  let Q1,Q2 be multLoop;
+  let f be Function of Q1,Q2;
+  attr f is unity-preserving means :Def28a:
+    f.(1.Q1) = 1.Q2;
+  attr f is quasi-homomorphic means :Def28b:
+    for x,y being Element of Q1 holds f.(x * y) = (f.x) * (f.y);
+end;
+
+definition
+  let Q1,Q2 be multLoop;
+  let f be Function of Q1,Q2;
+  attr f is homomorphic means
+  f is unity-preserving quasi-homomorphic;
+end;
+
+registration
+  let Q1,Q2 be multLoop;
+  cluster unity-preserving quasi-homomorphic -> homomorphic
+          for Function of Q1,Q2;
+  coherence;
+  cluster homomorphic -> unity-preserving quasi-homomorphic
+          for Function of Q1,Q2;
+  coherence;
+end;
+
+registration
+  let Q1,Q2 be multLoop;
+  cluster [#]Q1 --> 1.Q2 -> homomorphic for Function of Q1,Q2;
+  coherence
+  proof
+    let f be Function of Q1,Q2 such that
+A1: f = [#]Q1 --> 1.Q2;
+    thus f.(1.Q1) = 1.Q2 by A1;
+    thus thesis by A1;
+  end;
+end;
+
+registration
+  let Q1,Q2 be multLoop;
+  cluster homomorphic for Function of Q1,Q2; 
+  existence
+  proof
+    reconsider f = [#]Q1 --> 1.Q2 as Function of Q1,Q2;
+    take f;
+    thus thesis;
+  end;
+end;
+
+definition
+  let Q,Q2;
+  let f be homomorphic Function of Q,Q2;
+  func Ker f -> Subset of Q means
+  :Def29:
+  x in it iff f.x = 1.Q2;
+  existence
+  proof
+    set N = {x : f.x = 1.Q2};
+    N c= the carrier of Q
+    proof
+      let x be object;
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & f.x1 = 1.Q2;
+      hence thesis;
+    end;
+    then reconsider N as Subset of Q;
+    take N;
+    x in N implies f.x = 1.Q2
+    proof
+      assume x in N;
+      then ex x1 be Element of Q st x = x1 & f.x1 = 1.Q2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let X1,X2 be Subset of Q;
+    assume A1: for x being Element of Q holds x in X1 iff f.x = 1.Q2;
+    assume A2: for x being Element of Q holds x in X2 iff f.x = 1.Q2;
+    now
+      let x be Element of Q;
+      x in X1 iff f.x = 1.Q2 by A1;
+      hence x in X1 iff x in X2 by A2;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+end;
+
+theorem Th13:
+  for f being homomorphic Function of Q1,Q2 holds
+  for x,y being Element of Q1 holds f.(x \ y) = f.x \ f.y
+proof
+  let f be homomorphic Function of Q1,Q2;
+  let x,y be Element of Q1;
+  f.x * f.(x \ y) = f.(x * (x \ y)) by Def28b;
+  hence thesis;
+end;
+
+theorem Th14:
+  for f being homomorphic Function of Q1,Q2 holds
+  for x,y being Element of Q1 holds f.(x / y) = f.x / f.y
+proof
+  let f be homomorphic Function of Q1,Q2;
+  let x,y be Element of Q1;
+  f.(x / y) * f.y = f.((x / y) * y) by Def28b;
+  hence thesis;
+end;
+
+theorem Th15:
+  for f being homomorphic Function of Q1,Q2 st
+  (for y be Element of Q2 holds ex x being Element of Q1 st f.x = y)
+  &
+  (for x,y,z be Element of Q1 holds a_op(x,y,z) in Ker f)
+  holds
+  Q2 is associative
+proof
+  let f be homomorphic Function of Q1,Q2;
+  assume that A1: for y be Element of Q2 holds ex x being Element of Q1 st
+    f.x = y
+  and A2: for x,y,z be Element of Q1 holds a_op(x,y,z) in Ker f;
+  thus Q2 is associative
+  proof
+    let x,y,z be Element of Q2;
+    consider x1 being Element of Q1 such that A3: f.x1 = x  by A1;
+    consider y1 being Element of Q1 such that A4: f.y1 = y by A1;
+    consider z1 being Element of Q1 such that A5: f.z1 = z by A1;
+    A6: a_op(x1,y1,z1) in Ker f by A2;
+    a_op(x,y,z)= (f.x1 * f.(y1 * z1)) \ ((f.x1 * f.y1) * f.z1)
+        by Def28b,A3,A4,A5
+      .= f.(x1 * (y1 * z1)) \ ((f.x1 * f.y1) * f.z1) by Def28b
+      .= f.(x1 * (y1 * z1)) \ (f.(x1 * y1) * f.z1) by Def28b
+      .= f.(x1 * (y1 * z1)) \ f.((x1 * y1) * z1) by Def28b
+      .= f.((x1 * (y1 * z1)) \ ((x1 * y1) * z1)) by Th13
+      .= 1.Q2 by A6, Def29;
+    hence thesis by Th9;
+  end;
+end;
+
+theorem Th16:
+  for Q1 being
+    satisfying_aa1 satisfying_aa2 satisfying_aa3
+    satisfying_aK1 satisfying_aK2 satisfying_aK3 multLoop
+  holds
+  for Q2 be multLoop holds
+  for f being homomorphic Function of Q1,Q2 st
+  (for y be Element of Q2 holds ex x being Element of Q1 st f.x = y)
+  &
+  Nucl Q1 c= Ker f
+  holds
+  Q2 is commutative multGroup
+proof
+  let Q1 be satisfying_aa1 satisfying_aa2 satisfying_aa3
+    satisfying_aK1 satisfying_aK2 satisfying_aK3 multLoop;
+  let Q2 be multLoop;
+  let f be homomorphic Function of Q1,Q2;
+  assume that A1: for y be Element of Q2 holds ex x being Element of Q1 st
+    f.x = y
+  and A2: Nucl Q1 c= Ker f;
+  A3: Q2 is commutative
+  proof
+    let x,y be Element of Q2;
+    consider x1 being Element of Q1 such that A4: f.x1 = x by A1;
+    consider y1 being Element of Q1 such that A5: f.y1 = y by A1;
+    K_op(x,y) = 1.Q2
+    proof
+      A6: K_op(x1,y1) in Ker f
+      proof
+        A7: K_op(x1,y1) in Nucl Q1
+        proof
+          now
+            let u,w be Element of Q1;
+            a_op(K_op(x1,y1),u,w) = 1.Q1 by Def19;
+            hence K_op(x1,y1) * (u * w) = (K_op(x1,y1) * u) * w by Th9;
+          end;
+          then A8: K_op(x1,y1) in Nucl_l Q1 by Def22;
+          now
+            let u,w be Element of Q1;
+            a_op(u,K_op(x1,y1),w) = 1.Q1 by Def20;
+            hence u * (K_op(x1,y1) * w) = (u * K_op(x1,y1)) * w by Th9;
+          end;
+          then A9: K_op(x1,y1) in Nucl_m Q1 by Def23;
+          now
+            let u,w be Element of Q1;
+            a_op(u,w,K_op(x1,y1)) = 1.Q1 by Def21;
+            hence u * (w * K_op(x1,y1)) = (u * w) * K_op(x1,y1) by Th9;
+          end;
+          then K_op(x1,y1) in Nucl_r Q1 by Def24;
+          hence thesis by A8,A9,Th12;
+        end;
+        thus thesis by A7, A2;
+      end;
+      K_op(x,y) = f.(y1 * x1) \ (f.x1 * f.y1) by Def28b,A4,A5
+      .= f.(y1 * x1) \ f.(x1 * y1) by Def28b
+      .= f.((y1 * x1) \ (x1 * y1)) by Th13
+      .= 1.Q2 by A6, Def29;
+      hence thesis;
+    end;
+    hence thesis by Th10;
+  end;
+  now
+    let x1,y1,z1 be Element of Q1;
+    a_op(x1,y1,z1) in Nucl Q1
+    proof
+       now
+        let u,w be Element of Q1;
+        a_op(a_op(x1,y1,z1),u,w) = 1.Q1 by Def15;
+        hence (a_op(x1,y1,z1) * u) * w = a_op(x1,y1,z1) * (u * w) by Th9;
+      end;
+      then A10: a_op(x1,y1,z1) in Nucl_l Q1 by Def22;
+      now
+        let u,w be Element of Q1;
+        a_op(u,a_op(x1,y1,z1),w) = 1.Q1 by Def16;
+        hence (u * a_op(x1,y1,z1)) * w = u * (a_op(x1,y1,z1) * w) by Th9;
+      end;
+      then A11: a_op(x1,y1,z1) in Nucl_m Q1 by Def23;
+      now
+        let u,w be Element of Q1;
+        a_op(u,w,a_op(x1,y1,z1)) = 1.Q1 by Def17;
+        hence (u * w) * a_op(x1,y1,z1) = u * (w * a_op(x1,y1,z1)) by Th9;
+      end;
+      then a_op(x1,y1,z1) in Nucl_r Q1 by Def24;
+      hence thesis by A10,A11,Th12;
+    end;
+    hence a_op(x1,y1,z1) in Ker f by A2;
+  end;
+  hence thesis by A3,Th15,A1;
+end;
+
+theorem Th17:
+  for Q1 being satisfying_aa1 satisfying_aa2 satisfying_aa3 satisfying_Ka
+    multLoop holds
+  for Q2 be multLoop holds
+  for f being homomorphic Function of Q1,Q2 st
+  (for y be Element of Q2 holds ex x being Element of Q1 st f.x = y)
+  &
+  Cent Q1 c= Ker f
+  holds
+  Q2 is multGroup
+proof
+  let Q1 be satisfying_aa1 satisfying_aa2 satisfying_aa3 satisfying_Ka
+    multLoop;
+  let Q2 be multLoop;
+  let f be homomorphic Function of Q1,Q2;
+  assume that A1: for y be Element of Q2 holds ex x being Element of Q1 st
+    f.x = y
+  and A2: Cent Q1 c= Ker f;
+  now
+    let x1,y1,z1 be Element of Q1;
+    a_op(x1,y1,z1) in Cent Q1
+    proof
+      now
+        let u be Element of Q1;
+        K_op(a_op(x1,y1,z1),u) = 1.Q1 by Def18;
+        hence a_op(x1,y1,z1) * u = u * a_op(x1,y1,z1) by Th10;
+      end;
+      then A3: a_op(x1,y1,z1) in Comm Q1 by Def25;
+      now
+        let u,w be Element of Q1;
+        a_op(a_op(x1,y1,z1),u,w) = 1.Q1 by Def15;
+        hence (a_op(x1,y1,z1) * u) * w = a_op(x1,y1,z1) * (u * w) by Th9;
+      end;
+      then A4: a_op(x1,y1,z1) in Nucl_l Q1 by Def22;
+      now
+        let u,w be Element of Q1;
+        a_op(u,a_op(x1,y1,z1),w) = 1.Q1 by Def16;
+        hence (u * a_op(x1,y1,z1)) * w = u * (a_op(x1,y1,z1) * w) by Th9;
+      end;
+      then A5: a_op(x1,y1,z1) in Nucl_m Q1 by Def23;
+      now
+        let u,w be Element of Q1;
+        a_op(u,w,a_op(x1,y1,z1)) = 1.Q1 by Def17;
+        hence (u * w) * a_op(x1,y1,z1) = u * (w * a_op(x1,y1,z1)) by Th9;
+      end;
+      then a_op(x1,y1,z1) in Nucl_r Q1 by Def24;
+      then a_op(x1,y1,z1) in Nucl Q1 by A4,A5,Th12;
+      hence thesis by A3,XBOOLE_0:def 4;
+    end;
+    hence a_op(x1,y1,z1) in Ker f by A2;
+  end;
+  hence thesis by Th15,A1;
+end;
+
+:: following GROUP_2
+definition
+  let Q be non empty multLoopStr;
+  mode SubLoopStr of Q -> non empty multLoopStr means :Def30:
+  the carrier of it c= the carrier of Q &
+  the multF of it = (the multF of Q)||the carrier of it &
+  the OneF of it = the OneF of Q;
+  existence
+  proof
+    take Q;
+    thus thesis;
+  end;
+end;
+
+registration
+  let Q be multLoop;
+  cluster well-unital invertible cancelable non empty strict
+          for SubLoopStr of Q;
+  existence
+  proof
+    reconsider Q1=the multLoopStr of Q as non empty multLoopStr;
+    the multF of Q1 = (the multF of Q)||the carrier of Q1;
+    then reconsider Q1 as SubLoopStr of Q by Def30;
+    take Q1;
+    now
+      let x be Element of Q1;
+      reconsider x1=x as Element of Q;
+      x*1.Q1 = x1*1.Q & 1.Q1*x = 1.Q*x1;
+      hence x * 1. Q1 = x & 1.Q1 * x = x;
+    end;
+    hence Q1 is well-unital;
+    thus Q1 is invertible
+      proof
+         hereby let x,y be Element of Q1;
+           reconsider x1=x,y1=y as Element of Q;
+           reconsider z=x1 \ y1 as Element of Q1;
+           take z;
+           thus x*z = x1 * (x1 \ y1) .= y;
+         end;
+         hereby let x,y be Element of Q1;
+           reconsider x1=x,y1=y as Element of Q;
+           reconsider z=y1 / x1 as Element of Q1;
+           take z;
+           thus z*x = (y1 / x1) * x1 .= y;
+         end;
+      end;
+    thus Q1 is cancelable
+      proof
+       thus Q1 is left_mult-cancelable
+         proof
+           let x be Element of Q1;
+           let y,z be Element of Q1;
+           reconsider x1=x,y1=y,z1=z as Element of Q;
+           assume x*y=x*z;
+           then x1*y1 = x1*z1;
+           hence y=z by ALGSTR_0:def 20;
+         end;
+       thus Q1 is right_mult-cancelable
+        proof
+           let x be Element of Q1;
+           let y,z be Element of Q1;
+           reconsider x1=x,y1=y,z1=z as Element of Q;
+           assume y*x=z*x;
+           then y1*x1 = z1*x1;
+           hence y=z by ALGSTR_0:def 21;
+         end;
+     end;
+    thus thesis;
+  end;
+end;
+
+definition
+  let Q be multLoop;
+  mode SubLoop of Q is well-unital invertible cancelable SubLoopStr of Q;
+end;
+
+definition
+  let Q be non empty multLoopStr;
+  let H be SubLoopStr of Q;
+  let A be Subset of H;
+  func @ A -> Subset of Q equals A;
+  coherence
+  proof
+    the carrier of H c= the carrier of Q by Def30;
+    hence thesis by XBOOLE_1:1;
+  end;
+end;
+
+defpred RQ[multLoop,Subset of $1,object] means
+  ex y,z be Element of $1 st y in $2 & z in $2 &
+    ($3 = y * z or $3 = y \z or $3 = y / z);
+
+definition
+  let Q;
+  let H1,H2 be Subset of Q;
+  func loopclose1(H1,H2) -> Subset of Q means
+  :Def32:
+  x in it iff
+  x in H1 or x = 1.Q or
+  ex y,z st y in H2 & z in H2 & (x = y * z or x = y \ z or x = y / z);
+  existence
+  proof
+    set H3 = {x : x in H1 or x = 1.Q or RQ[Q,H2,x]};
+    H3 c= the carrier of Q
+    proof
+      let x be object;
+      assume x in H3;
+      then ex x1 being Element of Q st
+       x = x1 & (x1 in H1 or x1 = 1.Q or RQ[Q,H2,x1]);
+      hence thesis;
+    end;
+    then reconsider H3 as Subset of Q;
+    take H3;
+    let x be Element of Q;
+    thus x in H3 implies x in H1 or x = 1.Q or RQ[Q,H2,x]
+    proof
+      assume x in H3;
+      then ex x1 being Element of Q st
+       x = x1 & (x1 in H1 or x1 = 1.Q or RQ[Q,H2,x1]);
+      hence thesis;
+    end;
+    thus thesis;
+  end;
+  uniqueness
+  proof
+    let H3,H4 be Subset of Q;
+    assume that
+    A1: x in H3 iff x in H1 or x = 1.Q or RQ[Q,H2,x]
+    and
+    A2: x in H4 iff x in H1 or x = 1.Q or RQ[Q,H2,x];
+    now
+      let x be Element of Q;
+      x in H3 iff x in H1 or x = 1.Q or RQ[Q,H2,x] by A1;
+      hence x in H3 iff x in H4 by A2;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+end;
+
+definition
+  let Q;
+  let H be Subset of Q;
+  func lp H -> strict SubLoop of Q means
+  :Def33:
+  H c= [#]it &
+  for H2 be SubLoop of Q st H c= [#]H2 holds [#]it c= [#]H2;
+  existence
+  proof
+    deffunc F(Subset of Q) = loopclose1(H,$1);
+    consider f be Function of bool the carrier of Q,bool the carrier of Q
+    such that
+    A1: for X being Subset of Q holds f.X = F(X)
+    from FUNCT_2:sch 4;
+    f is c=-monotone
+    proof
+      let a1, b1 be set such that
+      A2: a1 in dom f & b1 in dom f & a1 c= b1;
+      thus f.a1 c= f.b1
+      proof
+        reconsider a2 = a1,b2=b1  as Subset of Q by A2, FUNCT_2:def 1;
+        let x be object;
+        assume x in f.a1;
+        then x in F(a2) by A1;
+        then x in H or x = 1.Q or RQ[Q,a2,x] by Def32;
+        then x in F(b2) by A2,Def32;
+        hence x in f.b1 by A1;
+      end;
+    end;
+    then reconsider f as
+    c=-monotone Function of bool the carrier of Q,bool the carrier of Q;
+    set LFP= lfp(the carrier of Q,f);
+     LFP is_a_fixpoint_of f by KNASTER:4;
+    then A3: LFP in dom f & LFP = f.(LFP) & f.(LFP) = F(LFP)
+      by ABIAN:def 3,A1;
+    A4: 1.Q in F(LFP) by Def32;
+    reconsider ONE=1.Q as Element of LFP by A3,Def32;
+    set mm = (the multF of Q)||LFP;
+    now let x be set such that A5: x in [: LFP,LFP:];
+      consider x1,x2 be object such that
+      A6:x1 in LFP & x2 in LFP & x=[x1,x2] by A5,ZFMISC_1:def 2;
+      reconsider x1,x2 as Element of Q by A6;
+      x1*x2 in F(LFP) by A6,Def32;
+      hence (the multF of Q).x in LFP by A6,A3;
+    end;
+    then
+    LFP is Preserv of the multF of Q by REALSET1:def 1;
+    then reconsider mm as BinOp of LFP by REALSET1:2;
+    set LP =  multLoopStr(#LFP,mm,ONE#);
+    reconsider LP as non empty SubLoopStr of Q by A4,A3,Def30;
+    LP is SubLoop of Q
+    proof
+      now
+        let x be Element of LP;
+        x in the carrier of LP;
+        then reconsider x1=x as Element of Q;
+        x*1.LP = x1*1.Q & 1.LP*x = 1.Q*x1 by RING_3:1;
+        hence x * 1. LP = x & 1.LP * x = x;
+      end;
+      then A7: LP is well-unital;
+      A8: LP is invertible
+      proof
+        hereby let x,y be Element of LP;
+          x in the carrier of LP &   y in the carrier of LP;
+          then reconsider x1=x,y1=y as Element of Q;
+          reconsider z=x1 \ y1 as Element of LP by Def32,A3;
+          take z;
+          thus x*z = x1 * (x1 \ y1) by RING_3:1
+          .= y;
+        end;
+        hereby let x,y be Element of LP;
+          x in the carrier of LP &   y in the carrier of LP;
+          then reconsider x1=x,y1=y as Element of Q;
+         reconsider z=y1 / x1 as Element of LP by Def32,A3;
+          take z;
+          thus z*x = (y1 / x1) * x1 by RING_3:1
+          .= y;
+        end;
+      end;
+      LP is cancelable
+      proof
+        thus LP is left_mult-cancelable
+        proof
+          let x be Element of LP;
+          let y,z be Element of LP;
+          x in the carrier of LP & y in the carrier of LP &
+            z in the carrier of LP;
+          then reconsider x1=x,y1=y,z1=z as Element of Q;
+          x1*y1 = x*y & x1*z1 = x*z by RING_3:1;
+          hence thesis by ALGSTR_0:def 20;
+        end;
+        let x be Element of LP;
+        let y,z be Element of LP;
+        x in the carrier of LP & y in the carrier of LP &
+          z in the carrier of LP;
+        then reconsider x1=x,y1=y,z1=z as Element of Q;
+        y1*x1 = y*x & z1*x1 = z*x by RING_3:1;
+        hence thesis by ALGSTR_0:def 21;
+      end;
+      hence thesis by A7,A8;
+    end;
+    then
+    reconsider LP as strict SubLoop of Q;
+    take LP;
+    thus H c= [#]LP by A3,Def32 ;
+    let H2 be SubLoop of Q such that
+    A9: H c= [#]H2;
+    reconsider H2c = [#]H2 as Subset of Q by Def30;
+    f.([#]H2) c= [#]H2
+    proof
+      let x be object;
+      assume x in f.([#]H2);
+      then A10:x in F(H2c) by A1;
+      then reconsider xx=x as Element of Q;
+      per cases by A10,Def32;
+      suppose x in H;
+        hence thesis by A9;
+      end;
+      suppose x = 1.Q;
+        then x = 1.H2 by Def30;
+        hence thesis;
+      end;
+      suppose RQ[Q,H2c,x];
+        then consider y,z such that
+        A11: y in H2c & z in H2c &
+        (x = y * z or x = y \ z or x = y / z);
+        reconsider y1=y,z1=z as Element of H2 by A11;
+        y1\z1 in H2c & y1/z1 in H2c;
+        then reconsider yz =y1\z1,YZ =y1/z1 as Element of Q;
+       the multF of H2 = (the multF of Q)||H2c by Def30;
+       then y*z = y1*z1 & y *yz = y1 * (y1\z1)= z &  YZ * z=  (y1/z1)* z1= y
+       by RING_3:1;
+       hence thesis by A11;
+      end;
+    end;
+    then f.(H2c) c= H2c;
+    hence [#]LP c= [#]H2 by KNASTER:6;
+  end;
+  uniqueness
+  proof
+    let IT1,IT2 be strict SubLoop of Q such that
+    A12: H c= [#]IT1 &
+    for H2 be SubLoop of Q st H c= [#]H2 holds [#]IT1 c= [#]H2
+    and A13: H c= [#]IT2 &
+    for H2 be SubLoop of Q st H c= [#]H2 holds [#]IT2 c= [#]H2;
+    A14: [#]IT1 = [#]IT2 by A12,A13;
+    A15: the OneF of IT1 = 1.Q by Def30
+     .= the OneF of IT2 by Def30;
+    the multF of IT1 = (the multF of Q)||(the carrier of IT1) by Def30
+    .= the multF of IT2 by Def30,A14;
+    hence thesis by A14,A15;
+  end;
+end;
+
+theorem Th18:
+  for H being Subset of Q st
+  1.Q in H & (for x,y st x in H & y in H holds x * y in H)
+  & (for x,y st x in H & y in H holds x \ y in H)
+  & (for x,y st x in H & y in H holds x / y in H)
+  holds
+  [#]lp H = H
+proof
+  let H be Subset of Q;
+  assume that
+  A1: 1.Q in H
+  and
+  A2: for x,y st x in H & y in H holds x * y in H
+  and
+  A3: for x,y st x in H & y in H holds x \ y in H
+  and
+  A4: for x,y st x in H & y in H holds x / y in H;
+  reconsider ONE=1.Q as Element of H by A1;
+  set mm = (the multF of Q)||H;
+  now let x be set such that A5: x in [: H,H:];
+    consider x1,x2 be object such that
+    A6:x1 in H & x2 in H & x=[x1,x2] by A5,ZFMISC_1:def 2;
+    reconsider x1,x2 as Element of Q by A6;
+    x1*x2 in H by A6,A2;
+    hence (the multF of Q).x in H by A6;
+  end;
+  then
+  H is Preserv of the multF of Q by REALSET1:def 1;
+  then reconsider mm as BinOp of H by REALSET1:2;
+  set LP = multLoopStr(#H,mm,ONE#);
+  reconsider LP as non empty SubLoopStr of Q by A1,Def30;
+  LP is SubLoop of Q
+  proof
+    now
+      let x be Element of LP;
+      x in the carrier of LP;
+      then reconsider x1=x as Element of Q;
+      x*1.LP = x1*1.Q & 1.LP*x = 1.Q*x1 by RING_3:1;
+      hence x * 1. LP = x & 1.LP * x = x;
+    end;
+    then  A7: LP is well-unital;
+    A8: LP is invertible
+    proof
+      hereby let x,y be Element of LP;
+        x in the carrier of LP &   y in the carrier of LP;
+        then reconsider x1=x,y1=y as Element of Q;
+        reconsider z=x1 \ y1 as Element of LP by A3;
+        take z;
+        thus x*z = x1 * (x1 \ y1) by RING_3:1
+        .= y;
+      end;
+      hereby let x,y be Element of LP;
+        x in the carrier of LP &   y in the carrier of LP;
+        then reconsider x1=x,y1=y as Element of Q;
+        reconsider z=y1 / x1 as Element of LP by A4;
+        take z;
+        thus z*x = (y1 / x1) * x1 by RING_3:1
+        .= y;
+      end;
+    end;
+    LP is  cancelable
+    proof
+      thus LP is left_mult-cancelable
+      proof
+        let x be Element of LP;
+        let y,z be Element of LP;
+        x in the carrier of LP
+        & y in the carrier of LP
+        & z in the carrier of LP;
+        then reconsider x1=x,y1=y,z1=z as Element of Q;
+        x1*y1 = x*y & x1*z1 = x*z by RING_3:1;
+        hence thesis by ALGSTR_0:def 20;
+      end;
+      let x be Element of LP;
+      let y,z be Element of LP;
+      x in the carrier of LP & y in the carrier of LP & z in the carrier of LP;
+      then reconsider x1=x,y1=y,z1=z as Element of Q;
+      y1*x1 = y*x & z1*x1 = z*x by RING_3:1;
+      hence thesis by ALGSTR_0:def 21;
+    end;
+    hence thesis by A7,A8;
+  end;
+  then reconsider LP as strict SubLoop of Q;
+  [#](lp H) c= [#]LP = H by Def33;
+  hence thesis by Def33;
+end;
+
+theorem Th19:
+  for f being homomorphic Function of Q,Q2 holds
+  [#]lp (Ker f) = Ker f
+  proof
+    let f be homomorphic Function of Q,Q2;
+    f.(1.Q) = 1.Q2 by Def28a;
+    then A1: 1.Q in Ker f by Def29;
+    A2: for x,y st x in Ker f & y in Ker f holds x * y in Ker f
+    proof
+      let x,y be Element of Q;
+      assume that
+      A3: x in Ker f
+      and
+      A4: y in Ker f;
+      f.(x * y) = f.x * f.y by Def28b
+      .= 1.Q2 * f.y by Def29,A3
+      .= 1.Q2 by Def29,A4;
+      hence x*y in Ker f by Def29;
+    end;
+    A5: for x,y st x in Ker f & y in Ker f holds x \ y in Ker f
+    proof
+      let x,y be Element of Q;
+      assume that
+      A6: x in Ker f
+      and
+      A7: y in Ker f;
+      f.(x \ y) = f.x \ f.y by Th13
+      .= 1.Q2 \ f.y by Def29,A6
+      .= 1.Q2 by Def29,A7;
+      hence x\y in Ker f by Def29;
+    end;
+    for x,y st x in Ker f & y in Ker f holds x / y in Ker f
+    proof
+      let x,y be Element of Q;
+      assume that
+      A8: x in Ker f
+      and
+      A9: y in Ker f;
+      f.(x / y) = f.x / f.y by Th14
+      .= f.x / 1.Q2 by Def29,A9
+      .= 1.Q2 by Def29,A8;
+      hence x/y in Ker f by Def29;
+    end;
+    hence thesis by Th18,A1,A2,A5;
+  end;
+
+theorem Th20a:
+  1.Q in Nucl_l Q
+proof
+  for y,z holds (1.Q * y) * z = 1.Q * (y * z);
+  hence thesis by Def22;
+end;
+
+theorem Th20b:
+  1.Q in Nucl_m Q
+proof
+  for x,z holds (x * 1.Q) * z = x * (1.Q * z);
+  hence thesis by Def23;
+end;
+
+theorem Th20c:
+  1.Q in Nucl_r Q
+proof
+  for x,y holds (x * y) * 1.Q = x * (y * 1.Q);
+  hence thesis by Def24;
+end;
+
+theorem Th20:
+  1.Q in Nucl Q
+proof
+  A1: 1.Q in Nucl_l Q by Th20a;
+  1.Q in Nucl_m Q by Th20b;
+  hence thesis by A1,Th12,Th20c;
+end;
+
+registration
+  let Q;
+  cluster Nucl_l Q -> non empty;
+  coherence by Th20a;
+  cluster Nucl_m Q -> non empty;
+  coherence by Th20b;
+  cluster Nucl_r Q -> non empty;
+  coherence by Th20c;
+  cluster Nucl Q -> non empty;
+  coherence by Th20;
+end;
+
+theorem Th21:
+  x in Nucl Q & y in Nucl Q implies x * y in Nucl Q
+proof
+  assume that
+  A1: x in Nucl Q
+  and
+  A2: y in Nucl Q;
+  A3: x in Nucl_l Q by Th12,A1;
+  A4: x in Nucl_m Q by Th12,A1;
+  A5: x in Nucl_r Q by Th12,A1;
+  A6: y in Nucl_l Q by Th12,A2;
+  A7: y in Nucl_m Q by Th12,A2;
+  A8: y in Nucl_r Q by Th12,A2;
+  for z,w holds ((x * y) * z) * w = (x * y) * (z * w)
+  proof
+    let z,w;
+    ((x * y) * z) * w = (x * (y * z)) * w by A3,Def22
+    .= x * ((y * z) * w) by A3,Def22
+    .= x * (y * (z * w)) by A6,Def22
+    .= (x * y) * (z * w) by A3,Def22;
+    hence thesis;
+  end;
+  then A9: x * y in Nucl_l Q by Def22;
+  for z,w holds (z * (x * y)) * w = z * ((x * y) * w)
+  proof
+    let z,w;
+    (z * (x * y)) * w = ((z * x) * y) * w by A4,Def23
+    .= (z * x) * (y * w) by A7,Def23
+    .= z * (x * (y * w)) by A4,Def23
+    .= z * ((x * y) * w) by A7,Def23;
+    hence thesis;
+  end;
+  then A10: x * y in Nucl_m Q by Def23;
+  for z,w holds (z * w) * (x * y) = z * (w * (x * y))
+  proof
+    let z,w;
+    (z * w) * (x * y) = ((z * w) * x) * y by A8,Def24
+    .= (z * (w * x)) * y by A5,Def24
+    .= z * ((w * x) * y) by A8,Def24
+    .= z * (w * (x * y)) by A8,Def24;
+    hence thesis;
+  end;
+  then x * y in Nucl_r Q by Def24;
+  hence thesis by Th12,A9,A10;
+end;
+
+theorem Th22:
+  x in Nucl Q & y in Nucl Q implies x \ y in Nucl Q
+proof
+  assume that
+  A1: x in Nucl Q
+  and
+  A2: y in Nucl Q;
+  A3: x in Nucl_l Q by Th12,A1;
+  A4: x in Nucl_m Q by Th12,A1;
+  A5: x in Nucl_r Q by Th12,A1;
+  A6: y in Nucl_l Q by Th12,A2;
+  A7: y in Nucl_m Q by Th12,A2;
+  A8: y in Nucl_r Q by Th12,A2;
+  for z,w holds ((x \ y) * z) * w = (x \ y) * (z * w)
+  proof
+    let z,w;
+    x * (((x \ y) * z) * w) = (x * ((x \ y) * z)) * w by A3,Def22
+    .= ((x * (x \ y)) * z) * w by A3,Def22
+    .= (x * (x \ y)) * (z * w) by A6,Def22
+    .= x * ((x \ y) * (z * w)) by A3,Def22;
+    hence thesis by Th1;
+  end;
+  then A9: x \ y in Nucl_l Q by Def22;
+  for z,w holds (z * (x \ y)) * w = z * ((x \ y) * w)
+  proof
+    let z,w;
+    (z * (x \ y)) * w = (((z / x) * x) * (x \ y)) * w
+    .= ((z / x) * (x * (x \ y))) * w by A4,Def23
+    .= (z / x) * ((x * (x \ y)) * w) by A7,Def23
+    .= (z / x) * (x * ((x \ y) * w)) by A3,Def22
+    .= ((z / x) * x) * ((x \ y) * w) by A4,Def23
+    .= z * ((x \ y) * w);
+    hence thesis;
+  end;
+  then A10: x \ y in Nucl_m Q by Def23;
+  for z,w holds (z * w) * (x \ y) = z * (w * (x \ y))
+  proof
+    let z,w;
+    (z * w) * (x \ y) = (z * ((w / x) * x)) * (x \ y)
+    .= ((z * (w / x)) * x) * (x \ y) by A5,Def24
+    .= (z * (w / x)) * (x * (x \ y)) by A4,Def23
+    .= z * ((w / x) * (x * (x \ y)))by A8,Def24
+    .= z * (((w / x) * x) * (x \ y)) by A4,Def23
+    .= z * (w * (x \ y));
+    hence thesis;
+  end;
+  then x \ y in Nucl_r Q by Def24;
+  hence thesis by Th12,A9,A10;
+end;
+
+theorem Th23:
+  x in Nucl Q & y in Nucl Q implies x / y in Nucl Q
+proof
+  assume that
+  A1: x in Nucl Q
+  and
+  A2: y in Nucl Q;
+  A3: x in Nucl_l Q by Th12,A1;
+  A4: x in Nucl_m Q by Th12,A1;
+  A5: x in Nucl_r Q by Th12,A1;
+  A6: y in Nucl_l Q by Th12,A2;
+  A7: y in Nucl_m Q by Th12,A2;
+  A8: y in Nucl_r Q by Th12,A2;
+  for z,w holds ((x / y) * z) * w = (x / y) * (z * w)
+  proof
+    let z,w;
+    ((x / y) * z) * w = ((x / y) * (y * (y \ z))) * w
+    .= (((x / y) * y) * (y \ z)) * w by A7,Def23
+    .= ((x / y) * y) * ((y \ z) * w) by A3,Def22
+    .= (x / y) * (y * ((y \ z) * w)) by A7,Def23
+    .= (x / y) * ((y * (y \ z)) * w) by A6,Def22
+    .= (x / y) * (z * w);
+    hence thesis;
+  end;
+  then A9: x / y in Nucl_l Q by Def22;
+  for z,w holds (z * (x / y)) * w = z * ((x / y) * w)
+  proof
+    let z,w;
+    (z * (x / y)) * w = (z * (x / y)) * (y * (y \ w))
+    .= ((z * (x / y)) * y) * (y \ w) by A7,Def23
+    .= (z * ((x / y) * y)) * (y \ w) by A8,Def24
+    .= z * (((x / y) * y) * (y \ w)) by A4, Def23
+    .= z * ((x / y) * (y * (y \ w))) by A7,Def23
+    .= z * ((x / y) * w);
+    hence thesis;
+  end;
+  then A10: x / y in Nucl_m Q by Def23;
+  for z,w holds (z * w) * (x / y) = z * (w * (x / y))
+  proof
+    let z,w;
+    ((z * w) * (x / y)) * y = (z * w) * ((x / y) * y) by A8,Def24
+    .= z * (w * ((x / y) * y)) by A5,Def24
+    .= z * ((w * (x / y)) * y) by A8,Def24
+    .= (z * (w * (x / y))) * y by A8,Def24;
+    hence thesis by Th2;
+  end;
+  then x / y in Nucl_r Q by Def24;
+  hence thesis by Th12,A9,A10;
+end;
+
+theorem Th24:
+  [#]lp (Nucl Q) = Nucl Q
+proof
+  A1: 1.Q in Nucl Q by Th20;
+  A2: for x,y st x in Nucl Q & y in Nucl Q holds x * y in Nucl Q
+    by Th21;
+  A3: for x,y st x in Nucl Q & y in Nucl Q holds x \ y in Nucl Q
+    by Th22;
+   for x,y st x in Nucl Q & y in Nucl Q holds x / y in Nucl Q
+     by Th23;
+  hence thesis by Th18,A1,A2,A3;
+end;
+
+theorem Th25:
+  [#]lp (Cent Q) = Cent Q
+proof
+  A1: 1.Q in Cent Q
+  proof
+    A2: 1.Q in Nucl Q by Th20;
+    for y holds 1.Q * y = y * 1.Q;
+    then 1.Q in Comm Q by Def25;
+    hence thesis by XBOOLE_0:def 4, A2;
+  end;
+  A3: for x,y st x in Cent Q & y in Cent Q holds x * y in Cent Q
+  proof
+    let x,y;
+    assume that
+    A4: x in Cent Q
+    and
+    A5: y in Cent Q;
+    A6: x in Comm Q & x in Nucl Q by XBOOLE_0:def 4, A4;
+    A7: y in Comm Q & y in Nucl Q by XBOOLE_0:def 4, A5;
+    A8: x in Nucl_l Q by Th12,A6;
+    A9: y in Nucl_m Q & y in Nucl_r Q by Th12,A7;
+    for z holds (x * y) * z = z * (x * y)
+    proof
+      let z;
+      (x * y) * z = x * (y * z) by A9,Def23
+      .= x * (z * y) by A7,Def25
+      .= (x * z) * y by A8,Def22
+      .= (z * x) * y by A6,Def25
+      .= z * (x * y) by A9,Def24;
+      hence thesis;
+    end;
+    then A10: x * y in Comm Q by Def25;
+    x * y in Nucl Q by Th21,A6,A7;
+    hence x * y in Cent Q by XBOOLE_0:def 4,A10;
+  end;
+  A11: for x,y st x in Cent Q & y in Cent Q holds x \ y in Cent Q
+  proof
+    let x,y;
+    assume that
+    A12: x in Cent Q
+    and
+    A13: y in Cent Q;
+    A14: x in Comm Q & x in Nucl Q by XBOOLE_0:def 4, A12;
+    A15: y in Comm Q & y in Nucl Q by XBOOLE_0:def 4, A13;
+    A16: x in Nucl_m Q by Th12,A14;
+    for z holds (x \ y) * z = z * (x \ y)
+    proof
+      let z;
+      (x \ y) * z = (x \ y) * ((z / x) * x)
+      .= (x \ y) * (x * (z / x)) by A14,Def25
+      .= ((x \ y) * x) * (z / x) by A16,Def23
+      .= (x * (x \ y)) * (z / x) by A14,Def25
+      .= (z / x) * (x * (x \ y)) by A15,Def25
+      .= ((z / x) * x) * (x \ y) by A16,Def23
+      .= z * (x \ y);
+      hence thesis;
+    end;
+    then A17: x \ y in Comm Q by Def25;
+    x \ y in Nucl Q by Th22,A14,A15;
+    hence x \ y in Cent Q by XBOOLE_0:def 4, A17;
+  end;
+  for x,y st x in Cent Q & y in Cent Q holds x / y in Cent Q
+  proof
+    let x,y;
+    assume that
+    A18: x in Cent Q
+    and
+    A19: y in Cent Q;
+    A20: x in Comm Q & x in Nucl Q by XBOOLE_0:def 4, A18;
+    A21: y in Comm Q & y in Nucl Q by XBOOLE_0:def 4, A19;
+    A22: y in Nucl_m Q by Th12,A21;
+    for z holds (x / y) * z = z * (x / y)
+    proof
+      let z;
+      thus (x / y) * z = (x / y) * ((z / y) * y)
+      .= (x / y) * (y * (z / y)) by A21,Def25
+      .= ((x / y) * y) * (z / y) by A22,Def23
+      .= (z / y) * ((x / y) * y) by A20,Def25
+      .= (z / y) * (y * (x / y)) by A21,Def25
+      .= ((z / y) * y) * (x / y) by A22,Def23
+      .= z * (x / y);
+    end;
+    then A23: x / y in Comm Q by Def25;
+    x / y in Nucl Q by Th23,A20,A21;
+    hence x / y in Cent Q by XBOOLE_0:def 4,A23;
+  end;
+  hence thesis by Th18,A1,A3,A11;
+end;
+
+begin :: Multiplicative Mappings and Cosets
+
+::We now define a set Mlt Q of multiplicative mappings of Q
+::and cosets (mostly following Albert 1943 for cosets).
+
+definition
+  let X be functional set;
+  attr X is composition-closed means
+  :Def34:
+  for f,g being Element of X st f in X & g in X holds f*g in X;
+  attr X is inverse-closed means
+  :Def35:
+  for f being Element of X st f in X holds f" in X;
+end;
+
+registration
+  let A be set;
+  cluster {id A} -> composition-closed inverse-closed;
+  coherence
+  proof
+    set I = id A;
+    thus {I} is composition-closed
+    proof
+      let f,g be Element of {I};
+      f = I & g = I by TARSKI:def 1;
+      hence thesis by SYSREL:12;
+    end;
+    let f be Element of {I};
+    f = I by TARSKI:def 1;
+    then f is Permutation of A & I*f = I by SYSREL:12;
+    then f" = I by FUNCT_2:60;
+    hence thesis by TARSKI:def 1;
+  end;
+end;
+
+registration
+  cluster composition-closed inverse-closed non empty for functional set;
+  existence
+  proof
+    take {id the set};
+    thus thesis;
+  end;
+end;
+
+registration
+  let Q be multLoopStr;
+  cluster composition-closed inverse-closed non empty for Subset of Funcs(Q,Q);
+  existence
+  proof
+    set I = id Q;
+    I in Funcs(Q,Q) by FUNCT_2:126;
+    then reconsider X = {I} as Subset of Funcs(Q,Q) by SUBSET_1:33;
+    take X;
+    thus thesis;
+  end;
+end;
+
+definition
+  let Q be non empty multLoopStr;
+  let H be Subset of Q;
+  let S be Subset of Funcs(Q,Q);
+  pred H left-right-mult-closed S means
+  for u being Element of Q st u in H holds
+    (curry (the multF of Q)).u in S
+  &
+    (curry' (the multF of Q)).u in S;
+end;
+
+defpred PQ[multLoopStr,Subset of $1,
+          Subset of Funcs($1,$1),object]
+   means
+    (ex u be Element of $1 st u in $2 & $4 = (curry' (the multF of $1)).u)
+    or
+    (ex u be Element of $1 st u in $2 & $4 = (curry (the multF of $1)).u)
+    or
+    (ex g,h be Permutation of $1 st g in $3 & h in $3 & $4 = g*h)
+    or
+    (ex g be Permutation of $1 st g in $3 & $4 = g");
+
+definition
+  let Q be non empty multLoopStr;
+  let H be Subset of Q;
+  let S be Subset of Funcs(Q,Q);
+  func MltClos1(H,S) -> Subset of Funcs(Q,Q) means :Def37:
+  for f being object holds
+  f in it iff
+    (ex u be Element of Q st u in H & f = (curry' (the multF of Q)).u)
+  or
+    (ex u be Element of Q st u in H & f = (curry (the multF of Q)).u)
+  or
+    (ex g,h be Permutation of Q st g in S & h in S & f = g*h)
+  or
+    (ex g be Permutation of Q st g in S & f = g");
+  existence
+  proof
+    set mQ = the multF of Q;
+    set LH = {(curry' mQ).u where u is Element of Q : u in H};
+    set RH = {(curry mQ).u where u is Element of Q : u in H};
+    set SC = {g*h where g,h is Permutation of Q : g in S & h in S};
+    set SI = {g" where g is Permutation of Q : g in S};
+    set Y = LH \/ RH \/ SC \/ SI;
+    A1: LH c=  Funcs(Q,Q)
+    proof
+      let f be object;
+      assume f in LH;
+      then ex u being Element of Q st f = (curry' mQ).u & u in H;
+      hence thesis;
+    end;
+    RH c= Funcs(Q,Q)
+    proof
+      let f be object;
+      assume f in RH;
+      then ex u being Element of Q st f = (curry mQ).u & u in H;
+      hence thesis;
+    end;
+    then A2: LH \/ RH is Subset of Funcs(Q,Q) by A1, XBOOLE_1:8;
+    SC c= Funcs(Q,Q)
+    proof
+      let f be object;
+      assume f in SC;
+      then ex g,h being Permutation of Q st f = g*h & g in S & h in S;
+      hence thesis by FUNCT_2:9;
+    end;
+    then A3: LH \/ RH \/ SC is Subset of Funcs(Q,Q) by A2, XBOOLE_1:8;
+    SI c= Funcs(Q,Q)
+    proof
+      let f be object;
+      assume f in SI;
+      then ex g being Permutation of Q st f = g" & g in S;
+      hence thesis by FUNCT_2:9;
+    end;
+    then reconsider Y as Subset of Funcs(Q,Q) by A3, XBOOLE_1:8;
+    take Y;
+    let f be object;
+    thus f in Y implies PQ[Q,H,S,f]
+    proof
+      assume f in Y;
+      then f in LH \/ RH \/ SC or f in SI by XBOOLE_0:def 3;
+      then f in LH \/ RH or f in SC or f in SI by XBOOLE_0:def 3;
+      then per cases by XBOOLE_0:def 3;
+      suppose f in LH;
+        then ex u being Element of Q st f = (curry' mQ).u & u in H;
+        hence thesis;
+      end;
+      suppose f in RH;
+        then ex u being Element of Q st f = (curry mQ).u & u in H;
+        hence thesis;
+      end;
+      suppose f in SC;
+        then ex g,h being Permutation of Q st f = g*h & g in S & h in S;
+        hence thesis;
+      end;
+      suppose f in SI;
+        then ex g being Permutation of Q st f = g" & g in S;
+        hence thesis;
+      end;
+    end;
+    assume PQ[Q,H,S,f];
+    then f in LH or f in RH or f in SC or f in SI;
+    then f in LH\/RH or f in SC or f in SI by XBOOLE_0:def 3;
+    then f in LH\/RH\/SC or f in SI by XBOOLE_0:def 3;
+    hence  f in Y by XBOOLE_0:def 3;
+  end;
+  uniqueness
+  proof
+    let S1,S2 be Subset of Funcs(Q,Q);
+    assume that
+    A4: for f being object holds f in S1 iff PQ[Q,H,S,f]
+    and
+    A5: for f being object holds f in S2 iff PQ[Q,H,S,f];
+    now
+      let f be Element of Funcs(Q,Q);
+      f in S1 iff PQ[Q,H,S,f] by A4;
+      hence f in S1 iff f in S2 by A5;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+end;
+
+theorem Th26:
+  for H being Subset of Q holds
+  for phi being Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+  st
+  for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X)
+  holds
+  phi is c=-monotone
+proof
+  let H be Subset of Q;
+  let phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q);
+  assume A1: for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X);
+  let a1, b1 be set such that
+  A2: a1 in dom phi & b1 in dom phi & a1 c= b1;
+  thus phi.a1 c= phi.b1
+  proof
+    reconsider a2 = a1, b2=b1 as Subset of Funcs(Q,Q)
+        by A2,FUNCT_2:def 1;
+    let f be object;
+    assume f in phi.a1;
+    then f in MltClos1(H,a2) by A1;
+    then PQ[Q,H,a2,f]  by Def37;
+    then f in MltClos1(H,b2) by A2,Def37;
+    hence thesis by A1;
+  end;
+end;
+
+theorem Th27:
+  for H being Subset of Q holds
+  for phi being Function of bool Funcs(Q,Q),bool Funcs(Q,Q) st
+    for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X)
+  holds
+  for Y being Subset of Funcs(Q,Q) st phi.(Y) c= Y
+  holds
+  (for u being Element of Q st u in H holds (curry (the multF of Q)).u in Y)
+  &
+  (for u being Element of Q st u in H holds (curry' (the multF of Q)).u in Y)
+proof
+  let H be Subset of Q;
+  let phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q);
+  assume A1: for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X);
+  let Y be Subset of Funcs(Q,Q);
+  assume phi.(Y) c= Y;
+  then A2: MltClos1(H,Y) c= Y by A1;
+  thus for u being Element of Q st u in H holds
+    (curry (the multF of Q)).u in Y
+  proof
+    let u be Element of Q;
+    assume u in H;
+    then (curry (the multF of Q)).u in MltClos1(H,Y) by Def37;
+    hence thesis by A2;
+  end;
+    let u be Element of Q;
+    assume u in H;
+    then (curry' (the multF of Q)).u in MltClos1(H,Y) by Def37;
+    hence thesis by A2;
+end;
+
+theorem Th28:
+  for H being Subset of Q holds
+  for phi being Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+  st
+  for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X)
+  holds
+  for Y being Subset of Funcs(Q,Q)
+  st
+  for S be Subset of Funcs(Q,Q) st phi.S c= S holds Y c= S
+  holds
+  for f being Element of Funcs(Q,Q) st
+  f in Y holds
+  f is Permutation of Q
+proof
+  let H be Subset of Q;
+  let phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q);
+  assume A1: for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X);
+  let Y be Subset of Funcs(Q,Q);
+  assume A2: for S be Subset of Funcs(Q,Q) st phi.S c= S holds Y c= S;
+  set SP =  the set of all f where f is Permutation of Q;
+  SP c= Funcs(Q,Q)
+  proof
+    let f be object;
+    assume f in SP;
+    then consider g being Permutation of Q such that
+    A3: f = g & not contradiction;
+    thus thesis by FUNCT_2:9,A3;
+  end;
+  then reconsider SP as Subset of Funcs(Q,Q);
+  phi.(SP) c= SP
+  proof
+    let f be object;
+    assume f in phi.(SP);
+    then f in MltClos1(H,SP) by A1;
+    then per cases by Def37;
+    suppose ex u be Element of Q st u in H & f = (curry' (the multF of Q)).u;
+      then consider u being Element of Q such that
+      A4: u in H & f = (curry' (the multF of Q)).u;
+      reconsider f as Function of Q,Q by A4;
+      deffunc G(Element of Q) = $1 / u;
+      consider g be Function of Q,Q such that
+      A5: for x being Element of Q holds g.x = G(x) from FUNCT_2:sch 4;
+      for x being Element of Q holds (g*f).x = (id (the carrier of Q)).x
+      proof
+        let x be Element of Q;
+        (g * f).x = g.(f.x) by FUNCT_2:15
+        .= g.(x * u) by FUNCT_5:70,A4
+        .= G(x * u) by A5
+        .= (id (the carrier of Q)).x;
+        hence thesis;
+      end;
+      then A6: g * f = id (the carrier of Q) by FUNCT_2:def 8;
+      for x being Element of Q holds (f*g).x = (id (the carrier of Q)).x
+      proof
+        let x be Element of Q;
+        (f * g).x = f.(g.x) by FUNCT_2:15
+        .= g.x * u by FUNCT_5:70,A4
+        .= G(x) * u by A5
+        .= (id (the carrier of Q)).x;
+        hence thesis;
+      end;
+      then rng f = the carrier of Q by FUNCT_2:18,def 8;
+      then f is Permutation of the carrier of Q by FUNCT_2:57,A6, FUNCT_2:31;
+      hence thesis;
+    end;
+    suppose ex u be Element of Q st u in H & f = (curry (the multF of Q)).u;
+      then consider u being Element of Q such that
+      A7: u in H & f = (curry (the multF of Q)).u;
+      reconsider f as Function of Q,Q by A7;
+      deffunc G(Element of Q) = u \ $1;
+      consider g be Function of Q,Q such that
+      A8: for x being Element of Q holds g.x = G(x) from FUNCT_2:sch 4;
+      A9: for x being Element of Q holds
+        (g*f).x = (id (the carrier of Q)).x
+      proof
+        let x be Element of Q;
+        (g * f).x = g.(f.x) by FUNCT_2:15
+        .= g.(u * x) by FUNCT_5:69,A7
+        .= G(u * x) by A8
+        .= (id (the carrier of Q)).x;
+        hence thesis;
+      end;
+      A10: for x being Element of Q holds
+        (f*g).x = (id (the carrier of Q)).x
+      proof
+        let x be Element of Q;
+        (f * g).x = f.(g.x) by FUNCT_2:15
+        .= u * g.x by FUNCT_5:69,A7
+        .= u * G(x) by A8
+        .= (id (the carrier of Q)).x;
+        hence thesis;
+      end;
+      A11: f is one-to-one by A9, FUNCT_2:31,FUNCT_2:def 8;
+      rng f = the carrier of Q by A10, FUNCT_2:18,FUNCT_2:def 8;
+      then f is Permutation of the carrier of Q by FUNCT_2:57,A11;
+      hence thesis;
+    end;
+    suppose ex g,h be Permutation of the carrier of Q st g in SP &
+        h in SP & f = g*h;
+      hence thesis;
+    end;
+    suppose ex g be Permutation of the carrier of Q st g in SP & f = g";
+      hence thesis;
+    end;
+  end;
+  then A12: Y c= SP by A2;
+  let f be Element of Funcs(Q,Q);
+  assume f in Y;
+  then f in SP by A12;
+  then ex g being Permutation of Q st f = g;
+  hence thesis;
+end;
+
+theorem Th29:
+  for H being Subset of Q holds
+  for phi being Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+  st
+  for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X)
+  holds
+  for Y being Subset of Funcs(Q,Q)
+  st
+  Y is_a_fixpoint_of phi
+  & for S be Subset of Funcs(Q,Q) st phi.S c= S holds Y c= S
+  holds
+  Y is composition-closed
+  &
+  Y is inverse-closed
+proof
+  let H be Subset of Q;
+  let phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q);
+  assume A1: for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X);
+  let Y be Subset of Funcs(Q,Q);
+  assume Y is_a_fixpoint_of phi;
+  then A2: Y in dom phi & Y = phi.(Y) & phi.(Y) = MltClos1(H,Y)
+    by ABIAN:def 3,A1;
+  assume A3: for S be Subset of Funcs(Q,Q) st phi.S c= S holds Y c= S;
+  thus Y is composition-closed
+  proof
+    let f,g be Element of Y;
+    assume A4: f in Y & g in Y;
+    then f is Permutation of Q & g is Permutation of Q by Th28,A1,A3;
+    hence f * g in Y by A2,Def37,A4;
+  end;
+    let f be Element of Y;
+    assume A5: f in Y;
+    then f is Permutation of Q by Th28,A1,A3;
+    hence f" in Y by A2,Def37,A5;
+end;
+
+theorem Th30:
+  (curry (the multF of Q)).u is Permutation of Q
+proof
+  set f = curry (the multF of Q).u;
+  deffunc G(Element of Q) = u \ $1;
+  consider g be Function of Q,Q such that
+  A1: for x being Element of Q holds g.x = G(x) from FUNCT_2:sch 4;
+  for x being Element of Q holds (g*f).x = (id Q).x
+  proof
+    let x be Element of Q;
+    (g * f).x = g.(f.x) by FUNCT_2:15
+    .= g.(u * x) by FUNCT_5:69
+    .= G(u * x) by A1
+    .= (id Q).x;
+    hence thesis;
+  end;
+  then A2: g * f = id Q by FUNCT_2:def 8;
+  A3: for x being Element of Q holds (f*g).x = (id Q).x
+  proof
+    let x be Element of Q;
+    (f * g).x = f.(g.x) by FUNCT_2:15
+    .= u * g.x by FUNCT_5:69
+    .= u * G(x) by A1
+    .= id Q.x;
+    hence thesis;
+  end;
+  rng f = the carrier of Q by A3,FUNCT_2:18,def 8;
+  hence thesis by FUNCT_2:57,A2, FUNCT_2:31;
+end;
+
+theorem Th31:
+  (curry' (the multF of Q)).u is Permutation of the carrier of Q
+proof
+  set f = curry' (the multF of Q).u;
+  deffunc G(Element of Q) = $1 / u;
+  consider g be Function of Q,Q such that
+  A1: for x being Element of Q holds g.x = G(x) from FUNCT_2:sch 4;
+  for x being Element of Q holds (g*f).x = (id Q).x
+  proof
+    let x be Element of Q;
+    (g * f).x = g.(f.x) by FUNCT_2:15
+    .= g.(x * u) by FUNCT_5:70
+    .= G(x * u) by A1
+    .= (id Q).x;
+    hence thesis;
+  end;
+  then A2: g * f = id Q by FUNCT_2:def 8;
+  A3: for x being Element of Q holds (f*g).x = (id Q).x
+  proof
+    let x be Element of Q;
+    (f * g).x = f.(g.x) by FUNCT_2:15
+    .= g.x * u by FUNCT_5:70
+    .= G(x) * u by A1
+    .= (id Q).x;
+    hence thesis;
+  end;
+  rng f = the carrier of Q by A3,FUNCT_2:18,def 8;
+  hence thesis by FUNCT_2:57,A2, FUNCT_2:31;
+end;
+
+definition
+  let Q;
+  let H be Subset of Q;
+  func Mlt H -> composition-closed inverse-closed Subset of Funcs(Q, Q) means
+  :Def38:
+  H left-right-mult-closed it
+  &
+  for X being composition-closed inverse-closed Subset of Funcs(Q,Q)
+  st H left-right-mult-closed X holds it c= X;
+  existence
+  proof
+    deffunc Phi(Subset of Funcs(Q,Q)) = MltClos1(H,$1);
+    consider phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+    such that
+    A1: for X being Subset of Funcs(Q,Q) holds phi.X = Phi(X)
+    from FUNCT_2:sch 4;
+    reconsider phi as
+    c=-monotone Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+       by A1, Th26;
+    set Y = lfp(Funcs(Q,Q),phi);
+    A2: Y is_a_fixpoint_of phi by KNASTER:4;
+    then A3: Y in dom phi & Y = phi.(Y) & phi.(Y) = Phi(Y) by ABIAN:def 3,A1;
+    A4: for S be Subset of Funcs(Q,Q) st phi.S c= S holds Y c= S by KNASTER:6;
+    reconsider Y as composition-closed inverse-closed Subset of Funcs(Q,Q)
+      by Th29,A1,A2,A4;
+    take Y;
+    thus H left-right-mult-closed Y by Th27,A1,A3;
+    let S be composition-closed inverse-closed Subset of Funcs(Q,Q);
+    assume A5: H left-right-mult-closed S;
+    phi.S c= S
+    proof
+      let f be object;
+      assume f in phi.S;
+      then f in Phi(S) by A1;
+      then PQ[Q,H,S,f] by Def37;
+      hence thesis by A5,Def34,Def35;
+    end;
+    hence Y c= S by KNASTER:6;
+  end;
+  uniqueness;
+end;
+
+theorem Th32:
+  for H being Subset of Q holds
+  for u being Element of Q st u in H holds
+    (curry (the multF of Q)).u in Mlt H
+proof
+  let H be Subset of Q;
+  let u be Element of Q;
+  assume A1: u in H;
+  H left-right-mult-closed (Mlt H) by Def38;
+  hence thesis by A1;
+end;
+
+theorem Th33:
+  for H being Subset of Q holds
+  for u being Element of Q st u in H holds
+    (curry' (the multF of Q)).u in Mlt H
+proof
+  let H be Subset of Q;
+  let u be Element of Q;
+  H left-right-mult-closed (Mlt H) by Def38;
+  hence thesis;
+end;
+
+theorem Th34:
+  for H being Subset of Q holds
+  for phi being Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+  st
+  for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X)
+  holds
+  Mlt H is_a_fixpoint_of phi
+  &
+  for S be Subset of Funcs(Q,Q) st phi.S c= S holds Mlt H c= S
+proof
+  let H be Subset of Q;
+  let phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q);
+  assume A1: for X being Subset of Funcs(Q,Q) holds phi.X = MltClos1(H,X);
+  Mlt H in bool Funcs(Q,Q)& phi is quasi_total;
+  then A2: Mlt H in dom phi by FUNCT_2:def 1;
+  A3: phi.(Mlt H) c= Mlt H
+  proof
+    let f be object;
+    assume f in phi.(Mlt H);
+    then f in MltClos1(H,Mlt H) by A1;
+    then PQ[Q,H,Mlt H,f] by Def37;
+    hence thesis by Th33,Th32,Def34,Def35;
+  end;
+  A4: for S be Subset of Funcs(Q,Q) st phi.S c= S holds Mlt H c= S
+  proof
+    let S be Subset of Funcs(Q,Q);
+    assume A5: phi.S c= S;
+    set SP = {f where f is Permutation of Q : f in S};
+    A6: SP c= S
+    proof
+      let g be object;
+      assume g in SP;
+      then ex f being Permutation of Q st g = f & f in S;
+      hence thesis;
+    end;
+    S c= Funcs(the carrier of Q,the carrier of Q);
+    then SP c= Funcs(the carrier of Q,the carrier of Q) by A6;
+    then reconsider SP as Subset of Funcs(the carrier of Q,the carrier of Q);
+    A7: for f being Element of SP st f in SP holds
+      f is Permutation of the carrier of Q
+    proof
+      let f be Element of SP;
+      assume f in SP;
+      then ex g be Permutation of Q st f = g & g in S;
+      hence thesis;
+    end;
+    for f,g being Element of SP st f in SP & g in SP holds f*g in SP
+    proof
+      let f,g be Element of SP;
+      assume A8: f in SP & g in SP;
+      reconsider f,g as Permutation of the carrier of Q by A7,A8;
+      f*g in MltClos1(H,S) by Def37,A8,A6;
+      then f*g in phi.S by A1;
+      hence thesis by A5;
+    end;
+    then A9: SP is composition-closed ;
+    for f being Element of SP st f in SP holds f" in SP
+    proof
+      let f be Element of SP;
+      assume A10: f in SP;
+      then f in S & f is Permutation of Q by A6,A7;
+      then f" in MltClos1(H,S) by Def37;
+      then A11: f" in phi.S by A1;
+      reconsider f as Permutation of Q by A10,A7;
+      f" is Permutation of Q;
+      hence thesis by A11,A5;
+    end;
+    then SP is inverse-closed;
+    then reconsider SP as composition-closed inverse-closed Subset of
+     Funcs(Q,Q) by A9;
+    for u being Element of Q st u in H holds
+    (curry (the multF of Q)).u in SP
+    &
+    (curry' (the multF of Q)).u in SP
+    proof
+      let u be Element of Q;
+      assume A12: u in H;
+      then (curry (the multF of Q)).u in MltClos1(H,S) by Def37;
+      then A13: (curry (the multF of Q)).u in phi.(S) by A1;
+      (curry (the multF of Q)).u is Permutation of Q by Th30;
+      hence (curry (the multF of Q)).u in SP by A13,A5;
+      (curry' (the multF of Q)).u in MltClos1(H,S) by Def37,A12;
+      then A14: (curry' (the multF of Q)).u in phi.(S) by A1;
+      (curry' (the multF of Q)).u is Permutation of Q by Th31;
+      hence (curry' (the multF of Q)).u in SP by A14,A5;
+    end;
+    then H left-right-mult-closed SP;
+    then Mlt H c= SP by Def38;
+    hence thesis by A6;
+  end;
+  Mlt H c= phi.(Mlt H)
+  proof
+    for f,g being Element of phi.(Mlt H) st f in phi.(Mlt H) & g in phi.(Mlt H)
+      holds f*g in phi.(Mlt H)
+    proof
+      let f,g be Element of phi.(Mlt H);
+      assume A15: f in phi.(Mlt H) & g in phi.(Mlt H);
+      then f is Permutation of Q & g is Permutation of Q by Th28,A1,A4,A3;
+      then f * g in MltClos1(H,Mlt H) by Def37,A15,A3;
+      hence thesis by A1;
+    end;
+    then A16: phi.(Mlt H) is composition-closed;
+    for f being Element of phi.(Mlt H) st
+      f in phi.(Mlt H) holds f" in phi.(Mlt H)
+    proof
+      let f be Element of phi.(Mlt H);
+      assume A17: f in phi.(Mlt H);
+      then f is Permutation of Q by A3,Th28,A1,A4;
+      then f" in MltClos1(H,Mlt H) by Def37,A17,A3;
+      hence thesis by A1;
+    end;
+    then phi.(Mlt H) is inverse-closed;
+    then reconsider S = phi.(Mlt H) as composition-closed inverse-closed
+    Subset of Funcs(Q,Q) by A16;
+    for u being Element of Q st u in H holds
+    (curry (the multF of Q)).u in S &
+    (curry' (the multF of Q)).u in S
+    proof
+      let u be Element of Q;
+      assume u in H;
+      then (curry (the multF of Q)).u in MltClos1(H,Mlt H)
+      & (curry' (the multF of Q)).u in MltClos1(H,Mlt H)
+      by Def37;
+      hence thesis by A1;
+    end;
+    then H left-right-mult-closed S;
+    hence thesis by Def38;
+  end;
+  then Mlt H = phi.(Mlt H) by A3;
+  hence thesis by A4,ABIAN:def 3,A2;
+end;
+
+theorem Th35:
+  for H being Subset of Q holds
+  for f being Element of Funcs(Q,Q) st
+  f in Mlt H holds f is Permutation of Q
+proof
+  let H be Subset of Q;
+  deffunc Phi(Subset of Funcs(Q,Q)) = MltClos1(H,$1);
+  consider phi be Function of bool Funcs(Q,Q),bool Funcs(Q,Q)
+  such that
+  A1: for X being Subset of Funcs(Q,Q) holds phi.X = Phi(X)
+  from FUNCT_2:sch 4;
+  for S be Subset of Funcs(Q,Q) st phi.S c= S holds Mlt H c= S
+  by Th34,A1;
+  hence thesis by Th28,A1;
+end;
+
+definition
+  let Q;
+  let H be Subset of Q;
+  let x be Element of Q;
+  func x * H -> Subset of Q means :Def39:
+  y in it iff ex h be Permutation of Q st h in Mlt H & y = h.x;
+  existence
+  proof
+    set xH = {h.x where h is Permutation of Q : h in Mlt H};
+    xH c= the carrier of Q
+    proof
+      let y be object;
+      assume y in xH;
+      then  ex h be Permutation of Q st y = h.x & h in Mlt H;
+      hence thesis;
+    end;
+    then reconsider xH as Subset of Q;
+    take xH;
+    let y;
+    y in xH implies ex h be Permutation of Q st h in Mlt H & y = h.x
+    proof
+      assume y in xH;
+      then ex h being Permutation of Q st y = h.x & h in Mlt H;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let xH1,xH2 be Subset of Q;
+    assume that
+    A1: for y holds y in xH1 iff
+    ex h be Permutation of Q st h in Mlt H & y = h.x
+    and
+    A2: for y holds y in xH2 iff
+    ex h be Permutation of Q st h in Mlt H & y = h.x;
+    for y holds y in xH1 iff y in xH2
+    proof
+      let y;
+      y in xH1 iff
+      ex h be Permutation of Q st h in Mlt H & y = h.x by A1;
+      hence y in xH1 iff y in xH2 by A2;
+    end;
+    hence xH1 = xH2 by SUBSET_1:3;
+  end;
+end;
+
+definition
+  let Q;
+  let H be SubLoop of Q;
+  let x be Element of Q;
+  func x * H -> Subset of Q equals
+    x * (@ ([#] H));
+  coherence;
+end;
+
+definition
+  let Q;
+  let N be SubLoop of Q;
+  func Cosets N -> Subset-Family of Q means
+  :Def41:
+  for H be Subset of Q holds H in it iff ex x st H = x * N;
+  existence
+  proof
+    set LCS = {x * N : not contradiction };
+    LCS c= bool the carrier of Q
+    proof
+      let x be object;
+      assume x in LCS;
+      then ex y st x = y * N & not contradiction;
+      hence thesis;
+    end;
+    then reconsider LCS as Subset-Family of Q;
+    take LCS;
+    thus thesis;
+  end;
+  uniqueness
+  proof
+    let C1,C2 be Subset-Family of Q;
+    assume that
+    A1: for H be Subset of Q holds H in C1 iff
+    ex x st H = x * N and
+    A2: for H be Subset of Q holds H in C2 iff
+    ex x st H = x * N;
+    thus C1 c= C2
+    proof
+      let H be object;
+      reconsider H1=H as set by TARSKI:1;
+      assume H in C1;
+      then ex x st H = x * N by A1;
+      hence H in C2 by A2;
+    end;
+    let H be object;
+    reconsider H1=H as set by TARSKI:1;
+    assume H in C2;
+    then ex x st H = x * N by A2;
+    hence H in C1 by A1;
+  end;
+end;
+
+registration
+  let Q;
+  let N be SubLoop of Q;
+  cluster Cosets N -> non empty;
+  coherence
+  proof
+    1.Q * N in Cosets N by Def41;
+    hence thesis;
+  end;
+end;
+
+begin :: Normal Subloop
+
+::We define the notion of a normal subloop
+::and construct quotients by normal subloops.
+
+definition
+  let Q be multLoopStr;
+  let H1,H2 be Subset of Q;
+  func H1 * H2 -> Subset of Q means
+  :Def42:
+  for x being Element of Q holds
+  x in it iff
+  ex y,z be Element of Q st y in H1 & z in H2 & x = y * z;
+  existence
+  proof
+    set H3 = {x where x is Element of Q : ex y,z be Element of Q st y in H1 &
+      z in H2 & x = y * z};
+    H3 c= the carrier of Q
+    proof
+      let x be object;
+      assume x in H3;
+      then ex x1 be Element of Q st x = x1 & ex y,z be Element of Q st
+        y in H1 & z in H2 & x1 = y * z;
+      hence thesis;
+    end;
+    then reconsider H3 as Subset of Q;
+    take H3;
+    let x be Element of Q;
+    x in H3 implies ex y,z be Element of Q st y in H1 & z in H2 & x = y * z
+    proof
+      assume x in H3;
+      then consider x1 be Element of Q such that
+      A1: x = x1 & ex y,z be Element of Q st y in H1 & z in H2 & x1 = y * z;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let H31,H32 be Subset of Q;
+    assume that
+    A2: for x being Element of Q holds
+    x in H31 iff
+    ex y,z be Element of Q st y in H1 & z in H2 & x = y * z
+    and
+    A3: for x being Element of Q holds
+    x in H32 iff
+    ex y,z be Element of Q st y in H1 & z in H2 & x = y * z;
+    now
+      let x be Element of Q;
+      x in H31 iff
+      ex y,z be Element of Q st y in H1 & z in H2 & x = y * z by A2;
+      hence x in H31 iff x in H32 by A3;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+  func H1 \ H2 -> Subset of Q means
+  for x being Element of Q holds
+  x in it iff
+  ex y,z be Element of Q st y in H1 & z in H2 & x = y \ z;
+  existence
+  proof
+    set H3 = {x where x is Element of Q : ex y,z be Element of Q st y in H1 &
+      z in H2 & x = y \ z};
+    H3 c= the carrier of Q
+    proof
+      let x be object;
+      assume x in H3;
+      then ex x1 be Element of Q st x = x1 & ex y,z be Element of Q st
+        y in H1 & z in H2 & x1 = y \ z;
+      hence thesis;
+    end;
+    then reconsider H3 as Subset of Q;
+    take H3;
+    let x be Element of Q;
+    x in H3 implies ex y,z be Element of Q st y in H1 & z in H2 & x = y \ z
+    proof
+      assume x in H3;
+      then consider x1 be Element of Q such that
+      A4: x = x1 & ex y,z be Element of Q st y in H1 & z in H2 & x1 = y \ z;
+      thus thesis by A4;
+    end;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let H31,H32 be Subset of Q;
+    assume that
+    A5: for x being Element of Q holds
+    x in H31 iff
+    ex y,z be Element of Q st y in H1 & z in H2 & x = y \ z
+    and
+    A6: for x being Element of Q holds
+    x in H32 iff
+    ex y,z be Element of Q st y in H1 & z in H2 & x = y \ z;
+    now
+      let x be Element of Q;
+      x in H31 iff
+      ex y,z be Element of Q st y in H1 & z in H2 & x = y \ z by A5;
+      hence x in H31 iff x in H32 by A6;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+end;
+
+definition
+  let Q be multLoop;
+  let H be SubLoop of Q;
+  attr H is normal means
+  :Def44:
+  for x,y being Element of Q holds
+  (x * H) * (y * H) = (x * y) * H
+  &
+  for z being Element of Q holds
+  ((x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H))
+  &
+  ((y * H) * (x * H) = (z * H) * (x * H) implies (y * H) = (z * H));
+end;
+
+registration
+  let Q;
+  cluster normal for SubLoop of Q;
+  existence
+  proof
+    reconsider Q1=Q as non empty multLoopStr;
+    A1: the multF of Q1 = (the multF of Q)||the carrier of Q1;
+    the OneF of Q1 = the OneF of Q;
+    then reconsider Q1 as SubLoop of Q by A1,Def30;
+    take Q1;
+    A2: for x,y being Element of Q holds y in x * Q1
+    proof
+      let x,y be Element of Q;
+      ex g being Permutation of Q st g in Mlt (@ ([#] Q1)) & y = g.x
+      proof
+        reconsider g = (curry (the multF of Q)).(y / x)
+        as Permutation of Q by Th30;
+        A3: (@ ([#] Q1)) left-right-mult-closed Mlt (@ ([#] Q1)) by Def38;
+        g.x  = (y / x) * x by FUNCT_5:69 .= y;
+        hence thesis by A3;
+      end;
+      hence y in x * Q1 by Def39;
+    end;
+    A5: for x,y being Element of Q holds x * Q1 = y * Q1
+    proof
+      let x,y be Element of Q;
+      for v being Element of Q holds v in x * Q1 iff v in y * Q1 by A2;
+      hence thesis by SUBSET_1:3;
+    end;
+    now
+      let x,y be Element of Q;
+      for v being Element of Q holds v in (x*Q1)*(y*Q1) iff v in (x*y)*Q1
+      proof
+        let v be Element of Q;
+        thus v in (x*Q1)*(y*Q1) implies v in (x*y)*Q1 by A2;
+        assume v in (x*y)*Q1;
+        ex u,w st u in x * Q1 & w in y * Q1 & v = u * w
+        proof
+          take v,1.Q;
+          thus thesis by A2;
+        end;
+        hence v in (x*Q1)*(y*Q1) by Def42;
+      end;
+      hence (x*Q1)*(y*Q1) = (x*y)*Q1 by SUBSET_1:3;
+      let z;
+      thus (x*Q1)*(z*Q1) = (y*Q1)*(z*Q1) implies (x*Q1) = (y*Q1) by A5;
+      thus (z*Q1)*(x*Q1) = (z*Q1)*(y*Q1) implies (x*Q1) = (y*Q1) by A5;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let Q;
+  let N be normal SubLoop of Q;
+  func SubLoop_As_Coset N -> Element of Cosets N equals
+  1.Q * N;
+  coherence by Def41;
+end;
+
+definition
+  let Q;
+  let N be normal SubLoop of Q;
+  func Coset_Loop_Op N -> BinOp of Cosets N
+  means
+  :Def46:
+  for H1,H2 be Element of Cosets N holds
+  it.(H1,H2) = H1 * H2;
+  existence
+  proof
+    deffunc G(Element of Cosets N,Element of Cosets N) = $1 * $2;
+    A1: for H1,H2 being Element of Cosets N holds G(H1,H2) in Cosets N
+    proof
+      let H1,H2 be Element of Cosets N;
+       consider x being Element of Q such that
+      A2: H1 = x * N
+      by Def41;
+      consider y being Element of Q such that
+      A3: H2 = y * N
+      by Def41;
+      G(H1,H2) = (x * y) * N by Def44,A2,A3;
+      hence G(H1,H2) in Cosets N by Def41;
+    end;
+    consider g being Function of [: Cosets N,Cosets N :],Cosets N such that
+    A4: for H1,H2 being Element of Cosets N holds g.(H1,H2) = G(H1,H2)
+    from FUNCT_7:sch 1(A1);
+    take g;
+    thus thesis by A4;
+  end;
+  uniqueness
+  proof
+    let LCL1,LCL2 be BinOp of Cosets N such that
+    A5:  for H1,H2 being Element of Cosets N holds
+    LCL1.(H1,H2) = H1 * H2 and
+    A6:  for H1,H2 being Element of Cosets N holds
+    LCL2.(H1,H2) = H1 * H2;
+    for H1,H2 being Element of Cosets N holds LCL1.(H1,H2) = LCL2.(H1,H2)
+    proof
+      let H1,H2 be Element of Cosets N;
+      LCL1.(H1,H2) = H1 * H2 by A5
+      .= LCL2.(H1,H2) by A6;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let Q;
+  let N be normal SubLoop of Q;
+  func Q _/_ N -> strict multLoopStr equals
+    multLoopStr(#Cosets N,Coset_Loop_Op N,SubLoop_As_Coset N#);
+  coherence;
+end;
+
+registration
+  let Q;
+  let N be normal SubLoop of Q;
+  cluster Q _/_ N -> non empty;
+  coherence;
+end;
+
+registration
+  let Q;
+  let N be normal SubLoop of Q;
+  cluster Q _/_ N -> well-unital invertible cancelable;
+  coherence
+proof
+  set QN = Q _/_ N;
+A1: for H being Element of QN holds H * 1.QN = H & 1.QN * H = H
+  proof
+    let H be Element of QN;
+    H in Cosets N;
+    then consider x being Element of Q such that
+    A2: H = x * N by Def41;
+    A3: H * 1.QN = H
+    proof
+      reconsider H as Element of Cosets N;
+      (the multF of QN).(H,1.QN) = H * (1.Q * N) by Def46
+      .= (x * 1.Q) * N by A2,Def44
+      .= H by A2;
+      hence thesis;
+    end;
+    1.QN * H = H
+    proof
+      reconsider H as Element of Cosets N;
+      (the multF of QN).(1.QN,H) = (1.Q * N) * H by Def46
+      .= (1.Q * x) * N by A2,Def44
+      .= H by A2;
+      hence thesis;
+    end;
+    hence thesis by A3;
+  end;
+  A4: for H1,H2 being Element of QN holds
+  ex H3 being Element of QN st H1 * H3 = H2
+  proof
+    let H1,H2 be Element of QN;
+    H1 in Cosets N;
+    then consider x being Element of Q such that
+    A5: H1 = x * N by Def41;
+    H2 in Cosets N;
+    then consider y being Element of Q such that
+    A6: H2 = y * N by Def41;
+    reconsider H3 = (x \ y) * N as Element of QN by Def41;
+    take H3;
+    (the multF of QN).(H1,H3) = (x * N) * ((x \ y) * N) by A5,Def46
+    .= (x * (x \ y)) * N by Def44
+    .= H2 by A6;
+    hence thesis;
+  end;
+  A7: for H1,H2 being Element of QN holds
+  ex H3 being Element of QN st H3 * H1 = H2
+  proof
+    let H1,H2 be Element of QN;
+    H1 in Cosets N;
+    then consider x being Element of Q such that
+    A8: H1 = x * N by Def41;
+    H2 in Cosets N;
+    then consider y being Element of Q such that
+    A9: H2 = y * N by Def41;
+    reconsider H3 = (y / x) * N as Element of QN by Def41;
+    take H3;
+    (the multF of QN).(H3,H1) = ((y / x) * N) * (x * N) by A8,Def46
+    .= ((y / x) * x) * N by Def44
+    .= H2 by A9;
+    hence thesis;
+  end;
+  for H1 being Element of QN holds H1 is left_mult-cancelable
+  proof
+    let H1 be Element of QN;
+    for H2,H3 being Element of QN st H1*H2 = H1*H3 holds H2 = H3
+    proof
+      let H2,H3 be Element of QN;
+      H1 in Cosets N;
+      then consider x being Element of Q such that
+      A10: H1 = x * N by Def41;
+      H2 in Cosets N;
+      then consider y being Element of Q such that
+      A11: H2 = y * N by Def41;
+      H3 in Cosets N;
+      then consider z being Element of Q such that
+      A12: H3 = z * N by Def41;
+      assume A13: H1*H2 = H1*H3;
+      (x*N)*(y*N) = H1 * H2 by A10,A11,Def46
+      .= (x*N)*(z*N) by A10,A12,A13,Def46;
+      hence thesis by A11,A12,Def44;
+    end;
+    hence thesis by ALGSTR_0:def 20;
+  end;
+  then A14: QN is left_mult-cancelable by ALGSTR_0:def 23;
+  for H1 being Element of QN holds H1 is right_mult-cancelable
+  proof
+    let H1 be Element of QN;
+    let H2,H3 be Element of QN;
+    H1 in Cosets N;
+    then consider x being Element of Q such that
+    A15: H1 = x * N by Def41;
+    H2 in Cosets N;
+    then consider y being Element of Q such that
+    A16: H2 = y * N by Def41;
+    H3 in Cosets N;
+    then consider z being Element of Q such that
+    A17: H3 = z * N by Def41;
+    assume A18: H2*H1 = H3*H1;
+    (y*N)*(x*N) = H2 * H1 by A15,A16,Def46
+    .= (z*N)*(x*N) by A18,A15,A17,Def46;
+    hence thesis by A16,A17,Def44;
+  end;
+  then QN is right_mult-cancelable by ALGSTR_0:def 24;
+  hence thesis by A1,A7,ALGSTR_1:def 6,A4,A14;
+end;
+end;
+
+definition
+  let Q;
+  let N be normal SubLoop of Q;
+  func QuotientHom(Q,N) -> Function of Q,Q _/_ N means
+  :Def48:
+  for x holds it.x = x * N;
+  existence
+  proof
+    deffunc F(Element of Q) = $1 * N;
+    consider f be Function of Q,bool the carrier of Q
+    such that
+    A1: for x being Element of Q holds f.x = F(x)
+    from FUNCT_2:sch 4;
+    A2: dom f = the carrier of Q by FUNCT_2:def 1;
+    A3: rng f c= the carrier of Q _/_ N
+    proof
+      let H be object;
+      assume H in rng f;
+      then consider x being object such that
+      A4: x in dom f & H = f.x by FUNCT_1:def 3;
+      reconsider x as Element of Q by A4,FUNCT_2:def 1;
+      H = x * N by A1,A4;
+      hence thesis  by Def41;
+    end;
+    reconsider f as Function of Q,Q _/_ N by FUNCT_2:2,A2,A3;
+    take f;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of Q,Q _/_ N such that
+    A5: for x holds f.x = x * N
+    and
+    A6: for x holds g.x = x * N;
+    let x;
+    thus f.x = x * N by A5
+    .= g.x by A6;
+  end;
+end;
+
+registration
+  let Q;
+  let N be normal SubLoop of Q;
+  cluster QuotientHom(Q,N) -> homomorphic;
+  coherence
+  proof
+    set f = QuotientHom(Q,N);
+    thus f.(1.Q) = 1.(Q _/_ N) by Def48;
+    let x,y be Element of Q;
+    reconsider xN = x * N as Element of Cosets N by Def41;
+    reconsider yN = y * N as Element of Cosets N by Def41;
+    f.(x * y) = (x * y) * N by Def48
+    .= (x * N) * (y * N) by Def44
+    .= (Coset_Loop_Op N).(xN,yN) by Def46
+    .= (the multF of Q _/_ N).(f.x,yN) by Def48
+    .= (the multF of Q _/_ N).(f.x,f.y) by Def48;
+    hence thesis;
+  end;
+end;
+
+theorem Th36:
+  for H being SubLoop of Q holds
+  for x,y holds
+  for x1,y1 being Element of H st
+  x = x1 & y = y1
+  holds
+  x * y = x1 * y1
+proof
+  let H be SubLoop of Q;
+  let x,y;
+  let x1,y1 be Element of H;
+  assume A1: x = x1 & y = y1;
+  x1 * y1 = ((the multF of Q)||the carrier of H).(x1,y1) by Def30
+  .= x * y by A1,RING_3:1;
+  hence thesis;
+end;
+
+theorem Th37:
+  for H being SubLoop of Q holds
+  for x,y st x in the carrier of H & y in the carrier of H holds
+    x * y in the carrier of H
+proof
+  let H be SubLoop of Q;
+  let x,y;
+  assume
+  x in the carrier of H &
+   y in the carrier of H;
+  then reconsider x1 = x,y1=y  as Element of H;
+  x * y = x1 * y1 by Th36;
+  hence thesis;
+end;
+
+theorem Th38:
+  for H being SubLoop of Q holds
+  for x,y holds
+  for x1,y1 being Element of H st
+  x = x1 & y = y1
+  holds
+  x \ y = x1 \ y1
+proof
+  let H be SubLoop of Q;
+  let x,y;
+  let x1,y1 be Element of H;
+  assume A1: x = x1 & y = y1;
+   the carrier of H c= the carrier of Q by Def30;
+  then reconsider x1y1 = x1 \ y1 as Element of Q;
+  x * x1y1 = x1 * (x1 \ y1) by Th36,A1
+  .= y by A1;
+  hence thesis;
+end;
+
+theorem Th39:
+  for H being SubLoop of Q holds
+  for x,y st x in the carrier of H & y in the carrier of H holds
+    x \ y in the carrier of H
+proof
+  let H be SubLoop of Q, x,y such that
+  A1: x in the carrier of H & y in the carrier of H;
+  reconsider x1 = x,y1=y  as Element of H by A1;
+  x \ y = x1 \ y1 by Th38;
+  hence thesis;
+end;
+
+theorem Th40:
+  for H being SubLoop of Q holds
+  for x,y holds
+  for x1,y1 being Element of H st
+  x = x1 & y = y1
+  holds
+  x / y = x1 / y1
+proof
+  let H be SubLoop of Q,x,y;
+  let x1,y1 be Element of H;
+  the carrier of H c= the carrier of Q by Def30;
+  then reconsider x1y1 = x1 / y1 as Element of Q;
+  assume A1: x = x1 & y = y1;
+  then x1y1 * y = (x1 / y1) * y1 by Th36
+  .= x by A1;
+  hence thesis;
+end;
+
+theorem Th41:
+  for H being SubLoop of Q holds
+  for x,y st x in the carrier of H & y in the carrier of H holds
+    x / y in the carrier of H
+proof
+  let H be SubLoop of Q,x,y;
+  assume x in the carrier of H & y in the carrier of H;
+  then reconsider x1 = x,y1=y as Element of H;
+  x / y = x1 / y1 by Th40;
+  hence thesis;
+end;
+
+scheme MltInd {Q() -> multLoop, H() -> Subset of Q(), P[Function of Q(),Q()]}:
+  for f being Function of Q(),Q() st f in Mlt H() holds P[f]
+  provided
+  A1: for u being Element of Q() st u in H() holds
+  for f being Function of Q(),Q() st for x being Element of Q() holds
+    f.x = x * u holds P[f]
+  and
+  A2: for u being Element of Q() st u in H() holds
+  for f being Function of Q(),Q() st for x being Element of Q() holds
+    f.x = u * x holds P[f]
+  and
+  A3: for g,h being Permutation of Q() st P[g] & P[h] holds P[g*h]
+  and
+  A4: for g being Permutation of Q() st P[g] holds P[g"]
+proof
+  deffunc Phi(Subset of Funcs(Q(),Q())) = MltClos1(H(),$1);
+  consider phi be Function of bool Funcs(Q(),Q()),bool Funcs(Q(),Q())
+  such that
+  A5: for X being Subset of Funcs(Q(),Q()) holds phi.X = Phi(X)
+  from FUNCT_2:sch 4;
+  set SP = {f where f is Function of Q(),Q() : P[f]};
+  SP c= Funcs(Q(),Q())
+  proof
+    let f be object;
+    assume f in SP;
+    then ex g being Function of Q(),Q() st f = g & P[g];
+    hence thesis by FUNCT_2:9;
+  end;
+  then reconsider SP as Subset of Funcs(Q(),Q());
+  phi.(SP) c= SP
+  proof
+    let f be object;
+    assume f in phi.(SP);
+    then f in MltClos1(H(),SP) by A5;
+    then per cases by Def37;
+    suppose ex u be Element of Q() st u in H() &
+      f = (curry' (the multF of Q())).u;
+      then consider u being Element of Q() such that
+      A6: u in H() & f = (curry' (the multF of Q())).u;
+      reconsider f as Function of Q(),Q() by A6;
+      for x being Element of Q() holds f.x = x * u by A6,FUNCT_5:70;
+      then P[f] by A1,A6;
+      hence thesis;
+    end;
+    suppose ex u be Element of Q() st u in H() &
+      f = (curry (the multF of Q())).u;
+      then consider u being Element of Q() such that
+      A7: u in H() & f = (curry (the multF of Q())).u;
+     reconsider f as Function of Q(),Q() by A7;
+      for x being Element of Q() holds f.x = u * x by A7,FUNCT_5:69;
+      then P[f] by A2,A7;
+      hence thesis;
+    end;
+    suppose ex g,h be Permutation of Q() st g in SP & h in SP & f = g*h;
+      then consider g,h being Permutation of Q() such that
+      A8: g in SP & h in SP & f = g*h;
+        consider g2 being Function of Q(),Q() such that
+        A9: g = g2 & P[g2] by A8;
+     A10: ex h2 be Function of Q(),Q() st
+        h = h2 & P[h2] by A8;
+      P[g*h] by A10,A3,A9;
+      hence thesis by A8;
+    end;
+    suppose ex g be Permutation of Q() st g in SP & f = g";
+      then consider g being Permutation of Q() such that
+      A11: g in SP & f = g";
+      ex g2 being Function of Q(),Q() st g = g2 & P[g2] by A11;
+      then P[g"] by A4;
+      hence thesis by A11;
+    end;
+  end;
+  then A12: Mlt H() c= SP by Th34,A5;
+  let f be Function of Q(),Q();
+  assume f in Mlt H();
+  then f in SP by A12;
+  then ex g be Function of Q(),Q() st f = g & P[g];
+  hence thesis;
+end;
+
+theorem Th42:
+  for N being SubLoop of Q holds
+  for f being Function of Q,Q st f in Mlt (@ ([#] N)) holds
+  for x holds x in (@ ([#] N)) iff f.x in (@ ([#] N))
+proof
+  let N be SubLoop of Q;
+  reconsider H = @ ([#] N) as Subset of Q;
+  defpred P[Function of Q,Q] means for x holds x in H iff $1.x in H;
+  A1: for u being Element of Q st u in H holds
+  for f being Function of Q,Q st for x being Element of Q holds
+    f.x = x * u holds P[f]
+  proof
+    let u;
+    assume A2:u in H;
+    let f be Function of Q,Q;
+    assume A3: for x holds f.x = x * u;
+    P[f]
+    proof
+      let x;
+      thus x in H implies f.x in H
+      proof
+        assume x in H;
+        then x * u in the carrier of N by Th37,A2;
+        hence thesis by A3;
+      end;
+      assume f.x in H;
+      then reconsider xu1 = x * u as Element of N by A3;
+      reconsider u1 = u as Element of N by A2;
+      the carrier of N c= the carrier of Q by Def30;
+      then reconsider xu1u1 = xu1 / u1 as Element of Q;
+      A4: x * u = (xu1 / u1) * u1
+      .= xu1u1 * u by Th36;
+      x = (xu1u1 * u) / u by A4
+      .= (xu1 / u1);
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  A5: for u being Element of Q st u in H holds
+  for f being Function of Q,Q st for x being Element of Q holds
+    f.x = u * x holds P[f]
+  proof
+    let u;
+    assume A6: u in H;
+    let f be Function of Q,Q;
+    assume A7: for x holds f.x = u * x;
+    P[f]
+    proof
+      let x;
+      thus x in H implies f.x in H
+      proof
+        assume x in H;
+        then u * x in the carrier of N by Th37,A6;
+        hence thesis by A7;
+      end;
+      assume f.x in H;
+      then reconsider ux1 = u * x,u1=u as Element of N by A7,A6;
+      the carrier of N c= the carrier of Q by Def30;
+      then reconsider u1ux1 = u1 \ ux1 as Element of Q;
+      u * x = u1 * (u1 \ ux1)
+      .= u * u1ux1 by Th36;
+      then x  = u \ (u * u1ux1)
+      .= (u1 \ ux1);
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  A8: for g,h being Permutation of Q st P[g] & P[h] holds P[g*h]
+  proof
+    let g,h be Permutation of Q such that A9: P[g] & P[h];
+    let x;
+    x in H iff h.x in H by A9;
+    then x in H iff g.(h.x) in H by A9;
+    hence thesis by FUNCT_2:15;
+  end;
+  A10: for g being Permutation of Q st P[g] holds P[g"]
+  proof
+    let g be Permutation of Q such that A11: P[g];
+    let x;
+    x = (id the carrier of Q).x
+    .= (g*(g")).x by FUNCT_2:61
+    .= g.((g").x) by FUNCT_2:15;
+    hence x in H iff (g").x in H by A11;
+  end;
+  for f being Function of Q,Q st f in Mlt H holds P[f]
+    from MltInd(A1,A5,A8,A10);
+  hence thesis;
+end;
+
+theorem Th43:
+  for N being normal SubLoop of Q holds
+  the carrier of N = 1.Q * N
+proof
+  let N be normal SubLoop of Q;
+  A1: the carrier of N c= the carrier of Q by Def30;
+  thus the carrier of N c= 1.Q * N
+  proof
+    let x be object;
+    assume A2: x in the carrier of N;
+    then reconsider x as Element of Q by A1;
+    A3: (curry (the multF of Q)).x in Mlt (@ ([#] N)) by Th32,A2;
+    reconsider h = (curry (the multF of Q)).x as Permutation of Q
+      by Th30;
+    h.(1.Q) = x * 1.Q by FUNCT_5:69;
+    hence thesis by Def39,A3;
+  end;
+  let x be object;
+  assume x in 1.Q * N;
+  then A4:ex h be Permutation of Q st
+  h in Mlt (@ [#] N) & x = h.(1.Q) by Def39;
+  1.N = 1.Q by Def30;
+  hence thesis by Th42,A4;
+end;
+
+
+theorem Th44:
+  for N being normal SubLoop of Q holds
+  Ker (QuotientHom(Q,N)) = @ ([#] N)
+proof
+  let N be normal SubLoop of Q;
+  A1: the carrier of N c= the carrier of Q by Def30;
+  set f = QuotientHom(Q,N);
+  for x holds x in Ker f iff x in @ ([#] N)
+  proof
+    let x;
+    thus x in Ker f implies x in @ ([#] N)
+    proof
+      assume A2: x in Ker f;
+      A3:x * N = f.x by Def48
+      .= 1.(Q _/_ N) by Def29,A2
+      .= 1.Q * N;
+      A4: 1.N = 1.Q by Def30;
+      reconsider h = (curry (the multF of Q)).(1.Q) as Permutation of Q
+        by Th30;
+      A5: h in Mlt (@ [#] N) by A4,Th32;
+      A6: h.x in x * (@ ([#] N)) by Def39,A5;
+      h.x = 1.Q * x by FUNCT_5:69;
+      hence thesis by A6,A3,Th43;
+    end;
+    assume A7: x in @ ([#] N);
+    A8: for y holds y in x * N iff y in 1.Q * N
+    proof
+      let y;
+      thus y in x * N implies y in 1.Q * N
+      proof
+        assume y in x * N;
+        then consider h being Permutation of Q such that
+        A9: h in Mlt (@ ([#] N)) & h.x = y by Def39;
+        h.x in @ ([#] N) by Th42,A9,A7;
+        hence thesis by A9,Th43;
+      end;
+      assume y in 1.Q * N;
+      then reconsider y1 = y as Element of N by Th43;
+      reconsider x1 = x as Element of N by A7;
+      ex h being Permutation of Q st h in Mlt (@ ([#] N)) & y = h.x
+      proof
+        reconsider y1x1 = y1 / x1 as Element of Q by A1;
+        reconsider h = (curry (the multF of Q)).(y1x1) as Permutation of Q
+        by Th30;
+        take h;
+        thus h in Mlt (@ [#] N) by Th32;
+        h.x = y1x1 * x by FUNCT_5:69
+        .= (y / x) * x by Th40
+        .= y;
+        hence h.x = y;
+      end;
+      hence thesis by Def39;
+    end;
+    f.x = x * N by Def48
+    .= 1.(Q _/_ N) by A8,SUBSET_1:3;
+    hence thesis by Def29;
+  end;
+  hence thesis by SUBSET_1:3;
+end;
+
+theorem Th45:
+  for Q2 being multLoop holds
+  for f being homomorphic Function of Q,Q2 holds
+  for h being Function of Q,Q st h in Mlt (Ker f) holds
+  f*h = f
+proof
+  let Q2 be multLoop;
+  let f be homomorphic Function of Q,Q2;
+  set H = Ker f;
+  defpred P[Function of Q,Q] means f * $1 = f;
+  A1: for u being Element of Q st u in H holds
+  for h being Function of Q,Q st for x being Element of Q holds
+    h.x = x * u holds P[h]
+  proof
+    let u;
+    assume A2: u in H;
+    let h be Function of Q,Q;
+    assume A3: for x holds h.x = x * u;
+    P[h]
+    proof
+      for x holds (f*h).x = f.x
+      proof
+        let x;
+        thus (f*h).x = f.(h.x) by FUNCT_2:15
+        .= f.(x * u) by A3
+        .= f.x * f.u by Def28b
+        .= f.x * 1.Q2 by A2,Def29
+        .= f.x;
+      end;
+      hence thesis by FUNCT_2:def 8;
+    end;
+    hence thesis;
+  end;
+  A4: for u being Element of Q st u in H holds
+  for h being Function of Q,Q st for x being Element of Q holds
+    h.x = u * x holds P[h]
+  proof
+    let u;
+    assume A5: u in H;
+    let h be Function of Q,Q;
+    assume A6: for x holds h.x = u * x;
+    P[h]
+    proof
+      for x holds (f*h).x = f.x
+      proof
+        let x;
+        thus (f*h).x = f.(h.x) by FUNCT_2:15
+        .= f.(u * x) by A6
+        .= f.u * f.x by Def28b
+        .= 1.Q2 * f.x by A5,Def29
+        .= f.x;
+      end;
+      hence thesis by FUNCT_2:def 8;
+    end;
+    hence thesis;
+  end;
+  A7: for g,h being Permutation of Q st P[g] & P[h] holds P[g*h] by RELAT_1:36;
+  A8: for g being Permutation of Q st P[g] holds P[g"]
+  proof
+    let g be Permutation of Q such that A9: P[g];
+    P[g"]
+    proof
+      for x holds (f*(g")).x = f.x
+      proof
+        let x;
+        thus (f*(g")).x = f.((g").x) by FUNCT_2:15
+        .= f.(g.((g").x)) by FUNCT_2:15,A9
+        .= f.((g*g").x) by FUNCT_2:15
+        .= f.((id the carrier of Q).x) by FUNCT_2:61
+        .= f.x;
+      end;
+      hence thesis by FUNCT_2:def 8;
+    end;
+    hence thesis;
+  end;
+  for f being Function of Q,Q st f in Mlt H holds P[f]
+    from MltInd(A1,A4,A7,A8);
+  hence thesis;
+end;
+
+theorem Th46:
+  for Q2 being multLoop holds
+  for f being homomorphic Function of Q,Q2 holds
+  for x,y holds
+  y in x * Ker f iff f.x = f.y
+proof
+  let Q2 be multLoop,f be homomorphic Function of Q,Q2,x,y;
+  thus y in x * Ker f implies f.x = f.y
+  proof
+    assume y in x * Ker f;
+    then consider h being Permutation of Q such that
+    A1: h in Mlt (Ker f) & y = h.x by Def39;
+    f.x = (f*h).x by Th45,A1
+    .= f.y by A1,FUNCT_2:15;
+    hence thesis;
+  end;
+  assume A2: f.x = f.y;
+  ex h being Permutation of Q st h in Mlt (Ker f) & y = h.x
+  proof
+    reconsider h = (curry (the multF of Q)).(y / x)
+    as Permutation of Q by Th30;
+    take h;
+    f.(y / x) = f.y / f.x by Th14
+    .= 1.Q2 by Th6,A2;
+    then A3: y / x in Ker f by Def29;
+    h.x = (y / x) * x by FUNCT_5:69
+    .= y;
+    hence thesis by A3,Th32;
+  end;
+  hence thesis by Def39;
+end;
+
+theorem Th47:
+  for Q2 being multLoop holds
+  for f being homomorphic Function of Q,Q2 holds
+  for x,y holds
+  y in x * lp (Ker f) iff f.x = f.y
+proof
+  let Q2 be multLoop,f be homomorphic Function of Q,Q2,x,y;
+  y in x * lp (Ker f) iff y in x * Ker f by Th19;
+  hence y in x * lp (Ker f) iff f.x = f.y by Th46;
+end;
+
+theorem Th48:
+  for Q2 being multLoop holds
+  for f being homomorphic Function of Q,Q2 holds
+  for x,y holds
+  x * lp (Ker f) = y * lp (Ker f) iff f.x = f.y
+proof
+  let Q2 be multLoop,f be homomorphic Function of Q,Q2;
+  A1: for x,y holds f.x = f.y implies x * lp (Ker f) c= y * lp (Ker f)
+  proof
+    let x,y such that A2: f.x = f.y;
+    let z be object;
+    assume A3: z in x * lp (Ker f);
+    then f.x = f.z by Th47;
+    hence z in y * lp (Ker f) by A3,A2,Th47;
+  end;
+  let x,y;
+  x * lp (Ker f) = y * lp (Ker f) implies f.x = f.y
+  proof
+    assume A4: x * lp (Ker f) = y * lp (Ker f);
+    f.y = f.y;
+    then y in y * lp (Ker f) by Th47;
+    hence thesis by A4,Th47;
+  end;
+  hence thesis by A1;
+end;
+
+theorem
+  for Q2 being multLoop holds
+  for f being homomorphic Function of Q,Q2 holds
+  lp (Ker f) is normal
+proof
+  let Q2 be multLoop;
+  let f be homomorphic Function of Q,Q2;
+  set H = lp (Ker f);
+  A1: for x,y holds (x * H) * (y * H) = (x * y) * H
+  proof
+    let x,y;
+    for z holds z in (x * H) * (y * H) iff z in (x * y) * H
+    proof
+      let z;
+      thus z in (x * H) * (y * H) implies z in (x * y) * H
+      proof
+        assume z in (x * H) * (y * H);
+        then consider v,w such that
+        A2: v in x * H & w in y * H & z = v * w by Def42;
+        A3: f.y = f.w by Th47,A2;
+        f.z = f.v * f.w by Def28b,A2
+        .= f.x * f.y by Th47,A2,A3
+        .= f.(x * y) by Def28b;
+        hence z in (x * y) * H by Th47;
+      end;
+      assume z in (x * y) * H;
+      then A4: f.z = f.(x * y) by Th47;
+      ex v,w st v in x * H & w in y * H & z = v * w
+      proof
+        take z / y,y;
+        A5: f.(z / y) = f.z / f.y by Th14
+        .= (f.x * f.y) / f.y by A4,Def28b
+        .= f.x;
+        f.y = f.y;
+        hence thesis by A5,Th47;
+      end;
+      hence z in (x * H) * (y * H) by Def42;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+  for x,y holds
+  (x * H) * (y * H) = (x * y) * H
+  &
+  for z holds
+  ((x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H))
+  &
+  ((y * H) * (x * H) = (z * H) * (x * H) implies (y * H) = (z * H))
+  proof
+    let x,y;
+    thus (x * H) * (y * H) = (x * y) * H by A1;
+    let z;
+    thus (x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H)
+    proof
+      assume (x * H) * (y * H) = (x * H) * (z * H);
+      then (x * y) * H = (x * H) * (z * H) by A1;
+      then A6: (x * y) * H = (x * z) * H by A1;
+      f.y = f.x \ (f.x * f.y)
+      .= f.x \ f.(x * y) by Def28b
+      .= f.x \ f.(x * z) by A6,Th48
+      .= f.x \ (f.x * f.z) by Def28b
+      .= f.z;
+      hence (y * H) = (z * H) by Th48;
+    end;
+    assume (y * H) * (x * H) = (z * H) * (x * H);
+    then (y * x) * H = (z * H) * (x * H) by A1;
+    then A7: (y * x) * H = (z * x) * H by A1;
+    f.y = (f.y * f.x) / f.x
+    .= f.(y * x) / f.x by Def28b
+    .= f.(z * x) / f.x by A7,Th48
+    .= (f.z * f.x) / f.x by Def28b
+    .= f.z;
+    hence (y * H) = (z * H) by Th48;
+  end;
+  hence thesis;
+end;
+
+theorem Th50:
+  1.Q in [#] (lp (Cent Q)) & 1.Q in Cent Q
+proof
+  the OneF of (lp (Cent Q)) = 1.Q by Def30;
+  then 1.Q in [#] (lp (Cent Q));
+  hence thesis by Th25;
+end;
+
+theorem Th51:
+  for f being Function of Q,Q st f in Mlt (Cent Q) holds
+  ex z st z in Cent Q & for x holds f.x = x * z
+proof
+  set H = Cent Q;
+  defpred P[Function of Q,Q] means ex z st z in H & for x holds $1.x = x * z;
+  A1: for u being Element of Q st u in H holds
+  for f being Function of Q,Q st for x being Element of Q holds
+    f.x = x * u holds P[f];
+  A2: for u being Element of Q st u in H holds
+  for f being Function of Q,Q st for x being Element of Q holds
+    f.x = u * x holds P[f]
+  proof
+    let u;
+    assume A3: u in H;
+    then A4: u in Comm Q by XBOOLE_0:def 4;
+    let f be Function of Q,Q;
+    assume A5: for x holds f.x = u * x;
+    P[f]
+    proof
+      take u;
+      thus u in Cent Q by A3;
+      let x;
+      f.x = u * x by A5
+      .= x * u by Def25,A4;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  A6: for g,h being Permutation of Q st P[g] & P[h] holds P[g*h]
+  proof
+    let g,h be Permutation of Q;
+    assume A7: P[g] & P[h];
+    consider u such that
+    A8: u in H & for x holds g.x = x * u by A7;
+    consider v such that
+    A9: v in H & for x holds h.x = x * v by A7;
+    take (v * u);
+    u in [#] (lp (Cent Q)) & v in [#] (lp (Cent Q)) by Th25,A8,A9;
+    then v * u in [#] (lp (Cent Q)) by Th37;
+    hence v * u in H by Th25;
+    u in Nucl Q by A8,XBOOLE_0:def 4;
+    then A10: u in Nucl_r Q by Th12;
+    let x;
+    (g*h).x = g.(h.x) by FUNCT_2:15
+    .= g.(x * v) by A9
+    .= (x * v) * u by A8
+    .= x * (v * u) by A10,Def24;
+    hence thesis;
+  end;
+  A11: for g being Permutation of Q st P[g] holds P[g"]
+  proof
+    let g be Permutation of  Q;
+    assume P[g];
+    then consider v such that
+    A12: v in H & for x holds g.x = x * v;
+    v in Nucl Q by A12,XBOOLE_0:def 4;
+    then A13: v in Nucl_m Q by Th12;
+    P[g"]
+    proof
+      take (v \ 1.Q);
+      A14: 1.Q in [#] (lp (Cent Q)) by Th50;
+      v in [#] (lp (Cent Q)) by Th25,A12;
+      then v \ 1.Q in [#] (lp (Cent Q)) by Th39,A14;
+      hence v \ 1.Q in Cent Q by Th25;
+      let x;
+      reconsider h = (curry' (the multF of Q)).(v \ 1.Q)
+      as Permutation of Q by Th31;
+      for y holds (h*g).y = (id Q).y
+      proof
+        let y;
+        (h*g).y = h.(g.y) by FUNCT_2:15
+        .= h.(y * v) by A12
+        .= (y * v) * (v \ 1.Q) by FUNCT_5:70
+        .= y * (v * (v \ 1.Q)) by Def23,A13
+        .= y;
+        hence thesis;
+      end;
+      then (g").x = h.x by FUNCT_2:60,def 8
+      .= x * (v \ 1.Q) by FUNCT_5:70;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  for f being Function of Q,Q st f in Mlt H holds P[f]
+    from MltInd(A1,A2,A6,A11);
+  hence thesis;
+end;
+
+theorem Th52:
+  y in x * lp (Cent Q) iff ex z st z in Cent Q & y = x * z
+proof
+  thus y in x * lp (Cent Q) implies ex z st z in Cent Q & y = x * z
+  proof
+    assume y in x * lp (Cent Q);
+    then y in x * Cent Q by Th25;
+    then consider h being Permutation of Q such that
+    A1: h in Mlt (Cent Q) & h.x = y by Def39;
+    consider z such that
+    A2: z in Cent Q & for v holds h.v = v * z by Th51,A1;
+    take z;
+    thus thesis by A2,A1;
+  end;
+  given z such that
+  A3: z in Cent Q & y = x * z;
+  reconsider h = (curry' (the multF of Q)).(z) as Permutation of Q
+  by Th31;
+  ex h being Permutation of Q st h in Mlt (Cent Q) & h.x = y
+  proof
+    reconsider h = (curry' (the multF of Q)).(z) as Permutation of Q
+    by Th31;
+    take h;
+    thus thesis by FUNCT_5:70,Th33,A3;
+  end;
+  then y in x * Cent Q by Def39;
+  hence thesis by Th25;
+end;
+
+theorem Th53:
+  x * lp (Cent Q) = y * lp (Cent Q) iff ex z st z in Cent Q & y = x * z
+proof
+  thus x * lp (Cent Q) = y * lp (Cent Q) implies
+    ex z st z in Cent Q & y = x * z
+  proof
+    assume A1: x * lp (Cent Q) = y * lp (Cent Q);
+    1.Q in Cent Q & y = y * 1.Q by Th50;
+    hence ex z st z in Cent Q & y = x * z by A1,Th52;
+  end;
+  thus (ex z st z in Cent Q & y = x * z) implies
+    x * lp (Cent Q) = y * lp (Cent Q)
+  proof
+    assume ex z st z in Cent Q & y = x * z;
+    then consider z such that
+    A2: z in Cent Q & y = x * z;
+    z in Nucl Q by A2,XBOOLE_0:def 4;
+    then A3: z in Nucl_m Q by Th12;
+    for w holds w in x * lp (Cent Q) iff w in y * lp (Cent Q)
+    proof
+      let w;
+      thus w in x * lp (Cent Q) implies w in y * lp (Cent Q)
+      proof
+        assume w in x * lp (Cent Q);
+        then consider v such that
+        A4: v in Cent Q & w = x * v by Th52;
+        ex u st u in Cent Q & w = y * u
+        proof
+          take (z \ v);
+          z in [#] (lp (Cent Q)) & v in [#] (lp (Cent Q)) by A2,A4,Th25;
+          then z \ v in [#] (lp (Cent Q)) by Th39;
+          hence (z \ v) in Cent Q by Th25;
+          w = x * (z * (z \ v)) by A4
+          .= y * (z \ v) by A2,Def23,A3;
+          hence thesis;
+        end;
+        hence thesis by Th52;
+      end;
+      assume w in y * lp (Cent Q);
+      then consider v such that
+      A5: v in Cent Q & w = y * v by Th52;
+      ex u st u in Cent Q & w = x * u
+      proof
+        take (z * v);
+        z in [#] (lp (Cent Q)) & v in [#] (lp (Cent Q)) by A2,A5,Th25;
+        then z * v in [#] (lp (Cent Q)) by Th37;
+        hence thesis by Def23,A3,A2,A5,Th25;
+      end;
+      hence thesis by Th52;
+    end;
+    hence x * lp (Cent Q) = y * lp (Cent Q) by SUBSET_1:3;
+  end;
+end;
+
+theorem Th54:
+  lp (Cent Q) is normal
+proof
+  set H = lp (Cent Q);
+  A1: for x,y holds (x * H) * (y * H) = (x * y) * H
+  proof
+    let x,y;
+    for z holds z in (x * H) * (y * H) iff z in (x * y) * H
+    proof
+      let z;
+      thus z in (x * H) * (y * H) implies z in (x * y) * H
+      proof
+        assume z in (x * H) * (y * H);
+        then consider v,w such that
+        A2: v in x * H & w in y * H & z = v * w by Def42;
+        consider v1 being Element of Q such that
+        A3: v1 in Cent Q & v = x * v1 by Th52,A2;
+        consider w1 being Element of Q such that
+        A4: w1 in Cent Q & w = y * w1 by Th52,A2;
+        v1 in [#] lp (Cent Q) & w1 in [#] lp (Cent Q) by A3,A4,Th25;
+        then v1 * w1 in [#] lp (Cent Q) by Th37;
+        then A5: v1 * w1 in Cent Q by Th25;
+        A6: v1 in Comm Q by A3,XBOOLE_0:def 4;
+        A7: v1 in Nucl Q by A3,XBOOLE_0:def 4;
+        A8: v1 in Nucl_m Q & v1 in Nucl_r Q by A7,Th12;
+        w1 in Nucl Q by A4,XBOOLE_0:def 4;
+        then A9: w1 in Nucl_r Q by Th12;
+        z  = ((x * v1) * y) * w1 by Def24,A9,A4,A3,A2
+        .= (x * (v1 * y)) * w1 by Def23,A8
+        .= (x * (y * v1)) * w1 by Def25,A6
+        .= ((x * y) * v1) * w1 by Def24,A8
+        .= (x * y) * (v1 * w1) by Def24,A9;
+        hence z in (x * y) * H by Th52,A5;
+      end;
+      assume z in (x * y) * H;
+      then consider w such that
+      A10: w in Cent Q & z = (x * y) * w by Th52;
+      w in Nucl Q by A10,XBOOLE_0:def 4;
+      then A11: w in Nucl_r Q by Th12;
+      ex u,v st u in x * H & v in y * H & z = u * v
+      proof
+        take x * 1.Q,y * w;
+        thus thesis by Def24,A11,Th52, Th50,A10;
+      end;
+      hence z in (x * H) * (y * H) by Def42;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+  for x,y holds (x * H) * (y * H) = (x * y) * H &
+  for z holds ((x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H))
+  &
+  ((y * H) * (x * H) = (z * H) * (x * H) implies (y * H) = (z * H))
+  proof
+    let x,y;
+    thus (x * H) * (y * H) = (x * y) * H by A1;
+    let z;
+    thus (x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H)
+    proof
+      assume (x * H) * (y * H) = (x * H) * (z * H);
+      then (x * y) * H = (x * H) * (z * H) by A1;
+      then (x * y) * H = (x * z) * H by A1;
+      then consider w such that
+      A12: w in Cent Q & x * z = (x * y) * w by Th53;
+      w in Nucl Q by A12,XBOOLE_0:def 4;
+      then A13: w in Nucl_r Q by Th12;
+      x * z = x * (y * w) by A12,Def24,A13;
+      hence y * H = z * H by Th1,Th53,A12;
+    end;
+    assume (y * H) * (x * H) = (z * H) * (x * H);
+    then (y * x) * H = (z * H) * (x * H) by A1;
+    then (y * x) * H = (z * x) * H by A1;
+    then consider w such that
+    A14: w in Cent Q & z * x = (y * x) * w by Th53;
+    A15: w in Comm Q by A14,XBOOLE_0:def 4;
+    w in Nucl Q by A14,XBOOLE_0:def 4;
+    then A16: w in Nucl_l Q by Th12;
+    z * x = w * (y * x) by A14,Def25,A15
+    .= (w * y) * x by Def22,A16;
+    then z = w * y by Th2;
+    then z = y * w by Def25,A15;
+    hence y * H = z * H by Th53,A14;
+  end;
+  hence thesis;
+end;
+
+begin :: AIM Conjecture
+
+::We define the set InnAut of inner mappings of Q,
+::define the notion of an AIM loop and relate this to
+::the conditions on T, L, and R defined by satisfies_TT, etc.
+::For AIM loops we will prove the nucleus and the center are normal.
+
+definition
+  let Q be multLoop;
+  func InnAut Q -> Subset of Funcs(Q,Q) means
+  :Def49:
+  for f being object holds
+  f in it iff
+  ex g being Function of Q,Q st
+  f = g & g in Mlt ([#] Q) & g.(1.Q) = 1.Q;
+  existence
+  proof
+    set I = {g where g is Function of Q,Q : g in Mlt ([#] Q) & g.(1.Q) = 1.Q};
+    I c= Funcs(Q,Q)
+    proof
+      let f be object;
+      assume f in I;
+      then ex g being Function of Q,Q st
+        f = g & g in Mlt ([#] Q) & g.(1.Q) = 1.Q;
+      hence thesis;
+    end;
+    then reconsider I as Subset of Funcs(Q,Q);
+    take I;
+    thus thesis;
+  end;
+  uniqueness
+  proof
+    let I1,I2 be Subset of Funcs(Q,Q);
+    assume that
+    A8: for f being object holds f in I1 iff
+    ex g being Function of Q,Q st
+    f = g & g in Mlt ([#] Q) & g.(1.Q) = 1.Q
+    and
+    A9: for f being object holds f in I2 iff
+    ex g being Function of Q,Q st
+    f = g & g in Mlt ([#] Q) & g.(1.Q) = 1.Q;
+    for f being object holds f in I1 iff f in I2
+    proof
+      let f be object;
+      f in I1 iff
+      ex g being Function of Q,Q st
+      f = g & g in Mlt ([#] Q) & g.(1.Q) = 1.Q by A8;
+      hence thesis by A9;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+end;
+
+registration
+  let Q be multLoop;
+  cluster InnAut Q -> non empty composition-closed inverse-closed;
+  coherence
+  proof
+    set I = InnAut Q;
+    thus A1: I is non empty
+    proof
+      set g = (curry (the multF of Q)).(1.Q);
+      ex h being Function of Q,Q st
+      g = h & h in Mlt ([#] Q) & h.(1.Q) = 1.Q
+      proof
+        take g;
+        g.(1.Q) = 1.Q * 1.Q by FUNCT_5:69
+        .= 1.Q;
+        hence thesis by Th32;
+      end;
+      hence thesis by Def49;
+    end;
+    thus I is composition-closed
+      proof
+        let f,g be Element of I;
+        consider f2 being Function of Q,Q such that
+        A5: f = f2 & f2 in Mlt ([#] Q) & f2.(1.Q) = 1.Q by A1,Def49;
+        consider g2 being Function of Q,Q such that
+        A6: g = g2 & g2 in Mlt ([#] Q) & g2.(1.Q) = 1.Q by A1,Def49;
+        set h= f2*g2;
+        f*g = h & h in Mlt ([#] Q) & h.(1.Q) = 1.Q
+        by A5,A6,FUNCT_2:15,Def34;
+        hence thesis by Def49;
+      end;
+    thus I is inverse-closed
+      proof
+        let f be Element of I;
+        consider f2 being Function of Q,Q such that
+        A7: f = f2 & f2 in Mlt ([#] Q) & f2.(1.Q) = 1.Q by A1,Def49;
+        ex h being Function of Q,Q st
+        f" = h & h in Mlt ([#] Q) & h.(1.Q) = 1.Q
+        proof
+          reconsider f2 as Permutation of the carrier of Q by Th35,A7;
+          take f2";
+          (f2").(1.Q) = ((f2") * f2).(1.Q) by FUNCT_2:15,A7
+          .= (id the carrier of Q).(1.Q) by FUNCT_2:61
+          .= 1.Q;
+          hence thesis by A7,Def35;
+        end;
+        hence thesis by Def49;
+      end;
+    end;
+  end;
+
+theorem Th55:
+  for f being Function of Q,Q holds
+  f in InnAut Q iff f in Mlt ([#] Q) & f.(1.Q) = 1.Q
+proof
+  let f be Function of Q,Q;
+  thus f in InnAut Q implies f in Mlt ([#] Q) & f.(1.Q) = 1.Q
+  proof
+    assume f in InnAut Q;
+    then ex g being Function of Q,Q st
+    f = g & g in Mlt ([#] Q) & g.(1.Q) = 1.Q by Def49;
+    hence thesis;
+  end;
+  thus thesis by Def49;
+end;
+
+definition
+  let Q be multLoop;
+  attr Q is AIM means :Def50:
+    for f,g being Function of Q,Q st f in InnAut Q & g in InnAut Q holds
+      f*g = g*f;
+end;
+
+definition
+  let Q,x; 
+  deffunc Tx(Element of Q) = T_map($1,x);
+  func T_MAP(x) -> Function of Q,Q means :TM1:
+  for u holds it.u = T_map(u,x);
+  existence
+  proof
+    ex f being Function of Q,Q st
+    for u being Element of Q holds f.u = Tx(u) from FUNCT_2:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of Q,Q such that
+A1: for u holds f.u = Tx(u) and
+A2: for u holds g.u = Tx(u);
+    let u;
+    thus f.u = Tx(u) by A1
+    .= g.u by A2;
+  end;
+end;
+
+theorem Th56:
+  T_MAP(x) in InnAut Q
+proof
+  set f = T_MAP(x);
+  reconsider g = (curry (the multF of Q)).x as
+    Permutation of the carrier of Q by Th30;
+  reconsider h = (curry' (the multF of Q)).x as
+    Permutation of the carrier of Q by Th31;
+  A2: f = g" * h
+  proof
+    for u holds (g * f).u = h.u
+    proof
+      let u;
+      thus (g * f).u = g.(f.u) by FUNCT_2:15
+      .= g.(T_map(u,x)) by TM1
+      .= x * (x \ (u * x)) by FUNCT_5:69
+      .= h.u by FUNCT_5:70;
+    end;
+    then g"*h = g"*(g*f) by FUNCT_2:def 8
+    .= (g"*g)*f by RELAT_1:36
+    .= (id the carrier of Q)*f by FUNCT_2:61
+    .= f by FUNCT_2:17;
+    hence thesis;
+  end;
+  g in Mlt ([#] Q) by Th32;
+  then A3: g" in Mlt ([#] Q) by Def35;
+  A4: h in Mlt ([#] Q) by Th33;
+  f.(1.Q) = T_map(1.Q,x) by TM1
+  .= 1.Q by Th5;
+  hence thesis by A4,Th55,A2,Def34,A3;
+end;
+
+definition
+  let Q,x,y;
+  deffunc Lx(Element of Q) = L_map($1,x,y);
+  func L_MAP(x,y) -> Function of Q,Q means :LM1:
+  for u holds it.u = L_map(u,x,y);
+  existence
+  proof
+    ex f being Function of Q,Q st
+    for u being Element of Q holds f.u = Lx(u) from FUNCT_2:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of Q,Q such that
+A1: for u holds f.u = Lx(u) and
+A2: for u holds g.u = Lx(u);
+    let u;
+    thus f.u = Lx(u) by A1
+    .= g.u by A2;
+  end;
+end;
+
+theorem Th57:
+  L_MAP(x,y) in InnAut Q
+proof
+  set f = L_MAP(x,y);
+  reconsider g = (curry (the multF of Q)).(y * x) as
+    Permutation of the carrier of Q by Th30;
+  reconsider h = (curry (the multF of Q)).x as
+    Permutation of the carrier of Q by Th30;
+  reconsider k = (curry (the multF of Q)).(y) as
+    Permutation of the carrier of Q by Th30;
+  A2: f = g" * (k * h)
+  proof
+    for u holds (g*f).u = (k*h).u
+    proof
+      let u;
+      (g*f).u = g.(f.u) by FUNCT_2:15
+      .= g.(L_map(u,x,y)) by LM1
+      .= (y * x) * ((y * x) \ (y * (x * u))) by FUNCT_5:69
+      .= k.(x * u) by FUNCT_5:69
+      .= k.(h.u) by FUNCT_5:69
+      .= (k*h).u by FUNCT_2:15;
+      hence thesis;
+    end;
+    then g"*(k*h) = g"*(g*f) by FUNCT_2:def 8
+    .= (g"*g)*f by RELAT_1:36
+    .= (id the carrier of Q)*f by FUNCT_2:61
+    .= f by FUNCT_2:17;
+    hence thesis;
+  end;
+  g in Mlt ([#] Q) by Th32;
+  then A3: g" in Mlt ([#] Q) by Def35;
+  h in Mlt ([#] Q) & k in Mlt ([#] Q) by Th32;
+  then A4:k * h in Mlt ([#] Q) by Def34;
+  f.(1.Q) = L_map(1.Q,x,y) by LM1
+  .= 1.Q by Th5;
+  hence thesis by Th55,A4,A2,Def34,A3;
+end;
+
+definition
+  let Q,x,y;
+  deffunc Rx(Element of Q) = R_map($1,x,y);
+  func R_MAP(x,y) -> Function of Q,Q means :RM1:
+  for u holds it.u = R_map(u,x,y);
+  existence
+  proof
+    ex f being Function of Q,Q st
+    for u being Element of Q holds f.u = Rx(u) from FUNCT_2:sch 4;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of Q,Q such that
+A1: for u holds f.u = Rx(u) and
+A2: for u holds g.u = Rx(u);
+    let u;
+    thus f.u = Rx(u) by A1
+    .= g.u by A2;
+  end;
+end;
+
+theorem Th58:
+  R_MAP(x,y) in InnAut Q
+proof
+  set f = R_MAP(x,y);
+  reconsider g = (curry' (the multF of Q)).(x * y) as
+    Permutation of the carrier of Q by Th31;
+  reconsider h = (curry' (the multF of Q)).x as
+    Permutation of the carrier of Q by Th31;
+  reconsider k = (curry' (the multF of Q)).(y) as
+    Permutation of the carrier of Q by Th31;
+  A2: f = g" * (k * h)
+  proof
+    for u holds (g*f).u = (k*h).u
+    proof
+      let u;
+      thus (g*f).u = g.(f.u) by FUNCT_2:15
+      .= g.(R_map(u,x,y)) by RM1
+      .= (((u * x) * y) / (x * y)) * (x * y) by FUNCT_5:70
+      .= k.(u * x) by FUNCT_5:70
+      .= k.(h.u) by FUNCT_5:70
+      .= (k*h).u by FUNCT_2:15;
+    end;
+    then g"*(k*h) = g"*(g*f) by FUNCT_2:def 8
+    .= (g"*g)*f by RELAT_1:36
+    .= (id Q)*f by FUNCT_2:61
+    .= f by FUNCT_2:17;
+    hence thesis;
+  end;
+  g in Mlt ([#] Q) by Th33;
+  then A3: g" in Mlt ([#] Q) by Def35;
+  h in Mlt ([#] Q) & k in Mlt ([#] Q) by Th33;
+  then A4: k * h in Mlt ([#] Q) by Def34;
+  f.(1.Q) = R_map(1.Q,x,y) by RM1
+  .= 1.Q by Th6;
+  hence thesis by Th55,A4,A2,Def34,A3;
+end;
+
+registration
+  cluster Trivial-multLoopStr -> AIM;
+  coherence
+  proof
+    set Q = Trivial-multLoopStr;
+    let f,g be Function of Q,Q;
+    for x being Element of Q holds (f*g).x = (g*f).x by ALGSTR_1:9;
+    hence thesis by FUNCT_2:def 8;
+  end;
+end;
+
+registration
+  cluster non empty strict AIM for multLoop;
+  existence
+  proof
+    take Trivial-multLoopStr;
+    thus thesis;
+  end;
+end;
+
+registration 
+  cluster -> satisfying_TT satisfying_TL satisfying_TR satisfying_LR
+             satisfying_LL satisfying_RR for AIM multLoop;
+coherence
+proof
+  let Q be AIM multLoop;
+  thus Q is satisfying_TT
+  proof
+    let u,x,y be Element of Q;
+    set f = T_MAP(x);
+    set g = T_MAP(y);
+    A3: f in InnAut Q & g in InnAut Q by Th56;
+    T_map(T_map(u,x),y) = T_map(f.u,y) by TM1
+    .= g.(f.u) by TM1
+    .= (g*f).u by FUNCT_2:15
+    .= (f*g).u by A3,Def50
+    .= f.(g.u) by FUNCT_2:15
+    .= T_map(g.u,x) by TM1
+    .= T_map(T_map(u,y),x) by TM1;
+    hence thesis;
+  end;
+  thus Q is satisfying_TL
+  proof
+    let u,x,y,z be Element of Q;
+    set f = L_MAP(x,y);
+    set g = T_MAP(z);
+    A6: f in InnAut Q & g in InnAut Q by Th56,Th57;
+    T_map(L_map(u,x,y),z) = T_map(f.u,z) by LM1
+    .= g.(f.u) by TM1
+    .= (g*f).u by FUNCT_2:15
+    .= (f*g).u by A6,Def50
+    .= f.(g.u) by FUNCT_2:15
+    .= L_map(g.u,x,y) by LM1
+    .= L_map(T_map(u,z),x,y) by TM1;
+    hence thesis;
+  end;
+  thus Q is satisfying_TR
+  proof
+    let u,x,y,z be Element of Q;
+    set f = R_MAP(x,y);
+    set g = T_MAP(z);
+    A9: f in InnAut Q & g in InnAut Q by Th56,Th58;
+    T_map(R_map(u,x,y),z) = T_map(f.u,z) by RM1
+    .= g.(f.u) by TM1
+    .= (g*f).u by FUNCT_2:15
+    .= (f*g).u by A9,Def50
+    .= f.(g.u) by FUNCT_2:15
+    .= R_map(g.u,x,y) by RM1
+    .= R_map(T_map(u,z),x,y) by TM1;
+    hence thesis;
+  end;
+  thus Q is satisfying_LR
+  proof
+    let u,x,y,z,w be Element of Q;
+    set f = R_MAP(x,y);
+    set g = L_MAP(z,w);
+    A12: f in InnAut Q & g in InnAut Q by Th58,Th57;
+    L_map(R_map(u,x,y),z,w) = L_map(f.u,z,w) by RM1
+    .= g.(f.u) by LM1
+    .= (g*f).u by FUNCT_2:15
+    .= (f*g).u by A12,Def50
+    .= f.(g.u) by FUNCT_2:15
+    .= R_map(g.u,x,y) by RM1
+    .= R_map(L_map(u,z,w),x,y) by LM1;
+    hence thesis;
+  end;
+  thus Q is satisfying_LL
+  proof
+    let u,x,y,z,w be Element of Q;
+    set f = L_MAP(x,y);
+    set g = L_MAP(z,w);
+    A15: f in InnAut Q & g in InnAut Q by Th57;
+    L_map(L_map(u,x,y),z,w) = L_map(f.u,z,w) by LM1
+    .= g.(f.u) by LM1
+    .= (g*f).u by FUNCT_2:15
+    .= (f*g).u by A15,Def50
+    .= f.(g.u) by FUNCT_2:15
+    .= L_map(g.u,x,y) by LM1
+    .= L_map(L_map(u,z,w),x,y) by LM1;
+    hence thesis;
+  end;
+  let u,x,y,z,w be Element of Q;
+  set f = R_MAP(x,y);
+  set g = R_MAP(z,w);
+  A18:f in InnAut Q & g in InnAut Q by Th58;
+  R_map(R_map(u,x,y),z,w) = R_map(f.u,z,w) by RM1
+  .= g.(f.u) by RM1
+  .= (g*f).u by FUNCT_2:15
+  .= (f*g).u by A18,Def50
+  .= f.(g.u) by FUNCT_2:15
+  .= R_map(g.u,x,y) by RM1
+  .= R_map(R_map(u,z,w),x,y) by RM1;
+  hence thesis;
+end;
+end;
+
+theorem Th59:
+  for f being Function of Q,Q st f in Mlt (Nucl Q) holds
+  ex u,v st u in Nucl Q & v in Nucl Q & for x holds f.x = u * (x * v)
+proof
+  set H = Nucl Q;
+  defpred P[Function of Q,Q] means
+  ex u,v st u in Nucl Q & v in Nucl Q & for x holds $1.x = u * (x * v);
+  A1: for u being Element of Q st u in H holds
+  for f being Function of Q,Q st for x being Element of Q holds f.x = x * u
+    holds P[f]
+  proof
+    let u such that  A2: u in H;
+    let f be Function of Q,Q such that A3: for x holds f.x = x * u;
+    take 1.Q,u;
+    thus thesis by A3,A2,Th20;
+  end;
+  A4: for u being Element of Q st u in H holds
+  for f being Function of Q,Q st for x being Element of Q holds f.x = u * x
+    holds P[f]
+  proof
+    let u such that A5: u in H;
+    let f be Function of Q,Q such that A6: for x holds f.x = u * x;
+    take u, 1.Q;
+    thus thesis by A6,A5,Th20;
+  end;
+  A7: for g,h being Permutation of the carrier of Q st P[g] & P[h] holds P[g*h]
+  proof
+    let g,h be Permutation of the carrier of Q;
+    assume A8: P[g] & P[h];
+    consider u,v such that
+    A9: u in H & v in H & for x holds g.x = u * (x * v) by A8;
+    consider z,w such that
+    A10: z in H & w in H & for x holds h.x = z * (x * w) by A8;
+    take u * z, w * v;
+    u in [#] (lp (Nucl Q)) & z in [#] (lp (Nucl Q)) by Th24,A9,A10;
+    then u * z in [#] (lp (Nucl Q)) by Th37;
+    hence u * z in H by Th24;
+    w in [#] (lp (Nucl Q)) & v in [#] (lp (Nucl Q)) by Th24,A9,A10;
+    then A11: w * v in [#] (lp (Nucl Q)) by Th37;
+    then A12: w * v in Nucl Q by Th24;
+    thus w * v in H by A11,Th24;
+    A13: u in Nucl_l Q by A9,Th12;
+    A14: v in Nucl_r Q by A9,Th12;
+    A15: w in Nucl_r Q by A10,Th12;
+    A16: w * v in Nucl_r Q by A12,Th12;
+    let x;
+    (g*h).x = g.(h.x) by FUNCT_2:15
+    .= g.(z * (x * w)) by A10
+    .= u * ((z * (x * w)) * v) by A9
+    .= (u * (z * (x * w))) * v by A13,Def22
+    .= ((u * z) * (x * w)) * v by A13,Def22
+    .= (((u * z) * x) * w) * v by A15,Def24
+    .= ((u * z) * x) * (w * v) by A14,Def24
+    .= (u * z) * (x * (w * v)) by A16,Def24;
+    hence thesis;
+  end;
+  A17: for g being Permutation of Q st P[g] holds P[g"]
+  proof
+    let g be Permutation of Q;
+    assume P[g];
+    then consider u,v such that
+    A18: u in H & v in H & for x holds g.x = u * (x * v);
+    A19: u in Nucl_m Q by A18,Th12;
+    A20: v in Nucl_m Q & v in Nucl_r Q by A18,Th12;
+    take 1.Q / u,v \ 1.Q;
+    1.Q in Nucl Q by Th20;
+    then A21: 1.Q in [#] (lp (Nucl Q)) by Th24;
+    u in [#] (lp (Nucl Q)) by Th24,A18;
+    then 1.Q / u in [#] (lp (Nucl Q)) by Th41,A21;
+    hence 1.Q / u in Nucl Q by Th24;
+    v in [#] (lp (Nucl Q)) by Th24,A18;
+    then v \ 1.Q in [#] (lp (Nucl Q)) by Th39,A21;
+    hence v \ 1.Q in Nucl Q by Th24;
+    let x;
+    reconsider k = (curry (the multF of Q)).(1.Q / u) as Permutation of Q
+    by Th30;
+    reconsider h = (curry' (the multF of Q)).(v \ 1.Q) as Permutation of Q
+    by Th31;
+    (k*h)*g = id Q
+    proof
+      for y holds ((k*h)*g).y = (id Q).y
+      proof
+        let y;
+        ((k*h)*g).y = (k*h).(g.y) by FUNCT_2:15
+        .= (k*h).(u * (y * v)) by A18
+        .= k.(h.(u * (y * v))) by FUNCT_2:15
+        .= k.((u * (y * v)) * (v \ 1.Q)) by FUNCT_5:70
+        .= k.(((u * y) * v) * (v \ 1.Q)) by Def24,A20
+        .= k.((u * y) * (v * (v \ 1.Q))) by Def23,A20
+        .= (1.Q / u) * (u * y) by FUNCT_5:69
+        .= ((1.Q / u) * u) * y by Def23,A19
+        .= y;
+        hence thesis;
+      end;
+      hence thesis by FUNCT_2:def 8;
+    end;
+    then (g").x = (k*h).x by FUNCT_2:60
+    .= k.(h.x) by FUNCT_2:15
+    .= k.(x * (v \ 1.Q)) by FUNCT_5:70
+    .= (1.Q / u) * (x * (v \ 1.Q)) by FUNCT_5:69;
+    hence thesis;
+  end;
+  for f being Function of Q,Q st f in Mlt H holds P[f]
+    from MltInd(A1,A4,A7,A17);
+  hence thesis;
+end;
+
+theorem Th60:
+  y in x * lp (Nucl Q) iff
+  ex u,v st u in Nucl Q & v in Nucl Q & y = u * (x * v)
+proof
+  thus y in x * lp (Nucl Q) implies ex u,v st u in Nucl Q & v in Nucl Q &
+    y = u * (x * v)
+  proof
+    assume y in x * lp (Nucl Q);
+    then y in x * Nucl Q by Th24;
+    then consider h being Permutation of the carrier of Q such that
+    A1: h in Mlt (Nucl Q) & h.x = y by Def39;
+    consider u,v such that
+    A2: u in Nucl Q & v in Nucl Q & for z holds h.z = u * (z * v)
+      by Th59,A1;
+    take u,v;
+    thus thesis by A1,A2;
+  end;
+  given u,v such that
+  A3: u in Nucl Q & v in Nucl Q & y = u * (x * v);
+  ex h being Permutation of the carrier of Q st h in Mlt (Nucl Q) & h.x = y
+  proof
+    reconsider h = (curry' (the multF of Q)).(v),
+    k = (curry (the multF of Q)).u
+    as Permutation of the carrier of Q
+    by Th31,Th30;
+    take k*h;
+    h in Mlt (Nucl Q) & k in Mlt (Nucl Q) by Th33,Th32,A3;
+    hence k*h in Mlt (Nucl Q) by Def34;
+    (k*h).x = k.(h.x) by FUNCT_2:15
+    .= k.(x * v) by FUNCT_5:70
+    .= y by A3, FUNCT_5:69;
+    hence thesis;
+  end;
+  then y in x * Nucl Q by Def39;
+  hence thesis by Th24;
+end;
+
+theorem Th61:
+  x * lp (Nucl Q) = y * lp (Nucl Q) iff
+    ex u,v st u in Nucl Q & v in Nucl Q & y = u * (x * v)
+proof
+  thus x * lp (Nucl Q) = y * lp (Nucl Q) implies
+    ex u,v st u in Nucl Q & v in Nucl Q & y = u * (x * v)
+  proof
+    assume A1: x * lp (Nucl Q) = y * lp (Nucl Q);
+    A2: 1.Q in Nucl Q by Th20;
+    y = 1.Q * (y * 1.Q);
+    hence ex u,v st u in Nucl Q & v in Nucl Q & y = u * (x * v)
+      by Th60,A1,A2;
+  end;
+  given u,v such that
+  A3: u in Nucl Q & v in Nucl Q & y = u * (x * v);
+  A4: u in Nucl_l Q & u in Nucl_m Q by A3,Th12;
+  A5: v in Nucl_m Q & v in Nucl_r Q by A3,Th12;
+  for w holds w in x * lp (Nucl Q) iff w in y * lp (Nucl Q)
+  proof
+    let w;
+    thus w in x * lp (Nucl Q) implies w in y * lp (Nucl Q)
+    proof
+      assume w in x * lp (Nucl Q);
+      then consider u1,v1 being Element of Q such that
+      A6: u1 in Nucl Q & v1 in Nucl Q & w = u1 * (x * v1) by Th60;
+      ex u2,v2 being Element of Q st u2 in Nucl Q & v2 in Nucl Q &
+      w = u2 * (y * v2)
+      proof
+        take u1 / u,v \ v1;
+        u in [#] (lp (Nucl Q)) & u1 in [#] (lp (Nucl Q))
+        by A3,A6,Th24;
+        then u1 / u in [#] (lp (Nucl Q)) by Th41;
+        hence (u1 / u) in Nucl Q by Th24;
+        v in [#] (lp (Nucl Q)) & v1 in [#] (lp (Nucl Q))
+        by A3,A6,Th24;
+        then v \ v1 in [#] (lp (Nucl Q)) by Th39;
+        hence (v \ v1) in Nucl Q by Th24;
+        w  = u1 * (x * (v * (v \ v1))) by A6
+        .= ((u1 / u) * u) * ((x * v) * (v \ v1)) by Def23,A5
+        .= (u1 / u) * (u * ((x * v) * (v \ v1))) by Def23,A4
+        .= (u1 / u) * (y * (v \ v1)) by A3,Def22,A4;
+        hence thesis;
+      end;
+      hence thesis by Th60;
+    end;
+    thus w in y * lp (Nucl Q) implies w in x * lp (Nucl Q)
+    proof
+      assume w in y * lp (Nucl Q);
+      then consider u1,v1 being Element of Q such that
+      A7: u1 in Nucl Q & v1 in Nucl Q & w = u1 * (y * v1) by Th60;
+      ex u2,v2 being Element of Q st u2 in Nucl Q & v2 in Nucl Q &
+      w = u2 * (x * v2)
+      proof
+        take u1 * u,v * v1;
+        u in [#] (lp (Nucl Q)) & u1 in [#] (lp (Nucl Q))
+        by A3,A7,Th24;
+        then u1 * u in [#] (lp (Nucl Q)) by Th37;
+        hence (u1 * u) in Nucl Q by Th24;
+        v in [#] (lp (Nucl Q)) & v1 in [#] (lp (Nucl Q))
+        by A3,A7,Th24;
+        then v * v1 in [#] (lp (Nucl Q)) by Th37;
+        hence (v * v1) in Nucl Q by Th24;
+        w = u1 * (((u * x) * v) * v1) by A3,A7,Def24,A5
+        .= u1 * ((u * x) * (v * v1)) by Def23,A5
+        .= u1 * (u * (x * (v * v1))) by Def22,A4
+        .= (u1 * u) * (x * (v * v1)) by Def23,A4;
+        hence thesis;
+      end;
+      hence thesis by Th60;
+    end;
+  end;
+  hence x * lp (Nucl Q) = y * lp (Nucl Q) by SUBSET_1:3;
+end;
+
+:: Suggested result and proof by Kinyon Sep 10 2018
+:: as crucial part of proving the nucleus of an AIM loop
+:: is normal.
+theorem Th62:
+  for Q being AIM multLoop holds
+  for x,u being Element of Q holds
+  u in Nucl Q implies T_map(u,x) in Nucl Q
+proof
+  let Q be AIM multLoop;
+  let x,u be Element of Q;
+  assume u in Nucl Q;
+  then A1: u in Nucl_l Q & u in Nucl_m Q & u in Nucl_r Q by Th12;
+  for y,z being Element of Q holds (T_map(u,x) * y) * z = T_map(u,x) * (y * z)
+  proof
+    let y,z be Element of Q;
+    Q is satisfying_TR;
+    then R_map(T_map(u,x),y,z) = T_map(R_map(u,y,z),x)
+    .= T_map((u * (y * z)) / (y * z),x) by Def22,A1
+    .= T_map(u,x);
+    hence thesis;
+  end;
+  then A2: T_map(u,x) in Nucl_l Q by Def22;
+  for y,z being Element of Q holds (y * z) * T_map(u,x) = y * (z * T_map(u,x))
+  proof
+    let y,z be Element of Q;
+    Q is satisfying_TL;
+    then L_map(T_map(u,x),z,y) = T_map(L_map(u,z,y),x)
+    .= T_map((y * z) \ ((y * z) * u),x) by Def24,A1
+    .= T_map(u,x);
+    hence thesis;
+  end;
+  then A3: T_map(u,x) in Nucl_r Q by Def24;
+  for y,z being Element of Q holds (y * T_map(u,x)) * z = y * (T_map(u,x) * z)
+  proof
+    let y,z be Element of Q;
+    deffunc M(Element of Q) = y \ ((y * ($1 * z)) / z);
+    A4: M(u) = y \ (((y * u) * z) / z) by Def23,A1
+    .= u;
+    consider m be Function of Q,Q
+    such that
+    A5: for v being Element of Q holds m.v = M(v)
+    from FUNCT_2:sch 4;
+    A6: m in InnAut Q
+    proof
+      reconsider h = (curry' (the multF of Q)).z,
+               k = (curry (the multF of Q)).y as Permutation of Q
+        by Th31,Th30;
+      A7: h in Mlt ([#] Q) & k in Mlt ([#] Q) by Th32,Th33;
+      then A8: h" in Mlt ([#] Q) & k" in Mlt ([#] Q) by Def35;
+      k*h in Mlt ([#] Q) by A7,Def34;
+      then h"*(k*h) in Mlt ([#] Q) by A8,Def34;
+      then A9: k"*(h"*(k*h)) in Mlt ([#] Q) by A8,Def34;
+      A10: for v being Element of Q holds  (h*k).v = (y * v) * z
+      proof
+        let v be Element of Q;
+        (h*k).v = h.(k.v) by FUNCT_2:15
+        .= h.(y * v) by FUNCT_5:69
+        .= (y * v) * z by FUNCT_5:70;
+        hence thesis;
+      end;
+      A11: for v being Element of Q holds  (k*h).v = y * (v * z)
+      proof
+        let v be Element of Q;
+        (k*h).v = k.(h.v) by FUNCT_2:15
+        .= k.(v * z) by FUNCT_5:70
+        .= y * (v * z) by FUNCT_5:69;
+        hence thesis;
+      end;
+      for v being Element of Q holds m.v = (k"*(h"*(k*h))).v
+      proof
+        let v be Element of Q;
+        (y * (m.v)) * z = (y * M(v)) * z by A5
+        .= (k*h).v by A11
+        .= ((id the carrier of Q)*(k*h)).v by FUNCT_2:17
+        .= ((h*h")*(k*h)).v by FUNCT_2:61
+        .= (h*(h"*(k*h))).v by RELAT_1:36
+        .= (h*((id Q)*(h"*(k*h)))).v by FUNCT_2:17
+        .= (h*((k*k")*(h"*(k*h)))).v by FUNCT_2:61
+        .= (h*(k*(k"*(h"*(k*h))))).v by RELAT_1:36
+        .= ((h*k)*(k"*(h"*(k*h)))).v by RELAT_1:36
+        .= (h*k).((k"*(h"*(k*h))).v) by FUNCT_2:15
+        .= (y * ((k"*(h"*(k*h))).v)) * z by A10;
+        then y * (m.v) = y * ((k"*(h"*(k*h))).v) by Th2;
+        hence thesis by Th1;
+      end;
+      then  A12: m in Mlt ([#] Q) by A9,FUNCT_2:def 8;
+      m.(1.Q) = M(1.Q) by A5
+      .= 1.Q by Th5;
+      hence thesis by Def49,A12;
+    end;
+    set t = T_MAP(x);
+    t in InnAut Q by Th56;
+    then A14: t*m = m*t by Def50,A6;
+    M(T_map(u,x)) = m.(T_map(u,x)) by A5
+    .= m.(t.u) by TM1
+    .= (m*t).u by FUNCT_2:15
+    .= t.(m.u) by FUNCT_2:15,A14
+    .= t.(M(u)) by A5
+    .= T_map(u,x) by A4,TM1;
+    hence thesis;
+  end;
+  then T_map(u,x) in Nucl_m Q by Def23;
+  hence thesis by Th12,A2,A3;
+end;
+
+theorem Th63:
+  for Q being AIM multLoop holds
+  for x,u being Element of Q holds
+    u in Nucl Q implies (x * u) / x in Nucl Q
+proof
+  let Q be AIM multLoop, x,u be Element of Q;
+  assume u in Nucl Q;
+  then A1: u in Nucl_l Q & u in Nucl_m Q & u in Nucl_r Q by Th12;
+  deffunc Tdx(Element of Q) = (x * $1) / x;
+  consider t be Function of Q,Q
+  such that
+  A2: for v being Element of Q holds t.v = Tdx(v)
+  from FUNCT_2:sch 4;
+  A3: t in InnAut Q
+  proof
+    reconsider g = (curry (the multF of Q)).x,
+               h = (curry' (the multF of Q)).x as Permutation of Q
+      by Th30,Th31;
+    A4: t = h" * g
+    proof
+      for u being Element of Q holds (h * t).u = g.u
+      proof
+        let u be Element of Q;
+        (h * t).u = h.(t.u) by FUNCT_2:15
+        .= h.(Tdx(u)) by A2
+        .= ((x * u) / x) * x by FUNCT_5:70
+        .= g.u by FUNCT_5:69;
+        hence thesis;
+      end;
+      then h"*g = h"*(h*t) by FUNCT_2:def 8
+      .= (h"*h)*t by RELAT_1:36
+      .= (id the carrier of Q)*t by FUNCT_2:61
+      .= t by FUNCT_2:17;
+      hence thesis;
+    end;
+    A5: g in Mlt ([#] Q) by Th32;
+    h in Mlt ([#] Q) by Th33;
+    then A6: h" in Mlt ([#] Q) by Def35;
+    t.(1.Q) = (x * 1.Q) / x by A2
+    .= 1.Q by Th6;
+    hence thesis by Th55,A6,A4,Def34,A5;
+  end;
+  for y,z being Element of Q holds (Tdx(u) * y) * z = Tdx(u) * (y * z)
+  proof
+    let y,z be Element of Q;
+    set f = R_MAP(y,z);
+    A8: f in InnAut Q by Th58;
+    f.u = R_map(u,y,z) by RM1
+    .= (u * (y * z)) / (y * z) by Def22,A1
+    .= u;
+    then Tdx(u) = t.(f.u) by A2
+    .= (t*f).u by FUNCT_2:15
+    .= (f*t).u by A8,Def50,A3
+    .= f.(t.u) by FUNCT_2:15
+    .= f.(Tdx(u)) by A2
+    .= R_map(Tdx(u),y,z) by RM1
+    .= ((Tdx(u) * y) * z) / (y * z);
+    hence thesis;
+  end;
+  then A9: Tdx(u) in Nucl_l Q by Def22;
+  for y,z being Element of Q holds (y * z) * Tdx(u) = y * (z * Tdx(u))
+  proof
+    let y,z be Element of Q;
+    set f = L_MAP(z,y);
+    f in InnAut Q by Th57;
+    then A11: t*f = f*t by Def50,A3;
+    f.u = L_map(u,z,y) by LM1
+    .= (y * z) \ ((y * z) * u) by Def24,A1
+    .= u;
+    then Tdx(u) = t.(f.u) by A2
+    .= (t*f).u by FUNCT_2:15
+    .= f.(t.u) by FUNCT_2:15,A11
+    .= f.(Tdx(u)) by A2
+    .= L_map(Tdx(u),z,y) by LM1
+    .= (y * z) \ (y * (z * Tdx(u)));
+    hence thesis;
+  end;
+  then A12: Tdx(u) in Nucl_r Q by Def24;
+  for y,z being Element of Q holds (y * Tdx(u)) * z = y * (Tdx(u) * z)
+  proof
+    let y,z be Element of Q;
+    deffunc M(Element of Q) = y \ ((y * ($1 * z)) / z);
+    A13: M(u) = y \ (((y * u) * z) / z) by Def23,A1
+    .= u;
+    consider m be Function of Q,Q such that
+    A14: for v being Element of Q holds m.v = M(v) from FUNCT_2:sch 4;
+    A15: m in InnAut Q
+    proof
+      reconsider h = (curry' (the multF of Q)).(z),
+                 k = (curry (the multF of Q)).(y) as Permutation of Q
+        by Th31,Th30;
+      A16: h in Mlt ([#] Q) & k in Mlt ([#] Q) by Th32,Th33;
+      then A17: h" in Mlt ([#] Q) & k" in Mlt ([#] Q) by Def35;
+      k*h in Mlt ([#] Q) by A16,Def34;
+      then h"*(k*h) in Mlt ([#] Q) by A17,Def34;
+      then A18: k"*(h"*(k*h)) in Mlt ([#] Q) by A17,Def34;
+      A19: for v being Element of Q holds  (h*k).v = (y * v) * z
+      proof
+        let v be Element of Q;
+        (h*k).v = h.(k.v) by FUNCT_2:15
+        .= h.(y * v) by FUNCT_5:69
+        .= (y * v) * z by FUNCT_5:70;
+        hence thesis;
+      end;
+      A20: for v being Element of Q holds  (k*h).v = y * (v * z)
+      proof
+        let v be Element of Q;
+        (k*h).v = k.(h.v) by FUNCT_2:15
+        .= k.(v * z) by FUNCT_5:70
+        .= y * (v * z) by FUNCT_5:69;
+        hence thesis;
+      end;
+      for v being Element of Q holds m.v = (k"*(h"*(k*h))).v
+      proof
+        let v be Element of Q;
+        (y * (m.v)) * z = (y * M(v)) * z by A14
+        .= (k*h).v by A20
+        .= ((id the carrier of Q)*(k*h)).v by FUNCT_2:17
+        .= ((h*h")*(k*h)).v by FUNCT_2:61
+        .= (h*(h"*(k*h))).v by RELAT_1:36
+        .= (h*((id the carrier of Q)*(h"*(k*h)))).v by FUNCT_2:17
+        .= (h*((k*k")*(h"*(k*h)))).v by FUNCT_2:61
+        .= (h*(k*(k"*(h"*(k*h))))).v by RELAT_1:36
+        .= ((h*k)*(k"*(h"*(k*h)))).v by RELAT_1:36
+        .= (h*k).((k"*(h"*(k*h))).v) by FUNCT_2:15
+        .= (y * ((k"*(h"*(k*h))).v)) * z by A19;
+        then y * (m.v) = y * ((k"*(h"*(k*h))).v) by Th2;
+        hence thesis by Th1;
+      end;
+      then A21: m in Mlt ([#] Q) by A18,FUNCT_2:def 8;
+      m.(1.Q) = M(1.Q) by A14
+      .= 1.Q by Th5;
+      hence thesis by Def49,A21;
+    end;
+    A22: t*m = m*t by Def50,A15,A3;
+    M(Tdx(u)) = m.(Tdx(u)) by A14
+    .= m.(t.u) by A2
+    .= (t*m).u by A22,FUNCT_2:15
+    .= t.(m.u) by FUNCT_2:15
+    .= t.(M(u)) by A14
+    .= Tdx(u) by A13,A2;
+    hence thesis;
+  end;
+  then Tdx(u) in Nucl_m Q by Def23;
+  hence thesis by Th12,A9,A12;
+end;
+
+:: This proof was difficult and required a hint from Kinyon.
+:: Kinyon's hint was essentially the proof of NuclT above.
+theorem Th64:
+  Q is AIM implies lp (Nucl Q) is normal 
+proof
+  assume A1: Q is AIM;
+  set H = lp (Nucl Q);
+  A2: for x,y being Element of Q holds
+  (ex v being Element of Q st v in Nucl Q & y = x * v)
+  iff
+  (ex u,v being Element of Q st u in Nucl Q & v in Nucl Q & y = u * (x * v))
+  proof
+    let x,y;
+    thus (ex v being Element of Q st v in Nucl Q & y = x * v)
+    implies
+    (ex u,v being Element of Q st u in Nucl Q & v in Nucl Q & y = u * (x * v))
+    proof
+      given v being Element of Q such that
+      A3: v in Nucl Q & y = x * v;
+      take 1.Q,v;
+      thus thesis by A3,Th20;
+    end;
+    thus (ex u,v being Element of Q st u in Nucl Q & v in Nucl Q &
+      y = u * (x * v))
+    implies
+    (ex v being Element of Q st v in Nucl Q & y = x * v)
+    proof
+      given u,v being Element of Q such that
+      A4: u in Nucl Q & v in Nucl Q & y = u * (x * v);
+      take T_map(u,x) * v;
+      T_map(u,x) in Nucl Q by A1,Th62,A4;
+      then T_map(u,x) in [#] lp (Nucl Q) & v in [#] lp (Nucl Q)
+        by A4,Th24;
+      then T_map(u,x) * v in [#] lp (Nucl Q) by Th37;
+      hence T_map(u,x) * v in Nucl Q by Th24;
+      A5: v in Nucl_r Q by Th12,A4;
+      y  = (x * (x \ (u * x))) * v by Def24,A5,A4
+      .= x * (T_map(u,x) * v) by Def24,A5;
+      hence thesis;
+    end;
+  end;
+  A6: for x,y being Element of Q holds y in x * H iff
+  ex v being Element of Q st v in Nucl Q & y = x * v
+  proof
+    let x,y;
+    y in x * H iff ex u,v being Element of Q st u in Nucl Q &
+      v in Nucl Q & y = u * (x * v) by Th60;
+    hence thesis by A2;
+  end;
+  A7: for x,y being Element of Q holds x * H = y * H iff
+        ex v being Element of Q st v in Nucl Q & y = x * v
+  proof
+    let x,y;
+    x * H = y * H iff ex u,v being Element of Q st u in Nucl Q & v in Nucl Q
+      & y = u * (x * v) by Th61;
+    hence thesis by A2;
+  end;
+  A8: for x,y holds (x * H) * (y * H) = (x * y) * H
+  proof
+    let x,y;
+    for z holds z in (x * H) * (y * H) iff z in (x * y) * H
+    proof
+      let z;
+      thus z in (x * H) * (y * H) implies z in (x * y) * H
+      proof
+        assume z in (x * H) * (y * H);
+        then consider x2,y2 being Element of Q such that
+        A9: x2 in x * H & y2 in y * H & z = x2 * y2 by Def42;
+        ex v being Element of Q st v in Nucl Q & z = (x * y) * v
+        proof
+          consider u being Element of Q such that
+          A10: u in Nucl Q & x2 = x * u by A6,A9;
+          consider v being Element of Q such that
+          A11: v in Nucl Q & y2 = y * v by A6,A9;
+          take (T_map(u,y) * v);
+          T_map(u,y) in Nucl Q by A1,Th62,A10;
+          then T_map(u,y) in [#] lp (Nucl Q) & v in [#] lp (Nucl Q)
+            by A11,Th24;
+          then T_map(u,y) * v in [#] lp (Nucl Q) by Th37;
+          hence A12: T_map(u,y) * v in Nucl Q by Th24;
+          A13: u in Nucl_m Q by Th12,A10;
+          A14: v in Nucl_r Q by Th12,A11;
+          A15: T_map(u,y) * v in Nucl_r Q by Th12,A12;
+          z = x * (u * (y * v)) by Def23,A13,A11,A10,A9
+          .= x * ((y * T_map(u,y)) * v) by Def24,A14
+          .= x * (y * (T_map(u,y) * v)) by Def24,A14
+          .= (x * y) * (T_map(u,y) * v) by Def24,A15;
+          hence thesis;
+        end;
+        hence z in (x * y) * H by A6;
+      end;
+      assume z in (x * y) * H;
+      then consider v such that
+      A16: v in Nucl Q & z = (x * y) * v by A6;
+      ex x1,y1 being Element of Q st x1 in x * H & y1 in y * H & z = x1 * y1
+      proof
+        take x, y * v;
+        A17:  1.Q in Nucl Q & x = x * 1.Q by Th20;
+        v in Nucl_r Q by Th12,A16;
+        hence thesis by A17,A16,Def24,A6;
+      end;
+      hence thesis by Def42;
+    end;
+    hence thesis by SUBSET_1:3;
+  end;
+  for x,y holds
+  (x * H) * (y * H) = (x * y) * H
+  &
+  for z holds
+  ((x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H))
+  &
+  ((y * H) * (x * H) = (z * H) * (x * H) implies (y * H) = (z * H))
+  proof
+    let x,y;
+    thus (x * H) * (y * H) = (x * y) * H by A8;
+    let z;
+    thus (x * H) * (y * H) = (x * H) * (z * H) implies (y * H) = (z * H)
+    proof
+      assume (x * H) * (y * H) = (x * H) * (z * H);
+      then (x * y) * H = (x * H) * (z * H) by A8;
+      then (x * y) * H = (x * z) * H by A8;
+      then consider w such that
+      A18: w in Nucl Q & x * z = (x * y) * w by A7;
+      A19: w in Nucl_r Q by Th12,A18;
+      x * z = x * (y * w) by A18,Def24,A19;
+      hence y * H = z * H by Th1,A7,A18;
+    end;
+    assume (y * H) * (x * H) = (z * H) * (x * H);
+    then (y * x) * H = (z * H) * (x * H) by A8;
+    then (y * x) * H = (z * x) * H by A8;
+    then consider w such that
+    A20: w in Nucl Q & z * x = (y * x) * w by A7;
+    A21: w in Nucl_l Q & w in Nucl_r Q by Th12,A20;
+    set v = (x * w) / x;
+    A22: v in Nucl Q by A1,Th63,A20;
+    then A23: v in Nucl_m Q by Th12;
+    z * x = y * (v * x) by A20,Def24,A21
+    .= (y * v) * x by Def23,A23;
+    hence y * H = z * H by Th2,A7,A22;
+  end;
+  hence thesis;
+end;
+
+registration
+  let Q be AIM multLoop;
+  cluster lp (Nucl Q) -> normal;
+  coherence by Th64;
+end;
+
+registration
+  let Q be multLoop;
+  cluster lp (Cent Q) -> normal;
+  coherence by Th54;
+end;
+
+::$N Main Theorem The AIM Conjecture follows
+::from knowing every AIM loop satisfies
+::aa1, aa2, aa3, Ka, aK1, aK2 and aK3.
+::This theorem justifies using first-order theorem provers
+::to try to prove the AIM Conjecture.
+theorem
+  (for Q being multLoop st Q is satisfying_TT satisfying_TL satisfying_TR
+     satisfying_LR satisfying_LL satisfying_RR
+  holds Q is satisfying_aa1 satisfying_aa2 satisfying_aa3
+    satisfying_Ka satisfying_aK1 satisfying_aK2 satisfying_aK3)
+  implies
+  for Q being AIM multLoop holds
+  Q _/_ (lp (Nucl Q)) is commutative multGroup
+  &
+  Q _/_ (lp (Cent Q)) is multGroup
+proof
+  assume A1: for Q being multLoop st Q is
+     satisfying_TT satisfying_TL satisfying_TR satisfying_LR
+     satisfying_LL satisfying_RR
+  holds Q is satisfying_aa1 satisfying_aa2 satisfying_aa3
+    satisfying_Ka satisfying_aK1 satisfying_aK2 satisfying_aK3;
+  let Q be AIM multLoop;
+  reconsider Q1 = Q as satisfying_aa1 satisfying_aa2 satisfying_aa3
+    satisfying_Ka satisfying_aK1 satisfying_aK2 satisfying_aK3 multLoop by A1;
+  set NN = lp (Nucl Q);
+  set fN = QuotientHom(Q,NN);
+  A2: for y being Element of Q _/_ NN holds ex x being Element of Q st
+    fN.x = y
+  proof
+    let y be Element of Q _/_ NN;
+    y in Cosets NN;
+    then consider x being Element of Q such that
+    A3: y = x * NN by Def41;
+    take x;
+    thus thesis by A3,Def48;
+  end;
+    Ker (QuotientHom(Q,NN)) = @ ([#] NN) by Th44;
+    then Nucl Q1 c= Ker fN by Th24;
+  hence Q _/_ NN is commutative multGroup by Th16,A2;
+  set NC = lp (Cent Q);
+  set fC = QuotientHom(Q,NC);
+  A4: for y being Element of Q _/_ NC holds ex x being Element of Q st
+    fC.x = y
+  proof
+    let y be Element of Q _/_ NC;
+    y in Cosets NC;
+    then consider x being Element of Q such that
+    A5: y = x * NC by Def41;
+    fC.x = y by A5,Def48;
+    hence thesis;
+  end;
+  Ker (QuotientHom(Q,NC)) = @ ([#] NC) by Th44;
+  then Cent Q1 c= Ker fC by Th25;
+  hence Q _/_ NC is multGroup by Th17,A4;
+end;

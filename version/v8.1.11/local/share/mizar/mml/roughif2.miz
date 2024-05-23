@@ -1,0 +1,1777 @@
+:: Developing Complementary Rough Inclusion Functions
+::  by Adam Grabowski
+:: 
+:: Received February 26, 2020
+:: Copyright (c) 2020-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies STRUCT_0, RELAT_1, TARSKI, ZFMISC_1, XBOOLE_0, SUBSET_1, FUNCT_1,
+      ROUGHS_1, ROUGHIF1, ROUGHIF2, FINSET_1, CARD_1, REAL_1, NUMBERS, ARYTM_3,
+      XXREAL_0, XXREAL_1, ARYTM_1, FUNCT_7, MCART_1, METRIC_1, RELAT_2,
+      PARTFUN3;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, BINOP_1, NUMBERS,
+      XCMPLX_0, XXREAL_0, FINSET_1, CARD_1, XREAL_0, FUNCT_2, DOMAIN_1,
+      METRIC_1, RCOMP_1, STRUCT_0, ROUGHS_1, PARTFUN3, ROUGHIF1;
+ constructors REALSET2, RELSET_1, PARTFUN3, METRIC_1, ROUGHIF1;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, FINSET_1, NAT_1, STRUCT_0, FUNCT_2,
+      CARD_1, ORDINAL1, METRIC_1, NUMBERS, XXREAL_0, XREAL_0, MEMBERED,
+      FUZNORM1, XCMPLX_0, ROUGHIF1;
+ requirements BOOLE, SUBSET, NUMERALS, REAL, ARITHM;
+ definitions TARSKI, PARTFUN3;
+ equalities XBOOLE_0, SUBSET_1, STRUCT_0, ROUGHIF1, BINOP_1;
+ expansions TARSKI, XBOOLE_0, FUNCT_2;
+ theorems XBOOLE_1, SUBSET_1, ZFMISC_1, XXREAL_1, XTUPLE_0, NAT_1, XREAL_1,
+      XCMPLX_1, CARD_2, BINOP_1, FUZNORM1, PARTFUN3, XXREAL_0, ROUGHIF1,
+      MCART_1, XBOOLE_0, METRIC_1, CARDFIL4, FUNCT_1, FUNCT_2;
+ schemes BINOP_1, STACKS_1;
+
+begin :: Preliminaries
+
+theorem LemacikX1:
+  for a,b,c being Real st a <= b & b > 0 & c >= 0
+     holds a / b <= (a + c) / (b + c)
+  proof
+    let a,b,c be Real;
+    assume
+A1: a <= b & b > 0 & c >= 0; then
+    a * c <= b * c by XREAL_1:64; then
+    a * b + a * c <= a * b + b * c by XREAL_1:6; then
+    a * (b + c) <= b * (a + c);
+    hence thesis by XREAL_1:102,A1;
+  end;
+
+theorem
+  for x1,x2 being finite set holds
+    card (x1 \+\ x2) = card (x1 \ x2) + card (x2 \ x1)
+      by CARD_2:40,XBOOLE_1:82;
+
+theorem HoHo:
+  for x1,x2 being finite set holds
+    (2 * card (x1 \+\ x2)) / (card x1 + card x2 + card (x1 \+\ x2))
+       = card (x1 \+\ x2) / card (x1 \/ x2)
+  proof
+    let x1,x2 be finite set;
+    set p = card (x1 \/ x2);
+    set q = card x1 + card x2 + card (x1 \+\ x2);
+    set r = card (x1 \+\ x2);
+    x1 \/ x2 = x1 \/ (x2 \ x1) by XBOOLE_1:39; then
+HH: p = card x1 + card (x2 \ x1) by XBOOLE_1:79,CARD_2:40;
+    x1 = (x1 \ x2) \/ (x1 /\ x2) by XBOOLE_1:51; then
+g1: card x1 = card (x1 \ x2) + card (x1 /\ x2) by CARD_2:40,XBOOLE_1:89;
+    x2 = (x2 \ x1) \/ (x1 /\ x2) by XBOOLE_1:51; then
+g2: card x2 = card (x2 \ x1) + card (x1 /\ x2) by CARD_2:40,XBOOLE_1:89;
+    q = (card (x1 \ x2) + card (x1 /\ x2)) +
+       (card (x2 \ x1) + card (x1 /\ x2)) +
+         (card (x1 \ x2) + card (x2 \ x1)) by CARD_2:40,XBOOLE_1:82,g1,g2
+      .= 2 * p by g1,HH;
+    hence thesis by XCMPLX_1:91;
+  end;
+
+theorem Jajo:
+  for A,B,C being set holds
+    A \+\ C = (A \+\ B) \+\ (B \+\ C)
+  proof
+    let A,B,C be set;
+    (A \+\ B) \+\ B = A \+\ (B \+\ B) by XBOOLE_1:91
+      .= A \+\ {} by XBOOLE_1:92
+      .= A;
+    hence thesis by XBOOLE_1:91;
+  end;
+
+theorem Lemacik:
+  for A, B be finite set st A \/ B <> {} holds
+    1 - card (A /\ B) / card (A \/ B) = card (A \+\ B) / card (A \/ B)
+  proof
+    let A,B be finite set;
+    assume
+A1: A \/ B <> {};
+B1: A /\ B c= A by XBOOLE_1:17;
+    A c= A \/ B by XBOOLE_1:7; then
+B2: A /\ B c= A \/ B by B1;
+    A \+\ B = (A \/ B) \ A /\ B by XBOOLE_1:101; then
+B3: card (A \+\ B) = card (A \/ B) - card (A /\ B) by CARD_2:44,B2;
+    1 - card (A /\ B) / card (A \/ B) =
+      card (A \/ B) / card (A \/ B) - card (A /\ B) / card (A \/ B)
+        by A1,XCMPLX_1:60
+       .= card (A \+\ B) / card (A \/ B) by B3,XCMPLX_1:120;
+    hence thesis;
+  end;
+
+theorem LemmaCard:
+  for R being finite set
+  for X,Y being Subset of R holds
+  card (X \/ Y) = card (X /\ Y) iff X = Y
+  proof
+    let R be finite set;
+    let X,Y be Subset of R;
+    hereby
+      assume card (X \/ Y) = card (X /\ Y); then
+A2:   X /\ Y = X \/ Y by CARD_2:102,XBOOLE_1:29; then
+      X = X \/ (X \/ Y) by XBOOLE_1:22; then
+      X = X \/ Y by XBOOLE_1:6;
+      hence X = Y by XBOOLE_1:21,A2;
+    end;
+    assume X = Y;
+    hence thesis;
+  end;
+
+registration
+  cluster finite non empty for MetrSpace;
+  existence
+  proof
+    set A = {1};
+    take S = DiscreteSpace A;
+    S = MetrStruct (# A, discrete_dist A #) by METRIC_1:def 11;
+    hence thesis;
+  end;
+end;
+
+begin :: Complementary RIFs
+
+ reserve R for finite Approximation_Space;
+ reserve X,Y,Z for Subset of R;
+
+definition let R be finite Approximation_Space;
+           let f be preRIF of R;
+  func CMap f -> preRIF of R means :CDef:
+    for x,y being Subset of R holds
+      it.(x,y) = 1 - f.(x,y);
+  existence
+  proof
+    deffunc F(Subset of R,Subset of R) = In(1 - f.($1,$2),[.0,1.]);
+    ex f being preRIF of R st
+    for x,y being Element of bool the carrier of R holds
+      f.(x,y) = F(x,y) from BINOP_1:sch 4; then
+    consider ff being
+    Function of [:bool the carrier of R, bool the carrier of R:],
+      [.0,1.] such that
+A1: for x,y being Element of bool the carrier of R holds
+      ff.(x,y) = F(x,y);
+    take ff;
+    let x,y be Subset of R;
+    ff.(x,y) = In (1 - f.(x,y),[.0,1.]) by A1
+        .= 1 - f.(x,y) by FUZNORM1:7,SUBSET_1:def 8;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc G(Subset of R,Subset of R) = 1 - f.($1,$2);
+    let f1, f2 be preRIF of R such that
+A1: (for x,y being Subset of R holds f1.(x,y) = G(x,y)) and
+A2: (for x,y being Subset of R holds f2.(x,y) = G(x,y));
+    for x,y being Subset of R holds f1.(x,y) = f2.(x,y)
+    proof
+      let x,y be Subset of R;
+      f1.(x,y) = G(x,y) by A1
+              .= f2.(x,y) by A2;
+      hence thesis;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+end;
+
+theorem CMapMap:
+  for f being preRIF of R holds
+    CMap CMap f = f
+  proof
+    let f be preRIF of R;
+    set g = CMap f;
+    for x being Element of [:bool the carrier of R, bool the carrier of R:]
+      holds
+        (CMap g).x = f.x
+    proof
+      let x be Element of [:bool the carrier of R, bool the carrier of R:];
+      reconsider x1 = x`1, x2 = x`2 as Subset of R;
+      (CMap g).x = (CMap g).(x1,x2) by MCART_1:21
+                .= 1 - g.(x1,x2) by CDef
+                .= 1 - (1 - f.(x1,x2)) by CDef
+                .= f.x by MCART_1:21;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+theorem PropEx3k:
+  X <> {} implies (CMap kappa R).(X,Y) = card (X \ Y) / card X
+  proof
+    assume
+A1: X <> {};
+    X \ Y = X \ (X /\ Y) by XBOOLE_1:47; then
+T1: card (X \ Y) = card X - card (X /\ Y) by XBOOLE_1:17,CARD_2:44;
+    (CMap kappa R).(X,Y) = 1 - (kappa R).(X,Y) by CDef
+      .= 1 - kappa (X,Y) by ROUGHIF1:def 2
+      .= 1 - card (X /\ Y) / card X by A1,ROUGHIF1:def 1
+      .= (card X / card X) - card (X /\ Y) / card X by A1,XCMPLX_1:60
+      .= card (X \ Y) / card X by T1,XCMPLX_1:120;
+    hence thesis;
+  end;
+
+theorem PropEx3k0:
+  X = {} implies (CMap kappa R).(X,Y) = 0
+  proof
+    assume
+A1: X = {};
+G1: kappa (X,Y) = 1 by ROUGHIF1:6,A1,XBOOLE_1:2;
+    (CMap kappa R).(X,Y) = 1 - (kappa R).(X,Y) by CDef
+      .= 1 - kappa (X,Y) by ROUGHIF1:def 2
+      .= 0 by G1;
+    hence thesis;
+  end;
+
+theorem
+  X <> {} implies (CMap kappa R).(X,Y) = kappa (X, Y`)
+  proof
+    assume
+A0: X <> {};
+    (CMap kappa R).(X,Y) = 1 - (kappa R).(X,Y) by CDef
+       .= 1 - kappa (X,Y) by ROUGHIF1:def 2;
+    hence thesis by A0,ROUGHIF1:35;
+  end;
+
+theorem PropEx3:
+  X \/ Y <> {} implies
+    (CMap kappa_1 R).(X,Y) = card (X \ Y) / card (X \/ Y)
+  proof
+    assume
+A0: X \/ Y <> {};
+A1: (CMap kappa_1 R).(X,Y) = 1 - (kappa_1 R).(X,Y) by CDef
+       .= 1 - kappa_1 (X,Y) by ROUGHIF1:def 5;
+    X \ Y = (X \/ Y) \ Y by XBOOLE_1:40; then
+X1: card (X \ Y) = card (X \/ Y) - card Y by CARD_2:44,XBOOLE_1:7;
+    1 - card Y / card (X \/ Y) = (card (X \/ Y) / card (X \/ Y)) -
+            card Y / card (X \/ Y) by A0,XCMPLX_1:60
+       .= card (X \ Y) / card (X \/ Y) by X1,XCMPLX_1:120;
+    hence thesis by A1,A0,ROUGHIF1:def 3;
+  end;
+
+theorem PropEx30:
+  X \/ Y = {} implies (CMap kappa_1 R).(X,Y) = 0
+  proof
+    assume
+AA: X \/ Y = {};
+A1: (kappa_1 R).(X,Y) = kappa_1 (X,Y) by ROUGHIF1:def 5 .= 1
+      by AA,ROUGHIF1:def 3;
+    (CMap kappa_1 R).(X,Y) = 1 - (kappa_1 R).(X,Y) by CDef
+        .= 0 by A1;
+    hence thesis;
+  end;
+
+theorem PropEx31:
+  (CMap kappa_2 R).(X,Y) = card (X \ Y) / card [#]R
+  proof
+    (X` \/ Y)` = (X \ Y)`` by SUBSET_1:14; then
+A3: card [#]R - card (X` \/ Y) = card (X \ Y) by CARD_2:44;
+    (CMap kappa_2 R).(X,Y) = 1 - (kappa_2 R).(X,Y) by CDef
+      .= 1 - kappa_2(X,Y) by ROUGHIF1:def 6
+      .= (card [#]R / card [#]R) - card (X` \/ Y) / card [#]R
+       by XCMPLX_1:60
+      .= card (X \ Y) / card ([#]R) by A3,XCMPLX_1:120;
+    hence thesis;
+  end;
+
+Lemma1:
+  X <> {} implies kappa (X,Y) = ((CMap kappa_1 R).(X,Y`)) / (kappa_1 (Y`,X))
+  proof
+    assume
+A0: X <> {};
+c1: X \ Y` = X /\ Y`` by SUBSET_1:13;
+A2: ((CMap kappa_1 R).(X,Y`)) = card (X \ Y`) / card (X \/ Y`) by A0,PropEx3;
+    kappa_1 (Y`,X) = card X / card (Y` \/ X) by A0,ROUGHIF1:def 3; then
+    ((CMap kappa_1 R).(X,Y`)) / kappa_1 (Y`,X) =
+        card (X \ Y`) / card X by A0,XCMPLX_1:55,A2
+     .= kappa (X,Y) by A0,ROUGHIF1:def 1,c1;
+    hence thesis;
+  end;
+
+Lemma2:
+  X <> {} implies kappa (X,Y) = ((CMap kappa_2 R).(X,Y`)) / (kappa_2 ([#]R,X))
+  proof
+    assume
+a1: X <> {};
+VV: X /\ Y`` = X \ Y` by SUBSET_1:13;
+    ((CMap kappa_2 R).(X,Y`)) / kappa_2 ([#]R,X) =
+      (card (X \ Y`) / card [#]R) / (card (([#]R)` \/ X) / card [#]R)
+       by PropEx31
+      .= card (X \ Y`) / card (({}R)`` \/ X) by XCMPLX_1:55
+      .= kappa (X,Y) by ROUGHIF1:def 1,a1,VV;
+    hence thesis;
+  end;
+
+theorem :: Proposition 5
+  X <> {} implies
+    kappa (X,Y) = ((CMap kappa_1 R).(X,Y`)) / (kappa_1 (Y`,X))
+                = ((CMap kappa_2 R).(X,Y`)) / (kappa_2 ([#]R,X))
+  proof
+    assume
+A0: X <> {}; then
+    kappa (X,Y) = ((CMap kappa_1 R).(X,Y`)) / (kappa_1 (Y`,X)) by Lemma1;
+    hence thesis by A0,Lemma2;
+  end;
+
+begin :: co-RIFs
+
+definition
+  let R;
+  let f be preRIF of R;
+  attr f is co-RIF-like means
+    CMap f is RIF of R;
+end;
+
+registration let R;
+  let f be RIF of R;
+  cluster CMap f -> co-RIF-like;
+  coherence by CMapMap;
+end;
+
+registration let R;
+  cluster co-RIF-like for preRIF of R;
+  existence
+  proof
+    take CMap kappa R;
+    thus thesis;
+  end;
+end;
+
+definition let R;
+  mode co-RIF of R is co-RIF-like preRIF of R;
+end;
+
+begin :: Proposition 6 REMARK: arbitrary kappa should be taken
+
+ reserve kap for RIF of R;
+
+theorem Prop6a: :: Proposition 6 a)
+  (CMap kap).(X,Y) = 0 iff X c= Y
+  proof
+    thus (CMap kap).(X,Y) = 0 implies X c= Y
+    proof
+      assume (CMap kap).(X,Y) = 0; then
+      1 - kap.(X,Y) = 0 by CDef;
+      hence thesis  by ROUGHIF1:def 7;
+    end;
+    assume X c= Y; then
+A1: kap.(X,Y) = 1 by ROUGHIF1:def 7;
+    (CMap kap).(X,Y) = 1 - 1 by A1,CDef;
+    hence thesis;
+  end;
+
+theorem :: Proposition 6 a), specified for kappa, unnecessary
+  (CMap kappa R).(X,Y) = 0 iff X c= Y
+  proof
+    thus (CMap kappa R).(X,Y) = 0 implies X c= Y
+    proof
+      assume (CMap kappa R).(X,Y) = 0; then
+      1 - (kappa R).(X,Y) = 0 by CDef; then
+      kappa (X,Y) = 1 by ROUGHIF1:def 2;
+      hence thesis by ROUGHIF1:6;
+    end;
+    assume X c= Y; then
+A1: kappa (X,Y) = 1 by ROUGHIF1:6;
+    (CMap kappa R).(X,Y) = 1 - (kappa R).(X,Y) by CDef
+        .= 1 - 1 by A1,ROUGHIF1:def 2;
+    hence thesis;
+  end;
+
+theorem :: Proposition 6 b)
+  Y c= Z implies (CMap kap).(X,Z) <= (CMap kap).(X,Y)
+  proof
+    assume Y c= Z; then
+    1 - kap.(X,Y) >= 1 - kap.(X,Z) by XREAL_1:10,ROUGHIF1:def 8; then
+    (CMap kap).(X,Y) >= 1 - (kap).(X,Z) by CDef;
+    hence thesis by CDef;
+  end;
+
+theorem :: Proposition 6 b) probably will be removed as a consequence
+  Y c= Z implies (CMap kappa R).(X,Z) <= (CMap kappa R).(X,Y)
+  proof
+    assume Y c= Z; then
+    1 - kappa (X,Y) >= 1 - kappa (X,Z) by XREAL_1:10, ROUGHIF1:7; then
+    1 - (kappa R).(X,Y) >= 1 - kappa (X,Z) by ROUGHIF1:def 2; then
+    1 - (kappa R).(X,Y) >= 1 - (kappa R).(X,Z) by ROUGHIF1:def 2; then
+    (CMap kappa R).(X,Y) >= 1 - (kappa R).(X,Z) by CDef;
+    hence thesis by CDef;
+  end;
+
+Lemma6c1:
+  (CMap kappa_2 R).(X,Y) <= (CMap kappa_1 R).(X,Y)
+  proof
+    kappa_1 (X,Y) <= kappa_2 (X,Y) by ROUGHIF1:30; then
+    (kappa_1 R).(X,Y) <= kappa_2 (X,Y) by ROUGHIF1:def 5; then
+    (kappa_1 R).(X,Y) <= (kappa_2 R).(X,Y) by ROUGHIF1:def 6; then
+    1 - (kappa_1 R).(X,Y) >= 1 - (kappa_2 R).(X,Y) by XREAL_1:10; then
+    (CMap kappa_1 R).(X,Y) >= 1 - (kappa_2 R).(X,Y) by CDef;
+    hence thesis by CDef;
+  end;
+
+Lemma6c2:
+  (CMap kappa_1 R).(X,Y) <= (CMap kappa R).(X,Y)
+  proof
+    kappa (X,Y) <= kappa_1 (X,Y) by ROUGHIF1:30; then
+    (kappa R).(X,Y) <= kappa_1 (X,Y) by ROUGHIF1:def 2; then
+    (kappa R).(X,Y) <= (kappa_1 R).(X,Y) by ROUGHIF1:def 5; then
+    1 - (kappa R).(X,Y) >= 1 - (kappa_1 R).(X,Y) by XREAL_1:10; then
+    (CMap kappa R).(X,Y) >= 1 - (kappa_1 R).(X,Y) by CDef;
+    hence thesis by CDef;
+  end;
+
+theorem :: Proposition 6 c)
+  (CMap kappa_2 R).(X,Y) <= (CMap kappa_1 R).(X,Y) <= (CMap kappa R).(X,Y)
+    by Lemma6c1,Lemma6c2;
+
+theorem LemacikX:
+  for a,b,c being Real st a <= b & b > 0 & c >= 0 & b > c
+     holds a / b >= (a - c) / (b - c)
+  proof
+    let a,b,c be Real;
+    assume
+A1: a <= b & b > 0 & c >= 0 & b > c; then
+    b - 0 > c; then
+SS: b - c > 0 by XREAL_1:12;
+    a * c <= b * c by A1,XREAL_1:64; then
+    a * b - a * c >= a * b - b * c by XREAL_1:10; then
+    a * (b - c) >= b * (a - c);
+    hence thesis by XREAL_1:102,A1,SS;
+  end;
+
+Jaga1:
+  X <> {} & Y <> {} & Z <> {} implies
+   (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,Z) >= (CMap kappa_1 R).(X,Z)
+  proof
+    assume
+ZZ: X <> {} & Y <> {} & Z <> {};
+      set m = card (X \/ Y \/ Z);
+      set m0 = card (X \ (Y \/ Z));
+      set m1 = card (Y \ (X \/ Z));
+      set m2 = card ((X /\ Y) \ Z);
+      set m3 = card ((X /\ Z) \ Y);
+      set m4 = card (Z \ (X \/ Y));
+D1:   X \ (Y \/ Z) = (X \ Y) /\ (X \ Z) by XBOOLE_1:53;
+      X /\ Z misses X \ Z by XBOOLE_1:89; then
+     (X /\ Z) \ Y misses X \ Z by XBOOLE_1:80; then
+D3b:  m0 + m3 = card ((X \ (Y \/ Z)) \/ ((X /\ Z) \ Y))
+       by CARD_2:40,D1,XBOOLE_1:74;
+      Y = (Y \ Z) \/ Y by XBOOLE_1:12,36
+       .= ((Y \/ Z) \ Z) \/ Y by XBOOLE_1:40
+       .= ((Y \/ Z) \ Z) \/ ((Y \/ Z) /\ Y) by XBOOLE_1:21
+       .= (Y \/ Z) \ (Z \ Y) by XBOOLE_1:52; then
+u1:   (X \ (Y \/ Z)) \/ (X /\ (Z \ Y)) = X \ Y by XBOOLE_1:52;
+      X \ (Y \/ Z) misses X /\ Y by D1,XBOOLE_1:74,89; then
+D2:   X \ (Y \/ Z) misses (X /\ Y) \ Z by XBOOLE_1:63,36;
+D3:   m0 + m2 = card ((X \ (Y \/ Z)) \/ ((X /\ Y) \ Z)) by D2,CARD_2:40;
+      Z = (Z \ Y) \/ Z by XBOOLE_1:12,36
+       .= ((Y \/ Z) \ Y) \/ Z by XBOOLE_1:40
+       .= ((Y \/ Z) \ Y) \/ ((Y \/ Z) /\ Z) by XBOOLE_1:21
+       .= (Y \/ Z) \ (Y \ Z) by XBOOLE_1:52; then
+      (X \ (Y \/ Z)) \/ (X /\ (Y \ Z)) = X \ Z by XBOOLE_1:52; then
+Z2:   card (X \ Z) = m0 + m2 by D3,XBOOLE_1:49;
+d1:   Y \ (X \/ Z) c= Y \ X by XBOOLE_1:34,7;
+      X /\ Y misses Y \ X by XBOOLE_1:89; then
+      Y \ (X \/ Z) misses X /\ Y by d1,XBOOLE_1:63; then
+D2:   Y \ (X \/ Z) misses (X /\ Y) \ Z by XBOOLE_1:63,36;
+D3a:  m1 + m2 = card ((Y \ (X \/ Z)) \/ ((X /\ Y) \ Z)) by D2,CARD_2:40;
+      Z = (Z \ X) \/ Z by XBOOLE_1:12,36
+        .= ((X \/ Z) \ X) \/ Z by XBOOLE_1:40
+        .= ((X \/ Z) \ X) \/ ((X \/ Z) /\ Z) by XBOOLE_1:21
+        .= (X \/ Z) \ (X \ Z) by XBOOLE_1:52; then
+aa:   (Y \ (X \/ Z)) \/ (Y /\ (X \ Z)) = Y \ Z by XBOOLE_1:52; then
+Z3:   card (Y \ Z) = m1 + m2 by D3a,XBOOLE_1:49;
+      (Z \ (X \/ Y)) \/ (X \/ Y) = X \/ Y \/ Z by XBOOLE_1:39; then
+x4:   card (Z \ (X \/ Y)) + card (X \/ Y) = m by XBOOLE_1:79,CARD_2:40;
+      (Y \ (X \/ Z)) \/ (X \/ Z) = Y \/ (X \/ Z) by XBOOLE_1:39
+          .= X \/ Y \/ Z by XBOOLE_1:4; then
+z5:   card (Y \ (X \/ Z)) + card (X \/ Z) = m by XBOOLE_1:79,CARD_2:40; then
+      card (X \/ Z) = m - m1; then
+U3:   m > 0 + m1 by XREAL_1:20,ZZ;
+      (X \ (Y \/ Z)) \/ (Y \/ Z) = X \/ (Y \/ Z) by XBOOLE_1:39
+          .= X \/ Y \/ Z by XBOOLE_1:4; then
+Z6:   card (X \ (Y \/ Z)) + card (Y \/ Z) = m by XBOOLE_1:79,CARD_2:40;
+T1:   (CMap kappa_1 R).(X,Y) = card (X \ Y) / card (X \/ Y) by ZZ,PropEx3
+            .= (m0 + m3) / (m - m4) by u1,x4,XBOOLE_1:49,D3b;
+T2:   (CMap kappa_1 R).(Y,Z) = card (Y \ Z) / card (Y \/ Z) by ZZ,PropEx3
+            .= (m1 + m2) / (m - m0) by aa,Z6,XBOOLE_1:49,D3a;
+T3:   (CMap kappa_1 R).(X,Z) = (m0 + m2) / (m - m1) by Z2,z5,ZZ,PropEx3;
+      0 <= m4; then
+      m - m <= m4; then
+      m - m4 <= m by XREAL_1:12; then
+V1:   (m0 + m3) / (m - m4) >= (m0 + m3) / m by XREAL_1:118,x4,ZZ;
+      0 <= m0; then
+      m - m <= m0; then
+      m - m0 <= m by XREAL_1:12; then
+V2:   (m1 + m2) / (m - m0) >= (m1 + m2) / m by XREAL_1:118,Z6,ZZ;
+      m0 + m3 >= m0 + 0 by XREAL_1:6; then
+V3:   m0 + m3 + (m1 + m2) >= m0 + 0 + (m1 + m2) by XREAL_1:6;
+B2:   (m0 + m3) / (m - m4) + (m1 + m2) / (m - m0) >=
+         (m0 + m3) / m + (m1 + m2) / m by V1,V2,XREAL_1:7;
+      (m0 + m3) / m + (m1 + m2) / m = (m0 + m3 + (m1 + m2)) / m
+         by XCMPLX_1:62; then
+B3:   (m0 + m3) / m + (m1 + m2) / m  >= (m0 + m1 + m2) / m
+        by V3,XREAL_1:72;
+      set a = m0 + m1 + m2;
+      set b = m;
+F2:   a = card (X \ (Y \/ Z)) + card (Y \ Z) by Z3;
+      X \ Y misses Y by XBOOLE_1:79; then
+      X \ Y misses Y \ Z by XBOOLE_1:63,36; then
+      (X \ Y) /\ (X \ Z) misses Y \ Z by XBOOLE_1:74; then
+F5:   X \ (Y \/ Z) misses Y \ Z by XBOOLE_1:53;
+      X \ (Y \/ Z) c= X & Y \ Z c= Y by XBOOLE_1:36; then
+F4:   (X \ (Y \/ Z)) \/ (Y \ Z) c= X \/ Y by XBOOLE_1:13;
+      X \/ Y c= X \/ Y \/ Z by XBOOLE_1:7; then
+f6:   (X \ (Y \/ Z)) \/ (Y \ Z) c= X \/ Y \/ Z by F4;
+      card ((X \ (Y \/ Z)) \/ (Y \ Z)) = a by F2,F5,CARD_2:40; then
+      a / b >= (a - m1) / (b - m1) by f6,U3,LemacikX,NAT_1:43; then
+      (m0 + m3) / m + (m1 + m2) / m >= (m0 + m2) / (m - m1)
+        by B3,XXREAL_0:2;
+      hence thesis by T1,T2,T3,B2,XXREAL_0:2;
+  end;
+
+Lack: for X,Y being set holds
+  X \+\ Y c= X \/ Y
+  proof
+    let X,Y be set;
+    X \+\ Y = (X \/ Y) \ (X /\ Y) by XBOOLE_1:101;
+    hence thesis;
+  end;
+
+Lemma6f1:
+  (X = {} & Y <> {}) or (X <> {} & Y = {}) implies
+    (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) = 1
+  proof
+    assume (X = {} & Y <> {}) or (X <> {} & Y = {}); then
+    per cases;
+    suppose
+A0:   X = {} & Y <> {}; then
+     (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) =
+        card (X \ Y) / card (X \/ Y) + (CMap kappa_1 R).(Y,X) by PropEx3
+        .= card (X \ Y) / card (X \/ Y) + card (Y \ X) / card (X \/ Y)
+          by PropEx3,A0
+        .= card Y / card Y by A0;
+      hence thesis by A0,XCMPLX_1:60;
+    end;
+    suppose
+A0:   Y = {} & X <> {}; then
+     (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) =
+        card (X \ Y) / card (X \/ Y) + (CMap kappa_1 R).(Y,X) by PropEx3
+        .= card (X \ Y) / card (X \/ Y) + card (Y \ X) / card (X \/ Y)
+          by PropEx3,A0
+        .= card X / card X by A0;
+      hence thesis by A0,XCMPLX_1:60;
+    end;
+  end;
+
+theorem Ble1:
+  X <> {} & Y = {} implies (CMap kappa_1 R).(X,Y) = 1
+  proof
+    assume
+A1: X <> {} & Y = {}; then
+    (CMap kappa_1 R).(X,Y) = card (X \ Y) / card (X \/ Y) by PropEx3
+      .= 1 by A1,XCMPLX_1:60;
+    hence thesis;
+  end;
+
+theorem
+  X = {} & Y <> {} implies (CMap kappa_1 R).(X,Y) = 0
+  proof
+    assume
+A1: X = {} & Y <> {}; then
+    (CMap kappa_1 R).(X,Y) = card (X \ Y) / card (X \/ Y) by PropEx3
+      .= 0 by A1;
+    hence thesis;
+  end;
+
+theorem Prop6d1: :: Proposition 6 d1)
+  (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,Z) >= (CMap kappa_1 R).(X,Z)
+  proof
+    per cases;
+    suppose
+F1:   X = {}; then
+      X c= Y; then
+F2:   (CMap kappa_1 R).(X,Y) = 0 by Prop6a;
+      (CMap kappa_1 R).(X,Z) = 0 by Prop6a,F1,XBOOLE_1:2;
+      hence thesis by F2,XXREAL_1:1;
+    end;
+    suppose
+F1:   X <> {} & Y = {} & Z <> {}; then
+      Y c= Z; then
+F2:   (CMap kappa_1 R).(Y,Z) = 0 by Prop6a;
+      (CMap kappa_1 R).(X,Y) = 1 by F1,Ble1;
+      hence thesis by F2,XXREAL_1:1;
+    end;
+    suppose
+F1:   X <> {} & Y <> {} & Z = {}; then
+F3:   (CMap kappa_1 R).(X,Z) = 1 by Ble1;
+      (CMap kappa_1 R).(X,Y) >= 0 by XXREAL_1:1; then
+      (CMap kappa_1 R).(X,Y) + 1 >= 0 + 1 by XREAL_1:6;
+      hence thesis by F1,F3,Ble1;
+    end;
+    suppose
+F1:   X <> {} & Y = {} & Z = {}; then
+F3:   (CMap kappa_1 R).(X,Y) = 1 by Ble1;
+      (CMap kappa_1 R).(Y,Z) >= 0 by XXREAL_1:1; then
+      1 + (CMap kappa_1 R).(Y,Z) >= 1 + 0 by XREAL_1:6;
+      hence thesis by F1,F3;
+    end;
+    suppose
+      X <> {} & Y <> {} & Z <> {};
+      hence thesis by Jaga1;
+    end;
+  end;
+
+::: satisfies the triangle inequality as an attribute?
+
+theorem :: Proposition 6 e)
+  0 <= (CMap kappa R).(X,Y) <= 1 by XXREAL_1:1;
+
+theorem Prop6e1: :: Proposition 6 e1)
+  0 <= (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) <= 1
+  proof
+    per cases;
+    suppose X \/ Y = {}; then
+      (CMap kappa_1 R).(X,Y) = 0 & (CMap kappa_1 R).(Y,X) = 0 by PropEx30;
+      hence thesis;
+    end;
+    suppose
+B1:    X \/ Y <> {}; then
+A1:   (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) =
+        card (X \ Y) / card (X \/ Y) + (CMap kappa_1 R).(Y,X) by PropEx3
+        .= card (X \ Y) / card (X \/ Y) + card (Y \ X) / card (X \/ Y)
+          by PropEx3,B1
+        .= (card (X \ Y) + card (Y \ X)) / card (X \/ Y) by XCMPLX_1:62
+        .= card (X \+\ Y) / card (X \/ Y) by CARD_2:40,XBOOLE_1:82;
+      card (X \+\ Y) <= card (X \/ Y) by Lack,NAT_1:43;
+      hence thesis by A1,XREAL_1:183;
+    end;
+  end;
+
+theorem Prop6e2: :: Proposition 6 e2)
+  0 <= (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,X) <= 1
+  proof
+    (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,X) =
+      card (X \ Y) / card [#]R + (CMap kappa_2 R).(Y,X) by PropEx31
+      .= card (X \ Y) / card [#]R + card (Y \ X) / card [#]R by PropEx31
+      .= (card (X \ Y) + card (Y \ X)) / card [#]R by XCMPLX_1:62
+      .= card (X \+\ Y) / card [#]R by CARD_2:40,XBOOLE_1:82;
+    hence thesis by NAT_1:43,XREAL_1:183;
+  end;
+
+Lemma6f:
+  (X = {} & Y <> {}) or (X <> {} & Y = {}) implies
+    (CMap kappa R).(X,Y) + (CMap kappa R).(Y,X) = 1
+  proof
+    assume (X = {} & Y <> {}) or (X <> {} & Y = {}); then
+    per cases;
+    suppose
+A0:   X = {} & Y <> {}; then
+     (CMap kappa R).(X,Y) + (CMap kappa R).(Y,X) =
+        0 + (CMap kappa R).(Y,X) by PropEx3k0
+        .= card (Y \ X) / card Y by A0,PropEx3k
+        .= card Y / card Y by A0;
+      hence thesis by A0,XCMPLX_1:60;
+    end;
+    suppose
+A0:   Y = {} & X <> {}; then
+     (CMap kappa R).(X,Y) + (CMap kappa R).(Y,X) =
+        card (X \ Y) / card (X \/ Y) + (CMap kappa R).(Y,X) by PropEx3k
+        .= card (X \ Y) / card (X \/ Y) + 0 by PropEx3k0,A0
+        .= card X / card X by A0;
+      hence thesis by A0,XCMPLX_1:60;
+    end;
+  end;
+
+theorem :: Proposition 6 f)
+  (X = {} & Y <> {}) or (X <> {} & Y = {}) implies
+    (CMap kappa R).(X,Y) + (CMap kappa R).(Y,X) =
+      (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) = 1
+  proof
+    assume
+A1: (X = {} & Y <> {}) or (X <> {} & Y = {}); then
+    (CMap kappa R).(X,Y) + (CMap kappa R).(Y,X) = 1 by Lemma6f;
+    hence thesis by A1,Lemma6f1;
+  end;
+
+definition let R;
+  func delta_L R -> preRIF of R means :DeltaL:
+  for x,y being Subset of R holds
+    it.(x,y) = ((CMap kappa R).(x,y) + (CMap kappa R).(y,x)) / 2;
+  existence
+  proof
+    deffunc F(Subset of R,Subset of R) =
+      In(((CMap kappa R).($1,$2) + (CMap kappa R).($2,$1)) / 2, [.0,1.]);
+    ex f being preRIF of R st
+    for x,y being Element of bool the carrier of R holds
+      f.(x,y) = F(x,y) from BINOP_1:sch 4; then
+    consider ff being
+    Function of [:bool the carrier of R, bool the carrier of R:],
+      [.0,1.] such that
+A1: for x,y being Element of bool the carrier of R holds
+      ff.(x,y) = F(x,y);
+    take ff;
+    let x,y be Subset of R;
+b1: 0 <= (CMap kappa R).(x,y) & 0 <= (CMap kappa R).(y,x) by XXREAL_1:1;
+    (CMap kappa R).(x,y) <= 1 & (CMap kappa R).(y,x) <= 1
+      by XXREAL_1:1; then
+    (CMap kappa R).(x,y) + (CMap kappa R).(y,x) <= 1 + 1 by XREAL_1:7; then
+bb: ((CMap kappa R).(x,y) + (CMap kappa R).(y,x)) / 2 <= 2 / 2
+      by XREAL_1:72;
+    ff.(x,y) = In(((CMap kappa R).(x,y) + (CMap kappa R).(y,x)) / 2,
+      [.0,1.]) by A1
+        .= ((CMap kappa R).(x,y) + (CMap kappa R).(y,x)) / 2
+      by bb,SUBSET_1:def 8,b1,XXREAL_1:1;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc G(Subset of R,Subset of R) =
+      ((CMap kappa R).($1,$2) + (CMap kappa R).($2,$1)) / 2;
+    let f1, f2 be preRIF of R such that
+A1: (for x,y being Subset of R holds f1.(x,y) = G(x,y)) and
+A2: (for x,y being Subset of R holds f2.(x,y) = G(x,y));
+    for x,y being Subset of R holds f1.(x,y) = f2.(x,y)
+    proof
+      let x,y be Subset of R;
+      f1.(x,y) = G(x,y) by A1
+              .= f2.(x,y) by A2;
+      hence thesis;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+  func delta_1 R -> preRIF of R means :Delta1:
+  for x,y being Subset of R holds
+    it.(x,y) = (CMap kappa_1 R).(x,y) + (CMap kappa_1 R).(y,x);
+  existence
+  proof
+    deffunc F(Subset of R,Subset of R) =
+      In(((CMap kappa_1 R).($1,$2) + (CMap kappa_1 R).($2,$1)), [.0,1.]);
+    ex f being preRIF of R st
+    for x,y being Element of bool the carrier of R holds
+      f.(x,y) = F(x,y) from BINOP_1:sch 4; then
+    consider ff being
+    Function of [:bool the carrier of R, bool the carrier of R:],
+      [.0,1.] such that
+A1: for x,y being Element of bool the carrier of R holds
+      ff.(x,y) = F(x,y);
+    take ff;
+    let x,y be Subset of R;
+B1: 0 <= (CMap kappa_1 R).(x,y) + (CMap kappa_1 R).(y,x) <= 1 by Prop6e1;
+    ff.(x,y) = In ((CMap kappa_1 R).(x,y) + (CMap kappa_1 R).(y,x),
+      [.0,1.]) by A1
+        .= (CMap kappa_1 R).(x,y) + (CMap kappa_1 R).(y,x)
+        by B1,XXREAL_1:1,SUBSET_1:def 8;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc G(Subset of R,Subset of R) =
+      (CMap kappa_1 R).($1,$2) + (CMap kappa_1 R).($2,$1);
+    let f1, f2 be preRIF of R such that
+A1: (for x,y being Subset of R holds f1.(x,y) = G(x,y)) and
+A2: (for x,y being Subset of R holds f2.(x,y) = G(x,y));
+    for x,y being Subset of R holds f1.(x,y) = f2.(x,y)
+    proof
+      let x,y be Subset of R;
+      f1.(x,y) = G(x,y) by A1
+              .= f2.(x,y) by A2;
+      hence thesis;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+  func delta_2 R -> preRIF of R means :Delta2:
+  for x,y being Subset of R holds
+    it.(x,y) = (CMap kappa_2 R).(x,y) + (CMap kappa_2 R).(y,x);
+  existence
+  proof
+    deffunc F(Subset of R,Subset of R) =
+      In(((CMap kappa_2 R).($1,$2) + (CMap kappa_2 R).($2,$1)), [.0,1.]);
+    ex f being preRIF of R st
+    for x,y being Element of bool the carrier of R holds
+      f.(x,y) = F(x,y) from BINOP_1:sch 4; then
+    consider ff being
+    Function of [:bool the carrier of R, bool the carrier of R:],
+      [.0,1.] such that
+A1: for x,y being Element of bool the carrier of R holds
+      ff.(x,y) = F(x,y);
+    take ff;
+    let x,y be Subset of R;
+B1: 0 <= (CMap kappa_2 R).(x,y) + (CMap kappa_2 R).(y,x) <= 1 by Prop6e2;
+    ff.(x,y) = In ((CMap kappa_2 R).(x,y) + (CMap kappa_2 R).(y,x),
+      [.0,1.]) by A1
+        .= (CMap kappa_2 R).(x,y) + (CMap kappa_2 R).(y,x)
+        by B1,XXREAL_1:1,SUBSET_1:def 8;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc G(Subset of R,Subset of R) =
+      (CMap kappa_2 R).($1,$2) + (CMap kappa_2 R).($2,$1);
+    let f1, f2 be preRIF of R such that
+A1: (for x,y being Subset of R holds f1.(x,y) = G(x,y)) and
+A2: (for x,y being Subset of R holds f2.(x,y) = G(x,y));
+    for x,y being Subset of R holds f1.(x,y) = f2.(x,y)
+    proof
+      let x,y be Subset of R;
+      f1.(x,y) = G(x,y) by A1
+              .= f2.(x,y) by A2;
+      hence thesis;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+end;
+
+theorem :: Proposition 7 aL)
+  (delta_L R).(X,Y) = 0 iff X = Y
+  proof
+B1: (CMap kappa R).(X,Y) >= 0 & (CMap kappa R).(Y,X) >= 0 by XXREAL_1:1;
+    hereby assume (delta_L R).(X,Y) = 0; then
+      ((CMap kappa R).(X,Y) + (CMap kappa R).(Y,X)) / 2 = 0 by DeltaL; then
+      (CMap kappa R).(X,Y) = 0 & (CMap kappa R).(Y,X) = 0 by B1;
+      hence X = Y by Prop6a;
+    end;
+    assume
+A1: X = Y;
+    (delta_L R).(X,Y) = ((CMap kappa R).(X,Y) + (CMap kappa R).(Y,X)) / 2
+      by DeltaL
+       .= (0 + 0) / 2 by Prop6a,A1;
+    hence thesis;
+  end;
+
+theorem :: Proposition 7 bL)
+  (delta_L R).(X,Y) = (delta_L R).(Y,X)
+  proof
+    (delta_L R).(X,Y) = ((CMap kappa R).(X,Y) + (CMap kappa R).(Y,X)) / 2
+      by DeltaL;
+    hence thesis by DeltaL;
+  end;
+
+theorem :: Formula (19)
+  (X <> {} & Y = {}) or (X = {} & Y <> {}) implies
+    (delta_L R).(X,Y) = 1 / 2
+  proof
+    assume (X <> {} & Y = {}) or (X = {} & Y <> {}); then
+    (CMap kappa R).(X,Y) + (CMap kappa R).(Y,X) = 1 by Lemma6f;
+    hence thesis by DeltaL;
+  end;
+
+theorem :: Formula (19)
+  X <> {} & Y <> {} implies
+    (delta_L R).(X,Y) = ((card (X \ Y) / card X) + (card (Y \ X) / card Y)) / 2
+  proof
+    assume
+A1: X <> {} & Y <> {}; then
+A2: (CMap kappa R).(X,Y) = card (X \ Y) / card X by PropEx3k;
+    (CMap kappa R).(Y,X) = card (Y \ X) / card Y by A1,PropEx3k;
+    hence thesis by DeltaL,A2;
+  end;
+
+theorem For191: :: (19)
+  (delta_1 R).(X,Y) = card (X \+\ Y) / card (X \/ Y)
+  proof
+    per cases;
+    suppose
+A0:   X \/ Y <> {}; then
+A2:   (CMap kappa_1 R).(Y,X) = card (Y \ X) / card (X \/ Y) by PropEx3;
+      (delta_1 R).(X,Y) = (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X)
+        by Delta1
+      .= card (X \ Y) / card (X \/ Y) + card (Y \ X) / card (X \/ Y)
+        by A0,PropEx3,A2
+      .= (card (X \ Y) + card (Y \ X)) / card (X \/ Y) by XCMPLX_1:62
+      .= card (X \+\ Y) / card (X \/ Y) by XBOOLE_1:82,CARD_2:40;
+       hence thesis;
+    end;
+    suppose
+A0:   X \/ Y = {}; then
+      X = {} & Y = {}; then
+      (CMap kappa_1 R).(X,Y) = 0 & (CMap kappa_1 R).(Y,X) = 0 by Prop6a; then
+      (delta_1 R).(X,Y) = 0 + 0 by Delta1;
+      hence thesis by A0;
+    end;
+  end;
+
+theorem :: (19)
+  (delta_2 R).(X,Y) = card (X \+\ Y) / card [#]R
+  proof
+A1: (CMap kappa_2 R).(X,Y) = card (X \ Y) / card [#]R by PropEx31;
+A2: (CMap kappa_2 R).(Y,X) = card (Y \ X) / card [#]R by PropEx31;
+    (delta_2 R).(X,Y) = (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,X)
+      by Delta2
+      .= (card (X \ Y) + card (Y \ X)) / card [#]R by XCMPLX_1:62,A1,A2
+      .= card (X \+\ Y) / card [#]R by XBOOLE_1:82,CARD_2:40;
+     hence thesis;
+  end;
+
+theorem :: Proposition 7 c1)
+  (delta_1 R).(X,Y) + (delta_1 R).(Y,Z) >= (delta_1 R).(X,Z)
+  proof
+    set m1 = (CMap kappa_1 R).(X,Y), m2 = (CMap kappa_1 R).(Y,Z);
+    set m3 = (CMap kappa_1 R).(X,Z), m4 = (CMap kappa_1 R).(Z,Y),
+        m5 = (CMap kappa_1 R).(Y,X), m6 = (CMap kappa_1 R).(Z,X);
+A1: m1 + m2 >= m3 by Prop6d1;
+    m4 + m5 >= m6 by Prop6d1; then
+    m1 + m2 + (m4 + m5) >= m3 + m6 by A1,XREAL_1:7; then
+    m1 + m5 + (m2 + m4) >= m3 + m6; then
+    (delta_1 R).(X,Y) + (m2 + m4) >= m3 + m6 by Delta1; then
+    (delta_1 R).(X,Y) + (delta_1 R).(Y,Z) >= m3 + m6 by Delta1;
+    hence thesis by Delta1;
+  end;
+
+theorem  :: Proposition 7 a1)
+  (delta_1 R).(X,Y) = 0 iff X = Y
+  proof
+B1: (CMap kappa_1 R).(X,Y) >= 0 & (CMap kappa_1 R).(Y,X) >= 0 by XXREAL_1:1;
+    hereby assume (delta_1 R).(X,Y) = 0; then
+      (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X) = 0 by Delta1; then
+      (CMap kappa_1 R).(X,Y) = 0 & (CMap kappa_1 R).(Y,X) = 0 by B1;
+      hence X = Y by Prop6a;
+    end;
+    assume
+A1: X = Y;
+    (delta_1 R).(X,Y) = (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X)
+      by Delta1
+       .= (CMap kappa_1 R).(X,X) + 0 by Prop6a,A1
+       .= 0 + 0 by Prop6a;
+    hence thesis;
+  end;
+
+theorem :: Proposition 7 bL)
+  (delta_1 R).(X,Y) = (delta_1 R).(Y,X)
+  proof
+    (delta_1 R).(X,Y) = (CMap kappa_1 R).(X,Y) + (CMap kappa_1 R).(Y,X)
+      by Delta1;
+    hence thesis by Delta1;
+  end;
+
+theorem :: Proposition 7 a2)
+  (delta_2 R).(X,Y) = 0 iff X = Y
+  proof
+B1: (CMap kappa_2 R).(X,Y) >= 0 & (CMap kappa_2 R).(Y,X) >= 0 by XXREAL_1:1;
+    hereby assume (delta_2 R).(X,Y) = 0; then
+      (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,X) = 0 by Delta2; then
+      (CMap kappa_2 R).(X,Y) = 0 & (CMap kappa_2 R).(Y,X) = 0 by B1;
+      hence X = Y by Prop6a;
+    end;
+    assume
+A1: X = Y;
+    (delta_2 R).(X,Y) = (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,X)
+      by Delta2
+       .= (CMap kappa_2 R).(X,X) + 0 by Prop6a,A1
+       .= 0 + 0 by Prop6a;
+    hence thesis;
+  end;
+
+theorem :: Proposition 7 b2)
+  (delta_2 R).(X,Y) = (delta_2 R).(Y,X)
+  proof
+    (delta_2 R).(X,Y) = (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,X)
+      by Delta2;
+    hence thesis by Delta2;
+  end;
+
+theorem Prop6d2: :: Proposition 6 d2)
+  (CMap kappa_2 R).(X,Y) + (CMap kappa_2 R).(Y,Z) >= (CMap kappa_2 R).(X,Z)
+  proof
+B1: (CMap kappa_2 R).(X,Y) = card (X \ Y) / card [#]R by PropEx31;
+B2: (CMap kappa_2 R).(Y,Z) = card (Y \ Z) / card [#]R by PropEx31;
+B3: (CMap kappa_2 R).(X,Z) = card (X \ Z) / card [#]R by PropEx31;
+A1: Y \ Z c= Y by XBOOLE_1:36;
+    X \ Y misses Y by XBOOLE_1:79; then
+A2: card ((X \ Y) \/ (Y \ Z)) = card (X \ Y) + card (Y \ Z)
+      by CARD_2:40,A1,XBOOLE_1:63;
+    X \ Z c= (X \ Y) \/ (Y \ Z)
+    proof
+      let x be object;
+      assume x in X \ Z; then
+A3:   x in X & not x in Z by XBOOLE_0:def 5;
+      per cases;
+      suppose x in Y; then
+        x in Y \ Z by A3,XBOOLE_0:def 5;
+        hence thesis by XBOOLE_0:def 3;
+      end;
+      suppose not x in Y; then
+        x in X \ Y by A3,XBOOLE_0:def 5;
+        hence thesis by XBOOLE_0:def 3;
+      end;
+    end; then
+    (card (X \ Y) + card (Y \ Z)) / card [#]R >= card (X \ Z) / card [#]R
+       by A2,XREAL_1:72,NAT_1:43;
+    hence thesis by B1,B2,B3,XCMPLX_1:62;
+  end;
+
+theorem :: Proposition 7 c2)
+  (delta_2 R).(X,Y) + (delta_2 R).(Y,Z) >= (delta_2 R).(X,Z)
+  proof
+    set m1 = (CMap kappa_2 R).(X,Y), m2 = (CMap kappa_2 R).(Y,Z);
+    set m3 = (CMap kappa_2 R).(X,Z), m4 = (CMap kappa_2 R).(Z,Y),
+        m5 = (CMap kappa_2 R).(Y,X), m6 = (CMap kappa_2 R).(Z,X);
+A1: m1 + m2 >= m3 by Prop6d2;
+    m4 + m5 >= m6 by Prop6d2; then
+    m1 + m2 + (m4 + m5) >= m3 + m6 by A1,XREAL_1:7; then
+    m1 + m5 + (m2 + m4) >= m3 + m6; then
+    (delta_2 R).(X,Y) + (m2 + m4) >= m3 + m6 by Delta2; then
+    (delta_2 R).(X,Y) + (delta_2 R).(Y,Z) >= m3 + m6 by Delta2;
+    hence thesis by Delta2;
+  end;
+
+begin :: Jaccard Index Measuring Similarity of Sets
+
+definition let R be finite set;
+           let A, B be Subset of R;
+  func JaccardIndex (A,B) -> Element of [.0,1.] equals :JacInd:
+    card (A /\ B) / card (A \/ B) if A \/ B <> {}
+    otherwise 1;
+  coherence
+  proof
+    card (A /\ B) / card (A \/ B) in [.0,1.]
+    proof
+B1:   A /\ B c= A by XBOOLE_1:17;
+      A c= A \/ B by XBOOLE_1:7; then
+      A /\ B c= A \/ B by B1; then
+      card (A /\ B) / card (A \/ B) <= 1 by XREAL_1:185,NAT_1:43;
+      hence thesis by XXREAL_1:1;
+    end;
+    hence thesis by XXREAL_1:1;
+  end;
+  correctness;
+end;
+
+theorem JacRefl:
+  for R being finite set
+  for A,B being Subset of R holds
+    JaccardIndex (A,B) = 1 iff A = B
+  proof
+    let R be finite set;
+    let A,B be Subset of R;
+    hereby
+      assume
+T1:   JaccardIndex (A,B) = 1;
+      per cases;
+      suppose A \/ B = {}; then
+        A = {} & B = {};
+        hence A = B;
+      end;
+      suppose A \/ B <> {}; then
+        JaccardIndex (A,B) = card (A /\ B) / card (A \/ B) by JacInd; then
+        card (A /\ B) = card (A \/ B) by XCMPLX_1:58,T1;
+        hence A = B by LemmaCard;
+      end;
+    end;
+    assume
+A0: A = B;
+    per cases;
+    suppose A = {}; then
+      A \/ B = {} by A0;
+      hence thesis by JacInd;
+    end;
+    suppose
+B1:   A <> {}; then
+      JaccardIndex (A,B) = card (A /\ A) / card (A \/ A) by JacInd,A0
+       .= card A / card A;
+      hence thesis by B1,XCMPLX_1:60;
+    end;
+  end;
+
+theorem JacSym:
+  for R being finite set
+  for A,B being Subset of R holds
+    JaccardIndex (A,B) = JaccardIndex (B,A)
+  proof
+    let R be finite set;
+    let A,B be Subset of R;
+    per cases;
+    suppose
+A1:   A \/ B = {};
+      hence JaccardIndex (A,B) = 1 by JacInd
+        .= JaccardIndex (B,A) by A1,JacInd;
+    end;
+    suppose
+A1:   A \/ B <> {};
+      hence JaccardIndex (A,B) = card (A /\ B) / card (A \/ B) by JacInd
+       .= JaccardIndex (B,A) by A1,JacInd;
+    end;
+  end;
+
+begin :: Marczewski-Steinhaus metric
+
+definition let R be finite set;
+  func JaccardDist R -> Function of [:bool R, bool R:], REAL means :JacDef2:
+  for A, B being Subset of R holds
+    it.(A,B) = 1 - JaccardIndex (A,B);
+  existence
+  proof
+    deffunc F(Subset of R,Subset of R) =
+      In (1 - JaccardIndex ($1,$2), REAL);
+    ex f being Function of [:bool R, bool R:], REAL st
+    for x,y being Element of bool R holds
+      f.(x,y) = F(x,y) from BINOP_1:sch 4; then
+    consider ff being Function of [:bool R, bool R:], REAL such that
+A1: for x,y being Element of bool R holds
+      ff.(x,y) = F(x,y);
+    take ff;
+    let x,y be Subset of R;
+    ff.(x,y) = In (1 - JaccardIndex (x,y), REAL) by A1
+        .= 1 - JaccardIndex (x,y);
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc G(Subset of R,Subset of R) = 1 - JaccardIndex ($1,$2);
+    let f1, f2 be Function of [:bool R, bool R:], REAL such that
+A1: (for x,y being Subset of R holds f1.(x,y) = G(x,y)) and
+A2: (for x,y being Subset of R holds f2.(x,y) = G(x,y));
+    for x,y being Subset of R holds f1.(x,y) = f2.(x,y)
+    proof
+      let x,y be Subset of R;
+      f1.(x,y) = G(x,y) by A1
+              .= f2.(x,y) by A2;
+      hence thesis;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+  correctness;
+end;
+
+definition let R be finite 1-sorted;
+  func MarczewskiDistance R -> Function of
+    [:bool the carrier of R, bool the carrier of R:], REAL equals
+    JaccardDist [#]R;
+  coherence;
+end;
+
+begin :: Some Properties of Distances
+
+definition let X be non empty set, ::: should be generalized in DBLSEQ_2
+               f be Function of [:X,X:], REAL;
+  redefine attr f is nonnegative-yielding means :Non:
+  for x,y being Element of X holds
+    f.(x,y) >= 0;
+  compatibility
+  proof
+    hereby
+      assume
+A1:   f is nonnegative-yielding;
+      let x,y be Element of X;
+      dom f = [:X,X:] by FUNCT_2:def 1; then
+      [x,y] in dom f; then
+      f.(x,y) in rng f by FUNCT_1:3;
+      hence f.(x,y) >= 0 by A1,PARTFUN3:def 4;
+    end;
+    assume
+A1: for x,y being Element of X holds f.(x,y) >= 0;
+    let r be Real;
+    assume r in rng f;
+    then consider x being Element of [:X,X:] such that
+A2: r = f.x by FUNCT_2:113;
+    consider x1,x2 being object such that
+A3: x1 in X & x2 in X & x = [x1,x2] by ZFMISC_1:def 2;
+    reconsider x1,x2 as Element of X by A3;
+    r = f.(x1,x2) by A3,A2;
+    hence thesis by A1;
+  end;
+end;
+
+registration let X be non empty set;
+  cluster discerning symmetric Reflexive triangle for
+    Function of [:X,X:],REAL;
+  existence
+  proof
+    take discrete_dist X;
+    DiscreteSpace X = MetrStruct (#X,discrete_dist X#) by METRIC_1:def 11;
+    hence thesis by METRIC_1:def 6, def 7, def 8, def 9;
+  end;
+end;
+
+registration
+  let X be non empty set;
+  cluster Reflexive symmetric triangle -> nonnegative-yielding for
+    Function of [:X,X:], REAL;
+  coherence
+  proof
+    let f be Function of [:X,X:], REAL;
+    assume
+AA: f is Reflexive symmetric triangle;
+    now let a,b be Element of X;
+      f.(a,a) <= f.(a,b) + f.(b,a) by AA,METRIC_1:def 5; then
+      0 <= f.(a,b) + f.(b,a) by AA,METRIC_1:def 2; then
+      0 <= f.(a,b) + f.(a,b) by AA,METRIC_1:def 4;
+      hence f.(a,b) >= 0;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem ME7: ::: Discerning
+  for X being non empty set
+  for f being nonnegative-yielding discerning triangle Reflexive
+          Function of [:X,X:], REAL,
+      x,y being Element of X st x <> y holds
+    f.(x,y) > 0
+  proof
+    let X be non empty set;
+    let f be nonnegative-yielding discerning triangle Reflexive
+            Function of [:X,X:], REAL,
+        x,y be Element of X;
+    assume x <> y; then
+    f.(x,y) <> 0 by METRIC_1:def 3;
+    hence thesis by Non;
+  end;
+
+begin :: Steinhaus Generate Metric
+
+definition let X be non empty set,
+               p be Element of X;
+           let f be Function of [:X,X:], REAL;
+  func SteinhausGen (f,p) -> Function of [:X,X:], REAL means :SteinGen:
+  for x,y being Element of X holds
+    it.(x,y) = (2 * f.(x,y)) / (f.(x,p) + f.(y,p) + f.(x,y));
+  existence
+  proof
+    deffunc F(Element of X, Element of X) =
+      In ((2 * f.($1,$2)) / (f.($1,p) + f.($2,p) + f.($1,$2)), REAL);
+    ex ff being Function of [:X, X:], REAL st
+    for x,y being Element of X holds
+      ff.(x,y) = F(x,y) from BINOP_1:sch 4; then
+    consider fg being Function of [:X, X:], REAL such that
+A1: for x,y being Element of X holds fg.(x,y) = F(x,y);
+    take fg;
+    let x,y be Element of X;
+    fg.(x,y) = In ((2 * f.(x,y)) / (f.(x,p) + f.(y,p) + f.(x,y)),
+         REAL) by A1
+        .= (2 * f.(x,y)) / (f.(x,p) + f.(y,p) + f.(x,y));
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc G(Element of X, Element of X) =
+      (2 * f.($1,$2)) / (f.($1,p) + f.($2,p) + f.($1,$2));
+    let f1, f2 be Function of [:X,X:], REAL such that
+A1: (for x,y being Element of X holds f1.(x,y) = G(x,y)) and
+A2: (for x,y being Element of X holds f2.(x,y) = G(x,y));
+    for x,y being Element of X holds f1.(x,y) = f2.(x,y)
+    proof
+      let x,y be Element of X;
+      f1.(x,y) = G(x,y) by A1
+              .= f2.(x,y) by A2;
+      hence thesis;
+    end;
+    hence thesis by BINOP_1:2;
+  end;
+end;
+
+ZeZo:
+  for X being non empty set,
+      f being nonnegative-yielding Function of [:X,X:], REAL,
+      p,x,y being Element of X holds
+   (SteinhausGen (f,p)).(x,y) >= 0
+  proof
+    let X be non empty set,
+        f be nonnegative-yielding Function of [:X,X:], REAL,
+        p,x,y be Element of X;
+    set ff = SteinhausGen (f,p);
+A1: ff.(x,y) = (2 * f.(x,y)) / (f.(x,p) + f.(y,p) + f.(x,y)) by SteinGen;
+A3: f.(x,y) >= 0 by Non;
+    f.(x,p) >= 0 & f.(y,p) >= 0 by Non;
+    hence thesis by A1,A3;
+  end;
+
+registration
+  let X be non empty set,
+      f be nonnegative-yielding Function of [:X,X:], REAL,
+      p be Element of X;
+  cluster SteinhausGen (f,p) -> nonnegative-yielding;
+  coherence by ZeZo;
+end;
+
+registration
+  let X be non empty set,
+      f be nonnegative-yielding Reflexive Function of [:X,X:], REAL,
+      p be Element of X;
+  cluster SteinhausGen (f,p) -> Reflexive;
+  coherence
+  proof
+    set ff = SteinhausGen (f,p);
+    for a being Element of X holds ff.(a,a) = 0
+    proof
+      let a be Element of X;
+      ff.(a,a) = (2 * f.(a,a)) / (f.(a,p) + f.(a,p) + f.(a,a))
+                  by SteinGen
+             .= (2 * 0) / (f.(a,p) + f.(a,p) + f.(a,a)) by METRIC_1:def 2
+             .= 0;
+      hence thesis;
+    end;
+    hence thesis by METRIC_1:def 2;
+  end;
+end;
+
+registration
+  let X be non empty set,
+      f be nonnegative-yielding discerning Function of [:X,X:], REAL,
+      p be Element of X;
+  cluster SteinhausGen (f,p) -> discerning;
+  coherence
+  proof
+    set ff = SteinhausGen (f,p);
+    for a,b being Element of X st ff.(a,b) = 0 holds a = b
+    proof
+      let a,b be Element of X;
+      f.(a,p) >= 0 & f.(b,p) >= 0 by Non; then
+A0:   f.(a,p) + f.(b,p) >= 0 & f.(a,b) >= 0 by Non;
+      assume
+A1:   ff.(a,b) = 0;
+      ff.(a,b) = (2 * f.(a,b)) / (f.(a,p) + f.(b,p) + f.(a,b))
+         by SteinGen; then
+      f.(a,b) = 0 or (f.(a,p) + f.(b,p) = 0 & f.(a,b) = 0) by A0,A1;
+      hence thesis by METRIC_1:def 3;
+    end;
+    hence thesis by METRIC_1:def 3;
+  end;
+end;
+
+registration
+  let X be non empty set,
+      f be nonnegative-yielding symmetric Function of [:X,X:], REAL,
+      p be Element of X;
+  cluster SteinhausGen (f,p) -> symmetric;
+  coherence
+  proof
+    set ff = SteinhausGen (f,p);
+    for a,b being Element of X holds ff.(a,b) = ff.(b,a)
+    proof
+      let a,b be Element of X;
+      ff.(a,b) = (2 * f.(a,b)) / (f.(a,p) + f.(b,p) + f.(a,b))
+                  by SteinGen
+             .= (2 * f.(b,a)) / (f.(a,p) + f.(b,p) + f.(a,b))
+                 by METRIC_1:def 4
+             .= (2 * f.(b,a)) / (f.(b,p) + f.(a,p) + f.(b,a))
+                 by METRIC_1:def 4
+             .= ff.(b,a) by SteinGen;
+      hence thesis;
+    end;
+    hence thesis by METRIC_1:def 4;
+  end;
+end;
+
+registration
+  let X be non empty set,
+      f be discerning symmetric triangle Reflexive Function of [:X,X:], REAL,
+      p be Element of X;
+  cluster SteinhausGen (f,p) -> triangle;
+  coherence
+  proof
+    set ff = SteinhausGen (f,p);
+    for x,z,y being Element of X holds ff.(x,z) + ff.(z,y) >= ff.(x,y)
+    proof
+      let x,z,y be Element of X;
+      set b = 2 * f.(x,y);
+      set cc = f.(x,p) + f.(y,p) + f.(x,y);
+      set dxz = 2 * f.(x,z);
+      set dyz = 2 * f.(y,z);
+      set pp = f.(x,y);
+      set q = f.(x,y) + (f.(x,p) + f.(y,p));
+      set r = f.(x,z) + f.(y,z) - f.(x,y);
+      per cases;
+      suppose x = y; then
+F1:     ff.(x,y) = 0 by METRIC_1:def 2;
+        ff.(x,z) >= 0 & ff.(z,y) >= 0 by ZeZo;
+        hence thesis by F1;
+      end;
+      suppose
+F0:     x = z; then
+        ff.(x,z) = 0 by METRIC_1:def 2;
+        hence thesis by F0;
+      end;
+      suppose
+F0:     y = z; then
+        ff.(y,z) = 0 by METRIC_1:def 2;
+        hence thesis by F0;
+      end;
+      suppose
+TT:     x <> y & x <> z & y <> z; then
+TX:     f.(x,y) > 0 by ME7;
+        f.(y,p) = f.(p,y) by METRIC_1:def 4; then
+        f.(x,p) + f.(y,p) > 0 by TX,METRIC_1:def 5; then
+Y1:     pp < q by XREAL_1:29;
+E1:     f.(x,y) > 0 by TT,ME7;
+        f.(y,z) = f.(z,y) by METRIC_1:def 4; then
+        f.(x,z) + f.(y,z) - f.(x,y) >= f.(x,y) - f.(x,y)
+          by XREAL_1:9,METRIC_1:def 5; then
+XX:     pp / cc <= (pp + r) / (cc + r) by LemacikX1,Y1,E1;
+S3:     ff.(x,y) = b / cc by SteinGen;
+        2 * (pp / cc) <= 2 * ((f.(x,z) + f.(y,z)) /
+         (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z))) by XX,XREAL_1:64; then
+        b / cc <= 2 * ((f.(x,z) + f.(y,z)) /
+         (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z))) by XCMPLX_1:74; then
+ds:     b / cc <= (2 * (f.(x,z) + f.(y,z)) /
+          (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z))) by XCMPLX_1:74;
+Sc:     f.(x,z) > 0 by ME7,TT;
+SC:     f.(y,z) > 0 by TT,ME7;
+S0:     (dxz + dyz) / (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z))
+          = dxz / (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z)) +
+           dyz / (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z)) by XCMPLX_1:62;
+R1:     ff.(x,z) = (2 * f.(x,z)) / (f.(x,p) + f.(z,p) + f.(x,z))
+          by SteinGen;
+        f.(z,y) = f.(y,z) by METRIC_1:def 4; then
+        f.(y,z) + f.(y,p) - f.(z,p) >= f.(z,p) - f.(z,p)
+           by XREAL_1:9,METRIC_1:def 5; then
+        f.(x,z) + (f.(y,z) +
+           f.(y,p) - f.(z,p)) >= f.(x,z) + 0 by XREAL_1:6; then
+D1:     f.(x,p) + f.(z,p) + (f.(x,z) + f.(y,z) +
+           f.(y,p) - f.(z,p)) >= (f.(x,p) + f.(z,p)) + f.(x,z)
+             by XREAL_1:6;
+ss:     f.(z,p) = f.(p,z) by METRIC_1:def 4; then
+        f.(x,p) + f.(z,p) > 0 by Sc,METRIC_1:def 5; then
+W3:     dxz / (f.(x,p) + f.(z,p) + f.(x,z) + f.(y,z) +
+          f.(y,p) - f.(z,p)) <=
+             dxz / (f.(x,p) + f.(z,p) + f.(x,z)) by D1,XREAL_1:118,Sc;
+f2:     f.(y,p) + f.(z,p) > 0 by SC,METRIC_1:def 5,ss;
+        f.(x,z) = f.(z,x) by METRIC_1:def 4; then
+        f.(x,z) + f.(x,p) - f.(z,p) >= f.(z,p) - f.(z,p)
+          by XREAL_1:9,METRIC_1:def 5; then
+        (f.(x,z) + f.(x,p) - f.(z,p)) + f.(y,z) >=
+           0 + f.(y,z) by XREAL_1:6; then
+        f.(y,p) + f.(z,p) +
+           (f.(y,z) + f.(x,z) + f.(x,p) - f.(z,p)) >=
+              f.(y,p) + f.(z,p) + f.(y,z) by XREAL_1:6; then
+w3:     dyz / (f.(y,p) + f.(z,p) + f.(y,z) + f.(x,z) +
+           f.(x,p) - f.(z,p)) <= dyz / (f.(y,p) + f.(z,p) + f.(y,z))
+               by XREAL_1:118,f2,SC;
+R2:     ff.(z,y) = (2 * f.(z,y)) / (f.(z,p) + f.(y,p) + f.(z,y))
+           by SteinGen;
+        f.(y,p) = f.(p,y) & f.(z,p) = f.(p,z) & f.(y,z) = f.(z,y)
+          by METRIC_1:def 4; then
+        (dxz + dyz) / (f.(x,p) + f.(y,p) + f.(x,z) + f.(y,z))
+           <= ff.(x,z) + ff.(z,y) by R1,W3,S0,XREAL_1:7,w3,R2;
+        hence thesis by S3,ds,XXREAL_0:2;
+      end;
+    end;
+    hence thesis by METRIC_1:def 5;
+  end;
+end;
+
+begin :: Metric Given by Symmetric Difference
+:: Minsum Location Problem by Sp\"ath
+
+definition let X be finite set;
+  func SymmetricDiffDist X -> Function of [:bool X, bool X:], REAL means
+     :SymDist:
+    for x,y being Subset of X holds
+      it.(x,y) = card (x \+\ y);
+  existence
+  proof
+    deffunc F(Subset of X, Subset of X) = In (card ($1 \+\ $2),REAL);
+    ex f being Function of [:bool X, bool X:], REAL st
+    for x,y being Element of bool X holds f.(x,y) = F(x,y)
+      from STACKS_1:sch 2; then
+    consider f being Function of [:bool X, bool X:], REAL such that
+A1: for x,y being Subset of X holds f.(x,y) = F(x,y);
+    take f;
+    let x,y be Subset of X;
+    f.(x,y) = In (card (x \+\ y),REAL) by A1
+           .= card (x \+\ y);
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    deffunc F(Subset of X, Subset of X) = card ($1 \+\ $2);
+    let f1,f2 be Function of [:bool X, bool X:], REAL such that
+A1: for x,y being Subset of X holds f1.(x,y) = F(x,y) and
+A2: for x,y being Subset of X holds f2.(x,y) = F(x,y);
+    for x being Element of [:bool X, bool X:]
+      holds f1.x = f2.x
+    proof
+      let x be Element of [:bool X, bool X:];
+      consider x1,x2 being object such that
+A3:   [x1,x2] = x by XTUPLE_0:def 1,CARDFIL4:4;
+      reconsider x1, x2 as Subset of X by ZFMISC_1:87,A3;
+A5:   card (x1 \+\ x2) = f1.(x1,x2) by A1 .= f1.x by A3;
+      card (x1 \+\ x2) = f2.(x1,x2) by A2 .= f2.x by A3;
+      hence thesis by A5;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let X be finite set;
+  cluster SymmetricDiffDist X -> Reflexive discerning symmetric triangle;
+  coherence
+  proof
+    set f = SymmetricDiffDist X;
+    for x being Element of bool X holds f.(x,x) = 0
+    proof
+      let x be Element of bool X;
+      f.(x,x) = card (x \+\ x) by SymDist
+             .= card ({}X) by XBOOLE_1:92
+             .= 0;
+      hence thesis;
+    end;
+    hence f is Reflexive by METRIC_1:def 2;
+    for a, b being Element of bool X st f.(a,b) = 0 holds a = b
+    proof
+      let a,b be Subset of X;
+      assume f.(a,b) = 0; then
+      card (a \+\ b) = 0 by SymDist; then
+      a \ b = {} & b \ a = {};
+      hence thesis by XBOOLE_1:37;
+    end;
+    hence f is discerning by METRIC_1:def 3;
+    for a, b being Element of bool X holds f.(a,b) = f.(b,a)
+    proof
+      let a,b be Subset of X;
+      f.(a,b) = card (a \+\ b) by SymDist
+             .= f.(b,a) by SymDist;
+      hence thesis;
+    end;
+    hence f is symmetric by METRIC_1:def 4;
+    for a, b, c being Element of bool X holds f.(a,c) <= f.(a,b) + f.(b,c)
+    proof
+      let a, b, c be Element of bool X;
+B1:   f.(a,c) = card (a \+\ c) by SymDist;
+B2:   f.(a,b) = card (a \+\ b) by SymDist;
+B3:   f.(b,c) = card (b \+\ c) by SymDist;
+      a \+\ c = (a \+\ b) \+\ (b \+\ c) by Jajo; then
+A1:   card (a \+\ c) <= card ((a \+\ b) \/ (b \+\ c)) by NAT_1:43,Lack;
+      card ((a \+\ b) \/ (b \+\ c)) <= card (a \+\ b) + card (b \+\ c)
+        by CARD_2:43;
+      hence thesis by B1,B2,B3,A1,XXREAL_0:2;
+    end;
+    hence thesis by METRIC_1:def 5;
+  end;
+end;
+
+definition let X be finite set;
+  func SymDifMetrSpace X -> MetrStruct equals
+    MetrStruct (# bool X, SymmetricDiffDist X #);
+  coherence;
+end;
+
+registration let X be finite set;
+  cluster SymDifMetrSpace X -> non empty;
+  coherence;
+end;
+
+registration let X be finite set;
+  cluster SymDifMetrSpace X -> Reflexive discerning symmetric triangle;
+  coherence by METRIC_1:def 6, def 7, def 8, def 9;
+end;
+
+begin :: Marczewski-Steinhaus Metric is Generated by Steinhaus Generate Metric
+
+theorem Similar2:
+  for R being finite set
+  for A, B being Subset of R holds
+    (JaccardDist R).(A,B) = card (A \+\ B) / card (A \/ B)
+  proof
+    let R be finite set;
+    let A, B be Subset of R;
+    per cases;
+    suppose
+A1:   A \/ B <> {};
+      (JaccardDist R).(A,B) = 1 - JaccardIndex (A,B) by JacDef2
+         .= 1 - card (A /\ B) / card (A \/ B) by JacInd,A1
+         .= card (A \+\ B) / card (A \/ B) by A1,Lemacik;
+      hence thesis;
+    end;
+    suppose
+A1:   A \/ B = {};
+      (JaccardDist R).(A,B) = 1 - JaccardIndex (A,B) by JacDef2
+         .= 1 - 1 by JacInd,A1
+         .= card (A \+\ B) / card (A \/ B) by A1;
+      hence thesis;
+    end;
+  end;
+
+theorem LastLemma:
+  for X being finite set holds
+    JaccardDist X = SteinhausGen (SymmetricDiffDist X, {}X)
+  proof
+    let X be finite set;
+    set f = JaccardDist X;
+    set g = SteinhausGen (SymmetricDiffDist X, {}X);
+    for x being Element of [:bool X,bool X:] holds
+      f.x = g.x
+    proof
+      let x be Element of [:bool X,bool X:];
+      consider x1,x2 being object such that
+T1:   x1 in bool X & x2 in bool X & x = [x1,x2] by ZFMISC_1:def 2;
+      reconsider x1,x2 as Subset of X by T1;
+      set h = SymmetricDiffDist X;
+      set p = {}X;
+V1:   h.(x1,p) = card (x1 \+\ p) by SymDist .= card x1;
+V2:   h.(x2,p) = card (x2 \+\ p) by SymDist .= card x2;
+V3:   h.(x1,x2) = card (x1 \+\ x2) by SymDist;
+nn:   g.(x1,x2)
+          = (2 * card (x1 \+\ x2)) / (card x1 + card x2 + card (x1 \+\ x2))
+                by V3,V2,V1,SteinGen;
+      f.(x1,x2) = card (x1 \+\ x2) / card (x1 \/ x2) by Similar2
+         .= g.(x1,x2) by HoHo,nn;
+      hence thesis by T1;
+    end;
+    hence thesis;
+  end;
+
+begin :: Steinhaus Metric Spaces
+
+registration let M be finite non empty MetrSpace;
+  cluster the distance of M -> symmetric Reflexive discerning triangle;
+  coherence by METRIC_1:def 9, def 6, def 7, def 8;
+end;
+
+definition let M be finite non empty MetrStruct,
+               p be Element of M;
+  func SteinhausMetrSpace (M,p) -> MetrStruct equals
+    MetrStruct (# the carrier of M, SteinhausGen (the distance of M, p) #);
+  coherence;
+end;
+
+definition let M be MetrStruct;
+  attr M is with_nonnegative_distance means :NonDist:
+    the distance of M is nonnegative-yielding;
+end;
+
+registration let A be finite non empty set;
+  cluster discrete_dist A -> finite non empty nonnegative-yielding;
+  coherence
+  proof
+    set S = DiscreteSpace A;
+    for x,y being Element of A holds (discrete_dist A).(x,y) >= 0
+    proof
+      let x,y be Element of A;
+      per cases;
+      suppose x = y;
+        hence thesis by METRIC_1:def 10;
+      end;
+      suppose x <> y;
+        hence thesis by METRIC_1:def 10;
+      end;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster finite non empty with_nonnegative_distance for MetrSpace;
+  existence
+  proof
+    set A = the finite non empty set;
+    take S = DiscreteSpace A;
+    S = MetrStruct (# A, discrete_dist A #) by METRIC_1:def 11;
+    hence thesis;
+  end;
+end;
+
+registration let M be finite non empty with_nonnegative_distance MetrStruct,
+                 p be Element of M;
+  cluster SteinhausMetrSpace (M,p) -> with_nonnegative_distance;
+  coherence
+  proof
+    the distance of M is nonnegative-yielding by NonDist;
+    hence thesis;
+  end;
+end;
+
+registration let M be finite non empty with_nonnegative_distance
+                            discerning MetrStruct,
+                 p be Element of M;
+  cluster SteinhausMetrSpace (M,p) -> discerning;
+  coherence
+  proof
+    the distance of M is nonnegative-yielding discerning
+      by NonDist,METRIC_1:def 7;
+    hence thesis by METRIC_1:def 7;
+  end;
+end;
+
+registration let M be finite non empty with_nonnegative_distance
+                            Reflexive MetrStruct,
+                 p be Element of M;
+  cluster SteinhausMetrSpace (M,p) -> Reflexive;
+  coherence
+  proof
+    the distance of M is nonnegative-yielding Reflexive
+      by NonDist,METRIC_1:def 6;
+    hence thesis by METRIC_1:def 6;
+  end;
+end;
+
+registration let M be finite non empty with_nonnegative_distance
+                            symmetric MetrStruct,
+                 p be Element of M;
+  cluster SteinhausMetrSpace (M,p) -> symmetric;
+  coherence
+  proof
+    the distance of M is nonnegative-yielding symmetric
+      by NonDist,METRIC_1:def 8;
+    hence thesis by METRIC_1:def 8;
+  end;
+end;
+
+registration let M be finite non empty discerning symmetric Reflexive
+                            triangle MetrStruct,
+                 p be Element of M;
+  cluster SteinhausMetrSpace (M,p) -> triangle;
+  coherence by METRIC_1:def 9;
+end;
+
+registration let R be finite 1-sorted;
+  cluster MarczewskiDistance R -> Reflexive discerning symmetric;
+  coherence
+  proof
+    set f = MarczewskiDistance R;
+    for a being Subset of R holds f.(a,a) = 0
+    proof
+      let a be Subset of R;
+      f.(a,a) = 1 - JaccardIndex (a,a) by JacDef2
+             .= 1 - 1 by JacRefl;
+      hence thesis;
+    end;
+    hence f is Reflexive by METRIC_1:def 2;
+a1: for a, b being Subset of R st
+      f.(a,b) = 0 holds a = b
+    proof
+      let a, b be Subset of R;
+      assume f.(a,b) = 0; then
+      1 - JaccardIndex (a,b) = 0 by JacDef2;
+      hence thesis by JacRefl;
+    end;
+    set A = bool the carrier of R;
+    for a, b being Element of A holds f.(a,b) = f.(b,a)
+    proof
+      let a,b be Element of A;
+      f.(a,b) = 1 - JaccardIndex (a,b) by JacDef2
+        .= 1 - JaccardIndex (b,a) by JacSym
+        .= f.(b,a) by JacDef2;
+      hence thesis;
+    end;
+    hence thesis by a1,METRIC_1:def 4,def 3;
+  end;
+end;
+
+theorem
+  for R being finite Approximation_Space
+  for A, B being Subset of R holds
+    (MarczewskiDistance R).(A,B) = (delta_1 R).(A,B)
+  proof
+    let R be finite Approximation_Space;
+    let A, B be Subset of R;
+    (MarczewskiDistance R).(A,B) = card (A \+\ B) / card (A \/ B) by Similar2;
+    hence thesis by For191;
+  end;
+
+registration let R be finite 1-sorted;
+  cluster MarczewskiDistance R -> triangle;
+  coherence
+  proof
+    set A = bool the carrier of R;
+    set B = [#]R;
+    set ff = SymmetricDiffDist [#]R;
+    set p = {}B;
+    JaccardDist B = SteinhausGen (ff, p) by LastLemma;
+    hence thesis;
+  end;
+end;
+

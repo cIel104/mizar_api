@@ -1,0 +1,3549 @@
+:: Polish Notation
+::  by Taneli Huuskonen
+:: 
+:: Received April 30, 2015
+:: Copyright (c) 2015-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, SUBSET_1, XBOOLE_0, FINSEQ_1, XXREAL_0, TARSKI, ARYTM_3,
+      CARD_1, ORDINAL4, FUNCT_1, RELAT_1, NAT_1, POLNOT_1, PRE_POLY, ZFMISC_1,
+      PROB_2, PARTFUN1, QC_LANG1, XCMPLX_0, SETFAM_1, BINOP_1, CQC_LANG;
+ notations TARSKI, XBOOLE_0, SUBSET_1, NAT_1, SETFAM_1, NUMBERS, FINSEQ_1,
+      XXREAL_0, XCMPLX_0, RELAT_1, FUNCT_1, PARTFUN1, ORDINAL1, ZFMISC_1,
+      PROB_2, BINOP_1, FUNCT_2;
+ constructors PRE_POLY, RELSET_1, PROB_2, SETFAM_1;
+ registrations ORDINAL1, XREAL_0, FINSEQ_1, SUBSET_1, RELAT_1, XBOOLE_0,
+      FUNCT_1, NAT_1, CARD_1, SETFAM_1, RELSET_1;
+ requirements NUMERALS, SUBSET, BOOLE, ARITHM, REAL;
+ definitions TARSKI, FINSEQ_1;
+ expansions TARSKI, FINSEQ_1, XBOOLE_0;
+ theorems TARSKI, FUNCT_1, FINSEQ_1, XBOOLE_0, XBOOLE_1, FUNCT_2, ORDINAL1,
+      NAT_1, PROB_2, FINSEQ_2, PARTFUN1, XTUPLE_0, SETFAM_1, ZFMISC_1,
+      XXREAL_0, BINOP_1, FUNCT_3;
+ schemes NAT_1, RECDEF_1, XBOOLE_0, FUNCT_2, FINSEQ_1, BINOP_1, FINSEQ_2;
+
+begin :: Preliminaries
+
+reserve k,m,n for Nat,
+  a, b, c, c1, c2 for object,
+  x, y, z, X, Y, Z for set,
+  D for non empty set;
+reserve p, q, r, s, t, u, v for FinSequence;
+reserve P, Q, R, P1, P2, Q1, Q2, R1, R2 for FinSequence-membered set;
+reserve S, T for non empty FinSequence-membered set;
+
+::
+::       String and Set Operations for Polish Notation
+::
+
+definition
+  let D be non empty set;
+  let P, Q be Subset of (D*);
+  func ^(D, P, Q) -> Subset of (D*) equals
+     {p^q where p is FinSequence of D, q is FinSequence of D
+         : p in P & q in Q};
+  coherence
+  proof
+    set R = {p^q where p is FinSequence of D, q is FinSequence of D
+               : p in P & q in Q};
+    R c= D*
+    proof
+      let a;
+      assume a in R;
+      then consider p being FinSequence of D, q being FinSequence of D
+          such that A2: a = p^q & p in P & q in Q;
+      thus thesis by A2, FINSEQ_1:def 11;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let P, Q;
+  func P^Q -> FinSequence-membered set means
+  :Def2:
+    for a holds a in it iff ex p, q st a = p^q & p in P & q in Q;
+    existence
+      proof
+      set E = P \/ Q;
+      E is FinSequence-membered
+      proof
+        let a;
+        assume A1: a in E;
+    A2: a in P implies thesis;
+        a in Q implies thesis;
+        hence thesis by A1, A2, XBOOLE_0:def 3;
+      end;
+      then consider D such that A1: E c= D* by FINSEQ_1:85;
+      P c= E & Q c= E by XBOOLE_1:7;
+      then A3: P c= D* & Q c= D* by A1;
+      defpred X[ object ] means ex p, q st $1 = p^q & p in P & q in Q;
+      consider Y such that A4: for a holds a in Y iff a in D* & X[ a ]
+        from XBOOLE_0:sch 1;
+      for a st a in Y holds a is FinSequence
+      proof
+        let a;
+        assume a in Y;
+        then a in D* by A4;
+        hence thesis;
+      end;
+      then reconsider Y as FinSequence-membered set by FINSEQ_1:def 18;
+      take Y;
+      for a holds a in Y iff X[ a ]
+      proof
+        let a;
+        thus a in Y implies X[ a ] by A4;
+        assume A5: X[ a ];
+        then consider p, q such that
+    A6: a = p^q and
+    A7: p in P and
+    A8: q in Q;
+        reconsider p1 = p as FinSequence of D by A3, A7, FINSEQ_1:def 11;
+        reconsider q1 = q as FinSequence of D by A3, A8, FINSEQ_1:def 11;
+        p1^q1 is FinSequence of D;
+        then a in D* by A6, FINSEQ_1:def 11;
+        hence a in Y by A4, A5;
+      end;
+      hence thesis;
+      end;
+    uniqueness
+    proof
+      let R1, R2;
+      defpred X[ object ] means ex p,q st $1 = p^q & p in P & q in Q;
+      assume that
+  A1: for a holds a in R1 iff X[ a ] and
+  A2: for a holds a in R2 iff X[ a ];
+      thus R1 = R2 from XBOOLE_0:sch 2(A1, A2);
+    end;
+end;
+
+registration
+  let E be empty set;
+  let P;
+  cluster E^P -> empty;
+  coherence
+  proof
+    assume not E^P is empty;
+    then consider a such that A1: a in E^P;
+    consider p, q such that a = p^q and A2: p in E and q in P by A1, Def2;
+    thus thesis by A2;
+  end;
+
+  cluster P^E -> empty;
+  coherence
+  proof
+    assume not P^E is empty;
+    then consider a such that A1: a in P^E;
+    consider p, q such that a = p^q & p in P and A2: q in E by A1, Def2;
+    thus thesis by A2;
+  end;
+end;
+
+registration
+  let S, T;
+  cluster S^T -> non empty;
+  coherence
+  proof
+    consider a such that A1: a in S by XBOOLE_0:def 1;
+    reconsider a as FinSequence by A1;
+    consider b such that A2: b in T by XBOOLE_0:def 1;
+    reconsider b as FinSequence by A2;
+    a^b in S^T by A1, A2, Def2;
+    hence thesis;
+  end;
+end;
+
+theorem TH1:
+  for p,q,r,s st p^q = r^s ex t st p^t = r or p = r^t
+proof
+  let p, q, r, s;
+  assume A1: p^q = r^s;
+  per cases;
+  suppose len p <= len r;
+    then consider u such that A2: p^u = r by A1, FINSEQ_1:47;
+    take u;
+    thus thesis by A2;
+  end;
+  suppose len p > len r;
+    then consider u such that A3: r^u = p by A1, FINSEQ_1:47;
+    take u;
+    thus thesis by A3;
+  end;
+end;
+
+theorem Th2:
+  for P, Q, R holds (P^Q)^R = P^(Q^R)
+proof
+  let P, Q, R;
+  for a holds a in (P^Q)^R iff a in P^(Q^R)
+    proof
+    let a;
+    thus a in (P^Q)^R implies a in P^(Q^R)
+      proof
+      assume a in (P^Q)^R;
+      then consider u,r such that A2: a = u^r and A3: u in P^Q and A4: r in R
+          by Def2;
+      consider p, q such that A5: u = p^q and A6: p in P and A7: q in Q
+          by A3, Def2;
+      A8: a = p^(q^r) by A2, A5, FINSEQ_1:32;
+      q^r in (Q^R) by A4, A7, Def2;
+      hence a in P^(Q^R) by A6, A8, Def2;
+      end;
+      assume a in P^(Q^R);
+      then consider p,t such that A9: a = p^t and A10: p in P and A11: t in Q^R
+          by Def2;
+      consider q,r such that A12: t = q^r and A13: q in Q and A14: r in R
+          by A11, Def2;
+ A15: a = (p^q)^r by A9, A12, FINSEQ_1:32;
+      p^q in (P^Q) by A10, A13, Def2;
+      hence a in (P^Q)^R by A14, A15, Def2;
+    end;
+  hence thesis by TARSKI:2;
+end;
+
+registration
+  cluster {{}} -> non empty FinSequence-membered;
+  coherence by TARSKI:def 1;
+end;
+
+theorem Th3:
+  for P holds P^{{}} = P & {{}}^P = P
+proof
+  let P;
+  A1: for a holds a in P^{{}} iff a in P
+    proof
+    let a;
+    thus a in P^{{}} implies a in P
+    proof
+      assume a in P^{{}};
+      then consider p, q such that
+  A2: a = p^q and A3: p in P and A4: q in {{}} by Def2;
+      q = {} by A4, TARSKI:def 1;
+      hence thesis by A2, A3, FINSEQ_1:34;
+    end;
+      assume A10: a in P;
+      then reconsider a as FinSequence;
+      {} in {{}} by TARSKI:def 1;
+      then a^{} in P^{{}} by A10, Def2;
+      hence thesis by FINSEQ_1:34;
+    end;
+  for a holds a in {{}}^P iff a in P
+    proof
+    let a;
+    thus a in {{}}^P implies a in P
+      proof
+      assume a in {{}}^P;
+      then consider q, p such that
+ A12: a = q^p and A13: q in {{}} and A14: p in P by Def2;
+      q = {} by A13, TARSKI:def 1;
+      hence thesis by A12, A14, FINSEQ_1:34;
+      end;
+      assume A20: a in P;
+      then reconsider a as FinSequence;
+      {} in {{}} by TARSKI:def 1;
+      then {}^a in {{}}^P by A20, Def2;
+      hence thesis by FINSEQ_1:34;
+    end;
+  hence thesis by A1, TARSKI:2;
+end;
+
+definition
+  let P;
+  func P^^ -> Function means
+  :Def3:
+  dom it = NAT & it.0 = {{}} & for n holds ex Q st Q = it.n & it.(n+1) = Q^P;
+  existence
+    proof
+    consider D such that A0: P c= D* by FINSEQ_1:85;
+    set E = bool (D*);
+    reconsider E as non empty set;
+    set W = {<*>D};
+    W c= D*
+    proof
+      let a;
+      assume a in W;
+      then a = <*>D by TARSKI:def 1;
+      hence thesis by FINSEQ_1:def 11;
+    end;
+    then reconsider W as Element of E;
+    defpred S[set, set, set] means
+          ex Q st $2 = Q & $3 = Q^P;
+      A2: for n being Nat for Q being Element of E
+            ex R being Element of E st S[n, Q, R]
+        proof
+        let n be Nat, Q be Element of E;
+        reconsider Q as FinSequence-membered set;
+        set R = Q^P;
+        R c= D*
+        proof
+          let a;
+          assume a in R;
+          then consider p, q such that A3: a = p^q & p in Q & q in P by Def2;
+          reconsider p as FinSequence of D by FINSEQ_1:def 11, A3;
+          reconsider q as FinSequence of D by FINSEQ_1:def 11, A3, A0;
+          p^q is FinSequence of D;
+          then reconsider a as FinSequence of D by A3;
+          a in D* by FINSEQ_1:def 11;
+          hence thesis;
+        end;
+        then reconsider R as Element of E;
+        take R;
+        thus thesis;
+        end;
+    consider f being sequence of E such that
+    A14: f.0 = W and
+    A15: for n being Nat holds S[n, f.n, f.(n+1)] from RECDEF_1:sch 2(A2);
+    take f;
+    thus thesis by A14, A15, FUNCT_2:def 1;
+    end;
+  uniqueness
+    proof
+    let f,g be Function;
+    assume that
+    A1: dom f = NAT and
+    A2: f.0 = {{}} and
+    A3: for n holds ex Q st Q = f.n & f.(n+1) = Q^P and
+    A4: dom g = NAT and
+    A5: g.0 = {{}} and
+    A6: for n holds ex Q st Q = g.n & g.(n+1) = Q^P;
+    defpred S[ Nat ] means f.$1 = g.$1;
+    A15: S[0] by A2, A5;
+    A16: for n st S[ n ] holds S[ n + 1 ]
+      proof
+      let n;
+      assume A17: S[ n ];
+      consider Q such that A18: Q = f.n & f.(n+1) = Q^P by A3;
+      consider R such that A19: R = g.n & g.(n+1) = R^P by A6;
+      thus thesis by A17, A18, A19;
+      end;
+    for n holds S[ n ] from NAT_1:sch 2(A15, A16);
+    then for a st a in dom f holds f.a = g.a by A1;
+    hence thesis by A1, A4, FUNCT_1:2;
+    end;
+end;
+
+definition
+  let P, n;
+  func P^^n -> FinSequence-membered set equals
+  P^^.n;
+  coherence
+  proof
+    consider Q such that A1: Q = P^^.n and P^^.(n+1) = Q^P by Def3;
+    thus thesis by A1;
+  end;
+end;
+
+theorem Th4:
+  for P holds {} in P^^0
+proof
+  let P;
+  P^^0 = {{}} by Def3;
+  hence thesis by TARSKI:def 1;
+end;
+
+registration
+  let P;
+  let n be zero Nat;
+  cluster P^^n -> non empty;
+  coherence by Th4;
+end;
+
+registration
+  let E be empty set;
+  let n be non zero Nat;
+  cluster E^^n -> empty;
+  coherence
+  proof
+    consider k such that A1: k+1 = n by NAT_1:6;
+    consider Q such that Q = E^^k and A2: E^^n = Q^E by Def3, A1;
+    thus thesis by A2;
+  end;
+end;
+
+definition
+  let P;
+  func P* -> non empty FinSequence-membered set equals
+      union the set of all P^^n where n is Nat;
+  coherence
+    proof
+    set X = the set of all P^^n where n is Nat;
+    set U = union X;
+    for a st a in U holds a is FinSequence
+      proof
+      let a;
+      assume a in U;
+      then consider Y such that A3: a in Y and A4: Y in X by TARSKI:def 4;
+      consider n such that A5: Y = P^^n by A4;
+      thus thesis by A3, A5;
+      end;
+    then A1: U is FinSequence-membered;
+    {} in P^^0 & P^^0 in X by Th4;
+    hence thesis by A1, TARSKI:def 4;
+    end;
+end;
+
+theorem Th6:
+  for P, a holds a in P* iff ex n st a in P^^n
+proof
+  let P, a;
+  set X = the set of all P^^n where n is Nat;
+  thus a in P* implies ex n st a in P^^n
+  proof
+    assume a in P*;
+    then consider Y such that A1: a in Y and A2: Y in X by TARSKI:def 4;
+    consider n such that A3: Y = P^^n by A2;
+    take n;
+    thus thesis by A1, A3;
+  end;
+  given n such that A4: a in P^^n;
+  P^^n in X;
+  hence thesis by A4, TARSKI:def 4;
+end;
+
+theorem Th7:
+  for P holds P^^0 = {{}} & for n holds P^^(n+1) = (P^^n)^P
+proof
+  let P;
+  thus P^^0 = {{}} by Def3;
+  let n;
+  consider Q such that A1: Q = P^^n & P^^(n+1) = Q^P by Def3;
+  thus thesis by A1;
+end;
+
+theorem Th8:
+  for P holds P^^1 = P
+proof
+  let P;
+  thus P^^1 = P^^(0+1) .= (P^^0)^P by Th7 .= {{}}^P by Th7 .= P by Th3;
+end;
+
+theorem Th9:
+  for P, n holds P^^n c= P* by Th6;
+
+theorem Th10:
+  for P holds {} in P* & P c= P*
+proof
+  let P;
+  {} in P^^0 by Th4;
+  hence {} in P* by Th6;
+  P^^1 = P by Th8;
+  hence thesis by Th6;
+end;
+
+theorem Th11:
+  for P, m, n holds P^^(m+n) = (P^^m)^(P^^n)
+proof
+  let P, m;
+  defpred X[ Nat ] means P^^(m+$1) = (P^^m)^(P^^$1);
+  A1: X[ 0 ]
+    proof
+    thus P^^(m+0) = (P^^m)^{{}} by Th3 .= (P^^m)^(P^^0) by Th7;
+    end;
+  A20: for k holds X[ k ] implies X[ k+1 ]
+    proof
+    let k;
+    assume A21: P^^(m+k) = (P^^m)^(P^^k);
+    thus P^^(m+(k+1)) = P^^((m+k)+1)
+        .= ((P^^m)^(P^^k))^P by Th7, A21
+        .= (P^^m)^((P^^k)^P) by Th2
+        .= (P^^m)^(P^^(k+1)) by Th7;
+    end;
+  for k holds X[ k ] from NAT_1:sch 2(A1, A20);
+  hence thesis;
+end;
+
+theorem Th12:
+  for P, p, q, m, n st p in P^^m & q in P^^n holds p^q in P^^(m+n)
+proof
+  let P, p, q, m, n;
+  assume p in P^^m & q in P^^n;
+  then p^q in (P^^m)^(P^^n) by Def2;
+  hence thesis by Th11;
+end;
+
+theorem Th13:
+  for P, p, q st p in P* & q in P* holds p^q in P*
+proof
+  let P, p, q;
+  assume that A1: p in P* and A2: q in P*;
+  consider m such that A3: p in P^^m by A1, Th6;
+  consider n such that A4: q in P^^n by A2, Th6;
+  p^q in P^^(m+n) by Th12, A3, A4;
+  hence thesis by Th6;
+end;
+
+theorem Th14:
+  for P, Q, R st P c= R* & Q c= R* holds P^Q c= R*
+proof
+  let P, Q, R;
+  assume that A1: P c= R* and A2: Q c= R*;
+  let a;
+  assume a in P^Q;
+  then consider p, q such that A3: a = p^q and A4: p in P and A5: q in Q
+      by Def2;
+  thus thesis by A1, A2, A3, A4, A5, Th13;
+end;
+
+theorem Th15:
+  for P, Q, n st Q c= P* holds Q^^n c= P*
+proof
+  let P, Q, n;
+  assume A1: Q c= P*;
+  defpred X[ Nat ] means Q^^$1 c= P*;
+  A2: X[ 0 ]
+  proof
+    Q^^0 = {{}} by Th7 .= P^^0 by Th7;
+    hence thesis by Th9;
+  end;
+  A3: for k holds X[ k ] implies X[ k+1 ]
+  proof
+    let k;
+    assume X[ k ];
+    then (Q^^k)^Q c= P* by A1, Th14;
+    hence thesis by Th7;
+  end;
+  for k holds X[ k ] from NAT_1:sch 2(A2, A3);
+  hence thesis;
+end;
+
+theorem
+  for P, Q st Q c= P* holds Q* c= P*
+proof
+  let P, Q;
+  assume A1: Q c= P*;
+  let a;
+  assume a in Q*;
+  then consider n such that A2: a in Q^^n by Th6;
+  Q^^n c= P* by Th15, A1;
+  hence thesis by A2;
+end;
+
+theorem Th17:
+  for P1, P2, Q1, Q2 st P1 c= P2 & Q1 c= Q2 holds P1^Q1 c= P2^Q2
+proof
+  let P1, P2, Q1, Q2;
+  assume A1: P1 c= P2 & Q1 c= Q2;
+  let a;
+  assume a in P1^Q1;
+  then consider p, q such that A3: a = p^q & p in P1 & q in Q1 by Def2;
+  thus thesis by A1, A3, Def2;
+end;
+
+theorem TH18:
+  for P, Q st P c= Q for n holds P^^n c= Q^^n
+proof
+  let P, Q;
+  assume A1: P c= Q;
+  defpred S[ Nat ] means P^^$1 c= Q^^$1;
+  P^^0 = {{}} by Th7 .= Q^^0 by Th7;
+  then A2: S[ 0 ];
+  A3: for n holds S[ n ] implies S[ n + 1 ]
+  proof
+    let n;
+    assume A4: S[ n ];
+    A5: P^^(n+1) = (P^^n)^P by Th7;
+    Q^^(n+1) = (Q^^n)^Q by Th7;
+    hence thesis by A1, A4, A5, Th17;
+  end;
+  for n holds S[ n ] from NAT_1:sch 2(A2, A3);
+  hence thesis;
+end;
+
+registration
+  let S, n;
+  cluster S^^n -> non empty FinSequence-membered;
+  coherence
+  proof
+    defpred X[ Nat ] means S^^$1 is non empty;
+    A1: X[ 0 ];
+    A2: for k holds X[ k ] implies X[ k + 1 ]
+    proof
+      let k;
+      set T = S^^k;
+      assume T is non empty;
+      then reconsider T as non empty FinSequence-membered set;
+      S^^(k+1) = T^S by Th7;
+      hence thesis;
+    end;
+    for k holds X[ k ] from NAT_1:sch 2(A1, A2);
+    hence thesis;
+  end;
+end;
+
+begin :: The Language
+
+reserve A for Function of P, NAT;
+reserve U, V, W for Subset of P*;
+
+definition
+  let P, A, U;
+  func Polish-expression-layer(P, A, U) -> Subset of P* means
+  :Def8:
+  for a holds a in it
+      iff a in P* & ex p, q, n st a = p^q & p in P & n = A.p & q in U^^n;
+  existence
+    proof
+    defpred X[ object ] means
+        $1 in P* & ex p, q, n st $1 = p^q & p in P & n = A.p & q in U^^n;
+    consider Y being set such that
+      A1: for a holds a in Y iff a in P* & X[ a ] from XBOOLE_0:sch 1;
+    Y c= P* by A1;
+    then reconsider Y as Subset of P*;
+    take Y;
+    thus thesis by A1;
+    end;
+  uniqueness
+  proof
+    defpred X[ object ] means
+        $1 in P* & ex p, q, n st $1 = p^q & p in P & n = A.p & q in U^^n;
+    let Y1, Y2 be Subset of P*;
+    assume that
+    A1: for a holds a in Y1 iff X[ a ] and
+    A2: for a holds a in Y2 iff X[ a ];
+    thus thesis from XBOOLE_0:sch 2(A1, A2);
+  end;
+end;
+
+theorem Th20:
+  for P, A, U, n, p, q st p in P & n = A.p & q in U^^n holds
+      p^q in Polish-expression-layer(P, A, U)
+proof
+  let P, A, U, n, p, q;
+  set r = p^q;
+  assume that
+  A1: p in P and
+  A2: n = A.p and
+  A3: q in U^^n;
+  A4: q in P* by A3, Th15, TARSKI:def 3;
+  p in P* by A1, Th10, TARSKI:def 3;
+  then r in P* by A4, Th13;
+  hence thesis by A1, A2, A3, Def8;
+end;
+
+definition
+  let P, A;
+  func Polish-atoms(P, A) -> Subset of P* means
+  :Def9:
+  for a holds a in it iff a in P & A.a = 0;
+  existence
+    proof
+    defpred X[ object ] means A.$1 = 0;
+    consider Y such that A1: for a holds a in Y iff a in P & X[ a ]
+        from XBOOLE_0:sch 1;
+    Y c= P & P c= P* by A1, Th10;
+    then Y c= P*;
+    then reconsider Y as Subset of P*;
+    take Y;
+    thus thesis by A1;
+    end;
+  uniqueness
+    proof
+    defpred X[ object ] means $1 in P & A.$1 = 0;
+    let Y1, Y2 be Subset of P* such that
+        A1: for a holds a in Y1 iff X[ a ] and
+        A2: for a holds a in Y2 iff X[ a ];
+    thus Y1 = Y2 from XBOOLE_0:sch 2(A1, A2);
+    end;
+
+  func Polish-operations(P, A) -> Subset of P equals
+    {t where t is Element of P* : t in P & A.t <> 0};
+  coherence
+    proof
+    set Q = {t where t is Element of P* : t in P & A.t <> 0};
+    Q c= P
+    proof
+      let a;
+      assume a in Q;
+      then consider t being Element of P* such that
+      A1: a = t and A2: t in P and A.t <> 0;
+      thus thesis by A1, A2;
+    end;
+    hence thesis;
+    end;
+end;
+
+theorem Th26:
+  for P, A, U holds Polish-atoms(P, A) c= Polish-expression-layer(P, A, U)
+proof
+  let P, A, U;
+  set X = Polish-atoms(P, A);
+  set Y = Polish-expression-layer(P, A, U);
+  let a;
+  assume A1: a in X;
+  then reconsider p = a as FinSequence;
+  set q = <*>P;
+  A3: q in U^^0 by Th4;
+  p in P & A.p = 0 by A1, Def9; then
+  p^q in Y by A3, Th20;
+  hence thesis by FINSEQ_1:34;
+end;
+
+theorem Th27:
+  for P, A, U, V st U c= V holds
+      Polish-expression-layer(P, A, U) c= Polish-expression-layer(P, A, V)
+proof
+  let P, A, U, V;
+  assume A1: U c= V;
+    let a;
+    assume A2: a in Polish-expression-layer(P, A, U);
+    then consider p, q, n such that
+A4: a = p^q & p in P & n = A.p & q in U^^n by Def8;
+    U^^n c= V^^n by A1, TH18;
+    hence thesis by A2, A4, Def8;
+end;
+
+theorem TH21:
+  for P, A, U, u st u in Polish-expression-layer(P, A, U)
+      ex p, q st p in P & u = p^q
+  proof
+  let P, A, U, u;
+  assume u in Polish-expression-layer(P, A, U);
+  then consider p, q, n such that
+  A1: u = p^q & p in P and
+      n = A.p & q in U^^n by Def8;
+  thus thesis by A1;
+  end;
+
+definition
+  let P, A;
+  func Polish-expression-hierarchy(P, A) -> Function means  :Def10:
+    dom it = NAT & it.0 = Polish-atoms(P, A)
+        & for n holds ex U st U = it.n &
+            it.(n+1) = Polish-expression-layer(P, A, U);
+  existence
+    proof
+    set X = bool(P*);
+    set Y = Polish-atoms(P, A);
+    reconsider Y as Element of X;
+    defpred S1[set, set, set] means
+          $2 is Subset of P*
+              implies ex V st $2 = V & $3 = Polish-expression-layer(P, A, V);
+    A2: for n being Nat, U being Element of X
+          ex W being Element of X st S1[n, U, W]
+      proof
+      let n be Nat, U be Element of X;
+      reconsider U as Subset of P*;
+      set W = Polish-expression-layer(P, A, U);
+      reconsider W as Element of X;
+      take W;
+      thus thesis;
+      end;
+    consider f being sequence of X such that
+    A14: f.0 = Y and
+    A15: for n being Nat holds S1[n, f.n, f.(n+1)]
+       from RECDEF_1:sch 2(A2);
+    take f;
+    defpred S2[ Nat ] means f.$1 is Subset of P*;
+    A20: S2[ 0 ] by A14;
+    A21: for k holds S2[ k ] implies S2[ k + 1 ]
+      proof
+      let k;
+      assume S2[ k ];
+      then consider V such that
+      f.k = V and
+      A24: f.(k+1) = Polish-expression-layer(P, A, V) by A15;
+      thus thesis by A24;
+      end;
+    A26: for k holds S2[ k ] from NAT_1:sch 2(A20, A21);
+    for n holds ex U st U = f.n & f.(n+1) = Polish-expression-layer(P, A, U)
+      proof
+      let n;
+      f.n is Subset of P* by A26;
+      then consider V such that
+      A28: f.n = V and
+      A29: f.(n+1) = Polish-expression-layer(P, A, V) by A15;
+      take V;
+      thus thesis by A28, A29;
+      end;
+    hence thesis by A14, FUNCT_2:def 1;
+    end;
+  uniqueness
+    proof
+    let f, g be Function;
+    assume that
+    A1: dom f = NAT and
+    A2: f.0 = Polish-atoms(P, A) and
+    A3: for n ex U st U = f.n &
+        f.(n+1) = Polish-expression-layer(P, A, U) and
+    A4: dom g = NAT and
+    A5: g.0 = Polish-atoms(P, A) and
+    A6: for n ex U st U = g.n & g.(n+1) = Polish-expression-layer(P, A, U);
+    defpred S[ Nat ] means f.$1 = g.$1;
+    A10: S[ 0 ] by A2, A5;
+    A11: for k holds S[ k ] implies S[ k + 1 ]
+      proof
+      let k;
+      assume A12: S[ k ];
+      consider U such that A13: U = f.k
+          and A14: f.(k+1) = Polish-expression-layer(P, A, U) by A3;
+      consider V such that A15: V = g.k
+          and A16: g.(k+1) = Polish-expression-layer(P, A, V) by A6;
+      thus thesis by A12, A13, A14, A15, A16;
+      end;
+    for k holds S[ k ] from NAT_1:sch 2(A10, A11);
+    then for a st a in dom f holds f.a = g.a by A1;
+    hence thesis by A1, A4, FUNCT_1:2;
+    end;
+end;
+
+definition
+  let P, A, n;
+  func Polish-expression-hierarchy(P, A, n) -> Subset of P* equals
+    Polish-expression-hierarchy(P, A).n;
+  coherence
+  proof
+    consider U such that A1: U = Polish-expression-hierarchy(P, A).n
+        and Polish-expression-hierarchy(P, A).(n+1)
+            = Polish-expression-layer(P, A, U) by Def10;
+    thus thesis by A1;
+  end;
+end;
+
+theorem TH22:
+  for P, A holds Polish-expression-hierarchy(P, A, 0) = Polish-atoms(P, A)
+      by Def10;
+
+theorem Th31:
+  for P, A, n holds Polish-expression-hierarchy(P, A, n+1)
+      = Polish-expression-layer(P, A, Polish-expression-hierarchy(P, A, n))
+proof
+  let P, A, n;
+  consider U such that
+  A1: U = Polish-expression-hierarchy(P, A, n) and
+  A2: Polish-expression-hierarchy(P, A, n+1)
+          = Polish-expression-layer(P, A, U) by Def10;
+  thus thesis by A1, A2;
+end;
+
+theorem Th33:
+  for P, A, n holds
+      Polish-expression-hierarchy(P, A, n)
+          c= Polish-expression-hierarchy(P, A, n+1)
+proof
+  let P, A, n;
+  defpred S[ Nat ] means
+      Polish-expression-hierarchy(P, A, $1)
+          c= Polish-expression-hierarchy(P, A, $1+1);
+  A1: S[ 0 ]
+    proof
+    set U = Polish-expression-hierarchy(P, A, 0);
+    set V = Polish-expression-hierarchy(P, A, 1);
+    A3: V = Polish-expression-hierarchy(P, A, 0+1)
+        .= Polish-expression-layer(P, A, U) by Th31;
+    U = Polish-atoms(P, A) by Def10;
+    hence thesis by A3, Th26;
+    end;
+  A10: for k holds S[ k ] implies S[ k + 1 ]
+  proof
+    let k;
+    assume A11: S[ k ];
+    set U = Polish-expression-hierarchy(P, A, k);
+    set V = Polish-expression-hierarchy(P, A, (k+1));
+    A13: Polish-expression-hierarchy(P, A, k+1)
+        = Polish-expression-layer(P, A, U) by Th31;
+    Polish-expression-hierarchy(P, A, k+1+1)
+        = Polish-expression-layer(P, A, V) by Th31;
+    hence thesis by A11, A13, Th27;
+  end;
+  for k holds S[ k ] from NAT_1:sch 2(A1, A10);
+  hence thesis;
+end;
+
+theorem Th34:
+  for P, A, n, m holds
+    Polish-expression-hierarchy(P, A, n)
+        c= Polish-expression-hierarchy(P, A, n+m)
+proof
+  let P, A, n, m;
+  defpred S[ Nat] means
+    Polish-expression-hierarchy(P, A, n)
+        c= Polish-expression-hierarchy(P, A, n+$1);
+  A1: S[ 0 ];
+  A2: for k holds S[ k ] implies S[ k + 1 ]
+  proof
+    let k;
+    assume A3: S[ k ];
+    Polish-expression-hierarchy(P, A, n+k)
+        c= Polish-expression-hierarchy(P, A, n+k+1) by Th33;
+    hence thesis by A3, XBOOLE_1:1;
+  end;
+  for k holds S[ k ] from NAT_1:sch 2(A1, A2);
+  hence thesis;
+end;
+
+definition
+  let P, A;
+  func Polish-expression-set(P, A) -> Subset of P* equals
+  union the set of all Polish-expression-hierarchy(P, A, n) where n is Nat;
+coherence
+  proof
+  set X = the set of all Polish-expression-hierarchy(P, A, n) where n is Nat;
+  set Y = union X;
+  Y c= P*
+  proof
+    let a;
+    assume a in Y;
+    then consider Z such that A1: a in Z and A2: Z in X by TARSKI:def 4;
+    consider n such that A3: Z = Polish-expression-hierarchy(P, A, n) by A2;
+    thus thesis by A1, A3;
+  end;
+  hence thesis;
+  end;
+end;
+
+theorem Th35:
+  for P, A, n holds Polish-expression-hierarchy(P, A, n)
+      c= Polish-expression-set(P, A)
+proof
+  let P, A, n;
+  set Q = Polish-expression-hierarchy(P, A, n);
+  set X = the set of all Polish-expression-hierarchy(P, A, m) where m is Nat;
+  let a;
+  assume A1: a in Q;
+  Q in X;
+  hence thesis by A1, TARSKI:def 4;
+end;
+
+theorem Th36:
+  for P, A, n, q st q in (Polish-expression-set(P, A))^^n
+      ex m st q in (Polish-expression-hierarchy(P, A, m))^^n
+proof
+  let P, A;
+  defpred S[ Nat ] means
+      for q st q in (Polish-expression-set(P, A))^^$1
+          ex m st q in (Polish-expression-hierarchy(P, A, m))^^$1;
+  A1: S[ 0 ]
+    proof
+    let q;
+    assume q in (Polish-expression-set(P, A))^^0;
+    then q in {{}} by Def3;
+    then q in (Polish-expression-hierarchy(P, A, 0))^^0 by Def3;
+    hence thesis;
+    end;
+  A2: for k holds S[ k ] implies S[ k + 1 ]
+    proof
+    let k;
+    assume A3: S[ k ];
+    set X = the set of all Polish-expression-hierarchy(P, A, n) where
+      n is Nat;
+    let q;
+    assume q in (Polish-expression-set(P, A))^^(k+1);
+    then q in ((Polish-expression-set(P, A))^^k)^
+        Polish-expression-set(P, A) by Th7;
+    then consider r, s such that
+    A6: q = r^s and A7: r in (Polish-expression-set(P, A))^^k and
+    A8: s in Polish-expression-set(P, A) by Def2;
+    consider m such that
+    A9: r in Polish-expression-hierarchy(P, A, m)^^k by A3, A7;
+    consider Y such that A10: s in Y and A11: Y in X by A8, TARSKI:def 4;
+    consider m1 being Nat such that
+    A12: Y = Polish-expression-hierarchy(P, A, m1) by A11;
+    A14: Polish-expression-hierarchy(P, A, m)^^k
+          c= Polish-expression-hierarchy(P, A, m+m1)^^k by TH18, Th34;
+    s in Polish-expression-hierarchy(P, A, m+m1)
+        by A10, A12, Th34, TARSKI:def 3;
+    then r^s in (Polish-expression-hierarchy(P, A, m+m1)^^k)
+            ^Polish-expression-hierarchy(P, A,m+m1) by A9, A14, Def2;
+    then q in (Polish-expression-hierarchy(P, A, m+m1))^^(k+1) by A6, Th7;
+    hence thesis;
+    end;
+  for k holds S[ k ] from NAT_1:sch 2(A1, A2);
+  hence thesis;
+end;
+
+theorem Th37:
+  for P, A, a st a in Polish-expression-set(P, A)
+      ex n st a in Polish-expression-hierarchy(P, A, n+1)
+proof
+  let P, A, a;
+  assume A1: a in Polish-expression-set(P, A);
+  set Y = the set of all Polish-expression-hierarchy(P, A, n) where
+    n is Nat;
+  consider X such that A2: a in X and A3: X in Y by A1, TARSKI:def 4;
+  consider n such that A4: X = Polish-expression-hierarchy(P, A, n) by A3;
+  Polish-expression-hierarchy(P, A, n)
+      c= Polish-expression-hierarchy(P, A, n+1) by Th33;
+  hence thesis by A2, A4;
+end;
+
+definition
+  let P, A;
+  mode Polish-expression of P, A is Element of Polish-expression-set(P, A);
+end;
+
+definition
+  let P, A, n, t;
+  assume A0: t in P;
+  func Polish-operation (P, A, n, t)
+      -> Function of (Polish-expression-set(P, A))^^n, P* means
+  :Def13:
+  for q st q in dom it holds it.q = t^q;
+  existence
+    proof
+    set R = Polish-expression-set(P, A);
+    set Q = R^^n;
+    defpred S[ object, object ] means ex p st p = $1 & $2 = t^p;
+    A10: for a st a in Q ex b st b in P* & S[a, b]
+    proof
+      let a;
+      assume A11: a in Q;
+      then reconsider a as FinSequence;
+      take b = t^a;
+ A12: Q c= P* by Th15;
+      t in P* by A0, Th10, TARSKI:def 3;
+      hence thesis by A11, A12, Th13;
+    end;
+    consider f being Function of Q, P* such that
+    A22: for a st a in Q holds S[a, f.a] from FUNCT_2:sch 1(A10);
+    A23: for q st q in Q holds f.q = t^q
+    proof
+      let q;
+      assume q in Q;
+      then S[q, f.q] by A22;
+      hence thesis;
+    end;
+    take f;
+    dom f = Q by FUNCT_2:def 1;
+    hence thesis by A23;
+    end;
+  uniqueness
+    proof
+    set R = Polish-expression-set(P, A);
+    set Q = R^^n;
+    let f,g be Function of Q, P*;
+    assume that
+    A1: for q st q in dom f holds f.q = t^q and
+    A2: for q st q in dom g holds g.q = t^q;
+    A3: dom f = Q by FUNCT_2:def 1;
+    then A4: dom f = dom g by FUNCT_2:def 1;
+    for a st a in dom f holds f.a = g.a
+    proof
+      let a;
+      assume A5: a in dom f;
+      then reconsider a as FinSequence by A3;
+      f.a = t^a by A1, A5 .= g.a by A2, A4, A5;
+      hence thesis;
+    end;
+    hence thesis by A4, FUNCT_1:2;
+    end;
+end;
+
+definition
+  let X, Y;
+  let F be PartFunc of X, bool Y;
+  redefine attr F is disjoint_valued means :Def21:
+  for a, b st a in dom F & b in dom F & a <> b holds F.a misses F.b;
+  compatibility
+  proof
+    thus F is disjoint_valued implies
+    for a, b st a in dom F & b in dom F & a <> b holds F.a misses F.b
+      by PROB_2:def 2;
+    assume
+A1: for i,j be object st i in dom F & j in dom F & i <> j holds F.i misses F.j;
+    for x,y be object st x <> y holds F.x misses F.y
+    proof
+      let x,y be object;
+      assume
+A2:   x <> y;
+      per cases;
+      suppose
+        x in dom F & y in dom F;
+        hence thesis by A1,A2;
+      end;
+      suppose
+        not x in dom F;
+        then F.x = {} by FUNCT_1:def 2;
+        hence thesis;
+      end;
+      suppose
+        not y in dom F;
+        then F.y = {} by FUNCT_1:def 2;
+        hence thesis;
+      end;
+    end;
+    hence thesis by PROB_2:def 2;
+  end;
+end;
+
+registration
+  let X be set;
+  cluster disjoint_valued for FinSequence of bool X;
+  existence
+  proof
+    set p = <*> bool X;
+    p is disjoint_valued;
+    hence thesis;
+  end;
+end;
+
+theorem Th40:
+  for X being set for B being disjoint_valued FinSequence of bool X
+    for a, b, c st a in B.b & a in B.c holds b = c & b in dom B
+proof
+  let X be set, B be disjoint_valued FinSequence of bool X,
+  a, b, c;
+  assume that A1: a in B.b and A2: a in B.c;
+  A3: b in dom B by A1, FUNCT_1:def 2;
+  A4: c in dom B by A2, FUNCT_1:def 2;
+  B.b meets B.c by A1, A2, XBOOLE_0:def 4;
+  hence thesis by A3, A4, Def21;
+end;
+
+definition
+  let X;
+  let B be disjoint_valued FinSequence of bool X;
+  func arity-from-list B -> Function of X, NAT means
+  :Def22:
+     for a st a in X holds
+        ((ex n st a in B.n) & a in B.(it.a))
+              or ((not ex n st a in B.n) & it.a = 0);
+  existence
+    proof
+    defpred P[ object, object ] means
+        (((ex n st $1 in B.n) & $1 in B.$2)
+              or ((not ex n st $1 in B.n) & $2 = 0));
+    B1: for a st a in X ex b st b in NAT & P[a, b]
+      proof
+      let a;
+      assume a in X;
+      per cases;
+        suppose ex n st a in B.n;
+        then consider n such that B3: a in B.n;
+        take n;
+        thus thesis by B3, ORDINAL1:def 12;
+        end;
+        suppose B10: not ex n st a in B.n;
+        take 0;
+        thus thesis by B10, ORDINAL1:def 12;
+        end;
+      end;
+    consider f being Function of X, NAT such that
+C2: for a st a in X holds P[a, f.a] from FUNCT_2:sch 1(B1);
+    take f;
+    thus thesis by C2;
+    end;
+  uniqueness
+    proof
+    let C1, C2 be Function of X, NAT;
+    assume that
+A1: for a st a in X holds
+        ((ex n st a in B.n) & a in B.(C1.a))
+        or ((not ex n st a in B.n) & C1.a = 0) and
+A2: for a st a in X holds
+        ((ex n st a in B.n) & a in B.(C2.a))
+        or ((not ex n st a in B.n) & C2.a = 0);
+A4: dom C1 = X by FUNCT_2:def 1;
+A5: dom C1 = dom C2 by FUNCT_2:def 1, A4;
+    for a st a in X holds C1.a = C2.a
+      proof
+      let a;
+      assume A6: a in X;
+      per cases;
+        suppose A11: ex n st a in B.n; then
+        A12: a in B.(C1.a) by A1, A6;
+        a in B.(C2.a) by A2, A6, A11;
+        hence thesis by A12, Th40;
+        end;
+        suppose A20: not ex n st a in B.n;
+          then C1.a = 0 by A1, A6 .= C2.a by A2, A6, A20;
+          hence thesis;
+        end;
+      end;
+    hence thesis by A4, A5, FUNCT_1:def 11;
+    end;
+end;
+
+theorem TH30:
+  for X for B being disjoint_valued FinSequence of bool X for a st a in X
+    holds (arity-from-list B).a <> 0 iff ex n st a in B.n
+proof
+  let X;
+  let B be disjoint_valued FinSequence of bool X;
+  let a;
+  assume A1: a in X;
+  set F = arity-from-list B;
+  A2: ((ex n st a in B.n) & a in B.(F.a))
+              or ((not ex n st a in B.n) & F.a = 0) by A1, Def22;
+  thus F.a <> 0 implies ex n st a in B.n by A1,Def22;
+  assume ex n st a in B.n;
+  then A4: F.a in dom B by A2, Th40;
+  consider m being Nat such that A5: dom B = Seg m by FINSEQ_1:def 2;
+  thus F.a <> 0 by FINSEQ_1:1, A4, A5;
+  end;
+
+theorem
+  for X for B being disjoint_valued FinSequence of bool X for a, n
+      st a in B.n holds (arity-from-list B).a = n
+proof
+  let X;
+  let B be disjoint_valued FinSequence of bool X;
+  let a, n;
+  set F = arity-from-list B;
+  assume A2: a in B.n;
+  then n in dom B by Th40;
+  then A4: B.n in rng B by FUNCT_1:def 3;
+  rng B c= bool X by FINSEQ_1:def 4;
+  then a in B.(F.a) by A2, A4, Def22;
+  hence thesis by A2, Th40;
+end;
+
+theorem TH32:
+  for P, A, r st r in Polish-expression-set(P, A)
+      ex n, p, q
+          st p in P & n = A.p & q in Polish-expression-set(P, A)^^n & r = p^q
+proof
+  let P, A, r;
+  assume r in Polish-expression-set(P, A);
+  then consider m such that A1: r in Polish-expression-hierarchy(P, A, m+1)
+      by Th37;
+  set U = Polish-expression-hierarchy(P, A, m);
+  r in Polish-expression-layer(P, A, U) by A1, Th31;
+  then consider p, q, n such that
+  A2: r = p^q and
+  A3: p in P and
+  A4: n = A.p and
+  A5: q in U^^n by Def8;
+  take n, p, q;
+  U^^n c= Polish-expression-set(P, A)^^n by Th35, TH18;
+  hence thesis by A2, A3, A4, A5;
+end;
+
+definition
+  let P, A, Q;
+  attr Q is A-closed means
+  for p, n, q st p in P & n = A.p & q in Q^^n holds p^q in Q;
+end;
+
+theorem TH51:
+  for P, A holds Polish-expression-set(P, A) is A-closed
+proof
+  let P, A, p, n, q;
+  assume that
+  A1: p in P and
+  A2: n = A.p and
+  A3: q in Polish-expression-set(P, A)^^n;
+  consider m such that A4: q in Polish-expression-hierarchy(P, A, m)^^n
+    by A3, Th36;
+  set U = Polish-expression-hierarchy(P, A, m);
+  p^q in Polish-expression-layer(P, A, U) by A1, A2, A4, Th20;
+  then p^q in Polish-expression-hierarchy(P, A, m+1) by Th31;
+  hence thesis by Th35, TARSKI:def 3;
+end;
+
+theorem Th52:
+  for P, A, Q st Q is A-closed holds Polish-atoms(P, A) c= Q
+proof
+  let P, A, Q;
+  assume A0: Q is A-closed;
+  let a;
+  assume A1: a in Polish-atoms(P, A);
+  then reconsider a as FinSequence;
+  A3: a in P & A.a = 0 by A1, Def9;
+  {} in Q^^0 by Th4;
+  then a^{} in Q by A0, A3;
+  hence thesis by FINSEQ_1:34;
+end;
+
+theorem Th53:
+  for P, A, Q, n st Q is A-closed holds
+      Polish-expression-hierarchy(P, A, n) c= Q
+proof
+  let P, A, Q, n;
+  assume A1: Q is A-closed;
+  defpred X[ Nat ] means
+    Polish-expression-hierarchy(P, A, $1) c= Q;
+  A2: X[ 0 ]
+    proof
+    Polish-expression-hierarchy(P, A, 0) = Polish-atoms(P, A) by Def10;
+    hence thesis by A1, Th52;
+    end;
+  A3: for k holds X[ k ] implies X[ k+1 ]
+    proof
+    let k;
+    set V = Polish-expression-hierarchy(P, A, k);
+    assume A4: V c= Q;
+    for a st a in Polish-expression-hierarchy(P, A, k+1) holds a in Q
+      proof
+      let a;
+      assume a in Polish-expression-hierarchy(P, A, k+1);
+      then a in Polish-expression-layer(P, A, V) by Th31;
+      then consider p, q, n such that
+      A5: a = p^q and
+      A6: p in P and
+      A7: n = A.p and
+      A8: q in V^^n by Def8;
+      q in Q^^n by A4, A8, TH18, TARSKI:def 3;
+      hence thesis by A1, A5, A6, A7;
+      end;
+    hence thesis by TARSKI:def 3;
+    end;
+  for k holds X[ k ] from NAT_1:sch 2(A2, A3);
+  hence thesis;
+end;
+
+theorem TH36:
+  for P, A holds Polish-atoms(P, A) c= Polish-expression-set(P, A)
+proof
+  let P, A;
+  Polish-expression-set(P, A) is A-closed by TH51;
+  hence thesis by Th52;
+end;
+
+theorem Th55:
+  for P, A, Q st Q is A-closed holds Polish-expression-set(P, A) c= Q
+proof
+  let P, A, Q;
+  assume A1: Q is A-closed;
+  let a;
+  assume a in Polish-expression-set(P, A);
+  then consider n such that A2: a in Polish-expression-hierarchy(P, A, n+1)
+      by Th37;
+  thus thesis by A1, A2, Th53, TARSKI:def 3;
+end;
+
+theorem
+  for P, A, r st r in Polish-expression-set(P, A)
+      ex n, t, q st t in P & n = A.t & r = Polish-operation(P, A, n, t).q
+proof
+  let P, A, r;
+  assume r in Polish-expression-set(P, A);
+  then consider m such that A1: r in Polish-expression-hierarchy(P, A, m+1)
+      by Th37;
+  set U = Polish-expression-hierarchy(P, A, m);
+  r in Polish-expression-layer(P, A, U) by A1, Th31;
+  then consider t, q, n such that
+  A4: r = t^q and
+  A5: t in P and
+  A6: n = A.t and
+  A7: q in U^^n by Def8;
+  take n, t, q;
+  dom Polish-operation(P, A, n, t) = Polish-expression-set(P, A)^^n
+      by FUNCT_2:def 1;
+  then U^^n c= dom Polish-operation(P, A, n, t) by Th35, TH18;
+  hence thesis by A4, A5, A6, A7, Def13;
+end;
+
+theorem TH39:
+  for P, A, n, p, q st p in P & n = A.p & q in Polish-expression-set(P, A)^^n
+      holds Polish-operation(P, A, n, p).q in Polish-expression-set(P, A)
+proof
+  let P, A, n, p, q;
+  set U = Polish-expression-set(P, A);
+  assume A1: p in P & n = A.p & q in U^^n;
+  A2: U is A-closed by TH51;
+  dom Polish-operation(P, A, n, p) = U^^n by FUNCT_2:def 1;
+  then Polish-operation(P, A, n, p).q = p^q by Def13, A1;
+  hence thesis by A1,A2;
+end;
+
+scheme AInd {
+    P() -> FinSequence-membered set,
+    A() -> Function of P(), NAT,
+    X[object] } :
+  for a st a in Polish-expression-set(P(), A()) holds X[ a ]
+provided
+  A1: for p, q, n
+        st p in P() & n = A().p & q in Polish-expression-set(P(), A())^^n
+    holds X[p^q]
+proof
+  set V = Polish-expression-set(P(), A());
+  consider U being set such that A2: for a holds a in U iff a in V & X[ a ]
+      from XBOOLE_0:sch 1;
+  A3: U c= V by A2;
+  then reconsider U as Subset of P()* by XBOOLE_1:1;
+  U is A()-closed
+  proof
+    let p, n, q;
+    assume that
+    A4: p in P() and
+    A5: n = A().p and
+    A6: q in U^^n;
+    A7: U^^n c= V^^n by A3, TH18;
+    then A8: X[p^q] by A1, A4, A5, A6;
+    V is A()-closed by TH51;
+    hence p^q in U by A2, A4, A5, A6, A7, A8;
+  end;
+  then Polish-expression-set(P(), A()) c= U by Th55;
+  hence thesis by A2;
+end;
+
+begin
+::
+::       Polish Notation, Part II: Parsing
+::
+
+reserve k,l,m,n,i,j for Nat,
+  a, b, c, c1, c2 for object,
+  x, y, z, X, Y, Z for set,
+  D, D1, D2 for non empty set;
+reserve p, q, r, s, t, u, v for FinSequence;
+reserve P, Q, R for FinSequence-membered set;
+
+definition
+  let P;
+  attr P is antichain-like means
+  :Def1:
+  for p,q st p in P & p^q in P holds q = {};
+end;
+
+theorem Th1:
+  for P holds P is antichain-like
+      iff for p,q st p in P & p^q in P holds p = p^q
+proof
+  let P;
+  thus P is antichain-like implies for p,q st p in P & p^q in P holds p = p^q
+    proof
+    assume that A1: P is antichain-like;
+    let p, q;
+    assume p in P & p^q in P;
+    then q = {} by A1;
+    hence thesis by FINSEQ_1:34;
+    end;
+  thus thesis by FINSEQ_1:87;
+end;
+
+theorem TH2:
+  for P, Q st P c= Q & Q is antichain-like holds P is antichain-like;
+
+registration
+  cluster trivial -> antichain-like for FinSequence-membered set;
+  coherence
+  proof
+    let P;
+    assume A1: P is trivial;
+    let p, q;
+    assume p in P & p^q in P;
+    then p = p^q by A1, ZFMISC_1:def 10;
+    hence thesis by FINSEQ_1:87;
+  end;
+end;
+
+theorem
+  for P, a st P = {a} holds P is antichain-like;
+
+registration
+  cluster antichain-like for non empty FinSequence-membered set;
+  existence
+    proof
+    set P = {<*the set*>};
+    for a st a in P holds a is FinSequence by TARSKI:def 1;
+    then reconsider P as non empty FinSequence-membered set by FINSEQ_1:def 18;
+    take P;
+    thus thesis;
+    end;
+
+  cluster empty -> antichain-like for FinSequence-membered set;
+    coherence;
+end;
+
+definition
+  mode antichain is antichain-like FinSequence-membered set;
+end;
+
+reserve B, C for antichain;
+
+registration
+  let B;
+  cluster -> antichain-like FinSequence-membered for Subset of B;
+  coherence by TH2;
+end;
+
+definition
+  mode Polish-language is non empty antichain;
+end;
+
+reserve S, T for Polish-language;
+
+definition
+  let D be non empty set;
+  let G be Subset of D*;
+  redefine attr G is antichain-like means
+  for g being FinSequence of D,h being FinSequence of D
+      st g in G & g^h in G holds h = <*>D;
+  compatibility
+    proof
+    thus G is antichain-like implies
+        for g being FinSequence of D, h being FinSequence of D
+          st g in G & g^h in G holds h = <*>D;
+    assume A1: for g being FinSequence of D, h being FinSequence of D
+        st g in G & g^h in G holds h = <*>D;
+    for p, q st p in G & p^q in G holds q = {}
+    proof
+      let p, q;
+      assume that A3: p in G and A4: p^q in G;
+      p^q is FinSequence of D by A4, FINSEQ_1:def 11;
+      then reconsider p,q as FinSequence of D by FINSEQ_1:36;
+      p^q in G by A4;
+      hence thesis by A1, A3;
+      end;
+      hence thesis;
+    end;
+end;
+
+theorem TH4:
+  for B for p, q, r, s st p^q = r^s & p in B & r in B
+      holds p = r & q = s
+proof
+  let B, p, q, r, s;
+  assume that A2: p^q = r^s and A3: p in B & r in B;
+  consider t such that A4: p^t = r or p = r^t by TH1, A2;
+  thus p = r by A3, A4, Th1;
+  hence q = s by A2, FINSEQ_1:33;
+end;
+
+Th5:
+  for B, C holds B^C is antichain-like
+proof
+  let B, C, p, q;
+  assume that A3: p in B^C and A4: p^q in B^C;
+  consider r,s such that A7: p = r^s and A8: r in B and A9: s in C
+      by A3, Def2;
+  consider t,u such that A10: p^q = t^u and A11: t in B and A12: u in C
+      by A4, Def2;
+  t^u = r^(s^q) by A7, A10, FINSEQ_1:32;
+  then u = s^q by A8, A11, TH4;
+  hence thesis by A9, A12, Def1;
+end;
+
+registration
+  let B, C;
+  cluster B^C -> antichain-like;
+  coherence by Th5;
+end;
+
+theorem Th6:
+  for P st for p, q st p in P & q in P holds dom p = dom q
+      holds P is antichain-like
+proof
+  let P;
+  assume that A1: for p, q st p in P & q in P holds dom p = dom q;
+  for p, q st p in P & p^q in P holds p = p^q
+    proof
+    let p, q;
+    assume that A2: p in P & p^q in P;
+    set r = p^q;
+    dom p = dom r by A1, A2;
+    then p = r | (dom r) by FINSEQ_1:21 .= r;
+    hence thesis;
+    end;
+  hence thesis by Th1;
+end;
+
+theorem TH7:
+  for P, a st for p st p in P holds dom p = a holds P is antichain-like
+proof
+  let P, a;
+  assume that A1: for p st p in P holds dom p = a;
+  for p, q st p in P & q in P holds dom p = dom q
+  proof
+    let p, q;
+    assume that A2: p in P and A3: q in P;
+    dom p = a by A1, A2 .= dom q by A1, A3;
+    hence thesis;
+  end;
+  hence thesis by Th6;
+end;
+
+theorem TH8:
+  for B holds {} in B implies B = {{}}
+proof
+  let B;
+  assume A1: {} in B;
+  for a st a in B holds a = {}
+  proof
+    let a;
+    assume A3: a in B;
+    then reconsider a as FinSequence;
+    {}^a in B by A3, FINSEQ_1:34;
+    hence thesis by A1, Def1;
+  end;
+  then for a holds a in B iff a = {} by A1;
+  hence thesis by TARSKI:def 1;
+end;
+
+registration
+  let B, n;
+  cluster B^^n -> antichain-like;
+  coherence
+    proof
+    defpred X[ Nat ] means B^^$1 is antichain-like;
+    A2: X[ 0 ] by Th7;
+    A3: for k st X[ k ] holds X[ k + 1 ]
+      proof
+      let k;
+      assume X[ k ];
+      then (B^^k)^B is antichain-like;
+      hence thesis by Th7;
+      end;
+    for k holds X[ k ] from NAT_1:sch 2(A2,A3);
+    hence thesis;
+    end;
+end;
+
+registration
+  let T;
+  cluster non empty antichain-like for Subset of (T*);
+  existence
+  proof
+    set U = T*;
+    reconsider T as Subset of U by Th10;
+    take T;
+    thus thesis;
+  end;
+
+  let n;
+  cluster T^^n -> non empty;
+  coherence;
+end;
+
+definition
+  let T;
+  mode Polish-language of T is non empty antichain-like Subset of (T*);
+
+  mode Polish-arity-function of T -> Function of T, NAT means
+  :Def5:
+  ex a st a in T & it.a = 0;
+  existence
+    proof
+    deffunc F(object) = 0;
+    A1: for a st a in T holds F(a) in NAT by ORDINAL1:def 12;
+    consider f being Function of T, NAT such that
+    A2: for a st a in T holds f.a = F(a) from FUNCT_2:sch 2(A1);
+    take f;
+    take a = the Element of T;
+    thus thesis by A2;
+    end;
+end;
+
+registration
+  let T;
+  cluster -> non empty antichain-like FinSequence-membered
+      for Polish-language of T;
+  coherence;
+end;
+
+reserve A for Polish-arity-function of T;
+reserve U, V, W for Polish-language of T;
+
+definition
+  let T, A;
+  let t be Element of T;
+  redefine func A.t -> Nat;
+  coherence by FUNCT_2:5, ORDINAL1:def 12;
+end;
+
+definition
+  let T, A, U;
+  redefine func Polish-expression-layer(T, A, U) means
+  :Def6:
+  for a holds a in it iff ex t being Element of T, u being Element of T*
+          st a = t^u & u in U^^(A.t);
+  compatibility
+    proof
+    defpred P[ object ] means ex t being Element of T, u being Element of T*
+      st $1 = t^u & u in U^^(A.t);
+    set X = Polish-expression-layer(T, A, U);
+    let Y be Subset of T*;
+    A1: for a holds a in X iff P[ a ]
+      proof
+      let a;
+      thus a in X implies P[ a ]
+        proof
+        assume a in X;
+        then consider t, q, n such that
+          A3: a = t^q and
+          A4: t in T and
+          A5: n = A.t and
+          A6: q in U^^n by Def8;
+        reconsider t1 = t as Element of T by A4;
+        U^^n c= T* by Th15;
+        then reconsider q1 = q as Element of T* by A6;
+        take t1, q1;
+        thus thesis by A3, A5, A6;
+        end;
+      assume P[ a ];
+      then consider t being Element of T, u being Element of T* such that
+        A10: a = t^u and
+        A11: u in U^^(A.t);
+      set n = A.t;
+      T c= T* by Th10;
+      then t in T*;
+      then a in T* by A10, Th13;
+      hence a in X by A10, A11, Def8;
+      end;
+    hence X = Y implies (for a holds a in Y iff P[ a ]);
+    assume A20: for a holds a in Y iff P[ a ];
+    thus X = Y from XBOOLE_0:sch 2(A1, A20);
+    end;
+end;
+
+definition
+  let B, p;
+  attr p is B-headed means
+  ex q, r st q in B & p = q^r;
+end;
+
+definition
+  let B, P;
+  attr P is B-headed means
+  :Def8:
+  for p st p in P holds p is B-headed;
+end;
+
+theorem Th11a:
+  for B, C, p st p is B-headed & B c= C holds p is C-headed;
+
+theorem
+  for B, C, P st P is B-headed & B c= C holds P is C-headed by Th11a;
+
+Th13:
+  for B, P holds B^P is B-headed
+proof
+  let B, P, p;
+  assume p in B^P;
+  then consider q, r such that A2: p = q^r & q in B & r in P by Def2;
+  thus thesis by A2;
+end;
+
+registration
+  let B, P;
+  cluster B^P -> B-headed;
+  coherence by Th13;
+end;
+
+theorem
+  for B, C, p st p is (B^C)-headed holds p is B-headed
+proof
+  let B, C, p;
+  assume p is (B^C)-headed;
+  then consider q, r such that
+    A1: q in B^C and
+    A2: p = q^r;
+  consider s, t such that
+    A4: q = s^t and
+    A5: s in B and
+        t in C by A1, Def2;
+  p = s^(t^r) by A2, A4, FINSEQ_1:32;
+  hence thesis by A5;
+end;
+
+theorem Th15:
+  for B holds B is B-headed
+proof
+  let B;
+  B = B^{{}} by Th3;
+  hence B is B-headed;
+end;
+
+registration
+  let B;
+  cluster B-headed for FinSequence-membered set;
+  existence
+  proof
+    take B;
+    thus thesis by Th15;
+  end;
+end;
+
+registration
+  let B;
+  let P be B-headed FinSequence-membered set;
+  cluster -> B-headed for Subset of P;
+  coherence by Def8;
+end;
+
+registration
+  let S;
+  cluster non empty S-headed for FinSequence-membered set;
+  existence
+  proof
+    take S;
+    thus thesis by Th15;
+  end;
+end;
+
+theorem Th16:
+  for S, m, n holds S^^(m+n) is (S^^m)-headed
+proof
+  let S, m, n;
+  S^^(m+n)=(S^^m)^(S^^n) by Th11;
+  hence thesis;
+end;
+
+definition
+  let S, p;
+  func S-head p -> FinSequence means  :Def9a:
+    it in S & ex r st p = it^r if p is S-headed otherwise it = {};
+  consistency;
+  existence;
+  uniqueness by TH4;
+end;
+
+definition
+  let S, p;
+  func S-tail p -> FinSequence means  :Def10:
+    p = (S-head p)^it;
+  existence
+    proof
+      per cases;
+      suppose p is S-headed;
+      hence thesis by Def9a;
+      end;
+      suppose not p is S-headed;
+      then S-head p = {} by Def9a;
+      then p = (S-head p)^p by FINSEQ_1:34;
+      hence thesis;
+      end;
+    end;
+  uniqueness by FINSEQ_1:33;
+end;
+
+theorem Th17:
+  for S, s, t st s in S holds S-head (s^t) = s & S-tail (s^t) = t
+proof
+  let S, s, t;
+  assume A1: s in S;
+  set u = s^t;
+  u is S-headed by A1;
+  hence S-head u = s by A1, Def9a;
+  hence thesis by Def10;
+end;
+
+theorem Th18:
+  for S, s st s in S holds S-head s = s & S-tail s = {}
+proof
+  let S, s;
+  assume s in S;
+  then S-head (s^{}) = s & S-tail (s^{}) = {} by Th17;
+  hence thesis by FINSEQ_1:34;
+end;
+
+theorem Th19:
+  for S, T, u st u in S^T holds S-head u in S & S-tail u in T
+proof
+  let S, T, u;
+  assume u in S^T;
+  then consider s, t such that A2: u = s^t & s in S & t in T by Def2;
+  thus thesis by A2, Th17;
+end;
+
+theorem Th20:
+  for S, T, u st S c= T & u is S-headed holds
+      S-head u = T-head u & S-tail u = T-tail u
+proof
+  let S, T, u;
+  assume that
+  A1: S c= T and
+  A2: u is S-headed;
+  consider q, r such that A3: q in S and A4: u = q^r by A2;
+  thus S-head u = q by A3, A4, Th17 .= T-head u by A1, A3, A4, Th17;
+  thus S-tail u = r by A3, A4, Th17 .= T-tail u by A1, A3, A4, Th17;
+end;
+
+theorem Th21:
+  for S, s, t st s is S-headed holds
+      s^t is S-headed & S-head (s^t) = S-head s & S-tail (s^t) = (S-tail s)^t
+proof
+  let S, s, t;
+  assume s is S-headed;
+  then consider q, r such that A1: q in S and A2: s = q^r;
+  A3: s^t = q^(r^t) by A2, FINSEQ_1:32;
+  hence s^t is S-headed by A1;
+  thus S-head (s^t) = q by A1, A3, Th17 .= S-head s by A1, A2, Th17;
+  thus S-tail (s^t) = r^t by A1, A3, Th17 .= (S-tail s)^t by A1, A2, Th17;
+end;
+
+theorem Th22:
+  for S, m, n, s st m+1 <= n & s in S^^n
+      holds s is (S^^m)-headed & (S^^m)-tail s is S-headed
+proof
+  let S, m, n, s;
+  assume that
+  A1: m+1 <= n and
+  A2: s in S^^n;
+  consider l such that A3: m+1+l = n by A1, NAT_1:10;
+  A4: m+(1+l) = n by A3;
+  then S^^n is (S^^m)-headed by Th16;
+  hence s is (S^^m)-headed by A2;
+  set u = (S^^m)-tail s;
+  s in (S^^m)^(S^^(1+l)) by A2, A4, Th11;
+  then u in S^^(1+l) by Th19;
+  then u in (S^^1)^(S^^l) by Th11;
+  then A6: u in S^(S^^l) by Th8;
+  S^(S^^l) is S-headed;
+  hence thesis by A6;
+end;
+
+theorem Th23:
+  for S, s holds s is (S^^0)-headed & (S^^0)-head s = {} & (S^^0)-tail s = s
+proof
+  let S, s;
+  A1: s = {}^s by FINSEQ_1:34;
+  {} in S^^0 by Th4;
+  hence thesis by A1, Th17;
+end;
+
+registration
+  let T, A;
+  cluster Polish-atoms(T, A) -> non empty antichain-like;
+  coherence
+  proof
+    set U = Polish-atoms(T, A);
+    consider a such that A4: a in T & A.a = 0 by Def5;
+    U is non empty & U c= T by A4, Def9;
+    hence thesis;
+  end;
+
+  let U;
+  cluster Polish-expression-layer(T, A, U) -> non empty antichain-like;
+  coherence
+  proof
+    set X = Polish-expression-layer(T, A, U);
+    the Element of Polish-atoms(T, A) in X by Th26, TARSKI:def 3;
+    hence X is non empty;
+    let p, q;
+    assume that A11: p in X and A12: p^q in X;
+    consider t1 being Element of T, u1 being Element of T* such that
+    A13: p = t1^u1 and A14: u1 in U^^(A.t1) by A11, Def6;
+    consider t2 being Element of T, u2 being Element of T* such that
+    A15: p^q = t2^u2 and A16: u2 in U^^(A.t2) by A12, Def6;
+    t1^(u1^q) = t2^u2 by FINSEQ_1:32, A13, A15;
+    then t1 = t2 & u1^q = u2 by TH4;
+    hence q = {} by A14, A16, Def1;
+  end;
+end;
+
+definition
+  let T, A, U;
+  redefine func Polish-expression-layer(T, A, U) -> Polish-language of T;
+  coherence;
+end;
+
+definition
+  let T, A;
+  func Polish-operations(T, A) -> Subset of T equals
+    {t where t is Element of T : A.t <> 0};
+  coherence
+    proof
+    set P = {t where t is Element of T : A.t <> 0};
+    P c= T
+      proof
+      let a;
+      assume a in P;
+      then consider t being Element of T such that A1: a = t and A.t <> 0;
+      thus thesis by A1;
+      end;
+    hence thesis;
+    end;
+end;
+
+registration
+  let T, A, n;
+  cluster Polish-expression-hierarchy(T, A, n) -> antichain-like non empty;
+  coherence
+  proof
+    defpred X[ Nat ] means
+        Polish-expression-hierarchy(T, A, $1) is Polish-language;
+    Polish-expression-hierarchy(T, A, 0) = Polish-atoms(T, A) by TH22;
+    then A1: X[ 0 ];
+    A2: for k holds X[ k ] implies X[ k + 1 ]
+    proof
+      let k;
+      set U = Polish-expression-hierarchy(T, A, k);
+      assume X[ k ];
+      then reconsider U as Polish-language of T;
+      Polish-expression-hierarchy(T, A, k+1) = Polish-expression-layer(T, A, U)
+         by Th31;
+      hence thesis;
+    end;
+    for k holds X[k] from NAT_1:sch 2(A1, A2);
+    hence thesis;
+  end;
+end;
+
+definition
+  let T, A, n;
+  redefine func Polish-expression-hierarchy(T, A, n) -> Polish-language of T;
+  coherence;
+end;
+
+definition
+  let T, A;
+  func Polish-WFF-set(T, A) -> Polish-language of T equals
+    Polish-expression-set(T, A);
+coherence
+  proof
+  set Y = Polish-expression-set(T, A);
+  Polish-expression-hierarchy(T, A, 0) c= Y by Th35;
+  then reconsider Y as non empty Subset of T*;
+  Y is antichain-like
+    proof
+    let p, q;
+    assume that A2: p in Y and A3: p^q in Y;
+    consider m such that A10: p in Polish-expression-hierarchy(T, A, m+1)
+        by A2, Th37;
+    consider n such that A11: p^q in Polish-expression-hierarchy(T, A, n+1)
+        by A3, Th37;
+    set B = Polish-expression-hierarchy(T, A, (m+1)+(n+1));
+    A12: Polish-expression-hierarchy(T, A, m+1) c= B by Th34;
+    A13: Polish-expression-hierarchy(T, A, n+1) c= B by Th34;
+    B is antichain-like;
+    hence thesis by A10, A11, A12, A13;
+    end;
+  hence thesis;
+  end;
+end;
+
+definition
+  let T, A;
+  mode Polish-WFF of T, A is Element of Polish-WFF-set(T, A);
+end;
+
+definition
+  let T, A;
+  let t be Element of T;
+  func Polish-operation (T, A, t)
+      -> Function of (Polish-WFF-set(T, A))^^(A.t), Polish-WFF-set(T, A) equals
+    Polish-operation(T, A, A.t, t);
+  coherence
+    proof
+    set V = Polish-expression-set(T, A);
+    set n = A.t;
+    set f = Polish-operation(T, A, A.t, t);
+    A1: dom f = V^^n by FUNCT_2:def 1;
+    for a st a in V^^n holds f.a in V by TH39;
+    hence thesis by A1, FUNCT_2:3;
+    end;
+end;
+
+definition
+  let T, A;
+  let t be Element of T;
+  assume A1: A.t = 1;
+  func Polish-unOp (T, A, t) -> UnOp of Polish-WFF-set(T, A) equals
+  :Def21:
+      Polish-operation(T, A, t);
+  coherence
+  proof
+    set U = Polish-WFF-set(T, A);
+    U^^1 = U by Th8;
+    hence thesis by A1;
+  end;
+end;
+
+definition
+  let T, A;
+  let t be Element of T;
+  assume A1: A.t = 2;
+  func Polish-binOp (T, A, t) -> BinOp of Polish-WFF-set(T, A) means
+  :Def22:
+      for u, v st u in Polish-WFF-set(T, A)
+          & v in Polish-WFF-set(T, A) holds
+        it.(u, v) = Polish-operation(T, A, t).(u^v);
+  existence
+    proof
+    set W = Polish-WFF-set(T, A);
+    defpred X[object, object, object] means
+      ex u, v st  $1 = u & $2 = v & $3 = Polish-operation(T, A, t).(u^v);
+    A2: for a, b st a in W & b in W ex c st c in W & X[a, b, c]
+      proof
+      let a, b;
+      assume that
+        A3: a in W and
+        A4: b in W;
+      reconsider u = a as FinSequence by A3;
+      reconsider v = b as FinSequence by A4;
+      take c = Polish-operation(T, A, t).(u^v);
+      W^^2 = W^^(1+1)
+          .= (W^^1)^W by Th7
+          .= W^W by Th8;
+      then u^v in W^^2 by A3, A4, Def2;
+      hence c in W by A1, FUNCT_2:5;
+      thus thesis;
+      end;
+    consider f being Function of [: W, W :], W such that
+        A11: for a, b st a in W & b in W holds X[a, b, f.(a,b)]
+      from BINOP_1:sch 1(A2);
+    take f;
+    let u, v;
+    assume that
+      A12: u in W and
+      A13: v in W;
+    X[u, v, f.(u, v)] by A11, A12, A13;
+    hence f.(u, v) = Polish-operation(T, A, t).(u^v);
+    end;
+  uniqueness
+    proof
+    set W = Polish-WFF-set(T, A);
+    let f, g be Function of [: W, W :], W;
+    assume that
+      A10: for u, v st u in W & v in W holds
+          f.(u, v) = Polish-operation(T, A, t).(u^v) and
+      A11: for u, v st u in W & v in W holds
+          g.(u, v) = Polish-operation(T, A, t).(u^v);
+    A12: dom f = [: W, W :] by FUNCT_2:def 1;
+    A13: dom g = [: W, W :] by FUNCT_2:def 1;
+    for a, b st a in W & b in W holds f.(a, b) = g.(a, b)
+      proof
+      let a, b;
+      assume that
+        A20: a in W and
+        A21: b in W;
+      reconsider u = a as FinSequence by A20;
+      reconsider v = b as FinSequence by A21;
+      thus f.(a, b) = Polish-operation(T, A, t).(u^v) by A10, A20, A21
+          .= g.(a, b) by A11, A20, A21;
+      end;
+    hence thesis by A12, A13, FUNCT_3:6;
+    end;
+end;
+
+reserve F, G for Polish-WFF of T, A;
+
+definition
+  let X, Y;
+  let F be PartFunc of X, bool Y;
+  attr F is exhaustive means
+  for a st a in Y ex b st b in dom F & a in F.b;
+end;
+
+registration
+  let X be non empty set;
+  cluster non exhaustive disjoint_valued for FinSequence of bool X;
+  existence
+  proof
+    set p = <*> bool X;
+    take p;
+    thus p is non exhaustive
+    proof
+      assume A2: p is exhaustive;
+      X is non empty;
+      then consider a such that A3: a in X;
+      consider b such that A4: b in dom p & a in p.b by A2, A3;
+      thus thesis by A4;
+    end;
+    thus p is disjoint_valued;
+  end;
+end;
+
+theorem TH37:
+  for X, Y for F being PartFunc of X, bool Y holds
+  F is non exhaustive iff
+      ex a st a in Y & for b st b in dom F holds not a in F.b;
+
+definition
+  let T;
+  let B be non exhaustive disjoint_valued FinSequence of bool T;
+  func Polish-arity-from-list B -> Polish-arity-function of T equals
+      arity-from-list B;
+  coherence
+    proof
+    set f = arity-from-list B;
+    consider a such that A1: a in T and
+    A2: for b st b in dom B holds not a in B.b by TH37;
+    not ex n st a in B.n
+    proof
+      given n such that A3: a in B.n;
+      n in dom B by A3, FUNCT_1:def 2;
+      hence thesis by A2, A3;
+    end;
+    then f.a = 0 by TH30, A1;
+    hence thesis by A1, Def5;
+    end;
+end;
+
+registration
+  cluster with_non-empty_elements
+      for antichain-like FinSequence-membered set;
+  existence
+  proof
+    set X = { <*the set*> };
+    for a st a in X holds a is FinSequence by TARSKI:def 1;
+    then reconsider X as non empty antichain-like FinSequence-membered set
+        by FINSEQ_1:def 18;
+    take X;
+    thus thesis;
+  end;
+
+  cluster non trivial for Polish-language;
+  existence
+    proof
+    set T = { <*0*>, <*1*> };
+    for a st a in T holds a is FinSequence by TARSKI:def 2;
+    then reconsider T as non empty FinSequence-membered set by FINSEQ_1:def 18;
+    for p st p in T holds dom p = Seg 1
+    proof
+      let p;
+      assume p in T;
+      then p = <*0*> or p = <*1*> by TARSKI:def 2;
+      hence thesis by FINSEQ_1:def 8;
+    end;
+    then reconsider T as Polish-language by TH7;
+    take T;
+    T is non trivial
+    proof
+      assume A3: T is trivial;
+      <*0*> in T & <*1*> in T by TARSKI:def 2;
+      then <*0*> = <*1*> by ZFMISC_1:def 10, A3;
+      then 0 = <*1*>.1 by FINSEQ_1:def 8 .= 1 by FINSEQ_1:def 8;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster non trivial -> with_non-empty_elements
+      for antichain-like FinSequence-membered set;
+  coherence by TH8, SETFAM_1:def 8;
+end;
+
+definition
+  let S, n, m;
+  let p be Element of S^^(n+1+m);
+  func decomp( S, n, m, p ) -> Element of S equals
+  S-head((S^^n)-tail p);
+  coherence
+  proof
+    set q = (S^^n)-tail p;
+    S^^(n+1+m) = (S^^(n+1))^(S^^m) by Th11
+        .= (S^^n)^(S^^1)^(S^^m) by Th11
+        .= (S^^n)^((S^^1)^(S^^m)) by Th2
+        .= (S^^n)^(S^(S^^m)) by Th8;
+    then q in S^(S^^m) by Th19;
+    hence thesis by Th19;
+  end;
+end;
+
+definition
+  let S, n;
+  let p be Element of S^^n;
+  func decomp( S, n, p ) -> FinSequence of S means
+  :Def32:
+  dom it = Seg n
+      & for m st m in Seg n ex k st m = k+1 & it.m = S-head((S^^k)-tail p);
+  existence
+    proof
+    defpred X[ object, object ] means
+        ex k st $1 = k+1 & $2 = S-head((S^^k)-tail p);
+    A1: for i st i in Seg n ex s being Element of S st X[ i, s ]
+      proof
+      let i;
+      assume i in Seg n;
+      then A3: 1 <= i & i <= n by FINSEQ_1:1;
+      then consider j such that A4: i = j+1 by NAT_1:6;
+      consider l such that A5: i + l = n by A3, NAT_1:10;
+      reconsider p as Element of S^^(j+1+l) by A4, A5;
+      take decomp( S, j, l, p );
+      thus thesis by A4;
+      end;
+    consider q being FinSequence of S such that
+          A10: dom q = Seg n and
+          A11: for i st i in Seg n holds X[ i, q.i ] from FINSEQ_1:sch 5(A1);
+    take q;
+    thus thesis by A10, A11;
+    end;
+  uniqueness
+    proof
+    let t, u be FinSequence of S;
+    assume that
+        A1: dom t = Seg n and
+        A2: for m st m in Seg n
+            ex k st m = k+1 & t.m = S-head((S^^k)-tail p) and
+        A3: dom u = Seg n and
+        A4: for m st m in Seg n
+            ex k st m = k+1 & u.m = S-head((S^^k)-tail p);
+    for i st i in dom t holds t.i = u.i
+      proof
+      let i;
+      assume A5: i in dom t;
+      then consider k such that
+          A7: i = k+1 and
+          A8: t.i = S-head((S^^k)-tail p) by A1, A2;
+      consider l such that
+          A9: i = l+1 and
+          A10: u.i = S-head((S^^l)-tail p) by A1, A4, A5;
+      thus thesis by A7, A8, A9, A10;
+      end;
+    hence thesis by A1, A3, FINSEQ_1:13;
+    end;
+end;
+
+theorem Th50:
+  for S, T, n for s being Element of S^^n, t being Element of T^^n
+      st S c= T & s = t holds decomp( S, n, s ) = decomp( T, n, t )
+proof
+  let S, T, n;
+  let s be Element of S^^n;
+  let t be Element of T^^n;
+  assume that A1: S c= T and A2: s = t;
+  set p = decomp( S, n, s );
+  set q = decomp( T, n, t );
+  A4: dom p = Seg n & dom q = Seg n by Def32;
+  for a st a in Seg n holds p.a = q.a
+    proof
+    let a;
+    assume A6: a in Seg n;
+    then reconsider a as Nat;
+    consider k such that A7: a = k+1 and A8: p.a = S-head((S^^k)-tail s)
+        by A6, Def32;
+    consider l such that A9: a = l+1 and A10: q.a = T-head((T^^l)-tail t)
+        by A6, Def32;
+    A11: S^^l c= T^^l by A1, TH18;
+    l+1 <= n by A6, A9, FINSEQ_1:1;
+    then A12: s is (S^^l)-headed & (S^^l)-tail s is S-headed by Th22;
+    then A14: (T^^l)-tail t is S-headed by A2, A11, Th20;
+    (S^^k)-tail s = (T^^l)-tail t by A2, A7, A9, A11, A12, Th20;
+    hence thesis by A1, A8, A10, A14, Th20;
+    end;
+  hence thesis by A4, FUNCT_1:def 11;
+end;
+
+theorem Th51:
+  for S for q being Element of S^^0 holds decomp(S, 0, q) = {}
+proof
+  let S;
+  let q be Element of S^^0;
+  dom decomp(S, 0, q) = Seg 0 by Def32;
+  hence thesis;
+end;
+
+theorem Th54:
+  for S, n for q being Element of S^^n holds len decomp(S, n, q) = n
+proof
+  let S, n;
+  reconsider n1 = n as Element of NAT by ORDINAL1:def 12;
+  let q be Element of S^^n;
+  set p = decomp(S, n, q);
+  dom p = Seg n by Def32;
+  then len p = n1 by FINSEQ_1:def 3;
+  hence thesis;
+end;
+
+theorem TH55:
+  for S for q being Element of S^^1 holds decomp(S, 1, q) = <*q*>
+proof
+  let S;
+  let q be Element of S^^1;
+  set w = decomp(S, 1, q);
+  1 in Seg 1 by FINSEQ_1:2, TARSKI:def 1;
+  then consider k such that
+    A2: 1 = k+1 and
+    A3: w.1 = S-head((S^^k)-tail q) by Def32;
+  q in S^^1;
+  then A4: q in S by Th8;
+  w.1 = S-head q by A2, A3, Th23
+      .= q by Th18, A4;
+  hence thesis by Th54, FINSEQ_1:40;
+end;
+
+theorem Th56:
+  for S for p, q being Element of S for r being Element of S^^2 st r = p^q
+    holds decomp(S, 2, r) = <*p, q*>
+proof
+  let S;
+  let p, q be Element of S;
+  let r be Element of S^^2;
+  assume A1: r = p^q;
+  set w = decomp(S, 2, r);
+  1 in Seg 2 by FINSEQ_1:2, TARSKI:def 2;
+  then consider k such that
+    A2: 1 = k+1 and
+    A3: w.1 = S-head((S^^k)-tail r) by Def32;
+  A5: w.1 = S-head r by A2, A3, Th23
+      .= p by A1, Th17;
+  2 in Seg 2 by FINSEQ_1:2, TARSKI:def 2;
+  then consider m such that
+    A7: 2 = m+1 and
+    A8: w.2 = S-head((S^^m)-tail r) by Def32;
+  S^^m = S by A7,Th8;
+  then A9: (S^^m)-tail r = q by A1, Th17;
+  w.2 = q by A8, A9, Th18;
+  hence thesis by A5, Th54, FINSEQ_1:44;
+end;
+
+theorem Th60:
+  for T, A holds Polish-WFF-set(T, A) is T-headed
+proof
+  let T, A, p;
+  assume p in Polish-WFF-set(T, A);
+  then consider n such that A3: p in Polish-expression-hierarchy(T, A, n+1)
+      by Th37;
+  set U = Polish-expression-hierarchy(T, A, n);
+  p in Polish-expression-layer(T, A, U) by A3, Th31;
+  hence thesis by TH21;
+end;
+
+theorem Th61:
+  for T, A, n holds Polish-expression-hierarchy(T, A, n) is T-headed
+proof
+  let T, A, n;
+  reconsider U = Polish-expression-hierarchy(T, A, n)
+      as Subset of Polish-WFF-set(T, A) by Th35;
+  Polish-WFF-set(T, A) is T-headed by Th60;
+  then U is T-headed;
+  hence thesis;
+end;
+
+definition
+  let T, A, F;
+  func Polish-WFF-head F -> Element of T equals
+    T-head F;
+  coherence
+  proof
+    Polish-WFF-set(T, A) is T-headed by Th60;
+    then F is T-headed;
+    hence thesis by Def9a;
+  end;
+end;
+
+definition
+  let T, A, n;
+  let F be Element of Polish-expression-hierarchy(T, A, n);
+  func Polish-WFF-head F -> Element of T equals
+    T-head F;
+  coherence
+  proof
+    Polish-expression-hierarchy(T, A, n) is T-headed by Th61;
+    then F is T-headed;
+    hence thesis by Def9a;
+  end;
+end;
+
+definition
+  let T, A, F;
+  func Polish-arity F -> Nat equals
+    A.(Polish-WFF-head F);
+  coherence;
+end;
+
+definition
+  let T, A, n;
+  let F be Element of Polish-expression-hierarchy(T, A, n);
+  func Polish-arity F -> Nat equals
+    A.(Polish-WFF-head F);
+  coherence;
+end;
+
+theorem Th62:
+  for T, A, F holds T-tail F in (Polish-WFF-set(T, A))^^Polish-arity F
+proof
+  let T, A, F;
+  consider n, t, u such that
+      A1: t in T and
+      A2: n = A.t and
+      A3: u in Polish-WFF-set(T, A)^^n and
+      A4: F = t^u by TH32;
+  T-head F = t & T-tail F = u by A1, A4, Th17;
+  hence thesis by A2, A3;
+end;
+
+theorem Th63:
+  for T, A, n for F being Element of Polish-expression-hierarchy(T, A, n+1)
+    holds T-tail F in Polish-expression-hierarchy(T, A, n)^^Polish-arity F
+proof
+  let T, A, n;
+  let F be Element of Polish-expression-hierarchy(T, A, n+1);
+  set U = Polish-expression-hierarchy(T, A, n);
+  F in Polish-expression-hierarchy(T, A, n+1);
+  then F in Polish-expression-layer(T, A, U) by Th31;
+  then consider t being Element of T, u being Element of T* such that
+  A2: F = t^u and
+  A3: u in U^^(A.t) by Def6;
+  T-head F = t & T-tail F = u by A2, Th17;
+  hence thesis by A3;
+end;
+
+definition
+  let T, A, F;
+  func (T, A)-tail F -> Element of Polish-WFF-set(T, A)^^Polish-arity F equals
+    T-tail F;
+  coherence by Th62;
+end;
+
+theorem
+  for T, A, F st T-head F in Polish-atoms(T, A) holds F = T-head F
+proof
+  let T, A, F;
+  assume T-head F in Polish-atoms(T, A);
+  then Polish-arity F = 0 by Def9;
+  then T-tail F in Polish-WFF-set(T, A)^^0 by Th62;
+  then T-tail F in {{}} by Th7;
+  then T-tail F = {} by TARSKI:def 1;
+  then F = (T-head F)^{} by Def10;
+  hence thesis by FINSEQ_1:34;
+end;
+
+definition
+  let T, A, n;
+  let F be Element of Polish-expression-hierarchy(T, A, n+1);
+  func (T, A)-tail F
+    -> Element of Polish-expression-hierarchy(T, A, n)^^Polish-arity F equals
+  T-tail F;
+  coherence by Th63;
+end;
+
+definition
+  let T, A, F;
+  func Polish-WFF-args F -> FinSequence of Polish-WFF-set(T, A) equals
+  decomp( Polish-WFF-set(T, A), Polish-arity F, (T, A)-tail F );
+  coherence;
+end;
+
+definition
+  let T, A, n;
+  let F be Element of Polish-expression-hierarchy(T, A, n+1);
+  func Polish-WFF-args F
+      -> FinSequence of Polish-expression-hierarchy(T, A, n) equals
+  decomp( Polish-expression-hierarchy(T, A, n), Polish-arity F, (T,A)-tail F );
+  coherence;
+end;
+
+theorem Th65:
+  for T, A for t being Element of T for u st u in Polish-WFF-set(T, A)^^(A.t)
+      holds T-tail (Polish-operation(T, A, t).u) = u
+proof
+  let T, A;
+  let t be Element of T;
+  let u;
+  set W = Polish-WFF-set(T, A);
+  set f = Polish-operation(T, A, t);
+  assume u in W^^(A.t);
+  then u in dom f by FUNCT_2:def 1;
+  then f.u = t^u by Def13;
+  hence thesis by Th17;
+end;
+
+theorem Th67:
+  for T, A, F, n st F in Polish-expression-hierarchy(T, A, n+1) holds
+      rng Polish-WFF-args F c= Polish-expression-hierarchy(T, A, n)
+proof
+  let T, A, F, n;
+  assume F in Polish-expression-hierarchy(T, A, n+1);
+  then reconsider G = F as Element of Polish-expression-hierarchy(T, A, n+1);
+  rng Polish-WFF-args F = rng Polish-WFF-args G by Th50, Th35;
+  hence thesis by FINSEQ_1:def 4;
+end;
+
+theorem Th68:
+  for Y, Z, D for p being FinSequence for f being Function of Y, D
+        for g being Function of Z, D
+      st rng p c= Y & rng p c= Z & for a st a in rng p holds f.a = g.a
+    holds f * p = g * p
+proof
+  let Y, Z, D;
+  let p be FinSequence;
+  let f be Function of Y, D;
+  let g be Function of Z, D;
+  assume that
+      A1: rng p c= Y and
+      A2: rng p c= Z and
+      A3: for a st a in rng p holds f.a = g.a;
+  reconsider p1 = p as FinSequence of Y by A1, FINSEQ_1:def 4;
+  reconsider q = f * p1 as FinSequence by FINSEQ_2:32;
+  reconsider p2 = p as FinSequence of Z by A2, FINSEQ_1:def 4;
+  reconsider r = g * p2 as FinSequence by FINSEQ_2:32;
+  q = r
+    proof
+    thus len q = len p by FINSEQ_2:33
+          .= len r by FINSEQ_2:33;
+    let k;
+    assume that
+    A6: 1 <= k and
+    A7: k <= len q;
+    k <= len p by A7, FINSEQ_2:33;
+    then k in Seg len p by A6, FINSEQ_1:1;
+    then A8: k in dom p by FINSEQ_1:def 3;
+    hence q.k = f.(p.k) by FUNCT_1:13
+        .= g.(p.k) by A3, A8, FUNCT_1:3
+        .= r.k by FUNCT_1:13, A8;
+    end;
+  hence thesis;
+end;
+
+definition
+  let T, A, D;
+  func Polish-recursion-domain(A, D) -> Subset of [: T, D* :] equals
+  {[t,p] where t is Element of T, p is FinSequence of D : len p = A.t};
+  coherence
+    proof
+    set X={[t,p] where t is Element of T, p is FinSequence of D: len p = A.t};
+    X c= [: T, D* :]
+    proof
+      let a;
+      assume a in X;
+      then consider t being Element of T, p being FinSequence of D such that
+  A1: a = [t, p] and len p = A.t;
+      p in D* by FINSEQ_1:def 11;
+      hence a in [: T, D* :] by A1, ZFMISC_1:def 2;
+    end;
+    hence thesis;
+    end;
+end;
+
+definition
+  let T, A, D;
+  mode Polish-recursion-function of A, D
+      is Function of Polish-recursion-domain(A, D), D;
+end;
+
+reserve f for Polish-recursion-function of A, D;
+reserve K, K1, K2 for Function of Polish-WFF-set(T, A), D;
+
+definition
+  let T, A, D, f, K;
+  attr K is f-recursive means
+  for F holds K.F = f.[ T-head F, K * (Polish-WFF-args F) ];
+end;
+
+Lm71:
+  for T, A, D, f, K1, K2, F
+      st K1 is f-recursive & K2 is f-recursive & F in Polish-atoms(T, A) holds
+      K1.F = K2.F
+proof
+  let T, A, D, f, K1, K2, F;
+  assume that
+A1: K1 is f-recursive and
+A2: K2 is f-recursive and
+A3: F in Polish-atoms(T, A);
+  F in T by A3, Def9;
+  then A5: Polish-WFF-head F = F by Th18;
+  then Polish-arity F = 0 by A3, Def9;
+  then Polish-WFF-args F = {} by Th51;
+  then K1.F = f.[ F, K1 * {} ] & K2.F = f.[ F, K2 * {} ] by A1, A2, A5;
+  hence thesis;
+end;
+
+theorem Th72:
+  for T, A, D, f, K1, K2 st K1 is f-recursive & K2 is f-recursive holds K1 = K2
+proof
+  let T, A, D, f, K1, K2;
+  assume that
+      A1: K1 is f-recursive and
+      A2: K2 is f-recursive;
+  set W = Polish-WFF-set(T, A);
+  set X = { F where F is Polish-WFF of T, A : K1.F = K2.F };
+  for a st a in X holds a in W
+    proof
+    let a;
+    assume a in X;
+    then consider F being Polish-WFF of T, A
+        such that A3: a = F and K1.F = K2.F;
+    thus thesis by A3;
+    end;
+  then A4: X c= W;
+  then reconsider X as antichain-like Subset of T* by XBOOLE_1:1;
+  ex p st p in X
+    proof
+    Polish-atoms(T, A) is non empty;
+    then consider a such that B1: a in Polish-atoms(T, A);
+    reconsider a as Polish-WFF of T, A by B1, TH36, TARSKI:def 3;
+    take a;
+    K1.a = K2.a by Lm71, A1, A2, B1;
+    hence a in X;
+    end;
+  then reconsider X as Polish-language of T;
+  A15: for a st a in X holds K1.a = K2.a
+    proof
+    let a;
+    assume a in X;
+    then consider F being Polish-WFF of T, A
+        such that A16: a = F and A17: K1.F = K2.F;
+    thus thesis by A16, A17;
+    end;
+  for p, n, q st p in T & n = A.p & q in X^^n holds p^q in X
+    proof
+    let p, n, q;
+    assume that
+        A5: p in T and
+        A6: n = A.p and
+        A7: q in X^^n;
+    A8: X^^n c= W^^n by A4, TH18;
+    reconsider q as Element of X^^n by A7;
+    reconsider w = q as Element of W^^n by A8;
+    W is A-closed by TH51;
+    then reconsider r = p^w as Polish-WFF of T, A by A5, A6;
+    set u = Polish-WFF-args r;
+    T-head r = p & T-tail r = w by A5, Th17;
+    then u = decomp( X, n, q ) by A4, A6, Th50;
+    then A23: rng u c= X by FINSEQ_1:def 4;
+    then A24: rng u c= W by A4;
+    for a st a in rng u holds K1.a = K2.a by A23, A15;
+    then K1 * u = K2 * u by A24, Th68;
+    then K1.r = f.[ T-head r, K2 * u ] by A1 .= K2.r by A2;
+    hence thesis;
+    end;
+  then X is A-closed;
+  then W c= X by Th55;
+  then A30: for a st a in W holds K1.a = K2.a by A15;
+  dom K1 = W & dom K2 = W by FUNCT_2:def 1;
+  hence thesis by A30, FUNCT_1:2;
+end;
+
+reserve L for non trivial Polish-language;
+reserve E for Polish-arity-function of L;
+reserve g for Polish-recursion-function of E, D;
+reserve J, J1, J2, J3 for Subset of Polish-WFF-set(L, E);
+reserve H for Function of J, D;
+reserve H1 for Function of J1, D;
+reserve H2 for Function of J2, D;
+reserve H3 for Function of J3, D;
+
+definition
+  let L, E, D, g, J, H;
+  attr H is g-recursive means
+  for F being Polish-WFF of L, E st F in J & rng Polish-WFF-args F c= J holds
+      H.F = g.[ L-head F, H * (Polish-WFF-args F) ];
+end;
+
+Lm72:
+  for L, E, D, g ex J, H st J = Polish-expression-hierarchy(L, E, 0)
+     & H is g-recursive
+proof
+  let L, E, D, g;
+  deffunc G( object ) = g.[ $1, {} ];
+  set J = Polish-expression-hierarchy(L, E, 0);
+  reconsider J as Subset of Polish-WFF-set(L, E) by Th35;
+  A1: for a st a in J holds G(a) in D
+    proof
+    let a;
+    assume a in J;
+    then A6: a in Polish-atoms(L, E) by TH22;
+    then reconsider t = a as Element of L by Def9;
+    set p = <*>D;
+    set b = [t, p];
+    len p = E.t by A6, Def9;
+    then b in Polish-recursion-domain(E, D);
+    hence thesis by FUNCT_2:5;
+    end;
+  consider H being Function of J, D such that
+        A9: for a st a in J holds H.a = G( a )
+      from FUNCT_2:sch 2(A1);
+  take J, H;
+  thus J = Polish-expression-hierarchy(L, E, 0);
+  let F be Polish-WFF of L, E;
+  assume that
+    A10: F in J and
+         rng Polish-WFF-args F c= J;
+  A12: F in Polish-atoms(L, E) by A10, TH22;
+  then F in L by Def9;
+  then A14: Polish-WFF-head F = F by Th18;
+  then Polish-arity F = 0 by A12, Def9;
+  then A15: Polish-WFF-args F = {} by Th51;
+  thus H.F = g.[ L-head F, {} ] by A9, A10, A14
+      .= g.[ L-head F, H * (Polish-WFF-args F) ] by A15;
+end;
+
+Lm73:
+for L, E, D, g, n, J, H, J1, H1
+    st J = Polish-expression-hierarchy(L, E, n)
+      & J1 = Polish-expression-hierarchy(L, E, n+1)
+      & H is g-recursive
+      & for F being Polish-WFF of L, E st F in J1
+        holds H1.F = g.[ L-head F, H * (Polish-WFF-args F) ]
+  holds H1 is g-recursive
+proof
+  let L, E, D, g, n, J, H, J1, H1;
+  assume that
+    A1: J = Polish-expression-hierarchy(L, E, n) and
+    A2: J1 = Polish-expression-hierarchy(L, E, n+1) and
+    A3: H is g-recursive and
+    A4: for F being Polish-WFF of L, E st F in J1
+        holds H1.F = g.[ L-head F, H * (Polish-WFF-args F) ];
+  A5: J c= J1 by A1, A2, Th34;
+  A6: for a st a in J holds H1.a = H.a
+    proof
+    let a;
+    assume A10: a in J;
+    reconsider G1 = a as Polish-WFF of L, E by A10;
+    reconsider F = a as Element of J by A10;
+    A12: rng Polish-WFF-args G1 c= J by A1, A2, A5, A10, Th67;
+    thus H1.a = g.[ L-head F, H * (Polish-WFF-args G1) ] by A4, A5, A10
+        .= H.a by A3, A10, A12;
+    end;
+  let F be Polish-WFF of L, E;
+  assume that
+      A20: F in J1 and
+      A21: rng Polish-WFF-args F c= J1;
+  A23: rng Polish-WFF-args F c= J by A1, A2, A20, Th67;
+  then A24: for a st a in rng Polish-WFF-args F holds H.a = H1.a by A6;
+  A27: H * Polish-WFF-args F = H1 * Polish-WFF-args F by A21, A23, A24, Th68;
+  thus H1.F = g.[ L-head F, H1 * (Polish-WFF-args F) ] by A4, A20, A27;
+end;
+
+Lm74:
+  for L, E, D, g, n, J, H, J1, H1, a
+        st J = Polish-expression-hierarchy(L, E, n) & H is g-recursive
+          & J c= J1 & H1 is g-recursive & a in J
+    holds H.a = H1.a
+proof
+  let L, E, D, g, n, J, H, J1, H1, a;
+  assume that
+    A1: J = Polish-expression-hierarchy(L, E, n) and
+    A2: H is g-recursive and
+    A3: J c= J1 and
+    A4: H1 is g-recursive and
+    A5: a in J;
+  defpred X[ Nat ] means
+      for a st a in J & a in Polish-expression-hierarchy(L, E, $1)
+        holds H.a = H1.a;
+  A10: X[ 0 ]
+    proof
+    let a;
+    assume A11: a in J;
+    then reconsider G = a as Polish-WFF of L, E;
+    assume a in Polish-expression-hierarchy(L, E, 0);
+    then A13: a in Polish-atoms(L, E) by TH22;
+    then a in L by Def9;
+    then Polish-WFF-head G = G by Th18;
+    then Polish-arity G = 0 by A13, Def9;
+    then A15: Polish-WFF-args G = {} by Th51;
+    then A16: rng Polish-WFF-args G c= J;
+    A17: rng Polish-WFF-args G c= J1 by A15;
+    thus H.a = g.[ L-head G, H * {} ] by A2, A11, A15, A16
+        .= g.[ L-head G, H1 * {} ]
+        .= H1.a by A3, A4, A11, A15, A17;
+    end;
+  A20: for k st X[ k ] holds X[ k+1 ]
+    proof
+    let k;
+    assume A21: X[ k ];
+    set J2 = Polish-expression-hierarchy(L, E, k);
+    set J3 = Polish-expression-hierarchy(L, E, k+1);
+    let a;
+    assume A22: a in J;
+    assume A23: a in J3;
+    per cases;
+      suppose n <= k;
+      then consider m such that A24: k = n+m by NAT_1:10;
+      J c= J2 by A1, A24, Th34;
+      then reconsider G = a as Element of J2 by A22;
+      thus H.a = H1.G by A21, A22 .= H1.a;
+      end;
+      suppose k < n;
+      then k+1 <= n by NAT_1:13;
+      then consider m such that A30: n = k+1+m by NAT_1:10;
+      A31: J3 c= J by A1, A30, Th34;
+      reconsider F1 = a as Polish-WFF of L, E by A22;
+      A32: rng Polish-WFF-args F1 c= J2 by A23, Th67;
+      J2 c= J3 by Th34;
+      then A33: rng Polish-WFF-args F1 c= J by A31, A32;
+      then A34: rng Polish-WFF-args F1 c= J1 by A3;
+      for b st b in rng Polish-WFF-args F1 holds H.b = H1.b by A21, A32, A33;
+      then A37: H * Polish-WFF-args F1 = H1 * Polish-WFF-args F1
+          by A33, A34, Th68;
+      thus H.a = g.[ L-head F1, H * (Polish-WFF-args F1) ] by A2, A22, A33
+          .= H1.a by A3, A4, A22, A34, A37;
+      end;
+    end;
+  for k holds X[ k ] from NAT_1:sch 2(A10, A20);
+  hence H.a = H1.a by A1, A5;
+end;
+
+Lm75:
+  for L, E, D, g, n, J, H
+        st J = Polish-expression-hierarchy(L, E, n) & H is g-recursive
+    ex J1, H1
+        st J1 = Polish-expression-hierarchy(L, E, n+1) & H1 is g-recursive
+proof
+  let L, E, D, g, n, J, H;
+  assume that
+      A1: J = Polish-expression-hierarchy(L, E, n) and
+      A2: H is g-recursive;
+  set J1 = Polish-expression-hierarchy(L, E, n+1);
+  reconsider J1 as Subset of Polish-WFF-set(L, E) by Th35;
+  defpred X[ object, object ] means
+    ex F being Polish-WFF of L, E
+        st F = $1 & $2 = g.[ L-head F, H * (Polish-WFF-args F) ];
+  A4: for a st a in J1 ex b st b in D & X[ a, b ]
+    proof
+    let a;
+    assume A5: a in J1;
+    then reconsider F = a as Polish-WFF of L, E;
+    set t = Polish-WFF-head F;
+    set q = Polish-WFF-args F;
+    rng q c= J by A1, A5, Th67;
+    then reconsider q as FinSequence of J by FINSEQ_1:def 4;
+    reconsider p = H * q as FinSequence of D by FINSEQ_2:32;
+    set c = [t, p];
+    take b = g.c;
+    len p = len q by FINSEQ_2:33 .= E.t by Th54;
+    then c in Polish-recursion-domain(E, D);
+    hence b in D by FUNCT_2:5;
+    thus thesis;
+    end;
+  consider H1 being Function of J1, D such that
+      A21: for a st a in J1 holds X[ a, H1.a ]
+    from FUNCT_2:sch 1(A4);
+  take J1, H1;
+  thus J1 = Polish-expression-hierarchy(L, E, n+1);
+  for F being Polish-WFF of L, E st F in J1
+        holds H1.F = g.[ L-head F, H * (Polish-WFF-args F) ]
+    proof
+    let F be Polish-WFF of L, E;
+    assume F in J1;
+    then consider G being Polish-WFF of L, E such that
+      A41: G = F and
+      A42: H1.F = g.[ L-head G, H * (Polish-WFF-args G) ] by A21;
+    thus thesis by A41, A42;
+    end;
+  hence H1 is g-recursive by A1, A2, Lm73;
+end;
+
+theorem Th75:
+  for L, E, D, g, n ex J, H st J = Polish-expression-hierarchy(L, E, n)
+      & H is g-recursive
+proof
+  let L, E, D, g;
+  defpred X[ Nat ] means ex J, H st J = Polish-expression-hierarchy(L, E, $1)
+      & H is g-recursive;
+  A1: X[ 0 ] by Lm72;
+  A2: for n st X[ n ] holds X[ n+1 ] by Lm75;
+  thus for n holds X[ n ] from NAT_1:sch 2(A1, A2);
+end;
+
+Lm79:
+  for L, E, D, g, n, J, H, m, J1, H1, a
+        st J = Polish-expression-hierarchy(L, E, n) & H is g-recursive
+          & J1 = Polish-expression-hierarchy(L, E, n+m) & H1 is g-recursive
+          & a in J
+    holds H.a = H1.a by Th34, Lm74;
+
+Lm80:
+  for L, E, D, g, n, J, H, m, J1, H1, a
+        st J = Polish-expression-hierarchy(L, E, n) & H is g-recursive
+          & J1 = Polish-expression-hierarchy(L, E, m) & H1 is g-recursive
+          & a in J & a in J1 holds H.a = H1.a
+proof
+  let L, E, D, g, n, J, H, m, J1, H1, a;
+  assume that
+    A1: J = Polish-expression-hierarchy(L, E, n) and
+    A2: H is g-recursive and
+    A3: J1 = Polish-expression-hierarchy(L, E, m) and
+    A4: H1 is g-recursive and
+    A5: a in J and
+    A6: a in J1;
+  consider J2, H2 such that
+    A10: J2 = Polish-expression-hierarchy(L, E, n+m) and
+    A11: H2 is g-recursive by Th75;
+  thus H.a = H2.a by A1, A2, A5, A10, A11, Lm79
+      .= H1.a by A3, A4, A6, A10, A11, Lm79;
+end;
+
+Lm82:
+  for L, E, D, g, J, H st for a st a in J ex n, J1, H1
+      st J1 = Polish-expression-hierarchy(L, E, n) & H1 is g-recursive
+          & a in J1 & H.a = H1.a holds
+    H is g-recursive
+proof
+  let L, E, D, g, J, H;
+  assume A1: for a st a in J ex n, J1, H1
+      st J1 = Polish-expression-hierarchy(L, E, n) & H1 is g-recursive
+          & a in J1 & H.a = H1.a;
+  let F be Polish-WFF of L, E;
+  assume that
+    A10: F in J and
+    A11: rng Polish-WFF-args F c= J;
+  consider n, J1, H1 such that
+    A12: J1 = Polish-expression-hierarchy(L, E, n) and
+    A13: H1 is g-recursive and
+    A14: F in J1 and
+    A15: H.F = H1.F by A1, A10;
+  set J2 = Polish-expression-hierarchy(L, E, n+1);
+  set X = rng Polish-WFF-args F;
+  J1 c= J2 by A12, Th34;
+  then A22: X c= J1 by A12, A14, Th67;
+  A30: for b st b in X holds H1.b = H.b
+    proof
+    let b;
+    assume A31: b in X;
+    then consider m, J2, H2 such that
+      A32: J2 = Polish-expression-hierarchy(L, E, m) & H2 is g-recursive and
+      A34: b in J2 & H.b = H2.b by A1, A11;
+    thus H.b = H1.b by A12, A13, A22, A31, A32, A34, Lm80;
+    end;
+  thus H.F = g.[ L-head F, H1 * (Polish-WFF-args F) ] by A13, A14, A15, A22
+      .= g.[ L-head F, H * (Polish-WFF-args F) ] by A11, A22, A30, Th68;
+end;
+
+theorem Th77:
+  for L, E, D, g ex K being Function of Polish-WFF-set(L, E), D
+    st K is g-recursive
+proof
+  let L, E, D, g;
+  set W = Polish-WFF-set(L, E);
+  defpred X[ object, object ] means
+      ex n, J1, H1 st J1 = Polish-expression-hierarchy(L, E, n)
+          & H1 is g-recursive & $1 in J1 & $2 = H1.$1;
+  A1: for a st a in W ex b st b in D & X[a, b]
+    proof
+    let a;
+    assume a in W;
+    then consider n such that
+      A2: a in Polish-expression-hierarchy(L, E, n+1) by Th37;
+    consider J1, H1 such that
+      A3: J1 = Polish-expression-hierarchy(L, E, n+1) and
+      A4: H1 is g-recursive by Th75;
+    take b = H1.a;
+    thus b in D by A2, A3, FUNCT_2:5;
+    thus thesis by A2, A3, A4;
+    end;
+  consider K being Function of W, D such that
+      A10: for a st a in W holds X[a, K.a] from FUNCT_2:sch 1(A1);
+  take K;
+  W c= W;
+  then reconsider J = W as Subset of W;
+  reconsider H = K as Function of J, D;
+  A12: H is g-recursive by A10, Lm82;
+  let F be Polish-WFF of L, E;
+  rng Polish-WFF-args F c= J by FINSEQ_1:def 4;
+  hence K.F = g.[ L-head F, K * (Polish-WFF-args F) ] by A12;
+end;
+
+theorem
+  for L, E for t being Element of L holds Polish-operation(L, E, t)
+      is one-to-one
+proof
+  let L, E;
+  let t be Element of L;
+  set f = Polish-operation(L, E, t);
+  for a, b st a in dom f & b in dom f & f.a = f.b holds a = b
+    proof
+    let a, b;
+    assume that
+      A1: a in dom f and
+      A2: b in dom f and
+      A3: f.a = f.b;
+    A4: dom f = Polish-WFF-set(L, E)^^(E.t) by FUNCT_2:def 1;
+    reconsider a1 = a as FinSequence by A1, A4;
+    reconsider b1 = b as FinSequence by A2, A4;
+    t^a1 = f.a1 by A1, Def13
+        .= t^b1 by A2, A3, Def13;
+    hence a = b by FINSEQ_1:33;
+    end;
+  hence thesis by FUNCT_1:def 4;
+end;
+
+theorem
+  for L, E for t, u being Element of L
+      st rng Polish-operation(L, E, t) meets rng Polish-operation(L, E, u)
+    holds t = u
+proof
+  let L, E;
+  let t, u be Element of L;
+  set f = Polish-operation(L, E, t);
+  set g = Polish-operation(L, E, u);
+  assume rng f meets rng g;
+  then rng f /\ rng g is non empty;
+  then consider a such that A2: a in rng f /\ rng g;
+  A3: a in rng f & a in rng g by A2, XBOOLE_0:def 4;
+  consider b such that A4: b in dom f and A5: f.b = a by A3, FUNCT_1:def 3;
+  dom f = Polish-WFF-set(L, E)^^(E.t) by FUNCT_2:def 1;
+  then reconsider b as FinSequence by A4;
+  consider c such that A6: c in dom g and A7: g.c = a by A3, FUNCT_1:def 3;
+  dom g = Polish-WFF-set(L, E)^^(E.u) by FUNCT_2:def 1;
+  then reconsider c as FinSequence by A6;
+  t^b = f.b by A4, Def13
+      .= u^c by A5, A6, A7, Def13;
+  hence thesis by TH4;
+end;
+
+theorem
+  for L, E for t being Element of L
+      for a st a in dom Polish-operation(L, E, t) ex p st
+    p = Polish-operation(L, E, t).a & L-head p = t
+proof
+  let L, E;
+  let t be Element of L;
+  let a;
+  assume A1: a in dom Polish-operation(L, E, t);
+  then a in Polish-WFF-set(L, E)^^E.t by FUNCT_2:def 1;
+  then reconsider q = a as FinSequence;
+  take t^q;
+  thus Polish-operation(L, E, t).a = t^q by A1, Def13;
+  thus thesis by Th17;
+end;
+
+theorem Th91:
+  for L, E for t being Element of L for F being Polish-WFF of L, E holds
+    Polish-WFF-head F = t
+      iff ex u being Element of Polish-WFF-set(L, E)^^(E.t)
+        st F = Polish-operation(L, E, t).u
+proof
+ let L, E;
+ let t be Element of L;
+ let F be Polish-WFF of L, E;
+ set W = Polish-WFF-set(L, E);
+ set H = Polish-operation(L, E, t);
+ A2: dom H = W^^(E.t) by FUNCT_2:def 1;
+ thus Polish-WFF-head F = t implies ex u being Element of W^^(E.t) st F = H.u
+ proof
+   assume A3: Polish-WFF-head F = t;
+   set u = (L, E)-tail F;
+   reconsider u as Element of W^^(E.t) by A3;
+   take u;
+   thus F = t^u by A3, Def10 .= H.u by A2, Def13;
+ end;
+ given u being Element of W^^(E.t) such that A20: F = H.u;
+ reconsider u as FinSequence;
+ F = t^u by A2, A20, Def13;
+ hence Polish-WFF-head F = t by Th17;
+end;
+
+theorem
+  for L, E for t being Element of L st E.t = 1 for F being Polish-WFF of L, E
+      st Polish-WFF-head F = t ex G being Polish-WFF of L, E
+      st F = Polish-unOp(L, E, t).G
+proof
+  let L, E;
+  let t be Element of L;
+  assume A1: E.t = 1;
+  let F be Polish-WFF of L, E;
+  assume A2: Polish-WFF-head F = t;
+  consider u being Element of Polish-WFF-set(L, E)^^1 such that
+  A3: F = Polish-operation(L, E, t).u by A1, A2, Th91;
+  reconsider G = u as Polish-WFF of L, E by Th8;
+  take G;
+  thus thesis by A1, A3, Def21;
+end;
+
+theorem Th93:
+  for L, E for t being Element of L st E.t = 1 for F being Polish-WFF of L, E
+      holds Polish-WFF-head(Polish-unOp(L, E, t).F) = t
+          & Polish-WFF-args(Polish-unOp(L, E, t).F) = <*F*>
+proof
+  let L, E;
+  let t be Element of L;
+  assume A1: E.t = 1;
+  let F be Polish-WFF of L, E;
+  set W = Polish-WFF-set(L, E);
+  set H = Polish-unOp(L, E, t);
+  set G = H.F;
+  reconsider F1 = F as Element of W^^(E.t) by A1, Th8;
+  ex u being Element of W^^(E.t) st G = Polish-operation(L, E, t).u
+  proof
+    take u = F1;
+    thus thesis by A1, Def21;
+  end;
+  hence A3: Polish-WFF-head G = t by Th91;
+  G = Polish-operation(L, E, t).F1 by A1, Def21;
+  then L-tail G = F1 by Th65;
+  hence thesis by A1, A3, TH55;
+end;
+
+theorem
+  for L, E for t being Element of L st E.t = 2 for F being Polish-WFF of L, E
+      st Polish-WFF-head F = t ex G, H being Polish-WFF of L, E
+      st F = Polish-binOp(L, E, t).(G, H)
+proof
+  let L, E;
+  let t be Element of L;
+  assume A1: E.t = 2;
+  let F be Polish-WFF of L, E;
+  assume A2: Polish-WFF-head F = t;
+  set W = Polish-WFF-set(L, E);
+  consider u being Element of W^^2
+        such that A3: F = Polish-operation(L, E, t).u by A1, A2, Th91;
+  W^^2 = W^^(1+1)
+      .= (W^^1)^W by Th7
+      .= W^W by Th8;
+  then consider G, H being FinSequence such that
+    A5: u = G^H and
+    A6: G in W and
+    A7: H in W by Def2;
+  reconsider G as Element of W by A6;
+  reconsider H as Element of W by A7;
+  take G, H;
+  thus thesis by A1, A3, A5, Def22;
+end;
+
+theorem
+  for L, E for t being Element of L st E.t = 2
+      for F, G being Polish-WFF of L, E
+    holds Polish-WFF-head(Polish-binOp(L, E, t).(F, G)) = t
+        & Polish-WFF-args(Polish-binOp(L, E, t).(F, G)) = <*F, G*>
+proof
+  let L, E;
+  let t be Element of L;
+  assume A1: E.t = 2;
+  let F, G be Polish-WFF of L, E;
+  set W = Polish-WFF-set(L, E);
+  set H = Polish-binOp(L, E, t);
+  set K = Polish-operation(L, E, t);
+  set v = H.(F, G);
+  F in W & G in W;
+  then F in W^^1 & G in W^^1 by Th8;
+  then F^G in W^^(1+1) by Th12;
+  then reconsider u = F^G as Element of W^^(E.t) by A1;
+  A5: v = Polish-operation(L, E, t).u by A1, Def22;
+  hence Polish-WFF-head v = t by Th91;
+  hence thesis by A1, A5, Th56, Th65;
+end;
+
+theorem
+  for L, E for F being Polish-WFF of L, E holds
+    F in Polish-atoms(L, E) iff Polish-arity F = 0
+proof
+  let L, E;
+  let F be Polish-WFF of L, E;
+  thus F in Polish-atoms(L, E) implies Polish-arity F = 0
+  proof
+    assume A1: F in Polish-atoms(L, E);
+    then F in L by Def9;
+    then Polish-WFF-head F = F by Th18;
+    hence Polish-arity F = 0 by A1, Def9;
+  end;
+  assume A10: Polish-arity F = 0;
+  then L-tail F in Polish-WFF-set(L, E)^^0 by Th62;
+  then L-tail F in {{}} by Th7;
+  then L-tail F = {} by TARSKI:def 1;
+  then F = (L-head F)^{} by Def10;
+  then F = Polish-WFF-head F by FINSEQ_1:34;
+  hence F in Polish-atoms(L, E) by A10, Def9;
+end;
+
+theorem
+  for L, E, D, g for K being Function of Polish-WFF-set(L, E), D
+    for t being Element of L for F being Polish-WFF of L, E
+        st K is g-recursive & E.t = 1 holds
+    K.(Polish-unOp(L, E, t).F) = g.(t, <*K.F*>)
+proof
+  let L, E, D, g;
+  set W = Polish-WFF-set(L, E);
+  let K be Function of W, D;
+  let t be Element of L;
+  let F be Polish-WFF of L, E;
+  assume that
+    A1: K is g-recursive and
+    A2: E.t = 1;
+  set G = Polish-unOp(L, E, t).F;
+  reconsider G1 = G as Element of W;
+  A3: dom K = W by FUNCT_2:def 1;
+  Polish-WFF-args G1 = <*F*> by A2, Th93;
+  then A5: K * Polish-WFF-args G1 = <*K.F*> by A3, FINSEQ_2:34;
+  thus K.G = g.[L-head G1, K * (Polish-WFF-args G1)] by A1
+      .= g.[t, K * Polish-WFF-args G1] by A2, Th93
+      .= g.(t, <*K.F*>) by A5, BINOP_1:def 1;
+end;
+
+definition
+  let S;
+  let p be FinSequence of S;
+  func FlattenSeq p  -> Element of S^^(len p) means
+  :Def102:
+  decomp( S, len p, it ) = p;
+  existence
+    proof
+    defpred X[ set ] means
+      ex q being FinSequence of S st ex r being Element of S^^(len q)
+          st q = $1 & decomp( S, len q, r ) = q;
+    A1: X[<*>S]
+      proof
+      take q = <*>S;
+      reconsider r = {} as Element of S^^(len q) by Th4;
+      take r;
+      thus thesis by Th51;
+      end;
+    A10: for s being FinSequence of S for t being Element of S st X[ s ]
+        holds X[ s^<*t*> ]
+      proof
+      let s be FinSequence of S;
+      let t be Element of S;
+      set n = len s;
+      set q = s^<*t*>;
+      assume A11: X[ s ];
+      take q;
+      consider q1 being FinSequence of S such that
+        A12: ex r1 being Element of S^^(len q1)
+            st q1 = s & decomp(S, len q1, r1) = q1 by A11;
+      consider r1 being Element of S^^(len q1) such that
+        A13: q1 = s and
+        A14: decomp(S, len q1, r1) = q1 by A12;
+      set r = r1^t;
+      A15: len q = n + len <*t*> by FINSEQ_1:22 .= n+1 by FINSEQ_1:39;
+      r in (S^^n)^S by A13, Def2;
+      then reconsider r as Element of S^^(len q) by A15, Th7;
+      take r;
+      thus q = s^<*t*>;
+      set q2 = decomp(S, len q, r);
+      A20: len q2 = len q by Th54;
+      for k st 1 <= k & k <= len q holds q.k = q2.k
+        proof
+        let k;
+        assume that
+          A21: 1 <= k and
+          A22: k <= len q;
+        k in Seg len q by A21, A22, FINSEQ_1:1;
+        then consider i such that
+          A23: k = i+1 and
+          A24: q2.k = S-head((S^^i)-tail r) by Def32;
+        per cases;
+          suppose A30: k <= n;
+          then A31: k in Seg n by A21, FINSEQ_1:1;
+          then consider j such that
+            A32: k = j+1 and
+            A33: q1.k = S-head((S^^j)-tail r1) by A13, A14, Def32;
+          A34: k in dom s by A31, FINSEQ_1:def 3;
+          A35: r1 is (S^^i)-headed & (S^^i)-tail r1 is S-headed
+              by A13, A23, A30, Th22;
+          then A36: (S^^i)-tail r = ((S^^i)-tail r1)^t by Th21;
+          thus q.k = S-head((S^^i)-tail r1)
+                  by A13, A23, A32, A33, A34, FINSEQ_1:def 7
+              .= q2.k by A24, A35, A36, Th21;
+          end;
+          suppose k > n;
+          then A40: k = n+1 by A15, A22, NAT_1:8;
+          hence q2.k = S-head t by A13, A23, A24, Th17
+              .= t by Th18
+              .= q.k by A40, FINSEQ_1:42;
+          end;
+        end;
+      hence decomp(S, len q, r) = q by A20;
+      end;
+    for q being FinSequence of S holds X[ q ] from FINSEQ_2:sch 2(A1, A10);
+    then X[ p ];
+    hence thesis;
+    end;
+  uniqueness
+    proof
+    set n = len p;
+    let q1, q2 be Element of S^^n;
+    assume that
+      A1: decomp(S, n, q1) = p and
+      A2: decomp(S, n, q2) = p;
+    defpred X[ Nat ] means $1 <= n implies (S^^$1)-head q1 = (S^^$1)-head q2;
+    A3: X[ 0 ]
+      proof
+      assume 0 <= n;
+      thus (S^^0)-head q1 = {} by Th23 .= (S^^0)-head q2 by Th23;
+      end;
+    A10: for k st X[ k ] holds X[ k+1 ]
+      proof
+      let k;
+      assume A11: k <= n implies (S^^k)-head q1 = (S^^k)-head q2;
+      set r = (S^^k)-head q1;
+      set s1 = (S^^k)-tail q1;
+      set s2 = (S^^k)-tail q2;
+      set t1 = S-head s1;
+      set t2 = S-head s2;
+      set u1 = S-tail s1;
+      set u2 = S-tail s2;
+      assume A12: k+1 <= n;
+      1 <= k+1 by NAT_1:11;
+      then A13: k+1 in Seg n by A12, FINSEQ_1:1;
+      then consider i such that
+        A14: k+1 = i+1 and
+        A15: p.(k+1) = S-head((S^^i)-tail q1) by A1, Def32;
+      consider j such that
+        A16: k+1 = j+1 and
+        A17: p.(k+1) = S-head((S^^j)-tail q2) by A2, A13, Def32;
+      k <= k+1 by NAT_1:11;
+      then A18: r = (S^^k)-head q2 by A11, A12, XXREAL_0:2;
+      q1 is (S^^k)-headed & s1 is S-headed by A12, Th22;
+      then r in S^^k & t1 in S by Def9a;
+      then r^t1 in (S^^k)^S by Def2;
+      then A20: r^t1 in S^^(k+1) by Th7;
+      q1 = r^s1 by Def10
+          .= r^(t1^u1) by Def10
+          .= (r^t1)^u1 by FINSEQ_1:32;
+      then A21: (S^^(k+1))-head q1 = r^t1 by A20, Th17;
+      q2 is (S^^k)-headed & s2 is S-headed by A12, Th22;
+      then r in S^^k & t2 in S by A18, Def9a;
+      then r^t2 in (S^^k)^S by Def2;
+      then A22: r^t2 in S^^(k+1) by Th7;
+      q2 = r^s2 by A18, Def10
+          .= r^(t2^u2) by Def10
+          .= (r^t2)^u2 by FINSEQ_1:32;
+      then (S^^(k+1))-head q2 = r^t2 by A22, Th17;
+      hence thesis by A14, A15, A16, A17, A21;
+      end;
+    for k holds X[ k ] from NAT_1:sch 2(A3, A10);
+    then A30: (S^^n)-head q1 = (S^^n)-head q2;
+    thus q1 = (S^^n)-head q1 by Th18 .= q2 by A30, Th18;
+    end;
+end;
+
+definition
+  let L, E;
+  mode Substitution of L, E is
+      PartFunc of Polish-atoms(L, E), Polish-WFF-set(L, E);
+end;
+
+definition
+  let L, E;
+  let s be Substitution of L, E;
+  func Subst s -> Polish-recursion-function of E, Polish-WFF-set(L, E) means
+  :Def103:
+    for t being Element of L, p being FinSequence of Polish-WFF-set(L, E)
+        st len p = E.t holds
+        (t in dom s implies it.(t,p) = s.t) &
+        (not t in dom s implies it.(t,p) = t^(FlattenSeq p));
+  existence
+    proof
+    set W = Polish-WFF-set(L, E);
+    set R = Polish-recursion-domain(E, W);
+    defpred X[object, object] means
+      ex t being Element of L, p being FinSequence of W st
+        $1 = [t, p] &
+        (t in dom s implies $2 = s.t) &
+        (not t in dom s implies $2 = t^(FlattenSeq p));
+    A1: for a st a in R ex b st b in W & X[a, b]
+      proof
+      let a;
+      assume a in R;
+      then consider t being Element of L, p being FinSequence of W such that
+        A3: a = [t, p] and
+        A4: len p = E.t;
+      per cases;
+        suppose A10: t in dom s;
+        take b = s.t;
+        thus b in W by A10, PARTFUN1:4;
+        take t, p;
+        thus a = [t, p] by A3;
+        thus t in dom s implies b = s.t;
+        thus thesis by A10;
+        end;
+        suppose A12: not t in dom s;
+        set u = FlattenSeq p;
+        take b = t^u;
+        u in W^^(E.t) by A4;
+        then u in dom Polish-operation(L, E, t) by FUNCT_2:def 1;
+        then b = Polish-operation(L, E, t).u by Def13;
+        hence b in W by A4, FUNCT_2:5;
+        take t, p;
+        thus a = [t, p] by A3;
+        thus t in dom s implies b = s.t by A12;
+        thus thesis;
+        end;
+      end;
+    consider f being Function of R, W such that
+      A20: for a st a in R holds X[a, f.a] from FUNCT_2:sch 1(A1);
+    take f;
+    let t be Element of L;
+    let p be FinSequence of W;
+    set a = [t,p];
+    assume len p = E.t;
+    then A21: a in R;
+    f.(t,p) = f.a by BINOP_1:def 1;
+    then consider t1 being Element of L, p1 being FinSequence of W such that
+    A23: a = [t1, p1] and
+    A24: (t1 in dom s implies f.(t,p) = s.t1) and
+    A25: (not t1 in dom s implies f.(t,p) = t1^(FlattenSeq p1)) by A20, A21;
+    t1 = t & p1 = p by A23, XTUPLE_0:1;
+    hence thesis by A24, A25;
+    end;
+  uniqueness
+    proof
+    set W = Polish-WFF-set(L, E);
+    set R = Polish-recursion-domain(E, W);
+    let f, g be Function of R, W;
+    assume that
+      A1: for t being Element of L, p being FinSequence of W st len p = E.t
+          holds
+        (t in dom s implies f.(t,p) = s.t) &
+        (not t in dom s implies f.(t,p) = t^(FlattenSeq p)) and
+      A2: for t being Element of L, p being FinSequence of W st len p = E.t
+          holds
+        (t in dom s implies g.(t,p) = s.t) &
+        (not t in dom s implies g.(t,p) = t^(FlattenSeq p));
+    A3: dom f = R by FUNCT_2:def 1 .= dom g by FUNCT_2:def 1;
+    for a st a in dom f holds f.a = g.a
+      proof
+      let a;
+      assume a in dom f;
+      then a in R by FUNCT_2:def 1;
+      then consider t being Element of L, p being FinSequence of W such that
+        A6: a = [t, p] and
+        A7: len p = E.t;
+      A8: f.a = f.(t,p) by A6, BINOP_1:def 1;
+      A9: g.a = g.(t,p) by A6, BINOP_1:def 1;
+      per cases;
+        suppose A20: t in dom s;
+        hence f.a = s.t by A1, A7, A8
+            .= g.a by A2, A7, A9, A20;
+        end;
+        suppose A22: not t in dom s;
+        hence f.a = t^FlattenSeq p by A1, A7, A8
+            .= g.a by A2, A7, A9, A22;
+        end;
+      end;
+    hence f = g by A3, FUNCT_1:2;
+    end;
+end;
+
+definition
+  let L, E;
+  let s be Substitution of L, E;
+  let F be Polish-WFF of L, E;
+  func Subst(s, F) -> Polish-WFF of L, E means
+  :Def104:
+      ex H being Function of Polish-WFF-set(L, E), Polish-WFF-set(L, E)
+    st H is (Subst s)-recursive & it = H.F;
+  existence
+    proof
+    set W = Polish-WFF-set(L, E);
+    consider H being Function of W, W such that
+      A1: H is (Subst s)-recursive by Th77;
+    take G = H.F;
+    take H;
+    thus thesis by A1;
+    end;
+  uniqueness by Th72;
+end;
+
+theorem
+  for L, E for s being Substitution of L, E for F being Polish-WFF of L, E
+      st s = {} holds Subst(s, F) = F
+proof
+  let L, E;
+  let s be Substitution of L, E;
+  let F be Polish-WFF of L, E;
+  assume A1: s = {};
+  set W = Polish-WFF-set(L, E);
+  set g = Subst s;
+  set K = id W;
+  reconsider K as Function;
+  dom K = W & for a st a in W holds K.a in W by FUNCT_1:17;
+  then reconsider K as Function of W, W by FUNCT_2:3;
+  A2: K is g-recursive
+    proof
+    let G be Polish-WFF of L, E;
+    set t = L-head G;
+    set p = Polish-WFF-args G;
+    set q = (L, E)-tail G;
+    A4: len p = E.t by Th54;
+    A6: not t in dom s by A1;
+    A7: K * p = p
+      proof
+      reconsider q = K * p as FinSequence of W by FINSEQ_2:32;
+      A10: len p = len q by FINSEQ_2:33;
+      A11: dom p = Seg len p by FINSEQ_1:def 3
+          .= dom q by A10, FINSEQ_1:def 3;
+      for k st k in dom p holds p.k = q.k
+        proof
+        let k;
+        assume A12: k in dom p;
+        rng p c= W by FINSEQ_1:def 4;
+        then A14: p.k in W by A12, FUNCT_1:3;
+        thus p.k = K.(p.k) by A14, FUNCT_1:17
+            .= q.k by A12, FUNCT_1:13;
+        end;
+      hence thesis by A11, FINSEQ_1:13;
+      end;
+    thus K.G = t^q by Def10
+        .= t^(FlattenSeq p) by A4, Def102
+        .= g.(t,p) by A4, A6, Def103
+        .= g.[ L-head G, K * (Polish-WFF-args G) ] by A7, BINOP_1:def 1;
+    end;
+  F = K.F;
+  hence thesis by A2, Def104;
+end;

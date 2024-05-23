@@ -1,0 +1,2185 @@
+:: Kleene Algebra of Partial Predicates
+::  by Artur Korni{\l}owicz , Ievgen Ivanov and Mykola Nikitchenko
+:: 
+:: Received March 27, 2018
+:: Copyright (c) 2018-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies PARTPR_1, SUBSET_1, XBOOLE_0, RELAT_1, FUNCT_1, PARTFUN1,
+      MARGREL1, XBOOLEAN, TARSKI, MONOID_0, FUNCOP_1, ZFMISC_1, BINOP_1,
+      LATTICES, EQREL_1, XXREAL_2, ROBBINS1, PBOOLE, STRUCT_0;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, MARGREL1, RELAT_1, RELSET_1,
+      FUNCT_1, PARTFUN1, FUNCT_2, FUNCOP_1, BINOP_1, STRUCT_0, MONOID_0,
+      LATTICES, ROBBINS1;
+ constructors RFUNCT_3, RELSET_1, MARGREL1, LATTICES, MONOID_0, ROBBINS1;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, PARTFUN1, FUNCOP_1, RELSET_1, NAT_1,
+      MONOID_0, LATTICES, ROBBINS1;
+ requirements NUMERALS, BOOLE, SUBSET;
+ definitions TARSKI, XBOOLE_0, FUNCT_1, FUNCT_2, BINOP_1, STRUCT_0, LATTICES,
+      ROBBINS1;
+ equalities MARGREL1, XBOOLEAN, LATTICES, ROBBINS1;
+ expansions TARSKI, MONOID_0, LATTICES, ROBBINS1;
+ theorems TARSKI, RELAT_1, RELSET_1, FUNCOP_1, BINOP_1, PARTFUN1, FUNCT_1,
+      FUNCT_2, ZFMISC_1, LATTICES;
+ schemes FUNCT_1, FUNCT_2, BINOP_1;
+
+begin :: Partial predicates
+
+reserve x for object;
+reserve D for set;
+
+definition
+  let D;
+  func Pr(D) -> set equals
+  PFuncs(D,BOOLEAN);
+  coherence;
+end;
+
+registration
+  let D;
+  cluster Pr(D) -> non empty functional;
+  coherence;
+end;
+
+definition
+  let D;
+  mode PartialPredicate of D is PartFunc of D,BOOLEAN;
+end;
+
+reserve p for PartialPredicate of D;
+
+theorem
+  x in Pr(D) implies x is PartialPredicate of D by PARTFUN1:46;
+
+theorem
+  p in Pr(D) by PARTFUN1:45;
+
+theorem Th3:
+  x in dom p implies p.x = TRUE or p.x = FALSE
+  proof
+    assume that
+A1: x in dom p;
+A2: rng p c= BOOLEAN by RELAT_1:def 19;
+    p.x in rng p by A1,FUNCT_1:3;
+    hence thesis by A2,TARSKI:def 2;
+  end;
+
+definition
+  let D;
+  defpred Dn[object,Function,object] means $1 in dom $2 & $2.$1 = $3;
+  func PPnegation(D) -> Function of Pr(D),Pr(D) means :Def2:
+  for p being PartialPredicate of D holds
+   dom(it.p) = dom p &
+   for d being object holds
+    (d in dom p & p.d = TRUE implies it.p.d = FALSE) &
+    (d in dom p & p.d = FALSE implies it.p.d = TRUE);
+  existence
+  proof
+    defpred P[object,object] means
+    for p being PartialPredicate of D st p = $1 holds
+    for f being Function st f = $2 holds
+    dom p = dom f &
+    for d being object holds
+    (Dn[d,p,TRUE] implies f.d = FALSE) & (Dn[d,p,FALSE] implies f.d = TRUE);
+A1: for x being object st x in Pr(D)
+    ex y being object st y in Pr(D) & P[x,y]
+    proof
+      let x;
+      assume x in Pr(D);
+      then reconsider X = x as PartFunc of D,BOOLEAN by PARTFUN1:46;
+      defpred Q[object,object] means
+      for d being object st d = $1 holds
+      (Dn[d,X,TRUE] implies $2 = FALSE) & (Dn[d,X,FALSE] implies $2 = TRUE);
+A2:   for a being object st a in dom X
+      ex b being object st b in BOOLEAN & Q[a,b]
+      proof
+        let a be object;
+        assume a in dom X;
+        then X.a in BOOLEAN by PARTFUN1:4;
+        then per cases by TARSKI:def 2;
+        suppose
+A3:       X.a = TRUE;
+          take FALSE;
+          thus thesis by A3;
+        end;
+        suppose
+A4:       X.a = FALSE;
+          take TRUE;
+          thus thesis by A4;
+        end;
+      end;
+      consider g being Function such that
+A5:   dom g = dom X and
+A6:   rng g c= BOOLEAN and
+A7:   for x being object st x in dom X holds Q[x,g.x] from FUNCT_1:sch 6(A2);
+      take g;
+      g is PartFunc of D,BOOLEAN by A5,A6,RELSET_1:4;
+      hence g in Pr(D) by PARTFUN1:45;
+      thus thesis by A5,A7;
+    end;
+    consider F being Function of Pr(D),Pr(D) such that
+A8: for x being object st x in Pr(D) holds P[x,F.x] from FUNCT_2:sch 1(A1);
+    take F;
+    let p be PartialPredicate of D;
+    p in Pr(D) by PARTFUN1:45;
+    hence thesis by A8;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of Pr(D),Pr(D) such that
+A9: for p being PartialPredicate of D holds
+    dom p = dom(f.p) &
+    for d being object holds
+    (Dn[d,p,TRUE] implies f.p.d = FALSE) & (Dn[d,p,FALSE] implies f.p.d = TRUE)
+      and
+A10: for p being PartialPredicate of D holds
+    dom p = dom(g.p) &
+    for d being object holds
+     (Dn[d,p,TRUE] implies g.p.d = FALSE) &
+     (Dn[d,p,FALSE] implies g.p.d = TRUE);
+    let x be Element of Pr(D);
+    reconsider p = x as PartialPredicate of D by PARTFUN1:46;
+    thus dom(f.x) = dom p by A9
+    .= dom(g.x) by A10;
+    let a be object;
+    assume a in dom(f.x);
+    then
+A11: a in dom p by A9;
+    then p.a in BOOLEAN by PARTFUN1:4;
+    then per cases by TARSKI:def 2;
+    suppose
+A12:  p.a = TRUE;
+      hence f.x.a = FALSE by A9,A11
+      .= g.x.a by A10,A11,A12;
+    end;
+    suppose
+A13:  p.a = FALSE;
+      hence f.x.a = TRUE by A9,A11
+      .= g.x.a by A10,A11,A13;
+    end;
+  end;
+end;
+
+definition
+  let D,p;
+  func PP_not(p) -> PartialPredicate of D equals
+  PPnegation(D).p;
+  coherence
+  proof
+    p in Pr(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,FUNCT_2:5;
+  end;
+  involutiveness
+  proof
+    let P,Q be PartialPredicate of D;
+    assume
+A1: P = PPnegation(D).Q;
+    set Z = PPnegation(D).P;
+A2: dom P = dom Q by A1,Def2;
+    hence dom Q = dom Z by Def2;
+    let x;
+    assume
+A3: x in dom Q;
+    then per cases by A2,Th3;
+    suppose
+A4:   P.x = FALSE;
+      Q.x = TRUE
+      proof
+        assume Q.x <> TRUE;
+        then Q.x = FALSE by A3,Th3;
+        hence contradiction by A1,A3,A4,Def2;
+      end;
+      hence thesis by A2,A3,A4,Def2;
+    end;
+    suppose
+A5:   P.x = TRUE;
+      Q.x = FALSE
+      proof
+        assume Q.x <> FALSE;
+        then Q.x = TRUE by A3,Th3;
+        hence contradiction by A1,A3,A5,Def2;
+      end;
+      hence thesis by A2,A3,A5,Def2;
+    end;
+  end;
+end;
+
+theorem Th4:
+  x in dom p & PP_not(p).x = FALSE implies p.x = TRUE
+  proof
+    assume that
+A1: x in dom p and
+A2: PP_not(p).x = FALSE;
+    assume p.x <> TRUE;
+    then p.x = FALSE by A1,Th3;
+    hence thesis by A1,A2,Def2;
+  end;
+
+theorem Th5:
+  x in dom p & PP_not(p).x = TRUE implies p.x = FALSE
+  proof
+    assume that
+A1: x in dom p and
+A2: PP_not(p).x = TRUE;
+    assume p.x <> FALSE;
+    then p.x = TRUE by A1,Th3;
+    hence thesis by A1,A2,Def2;
+  end;
+
+theorem
+  x in dom PP_not(p) & PP_not(p).x = FALSE implies x in dom p & p.x = TRUE
+  proof
+    assume that
+A1: x in dom PP_not(p) and
+A2: PP_not(p).x = FALSE;
+    thus
+A3: x in dom p by A1,Def2;
+    assume p.x <> TRUE;
+    then p.x = FALSE by A3,Th3;
+    hence thesis by A2,A3,Def2;
+  end;
+
+theorem
+  x in dom PP_not(p) & PP_not(p).x = TRUE implies x in dom p & p.x = FALSE
+  proof
+    assume that
+A1: x in dom PP_not(p) and
+A2: PP_not(p).x = TRUE;
+    thus
+A3: x in dom p by A1,Def2;
+    assume p.x <> FALSE;
+    then p.x = TRUE by A3,Th3;
+    hence thesis by A2,A3,Def2;
+  end;
+
+reserve D for non empty set;
+reserve p,q,r for PartialPredicate of D;
+
+definition
+  let D;
+  defpred D1[object,Function] means $1 in dom $2 & $2.$1 = TRUE;
+  defpred D2[object,Function,Function] means
+   $1 in dom $2 & $2.$1 = FALSE & $1 in dom $3 & $3.$1 = FALSE;
+  deffunc Dany(Function,Function) =
+   {d where d is Element of D:
+      D1[d,$1] or D1[d,$2] or D2[d,$1,$2]};
+  func PPdisjunction(D) -> Function of [:Pr(D),Pr(D):],Pr(D) means
+  :Def4:
+  for p,q being PartialPredicate of D holds
+   dom(it.(p,q)) = {d where d is Element of D:
+                    d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+                    or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} &
+  for d being object holds
+   (d in dom p & p.d = TRUE or d in dom q & q.d = TRUE implies
+      it.(p,q).d = TRUE) &
+   (d in dom p & p.d = FALSE & d in dom q & q.d = FALSE implies
+      it.(p,q).d = FALSE);
+  existence
+  proof
+    defpred P[object,object,object] means
+    for p,q being PartialPredicate of D st $1 = p & $2 = q holds
+    for f being Function st f = $3 holds
+    dom(f) = Dany(p,q) &
+    for d being object holds
+    (D1[d,p] or D1[d,q] implies f.d = TRUE) &
+    (D2[d,p,q] implies f.d = FALSE);
+A1: for x1,x2 being object st x1 in Pr(D) & x2 in Pr(D)
+    ex y being object st y in Pr(D) & P[x1,x2,y]
+    proof
+      let x1,x2 be object;
+      assume x1 in Pr(D) & x2 in Pr(D);
+      then reconsider X1 = x1, X2 = x2 as PartFunc of D,BOOLEAN
+      by PARTFUN1:46;
+      defpred Q[object,object] means
+      for d being Element of D st d = $1 holds
+      (D1[d,X1] or D1[d,X2] implies $2 = TRUE) &
+      (D2[d,X1,X2] implies $2 = FALSE);
+A2:   for a being object st a in Dany(X1,X2)
+      ex b being object st b in BOOLEAN & Q[a,b]
+      proof
+        let a be object;
+        assume a in Dany(X1,X2);
+        then consider d being Element of D such that
+A3:     d = a and
+A4:     D1[d,X1] or D1[d,X2] or D2[d,X1,X2];
+        per cases by A4;
+        suppose
+A5:       D1[d,X1] or D1[d,X2];
+          take TRUE;
+          thus thesis by A3,A5;
+        end;
+        suppose
+A6:       D2[d,X1,X2];
+          take FALSE;
+          thus thesis by A3,A6;
+        end;
+      end;
+      consider g being Function such that
+A7:   dom g = Dany(X1,X2) and
+A8:   rng g c= BOOLEAN and
+A9:   for x being object st x in Dany(X1,X2) holds Q[x,g.x]
+      from FUNCT_1:sch 6(A2);
+      take g;
+      Dany(X1,X2) c= D
+      proof
+        let x;
+        assume x in Dany(X1,X2);
+        then ex d being Element of D st d = x &
+        (D1[d,X1] or D1[d,X2] or D2[d,X1,X2]);
+        hence thesis;
+      end;
+      then g is PartFunc of D,BOOLEAN by A7,A8,RELSET_1:4;
+      hence g in Pr(D) by PARTFUN1:45;
+      let p,q be PartialPredicate of D such that
+A10:  x1 = p & x2 = q;
+      let f be Function such that
+A11:  f = g;
+      thus dom(f) = Dany(p,q) by A7,A10,A11;
+      let d be object;
+      hereby
+        assume
+A12:    D1[d,p] or D1[d,q];
+        then d in dom p or d in dom q;
+        then
+A13:    d is Element of D;
+        then d in Dany(X1,X2) by A10,A12;
+        hence f.d = TRUE by A9,A10,A11,A12,A13;
+      end;
+      assume
+A14:  D2[d,p,q];
+      then d in dom p;
+      then
+A15:  d is Element of D;
+      then d in Dany(X1,X2) by A10,A14;
+      hence f.d = FALSE by A9,A10,A11,A14,A15;
+    end;
+    consider F being Function of [:Pr(D),Pr(D):],Pr(D) such that
+A16: for x,y being object st x in Pr(D) & y in Pr(D) holds P[x,y,F.(x,y)]
+    from BINOP_1:sch 1(A1);
+    take F;
+    let p,q be PartialPredicate of D;
+    p in Pr(D) & q in Pr(D) by PARTFUN1:45;
+    hence thesis by A16;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of [:Pr(D),Pr(D):],Pr(D) such that
+A17: for p,q being PartialPredicate of D holds
+    dom(f.(p,q)) = Dany(p,q) &
+    for d being object holds
+     (D1[d,p] or D1[d,q] implies f.(p,q).d = TRUE) &
+     (D2[d,p,q] implies f.(p,q).d = FALSE) and
+A18: for p,q being PartialPredicate of D holds
+    dom(g.(p,q)) = Dany(p,q) &
+    for d being object holds
+     (D1[d,p] or D1[d,q] implies g.(p,q).d = TRUE) &
+     (D2[d,p,q] implies g.(p,q).d = FALSE);
+    let x1,x2 be set such that
+A19: x1 in Pr(D) and
+A20: x2 in Pr(D);
+    reconsider p1 = x1, p2 = x2 as PartialPredicate of D
+    by A19,A20,PARTFUN1:46;
+A21: dom(f.(x1,x2)) = Dany(p1,p2) by A17;
+    hence dom(f.(x1,x2)) = dom(g.(x1,x2)) by A18;
+    let a be object;
+    assume a in dom(f.(x1,x2));
+    then consider d being Element of D such that
+A22: a = d and
+A23: D1[d,p1] or D1[d,p2] or D2[d,p1,p2] by A21;
+    per cases by A23;
+    suppose
+A24:  D1[d,p1] or D1[d,p2];
+      thus f.(x1,x2).a = f.(p1,p2).a
+      .= TRUE by A17,A22,A24
+      .= g.(p1,p2).a by A18,A22,A24
+      .= g.(x1,x2).a;
+    end;
+    suppose
+A25:  D2[d,p1,p2];
+      thus f.(x1,x2).a = FALSE by A17,A22,A25
+      .= g.(x1,x2).a by A18,A22,A25;
+    end;
+  end;
+end;
+
+definition
+  let D,p,q;
+  func PP_or(p,q) -> PartialPredicate of D equals
+  PPdisjunction(D).(p,q);
+  coherence
+  proof
+    p in Pr(D) & q in Pr(D) by PARTFUN1:45;
+    hence thesis by PARTFUN1:46,BINOP_1:17;
+  end;
+  commutativity
+  proof
+    let P,p,q be PartialPredicate of D;
+    assume
+A1: P = PPdisjunction(D).(p,q);
+    set Q = PPdisjunction(D).(q,p);
+A2: dom P = {d where d is Element of D:
+    d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} by A1,Def4;
+A3: dom Q = {d where d is Element of D:
+    d in dom q & q.d = TRUE or d in dom p & p.d = TRUE
+    or d in dom q & q.d = FALSE & d in dom p & p.d = FALSE} by Def4;
+    thus dom P = dom Q
+    proof
+      thus dom P c= dom Q
+      proof
+        let x;
+        assume x in dom P;
+        then ex d being Element of D st x = d &
+        (d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+        or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE) by A2;
+        hence thesis by A3;
+      end;
+      let x;
+      assume x in dom Q;
+      then ex d being Element of D st x = d &
+      (d in dom q & q.d = TRUE or d in dom p & p.d = TRUE
+      or d in dom q & q.d = FALSE & d in dom p & p.d = FALSE) by A3;
+      hence thesis by A2;
+    end;
+    let x;
+    assume x in dom P;
+    then consider d being Element of D such that
+A4: x = d and
+A5: d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE by A2;
+    per cases by A5;
+    suppose
+A6:   d in dom p & p.d = TRUE;
+      hence P.x = TRUE by A1,A4,Def4
+      .= Q.x by A4,A6,Def4;
+    end;
+    suppose
+A7:   d in dom q & q.d = TRUE;
+      hence P.x = TRUE by A1,A4,Def4
+      .= Q.x by A4,A7,Def4;
+    end;
+    suppose
+A8:   d in dom p & d in dom q & p.d = FALSE & q.d = FALSE;
+      hence P.x = FALSE by A1,A4,Def4
+      .= Q.x by A4,A8,Def4;
+    end;
+  end;
+  idempotence
+  proof
+    let P be PartialPredicate of D;
+    set Q = PPdisjunction(D).(P,P);
+A9: dom Q = {d where d is Element of D:
+    d in dom P & P.d = TRUE or d in dom P & P.d = TRUE
+    or d in dom P & P.d = FALSE & d in dom P & P.d = FALSE} by Def4;
+    thus dom Q = dom P
+    proof
+      thus dom Q c= dom P
+      proof
+        let x;
+        assume x in dom Q;
+        then ex d being Element of D st
+        x = d & (d in dom P & P.d = TRUE or d in dom P & P.d = TRUE
+        or d in dom P & P.d = FALSE & d in dom P & P.d = FALSE) by A9;
+        hence thesis;
+      end;
+      let x;
+      assume
+A10:  x in dom P;
+      then P.x = TRUE or P.x = FALSE by Th3;
+      hence thesis by A9,A10;
+    end;
+    let x;
+    assume
+A11: x in dom P;
+    then P.x = TRUE or P.x = FALSE by Th3;
+    hence thesis by A11,Def4;
+  end;
+end;
+
+theorem Th8:
+  x in dom(PP_or(p,q)) implies
+   x in dom p & p.x = TRUE or x in dom q & q.x = TRUE
+   or x in dom p & p.x = FALSE & x in dom q & q.x = FALSE
+  proof
+    assume
+A1: x in dom(PP_or(p,q));
+    dom(PP_or(p,q)) = {d where d is Element of D:
+    d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} by Def4;
+    then ex d1 being Element of D st
+    d1 = x & (d1 in dom p & p.d1 = TRUE
+    or d1 in dom q & q.d1 = TRUE
+    or d1 in dom p & p.d1 = FALSE & d1 in dom q & q.d1 = FALSE) by A1;
+    hence thesis;
+  end;
+
+theorem Th9:
+  x in dom p & x in dom q & PP_or(p,q).x = TRUE implies
+   p.x = TRUE or q.x = TRUE
+  proof
+    assume that
+A1: x in dom p and
+A2: x in dom q and
+A3: PP_or(p,q).x = TRUE;
+    p.x <> FALSE or q.x <> FALSE by A1,A2,A3,Def4;
+    hence thesis by A1,A2,Th3;
+  end;
+
+theorem Th10:
+  x in dom PP_or(p,q) & PP_or(p,q).x = TRUE implies
+   x in dom p & p.x = TRUE or x in dom q & q.x = TRUE
+  proof
+    assume x in dom PP_or(p,q);
+    then x in dom p & p.x = TRUE or x in dom q & q.x = TRUE
+    or x in dom p & p.x = FALSE & x in dom q & q.x = FALSE by Th8;
+    hence thesis by Th9;
+  end;
+
+theorem Th11:
+  x in dom p & PP_or(p,q).x = FALSE implies p.x = FALSE
+  proof
+    assume that
+A1: x in dom p and
+A2: PP_or(p,q).x = FALSE;
+    p.x <> TRUE by A1,A2,Def4;
+    hence thesis by A1,Th3;
+  end;
+
+theorem Th12:
+  x in dom q & PP_or(p,q).x = FALSE implies q.x = FALSE
+  proof
+    assume that
+A1: x in dom q and
+A2: PP_or(p,q).x = FALSE;
+    q.x <> TRUE by A1,A2,Def4;
+    hence thesis by A1,Th3;
+  end;
+
+theorem Th13:
+  x in dom PP_or(p,q) & PP_or(p,q).x = FALSE implies
+   x in dom p & p.x = FALSE & x in dom q & q.x = FALSE
+  proof
+    assume x in dom PP_or(p,q);
+    then x in dom p & p.x = TRUE or x in dom q & q.x = TRUE
+    or x in dom p & p.x = FALSE & x in dom q & q.x = FALSE by Th8;
+    hence thesis by Th12;
+  end;
+
+::$N Associativity law
+theorem Th14:
+  PP_or(p,PP_or(q,r)) = PP_or(PP_or(p,q),r)
+  proof
+    set qr = PP_or(q,r);
+    set a = PP_or(p,qr);
+    set pq = PP_or(p,q);
+    set b = PP_or(pq,r);
+A1: dom qr = {d where d is Element of D:
+     d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+     or d in dom q & q.d = FALSE & d in dom r & r.d = FALSE} by Def4;
+A2: dom a = {d where d is Element of D:
+     d in dom p & p.d = TRUE or d in dom qr & qr.d = TRUE
+     or d in dom p & p.d = FALSE & d in dom qr & qr.d = FALSE} by Def4;
+A3: dom pq = {d where d is Element of D:
+     d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+     or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} by Def4;
+A4: dom b = {d where d is Element of D:
+     d in dom pq & pq.d = TRUE or d in dom r & r.d = TRUE
+     or d in dom pq & pq.d = FALSE & d in dom r & r.d = FALSE} by Def4;
+    thus dom a = dom b
+    proof
+      thus dom a c= dom b
+      proof
+        let d be object;
+        assume d in dom a;
+        then per cases by Th8;
+        suppose d in dom p & p.d = TRUE;
+          then d in dom pq & pq.d = TRUE by A3,Def4;
+          hence thesis by A4;
+        end;
+        suppose that
+A5:       d in dom qr and
+A6:       qr.d = TRUE;
+          d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+            or d in dom q & q.d = FALSE & d in dom r & r.d = FALSE
+            by A5,Th8;
+          then per cases by A6,Def4;
+          suppose d in dom q & q.d = TRUE;
+            then d in dom pq & pq.d = TRUE by A3,Def4;
+            hence thesis by A4;
+          end;
+          suppose d in dom r & r.d = TRUE;
+            hence thesis by A4;
+          end;
+        end;
+        suppose that
+A7:       d in dom p and
+A8:      p.d = FALSE and
+A9:      d in dom qr and
+A10:      qr.d = FALSE;
+A11:      d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+          or d in dom q & q.d = FALSE & d in dom r & r.d = FALSE
+          by A9,Th8;
+          then d in dom pq & pq.d = FALSE by A3,A7,A8,A10,Def4;
+          hence thesis by A4,A11,Th11;
+        end;
+      end;
+      let d be object;
+      assume d in dom b;
+      then per cases by Th8;
+      suppose that
+A12:    d in dom pq and
+A13:    pq.d = TRUE;
+        d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+        or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE
+        by A12,Th8;
+        then d in dom p & p.d = TRUE or d in dom qr & qr.d = TRUE
+        by A1,A13,Def4;
+        hence thesis by A2;
+      end;
+      suppose d in dom r & r.d = TRUE;
+        then d in dom qr & qr.d = TRUE by A1,Def4;
+        hence thesis by A2;
+      end;
+      suppose that
+A14:    d in dom pq and
+A15:    pq.d = FALSE and
+A16:    d in dom r and
+A17:    r.d = FALSE;
+A18:    d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+        or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE
+        by A14,Th8;
+        then d in dom qr & qr.d = FALSE by A1,A15,A16,A17,Def4;
+        hence thesis by A2,A18,Def4;
+      end;
+    end;
+    let d be object;
+    assume d in dom a;
+    then per cases by Th8;
+    suppose
+A19:  d in dom p & p.d = TRUE;
+      then
+A20:  d in dom pq by A3;
+      pq.d = TRUE by A19,Def4;
+      hence b.d = TRUE by A20,Def4
+      .= a.d by A19,Def4;
+    end;
+    suppose
+A21:  d in dom qr & qr.d = TRUE;
+      then d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+      or d in dom q & q.d = FALSE & d in dom r & r.d = FALSE
+      by Th8;
+      then d in dom pq & pq.d = TRUE or d in dom r & r.d = TRUE
+      by A3,A21,Def4;
+      hence b.d = TRUE by Def4
+      .= a.d by A21,Def4;
+    end;
+    suppose that
+A22:  d in dom p & p.d = FALSE and
+A23:  d in dom qr & qr.d = FALSE;
+A24:  d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+      or d in dom q & q.d = FALSE & d in dom r & r.d = FALSE
+      by A23,Th8;
+      then d in dom pq & pq.d = FALSE by A3,A22,A23,Def4;
+      hence b.d = FALSE by A23,A24,Def4
+      .= a.d by A22,A23,Def4;
+    end;
+  end;
+
+theorem Th15:
+  PP_or(PP_or(p,q),PP_or(p,r)) = PP_or(PP_or(p,q),r)
+  proof
+    PP_or(p,PP_or(p,q)) = PP_or(PP_or(p,p),q) by Th14;
+    hence thesis by Th14;
+  end;
+
+definition
+  let D,p,q;
+  func PP_and(p,q) -> PartialPredicate of D equals
+  PP_not PP_or(PP_not(p),PP_not(q));
+  coherence;
+  commutativity;
+  idempotence;
+  func PP_imp(p,q) -> PartialPredicate of D equals
+  PP_or(PP_not(p),q);
+  coherence;
+end;
+
+theorem Th16:
+  dom(PP_and(p,q)) =
+    {d where d is Element of D:
+             d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+          or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE}
+  proof
+    set F = PP_and(p,q);
+    set P = PP_not(p);
+    set Q = PP_not(q);
+    set Dand = {d where d is Element of D:
+             d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+          or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE};
+A1: dom F = dom PP_or(P,Q) by Def2;
+A2: dom PP_or(P,Q) =
+      {d where d is Element of D:
+      d in dom P & P.d = TRUE or d in dom Q & Q.d = TRUE
+      or d in dom P & P.d = FALSE & d in dom Q & Q.d = FALSE} by Def4;
+A3: dom P = dom p by Def2;
+A4: dom Q = dom q by Def2;
+    thus dom F c= Dand
+    proof
+      let x;
+      assume x in dom F;
+      then consider d being Element of D such that
+A5:   x = d and
+A6:   d in dom P & P.d = TRUE or d in dom Q & Q.d = TRUE
+      or d in dom P & P.d = FALSE & d in dom Q & Q.d = FALSE by A1,A2;
+      per cases by A6;
+      suppose that
+A7:     d in dom P and
+A8:     P.d = TRUE;
+        p.d = FALSE by A3,A7,A8,Th5;
+        hence thesis by A3,A5,A7;
+      end;
+      suppose that
+A9:     d in dom Q and
+A10:    Q.d = TRUE;
+        q.d = FALSE by A4,A9,A10,Th5;
+        hence thesis by A4,A5,A9;
+      end;
+      suppose that
+A11:    d in dom P & d in dom Q and
+A12:    P.d = FALSE & Q.d = FALSE;
+        p.d = TRUE & q.d = TRUE by A3,A4,A11,A12,Th4;
+        hence thesis by A3,A4,A5,A11;
+      end;
+    end;
+    let x;
+    assume x in Dand;
+    then consider d being Element of D such that
+A13: x = d and
+A14: d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+    or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE;
+    per cases by A14;
+    suppose that
+A15:  d in dom p and
+A16:  p.d = FALSE;
+      P.d = TRUE by A15,A16,Def2;
+      hence thesis by A1,A2,A3,A13,A15;
+    end;
+    suppose that
+A17:  d in dom q and
+A18:  q.d = FALSE;
+      Q.d = TRUE by A17,A18,Def2;
+      hence thesis by A1,A2,A4,A13,A17;
+    end;
+    suppose that
+A19:  d in dom p & d in dom q and
+A20:  p.d = TRUE & q.d = TRUE;
+      P.d = FALSE & Q.d = FALSE by A19,A20,Def2;
+      hence thesis by A1,A2,A3,A4,A13,A19;
+    end;
+  end;
+
+theorem Th17:
+  x in dom(PP_and(p,q)) implies
+   x in dom p & p.x = FALSE or x in dom q & q.x = FALSE
+    or x in dom p & p.x = TRUE & x in dom q & q.x = TRUE
+  proof
+    assume
+A1: x in dom(PP_and(p,q));
+    dom(PP_and(p,q)) =
+    {d where d is Element of D:
+    d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+    or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE} by Th16;
+    then ex d1 being Element of D st x = d1 &
+    (d1 in dom p & p.d1 = FALSE or d1 in dom q & q.d1 = FALSE
+    or d1 in dom p & p.d1 = TRUE & d1 in dom q & q.d1 = TRUE) by A1;
+    hence thesis;
+  end;
+
+theorem Th18:
+  x in dom p & p.x = TRUE & x in dom q & q.x = TRUE implies
+   PP_and(p,q).x = TRUE
+  proof
+    assume that
+A1: x in dom p and
+A2: p.x = TRUE and
+A3: x in dom q and
+A4: q.x = TRUE;
+A5: PP_not(p).x = FALSE & PP_not(q).x = FALSE by A1,A3,A2,A4,Def2;
+A6: dom PP_not(p) = dom p & dom PP_not(q) = dom q by Def2;
+    dom PP_or(PP_not(p),PP_not(q)) = {d where d is Element of D:
+    d in dom PP_not(p) & PP_not(p).d = TRUE or
+    d in dom PP_not(q) & PP_not(q).d = TRUE
+    or d in dom PP_not(p) & PP_not(p).d = FALSE &
+    d in dom PP_not(q) & PP_not(q).d = FALSE} by Def4;
+    then
+A7: x in dom PP_or(PP_not(p),PP_not(q)) by A1,A3,A5,A6;
+    (PP_or(PP_not(p),PP_not(q))).x = FALSE by A1,A3,A5,A6,Def4;
+    hence thesis by A7,Def2;
+  end;
+
+theorem Th19:
+  x in dom p & p.x = FALSE implies PP_and(p,q).x = FALSE
+  proof
+    assume that
+A1: x in dom p and
+A2: p.x = FALSE;
+A3: PP_not(p).x = TRUE by A1,A2,Def2;
+A4: dom PP_not(p) = dom p by Def2;
+A5: dom PP_or(PP_not(p),PP_not(q)) = {d where d is Element of D:
+    d in dom PP_not(p) & PP_not(p).d = TRUE or
+    d in dom PP_not(q) & PP_not(q).d = TRUE
+    or d in dom PP_not(p) & PP_not(p).d = FALSE &
+    d in dom PP_not(q) & PP_not(q).d = FALSE} by Def4;
+A6: x in dom PP_or(PP_not(p),PP_not(q)) by A1,A3,A4,A5;
+    (PP_or(PP_not(p),PP_not(q))).x = TRUE by A1,A3,A4,Def4;
+    hence thesis by A6,Def2;
+  end;
+
+theorem
+  x in dom q & q.x = FALSE implies PP_and(p,q).x = FALSE by Th19;
+
+theorem
+  x in dom p & PP_and(p,q).x = TRUE implies p.x = TRUE by Th3,Th19;
+
+theorem
+  x in dom q & PP_and(p,q).x = TRUE implies q.x = TRUE by Th3,Th19;
+
+theorem Th23:
+  x in dom PP_and(p,q) & PP_and(p,q).x = TRUE implies
+   x in dom p & p.x = TRUE & x in dom q & q.x = TRUE
+  proof
+    assume x in dom PP_and(p,q);
+    then x in dom p & p.x = FALSE or x in dom q & q.x = FALSE
+    or x in dom p & p.x = TRUE & x in dom q & q.x = TRUE by Th17;
+    hence thesis by Th19;
+  end;
+
+theorem Th24:
+  x in dom p & x in dom q & PP_and(p,q).x = FALSE implies
+   p.x = FALSE or q.x = FALSE
+  proof
+    assume that
+A1: x in dom p and
+A2: x in dom q and
+A3: PP_and(p,q).x = FALSE;
+    p.x <> TRUE or q.x <> TRUE by A1,A2,A3,Th18;
+    hence p.x = FALSE or q.x = FALSE by A1,A2,Th3;
+  end;
+
+theorem Th25:
+  x in dom PP_and(p,q) & PP_and(p,q).x = FALSE implies
+   x in dom p & p.x = FALSE or x in dom q & q.x = FALSE
+  proof
+    assume x in dom PP_and(p,q);
+    then x in dom p & p.x = FALSE or x in dom q & q.x = FALSE
+    or x in dom p & p.x = TRUE & x in dom q & q.x = TRUE by Th17;
+    hence thesis by Th24;
+  end;
+
+::$N Associativity law
+theorem
+  PP_and(p,PP_and(q,r)) = PP_and(PP_and(p,q),r) by Th14;
+
+theorem
+  PP_and(PP_and(p,q),PP_and(p,r)) = PP_and(PP_and(p,q),r) by Th15;
+
+::$N Meet-absorbing law
+theorem Th28:
+  PP_or(PP_and(p,q),q) = q
+  proof
+    set a = PP_and(p,q);
+    set o = PP_or(a,q);
+A1: dom a = {d where d is Element of D:
+     d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+     or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE} by Th16;
+A2: dom o = {d where d is Element of D:
+     d in dom a & a.d = TRUE or d in dom q & q.d = TRUE
+     or d in dom a & a.d = FALSE & d in dom q & q.d = FALSE} by Def4;
+    thus dom o = dom q
+    proof
+      thus dom o c= dom q
+      proof
+        let d be object;
+        assume d in dom o;
+        then per cases by Th8;
+        suppose that
+A3:       d in dom a and
+A4:       a.d = TRUE;
+          per cases by A3,Th17;
+          suppose d in dom p & p.d = FALSE;
+            hence thesis by A4,Th19;
+          end;
+          suppose d in dom q & q.d = FALSE
+            or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE;
+            hence thesis;
+          end;
+        end;
+        suppose d in dom q & q.d = TRUE
+          or d in dom a & a.d = FALSE & d in dom q & q.d = FALSE;
+          hence thesis;
+        end;
+      end;
+      let d be object;
+      assume
+A5:   d in dom q;
+      then per cases by Th3;
+      suppose
+A6:     q.d = FALSE;
+        then
+A7:     a.d = FALSE by A5,Th19;
+        d in dom a by A1,A5,A6;
+        hence thesis by A2,A5,A6,A7;
+      end;
+      suppose q.d = TRUE;
+        hence thesis by A2,A5;
+      end;
+    end;
+    let d be object;
+    assume d in dom o;
+    then per cases by Th8;
+    suppose that
+A8:   d in dom a and
+A9:  a.d = TRUE;
+      per cases by A8,Th17;
+      suppose d in dom p & p.d = FALSE;
+        hence thesis by A9,Th19;
+      end;
+      suppose d in dom q & q.d = FALSE;
+        hence thesis by A9,Th19;
+      end;
+      suppose d in dom p & p.d = TRUE & d in dom q & q.d = TRUE;
+        hence thesis by Def4;
+      end;
+    end;
+    suppose d in dom q & q.d = TRUE;
+      hence thesis by Def4;
+    end;
+    suppose d in dom a & a.d = FALSE & d in dom q & q.d = FALSE;
+      hence thesis by Def4;
+    end;
+  end;
+
+::$N Join-absorbing law
+theorem Th29:
+  PP_and(p,PP_or(p,q)) = p
+  proof
+    set o = PP_or(p,q);
+    set a = PP_and(p,o);
+A1: dom a = {d where d is Element of D:
+     d in dom p & p.d = FALSE or d in dom o & o.d = FALSE
+     or d in dom p & p.d = TRUE & d in dom o & o.d = TRUE} by Th16;
+A2: dom o = {d where d is Element of D:
+     d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+     or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} by Def4;
+    thus dom a = dom p
+    proof
+      thus dom a c= dom p
+      proof
+        let d be object;
+        assume d in dom a;
+        then per cases by Th17;
+        suppose that
+A3:       d in dom o and
+A4:       o.d = FALSE;
+          per cases by A3,Th8;
+          suppose d in dom p & p.d = TRUE;
+            hence thesis;
+          end;
+          suppose d in dom q & q.d = TRUE
+            or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE;
+            hence thesis by A4,Def4;
+          end;
+        end;
+        suppose d in dom p & p.d = FALSE
+          or d in dom p & p.d = TRUE & d in dom o & o.d = TRUE;
+          hence thesis;
+        end;
+      end;
+      let d be object;
+      assume
+A5:   d in dom p;
+      then per cases by Th3;
+      suppose
+A6:     p.d = TRUE;
+        then
+A7:     o.d = TRUE by A5,Def4;
+        d in dom o by A2,A5,A6;
+        hence thesis by A1,A5,A6,A7;
+      end;
+      suppose p.d = FALSE;
+        hence thesis by A1,A5;
+      end;
+    end;
+    let d be object;
+    assume d in dom a;
+    then per cases by Th17;
+    suppose that
+A8:   d in dom o and
+A9:  o.d = FALSE;
+      per cases by A8,Th8;
+      suppose d in dom p & p.d = TRUE;
+        hence thesis by A9,Def4;
+      end;
+      suppose d in dom q & q.d = TRUE;
+        hence thesis by A9,Def4;
+      end;
+      suppose d in dom p & p.d = FALSE & d in dom q & q.d = FALSE;
+        hence thesis by Th19;
+      end;
+    end;
+    suppose d in dom p & p.d = FALSE;
+      hence thesis by Th19;
+    end;
+    suppose d in dom p & p.d = TRUE & d in dom o & o.d = TRUE;
+      hence thesis by Th18;
+    end;
+  end;
+
+::$N Distributivity law
+theorem Th30:
+  PP_and(p,PP_or(q,r)) = PP_or(PP_and(p,q),PP_and(p,r))
+  proof
+    set qr = PP_or(q,r);
+    set a = PP_and(p,qr);
+    set pq = PP_and(p,q);
+    set pr = PP_and(p,r);
+    set b = PP_or(pq,pr);
+A1: dom qr = {d where d is Element of D:
+     d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+     or d in dom q & q.d = FALSE & d in dom r & r.d = FALSE} by Def4;
+A2: dom a = {d where d is Element of D:
+     d in dom p & p.d = FALSE or d in dom qr & qr.d = FALSE
+     or d in dom p & p.d = TRUE & d in dom qr & qr.d = TRUE} by Th16;
+A3: dom pq = {d where d is Element of D:
+     d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+     or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE} by Th16;
+A4: dom pr = {d where d is Element of D:
+     d in dom p & p.d = FALSE or d in dom r & r.d = FALSE
+     or d in dom p & p.d = TRUE & d in dom r & r.d = TRUE} by Th16;
+A5: dom b = {d where d is Element of D:
+     d in dom pq & pq.d = TRUE or d in dom pr & pr.d = TRUE
+     or d in dom pq & pq.d = FALSE & d in dom pr & pr.d = FALSE} by Def4;
+    thus dom a = dom b
+    proof
+      thus dom a c= dom b
+      proof
+        let d be object;
+        assume d in dom a;
+        then per cases by Th17;
+        suppose d in dom p & p.d = FALSE;
+          then d in dom pq & pq.d = FALSE & d in dom pr & pr.d = FALSE
+          by A3,A4,Th19;
+          hence thesis by A5;
+        end;
+        suppose d in dom qr & qr.d = FALSE;
+          then d in dom q & q.d = FALSE & d in dom r & r.d = FALSE
+          by Th13;
+          then d in dom pq & pq.d = FALSE & d in dom pr & pr.d = FALSE
+          by A3,A4,Th19;
+          hence thesis by A5;
+        end;
+        suppose that
+A6:       d in dom p & p.d = TRUE and
+A7:       d in dom qr & qr.d = TRUE;
+          d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+          by A7,Th10;
+          then d in dom pq & pq.d = TRUE or d in dom pr & pr.d = TRUE
+          by A3,A4,A6,Th18;
+          hence thesis by A5;
+        end;
+      end;
+      let d be object;
+      assume d in dom b;
+      then per cases by Th8;
+      suppose
+A8:    d in dom pq & pq.d = TRUE;
+        then
+A9:    d in dom p & p.d = TRUE by Th23;
+        d in dom q & q.d = TRUE by A8,Th23;
+        then d in dom qr & qr.d = TRUE by A1,Def4;
+        hence thesis by A2,A9;
+      end;
+      suppose
+A10:    d in dom pr & pr.d = TRUE;
+        then
+A11:    d in dom p & p.d = TRUE by Th23;
+        d in dom r & r.d = TRUE by A10,Th23;
+        then d in dom qr & qr.d = TRUE by A1,Def4;
+        hence thesis by A2,A11;
+      end;
+      suppose d in dom pq & pq.d = FALSE & d in dom pr & pr.d = FALSE;
+        then (d in dom p & p.d = FALSE or d in dom q & q.d = FALSE)
+        & (d in dom p & p.d = FALSE or d in dom r & r.d = FALSE)
+        by Th25;
+        then d in dom p & p.d = FALSE or d in dom qr & qr.d = FALSE
+        by A1,Def4;
+        hence thesis by A2;
+      end;
+    end;
+    let d be object;
+    assume d in dom a;
+    then per cases by Th17;
+    suppose
+A12:  d in dom p & p.d = FALSE;
+      then d in dom pq & pq.d = FALSE & d in dom pr & pr.d = FALSE
+      by A3,A4,Th19;
+      hence b.d = FALSE by Def4
+      .= a.d by A12,Th19;
+    end;
+    suppose
+A13:  d in dom qr & qr.d = FALSE;
+      then d in dom q & q.d = FALSE & d in dom r & r.d = FALSE
+      by Th13;
+      then d in dom pq & pq.d = FALSE & d in dom pr & pr.d = FALSE
+      by A3,A4,Th19;
+      hence b.d = FALSE by Def4
+      .= a.d by A13,Th19;
+    end;
+    suppose that
+A14:  d in dom p & p.d = TRUE and
+A15:  d in dom qr & qr.d = TRUE;
+      d in dom q & q.d = TRUE or d in dom r & r.d = TRUE
+      by A15,Th10;
+      then d in dom pq & pq.d = TRUE or d in dom pr & pr.d = TRUE
+      by A3,A4,A14,Th18;
+      hence b.d = TRUE by Def4
+      .= a.d by A14,A15,Th18;
+    end;
+  end;
+
+theorem Th31:
+  dom(PP_imp(p,q)) =
+    {d where d is Element of D:
+             d in dom p & p.d = FALSE or d in dom q & q.d = TRUE
+          or d in dom p & p.d = TRUE & d in dom q & q.d = FALSE}
+  proof
+    set F = PP_imp(p,q);
+    set P = PP_not(p);
+    set Dimp = {d1 where d1 is Element of D:
+             d1 in dom p & p.d1 = FALSE or d1 in dom q & q.d1 = TRUE
+          or d1 in dom p & p.d1 = TRUE & d1 in dom q & q.d1 = FALSE};
+A1: dom(F) = {d where d is Element of D:
+    d in dom P & P.d = TRUE or d in dom q & q.d = TRUE
+    or d in dom P & P.d = FALSE & d in dom q & q.d = FALSE} by Def4;
+A2: dom P = dom p by Def2;
+    thus dom F c= Dimp
+    proof
+      let x;
+      assume x in dom F;
+      then consider d being Element of D such that
+A3:   x = d and
+A4:   d in dom P & P.d = TRUE or d in dom q & q.d = TRUE
+      or d in dom P & P.d = FALSE & d in dom q & q.d = FALSE by A1;
+      per cases by A4;
+      suppose that
+A5:     d in dom P and
+A6:     P.d = TRUE;
+        p.d = FALSE by A2,A5,A6,Th5;
+        hence thesis by A2,A3,A5;
+      end;
+      suppose d in dom q & q.d = TRUE;
+        hence thesis by A3;
+      end;
+      suppose that
+A7:     d in dom P & d in dom q and
+A8:     P.d = FALSE and
+A9:     q.d = FALSE;
+        p.d = TRUE by A2,A7,A8,Th4;
+        hence thesis by A2,A3,A7,A9;
+      end;
+    end;
+    let x;
+    assume x in Dimp;
+    then consider d being Element of D such that
+A10: x = d and
+A11: d in dom p & p.d = FALSE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = TRUE & d in dom q & q.d = FALSE;
+    per cases by A11;
+    suppose that
+A12:  d in dom p and
+A13:  p.d = FALSE;
+      P.d = TRUE by A12,A13,Def2;
+      hence thesis by A1,A2,A10,A12;
+    end;
+    suppose d in dom q & q.d = TRUE;
+      hence thesis by A1,A10;
+    end;
+    suppose that
+A14:  d in dom p and
+A15:  d in dom q and
+A16:  p.d = TRUE and
+A17:  q.d = FALSE;
+      P.d = FALSE by A14,A16,Def2;
+      hence thesis by A1,A2,A10,A14,A15,A17;
+    end;
+  end;
+
+theorem Th32:
+  x in dom(PP_imp(p,q)) implies
+   x in dom p & p.x = FALSE or x in dom q & q.x = TRUE
+   or x in dom p & p.x = TRUE & x in dom q & q.x = FALSE
+  proof
+    assume
+A1: x in dom(PP_imp(p,q));
+    dom(PP_imp(p,q)) =
+    {d where d is Element of D:
+    d in dom p & p.d = FALSE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = TRUE & d in dom q & q.d = FALSE} by Th31;
+    then ex d1 being Element of D st d1 = x &
+    (d1 in dom p & p.d1 = FALSE or d1 in dom q & q.d1 = TRUE
+    or d1 in dom p & p.d1 = TRUE & d1 in dom q & q.d1 = FALSE) by A1;
+    hence thesis;
+  end;
+
+theorem Th33:
+  x in dom p & p.x = FALSE implies PP_imp(p,q).x = TRUE
+  proof
+    assume that
+A1: x in dom p and
+A2: p.x = FALSE;
+A3: dom PP_not(p) = dom p by Def2;
+    PP_not(p).x = TRUE by A1,A2,Def2;
+    hence thesis by A1,A3,Def4;
+  end;
+
+theorem Th34:
+  x in dom q & q.x = TRUE implies PP_imp(p,q).x = TRUE by Def4;
+
+theorem Th35:
+  x in dom p & p.x = TRUE & x in dom q & q.x = FALSE implies
+   PP_imp(p,q).x = FALSE
+  proof
+    assume that
+A1: x in dom p and
+A2: p.x = TRUE and
+A3: x in dom q and
+A4: q.x = FALSE;
+A5: dom PP_not(p) = dom p by Def2;
+    PP_not(p).x = FALSE by A1,A2,Def2;
+    hence thesis by A1,A3,A4,A5,Def4;
+  end;
+
+theorem
+  x in dom p & x in dom q & PP_imp(p,q).x = TRUE implies
+   p.x = FALSE or q.x = TRUE
+  proof
+    assume that
+A1: x in dom p and
+A2: x in dom q and
+A3: PP_imp(p,q).x = TRUE;
+    p.x <> TRUE or q.x <> FALSE by A1,A2,A3,Th35;
+    hence thesis by A1,A2,Th3;
+  end;
+
+theorem
+  x in dom p & PP_imp(p,q).x = FALSE implies p.x = TRUE by Th3,Th33;
+
+theorem
+  x in dom q & PP_imp(p,q).x = FALSE implies q.x = FALSE by Th3,Th34;
+
+theorem
+  x in dom PP_imp(p,q) & PP_imp(p,q).x = FALSE implies
+   x in dom p & p.x = TRUE & x in dom q & q.x = FALSE
+  proof
+    assume x in dom PP_imp(p,q);
+    then x in dom p & p.x = FALSE or x in dom q & q.x = TRUE
+    or x in dom p & p.x = TRUE & x in dom q & q.x = FALSE by Th32;
+    hence thesis by Th33,Def4;
+  end;
+
+theorem
+  x in dom PP_imp(p,q) & PP_imp(p,q).x = TRUE implies
+   x in dom p & p.x = FALSE or x in dom q & q.x = TRUE
+  proof
+    assume x in dom PP_imp(p,q);
+    then x in dom p & p.x = FALSE or x in dom q & q.x = TRUE
+    or x in dom p & p.x = TRUE & x in dom q & q.x = FALSE by Th32;
+    hence thesis by Th35;
+  end;
+
+theorem
+  PP_and(PP_imp(p,r),PP_imp(q,r)) = PP_imp(PP_or(p,q),r)
+  proof
+    thus PP_and(PP_imp(p,r),PP_imp(q,r))
+     = PP_not PP_or(PP_and(p,PP_not(r)),PP_and(q,PP_not(r)))
+    .= PP_not PP_and(PP_not(r),PP_or(p,q)) by Th30
+    .= PP_imp(PP_or(p,q),r);
+  end;
+
+theorem
+  PP_or(PP_imp(p,r),PP_imp(q,r)) = PP_imp(PP_and(p,q),r)
+  proof
+    PP_or(PP_or(r,PP_not(p)),PP_or(r,PP_not(q)))
+    = PP_or(PP_or(r,PP_not(p)),PP_not(q)) by Th15;
+    hence thesis by Th14;
+  end;
+
+::$N True constant predicate
+definition
+  let D be set;
+  func PP_True(D) -> PartialPredicate of D equals
+  D --> TRUE;
+  coherence
+  proof
+    per cases;
+    suppose
+A1:   D is non empty;
+      set f = D --> TRUE;
+A2:   dom f = D;
+      rng f = {TRUE} by A1,FUNCOP_1:8;
+      hence thesis by A2,RELSET_1:4,ZFMISC_1:31;
+    end;
+    suppose D is empty;
+      then D --> TRUE = {};
+      hence thesis by RELSET_1:12;
+    end;
+  end;
+end;
+
+::$N False constant predicate
+definition
+  let D be set;
+  func PP_False(D) -> PartialPredicate of D equals
+  D --> FALSE;
+  coherence
+  proof
+    per cases;
+    suppose
+A1:   D is non empty;
+      set f = D --> FALSE;
+A2:   dom f = D;
+      rng f = {FALSE} by A1,FUNCOP_1:8;
+      hence thesis by A2,RELSET_1:4,ZFMISC_1:31;
+    end;
+    suppose D is empty;
+      then D --> FALSE = {};
+      hence thesis by RELSET_1:12;
+    end;
+  end;
+end;
+
+theorem Th43:
+  for D being set holds PP_not(PP_False(D)) = PP_True(D)
+  proof
+    let D be set;
+    set T = PP_True(D);
+    set B = PP_False(D);
+    set n = PP_not(B);
+A1: dom B = D;
+    hence dom n = dom T by Def2;
+    let x;
+    assume
+A2: x in dom n;
+    then B.x = FALSE by FUNCOP_1:7;
+    hence n.x = TRUE by A1,A2,Def2
+    .= T.x by A2,FUNCOP_1:7;
+  end;
+
+theorem
+  for D being set holds PP_not(PP_True(D)) = PP_False(D)
+  proof
+    let D be set;
+    PP_not(PP_False(D)) = PP_True(D) by Th43;
+    hence thesis;
+  end;
+
+theorem Th45:
+  PP_or(p,PP_True(D)) = PP_True(D)
+  proof
+    set q = PP_True(D);
+    set f = PP_or(p,q);
+A1: dom f = {d where d is Element of D:
+    d in dom p & p.d = TRUE or d in dom q & q.d = TRUE
+    or d in dom p & p.d = FALSE & d in dom q & q.d = FALSE} by Def4;
+    thus
+A3: dom f = dom q
+    proof
+      thus dom f c= dom q;
+      let x;
+      assume x in dom q;
+      then reconsider d = x as Element of D;
+      q.d = TRUE;
+      hence thesis by A1;
+    end;
+    let x;
+    assume
+A5: x in dom f;
+    then q.x = TRUE by FUNCOP_1:7;
+    hence f.x = q.x by A3,A5,Def4;
+  end;
+
+theorem
+  PP_or(PP_True(D),p) = PP_True(D) by Th45;
+
+theorem Th47:
+  PP_and(p,PP_False(D)) = PP_False(D)
+  proof
+    set q = PP_False(D);
+    set f = PP_and(p,q);
+A1: dom f = {d where d is Element of D:
+             d in dom p & p.d = FALSE or d in dom q & q.d = FALSE
+          or d in dom p & p.d = TRUE & d in dom q & q.d = TRUE} by Th16;
+    thus
+A3: dom f = dom q
+    proof
+      thus dom f c= dom q;
+      let x;
+      assume x in dom q;
+      then reconsider d = x as Element of D;
+      q.d = FALSE;
+      hence thesis by A1;
+    end;
+    let x;
+    assume
+A5: x in dom f;
+    then q.x = FALSE by FUNCOP_1:7;
+    hence f.x = q.x by A3,A5,Th19;
+  end;
+
+theorem
+  PP_and(PP_False(D),p) = PP_False(D) by Th47;
+
+theorem Th49:
+  PP_or(p,PP_not(p)) = PP_True(D) | dom p
+  proof
+    set n = PP_not(p);
+    set a = PP_or(p,n);
+    set T = PP_True(D);
+    set t = T | dom p;
+A1: dom n = dom p by Def2;
+A2: dom a = {d where d is Element of D:
+    d in dom p & p.d = TRUE or d in dom n & n.d = TRUE
+    or d in dom p & p.d = FALSE & d in dom n & n.d = FALSE} by Def4;
+    dom T = D;
+    then
+A3: dom t = dom p by RELAT_1:62;
+    thus
+A4: dom a = dom t
+    proof
+      thus dom a c= dom t by A1,A3,Th8;
+      let x;
+      assume
+A5:   x in dom t;
+      then per cases by A3,Th3;
+      suppose p.x = TRUE;
+        hence thesis by A2,A3,A5;
+      end;
+      suppose p.x = FALSE;
+        then n.x = TRUE by A5,A3,Def2;
+        hence thesis by A1,A2,A3,A5;
+      end;
+    end;
+    let x;
+    assume
+A6: x in dom a;
+    then
+A7: TRUE = T.x by FUNCOP_1:7
+    .= t.x by A3,A4,A6,FUNCT_1:49;
+    per cases by A3,A4,A6,Th3;
+    suppose p.x = TRUE;
+      hence thesis by A3,A4,A6,A7,Def4;
+    end;
+    suppose p.x = FALSE;
+      then n.x = TRUE by A3,A4,A6,Def2;
+      hence thesis by A1,A3,A4,A6,A7,Def4;
+    end;
+  end;
+
+theorem
+  PP_or(PP_not(p),p) = PP_True(D) | dom p by Th49;
+
+theorem Th51:
+  PP_and(p,PP_not(p)) = PP_False(D) | dom p
+  proof
+    set n = PP_not(p);
+    set a = PP_and(p,n);
+    set B = PP_False(D);
+    set t = B | dom p;
+A1: dom n = dom p by Def2;
+A2: dom a = {d where d is Element of D:
+    d in dom p & p.d = FALSE or d in dom n & n.d = FALSE
+    or d in dom p & p.d = TRUE & d in dom n & n.d = TRUE} by Th16;
+    dom B = D;
+    then
+A3: dom t = dom p by RELAT_1:62;
+    thus
+A4: dom a = dom t
+    proof
+      thus dom a c= dom t by A1,A3,Th17;
+      let x;
+      assume
+A5:   x in dom t;
+      then per cases by A3,Th3;
+      suppose p.x = FALSE;
+        hence thesis by A2,A3,A5;
+      end;
+      suppose p.x = TRUE;
+        then n.x = FALSE by A3,A5,Def2;
+        hence thesis by A1,A2,A3,A5;
+      end;
+    end;
+    let x;
+    assume
+A6: x in dom a;
+    then
+A7: FALSE = B.x by FUNCOP_1:7
+    .= t.x by A3,A4,A6,FUNCT_1:49;
+    per cases by A3,A4,A6,Th3;
+    suppose p.x = FALSE;
+      hence thesis by A3,A4,A6,A7,Th19;
+    end;
+    suppose p.x = TRUE;
+      then n.x = FALSE by A3,A4,A6,Def2;
+      hence thesis by A1,A3,A4,A6,A7,Th19;
+    end;
+  end;
+
+theorem
+  PP_and(PP_not(p),p) = PP_False(D) | dom p by Th51;
+
+theorem
+  PP_imp(PP_False(D),p) = PP_True(D)
+  proof
+    PP_not(PP_False(D)) = PP_True(D) by Th43;
+    hence thesis by Th45;
+  end;
+
+theorem
+  PP_imp(p,PP_True(D)) = PP_True(D) by Th45;
+
+theorem Th55:
+  PP_or(PP_False(D)|dom p,PP_True(D)|dom q) = PP_True(D) | dom q
+  proof
+    set F = PP_False(D);
+    set T = PP_True(D);
+    set f = F|dom p;
+    set g = T|dom q;
+    set o = PP_or(f,g);
+A1: dom o = {d where d is Element of D:
+     d in dom f & f.d = TRUE or d in dom g & g.d = TRUE
+     or d in dom f & f.d = FALSE & d in dom g & g.d = FALSE} by Def4;
+    dom T = D;
+    then
+A2: dom g = dom q by RELAT_1:62;
+    thus dom o = dom g
+    proof
+      thus dom o c= dom g
+      proof
+        let x;
+        assume
+A3:     x in dom o;
+        then per cases by Th8;
+        suppose that
+A4:       x in dom f and
+A5:       f.x = TRUE;
+          f.x = F.x by A4,FUNCT_1:47;
+          hence thesis by A3,A5,FUNCOP_1:7;
+        end;
+        suppose x in dom g & g.x = TRUE or
+          x in dom f & f.x = FALSE & x in dom g & g.x = FALSE;
+          hence thesis;
+        end;
+      end;
+      let x;
+      assume
+A6:   x in dom g;
+      then g.x = T.x by A2,FUNCT_1:49
+      .= TRUE by A6,FUNCOP_1:7;
+      hence thesis by A1,A6;
+    end;
+    let x;
+    assume
+A7: x in dom o;
+    then per cases by Th8;
+    suppose that
+A8:   x in dom f and
+A9:   f.x = TRUE;
+      f.x = F.x by A8,FUNCT_1:47;
+      hence thesis by A7,A9,FUNCOP_1:7;
+    end;
+    suppose x in dom g & g.x = TRUE or
+      x in dom f & f.x = FALSE & x in dom g & g.x = FALSE;
+      hence thesis by Def4;
+    end;
+  end;
+
+::$N Empty predicate
+definition
+  let D be set;
+  func PP_BottomPred(D) -> PartialPredicate of D equals
+  {};
+  coherence by RELSET_1:12;
+end;
+
+theorem Th56:
+  for D being set holds PP_not(PP_BottomPred(D)) = PP_BottomPred(D)
+  proof
+    let D be set;
+    thus dom PP_not(PP_BottomPred(D)) = dom PP_BottomPred(D) by Def2;
+    hence thesis;
+  end;
+
+theorem Th57:
+  PP_or(PP_BottomPred(D),PP_True(D)) = PP_True(D)
+  proof
+    set B = PP_BottomPred(D);
+    set T = PP_True(D);
+    set o = PP_or(B,T);
+A1: dom(o) = {d where d is Element of D:
+    d in dom B & B.d = TRUE or d in dom T & T.d = TRUE
+    or d in dom B & B.d = FALSE & d in dom T & T.d = FALSE} by Def4;
+    thus dom o = dom T
+    proof
+      thus dom o c= dom T;
+      thus dom T c= dom o
+      proof
+        let x;
+        assume
+A2:     x in dom T;
+        then T.x = TRUE by FUNCOP_1:7;
+        hence thesis by A1,A2;
+      end;
+    end;
+    let x;
+    assume x in dom o;
+    then per cases by Th8;
+    suppose x in dom B & B.x = TRUE or
+      x in dom B & B.x = FALSE & x in dom T & T.x = FALSE;
+      hence thesis;
+    end;
+    suppose x in dom T & T.x = TRUE;
+      hence thesis by Def4;
+    end;
+  end;
+
+theorem
+  PP_and(PP_BottomPred(D),PP_False(D)) = PP_False(D)
+  proof
+    set B = PP_BottomPred(D);
+    set F = PP_False(D);
+    set o = PP_and(B,F);
+A1: dom(o) = {d where d is Element of D:
+    d in dom B & B.d = FALSE or d in dom F & F.d = FALSE
+    or d in dom B & B.d = TRUE & d in dom F & F.d = TRUE} by Th16;
+    thus dom o = dom F
+    proof
+      thus dom o c= dom F;
+      thus dom F c= dom o
+      proof
+        let x;
+        assume
+A2:     x in dom F;
+        then F.x = FALSE by FUNCOP_1:7;
+        hence thesis by A1,A2;
+      end;
+    end;
+    let x;
+    assume x in dom o;
+    then per cases;
+    suppose x in dom B & B.x = FALSE or
+      x in dom B & B.x = TRUE & x in dom F & F.x = TRUE;
+      hence thesis;
+    end;
+    suppose x in dom F & F.x = FALSE;
+      hence thesis by Th19;
+    end;
+  end;
+
+theorem
+  PP_imp(PP_BottomPred(D),PP_True(D)) = PP_True(D)
+  proof
+    thus PP_imp(PP_BottomPred(D),PP_True(D))
+     = PP_or(PP_BottomPred(D),PP_True(D)) by Th56
+    .= PP_True(D) by Th57;
+  end;
+
+begin :: Algebra of partial connectives with (strong) Kleene logical connectives
+
+definition
+  let D;
+  func PartialPredConnectivesMeet(D) -> BinOp of Pr(D) means :Def11:
+  for p,q being PartialPredicate of D holds it.(p,q) = PP_and(p,q);
+  existence
+  proof
+    defpred P[object,object,object] means
+     for p,q being PartialPredicate of D st p = $1 & q = $2
+      holds $3 = PP_and(p,q);
+A1: for x,y being object st x in Pr(D) & y in Pr(D)
+     ex z being object st z in Pr(D) & P[x,y,z]
+    proof
+      let x,y be object;
+      assume x in Pr(D);
+      then reconsider x as PartialPredicate of D by PARTFUN1:46;
+      assume y in Pr(D);
+      then reconsider y as PartialPredicate of D by PARTFUN1:46;
+      take PP_and(x,y);
+      thus thesis by PARTFUN1:45;
+    end;
+    consider f being Function of [:Pr(D),Pr(D):],Pr(D) such that
+A2:  for x,y being object st x in Pr(D) & y in Pr(D) holds P[x,y,f.(x,y)]
+      from BINOP_1:sch 1(A1);
+    take f;
+    let p,q be PartialPredicate of D;
+    p in Pr(D) & q in Pr(D) by PARTFUN1:45;
+    hence thesis by A2;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be BinOp of Pr(D) such that
+A3: for p,q being PartialPredicate of D holds
+    f1.(p,q) = PP_and(p,q) and
+A4: for p,q being PartialPredicate of D holds
+    f2.(p,q) = PP_and(p,q);
+    let x,y be set;
+    assume x in Pr(D);
+    then reconsider x1 = x as PartialPredicate of D
+    by PARTFUN1:46;
+    assume y in Pr(D);
+    then reconsider y1 = y as PartialPredicate of D
+    by PARTFUN1:46;
+    thus f1.(x,y) = PP_and(x1,y1) by A3
+    .= f2.(x,y) by A4;
+  end;
+  func PartialPredConnectivesJoin(D) -> BinOp of Pr(D) means :Def12:
+  for p,q being PartialPredicate of D holds it.(p,q) = PP_or(p,q);
+  existence
+  proof
+    defpred P[object,object,object] means
+     for p,q being PartialPredicate of D st p = $1 & q = $2
+      holds $3 = PP_or(p,q);
+A5: for x,y being object st x in Pr(D) & y in Pr(D)
+     ex z being object st z in Pr(D) & P[x,y,z]
+    proof
+      let x,y be object;
+      assume x in Pr(D);
+      then reconsider x as PartialPredicate of D by PARTFUN1:46;
+      assume y in Pr(D);
+      then reconsider y as PartialPredicate of D by PARTFUN1:46;
+      take PP_or(x,y);
+      thus thesis by PARTFUN1:45;
+    end;
+    consider f being Function of [:Pr(D),Pr(D):],Pr(D) such that
+A6:  for x,y being object st x in Pr(D) & y in Pr(D) holds P[x,y,f.(x,y)]
+      from BINOP_1:sch 1(A5);
+    take f;
+    let p,q be PartialPredicate of D;
+    p in Pr(D) & q in Pr(D) by PARTFUN1:45;
+    hence thesis by A6;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be BinOp of Pr(D) such that
+A7: for p,q being PartialPredicate of D holds
+    f1.(p,q) = PP_or(p,q) and
+A8: for p,q being PartialPredicate of D holds
+    f2.(p,q) = PP_or(p,q);
+    let x,y be set;
+    assume x in Pr(D);
+    then reconsider x1 = x as PartialPredicate of D
+    by PARTFUN1:46;
+    assume y in Pr(D);
+    then reconsider y1 = y as PartialPredicate of D
+    by PARTFUN1:46;
+    thus f1.(x,y) = PP_or(x1,y1) by A7
+    .= f2.(x,y) by A8;
+  end;
+  func PartialPredConnectivesCompl(D) -> UnOp of Pr(D) means :Def13:
+  for p being PartialPredicate of D holds it.p = PP_not(p);
+  existence
+  proof
+    defpred P[object,object] means
+     for p being PartialPredicate of D st p = $1
+      holds $2 = PP_not(p);
+A9: for x being object st x in Pr(D)
+     ex z being object st z in Pr(D) & P[x,z]
+    proof
+      let x be object;
+      assume x in Pr(D);
+      then reconsider x as PartialPredicate of D by PARTFUN1:46;
+      take PP_not(x);
+      thus thesis by PARTFUN1:45;
+    end;
+    consider f being Function of Pr(D),Pr(D) such that
+A10:  for x being object st x in Pr(D) holds P[x,f.x]
+      from FUNCT_2:sch 1(A9);
+    take f;
+    thus thesis by A10,PARTFUN1:45;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be UnOp of Pr(D) such that
+A11: for p being PartialPredicate of D holds
+    f1.p = PP_not(p) and
+A12: for p being PartialPredicate of D holds
+    f2.p = PP_not(p);
+    let x be Element of Pr(D);
+    reconsider x1 = x as PartialPredicate of D by PARTFUN1:46;
+    thus f1.x = PP_not(x1) by A11
+    .= f2.x by A12;
+  end;
+end;
+
+definition
+  let D;
+  func PartialPredConnectivesLatt(D) -> strict OrthoLattStr equals
+   OrthoLattStr(# Pr(D) , PartialPredConnectivesJoin(D) ,
+                            PartialPredConnectivesMeet(D) ,
+                            PartialPredConnectivesCompl(D) #);
+  coherence;
+end;
+
+registration
+  let D be non empty set;
+  let f,g be BinOp of D;
+  let h be UnOp of D;
+  cluster OrthoLattStr(#D,f,g,h#) -> non empty;
+  coherence
+  proof
+    thus the carrier of OrthoLattStr(#D,f,g,h#) is non empty;
+  end;
+end;
+
+registration
+  let D;
+  cluster PartialPredConnectivesLatt(D) ->
+          non empty constituted-Functions;
+  coherence;
+end;
+
+registration
+  cluster non empty constituted-Functions for LattStr;
+  existence
+  proof
+    take PartialPredConnectivesLatt(the non empty set);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster strict non empty constituted-Functions for OrthoLattStr;
+  existence
+  proof
+    take PartialPredConnectivesLatt(the non empty set);
+    thus thesis;
+  end;
+end;
+
+registration
+  let D;
+  cluster PartialPredConnectivesLatt(D) -> Lattice-like;
+  coherence
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    thus L is join-commutative
+    proof
+      let a,b be Element of L;
+      reconsider a1 = a, b1 = b as PartialPredicate of D
+      by PARTFUN1:46;
+      thus a"\/"b = PP_or(b1,a1) by Def12
+      .= b"\/"a by Def12;
+    end;
+    thus L is join-associative
+    proof
+      let a,b,c be Element of L;
+      reconsider a1 = a, b1 = b, c1 = c as PartialPredicate of D
+      by PARTFUN1:46;
+A1:   a"\/"b = PP_or(a1,b1) by Def12;
+      b"\/"c = PP_or(b1,c1) by Def12;
+      hence a"\/"(b"\/"c) = PP_or(a1,PP_or(b1,c1)) by Def12
+      .= PP_or(PP_or(a1,b1),c1) by Th14
+      .= (a"\/"b)"\/"c by A1,Def12;
+    end;
+    thus L is meet-absorbing
+    proof
+      let a,b be Element of L;
+      reconsider a1 = a, b1 = b as PartialPredicate of D
+      by PARTFUN1:46;
+      a"/\"b = PP_and(a1,b1) by Def11;
+      hence (a"/\"b)"\/"b = PP_or(PP_and(a1,b1),b1) by Def12
+      .= b by Th28;
+    end;
+    thus L is meet-commutative
+    proof
+      let a,b be Element of L;
+      reconsider a1 = a, b1 = b as PartialPredicate of D
+      by PARTFUN1:46;
+      thus a"/\"b = PP_and(b1,a1) by Def11
+      .= b"/\"a by Def11;
+    end;
+    thus L is meet-associative
+    proof
+      let a,b,c be Element of L;
+      reconsider a1 = a, b1 = b, c1 = c as PartialPredicate of D
+      by PARTFUN1:46;
+A2:   a"/\"b = PP_and(a1,b1) by Def11;
+      b"/\"c = PP_and(b1,c1) by Def11;
+      hence a"/\"(b"/\"c) = PP_and(a1,PP_and(b1,c1)) by Def11
+      .= PP_and(PP_and(a1,b1),c1) by Th14
+      .= (a"/\"b)"/\"c by A2,Def11;
+    end;
+    thus L is join-absorbing
+    proof
+      let a,b be Element of L;
+      reconsider a1 = a, b1 = b as PartialPredicate of D
+      by PARTFUN1:46;
+      a"\/"b = PP_or(a1,b1) by Def12;
+      hence a"/\"(a"\/"b) = PP_and(a1,PP_or(a1,b1)) by Def11
+      .= a by Th29;
+    end;
+  end;
+  cluster PartialPredConnectivesLatt(D) -> bounded;
+  coherence
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    thus L is lower-bounded
+    proof
+      set c1 = PP_False(D);
+      reconsider c = c1 as Element of L by PARTFUN1:45;
+      take c;
+      let a be Element of L;
+      reconsider a1 = a as PartialPredicate of D by PARTFUN1:46;
+      thus c"/\"a = PP_and(c1,a1) by Def11
+      .= c by Th47;
+      thus a"/\"c = PP_and(a1,c1) by Def11
+      .= c by Th47;
+    end;
+    thus L is upper-bounded
+    proof
+      set c1 = PP_True(D);
+      reconsider c = c1 as Element of L by PARTFUN1:45;
+      take c;
+      let a be Element of L;
+      reconsider a1 = a as PartialPredicate of D by PARTFUN1:46;
+      thus c"\/"a = PP_or(c1,a1) by Def12
+      .= c by Th45;
+      thus a"\/"c = PP_or(a1,c1) by Def12
+      .= c by Th45;
+    end;
+  end;
+  cluster PartialPredConnectivesLatt(D) ->
+     de_Morgan join-idempotent with_idempotent_element;
+  coherence
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    thus L is de_Morgan
+    proof
+      let x,y be Element of L;
+      reconsider p = x, q = y as PartialPredicate of D
+      by PARTFUN1:46;
+      x` = PP_not(p) & y` = PP_not(q) by Def13;
+      then x`"\/"y` = PP_or(PP_not(p),PP_not(q)) by Def12;
+      hence (x` "\/" y`)` = PP_and(p,q) by Def13
+      .= x "/\" y by Def11;
+    end;
+    thus L is join-idempotent;
+    take x = the Element of L;
+    thus x"\/"x = x;
+  end;
+end;
+
+theorem Th60:
+  Top PartialPredConnectivesLatt(D) = PP_True(D)
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    reconsider f = PP_True(D) as Element of L by PARTFUN1:45;
+    for a being Element of L holds f "\/" a = f & a "\/" f = f
+    proof
+      let a be Element of L;
+      reconsider a1 = a as PartialPredicate of D by PARTFUN1:46;
+      thus f"\/"a = PP_or(PP_True(D),a1) by Def12
+      .= f by Th45;
+      hence thesis;
+    end;
+    hence thesis by LATTICES:def 17;
+  end;
+
+theorem Th61:
+  Bottom PartialPredConnectivesLatt(D) = PP_False(D)
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    reconsider f = PP_False(D) as Element of L by PARTFUN1:45;
+    for a being Element of L holds f "/\" a = f & a "/\" f = f
+    proof
+      let a be Element of L;
+      reconsider a1 = a as PartialPredicate of D by PARTFUN1:46;
+      thus f"/\"a = PP_and(PP_False(D),a1) by Def11
+      .= f by Th47;
+      hence thesis;
+    end;
+    hence thesis by LATTICES:def 16;
+  end;
+
+definition
+  let L be non empty constituted-Functions LattStr, a, b be Element of L;
+  pred a is_a_partial_complement_of b means
+  a"\/"b = Top L | dom b & b"\/"a = Top L | dom b &
+  a"/\"b = Bottom L | dom b & b"/\"a = Bottom L | dom b;
+end;
+
+definition
+  let L be non empty constituted-Functions LattStr;
+  attr L is partially_complemented means
+  for b being Element of L
+   ex a being Element of L st a is_a_partial_complement_of b;
+end;
+
+definition
+  let IT be constituted-Functions non empty LattStr;
+  attr IT is partially_Boolean means
+  IT is bounded partially_complemented distributive;
+end;
+
+registration
+  cluster partially_Boolean -> bounded partially_complemented distributive
+      for constituted-Functions non empty LattStr;
+  coherence;
+  cluster bounded partially_complemented distributive -> partially_Boolean
+      for constituted-Functions non empty LattStr;
+  coherence;
+end;
+
+theorem Th62:
+  for a,b being Element of PartialPredConnectivesLatt(D)
+   st a = p & b = PP_not(p) holds b is_a_partial_complement_of a
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    let a,b be Element of L such that
+A1: a = p & b = PP_not(p);
+    Top L = PP_True(D) by Th60;
+    hence Top L | dom a = PP_or(PP_not(p),p) by A1,Th49
+    .= b"\/"a by A1,Def12;
+    hence a"\/"b = Top L | dom a;
+    Bottom L = PP_False(D) by Th61;
+    hence Bottom L | dom a = PP_and(PP_not(p),p) by A1,Th51
+    .= b"/\"a by A1,Def11;
+    hence a"/\"b = Bottom L | dom a;
+  end;
+
+registration
+  let D;
+  cluster PartialPredConnectivesLatt(D) -> partially_Boolean;
+  coherence
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    thus L is bounded;
+    thus L is partially_complemented
+    proof
+      let b be Element of L;
+      reconsider b1 = b as PartialPredicate of D by PARTFUN1:46;
+      reconsider a = PP_not(b1) as Element of L by PARTFUN1:45;
+      take a;
+      thus thesis by Th62;
+    end;
+    thus L is distributive
+    proof
+      let a,b,c be Element of L;
+      reconsider a1 = a, b1 = b, c1 = c as PartialPredicate of D
+      by PARTFUN1:46;
+A1:   a"/\"b = PP_and(a1,b1) & a"/\"c = PP_and(a1,c1) by Def11;
+      b"\/"c = PP_or(b1,c1) by Def12;
+      hence a"/\"(b"\/"c) = PP_and(a1,PP_or(b1,c1)) by Def11
+      .= PP_or(PP_and(a1,b1),PP_and(a1,c1)) by Th30
+      .= (a"/\"b)"\/"(a"/\"c) by A1,Def12;
+    end;
+  end;
+end;
+
+::$N Distributivity law
+theorem
+  PP_or(p,PP_and(q,r)) = PP_and(PP_or(p,q),PP_or(p,r))
+  proof
+    reconsider a = p, b = q, c = r
+     as Element of PartialPredConnectivesLatt(D) by PARTFUN1:45;
+A1: PP_or(p,q) = a"\/"b & PP_or(p,r) = a"\/"c by Def12;
+    PP_and(q,r) = b"/\"c by Def11;
+    then
+A2: PP_or(p,PP_and(q,r)) = a"\/"(b"/\"c) by Def12;
+    PP_and(PP_or(p,q),PP_or(p,r)) = (a"\/"b)"/\"(a"\/"c) by A1,Def11;
+    hence thesis by A2,LATTICES:11;
+  end;
+
+definition
+  let L be non empty OrthoLattStr;
+  attr L is Kleene means
+  for x,y being Element of L holds x"/\"x` [= y"\/"y`;
+end;
+
+registration
+  cluster Boolean well-complemented -> Kleene for
+    meet-absorbing join-absorbing meet-commutative non empty OrthoLattStr;
+  coherence
+  proof
+    let L be meet-absorbing join-absorbing meet-commutative
+    non empty OrthoLattStr such that
+A1: L is Boolean and
+A2: L is well-complemented;
+    let x,y be Element of L;
+    x` is_a_complement_of x & y` is_a_complement_of y by A2;
+    hence (x"/\"x`) "\/" (y"\/"y`) = (y"\/"y`) by A1,LATTICES:def 17;
+  end;
+end;
+
+registration
+  let D;
+  cluster PartialPredConnectivesLatt(D) -> Kleene;
+  coherence
+  proof
+    set L = PartialPredConnectivesLatt(D);
+    let x,y be Element of L;
+    reconsider p = x, q = y as PartialPredicate of D
+    by PARTFUN1:46;
+    x` = PP_not(p) by Def13;
+    then
+A1: x"/\"x` = PP_and(p,PP_not(p)) by Def11;
+    y` = PP_not(q) by Def13;
+    then
+A2: y"\/"y` = PP_or(q,PP_not(q)) by Def12;
+A3: PP_or(q,PP_not(q)) = PP_True(D) | dom q by Th49;
+    PP_and(p,PP_not(p)) = PP_False(D) | dom p by Th51;
+    then PP_or(PP_and(p,PP_not(p)),PP_or(q,PP_not(q))) = PP_or(q,PP_not(q))
+     by A3,Th55;
+    hence (x"/\"x`) "\/" (y"\/"y`) = y"\/"y` by A1,A2,Def12;
+  end;
+end;
+
+registration
+  cluster partially_Boolean join-idempotent Lattice-like
+          for non empty constituted-Functions LattStr;
+  existence
+  proof
+    take PartialPredConnectivesLatt(the non empty set);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster Kleene de_Morgan join-idempotent with_idempotent_element
+          Lattice-like strict
+          for non empty OrthoLattStr;
+  existence
+  proof
+    take PartialPredConnectivesLatt(the non empty set);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster partially_Boolean Kleene de_Morgan
+          join-idempotent with_idempotent_element Lattice-like strict
+          for non empty constituted-Functions OrthoLattStr;
+  existence
+  proof
+    take PartialPredConnectivesLatt(the non empty set);
+    thus thesis;
+  end;
+end;
+

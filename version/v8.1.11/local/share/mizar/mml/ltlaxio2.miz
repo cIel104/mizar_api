@@ -1,0 +1,2076 @@
+:: The Derivations of Temporal Logic Formulas
+::  by Mariusz Giero
+::
+:: Received May 7, 2012
+:: Copyright (c) 2012-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, CARD_1, ORDINAL4, SUBSET_1, NUMBERS, ARYTM_3, TARSKI,
+      RELAT_1, XBOOLE_0, FUNCT_1, XBOOLEAN, MODELC_2, CQC_THE1, NAT_1,
+      XXREAL_0, ARYTM_1, PARTFUN1, MARGREL1, ZF_MODEL, RFINSEQ, FINSEQ_4,
+      LTLAXIO1, LTLAXIO2, XCMPLX_0;
+ notations TARSKI, XBOOLE_0, ENUMSET1, SUBSET_1, SETFAM_1, ORDINAL1, CARD_1,
+      RELAT_1, FUNCT_1, RELSET_1, PARTFUN1, DOMAIN_1, NUMBERS, XCMPLX_0, NAT_1,
+      XXREAL_0, TREES_1, TREES_2, TREES_4, TREES_9, XREAL_0, NAT_D, FUNCT_2,
+      BINOP_1, FUNCOP_1, FINSEQ_1, FINSEQ_2, FINSEQ_4, AFINSQ_1, LEXBFS,
+      RFINSEQ, RFINSEQ2, HILBERT1, STRUCT_0, XBOOLEAN, MARGREL1, AOFA_I00,
+      LTLAXIO1, RLAFFIN3;
+ constructors XXREAL_0, NAT_D, RELSET_1, AOFA_I00, HILBERT2, LTLAXIO1,
+      FINSET_1, RFINSEQ, DOMAIN_1, AFINSQ_2, REAL_1, STRUCT_0, FUNCOP_1,
+      XREAL_0, MATROID0, LEXBFS, MCART_1, CARD_1, RLAFFIN3, FINSEQ_4, FINSEQ_5,
+      FINSEQ_2, RFINSEQ2, BINOP_2, ENUMSET1, SETFAM_1, TREES_9, TREES_2,
+      TREES_4, AFINSQ_1;
+ registrations ORDINAL1, XXREAL_0, NAT_1, XBOOLEAN, RELSET_1, MARGREL1,
+      XBOOLE_0, XREAL_0, HILBERT1, FINSEQ_1, LTLAXIO1, CARD_1;
+ requirements NUMERALS, SUBSET, ARITHM, REAL;
+ definitions LTLAXIO1;
+ equalities XBOOLEAN, LTLAXIO1, FINSEQ_1, ORDINAL1;
+ expansions LTLAXIO1;
+ theorems NAT_1, XXREAL_0, FINSEQ_1, NAT_D, XBOOLEAN, PARTFUN1, XREAL_1,
+      ORDINAL1, XREAL_0, LTLAXIO1, FINSEQ_4, RFINSEQ, RELAT_1, FINSEQ_5,
+      FUNCT_1, FINSEQ_3, FINSEQ_6, FINSEQ_2, PARTFUN2;
+ schemes NAT_1, FINSEQ_1, RECDEF_1;
+
+begin :: Preliminaries
+
+reserve A,B,p,q,r,s for Element of LTLB_WFF,
+  i,j,k,n for Element of NAT,
+  X for Subset of LTLB_WFF,
+  f,f1 for FinSequence of LTLB_WFF,
+  g for Function of LTLB_WFF,BOOLEAN;
+
+set l = LTLB_WFF;
+
+Lm1: for f be FinSequence holds f.0 = 0
+  proof
+    let f be FinSequence;
+    not 0 in dom f by FINSEQ_3:24;
+    hence f.0 = 0 by FUNCT_1:def 2;
+  end;
+
+registration let f be FinSequence, x be empty set;
+  cluster f.x -> empty;
+  coherence by Lm1;
+end;
+
+theorem Th1:
+  for f being FinSequence st len f > 0 & n > 0 holds len (f|n) > 0
+  proof
+    let f be FinSequence;
+    assume that
+A1: len f > 0 and
+A2: n > 0;
+    per cases;
+    suppose
+      n <= len f;
+      hence thesis by FINSEQ_1:59,A2;
+    end;
+    suppose
+      n > len f;
+      hence thesis by FINSEQ_1:58,A1;
+    end;
+  end;
+
+theorem Th2: for f be FinSequence st len f = 0 holds f/^n = f
+  proof
+    let f be FinSequence;
+    assume
+A1: len f = 0;
+    per cases;
+    suppose
+A2:   n = 0;
+      then len (f/^n) = len f - n by RFINSEQ:def 1
+      .= 0 by A1,A2;
+      then f/^n = {};
+      hence thesis by A1;
+    end;
+    suppose
+      n > 0;
+      then f/^n = {} by A1,RFINSEQ:def 1;
+      hence thesis by A1;
+    end;
+  end;
+
+theorem Th3:
+  for f,g be FinSequence st rng f = rng g holds (len f = 0 iff len g = 0)
+  proof
+    let f,g be FinSequence;
+    assume
+A1: rng f = rng g;
+    hereby
+      assume
+      len f = 0;
+      then f = {};
+      then g = {} by RELAT_1:38,A1 ,RELAT_1:41;
+      hence len g = 0;
+    end;
+    assume
+    len g = 0;
+    then g = {};
+    then f = {} by RELAT_1:38,A1 ,RELAT_1:41;
+    hence len f = 0;
+  end;
+
+definition
+  let A,B;
+  func untn(A,B) -> Element of LTLB_WFF equals B 'or' (A '&&' (A 'U' B));
+  coherence;
+end;
+
+theorem Th4: (VAL g).TVERUM = 1
+  proof
+    thus (VAL g).TVERUM = (VAL g).TFALSUM => (VAL g).TFALSUM by LTLAXIO1:def 15
+    .= FALSE => (VAL g).TFALSUM by LTLAXIO1:def 15
+    .= 1;
+  end;
+
+set tf = TFALSUM;
+
+theorem Th5: (VAL g).(p 'or' q) = (VAL g).p 'or' (VAL g).q
+  proof
+    set v = VAL g;
+A1: v.tf = FALSE by LTLAXIO1:def 15;
+    thus v.(p 'or' q) = v.(('not' p) '&&' ('not' q)) => v.tf by LTLAXIO1:def 15
+    .= v.('not' p) '&' v.('not' q) => v.tf by LTLAXIO1:31
+    .= (v.p => v.tf) '&' v.('not' q) => v.tf by LTLAXIO1:def 15
+    .= (v.p => v.tf) '&' (v.q => v.tf) => v.tf by LTLAXIO1:def 15
+    .= v.p 'or' v.q by A1;
+  end;
+
+notation
+  let p;
+  synonym p is ctaut for p is LTL_TAUT_OF_PL;
+end;
+
+begin :: $n$-argument Connectives and Their Properties
+
+definition
+   let f;
+   func con f -> FinSequence of LTLB_WFF means :Def2:
+   len it = len f & it.1 = f.1 & for i being Nat st 1 <= i & i < len f holds
+   it.(i+1) = it/.i '&&' f/.(i+1) if len f > 0 otherwise it = <*TVERUM*>;
+   existence
+   proof
+     defpred P[Nat,set,set] means
+     ex A,B st A = $2 & B = $3 & B = A '&&' f/.($1 + 1);
+A1:  now
+       let n be Nat;
+       assume 1 <= n & n < len f;
+       let x being Element of l;
+       P[n,x,x '&&' f/.(n+1)];
+       hence ex y being Element of l st P[n,x,y];
+     end;
+     consider p being FinSequence of l such that
+A2:  len p = len f & (p.1 = f/.1 or len f = 0) & for n being Nat st
+     1 <= n & n < len f holds P[n,p.n,p.(n+1)] from RECDEF_1:sch 4(A1);
+     thus len f > 0 implies ex p be FinSequence of l st len p = len f &
+     p.1 = f.1 &
+     for i being Nat st 1 <= i & i < len f holds p.(i+1) = p/.i '&&' f/.(i+1)
+     proof
+A3:    now
+         let i be Nat;
+         assume
+A4:      1 <= i & i < len f;
+         then ex A,B st A = p.i & B = p.(i+1) & B = A '&&' f/.(i + 1) by A2;
+         hence p.(i+1) = p/.i '&&' f/.(i+1) by FINSEQ_4:15,A4,A2;
+       end;
+       assume
+       len f > 0;
+       then 1 <= len f by NAT_1:25;
+       hence thesis by A3,A2, FINSEQ_4:15;
+     end;
+     thus thesis;
+   end;
+   uniqueness
+   proof
+     let f1,f2 be FinSequence of l;
+     thus len f > 0 & (len f1 = len f & f1.1 = f.1 &
+     for i being Nat st 1 <= i & i < len f
+          holds f1.(i+1) = f1/.i '&&' f/.(i+1)) &
+     (len f2 = len f & f2.1 = f.1 &
+    for i being Nat st 1 <= i & i < len f holds
+     f2.(i+1) = f2/.i '&&' f/.(i+1)) implies f1 = f2
+     proof
+       assume that
+A5:    len f > 0 and
+A6:    len f1 = len f and
+A7:    f1.1 = f.1 and
+A8:    for i being Nat st 1 <= i & i < len f
+           holds f1.(i+1) = f1/.i '&&' f/.(i+1) and
+A9:    len f2 = len f and
+A10:   f2.1 = f.1 and
+A11:   for i being Nat st 1 <= i & i < len f
+         holds f2.(i+1) = f2/.i '&&' f/.(i+1);
+A12:   1 <= len f2 by NAT_1:25,A5, A9;
+       1 <= len f1 by A6,NAT_1:25,A5;
+       then A13: f1/.1 = f1.1 by FINSEQ_4:15
+       .= f2/.1 by FINSEQ_4:15,A12,A10,A7;
+A14:   now
+         defpred P[Nat] means
+         $1 < len f implies f1.($1+1) = f2.($1+1);
+         let n;
+         set m = n -' 1;
+         assume
+A15:     n in dom f1;
+         then 1 + (-1) <= n + (-1) by XREAL_1:6,FINSEQ_3:25;
+         then A16: m = n - 1 by XREAL_0:def 2;
+         then A17: m + 1 <= len f by A6, A15,FINSEQ_3:25;
+A18:     for i being Nat st P[i] holds P[i + 1]
+         proof
+           let i be Nat;
+           assume
+A19:       P[i];
+           assume
+A20:       i + 1 < len f;
+A21:       1 <= i + 1 by NAT_1:25;
+           per cases by NAT_1:25;
+           suppose
+A22:         i = 0;
+             thus f1.(i+1+1) = f1/.(i+1) '&&' f/.(i+1+1) by A20,A21,A8
+             .= f2.(i+1+1) by A20,A11,A22,A13;
+           end;
+           suppose
+             i >= 1;
+             f1/.(i+1) = f2.(i+1) by A19, A20,NAT_1:12,FINSEQ_4:15, A6
+             .= f2/.(i+1) by FINSEQ_4:15,A21, A9,A20;
+             hence f1.(i+1+1) = f2/.(i+1) '&&' f/.(i+1+1) by A20,A21,A8
+             .= f2.(i+1+1) by A20,A21,A11;
+           end;
+         end;
+A23:     P[0] by A7,A10;
+A24:     for i being Nat holds P[i] from NAT_1:sch 2(A23,A18);
+         thus f1.n = f2.n by A16,A24, A17,XREAL_1:145;
+       end;
+       dom f1 = dom f2 by A6, A9,FINSEQ_3:29;
+       hence thesis by A14,PARTFUN1:5;
+     end;
+     thus thesis;
+   end;
+   consistency;
+end;
+
+definition
+   let f,A;
+   func impg(f,A) -> FinSequence of LTLB_WFF means
+   len it = len f & it.1 = ('G' f/.1) => A & for i st
+   1 <= i & i < len f holds it.(i+1) = ('G' f/.(i+1)) => it/.i if len f > 0
+   otherwise it = <*> LTLB_WFF;
+   existence
+   proof
+     defpred P[Nat,set,set] means
+     ex A,B st A = $2 & B = $3 & B = ('G' f/.($1 + 1)) => A;
+A1:  now
+       let n be Nat;
+       assume 1 <= n & n < len f;
+       let x being Element of l;
+       P[n,x,('G' f/.(n+1)) => x];
+       hence ex y being Element of l st P[n,x,y];
+     end;
+     consider p being FinSequence of l such that
+A2:  len p = len f & (p.1 = ('G' f/.1) => A or len f = 0) & for n being Nat
+     st 1 <= n & n < len f holds P[n,p.n,p.(n+1)] from RECDEF_1:sch 4(A1);
+     thus len f > 0 implies ex p be FinSequence of l st len p = len f &
+     p.1 = ('G' f/.1) => A &
+     for i st 1 <= i & i < len f holds p.(i+1) = ('G' f/.(i+1)) => p/.i
+     proof
+       assume
+A3:    len f > 0;
+       take p;
+       now
+         let i;
+         assume
+A4:      1 <= i & i < len f;then
+         ex A,B st A = p.i & B = p.(i+1) & B = ('G' f/.(i + 1)) => A by A2;
+         hence p.(i+1) = ('G' f/.(i+1)) => (p/.i) by FINSEQ_4:15, A4,A2;
+       end;
+       hence thesis by A2,A3;
+     end;
+     thus thesis;
+   end;
+   uniqueness
+   proof
+     let f1,f2 be FinSequence of l;
+     thus len f > 0 & len f1 = len f & f1.1 = ('G' f/.1) => A &
+     (for i st 1 <= i & i < len f holds f1.(i+1) = ('G' f/.(i+1)) => f1/.i) &
+     len f2 = len f & f2.1 = ('G' f/.1) => A & (for i st 1 <= i & i < len f
+     holds f2.(i+1) = ('G' f/.(i+1)) => f2/.i) implies f1 = f2
+     proof
+       assume that
+A5:    len f > 0 and
+A6:    len f1 = len f and
+A7:    f1.1 = ('G' f/.1) => A and
+A8:    for i st 1 <= i & i < len f holds f1.(i+1) = ('G' f/.(i+1)) => f1/. i
+       and
+A9:    len f2 = len f and
+A10:   f2.1 = ('G' f/.1) => A and
+A11:   for i st 1 <= i & i < len f holds f2.(i+1) = ('G' f/.(i+1)) => f2/. i;
+A12:   1 <= len f2 by A9,NAT_1:25,A5;
+       1 <= len f1 by A6,NAT_1:25,A5;
+       then A13: f1/.1 = f1.1 by FINSEQ_4:15
+       .= f2/.1 by FINSEQ_4:15,A12,A10,A7;
+A14:   now
+         defpred P[Nat] means
+         $1 < len f implies f1.($1+1) = f2.($1+1);
+         let n;
+         set m = n -' 1;
+         assume
+         n in dom f1;
+         then A15: n in Seg len f1 by FINSEQ_1:def 3;
+         then 1 <= n by FINSEQ_1:1;
+         then 1 + (-1) <= n + (-1) by XREAL_1:6;
+         then A16: m = n - 1 by XREAL_0:def 2;
+         then A17: m + 1 <= len f by A6, A15,FINSEQ_1:1;
+A18:     for i being Nat st P[i] holds P[i + 1]
+         proof
+           let i be Nat;
+           assume
+A19:       P[i];
+           assume
+A20:       i + 1 < len f;
+A21:       1 <= i + 1 by NAT_1:25;
+           per cases by NAT_1:25;
+           suppose
+             i = 0;
+             hence f1.(i+1+1) = ('G' f/.(i+1+1)) => f2/.(i+1) by A13,A20,A8
+             .= f2.(i+1+1) by A20,A21,A11;
+           end;
+           suppose
+             i >= 1;
+A22:         f1/.(i+1) = f1.(i+1) by FINSEQ_4:15, A6,A20,A21
+             .= f2/.(i+1) by FINSEQ_4:15, A9,A20,A19,NAT_1:12;
+             thus f1.(i+1+1) = ('G' f/.(i+1+1)) => f1/.(i+1) by A20,A21 ,A8
+             .= f2.(i+1+1) by A20,A21,A11,A22;
+           end;
+         end;
+A23:     P[0] by A7,A10;
+A24:     for i being Nat holds P[i] from NAT_1:sch 2(A23,A18);
+         thus f1.n = f2.n by A16,A24, A17,XREAL_1:145;
+       end;
+       dom f1 = dom f2 by FINSEQ_3:29,A6,A9;
+       hence thesis by A14,PARTFUN1:5;
+     end;
+     thus thesis;
+   end;
+   consistency;
+end;
+
+definition
+   let f;
+   func nega f -> FinSequence of LTLB_WFF means :Def4:
+   len it = len f & for i st 1 <= i & i <= len f holds it.i = 'not' f/.i;
+   existence
+   proof
+     defpred P1[set,set] means $2 = 'not' f/.$1;
+A1:for k being Nat st k in Seg len f holds ex x being Element of l st P1[k,x];
+     consider p being FinSequence of l such that
+A2:  dom p = Seg len f &
+     for k being Nat st k in Seg len f holds P1[k,p.k] from FINSEQ_1:sch 5(A1);
+A3:  now
+       let i;
+       assume 1 <= i & i <= len f;
+       then i in Seg len f;
+       hence p.i = 'not' f/.i by A2;
+     end;
+     len p = len f by A2,FINSEQ_1:def 3;
+     hence thesis by A3;
+   end;
+   uniqueness
+   proof
+     let f1,f2 be FinSequence of l such that
+A4:  len f1 = len f and
+A5:  for i st 1 <= i & i <= len f holds f1.i = 'not' f/.i and
+A6:  len f2 = len f and
+A7:  for i st 1 <= i & i <= len f holds f2.i = 'not' f /.i;
+A8:  now
+       let x be Element of NAT such that
+A9:    x in dom f1;
+       x in Seg len f1 by A9,FINSEQ_1:def 3;
+       then A10: 1 <= x & x <= len f by FINSEQ_1:1,A4;
+       hence f1.x = 'not' f/.x by A5
+       .= f2.x by A7,A10;
+     end;
+     dom f1 = Seg len f1 by FINSEQ_1:def 3
+     .= dom f2 by A4,A6,FINSEQ_1:def 3;
+     hence f1 = f2 by A8,PARTFUN1:5;
+   end;
+ end;
+
+deffunc alt(FinSequence of l) = 'not'((con nega $1)/.(len con nega $1));
+deffunc kon(FinSequence of l) = ((con $1)/.(len con $1));
+
+definition
+  let f;
+  func nex f -> FinSequence of LTLB_WFF means :Def5:
+  len it = len f & for i st 1 <= i & i <= len f holds it.i = 'X' f/.i;
+  existence
+  proof
+    defpred P1[set,set] means $2 = 'X' f/.$1;
+A1: for k being Nat st k in Seg len f holds ex x being Element of l st P1[k,x];
+    consider p being FinSequence of l such that
+A2: dom p = Seg len f &
+    for k being Nat st k in Seg len f holds P1[k,p.k] from FINSEQ_1:sch 5(A1);
+A3: now
+      let i;
+      assume 1 <= i & i <= len f;
+      then i in Seg len f;
+      hence p.i = 'X' f/.i by A2;
+    end;
+    len p = len f by A2,FINSEQ_1:def 3;
+    hence thesis by A3;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be FinSequence of l such that
+A4: len f1 = len f and
+A5: for i st 1 <= i & i <= len f holds f1.i = 'X' f/.i and
+A6: len f2 = len f and
+A7: for i st 1 <= i & i <= len f holds f2.i = 'X' f/. i;
+A8: now
+      let x being Element of NAT such that
+A9:   x in dom f1;
+      x in Seg len f1 by A9,FINSEQ_1:def 3;
+      then A10: 1 <= x & x <= len f by FINSEQ_1:1,A4;
+      hence f1.x = 'X' f/.x by A5
+      .= f2.x by A7,A10;
+    end;
+    dom f1 = Seg len f1 by FINSEQ_1:def 3
+    .= dom f2 by FINSEQ_1:def 3,A4,A6;
+    hence f1 = f2 by A8,PARTFUN1:5;
+  end;
+end;
+
+theorem Th6: len f > 0 implies (con f)/.1 = f/.1
+  proof
+   assume
+A1: len f > 0;
+    then A2: 1 <= len f by NAT_1:25;
+    then len con f >= 1 by Def2;
+    hence (con f)/.1 = (con f).1 by FINSEQ_4:15
+    .= f.1 by Def2,A1
+    .= f/.1 by FINSEQ_4:15,A2;
+  end;
+
+theorem Th7:
+  for i be Nat st 1 <= i & i < len f holds
+  (con f)/.(i+1) = (con f)/.i '&&' f/.(i+1)
+  proof
+    let i be Nat;
+    assume that
+A1: 1 <= i and
+A2: i < len f;
+    reconsider i1 = i as Element of NAT by ORDINAL1:def 12;
+    i < len con f by A2,Def2;
+    then i+1 <= len con f by NAT_1:13;
+    hence (con f)/.(i+1) = (con f).(i1+1) by FINSEQ_4:15, NAT_1:12
+    .= (con f)/.i '&&' f/.(i+1) by Def2,A1,A2;
+  end;
+
+theorem Th8: for i be Nat st i in dom f holds (nega f)/.i = 'not' (f/.i)
+  proof
+    let i be Nat;
+    reconsider i1 = i as Element of NAT by ORDINAL1:def 12;
+    assume
+A1: i in dom f;
+    then A2: 1 <= i by FINSEQ_3:25;
+A3: i <= len f by A1,FINSEQ_3:25;
+    then i <= len nega f by Def4;
+    hence (nega f)/.i = (nega f).i1 by A2,FINSEQ_4:15
+    .= 'not' (f/.i) by Def4,A2,A3;
+  end;
+
+theorem for i be Nat st i in dom f holds (nex f)/.i = 'X' (f/.i)
+  proof
+    let i be Nat;
+    reconsider i1 = i as Element of NAT by ORDINAL1:def 12;
+    assume
+A1: i in dom f;
+    then A2: 1 <= i by FINSEQ_3:25;
+A3: i <= len f by A1,FINSEQ_3:25;
+    then i <= len nex f by Def5;
+    hence (nex f)/.i = (nex f).i1 by A2,FINSEQ_4:15
+    .= 'X' (f/.i) by Def5,A2,A3;
+  end;
+
+theorem Th10: (con <*>LTLB_WFF)/.(len con <*>LTLB_WFF) = TVERUM
+  proof
+A1: len <*>l = 0;
+    then con <*>l = <*TVERUM*> by Def2;
+    then A2: len con <*>l = 1 by FINSEQ_1:39;
+    hence kon(<*>l) = (con <*>l).(len con <*>l) by FINSEQ_4:15
+    .= <*TVERUM*>.(len con <*>l) by Def2,A1
+    .= TVERUM by FINSEQ_1:40,A2;
+  end;
+
+theorem Th11: (con <*A*>)/.(len con <*A*>) = A
+  proof
+    set f = <*A*>;
+A1: len f = 1 by FINSEQ_1:39;
+   thus kon(f) = (con f)/.(len f) by Def2
+    .= f/.1 by Th6,A1
+    .= A by FINSEQ_4:16;
+  end;
+
+theorem Th12: for k,n being Nat holds n <= k implies (con f).n = (con (f|k)).n
+  proof
+    let k,n be Nat;
+    defpred P[Nat] means $1 <= k implies
+    (con f).$1 = (con (f|k)).$1;
+A1: now
+      let i be Nat;
+      assume
+A2:   P[i];
+      thus P[i+1]
+      proof
+        assume
+A3:     i+1 <= k;
+        then A4: 1 <= k by NAT_1:25;
+A5:     i < k by A3,NAT_1:13;
+        per cases;
+        suppose
+A6:       k <= len f;
+          then A7: len (f|k) = k by FINSEQ_1:59;
+A8:       i < len (f|k) by A5, FINSEQ_1:59,A6;
+          then A9: i < len con (f|k) by Def2;
+          i+1 <= len f by A6,A3,XXREAL_0:2;
+          then A10: i < len f by NAT_1:13;
+          then A11: i < len con f by Def2;
+          per cases by NAT_1:25;
+          suppose
+A12:        i = 0;
+            hence (con f).(i+1) = f.1 by Def2, A6, A3
+            .= (f|k).1 by A4,FINSEQ_3:112
+            .= (con (f|k)).(i+1) by Def2,A12, A7, A3;
+          end;
+          suppose
+A13:        1 <= i;
+            1 <= i+1 by XREAL_1:31;
+            then A14: i+1 in Seg k by A3;
+            k in Seg len f by A6,A4;
+            then k in dom f by FINSEQ_1:def 3;
+            then A15: f/.(i+1) = (f|k)/.(i+1) by A14,FINSEQ_4:71;
+A16:        (con f)/.i = (con f).i by A11,A13,FINSEQ_4:15
+            .= (con (f|k))/.i by A9,A13,FINSEQ_4:15,A2, A3,NAT_1:13;
+            thus (con f).(i+1) = ((con f)/.i '&&' f/.(i+1)) by Def2,A10,A13
+            .= (con (f|k)).(i+1) by Def2,A13,A8,A15,A16;
+          end;
+        end;
+        suppose
+          k > len f;
+          hence (con f).(i+1) = (con (f|k)).(i+1) by FINSEQ_1:58;
+        end;
+      end;
+    end;
+     (con f).0 = 0 .= (con (f|k)).0;
+     then
+A17: P[0];
+     for n being Nat holds P[n] from NAT_1:sch 2(A17,A1);
+     hence thesis;
+   end;
+
+theorem Th13:
+  for k,n being Nat holds
+  (n <= k & 1 <= n & n <= len f implies (con f)/.n = (con (f|k))/.n)
+  proof
+    let k,n be Nat;
+    assume that
+A1: n <= k and
+A2: 1 <= n and
+A3: n <= len f;
+A4: n <= len con f by A2,A3,Def2;
+    per cases;
+    suppose
+      k <= len f;
+      then A5: n <= len (f|k) by FINSEQ_1:59,A1;
+      then A6: len con (f|k) = len (f|k) by A2,Def2;
+      thus (con f)/.n = (con f).n by FINSEQ_4:15,A2,A4
+      .= (con (f|k)).n by Th12,A1
+      .= (con (f|k))/.n by FINSEQ_4:15,A2, A6,A5;
+    end;
+    suppose
+      k > len f;
+      hence (con f)/.n = (con (f|k))/.n by FINSEQ_1:58;
+    end;
+  end;
+
+theorem nega <*A*> = <*'not' A*>
+   proof
+A1:  now
+       let n;
+       assume that
+A2:    1 <= n
+       and
+A3:    n <= len <*A*>;
+       n <= 1 by A3,FINSEQ_1:39;
+       then A4: n = 1 by A2,NAT_1:25;
+       hence <*'not' A*>.n = 'not' A by FINSEQ_1:40
+       .= 'not' (<*A*>/.n) by FINSEQ_4:16,A4;
+     end;
+     len <*'not' A*> = 1 by FINSEQ_1:39
+     .= len <*A*> by FINSEQ_1:39;
+     hence thesis by A1,Def4;
+   end;
+
+theorem nega (f^<*A*>) = (nega f)^<*'not' A*>
+  proof
+    set p = nega (f^<*A*>),q = (nega f)^<*'not' A*>;
+    len p = len (f^<*A*>) by Def4;
+    then A1: dom p = dom (f^<*A*>) by FINSEQ_3:29;
+A2: len p = len (f^<*A*>) by Def4
+    .= len f + len <*A*> by FINSEQ_1:22
+    .= len f + 1 by FINSEQ_1:39
+    .= len nega f + 1 by Def4
+    .= len nega f + len <*'not' A*> by FINSEQ_1:39
+    .= len q by FINSEQ_1:22;
+    now
+      let j be Nat;
+A3:   len (f^<*A*>) = len f + len <*A*> by FINSEQ_1:22
+      .= len f + 1 by FINSEQ_1:39;
+      assume
+A4:   j in dom p;
+      then A5: 1 <= j by FINSEQ_3:25;
+      j <= len p by A4,FINSEQ_3:25;
+      then A6: j <= len f + 1 by A3,Def4;
+A7:   j in dom q by A4, A2,FINSEQ_3:29;
+      per cases by A6,XXREAL_0:1;
+      suppose
+A8:     j = len f + 1;
+        then A9: j = len (nega f) + 1 by Def4;
+        thus p.j = p/.j by PARTFUN1:def 6,A4
+        .= 'not' (f^<*A*>)/.j by Th8,A4,A1
+        .= 'not' A by FINSEQ_4:67,A8
+        .= q/.j by A9,FINSEQ_4:67
+        .= q.j by PARTFUN1:def 6,A7;
+      end;
+      suppose
+        j < len f + 1;
+        then A10: j <= len f by NAT_1:13;
+        then A11: j in dom f by A5,FINSEQ_3:25;
+        j <= len nega f by A10,Def4;
+        then A12: j in dom nega f by FINSEQ_3:25,A5;
+        thus p.j = p/.j by PARTFUN1:def 6,A4
+        .= 'not' (f^<*A*>)/.j by Th8,A4,A1
+        .= 'not' f/.j by FINSEQ_4:68,A11
+        .= (nega f)/.j by Th8,A11
+        .= q/.j by FINSEQ_4:68,A12
+        .= q.j by PARTFUN1:def 6,A7;
+      end;
+    end;
+    hence thesis by FINSEQ_2:9,A2;
+  end;
+
+theorem nega (f^f1) = (nega f)^(nega f1)
+ proof
+   set c1 = nega (f^f1), c2 = (nega f) ^ (nega f1);
+A1: len c1 = len (f^f1) by Def4
+    .= len f + len f1 by FINSEQ_1:22
+    .= len f + len nega f1 by Def4
+    .= len nega f + len nega f1 by Def4
+    .= len c2 by FINSEQ_1:22;
+    now
+      let j being Nat;
+      assume
+A2:   j in dom c1;
+      then A3: 1 <= j by FINSEQ_3:25;
+      j <= len c1 by A2,FINSEQ_3:25;
+      then A4: j <= len (f^f1) by Def4;
+      then A5: j in dom (f^f1) by FINSEQ_3:25,A3;
+A6:   j in dom c2 by A2, A1,FINSEQ_3:29;
+      per cases;
+      suppose
+A7:     j <= len f;
+        then j <= len nega f by Def4;
+        then A8: j in dom nega f by A3,FINSEQ_3:25;
+A9:     j in dom f by A7,A3,FINSEQ_3:25;
+        thus c1.j = c1/.j by PARTFUN1:def 6,A2
+        .= 'not' ((f^f1)/.j) by Th8,A5
+        .= 'not' (f/.j) by FINSEQ_4:68,A9
+        .= (nega f)/.j by Th8,A9
+        .= c2/.j by FINSEQ_4:68,A8
+        .= c2.j by PARTFUN1:def 6,A6;
+      end;
+      suppose
+A10:    j > len f;
+        then consider k be Nat such that
+A11:    j = len f + k by NAT_1:10;
+A12:    now
+          assume
+          k > len f1;
+          then j > len f1 + len f by XREAL_1:8,A11;
+          hence contradiction by A4,FINSEQ_1:22;
+        end;
+        k = 0 or k > 0;
+        then A13: 1 <= k by NAT_1:25,A11,A10;
+        then A14: k in dom f1 by A12,FINSEQ_3:25;
+A15:    j = len nega f + k by A11,Def4;
+        k <= len nega f1 by Def4, A12;
+        then A16: k in dom nega f1 by A13,FINSEQ_3:25;
+        thus c1.j = c1/.j by PARTFUN1:def 6,A2
+        .= 'not' ((f^f1)/.j) by Th8,A5
+        .= 'not' (f1/.k) by FINSEQ_4:69,A14,A11
+        .= (nega f1)/.k by Th8,A14
+        .= c2/.j by FINSEQ_4:69,A16,A15
+        .= c2.j by PARTFUN1:def 6,A6;
+      end;
+    end;
+    hence thesis by FINSEQ_2:9,A1;
+  end;
+
+theorem Th17: (VAL g).((con (f^f1))/.(len con (f^f1))) =
+  (VAL g).((con f)/.(len con f)) '&' (VAL g).((con f1)/.(len con f1))
+  proof
+    set fp = (f^f1) | (len f),fk = (f^f1) /^ (len f),v = VAL g;
+A1: fk = f1 by FINSEQ_5:37;
+A2: for f holds v.kon(f) = v.kon(f|n) '&' v.kon(f/^n)
+    proof
+      let f;
+      defpred P[Nat] means
+      (VAL g).kon(f) = (VAL g).kon(f|$1) '&' (VAL g).kon(f/^$1);
+      len (f|0) = 0;then
+A3:   con (f|0) = <*TVERUM*> by Def2;then
+      len con (f|0) = 1 by FINSEQ_1:39;then
+A4:   (con (f|0))/.(len (con (f|0))) = TVERUM by FINSEQ_4:16,A3;
+A5:   for f,g holds (VAL g).kon(f) = (VAL g).kon(f|1) '&' (VAL g).kon(f/^1)
+      proof
+        let f,g;
+        defpred P[Nat] means for f st len f = $1 holds
+        (VAL g).kon(f)= (VAL g).kon(f|1) '&' (VAL g).kon(f/^1);
+A6:     len f = len f;
+A7:     now
+          let n be Nat;
+          assume
+A8:       P[n];
+          thus P[n+1]
+          proof
+            let f;
+            set v = VAL g,fp1 = f|1,fk1 = f/^1,fn = f|n,fn1 = f|(n+1);
+            assume
+A9:         len f=n+1;
+            then A10: n < len f by NAT_1:13;
+A11:        len con f = n+1 by Def2,A9;
+A12:        1 <= len f by A9,NAT_1:25;
+            then A13: len fk1 = len f - 1 by RFINSEQ:def 1
+            .= n by A9;
+            len fp1 = 1 by A12,FINSEQ_1:59;
+            then A14: len con fp1 = 1 by Def2;
+A15:        n <= len f by A9,NAT_1:13;
+            then A16: len fn = n by FINSEQ_1:59;
+A17:        len fn1 = n+1 by FINSEQ_1:59,A9;
+            then A18: 1 <= len fn1 by NAT_1:11;
+A19:        1 <= n+1 by NAT_1:11;
+            then A20: len (fn1/^1) = len fn1 - 1 by A17,RFINSEQ:def 1
+            .= n by A17;
+            per cases;
+            suppose
+A21:          n = 0;
+              then A22: fk1 = {} by A13;
+              len con f = 1 by A21,A9,Def2;
+              hence
+              v.kon(f) = v.((con fp1)/.1) '&' TRUE by Th13, A21,A9
+              .= v.kon(fp1) '&' v.kon(fk1) by A14, A22,Th10,Th4;
+            end;
+            suppose
+A23:          n > 0;
+              then A24: 1 <= len fn by NAT_1:25,A16;
+A25:          1 <= n by A23,NAT_1:25;
+              len con fn = len fn by A23,A16,Def2;
+              then (con f)/.n = kon(fn) by A16,Th13,A25,A15;
+              then kon(f) = kon(fn) '&&' f/.(n+1) by Th7,A25,A10,A11;
+              then A26: v.kon(f) = v.kon(fn) '&' v.(f/.(n+1)) by LTLAXIO1:31
+              .= v.kon(fn|1) '&' v.kon(fn/^1) '&' v.(f/.(n+1)) by A8,A16
+              .= v.((con fp1)/.(len (con (fn|1)))) '&' v.kon(fn/^1) '&'
+              v.(f/.(n+1)) by A25,FINSEQ_1:82
+              .= v.kon(fp1) '&' v.kon(fn/^1) '&' v.(f/.(n+1))
+              by A25,FINSEQ_1:82
+              .= v.kon(fp1) '&' (v.kon(fn/^1) '&' v.(f/.(n+1)))
+              .= v.kon(fp1) '&' v.(kon(fn/^1) '&&' f/.(n+1)) by LTLAXIO1:31;
+              per cases by A23,NAT_1:25;
+              suppose
+A27:            n = 1;
+                then A28: 1 in dom fk1 by A13,FINSEQ_3:25;
+A29:            len con fk1 = 1 by Def2,A13,A27;
+                thus v.kon(f) = v.((con f)/.1 '&&' f/.(1+1)) by Th7, A27,A9,A11
+                .= v.((con fp1)/.1 '&&' f/.(1+1)) by Th13, A27,A9
+                .= v.((con fp1)/.1) '&' v.(f/.(1+1)) by LTLAXIO1:31
+                .= v.((con fp1)/.1) '&' v.(fk1/.1) by FINSEQ_5:27,A28
+                .= v.kon(fp1) '&' v.kon(fk1) by A14,A29,Th6, A27,A13;
+              end;
+              suppose
+A30:            1 < n;
+A31:            fn1/^1 = fk1|n
+                proof
+                  set f1 = fk1|n, g = fn1/^1;
+A32:              len f1 = len g by A20,FINSEQ_1:59, A13;
+                  now
+                    let x be Nat;
+A33:                dom f1 c= dom fk1 by FINSEQ_5:18;
+                    assume
+A34:                x in dom f1;
+                    then A35: x in dom g by FINSEQ_3:29,A32;
+                    x <= len f1 by A34,FINSEQ_3:25;
+                    then A36: x <= n by FINSEQ_1:59, A13;
+                    hence f1 . x = fk1.x by FINSEQ_3:112
+                    .= f.(x+1) by RFINSEQ:def 1, A33,A34,A12
+                    .= fn1.(x+1) by FINSEQ_3:112, A36,XREAL_1:6
+                    .= g . x by RFINSEQ:def 1,A18,A35;
+                  end;
+                  hence thesis by FINSEQ_2:9,A32;
+                end;
+A37:            n +(-1) > 1 + (-1) by A30,XREAL_1:8;
+                then A38: n -' 1 + 1 = n - 1+1 by XREAL_0:def 2
+                .= n;
+                len con fk1 = len fk1 by A13, A30,Def2;
+                then A39: len con fk1 = len f -' 1 by RFINSEQ:29
+                .= n by NAT_D:34, A9;
+A40:            n in dom (fn1/^1) by FINSEQ_3:25,A30, A20;
+A41:            n - 1 > 0 by A37;
+                then n -'1 >0 by XREAL_0:def 2;
+                then A42: 1 <= n-'1 by NAT_1:25;
+A43:            f/.(n+1) = f.(n+1) by A19,A9,FINSEQ_4:15
+                .= fn1.(n+1) by FINSEQ_3:112
+                .= (fn1/^1).n by RFINSEQ:def 1,A40, A19,A17
+                .= (fn1/^1)/.(n -' 1 + 1) by A38,PARTFUN1:def 6,A40;
+A44:            (-1)+n < n by XREAL_1:30;
+                then A45: n -' 1 < len (fn1/^1) by A20,XREAL_0:def 2,A41;
+A46:            len (fn/^1) = n - 1 by RFINSEQ:def 1,A24,A16;
+                then A47: len con (fn/^1) = len (fn/^1) by A37,Def2
+                .= n -' 1 by XREAL_0:def 2,A46;
+                then len con (fn/^1) = n - 1 by A46, XREAL_0:def 2;
+                then A48: 1 <= len con (fn/^1) by A37,NAT_1:25;
+A49:            len (fn/^1) = n -' 1 by XREAL_0:def 2,A46;
+A50:            (fn1/^1)|(n -' 1) = fn/^1
+                proof
+                  set f1 = (fn1/^1)|(n -' 1), g = fn/^1;
+A51:              len f1 = len g by A49,FINSEQ_1:59, A45;
+                  now
+A52:                dom f1 c= dom (fn1/^1) by FINSEQ_5:18;
+                    let x be Nat;
+A53:                n <= n+1 by XREAL_1:31;
+                    assume
+A54:                x in dom f1;
+                    then A55: x in dom g by FINSEQ_3:29,A51;
+                    x <= len f1 by A54,FINSEQ_3:25;
+                    then A56: x <= n -' 1 by FINSEQ_1:59, A45;
+                    then A57: x+1 <= n by XREAL_1:6,A38;
+                    thus f1 . x = (fn1/^1).x by FINSEQ_3:112,A56
+                    .= fn1.(x+1) by RFINSEQ:def 1, A52,A54,A18
+                    .= f.(x+1) by FINSEQ_3:112, A53,XXREAL_0:2,A57
+                    .= fn.(x+1) by FINSEQ_3:112, A56,XREAL_1:6,A38
+                    .= g . x by RFINSEQ:def 1, A25,A16,A55;
+                  end;
+                  hence thesis by FINSEQ_2:9,A51;
+                end;
+                len con (fn/^1) = len (fn/^1) by A46, A37,Def2;then
+                kon(fn/^1) '&&' f/.(n+1) = (con (fn1/^1))/.(n -' 1) '&&'
+                f/.(n+1) by A47,Th13,A48, A46, A44,A20,A50
+                .= (con (fn1/^1))/.(n -' 1 + 1) by Th7,A45,A42,A43
+                .= (con fk1)/.(len con fk1) by A39, A13,A25,Th13,A31,A38;
+                hence v.kon(f) = v.kon(fp1) '&' v.kon(fk1) by A26;
+              end;
+            end;
+          end;
+        end;
+A58:    P[0]
+        proof
+          let f;
+          set v = VAL g,fp1 = f|1,fk1 = f/^1;
+          assume
+A59:      len f = 0;
+          then len fk1 = 0 by Th2;
+          then A60: fk1 = {};
+          f = {} & fp1 = f by A59, FINSEQ_1:58;
+          hence v.kon(f) = v.kon(fp1) '&' v.kon(fk1) by A60;
+        end;
+        for n being Nat holds P[n] from NAT_1:sch 2(A58,A7);
+        hence thesis by A6;
+      end;
+A61:  for n being Nat st P[n] holds P[n + 1]
+      proof
+        let n be Nat;
+        assume
+A62:    P[n];
+        set v = VAL g,fe = f/^n,fs1 = f|(n+1),fs = f|n,fe1 = f/^(n+1);
+        per cases;
+        suppose
+A63:      len f = 0;
+          then A64: fe1 = f by Th2;
+A65:      f = {} by A63;
+          then fs1 = {} by FINSEQ_1:58,A63;
+          hence v.kon(f) = v.kon(fs1) '&' v.kon(fe1) by A64,A65;
+        end;
+        suppose
+A66:      len f > 0;
+          then len f >=1 by NAT_1:25;
+          then A67: len (f|1) = 1 by FINSEQ_1:59;
+          then A68: 1 in dom (f|1) by FINSEQ_3:25;
+A69:      len fs1 > 0 by A66,Th1;
+          then len fs1 >= 1 by NAT_1:25;
+          then A70: 1 in dom fs1 by FINSEQ_3:25;
+A71:      len con (f|1) = 1 by A67,Def2;
+A72:      1 <= n+1 by XREAL_1:31;
+          per cases by A69,NAT_1:25;
+          suppose
+A73:        len fs1 = 1;
+            then len con fs1 = 1 by Def2;
+            then A74: kon(fs1) = fs1/.1 by Th6,A69
+            .= f/.1 by FINSEQ_4:70,A70
+            .= (f|1)/.1 by FINSEQ_4:70,A68
+            .= kon(f|1) by A71,Th6,A67;
+            per cases;
+            suppose
+              n+1 <= len f;
+              then len fs1 = n+1 by FINSEQ_1:59;
+              hence v.kon(f) = v.kon(fs1) '&' v.kon(fe1) by A73,A5;
+            end;
+            suppose
+              n+1 > len f;
+              then A75: fe1 = {} by RFINSEQ:def 1;
+              then A76: len fe1 = 0;
+              f = fs1^fe1 by RFINSEQ:8;
+              then len f = len fs1 + len fe1 by FINSEQ_1:22
+              .= 1 by A73,A76;
+              then f|1 = f by FINSEQ_1:58;
+              hence v.kon(f) = v.kon(f|1) '&' TRUE
+              .= v.kon(fs1) '&' v.kon(fe1) by A74,Th10,A75,Th4;
+            end;
+          end;
+          suppose
+A77:        len fs1 > 1;
+            per cases;
+            suppose
+A78:          n+1> len f;
+              then A79: fe1 = 0 by RFINSEQ:def 1;
+              fs1 = f by FINSEQ_1:58,A78;
+              hence v.kon(f) = v.kon(fs1) '&' TRUE
+              .= v.kon(fs1) '&' v.kon(fe1) by A79,Th10,Th4;
+            end;
+            suppose
+A80:          n+1 <= len f;
+              then A81: len fs1 = n+1 by FINSEQ_1:59;
+              then A82: n+1 in dom fs1 by FINSEQ_3:25,A72;
+A83:          n+1 = len con fs1 & n < len fs1 by A81,Def2, XREAL_1:145;
+A84:          n+1+(-n) <= len f + (-n) by A80,XREAL_1:6;
+A85:          len fe = len f -' n by RFINSEQ:29
+              .= len f - n by XREAL_0:def 2, A84;
+              then A86: len (fe|1) = 1 by A84,FINSEQ_1:59;
+              then A87: 1 in dom (fe|1) by FINSEQ_3:25;
+A88:          1 in dom fe by A85, A84,FINSEQ_3:25;
+              len con (fe|1) = 1 by A86,Def2;
+              then A89: kon(fe|1) = (fe|1)/.1 by Th6,A86
+              .= fe/.1 by A87,FINSEQ_4:70
+              .= f/.(n+1) by FINSEQ_5:27,A88
+              .= fs1/.(n+1) by FINSEQ_4:70,A82;
+A90:          (f/^n)/^1 = fe1 by FINSEQ_6:81;
+A91:          n+1 + (-1) > 1 + (-1) by A77,A81,XREAL_1:8;
+              then A92: n >= 1 by NAT_1:25;
+A93:          n <= n+1 by XREAL_1:31;
+              then len fs = n by XXREAL_0:2,A80,FINSEQ_1:59;
+              then A94: len con fs = n by Def2, A91;
+A95:          kon(f|n) = (con (fs1|n))/.(len con fs) by FINSEQ_5:77,A93
+              .= (con fs1)/.n by A94,Th13,A93,A81,A92;
+A96:          1 <= n by NAT_1:25, A91;
+              thus v.kon(f)
+              = v.kon(f|n) '&' (v.kon(fe|1) '&' v.kon(fe/^1)) by A5,A62
+              .= v.kon(f|n) '&' v.kon(fe|1) '&' v.kon(fe1) by A90
+              .= v.(kon(f|n) '&&' kon(fe|1)) '&' v.kon(fe1) by LTLAXIO1:31
+              .= v.kon(fs1) '&' v.kon(fe1) by A83,Th7,A96,A95,A89;
+            end;
+          end;
+        end;
+      end;
+      f/^0 = f by FINSEQ_5:28;
+      then (VAL g).kon(f) = TRUE '&' (VAL g).kon(f/^0)
+      .= (VAL g).kon(f|0) '&' (VAL g).kon(f/^0) by A4,Th4;
+      then A97: P[0];
+      for n being Nat holds P[n] from NAT_1:sch 2(A97,A61);
+      hence thesis;
+    end;
+    Seg len f c= dom f by FINSEQ_1:def 3;
+    then fp = f|len f by FINSEQ_6:11
+    .= f by FINSEQ_1:58;
+    hence v.kon(f^f1) = v.kon(f) '&' v.kon(f1) by A1,A2;
+  end;
+
+theorem n in dom f implies (VAL g).((con f)/.len con f) =
+  (VAL g).((con (f|(n -' 1)))/.(len con (f|(n -' 1)))) '&' (VAL g).(f/.n) '&'
+  (VAL g).((con (f/^n))/.(len con (f/^n)))
+  proof
+    set v = VAL g;
+    assume n in dom f;
+    then A1: 1 <= n & n <=len f by FINSEQ_3:25;
+    then f = (f|(n -' 1))^<*(f.n)*>^(f/^ n) by FINSEQ_5:84
+    .= (f|(n -' 1))^<*(f/.n)*>^(f/^ n) by FINSEQ_4:15,A1;
+    hence v.kon(f)=v.kon((f|(n -' 1))^<*(f/.n)*>) '&' v.kon(f/^ n) by Th17
+    .= v.kon(f|(n -' 1)) '&' v.kon(<*(f/.n)*>) '&' v.kon(f/^ n) by Th17
+    .= v.kon(f|(n-'1)) '&' v.(f/.n) '&' v.kon(f/^n) by Th11;
+  end;
+
+theorem Th19: (VAL g).((con f)/.(len con f)) = 1 iff
+  for i be Nat st i in dom f holds (VAL g).(f/.i) = 1
+  proof
+    set v = VAL g;
+    defpred P[Nat] means $1 <= len f implies v.kon(f|$1) = 1;
+    hereby
+      assume
+A1:   v.kon(f) = 1;
+      given i be Nat such that
+A2:   i in dom f and
+A3:   not v.(f/.i) = 1;
+A4:   i <= len f by A2,FINSEQ_3:25;
+      f/.i = f.i & 1 <= i by PARTFUN1:def 6,A2,FINSEQ_3:25;then
+      f = ((f | (i -' 1)) ^ <*(f/.i)*>) ^ (f /^ i) by A4,FINSEQ_5:84;then
+A5:   v.kon(f) = v.kon((f | (i -' 1)) ^ <*(f/.i)*>) '&' v.kon(f /^ i) by Th17
+      .= v.kon(f | (i -' 1)) '&' v.kon(<*(f/.i)*>) '&' v.kon(f /^ i) by Th17
+      .= v.kon(f | (i -' 1)) '&' v.kon(f /^ i) '&' v.kon(<*(f/.i)*>);
+      v.kon(<*f/.i*>) = v.(f/.i) by Th11
+      .= 0 by A3,XBOOLEAN:def 3;
+      hence contradiction by A5,A1;
+    end;
+    assume
+A6: for i be Nat st i in dom f holds v.(f/.i) = 1;
+A7: now
+      let k being Nat;
+      assume
+A8:   P[k];
+      thus P[k+1]
+      proof
+A9:     1 <= k+1 by NAT_1:11;
+        assume
+A10:    k+1 <= len f;
+        then f|(k+1) = (f|k)^<*(f.(k + 1))*> by NAT_1:13,FINSEQ_5:83
+        .= (f|k)^<*(f/.(k + 1))*> by FINSEQ_4:15, NAT_1:11,A10;
+        hence
+        v.kon(f|(k+1)) = v.kon(f|k) '&' v.kon(<*(f/.(k + 1))*>) by Th17
+        .= v.kon(f|k) '&' v.(f/.(k + 1)) by Th11
+        .= 1 by A6, A9,FINSEQ_3:25,A10,A8, NAT_1:13;
+      end;
+    end;
+A11: P[0] by Th10,Th4;
+A12: for k be Nat holds P[k] from NAT_1:sch 2(A11,A7);
+     f = f|len f by FINSEQ_1:58;
+     hence v.kon(f) = 1 by A12;
+   end;
+
+theorem Th20: (VAL g).('not' ((con nega f)/.(len con nega f))) = 0 iff
+  for i be Nat st i in dom f holds (VAL g).(f/.i) = 0
+  proof
+    set v = VAL g;
+A1: v.alt(f) = v.kon(nega f) => v.TFALSUM by LTLAXIO1:def 15
+    .= v.kon(nega f) => FALSE by LTLAXIO1:def 15;
+A2: len f = len nega f by Def4;
+    hereby
+      assume
+A3:   v.alt(f) = 0;
+      let i be Nat;
+      reconsider i1 = i as Element of NAT by ORDINAL1:def 12;
+      assume
+A4:   i in dom f;
+      then A5: 1 <= i & i <= len f by FINSEQ_3:25;
+A6:   i in dom nega f by A4,FINSEQ_3:29,A2;
+      then A7: (nega f)/.i = (nega f).i1 by PARTFUN1:def 6
+      .= 'not' (f/.i1) by Def4,A5;
+A8:   v.alt(f) = v.kon(nega f) => v.TFALSUM by LTLAXIO1:def 15
+      .= v.kon(nega f) => FALSE by LTLAXIO1:def 15;
+      v.(f/.i) => FALSE = v.(f/.i) => v.TFALSUM by LTLAXIO1:def 15
+      .= v.('not' (f/.i)) by LTLAXIO1:def 15
+      .= 1 by A8,A3,Th19,A6,A7;
+      hence v.(f/.i) = 0;
+    end;
+    assume
+A9: for i be Nat st i in dom f holds v.(f/.i) = 0;
+    assume
+    not v.alt(f) = 0;
+    then not v.kon(nega f) = 1 by A1;
+    then consider i be Nat such that
+A10: i in dom nega f and
+A11: not v.((nega f)/.i) = 1 by Th19;
+A12: i <= len f by A2,A10,FINSEQ_3:25;
+     reconsider i1 = i as Element of NAT by ORDINAL1:def 12;
+A13: 1 <= i by A10,FINSEQ_3:25;
+A14: (nega f)/.i = (nega f).i1 by A10,PARTFUN1:def 6
+     .= 'not' (f/.i) by Def4,A13,A12;
+A15: v.(f/.i1) => FALSE = v.(f/.i1) => v.TFALSUM by LTLAXIO1:def 15
+     .= v.('not' (f/.i)) by LTLAXIO1:def 15
+     .= 0 by A11,XBOOLEAN:def 3,A14;
+     i in dom f by A2,FINSEQ_3:29,A10;
+     hence contradiction by A15,A9;
+   end;
+
+theorem rng f = rng f1 implies
+   (VAL g).((con f)/.(len con f)) = (VAL g).((con f1)/.(len con f1))
+   proof
+     set v = VAL g;
+     assume
+A1:  rng f = rng f1;
+     per cases;
+     suppose
+A2:    len f = 0;
+       then len f1 = 0 by Th3,A1;
+       then A3: f1 = {};
+       f = {} by A2;
+       hence v.kon(f) = v.kon(f1) by A3;
+     end;
+     suppose
+       len f > 0;
+       per cases by XBOOLEAN:def 3;
+       suppose
+A4:      v.kon(f) = 1;
+         assume
+         not v.kon(f) = v.kon(f1);
+         then consider i be Nat such that
+A5:      i in dom f1 and
+A6:      not v.(f1/.i) = 1 by A4,Th19;
+         set j = f1/.i .. f;
+         f1/.i in rng f by A5,PARTFUN2:2,A1;then
+         j in dom f & v.(f/.j) = v.(f1/.i) by FINSEQ_4:20, FINSEQ_5:38;
+         hence contradiction by Th19,A4, A6;
+       end;
+       suppose
+A7:      v.kon(f) = 0;
+         assume
+A8:      not v.kon(f) = v.kon(f1);
+         consider i be Nat such that
+A9:      i in dom f and
+A10:     not v.(f/.i) = 1 by A7,Th19;
+         set j = f/.i .. f1;
+A11:     f/.i in rng f1 by A9,PARTFUN2:2,A1;
+         then j in dom f1 by FINSEQ_4:20;
+         then v.(f1/.j) = 1 by Th19, A8,A7,XBOOLEAN:def 3;
+         hence contradiction by A10, FINSEQ_5:38,A11;
+       end;
+     end;
+   end;
+
+begin :: Classical Tautologies of Temporal Language
+
+theorem Th22: p => TVERUM is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.(p => TVERUM) = v.p => v.TVERUM by LTLAXIO1:def 15
+    .= 1 by A1,Th4;
+  end;
+
+theorem Th23: 'not' TVERUM => p is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+    thus v.('not' TVERUM => p) = v.('not' TVERUM) => v.p by LTLAXIO1:def 15
+    .= v.TVERUM => v.tf => v.p by LTLAXIO1:def 15
+    .= TRUE => v.tf => v.p by Th4
+    .= 1 by A1;
+  end;
+
+theorem Th24: p => p is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.(p => p) = (v.p => v.p) by LTLAXIO1:def 15
+    .= 1 by A1;
+  end;
+
+theorem Th25: ('not' 'not' p) => p is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.(('not' 'not' p) => p) = v.('not' 'not' p) => v.p by LTLAXIO1:def 15
+    .= v.('not' p) => v.tf => v.p by LTLAXIO1:def 15
+    .= v.p => v.tf => v.tf => v.p by LTLAXIO1:def 15
+    .= 1 by A1, LTLAXIO1:def 15;
+  end;
+
+theorem Th26: p => ('not' 'not' p) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.(p => ('not' 'not' p)) = v.p => v.('not' 'not' p) by LTLAXIO1:def 15
+    .= v.p => (v.('not' p) => v.tf) by LTLAXIO1:def 15
+    .= v.p => (v.p => v.tf => v.tf) by LTLAXIO1:def 15
+    .= 1 by A2,A1;
+  end;
+
+theorem (p '&&' q) => p is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.((p '&&' q) => p) = v.(p '&&' q) => v.p by LTLAXIO1:def 15
+    .= v.p '&' v.q => v.p by LTLAXIO1:31
+    .= 1 by A1;
+  end;
+
+theorem (p '&&' q) => q is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    thus v.((p '&&' q) => q) = v.(p '&&' q) => v.q by LTLAXIO1:def 15
+    .= v.p '&' v.q => v.q by LTLAXIO1:31
+    .= 1 by A1;
+  end;
+
+theorem for k be Nat st k in dom f holds
+  f/.k => 'not' ((con nega f)/.(len con nega f)) is ctaut
+  proof
+    let k be Nat;
+    assume
+A1: k in dom f;
+    set q = f/.k, p = q => alt(f);
+    assume
+    not p is ctaut;
+    then consider g such that
+A2: not (VAL g).p = 1;
+    set v = VAL g;
+    v.p = 0 by A2,XBOOLEAN:def 3;
+    then A3: v.q => v.alt(f) = 0 by LTLAXIO1:def 15;
+    v.alt(f) = TRUE or v.alt(f) = FALSE by XBOOLEAN:def 3;
+    hence contradiction by A3,Th20,A1;
+  end;
+
+theorem
+  rng f c= rng f1 implies ('not' ((con (nega f)) /. (len (con (nega f))))) =>
+  ('not' ((con (nega f1)) /. (len (con (nega f1))))) is ctaut
+  proof
+    assume
+A1: rng f c= rng f1;
+    set p = alt(f) => alt(f1);
+    assume
+    not p is ctaut;
+    then consider g such that
+A2: not (VAL g).p = 1;
+    set v = VAL g;
+    v.p = 0 by A2,XBOOLEAN:def 3;
+    then A3: v.alt(f) => v.alt(f1) = 0 by LTLAXIO1:def 15;
+A4: v.alt(f) = TRUE or v.alt(f) = FALSE by XBOOLEAN:def 3;
+    now
+      let i be Nat;
+      assume
+A5:   i in dom f;
+      then f.i in rng f by FUNCT_1:3;
+      then consider j be object such that
+A6:   j in dom f1 and
+A7:   f.i = f1.j by A1,FUNCT_1:def 3;
+      f1/.j = f1.j by PARTFUN1:def 6,A6
+      .= f/.i by A5,PARTFUN1:def 6,A7;
+      hence v.(f/.i) = 0 by A6,Th20, A3,A4;
+      reconsider j as Nat by A6;
+    end;
+    hence contradiction by A3,A4,Th20;
+  end;
+
+theorem Th31: ('not' (p => q)) => p is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.(('not' (p => q)) => p) = v.('not' (p => q)) => v.p
+    by LTLAXIO1:def 15
+    .= (v.(p => q) => v.tf) => v.p by LTLAXIO1:def 15
+    .= v.p => v.q => v.tf => v.p by LTLAXIO1:def 15
+    .= 1 by A1, LTLAXIO1:def 15;
+  end;
+
+theorem Th32: ('not' (p => q)) => ('not' q) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    thus v.(('not' (p => q)) => ('not' q)) = v.('not' (p => q)) => v.('not' q)
+    by LTLAXIO1:def 15
+    .= (v.(p => q) => v.tf) => v.('not' q) by LTLAXIO1:def 15
+    .= v.p => v.q => v.tf => v.('not' q) by LTLAXIO1:def 15
+    .= v.p => v.q => v.tf => (v.q => v.tf) by LTLAXIO1:def 15
+    .= 1 by A2,A1;
+  end;
+
+theorem p => (q => p) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    thus v.(p => (q => p)) = v.p => v.(q => p) by LTLAXIO1:def 15
+    .= v.p => (v.q => v.p) by LTLAXIO1:def 15
+    .= 1 by A1;
+  end;
+
+theorem Th34: p => (q => (p => q)) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    thus v.(p => (q => (p => q))) = v.p => v.(q => (p => q)) by LTLAXIO1:def 15
+    .= v.p => (v.q => v.(p => q)) by LTLAXIO1:def 15
+    .= v.p => (v.q => (v.p => v.q)) by LTLAXIO1:def 15
+    .= 1 by A1;
+  end;
+
+theorem Th35: 'not' (p '&&' q) => (('not' p) 'or' ('not' q)) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.('not' (p '&&' q)) = v.(p '&&' q) => v.tf by LTLAXIO1:def 15
+    .= v.p '&' v.q => v.tf by LTLAXIO1:31;
+A4: v.(('not' p) 'or' ('not' q)) = v.('not' p) 'or' v.('not' q) by Th5
+    .= (v.p => v.tf) 'or' v.('not' q) by LTLAXIO1:def 15
+    .= (v.p => v.tf) 'or' (v.q => v.tf) by LTLAXIO1:def 15;
+A5: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+   thus v.('not' (p '&&' q) => (('not' p) 'or' ('not' q))) =
+   v.('not' (p '&&' q)) => v.(('not' p) 'or' ('not' q)) by LTLAXIO1:def 15
+   .= 1 by A2,A5,A1,A4,A3;
+ end;
+
+theorem 'not' (p 'or' q) => (('not' p) '&&' ('not' q)) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.(('not' p) '&&' ('not' q)) = v.('not' p) '&' v.('not' q) by LTLAXIO1:31
+    .= (v.p => v.tf) '&' v.('not' q) by LTLAXIO1:def 15
+    .= (v.p => v.tf) '&' (v.q => v.tf) by LTLAXIO1:def 15;
+A4: v.('not' (p 'or' q)) = v.(p 'or' q) => v.tf by LTLAXIO1:def 15
+    .= v.p 'or' v.q => v.tf by Th5;
+A5: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    thus v.('not' (p 'or' q) => (('not' p) '&&' ('not' q)))
+    = v.('not' (p 'or' q)) => v.(('not' p) '&&' ('not' q)) by LTLAXIO1:def 15
+    .= 1 by A2,A5,A1,A3,A4;
+  end;
+
+theorem 'not' (p '&&' q) => (p => 'not' q)is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.(p => 'not' q) = v.p => v.('not' q) by LTLAXIO1:def 15
+    .= v.p => (v.q => v.tf) by LTLAXIO1:def 15;
+A4: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    v.('not' (p '&&' q)) = v.(p '&&' q) => v.tf by LTLAXIO1:def 15
+    .= v.p '&' v.q => v.tf by LTLAXIO1:31;
+    hence v.('not' (p '&&' q) => (p => 'not' q))
+    = (v.p '&' v.q => v.tf) => (v.p =>(v.q => v.tf)) by LTLAXIO1:def 15,A3
+    .= 1 by A2,A4,A1;
+  end;
+
+theorem ('not' (TVERUM '&&' 'not' A)) => A is ctaut
+ proof
+   let g;
+   set v = VAL g,t = TVERUM;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.A = 0 or v.A = 1 by XBOOLEAN:def 3;
+    thus v.(('not' (t '&&' 'not' A)) => A)
+    = v.('not' (t '&&' 'not' A)) => v.A by LTLAXIO1:def 15
+    .= (v.(t '&&' 'not' A) => v.tf) => v.A by LTLAXIO1:def 15
+    .= ((v.t '&' v.('not' A)) => v.tf) => v.A by LTLAXIO1:31
+    .= ((v.t '&' (v.A => v.tf)) => v.tf) => v.A by LTLAXIO1:def 15
+    .= 1 by A2,A1,Th4;
+  end;
+
+theorem 'not' (s '&&' q) => (p => q => (p => 'not' s)) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.('not' (s '&&' q)) = v.(s '&&' q) => v.tf by LTLAXIO1:def 15
+    .= v.s '&' v.q => v.tf by LTLAXIO1:31;
+A4: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+A5: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    v.(p => q => (p => 'not' s)) = v.(p =>q) => v.(p => 'not' s)
+    by LTLAXIO1:def 15
+    .= v.p => v.q => v.(p => 'not' s) by LTLAXIO1:def 15
+    .= v.p => v.q => (v.p => v.('not' s)) by LTLAXIO1:def 15
+    .= v.p => v.q => (v.p => (v.s => v.tf)) by LTLAXIO1:def 15;
+   hence v.('not' (s '&&' q) => (p => q => (p => 'not' s)))
+   = v.s '&' v.q => v.tf => (v.p => v.q => (v.p => (v.s => v.tf)))
+   by LTLAXIO1:def 15,A3
+   .= 1 by A2,A5,A4,A1;
+ end;
+
+theorem Th40: p => r => (p => s => (p => (r '&&' s))) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.(p => s => (p => (r '&&' s)))
+    = v.(p =>s) => v.(p => (r '&&' s)) by LTLAXIO1:def 15
+    .= v.p => v.s => v.(p => (r '&&' s)) by LTLAXIO1:def 15
+    .= v.p => v.s => (v.p => v.(r '&&' s)) by LTLAXIO1:def 15
+    .= v.p => v.s => (v.p => (v.r '&' v.s)) by LTLAXIO1:31;
+A4: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+    v.(p => r) = v.p => v.r by LTLAXIO1:def 15;
+   hence v.(p => r => (p => s => (p => (r '&&' s))))
+   = v.p => v.r => (v.p => v.s => (v.p => (v.r '&' v.s))) by LTLAXIO1:def 15,A3
+   .= 1 by A1,A2,A4;
+ end;
+
+theorem 'not' (p '&&' s) => 'not' ((r '&&' s) '&&' (p '&&' q)) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.('not' ((r '&&' s) '&&' (p '&&' q)))
+    = v.((r '&&' s) '&&' (p '&&' q)) => v.tf by LTLAXIO1:def 15
+    .= v.(r '&&' s) '&' v.(p '&&' q) => v.tf by LTLAXIO1:31
+    .= v.r '&' v.s '&' v.(p '&&' q) => v.tf by LTLAXIO1:31
+    .= v.r '&' v.s '&' (v.p '&' v.q) => v.tf by LTLAXIO1:31;
+A4: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+    v.('not' (p '&&' s)) = v.(p '&&' s) => v.tf by LTLAXIO1:def 15
+    .= v.p '&' v.s => v.tf by LTLAXIO1:31;
+   hence v.('not' (p '&&' s) => 'not' ((r '&&' s) '&&' (p '&&' q)))
+   = v.p '&' v.s => v.tf => (v.r '&' v.s '&' (v.p '&' v.q) => v.tf)
+   by LTLAXIO1:def 15,A3
+   .= 1 by A2,A4,A1;
+ end;
+
+theorem 'not' (p '&&' s) => 'not' ((p '&&' q) '&&' (r '&&' s)) is ctaut
+  proof
+    let g;set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.('not' ((p '&&' q) '&&' (r '&&' s)))
+    = v.((p '&&' q) '&&' (r '&&' s)) => v.tf by LTLAXIO1:def 15
+    .= v.(p '&&' q) '&' v.(r '&&' s) => v.tf by LTLAXIO1:31
+    .= v.p '&' v.q '&' v.(r '&&' s) => v.tf by LTLAXIO1:31
+    .= v.p '&' v.q '&' (v.r '&' v.s) => v.tf by LTLAXIO1:31;
+A4: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+    v.('not' (p '&&' s)) = v.(p '&&' s) => v.tf by LTLAXIO1:def 15
+    .= v.p '&' v.s => v.tf by LTLAXIO1:31;
+    hence v.('not' (p '&&' s) => 'not' ((p '&&' q) '&&' (r '&&' s)))
+    = v.p '&' v.s => v.tf => (v.p '&' v.q '&' (v.r '&' v.s) => v.tf)
+    by LTLAXIO1:def 15,A3
+    .= 1 by A2,A4,A1;
+  end;
+
+theorem Th43: (p => (q '&&' ('not' q))) => ('not' p) is ctaut
+  proof
+   let g;
+   set v = VAL g;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    thus v.((p => (q '&&' ('not' q))) => ('not' p))
+    = v.(p => (q '&&' ('not' q))) => v.('not' p) by LTLAXIO1:def 15
+    .= v.p => v.(q '&&' ('not' q)) => v.('not' p) by LTLAXIO1:def 15
+    .= v.p => (v.q '&' v.('not' q)) => v.('not' p) by LTLAXIO1:31
+    .= v.p => (v.q '&' (v.q => v.tf)) => v.('not' p) by LTLAXIO1:def 15
+    .= 1 by A2,A3,A1,LTLAXIO1:def 15;
+  end;
+
+theorem Th44: (q => (p '&&' r)) => ((p => s) => (q => (s '&&' r))) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.((p => s) => (q => (s '&&' r)))
+    = v.(p => s) => v.(q => (s '&&' r)) by LTLAXIO1:def 15
+    .= (v.p => v.s) => v.(q => (s '&&' r)) by LTLAXIO1:def 15
+    .= (v.p => v.s) => (v.q => v.(s '&&' r)) by LTLAXIO1:def 15
+    .= (v.p => v.s) => (v.q => (v.s '&' v.r)) by LTLAXIO1:31;
+A4: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+A5: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+    v.(q => (p '&&' r)) = v.q => v.(p '&&' r) by LTLAXIO1:def 15
+    .= v.q => (v.p '&' v.r) by LTLAXIO1:31;
+   hence v.(q => (p '&&' r) => ((p => s) => (q => (s '&&' r))))
+   = (v.q => (v.p '&' v.r)) => ((v.p => v.s) => (v.q => (v.s '&' v.r)))
+   by LTLAXIO1:def 15,A3
+   .= 1 by A1,A2,A5,A4;
+ end;
+
+theorem Th45: (p => q) => ((r => s) => ((p '&&' r) => (q '&&' s))) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.((r => s) => ((p '&&' r) => (q '&&' s)))
+    = v.(r => s) => v.((p '&&' r) => (q '&&' s)) by LTLAXIO1:def 15
+    .= (v.r => v.s) => v.((p '&&' r) => (q '&&' s)) by LTLAXIO1:def 15
+    .= (v.r => v.s) => (v.(p '&&' r) => v.(q '&&' s)) by LTLAXIO1:def 15
+    .= (v.r => v.s) => ((v.p '&' v.r) => v.(q '&&' s)) by LTLAXIO1:31
+    .= (v.r => v.s) => ((v.p '&' v.r) => (v.q '&' v.s)) by LTLAXIO1:31;
+A4: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+A5: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+    v.(p => q) = v.p => v.q by LTLAXIO1:def 15;
+    hence v.((p => q) => ((r => s) => ((p '&&' r) => (q '&&' s))))
+    = (v.p => v.q) => ((v.r => v.s) => ((v.p '&' v.r) => (v.q '&' v.s)))
+    by LTLAXIO1:def 15,A3
+    .= 1 by A1,A2,A5,A4;
+  end;
+
+theorem Th46: (p => q) => (p => r => (r => p => (r => q))) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.(p => r => (r => p => (r => q)))
+    = v.(p => r) => v.(r => p => (r => q)) by LTLAXIO1:def 15
+    .= (v.p => v.r) => v.(r => p => (r => q)) by LTLAXIO1:def 15
+    .= (v.p => v.r) => (v.(r => p) => v.(r => q)) by LTLAXIO1:def 15
+    .= (v.p => v.r) => (v.r => v.p => v.(r => q)) by LTLAXIO1:def 15
+    .= (v.p => v.r) => (v.r => v.p => (v.r => v.q)) by LTLAXIO1:def 15;
+A4: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    v.(p => q) = v.p => v.q by LTLAXIO1:def 15;
+    hence v.((p => q) => (p => r => (r => p => (r => q))))
+    = (v.p => v.q) => ((v.p => v.r) => (v.r => v.p => (v.r => v.q)))
+    by LTLAXIO1:def 15,A3
+    .= 1 by A1,A2,A4;
+  end;
+
+theorem Th47: p => q => (p => ('not' r) => (p => ('not' (q => r)))) is ctaut
+  proof
+   let g;
+   set v = VAL g;
+A1: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A2: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+A3: v.(p => ('not' r) => (p => ('not' (q => r))))
+    = v.(p => ('not' r)) => v.(p => ('not' (q => r))) by LTLAXIO1:def 15
+    .= (v.p => v.('not' r)) => v.(p => ('not' (q => r))) by LTLAXIO1:def 15
+    .= (v.p => v.('not' r)) => (v.p => v.('not' (q => r))) by LTLAXIO1:def 15
+    .= (v.p => (v.r => v.tf)) => (v.p => v.('not' (q => r))) by LTLAXIO1:def 15
+    .= (v.p => (v.r => v.tf)) => (v.p => (v.(q => r) => v.tf))
+    by LTLAXIO1:def 15
+    .= (v.p => (v.r => v.tf)) => (v.p => ((v.q => v.r) => v.tf))
+    by LTLAXIO1:def 15;
+A4: v.tf = 0 & v.(p => q) = v.p => v.q by LTLAXIO1:def 15;
+    v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+    hence v.(p => q => (p => ('not' r) => (p => ('not' (q => r)))))
+    = 1 by A1,A2,A4,LTLAXIO1:def 15,A3;
+  end;
+
+theorem Th48: p => (q 'or' r) => (r => s => (p => (q 'or' s))) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+A4: v.(r => s => (p => (q 'or' s)))
+   = v.(r => s) => v.(p => (q 'or' s)) by LTLAXIO1:def 15
+   .= v.r => v.s => v.(p => (q 'or' s)) by LTLAXIO1:def 15
+   .= v.r => v.s => (v.p => v.(q 'or' s)) by LTLAXIO1:def 15
+   .= v.r => v.s => (v.p => (v.q 'or' v.s)) by Th5;
+A5: v.s = 1 or v.s = 0 by XBOOLEAN:def 3;
+    v.(p => (q 'or' r)) = v.p => v.(q 'or' r) by LTLAXIO1:def 15
+    .= v.p => (v.q 'or' v.r) by Th5;
+    hence v.(p => (q 'or' r) => (r => s => (p => (q 'or' s))))
+    = (v.p => (v.q 'or' v.r)) => (v.r => v.s => (v.p => (v.q 'or' v.s)))
+    by LTLAXIO1:def 15,A4
+    .= 1 by A1,A2,A5,A3;
+  end;
+
+theorem Th49: p => r => (q => r => ((p 'or' q) => r)) is ctaut
+  proof
+    let g;
+    set v = VAL g;
+A1: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.(p => r) = v.p => v.r by LTLAXIO1:def 15;
+A4: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    v.(q => r => ((p 'or' q) => r))
+    = v.(q => r) => v.((p 'or' q) => r) by LTLAXIO1:def 15
+    .= v.q => v.r => v.((p 'or' q) => r) by LTLAXIO1:def 15
+    .= v.q => v.r => (v.(p 'or' q) => v.r) by LTLAXIO1:def 15
+    .= v.q => v.r => ((v.p 'or' v.q) => v.r) by Th5;
+    hence v.(p => r => (q => r => ((p 'or' q) => r)))
+    = v.p => v.r => (v.q => v.r => ((v.p 'or' v.q) => v.r))
+    by LTLAXIO1:def 15,A3
+    .= 1 by A1,A2,A4;
+  end;
+
+theorem
+  r => untn(p,q) => (r => (('not' p) '&&' ('not' q)) => ('not' r)) is ctaut
+  proof
+    let g;
+    set v = VAL g,pq = p 'U' q,np='not'p,nq='not'q,nr='not'r;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.p = 1 or v.p = 0 by XBOOLEAN:def 3;
+A3: v.(r => (np '&&' nq) => nr)
+    = v.(r => (np '&&' nq)) => v.nr by LTLAXIO1:def 15
+    .= v.r => v.(np '&&' nq) => v.nr by LTLAXIO1:def 15
+    .= v.r => (v.np '&' v.nq) => v.nr by LTLAXIO1:31
+    .= v.r => ((v.p => v.tf) '&' v.nq) => v.nr by LTLAXIO1:def 15
+    .= v.r => ((v.p => v.tf) '&' (v.q => v.tf)) => v.nr by LTLAXIO1:def 15
+    .= v.r => ((v.p => v.tf) '&' (v.q => v.tf)) => (v.r => v.tf)
+    by LTLAXIO1:def 15;
+A4: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+A5: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+    v.(r => untn(p,q)) = v.r => v.untn(p,q) by LTLAXIO1:def 15
+    .= v.r => (v.q 'or' v.(p '&&' pq)) by Th5
+    .= v.r => (v.q 'or' (v.p '&' v.pq)) by LTLAXIO1:31
+    .= v.r => (v.q 'or' (v.p '&' g.pq)) by LTLAXIO1:def 15;
+   hence v.(r => untn(p,q) => (r => (np '&&' nq) => nr))
+   = v.r => (v.q 'or' (v.p '&' g.pq)) => (v.r => ((v.p => v.tf) '&'
+   (v.q => v.tf)) => (v.r => v.tf)) by LTLAXIO1:def 15,A3
+   .= 1 by A2,A5,A4,A1;
+ end;
+
+theorem r => untn(p,q) => (r => (('not' q) '&&'
+  ('not' (p 'U' q))) => ('not' r)) is ctaut
+  proof
+    let g;
+    set v = VAL g,pq = p 'U' q,nq='not'q,nr='not'r;
+A1: v.tf = 0 by LTLAXIO1:def 15;
+A2: v.r = 1 or v.r = 0 by XBOOLEAN:def 3;
+A3: v.(r => (nq '&&' ('not' pq)) => nr)
+    = v.(r => (nq '&&' ('not' pq))) => v.nr by LTLAXIO1:def 15
+    .= v.r => v.(nq '&&' ('not' pq)) => v.nr by LTLAXIO1:def 15
+    .= v.r => (v.nq '&' v.('not' pq)) => v.nr by LTLAXIO1:31
+    .= v.r => ((v.q => v.tf) '&' v.('not' pq)) => v.nr by LTLAXIO1:def 15
+    .= v.r => ((v.q => v.tf) '&' (v.pq => v.tf)) => v.nr by LTLAXIO1:def 15
+    .= v.r => ((v.q => v.tf) '&' (g.pq => v.tf)) => v.nr by LTLAXIO1:def 15
+    .= v.r => ((v.q => v.tf) '&' (g.pq => v.tf)) => (v.r => v.tf)
+    by LTLAXIO1:def 15;
+A4: g.pq = 1 or g.pq = 0 by XBOOLEAN:def 3;
+A5: v.q = 1 or v.q = 0 by XBOOLEAN:def 3;
+    v.(r => untn(p,q)) = v.r => v.untn(p,q) by LTLAXIO1:def 15
+    .= v.r => (v.q 'or' v.(p '&&' pq)) by Th5
+    .= v.r => (v.q 'or' (v.p '&' v.pq)) by LTLAXIO1:31
+    .= v.r => (v.q 'or' (v.p '&' g.pq)) by LTLAXIO1:def 15;
+    hence v.(r => untn(p,q) => (r => (nq '&&' ('not' pq)) => nr))
+    = v.r => (v.q 'or' (v.p '&' g.pq)) => (v.r => ((v.q => v.tf)
+    '&' (g.pq => v.tf)) => (v.r => v.tf)) by LTLAXIO1:def 15,A3
+    .= 1 by A2,A5,A1,A4;
+  end;
+
+begin :: The Derivations of Temporal Logic Formulas within Classical Logic
+
+theorem X |- p => q & X |- p => r implies X |- p => (q '&&' r)
+  proof
+    assume that
+A1: X |- p => q and
+A2: X |- p => r;
+    set qr = q '&&' r;
+    p => q => (p => r => (p => qr)) is ctaut by Th40;then
+    p => q => (p => r => (p => qr)) in LTL_axioms by LTLAXIO1:def 17;
+    then X |- p => q => (p => r => (p => qr)) by LTLAXIO1:42;
+    then X |- p => r => (p => qr) by LTLAXIO1:43,A1;
+    hence X |- p => qr by LTLAXIO1:43,A2;
+  end;
+
+theorem Th53: X |- p => q & X |- r => s implies X |- (p '&&' r) => (q '&&' s)
+  proof
+   assume that
+A1: X |- p => q and
+A2: X |- r => s;
+    (p => q) => ((r => s) => ((p '&&' r) => (q '&&' s))) is ctaut by Th45;
+    then (p => q) => ((r => s) => ((p '&&' r) => (q '&&' s)))
+    in LTL_axioms by LTLAXIO1:def 17;
+    then
+    X |- (p => q) => ((r => s) => ((p '&&' r) => (q '&&' s))) by LTLAXIO1:42;
+    then X |- (r => s) => ((p '&&' r) => (q '&&' s)) by LTLAXIO1:43,A1;
+    hence X |- (p '&&' r) => (q '&&' s) by LTLAXIO1:43,A2;
+  end;
+
+theorem Th54: X |- p => q & X |- p => r & X |- r => p implies X |- r => q
+  proof
+    assume that
+A1: X |- p => q and
+A2: X |- p => r and
+A3: X |- r => p;
+    (p => q) => (p => r => (r => p => (r => q))) is ctaut by Th46;
+    then (p => q) => (p => r => (r => p => (r => q))) in LTL_axioms
+    by LTLAXIO1:def 17;then
+    X |- (p => q) => (p => r => (r => p => (r => q))) by LTLAXIO1:42;
+    then X |- p => r => (r => p => (r => q)) by LTLAXIO1:43,A1;
+    then X |- r => p => (r => q) by LTLAXIO1:43,A2;
+    hence thesis by LTLAXIO1:43,A3;
+  end;
+
+theorem X |- p => (q '&&' ('not' q)) implies X |- 'not' p
+  proof
+    (p => (q '&&' ('not' q))) => ('not' p) is ctaut by Th43;then
+    (p => (q '&&' ('not' q))) => ('not' p) in LTL_axioms by LTLAXIO1:def 17;
+    then A1: X |- (p => (q '&&' ('not' q))) => ('not' p) by LTLAXIO1:42;
+    assume X |- p => (q '&&' ('not' q));
+    hence X |- 'not' p by A1,LTLAXIO1:43;
+  end;
+
+theorem (for i be Nat st i in dom f holds {}LTLB_WFF |- p => f/.i) implies
+  {} LTLB_WFF |- p => (con f)/.(len con f)
+ proof
+   assume
+A1: for i be Nat st i in dom f holds {}l |- p => f/.i;
+    per cases;
+    suppose
+A2:   len f = 0;
+      p => TVERUM is ctaut by Th22;
+      then A3: p => TVERUM in LTL_axioms by LTLAXIO1:def 17;
+      f = {} by A2;
+      hence thesis by A3,Th10,LTLAXIO1:42;
+    end;
+    suppose
+A4:   len f > 0;
+      defpred P3[Nat] means $1 <= len f implies{}l |- p => ((con f)/.$1);
+A5:   now
+        let k being non zero Nat such that
+A6:     P3[k];
+        thus P3[k+1]
+        proof
+          set a = (con f)/.k, b = f/.(k+1);
+          assume
+A7:       k+1 <= len f;
+          1 <= k by NAT_1:25;then
+A8:       (con f)/.(k+1) = (con f)/.k '&&' f/.(k+1) by A7,NAT_1:13,Th7;
+          1 <= k+1 by NAT_1:25;
+          then A9: {}l |- p => f/.(k+1) by FINSEQ_3:25,A7,A1;
+          p => a => (p => b => (p => (a '&&' b))) is ctaut by Th40;then
+          p => a => (p => b => (p => (a '&&' b))) in LTL_axioms
+          by LTLAXIO1:def 17;then
+          {}l |- p => a => (p => b => (p => (a '&&' b))) by LTLAXIO1:42;then
+          {}l |- p => b => (p => (a '&&' b)) by LTLAXIO1:43, A6, A7,NAT_1:13;
+          hence {}l |- p => (con f)/.(k+1) by LTLAXIO1:43,A9,A8;
+        end;
+      end;
+A10:  P3[1]
+      proof
+        assume
+A11:    1 <= len f;
+        then {}l |- p => f/.1 by FINSEQ_3:25,A1;
+        hence thesis by A11,Th6;
+      end;
+A12:  for k being non zero Nat holds P3[k] from NAT_1:sch 10(A10,A5);
+      len f = len con f by A4,Def2;
+      hence {}l |- p => kon(f) by A12, A4;
+    end;
+  end;
+
+theorem (for i be Nat st i in dom f holds {}LTLB_WFF |- (f/.i) => p) implies
+   {}LTLB_WFF |- ('not' (con nega f)/.(len con nega f)) => p
+   proof
+     set nt = 'not' TVERUM;
+     assume
+A1:  for i be Nat st i in dom f holds {}l |- (f/.i) => p;
+     per cases;
+     suppose
+A2:    len f = 0;
+       nt => p is ctaut by Th23;
+       then A3: nt => p in LTL_axioms by LTLAXIO1:def 17;
+       len nega f = 0 by A2,Def4;
+       then nega f = {};
+       hence thesis by A3,Th10,LTLAXIO1:42;
+     end;
+     suppose
+A4:    len f > 0;
+       defpred P3[Nat] means $1 <= len f implies
+       {}l |- ('not' ((con nega f)/.$1)) => p;
+A5:    now
+         let k being non zero Nat such that
+A6:      P3[k];
+         thus P3[k+1]
+         proof
+         set a = ('not' (con nega f)/.(k+1)), b = f/.(k+1),c = (con nega f)/.k,
+         d = (nega f)/.(k+1),nc = 'not' c, nd = 'not' d;
+         a => (nc 'or' nd) => (nd => b => (a => (nc 'or' b))) is ctaut by Th48;
+         then a => (nc 'or' nd) => (nd => b => (a => (nc 'or' b)))
+         in LTL_axioms by LTLAXIO1:def 17;then
+A7:      {}l |- a => (nc 'or' nd) => (nd => b => (a => (nc 'or' b)))
+         by LTLAXIO1:42;
+         assume
+A8:      k+1 <= len f;
+         then k < len f by NAT_1:13;
+         then 1 <= k & k < len nega f by NAT_1:25,Def4;
+         then A9: a = 'not' (c '&&' d) by Th7;
+         nc => p => (b => p => ((nc 'or' b) => p)) is ctaut by Th49;then
+         nc => p => (b => p => ((nc 'or' b) => p)) in LTL_axioms
+         by LTLAXIO1:def 17;then
+         {}l |- nc => p => (b => p => ((nc 'or' b) => p)) by LTLAXIO1:42;
+         then A10: {}l |- b => p => ((nc 'or' b) => p)
+         by LTLAXIO1:43, A6, A8,NAT_1:13;
+A11:     1 <= k+1 by NAT_1:25;
+         then {}l |- b => p by FINSEQ_3:25,A8,A1;
+         then A12: {}l |- (nc 'or' b) => p by A10,LTLAXIO1:43;
+         k+1 in dom f by A11,FINSEQ_3:25,A8;
+         then nd = 'not' 'not' b by Th8;
+         then nd => b is ctaut by Th25;
+         then nd => b in LTL_axioms by LTLAXIO1:def 17;
+         then A13: {}l |- nd => b by LTLAXIO1:42;
+         'not' (c '&&' d) => (nc 'or' nd) is ctaut by Th35;then
+         'not' (c '&&' d) => (nc 'or' nd) in LTL_axioms by LTLAXIO1: def 17;
+         then {}l |- a => (nc 'or' nd) by LTLAXIO1:42,A9;
+         then {}l |- nd => b => (a => (nc 'or' b)) by A7,LTLAXIO1:43;
+         then {}l |- a => (nc 'or' b) by LTLAXIO1:43,A13;
+         hence {}l |- a => p by A12,LTLAXIO1:47;
+       end;
+     end;
+A14: len nega f > 0 by A4,Def4;
+A15: P3[1]
+     proof
+       set nnf = 'not' ('not' (f/.1));
+       assume
+A16:   1 <= len f;
+       then A17: 1 in dom f by FINSEQ_3:25;
+       nnf => f/.1 is ctaut by Th25;
+       then nnf => f/.1 in LTL_axioms by LTLAXIO1:def 17;
+       then A18: {}l |- nnf => f/.1 by LTLAXIO1:42;
+A19:   {}l |- f/.1 => p by A16,FINSEQ_3:25,A1;
+       'not' ((con nega f)/.1) = 'not' ((nega f)/.1) by A14,Th6
+       .= nnf by Th8,A17;
+       hence thesis by A18,A19,LTLAXIO1:47;
+     end;
+A20: for k being non zero Nat holds P3[k] from NAT_1:sch 10(A15,A5);
+     len f = len nega f by Def4
+     .= len con nega f by A14,Def2;
+     hence {}l |- alt(f) => p by A20, A4;
+   end;
+ end;
+
+begin :: The Derivations of Temporal Logic Formulas
+
+theorem Th58: X |- (('X' p) => ('X' q)) => ('X' (p => q))
+  proof
+    set pq = p => q,npq = 'not' pq,nq = 'not' q,xnq = 'X' nq,xq = 'X' q,
+    xnpq = 'X' npq, xpq = 'X' pq, nxpq = 'not' xpq,xp = 'X' p,nxq ='not' xq;
+    nxpq => xnpq in LTL_axioms by LTLAXIO1:def 17;
+    then A1: X |- nxpq => xnpq by LTLAXIO1:42;
+    npq => p is ctaut by Th31;
+    then npq => p in LTL_axioms by LTLAXIO1:def 17;
+    then X |- npq => p by LTLAXIO1:42;
+    then A2: X |- 'X' (npq => p) by LTLAXIO1:44;
+    nxpq => xp => (nxpq => nxq => (nxpq => ('not' (xp => xq)))) is ctaut
+    by Th47;then
+    nxpq => xp => (nxpq => nxq => (nxpq => ('not' (xp => xq)))) in LTL_axioms
+    by LTLAXIO1:def 17;then
+A3: X |- nxpq => xp => (nxpq => nxq => (nxpq => ('not' (xp => xq))))
+    by LTLAXIO1:42;
+    xnq => nxq in LTL_axioms by LTLAXIO1:def 17;
+    then A4: X |- xnq => nxq by LTLAXIO1:42;
+    npq => nq is ctaut by Th32;
+    then npq => nq in LTL_axioms by LTLAXIO1:def 17;
+    then X |- npq => nq by LTLAXIO1:42;
+    then A5: X |- 'X' (npq => nq) by LTLAXIO1:44;
+    xnpq => nxpq in LTL_axioms by LTLAXIO1:def 17;
+    then A6: X |- xnpq => nxpq by LTLAXIO1:42;
+    ('X' (npq => nq)) => (('X' npq) => xnq) in LTL_axioms by LTLAXIO1:def 17;
+    then X |- ('X' (npq => nq)) => (xnpq => xnq) by LTLAXIO1:42;
+    then X |- xnpq => xnq by LTLAXIO1:43,A5;
+    then X |- nxpq => xnq by A1,A6,Th54;
+    then A7: X |- nxpq => nxq by A4,LTLAXIO1:47;
+    ('X' (npq => p)) => (xnpq => xp) in LTL_axioms by LTLAXIO1:def 17;
+    then X |- ('X' (npq => p)) => (xnpq => xp) by LTLAXIO1:42;
+    then X |- xnpq => xp by A2,LTLAXIO1:43;
+    then X |- nxpq => xp by A6,Th54,A1;then
+    X |- nxpq => nxq => (nxpq => ('not' (xp => xq))) by A3,LTLAXIO1:43;
+    then X |- nxpq => ('not' (xp => xq)) by LTLAXIO1:43,A7;
+    then A8: X |- ('not' 'not' (xp => xq)) => ('not' nxpq) by LTLAXIO1:52;
+    (xp => xq) => ('not' 'not' (xp => xq)) is ctaut by Th26;then
+    (xp => xq) => ('not' 'not' (xp => xq)) in LTL_axioms by LTLAXIO1:def 17;
+    then A9: X |- (xp => xq) => ('not' 'not' (xp => xq)) by LTLAXIO1:42;
+    ('not' 'not' (xp => xq)) => (xp => xq) is ctaut by Th25;then
+    ('not' 'not' (xp => xq)) => (xp => xq) in LTL_axioms by LTLAXIO1:def 17;
+    then A10: X |- ('not' 'not' (xp => xq)) => (xp => xq) by LTLAXIO1:42;
+    ('not' nxpq) => xpq is ctaut by Th25;
+    then ('not' nxpq) => xpq in LTL_axioms by LTLAXIO1:def 17;
+    then X |- ('not' nxpq) => xpq by LTLAXIO1:42;
+    then X |- ('not' 'not' (xp => xq)) => xpq by LTLAXIO1:47,A8;
+    hence thesis by A9,A10,Th54;
+  end;
+
+theorem Th59: X |- ('X' (p '&&' q)) => (('X' p) '&&' ('X' q))
+  proof
+   set xp = 'X' p, xq = 'X' q,np = 'not' p,nq = 'not' q,xnp = 'X' 'not' p,
+   xnq = 'X' 'not' q,nxp = 'not' 'X' p, nxq = 'not' 'X' q,npq = np '&&' nq;
+A1: X |- (xp => xnq) => ('X' (p => nq)) by Th58;
+    (xp => nxq) => (xp => nxq) is ctaut by Th24;
+    then (xp => nxq) => (xp => nxq) in LTL_axioms by LTLAXIO1:def 17;
+    then A2: X |- (xp => nxq) => (xp => nxq) by LTLAXIO1:42;
+    nxq => xnq in LTL_axioms by LTLAXIO1:def 17;
+    then X |- nxq => xnq by LTLAXIO1:42;
+    then X |- (xp => nxq) => (xp => xnq) by A2,LTLAXIO1:51;
+    then A3: X |- (xp => nxq) => ('X' (p => nq)) by A1,LTLAXIO1:47;
+    ('X' 'not' (p => nq)) => ('not' ('X' (p => nq))) in LTL_axioms
+    by LTLAXIO1:def 17;then
+    X |- ('X' 'not' (p => nq)) => ('not' ('X' (p => nq))) by LTLAXIO1:42;then
+A4: X |- ('not' 'not' ('X' (p => nq))) => (('not' ('X' 'not' (p => nq))))
+    by LTLAXIO1:52;
+    ('X' 'not' (p => nq)) => ('not' 'not' ('X' 'not' (p => nq))) is ctaut
+    by Th26;then
+    ('X' 'not' (p => nq)) => ('not' 'not' ('X' 'not' (p => nq))) in LTL_axioms
+    by LTLAXIO1:def 17;then
+A5: X |- ('X' 'not' (p => nq)) => ('not' 'not' ('X' 'not' (p => nq)))
+    by LTLAXIO1:42;
+    ('X' (p => nq)) => ('not' 'not' ('X' (p => nq))) is ctaut by Th26;then
+    ('X' (p => nq)) => ('not' 'not' ('X' (p => nq))) in LTL_axioms
+    by LTLAXIO1:def 17;then
+    X |- ('X' (p => nq)) => ('not' 'not' ('X' (p => nq))) by LTLAXIO1:42;then
+    X |- (xp => nxq) => ('not' 'not' ('X' (p => nq))) by A3,LTLAXIO1:47;then
+    X |- (xp => nxq) => (('not' ('X' 'not' (p => nq)))) by A4,LTLAXIO1:47;then
+    X |- ('not' 'not' ('X' 'not' (p => nq))) => ('not' (xp => nxq))
+    by LTLAXIO1: 52;
+    hence thesis by A5,LTLAXIO1:47;
+  end;
+
+theorem {}LTLB_WFF |- (con nex f)/.(len con nex f)=>('X' (con f)/.(len con f))
+   proof
+     set t = TVERUM;
+     per cases;
+     suppose
+A1:    len f = 0;
+       then len nex f = 0 by Def5;
+       then A2: nex f = {};
+       t is ctaut by Th4;
+       then t in LTL_axioms by LTLAXIO1:def 17;
+       then A3: {}l |- t by LTLAXIO1:42;
+       then A4: {}l |- 'X' t by LTLAXIO1:44;
+       t => (('X' t) => (t => 'X' t)) is ctaut by Th34;
+       then
+       t => (('X' t) => (t => 'X' t)) in LTL_axioms by LTLAXIO1:def 17;
+       then {}l |- t => (('X' t) => (t => 'X' t)) by LTLAXIO1:42;
+       then A5: {}l |- (('X' t) => (t => 'X' t)) by LTLAXIO1:43,A3;
+       f = {} by A1;
+       hence thesis by A5,LTLAXIO1:43,A4, Th10, A2;
+     end;
+     suppose
+A6:    0 < len f;
+       defpred P[Nat] means $1 <= len f implies
+       {}l |- (con nex f)/.$1 => 'X' (con f)/.$1;
+A7:    now
+         let k being non zero Nat;
+         set p = (con nex f)/.k, q = (con nex f)/.(k+1), r = (nex f)/.(k+1),
+         s = (con f)/.(k+1), t = (con f)/.k;
+         assume
+A8:      P[k];
+         thus P[k + 1]
+         proof
+           (q => (p '&&' r)) => ((p => 'X' t) => (q => (('X' t) '&&' r)))
+           is ctaut by Th44;then
+           (q => (p '&&' r)) => ((p => 'X' t) => (q => (('X' t) '&&' r)))
+           in LTL_axioms by LTLAXIO1:def 17;then
+A9:        {}l |- (q => (p '&&' r)) =>
+           ((p => 'X' t) => (q => (('X' t) '&&' r))) by LTLAXIO1:42;
+           reconsider k1 = k as Element of NAT by ORDINAL1:def 12;
+A10:       1 <= k1 by NAT_1:25;
+           assume
+A11:       k+1 <= len f;
+           then A12: k1 + 1 <= len con f by Def2;
+A13:       k1 + 1 <= len nex f by A11,Def5;
+           then r = (nex f).(k1+1) by NAT_1:12,FINSEQ_4:15
+           .= 'X' f/.(k+1) by Def5, NAT_1:12,A11;then
+A14:       {}l |- (('X' t) '&&' r) => ('X' (t '&&' f/.(k+1))) by LTLAXIO1:53;
+A15:       k < len f by A11,NAT_1:13;
+           then A16: k1 < len nex f by Def5;
+           k1 + 1 <= len con nex f by A13,Def2;
+           then q = (con nex f).(k1+1) by NAT_1:12,FINSEQ_4:15
+           .= p '&&' r by Def2,A16,A10;
+           then q => (p '&&' r) is ctaut by Th24;
+           then q => (p '&&' r) in LTL_axioms by LTLAXIO1:def 17;
+           then {}l |- q => (p '&&' r) by LTLAXIO1:42;then
+           {}l |- ((p => 'X' t) => (q => (('X' t) '&&' r))) by A9, LTLAXIO1:43;
+           then A17: {}l |- q => (('X' t) '&&' r)
+           by LTLAXIO1:43, A11,NAT_1:13,A8;
+           t '&&' f/.(k+1) = (con f).(k1+1) by Def2,A10, A15
+           .= s by NAT_1:12,A12,FINSEQ_4:15;
+           hence {}l |- q => 'X' s by A14,A17,LTLAXIO1:47;
+         end;
+       end;
+A18:   0 < len nex f by A6,Def5;
+A19:   P[1]
+       proof
+         assume
+A20:     1 <= len f;
+         then 1 <= len nex f by Def5;
+         then 1 <= len con nex f by Def2;
+         then A21: (con nex f)/.1 = (con nex f).1 by FINSEQ_4:15
+         .= (nex f).1 by Def2,A18
+         .= 'X' f/.1 by Def5,A20;
+         ('X' f/.1) => ('X' f/.1) is ctaut by Th24;
+         then A22: ('X' f/.1) => ('X' f/.1) in LTL_axioms by LTLAXIO1:def 17;
+         'X'(con f)/.1 = 'X' f/.1 by Th6,A20;
+         hence thesis by A22,LTLAXIO1:42,A21;
+       end;
+       for k be non zero Nat holds P[k] from NAT_1:sch 10(A19,A7);
+       then A23: {}l |- (con nex f)/.(len f) => 'X' (con f)/.(len f) by A6;
+A24:   len nex f > 0 by A6,Def5;
+       len f = len nex f by Def5
+       .= len con nex f by Def2,A24;
+       hence thesis by Def2,A6,A23;
+     end;
+   end;
+
+theorem X |- (('X' p) 'or' ('X' q)) => 'X' (p 'or' q)
+  proof
+    set xp = 'X' p, xq = 'X' q,np = 'not' p,nq = 'not' q,xnp = 'X' 'not' p,
+    xnq = 'X' 'not' q,nxp = 'not' 'X' p, nxq = 'not' 'X' q,npq = np '&&' nq;
+    ('not' 'X' ('not' npq)) => ('X' 'not' 'not' npq) in LTL_axioms
+    by LTLAXIO1:def 17;then
+A1: X |- ('not' 'X' ('not' npq)) => ('X' 'not' 'not' npq) by LTLAXIO1:42;
+    ('not' 'not' npq) => npq is ctaut by Th25;
+    then ('not' 'not' npq) => npq in LTL_axioms by LTLAXIO1:def 17;
+    then X |- ('not' 'not' npq) => npq by LTLAXIO1:42;
+    then A2: X |- 'X' (('not' 'not' npq) => npq) by LTLAXIO1:44;
+    ('X' (('not' 'not' npq) => npq)) =>
+  (('X' ('not' 'not' npq)) => ('X' npq)) in LTL_axioms by LTLAXIO1:def 17;then
+    X |- ('X' (('not' 'not' npq) => npq)) =>
+    (('X' ('not' 'not' npq)) => ('X' npq)) by LTLAXIO1:42;
+    then X |- (('X' ('not' 'not' npq)) => ('X' npq)) by LTLAXIO1:43, A2;
+    then A3: X |- ('not' 'X' ('not' npq)) => ('X' npq) by LTLAXIO1:47,A1;
+    X |- ('X' npq) => (xnp '&&' xnq) by Th59;then
+A4: X |- ('not' 'X' ('not' npq)) => (xnp '&&' xnq) by LTLAXIO1:47, A3;
+    xnq => nxq in LTL_axioms by LTLAXIO1:def 17;
+    then A5: X |- xnq => nxq by LTLAXIO1:42;
+    ('not' 'not' 'X' ('not' npq)) => ('X' ('not' npq)) is ctaut by Th25;then
+    ('not' 'not' 'X' ('not' npq)) => ('X' ('not' npq)) in LTL_axioms
+    by LTLAXIO1:def 17;then
+A6: X |- ('not' 'not' 'X' ('not' npq)) => ('X' ('not' npq)) by LTLAXIO1:42;
+    xnp => nxp in LTL_axioms by LTLAXIO1:def 17;
+    then X |- xnp => nxp by LTLAXIO1:42;
+    then X |- (xnp '&&' xnq) => (nxp '&&' nxq) by A5,Th53;then
+    X |- ('not' 'X' ('not' npq)) => (nxp '&&' nxq) by LTLAXIO1:47, A4;then
+    X |- ('not' (nxp '&&' nxq)) => ('not' 'not' 'X' ('not' npq))
+    by LTLAXIO1: 52;
+    hence thesis by A6,LTLAXIO1:47;
+  end;
+
+theorem Th62: X |- ('X' (p 'or' q)) => (('X' p) 'or' ('X' q))
+  proof
+    set xp = 'X' p, xq = 'X' q,np = 'not' p,nq = 'not' q,xnp = 'X' 'not' p,
+    xnq = 'X' 'not' q,nxp = 'not' 'X' p, nxq = 'not' 'X' q;
+    X |- (xnp '&&' xnq) => ('X' (np '&&' nq)) by LTLAXIO1:53;then
+A1: X |- ('not' ('X' (np '&&' nq))) => ('not' (xnp '&&' xnq)) by LTLAXIO1:52;
+    nxq => xnq in LTL_axioms by LTLAXIO1:def 17;
+    then A2: X |- nxq => xnq by LTLAXIO1:42;
+    nxp => xnp in LTL_axioms by LTLAXIO1:def 17;
+    then X |- nxp => xnp by LTLAXIO1:42;
+    then X |- (nxp '&&' nxq) => (xnp '&&' xnq) by A2,Th53;then
+A3: X |- ('not' (xnp '&&' xnq)) => ('not' (nxp '&&' nxq)) by LTLAXIO1:52;
+    ('X' (p 'or' q)) => ('not' 'X' (np '&&' nq)) in LTL_axioms
+    by LTLAXIO1:def 17;then
+    X |- ('X' (p 'or' q)) => ('not' 'X' (np '&&' nq)) by LTLAXIO1:42;then
+    X |- ('X' (p 'or' q)) => ('not' (xnp '&&' xnq)) by A1, LTLAXIO1:47;
+    hence thesis by A3,LTLAXIO1:47;
+  end;
+
+theorem X |- ('not' (A 'U' B)) => ('X' 'not' untn(A,B))
+  proof
+    set p = A 'U' B, q = 'X' B, r = 'X' (A '&&' (A 'U' B));
+    (q 'or' r) => p in LTL_axioms by LTLAXIO1:def 17;
+    then A1: X |- (q 'or' r) => p by LTLAXIO1:42;
+    X |- ('X' untn(A,B)) => (q 'or' r) by Th62;
+    then X |- ('X' untn(A,B)) => p by LTLAXIO1:47,A1;
+    then A2: X |- ('not' p) => ('not' ('X' untn(A,B))) by LTLAXIO1:52;
+    ('not' ('X' untn(A,B))) => ('X' ('not' untn(A,B))) in LTL_axioms
+    by LTLAXIO1:def 17;then
+    X |- ('not' ('X' untn(A,B))) => ('X' ('not' untn(A,B))) by LTLAXIO1:42;
+    hence thesis by LTLAXIO1:47,A2;
+  end;

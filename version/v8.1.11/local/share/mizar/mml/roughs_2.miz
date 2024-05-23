@@ -1,0 +1,1791 @@
+:: Relational Formal Characterization of Rough Sets
+::  by Adam Grabowski
+::
+:: Received January 17, 2013
+:: Copyright (c) 2013-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies STRUCT_0, ORDERS_2, RELAT_1, TARSKI, ZFMISC_1, PRE_TOPC, RELAT_2,
+      XBOOLE_0, PARTFUN1, SUBSET_1, TOPS_1, FUNCT_1, FINSET_1, EQREL_1,
+      XXREAL_0, ROUGHS_1, RCOMP_1, ROUGHS_2;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, FINSET_1, RELAT_1, RELAT_2,
+      FUNCT_1, RELSET_1, PARTFUN1, FUNCT_2, DOMAIN_1, STRUCT_0, ORDERS_2,
+      EQREL_1, PRE_TOPC, TOPS_1, ROUGHS_1, YELLOW_3;
+ constructors EQREL_1, REALSET2, RELSET_1, ROUGHS_1, YELLOW_3, TOPS_1;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, FINSET_1, NAT_1, STRUCT_0,
+      ORDERS_2, RELSET_1, FUNCT_1, FUNCT_2, YELLOW_3, TOPS_1, PRE_TOPC;
+ requirements BOOLE, SUBSET, NUMERALS;
+ definitions TARSKI, XBOOLE_0, FUNCT_2;
+ equalities SUBSET_1, STRUCT_0, RELAT_1, ROUGHS_1;
+ expansions TARSKI, XBOOLE_0, FUNCT_2;
+ theorems EQREL_1, XBOOLE_0, XBOOLE_1, SUBSET_1, TARSKI, ZFMISC_1, RELAT_1,
+      RELAT_2, FUNCT_2, FUNCT_1, ORDERS_2, YELLOW_3, RELSET_1, PARTFUN1,
+      XTUPLE_0, TDLAT_3, PRE_TOPC, TOPS_1;
+ schemes FUNCT_2, RELSET_1, CHAIN_1;
+
+begin :: Preliminaries
+
+registration
+  cluster non empty void for RelStr;
+  existence
+  proof
+    reconsider E = {} as Relation of 1 by RELSET_1:12;
+    set X = RelStr (# 1, E #);
+    reconsider X as non empty RelStr;
+    X is void;
+    hence thesis;
+  end;
+end;
+
+theorem Th1:
+  for R being total non empty RelStr,
+      x being Element of R holds
+    x in field the InternalRel of R
+  proof
+    let R be total non empty RelStr;
+    let x be Element of R;
+    dom the InternalRel of R = the carrier of R by PARTFUN1:def 2;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+
+theorem Th2:
+  for R being non empty 1-sorted,
+      X being Subset of R holds
+    { x where x is Element of R : {} c= X } = [#]R
+  proof
+    let R be non empty 1-sorted;
+    let X be Subset of R;
+    thus { x where x is Element of R : {} c= X } c= [#]R
+    proof
+      let y be object;
+      assume y in { x where x is Element of R : {} c= X }; then
+      ex z being Element of R st z = y & {} c= X;
+      hence thesis;
+    end;
+    let y be object;
+    assume
+A1: y in [#]R;
+    y in { x where x is Element of R : {} c= X}
+    proof
+      assume not y in { x where x is Element of R : {} c= X }; then
+      not y is Element of R or not {} c= X;
+      hence contradiction by A1;
+    end;
+    hence thesis;
+  end;
+
+theorem Th3:
+  for R being 1-sorted,
+      X being Subset of R holds
+    { x where x is Element of R : {} meets X } = {}R
+  proof
+    let R be 1-sorted;
+    let X be Subset of R;
+    thus {x where x is Element of R : {} meets X} c= {}R
+    proof
+      let y be object;
+      assume y in {x where x is Element of R : {} meets X}; then
+      ex z being Element of R st z = y & {} meets X;
+      then {} /\ X <> {};
+      hence thesis;
+    end;
+    thus thesis;
+  end;
+
+begin :: Missing Ordinary Properties of Binary Relations
+
+definition let R be Relation, X be set;
+  pred R is_serial_in X means :Def1:
+    for x being object st x in X holds
+     ex y being object st y in X & [x,y] in R;
+end;
+
+definition let R be Relation;
+  attr R is serial means
+    R is_serial_in field R;
+end;
+
+definition let R be RelStr;
+  attr R is serial means :Def3:
+    the InternalRel of R is_serial_in the carrier of R;
+end;
+
+Lm1:
+  for R being RelStr st
+    the InternalRel of R is_reflexive_in the carrier of R holds
+      R is serial
+  proof
+    let R be RelStr;
+    assume
+A1: the InternalRel of R is_reflexive_in the carrier of R;
+    set IR = the InternalRel of R, X = the carrier of R;
+    for x being object st x in X
+     ex y being object st y in X & [x,y] in IR
+    proof
+      let x be object;
+      assume
+A2:   x in X; then
+      [x,x] in IR by A1,RELAT_2:def 1;
+      hence thesis by A2;
+    end;
+    hence thesis by Def1;
+  end;
+
+registration
+  cluster reflexive -> serial for RelStr;
+  coherence
+  by Lm1,ORDERS_2:def 2;
+end;
+
+definition let R be non empty RelStr;
+  redefine attr R is serial means
+    for x being Element of R ex y being Element of R st x <= y;
+  compatibility
+  proof
+    thus R is serial implies
+      for x being Element of R ex y being Element of R st x <= y
+    proof
+      assume
+A1:    R is serial;
+      set IR = the InternalRel of R, X = the carrier of R;
+      let x be Element of R;
+      consider y being object such that
+A2:   y in X & [x,y] in IR by Def1,A1;
+      thus thesis by A2,ORDERS_2:def 5;
+    end;
+    assume
+A3: for x being Element of R ex y being Element of R st x <= y;
+    the InternalRel of R is_serial_in the carrier of R
+    proof
+      let x be object;
+      assume x in the carrier of R; then
+      reconsider xx = x as Element of R;
+      consider y being Element of R such that
+A4:   xx <= y by A3;
+      take y;
+      thus thesis by A4,ORDERS_2:def 5;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster total -> serial for RelStr;
+  coherence
+  proof
+    let R be RelStr;
+    set RR = the InternalRel of R, X = the carrier of R;
+    assume R is total; then
+A1: dom RR = X by PARTFUN1:def 2;
+    RR is_serial_in X
+    proof
+      let x be object;
+      assume x in X; then
+      consider y being object such that
+A2:   [x,y] in RR by A1,RELSET_1:9;
+      take y;
+      consider xx,yy being object such that
+A3:   [x,y] = [xx,yy] & xx in X & yy in X by A2,RELSET_1:2;
+      thus thesis by A2,A3,XTUPLE_0:1;
+    end;
+    hence thesis;
+  end;
+  cluster serial -> total for RelStr;
+  coherence
+  proof
+    let R be RelStr;
+    set RR = the InternalRel of R, X = the carrier of R;
+    assume
+A4:  R is serial;
+    for x being object st x in X
+     ex y being object st [x,y] in RR
+    proof
+      let x be object;
+      assume x in X; then
+      ex y being object st y in X & [x,y] in RR by Def1,A4;
+      hence thesis;
+    end; then
+    dom RR = X by RELSET_1:9; then
+    RR is total by PARTFUN1:def 2;
+    hence thesis by ORDERS_2:def 1;
+  end;
+end;
+
+Lm2:
+  for R being non empty serial RelStr,
+      x being Element of R holds
+    Class (the InternalRel of R,x) <> {}
+  proof
+    let R be non empty serial RelStr;
+    let x be Element of R;
+A1: x in {x} by TARSKI:def 1;
+    consider y being object such that
+A2: y in the carrier of R & [x,y] in the InternalRel of R by Def1,Def3;
+    thus thesis by RELAT_1:def 13,A2,A1;
+  end;
+
+registration let R be non empty serial RelStr,
+                 x be Element of R;
+  cluster Class (the InternalRel of R,x) -> non empty;
+  coherence by Lm2;
+end;
+
+:: Reflexive relations
+
+theorem Th4:
+  for R being non empty reflexive RelStr,
+      x being Element of R holds
+    x in Class (the InternalRel of R,x)
+  proof
+    let R be non empty reflexive RelStr;
+    let x be Element of R;
+A1: x in field the InternalRel of R by Th1;
+A2: x in {x} by TARSKI:def 1;
+    [x,x] in the InternalRel of R by A1,RELAT_2:def 1,RELAT_2:def 9;
+    hence thesis by RELAT_1:def 13,A2;
+  end;
+
+registration let R be non empty reflexive RelStr,
+                 x be Element of R;
+  cluster Class (the InternalRel of R,x) -> non empty;
+  coherence;
+end;
+
+:: Mediate relations
+
+definition let R be Relation, X be set;
+  pred R is_mediate_in X means :Def5:
+    for x,y being object st x in X & y in X holds
+    [x,y] in R implies
+      ex z being object st z in X & [x,z] in R & [z,y] in R;
+end;
+
+definition let R be Relation;
+  attr R is mediate means
+    R is_mediate_in field R;
+end;
+
+definition let R be RelStr;
+  attr R is mediate means :Def7:
+    the InternalRel of R is_mediate_in the carrier of R;
+end;
+
+registration
+  cluster reflexive -> mediate for RelStr;
+  coherence
+  proof
+    let R be RelStr;
+    assume A1: R is reflexive;
+    set IR = the InternalRel of R, X = the carrier of R;
+    for x,y being object
+      st x in X & y in X holds [x,y] in the InternalRel of R implies
+      ex z being object st z in X & [x,z] in IR & [z,y] in IR
+    proof
+      let x,y be object;
+      assume A2: x in X & y in X;
+      assume A3: [x,y] in IR;
+      [x,x] in IR by A2,RELAT_2:def 1,A1,ORDERS_2:def 2;
+      hence thesis by A2,A3;
+    end;
+    hence thesis by Def5;
+  end;
+end;
+
+begin :: Approximations Revisited
+
+theorem Th5:
+  for R being non empty RelStr,
+      a, b being Element of R st
+    a in UAp ({b}) holds [a,b] in the InternalRel of R
+  proof
+    let R be non empty RelStr;
+    let a, b be Element of R;
+    assume a in UAp ({b}); then
+    consider x being Element of R such that
+A1: x = a & Class (the InternalRel of R,x) meets {b};
+    consider y being object such that
+A2: y in Class (the InternalRel of R,x) /\ {b} by A1,XBOOLE_0:def 1;
+    y in Class (the InternalRel of R,x) & y in {b} by XBOOLE_0:def 4,A2; then
+    y = b & y in Class (the InternalRel of R,x) by TARSKI:def 1;
+    hence thesis by A1,RELAT_1:169;
+  end;
+
+definition let R be non empty RelStr;
+           let X be Subset of R;
+  func Uap X -> Subset of R equals
+    (LAp X`)`;
+  coherence;
+end;
+
+definition let R be non empty RelStr;
+           let X be Subset of R;
+  func Lap X -> Subset of R equals
+    (UAp X`)`;
+  coherence;
+end;
+
+theorem Th6:
+  for R being non empty RelStr,
+      X being Subset of R
+  for x being object st x in LAp X holds
+    Class (the InternalRel of R, x) c= X
+proof
+  let R be non empty RelStr,
+      X be Subset of R;
+  let x be object;
+  assume x in LAp X; then
+  ex x1 being Element of R st x = x1 &
+  Class (the InternalRel of R, x1) c= X;
+  hence thesis;
+end;
+
+theorem Th7:
+  for R being non empty RelStr,
+      X being Subset of R
+  for x being set st x in UAp X holds
+    Class (the InternalRel of R, x) meets X
+proof
+  let R be non empty RelStr,
+      X be Subset of R;
+  let x be set;
+  assume x in UAp X;
+  then ex x1 being Element of R st
+  x = x1 & Class (the InternalRel of R, x1) meets X;
+  hence thesis;
+end;
+
+theorem Th8:
+  for R being non empty RelStr,
+      X being Subset of R holds
+    Uap X = UAp X
+  proof
+    let R be non empty RelStr,
+        X be Subset of R;
+A1: LAp X` misses UAp X
+    proof
+      assume LAp X` meets UAp X;
+      then consider x being object such that
+A2:   x in LAp X` & x in UAp X by XBOOLE_0:3;
+      Class (the InternalRel of R, x) meets X &
+        Class (the InternalRel of R, x) c= X` by A2,Th6,Th7;
+      hence thesis by XBOOLE_1:63,79;
+    end;
+    (UAp X)` c= LAp X`
+    proof let x be object;
+      assume
+A3:   x in (UAp X)`;
+      then not x in UAp X by XBOOLE_0:def 5;
+      then Class (the InternalRel of R, x) misses X by A3;
+      then Class (the InternalRel of R, x) c= X` by SUBSET_1:23;
+      hence x in LAp X` by A3;
+    end;
+    hence thesis by A1,SUBSET_1:17,23;
+  end;
+
+theorem Th9:
+  for R being non empty RelStr,
+      X being Subset of R holds
+    Lap X = LAp X
+  proof
+    let R be non empty RelStr,
+        X be Subset of R;
+    Uap X` = UAp X` by Th8;
+    hence thesis;
+  end;
+
+theorem  :: Example 2
+  for R being non empty void RelStr,
+      X being Subset of R holds
+    LAp X = [#]R
+  proof
+    let R be non empty void RelStr,
+        X be Subset of R;
+A1: the InternalRel of R = {} by YELLOW_3:def 3;
+    { x where x is Element of R : Class ({}, x) c= X } =
+    { x where x is Element of R : {} c= X }
+    proof
+      thus { x where x is Element of R : Class ({}, x) c= X } c=
+      { x where x is Element of R : {} c= X }
+      proof
+        let y be object;
+        assume y in { x where x is Element of R : Class ({}, x) c= X }; then
+        consider z being Element of R such that
+A2:     z = y & Class ({}, z) c= X;
+        thus thesis by A2;
+      end;
+      let y be object;
+      assume y in { x where x is Element of R : {} c= X }; then
+      consider z being Element of R such that
+A3:   z = y & {} c= X;
+      Class ({},z) c= X;
+      hence thesis by A3;
+    end;
+    hence thesis by Th2,A1;
+  end;
+
+theorem  :: Example 2
+  for R being non empty void RelStr,
+      X being Subset of R holds
+    UAp X = {}R
+  proof
+    let R be non empty void RelStr,
+        X be Subset of R;
+A1: the InternalRel of R = {} by YELLOW_3:def 3;
+    { x where x is Element of R : Class ({},x) meets X } =
+    { x where x is Element of R : {} meets X}
+    proof
+      thus { x where x is Element of R : Class ({},x) meets X } c=
+      { x where x is Element of R : {} meets X}
+      proof
+        let y be object;
+        assume y in { x where x is Element of R : Class ({},x) meets X }; then
+        consider z being Element of R such that
+A2:     z = y & Class ({},z) meets X;
+        thus thesis by A2;
+      end;
+      let y be object;
+      assume y in { x where x is Element of R : {} meets X}; then
+      consider z being Element of R such that
+A3:   z = y & {} meets X;
+      thus thesis by A3;
+    end;
+    hence thesis by Th3,A1;
+  end;
+
+begin :: General Properties of Approximations
+
+registration
+  let R be non empty RelStr;
+  reduce LAp ([#]R) to [#]R;
+  reducibility
+  proof
+    {x where x is Element of R : Class (the InternalRel of R,x) c= [#]R} = [#]R
+    proof
+      thus { x where x is Element of R :
+        Class (the InternalRel of R,x) c= [#]R } c= [#]R
+      proof
+        let y be object;
+        assume y in { x where x is Element of R :
+          Class (the InternalRel of R,x) c= [#]R}; then
+        ex z being Element of R st z = y &
+        Class (the InternalRel of R,z) c= [#]R;
+        hence thesis;
+      end;
+      let y be object;
+      assume
+A1:   y in [#]R;
+      assume not y in { x where x is Element of R :
+        Class (the InternalRel of R,x) c= [#]R}; then
+      not y is Element of R or not Class (the InternalRel of R,y) c= [#]R;
+      hence contradiction by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let R be non empty serial RelStr;
+  reduce UAp ([#]R) to [#]R;
+  reducibility
+  proof
+    [#]R c= UAp ([#]R)
+    proof
+      let y be object;
+      assume
+A1:   y in [#]R; then
+      Class (the InternalRel of R, y) meets [#]R by XBOOLE_1:28;
+      hence thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let R be non empty serial RelStr;
+  reduce LAp {}R to {}R;
+  reducibility
+  proof
+    {x where x is Element of R :
+      Class (the InternalRel of R, x) c= {}R} c= {}R
+    proof
+      let y be object;
+      assume y in { x where x is Element of R :
+        Class (the InternalRel of R, x) c= {}R}; then
+      consider z being Element of R such that
+A1:   z = y & Class (the InternalRel of R,z) c= {}R;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let R be non empty RelStr;
+  reduce UAp ({}R) to {}R;
+  reducibility
+  proof
+    thus UAp {}R c= {}R
+    proof
+      let y be object;
+      assume y in UAp {}R; then
+      consider z being Element of R such that
+A1:   y = z & Class (the InternalRel of R, z) meets {}R;
+      thus thesis by A1;
+    end;
+    thus thesis;
+  end;
+end;
+
+theorem  :: Proposition 2 4L
+  for R being non empty RelStr,
+      X, Y being Subset of R holds
+    LAp (X /\ Y) = LAp (X) /\ LAp (Y)
+  proof
+    let R be non empty RelStr;
+    let X, Y be Subset of R;
+    { x where x is Element of R : Class (the InternalRel of R,x) c= X /\ Y} =
+    { x where x is Element of R : Class (the InternalRel of R,x) c= X } /\
+    { x where x is Element of R : Class (the InternalRel of R,x) c= Y}
+    proof
+      thus
+      {x where x is Element of R : Class (the InternalRel of R,x) c= X /\ Y} c=
+      { x where x is Element of R : Class (the InternalRel of R,x) c= X } /\
+      { x where x is Element of R : Class (the InternalRel of R,x) c= Y}
+      proof
+        let y be object;
+        assume y in { x where x is Element of R :
+        Class (the InternalRel of R,x) c= X /\ Y}; then
+        consider z being Element of R such that
+A1:     z = y & Class (the InternalRel of R,z) c= X /\ Y;
+        X /\ Y c= X & X /\ Y c= Y by XBOOLE_1:17; then
+        Class (the InternalRel of R,z) c= X &
+          Class (the InternalRel of R,z) c= Y by A1; then
+        z in {x where x is Element of R : Class (the InternalRel of R,x) c= X}&
+        z in {x where x is Element of R : Class (the InternalRel of R,x) c= Y};
+        hence thesis by A1,XBOOLE_0:def 4;
+      end;
+      let y be object;
+      assume A2: y in { x where x is Element of R :
+      Class (the InternalRel of R,x) c= X } /\
+        {x where x is Element of R : Class (the InternalRel of R,x) c= Y}; then
+A3:   y in { x where x is Element of R :
+        Class (the InternalRel of R,x) c= X } by XBOOLE_0:def 4;
+A4:   y in { x where x is Element of R :
+        Class (the InternalRel of R,x) c= Y} by XBOOLE_0:def 4,A2;
+      consider z being Element of R such that
+A5:   z = y & Class (the InternalRel of R,z) c= X by A3;
+      consider w being Element of R such that
+A6:   w = y & Class (the InternalRel of R,w) c= Y by A4;
+      Class (the InternalRel of R,z) /\
+        Class (the InternalRel of R,z) c= X /\ Y by A5,XBOOLE_1:27,A6;
+      hence thesis by A5;
+    end;
+    hence thesis;
+  end;
+
+theorem Th13:  :: Proposition 2 4H
+  for R being non empty RelStr,
+      X, Y being Subset of R holds
+    UAp (X \/ Y) = UAp X \/ UAp Y
+  proof
+    let R be non empty RelStr;
+    let X, Y be Subset of R;
+    thus UAp (X \/ Y) c= UAp X \/ UAp Y
+    proof
+      let y be object;
+      assume y in UAp (X \/ Y); then
+      consider z being Element of R such that
+A1:   z = y & Class (the InternalRel of R, z) meets (X \/ Y);
+      Class (the InternalRel of R, z) meets X or
+      Class (the InternalRel of R, z) meets Y by A1,XBOOLE_1:70; then
+      z in { x where x is Element of R :
+      Class (the InternalRel of R, x) meets X} or
+      z in { x where x is Element of R :
+      Class (the InternalRel of R, x) meets Y};
+      hence thesis by A1,XBOOLE_0:def 3;
+    end;
+    let y be object;
+    assume y in UAp X \/ UAp Y; then
+    per cases by XBOOLE_0:def 3;
+    suppose y in UAp X; then
+      consider z being Element of R such that
+A2:   z = y & Class (the InternalRel of R, z) meets X;
+      Class (the InternalRel of R, z) meets (X \/ Y) by A2,XBOOLE_1:70;
+      hence thesis by A2;
+    end;
+    suppose y in UAp Y; then
+      consider z being Element of R such that
+A3:   z = y & Class (the InternalRel of R, z) meets Y;
+      Class (the InternalRel of R, z) meets (X \/ Y) by A3,XBOOLE_1:70;
+      hence thesis by A3;
+    end;
+  end;
+
+theorem  :: Proposition 2 6L
+  for R being non empty RelStr,
+      X, Y being Subset of R st
+    X c= Y holds LAp X c= LAp Y
+  proof
+    let R be non empty RelStr;
+    let X, Y be Subset of R;
+    assume
+A1: X c= Y;
+    let y be object;
+    assume y in LAp X; then
+    consider z being Element of R such that
+A2: z = y & Class (the InternalRel of R, z) c= X;
+    Class (the InternalRel of R, z) c= Y by A1,A2;
+    hence thesis by A2;
+  end;
+
+theorem Th15:  :: Proposition 2 6H
+  for R being non empty RelStr,
+      X, Y being Subset of R st
+    X c= Y holds UAp X c= UAp Y
+  proof
+    let R be non empty RelStr;
+    let X, Y be Subset of R;
+    assume
+A1: X c= Y;
+    let y be object;
+    assume y in UAp X; then
+    consider z being Element of R such that
+A2: z = y & Class (the InternalRel of R, z) meets X;
+    Class (the InternalRel of R, z) meets Y by A1,A2,XBOOLE_1:63;
+    hence thesis by A2;
+  end;
+
+theorem Th16:  :: Proposition 2 8LH
+  for R being non empty RelStr,
+      X being Subset of R holds
+    LAp (X`) = (UAp X)`
+  proof
+    let R be non empty RelStr;
+    let X be Subset of R;
+    thus LAp (X`) c= (UAp X)`
+    proof
+      let y be object;
+      assume y in LAp (X`); then
+      consider z being Element of R such that
+A1:   z = y & Class (the InternalRel of R, z) c= X`;
+      not z in { x where x is Element of R :
+        Class (the InternalRel of R, x) meets X }
+      proof
+        assume z in { x where x is Element of R :
+          Class (the InternalRel of R, x) meets X }; then
+        consider t being Element of R such that
+A2:     t = z & Class (the InternalRel of R, t) meets X;
+        thus contradiction by A1,SUBSET_1:23,A2;
+      end;
+      hence thesis by A1,XBOOLE_0:def 5;
+    end;
+    let y be object;
+    assume
+A3: y in (UAp X)`;
+    y in [#]R & not y in UAp X by XBOOLE_0:def 5,A3; then
+    not (Class (the InternalRel of R, y) meets X); then
+    Class (the InternalRel of R, y) c= X` by SUBSET_1:23;
+    hence thesis by A3;
+  end;
+
+theorem Th17:  :: Proposition 2 9LH
+  for R being non empty serial RelStr,
+      X being Subset of R holds
+    LAp X c= UAp X
+  proof
+    let R be non empty serial RelStr;
+    let X be Subset of R;
+    let y be object;
+    assume y in LAp X; then
+    consider z being Element of R such that
+A1: z = y & Class (the InternalRel of R, z) c= X;
+    Class (the InternalRel of R, z) meets X by XBOOLE_1:69,A1;
+    hence thesis by A1;
+  end;
+
+begin :: Auxiliary Operation on Approximation Operators
+
+definition let R be non empty RelStr;
+  func LAp R -> Function of bool the carrier of R, bool the carrier of R
+  means :Def10:
+  for X being Subset of R holds it.X = LAp X;
+  existence
+  proof
+    deffunc F(Element of bool the carrier of R) = LAp $1;
+    ex f being Function of bool the carrier of R, bool the carrier of R st
+    for X being Element of bool the carrier of R holds f.X = F(X)
+      from FUNCT_2:sch 4; then
+    consider f being Function of bool the carrier of R, bool the carrier of R
+      such that
+A1: for X being Subset of R holds f.X = F(X);
+    take f;
+    let r be Subset of R;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of bool the carrier of R, bool the carrier of R
+    such that
+A2: for X being Subset of R holds f.X = LAp X and
+A3: for X being Subset of R holds g.X = LAp X;
+    let Y be Subset of R;
+    thus f.Y = LAp Y by A2
+    .= g.Y by A3;
+  end;
+  func UAp R -> Function of bool the carrier of R, bool the carrier of R
+  means :Def11:
+  for X being Subset of R holds it.X = UAp X;
+  existence
+  proof
+    deffunc F(Element of bool the carrier of R) = UAp $1;
+    ex f being Function of bool the carrier of R, bool the carrier of R st
+    for X being Element of bool the carrier of R holds f.X = F(X)
+      from FUNCT_2:sch 4; then
+    consider f being Function of bool the carrier of R, bool the carrier of R
+      such that
+A4: for X being Subset of R holds f.X = F(X);
+    take f;
+    let r be Subset of R;
+    thus thesis by A4;
+  end;
+  uniqueness
+    proof
+    let f,g be Function of bool the carrier of R, bool the carrier of R
+    such that
+A5: for X being Subset of R holds f.X = UAp X and
+A6: for X being Subset of R holds g.X = UAp X;
+    let Y be Subset of R;
+    thus f.Y = UAp Y by A5
+    .= g.Y by A6;
+  end;
+end;
+
+definition 
+  let f be Function;
+  attr f is empty-preserving means :Def12:
+    f.{} = {};
+end;
+
+definition
+  let A be set;
+  let f be Function of bool A, bool A;
+  attr f is universe-preserving means :Def13:
+    f.A = A;
+end;
+
+registration let A be non empty set;
+  cluster id bool A -> empty-preserving universe-preserving
+    for Function of bool A, bool A;
+  coherence
+  proof
+    reconsider f = id bool A as Function of bool A, bool A;
+    {} c= A; then
+A1: f.{} = {} by FUNCT_1:18;
+    A in bool A by ZFMISC_1:def 1; then
+    f.A = A by FUNCT_1:18;
+    hence thesis by A1;
+  end;
+end;
+
+registration let A be non empty set;
+  cluster empty-preserving universe-preserving for
+    Function of bool A, bool A;
+  existence
+  proof
+    reconsider f = id bool A as Function of bool A, bool A;
+    f is empty-preserving universe-preserving;
+    hence thesis;
+  end;
+end;
+
+definition let X be set;
+           let f be Function of bool X, bool X;
+  func Flip f -> Function of bool X, bool X means :Def14:
+    for x being Subset of X holds
+      it.x = (f.x`)`;
+  existence
+  proof
+    deffunc F(Element of bool X) = (f.$1`)`;
+    ex g being Function of bool X, bool X st
+    for x being Element of bool X holds g.x = F(x) from FUNCT_2:sch 4; then
+    consider g being Function of bool X, bool X such that
+A1: for x being Element of bool X holds g.x = F(x);
+    take g;
+    let x be Subset of X;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be Function of bool X, bool X such that
+A2: for x being Subset of X holds f1.x = (f.x`)` and
+A3: for x being Subset of X holds f2.x = (f.x`)`;
+    let x be Subset of X;
+    thus f1.x = (f.x`)` by A2 .= f2.x by A3;
+  end;
+end;
+
+theorem Th18:
+  for X being set,
+      f being Function of bool X, bool X st
+    f.{} = {} holds
+  (Flip f).X = X
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    assume
+A1: f.{} = {};
+    X c= X; then
+    reconsider y = X as Subset of X;
+    (Flip f).y = (f.y`)` by Def14
+              .= ({}X)` by A1
+              .= y;
+    hence thesis;
+  end;
+
+theorem Th19:
+  for X being set,
+      f being Function of bool X, bool X st
+    f.X = X holds
+  (Flip f).{} = {}
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    assume
+A1: f.X = X;
+    set y = {}X;
+    (Flip f).y = (f.y`)` by Def14
+              .= {}X by A1;
+    hence thesis;
+  end;
+
+theorem
+  for X being set,
+      f being Function of bool X, bool X st
+    f = id bool X holds
+  Flip f = f
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    assume
+A1: f = id bool X;
+    for x being Subset of X holds (Flip f).x = f.x
+    proof
+      let x be Subset of X;
+      thus (Flip f).x = (f.x`)` by Def14
+                     .= x`` by A1
+                     .= f.x by A1;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  for X being set,
+      f being Function of bool X, bool X st
+    for A, B being Subset of X holds f.(A \/ B) = f.A \/ f.B holds
+  for A, B being Subset of X holds
+  (Flip f).(A /\ B) = (Flip f).A /\ (Flip f).B
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    assume
+A1: for A, B being Subset of X holds f.(A \/ B) = f.A \/ f.B;
+    let A, B be Subset of X;
+    set g = Flip f;
+    g.(A /\ B) = (f.(A /\ B)`)` by Def14
+              .= (f.(A` \/ B`))` by XBOOLE_1:54
+              .= (f.(A`) \/ f.(B`))` by A1
+              .= (f.(A`))` /\ (f.(B`))` by XBOOLE_1:53
+              .= g.A /\ (f.(B`))` by Def14
+              .= g.A /\ g.B by Def14;
+    hence thesis;
+  end;
+
+theorem Th22:
+  for X being set,
+      f being Function of bool X, bool X st
+    for A, B being Subset of X holds f.(A /\ B) = f.A /\ f.B holds
+  for A, B being Subset of X holds
+  (Flip f).(A \/ B) = (Flip f).A \/ (Flip f).B
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    assume
+A1: for A, B being Subset of X holds f.(A /\ B) = f.A /\ f.B;
+    let A, B be Subset of X;
+    set g = Flip f;
+    g.(A \/ B) = (f.(A \/ B)`)` by Def14
+              .= (f.(A` /\ B`))` by XBOOLE_1:53
+              .= (f.(A`) /\ f.(B`))` by A1
+              .= (f.(A`))` \/ (f.(B`))` by XBOOLE_1:54
+              .= g.A \/ (f.(B`))` by Def14
+              .= g.A \/ g.B by Def14;
+    hence thesis;
+  end;
+
+theorem Th23:
+  for X being set,
+      f being Function of bool X, bool X holds
+    Flip Flip f = f
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    set g = Flip Flip f;
+    for x being Subset of X holds g.x = f.x
+    proof
+      let x be Subset of X;
+      g.x = ((Flip f).x`)` by Def14
+         .= (f.x``)`` by Def14
+         .= f.x;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+registration let A be non empty set;
+             let f be universe-preserving Function of bool A, bool A;
+  cluster Flip f -> empty-preserving;
+  coherence
+  proof
+    f.A = A by Def13;
+    hence thesis by Th19;
+  end;
+end;
+
+registration let A be non empty set;
+             let f be empty-preserving Function of bool A, bool A;
+  cluster Flip f -> universe-preserving;
+  coherence
+  proof
+    f.{} = {} by Def12;
+    hence thesis by Th18;
+  end;
+end;
+
+theorem Th24:
+  for A being non empty set,
+      L, U being Function of bool A, bool A st
+    U = Flip L &
+    for X being Subset of A holds L.(L.X) c= L.X holds
+      for X being Subset of A holds U.X c= U.(U.X)
+  proof
+    let A be non empty set;
+    let L, U be Function of bool A, bool A;
+    assume that
+A1: U = Flip L and
+A2: for X being Subset of A holds L.(L.X) c= L.X;
+    let X be Subset of A;
+A3: U.X = (L.X`)` by Def14,A1;
+    U.(U.X) = U.(L.X`)` by Def14,A1
+           .= (L.(L.X`)``)` by Def14,A1
+           .= (L.(L.X`))`;
+    hence thesis by A3,A2,SUBSET_1:12;
+  end;
+
+begin :: Towards Topological Models of Rough Sets
+
+definition let T be TopSpace;
+  func ClMap T -> Function of bool the carrier of T, bool the carrier of T
+    means :Def15:
+    for X being Subset of T holds it.X = Cl X;
+  existence
+  proof
+    deffunc F(Subset of T) = Cl $1;
+    set X = the carrier of T;
+    ex g being Function of bool X, bool X st
+    for x being Element of bool X holds g.x = F(x) from FUNCT_2:sch 4; then
+    consider g being Function of bool X, bool X such that
+A1: for x being Element of bool X holds g.x = F(x);
+    take g;
+    let x be Subset of X;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    set X = the carrier of T;
+    let f1, f2 be Function of bool X, bool X such that
+A2: for x being Subset of X holds f1.x = Cl x and
+A3: for x being Subset of X holds f2.x = Cl x;
+    let x be Subset of X;
+    thus f1.x = Cl x by A2 .= f2.x by A3;
+  end;
+  func IntMap T -> Function of bool the carrier of T, bool the carrier of T
+    means :Def16:
+    for X being Subset of T holds
+      it.X = Int X;
+  existence
+  proof
+    deffunc F(Subset of T) = Int $1;
+    set X = the carrier of T;
+    ex g being Function of bool X, bool X st
+    for x being Element of bool X holds g.x = F(x) from FUNCT_2:sch 4; then
+    consider g being Function of bool X, bool X such that
+A4: for x being Element of bool X holds g.x = F(x);
+    take g;
+    let x be Subset of X;
+    thus thesis by A4;
+  end;
+  uniqueness
+  proof
+    set X = the carrier of T;
+    let f1, f2 be Function of bool X, bool X such that
+A5: for x being Subset of X holds f1.x = Int x and
+A6: for x being Subset of X holds f2.x = Int x;
+    let x be Subset of X;
+    thus f1.x = Int x by A5 .= f2.x by A6;
+  end;
+end;
+
+definition let T be TopSpace;
+           let f be Function of bool the carrier of T, bool the carrier of T;
+  attr f is closed-valued means
+    for X being Subset of T holds f.X is closed;
+  attr f is open-valued means
+    for X being Subset of T holds f.X is open;
+end;
+
+registration let T be TopSpace;
+  cluster ClMap T -> closed-valued;
+  coherence
+  proof
+    let X be Subset of T;
+    (ClMap T).X = Cl X by Def15;
+    hence thesis;
+  end;
+  cluster IntMap T -> open-valued;
+  coherence
+  proof
+    let X be Subset of T;
+    (IntMap T).X = Int X by Def16;
+    hence thesis;
+  end;
+end;
+
+registration let T be TopSpace;
+  cluster closed-valued
+    for Function of bool the carrier of T, bool the carrier of T;
+  existence
+  proof
+    take ClMap T;
+    thus thesis;
+  end;
+  cluster open-valued
+    for Function of bool the carrier of T, bool the carrier of T;
+  existence
+  proof
+    take IntMap T;
+    thus thesis;
+  end;
+end;
+
+theorem Th25:
+  for T being TopSpace holds
+    Flip ClMap T = IntMap T
+  proof
+    let T be TopSpace;
+    set f = Flip ClMap T, g = IntMap T;
+    for x being Subset of T holds f.x = g.x
+    proof
+      let x be Subset of T;
+A1:   (Int x)` = (Cl x`) by TDLAT_3:2;
+      f.x = ((ClMap T).x`)` by Def14
+         .= (Cl x`)` by Def15
+         .= g.x by Def16,A1;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  for T being TopSpace holds
+    Flip IntMap T = ClMap T
+  proof
+    let T be TopSpace;
+    Flip Flip ClMap T = Flip IntMap T by Th25;
+    hence thesis by Th23;
+  end;
+
+registration let T be non empty TopSpace;
+  cluster ClMap T -> empty-preserving universe-preserving;
+  coherence
+  proof
+    set f = ClMap T;
+A1: f.{}T = Cl {}T by Def15 .= {}T by PRE_TOPC:22;
+    f. [#]T = Cl [#]T by Def15 .= [#]T by PRE_TOPC:22;
+    hence thesis by A1;
+  end;
+  cluster IntMap T -> empty-preserving universe-preserving;
+  coherence
+  proof
+    set f = IntMap T;
+A2: f.{}T = Int {}T by Def16 .= {}T;
+    f. [#]T = Int [#]T by Def16 .= [#]T by TOPS_1:15;
+    hence thesis by A2;
+  end;
+end;
+
+begin :: Formalization of Zhu's Paper
+
+:: General Finite Relations
+
+theorem Th27:
+  for R being non empty RelStr holds
+    Flip UAp R = LAp R
+  proof
+    let R be non empty RelStr;
+    set f = Flip UAp R, g = LAp R;
+    for x being Subset of R holds f.x = g.x
+    proof
+      let x be Subset of R;
+      f.x = ((UAp R).x`)` by Def14
+         .= Lap x by Def11
+         .= LAp x by Th9
+         .= g.x by Def10;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+theorem Th28:
+  for R being non empty RelStr holds
+    Flip LAp R = UAp R
+  proof
+    let R be non empty RelStr;
+    Flip UAp R = LAp R by Th27;
+    hence thesis by Th23;
+  end;
+
+theorem Th29:  :: Proposition 1 2H 4H
+  for A being non empty finite set,
+      U being Function of bool A, bool A st
+    U.{} = {} &
+    (for X, Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y) holds
+  ex R being non empty finite RelStr st
+    the carrier of R = A & U = UAp R
+  proof
+    let A be non empty finite set;
+    let L be Function of bool A, bool A;
+    assume that
+A1: L.{} = {} and
+A2: for X, Y being Subset of A holds L.(X \/ Y) = L.X \/ L.Y;
+    defpred P[set,set] means $1 in L.{$2};
+    consider R being Relation of A such that
+A3: for x, y being Element of A holds
+      [x,y] in R iff P[x,y] from RELSET_1:sch 2;
+    reconsider RR = RelStr (#A, R#) as non empty finite RelStr;
+    take RR;
+A4: for y be Element of RR, Y be Subset of RR st Y = {y} holds UAp Y = L.Y
+    proof
+      let y be Element of RR, Y be Subset of RR;
+      assume
+A5:   Y = {y};
+      thus UAp Y c= L.Y
+      proof
+        let x be object; assume x in UAp Y; then
+        consider a being Element of RR such that
+A6:     a = x & Class (the InternalRel of RR, a) meets Y;
+        consider z being object such that
+A7:     z in Class (the InternalRel of RR, a) & z in Y by A6,XBOOLE_0:3;
+        z = y by A7,TARSKI:def 1,A5; then
+        [x,y] in R by A6,A7,EQREL_1:18;
+        hence thesis by A5,A3,A6;
+      end;
+      let x be object;
+      assume
+A8:   x in L.Y;
+A9:   y in Y by TARSKI:def 1,A5;
+A10:    L.Y in bool A by FUNCT_2:5; then
+      [x,y] in R by A3,A8,A5; then
+      y in Class (R, x) by EQREL_1:18; then
+      Class (the InternalRel of RR, x) meets Y by A9,XBOOLE_0:3;
+      hence thesis by A10,A8;
+    end;
+    dom L = bool A by FUNCT_2:def 1; then
+A11: dom UAp RR = dom L by FUNCT_2:def 1;
+    for x being object st x in dom UAp RR holds (UAp RR).x = L.x
+    proof
+      let x be object;
+      assume
+A12:    x in dom UAp RR;
+      per cases;
+      suppose x <> {}; then
+        reconsider X = x as finite non empty Subset of RR by A12;
+        defpred P[finite non empty Subset of RR] means (UAp RR).$1 = L.$1;
+A13:     for x being Element of RR st x in X holds P[{x}]
+        proof
+          let x be Element of RR;
+          assume x in X;
+          set I = {x};
+          (UAp RR).I = UAp I by Def11 .= L.I by A4;
+          hence thesis;
+        end;
+A14:     for x being Element of RR,
+            B being non empty finite Subset of RR
+         st x in X & B c= X & not x in B & P[B] holds P[B \/ {x}]
+        proof
+          let x be Element of RR, B be non empty finite Subset of RR;
+          assume x in X & B c= X & not x in B & P[B]; then
+A15:       UAp B = L.B by Def11;
+          set I = {x};
+          (UAp RR).(B \/ {x}) = UAp (B \/ I) by Def11
+                             .= (UAp B) \/ (UAp I) by Th13
+                             .= (L.B) \/ L.I by A4,A15
+                             .= L.(B \/ I) by A2;
+          hence thesis;
+        end;
+        P[X] from CHAIN_1:sch 2(A13,A14);
+        hence thesis;
+      end;
+      suppose
+A16:      x = {};
+        UAp {}RR = L.{} by A1;
+        hence thesis by Def11,A16;
+      end;
+    end;
+    hence thesis by A11,FUNCT_1:2;
+  end;
+
+theorem Th30:  :: Proposition 1 1L 4L
+  for A being non empty finite set,
+      L being Function of bool A, bool A st
+    L.A = A &
+    (for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y) holds
+  ex R being non empty finite RelStr st
+  the carrier of R = A & L = LAp R
+  proof
+    let A be non empty finite set,
+        L be Function of bool A, bool A;
+    assume that
+A1: L.A = A and
+A2: for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y;
+    set U = Flip L;
+A3: U.{} = {} by Th19,A1;
+A4: for X, Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y by Th22,A2;
+    consider R being non empty finite RelStr such that
+A5: the carrier of R = A & U = UAp R by Th29,A3,A4;
+    take R;
+    L = Flip UAp R by Th23,A5;
+    hence thesis by A5,Th27;
+  end;
+
+:: Serial Relations
+
+theorem Th31:  :: Proposition 2 1L 4L 2L
+  for A being non empty finite set,
+      L being Function of bool A, bool A st
+    L.A = A &
+    L.{} = {} &
+    (for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y) holds
+  ex R being non empty serial RelStr st
+  the carrier of R = A & L = LAp R
+  proof
+    let A be non empty finite set;
+    let L be Function of bool A, bool A;
+    assume that
+A1: L.A = A and
+A2: L.{} = {} and
+A3: for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y;
+    consider R being non empty finite RelStr such that
+A4: the carrier of R = A & L = LAp R by Th30,A3,A1;
+    for x being object st x in the carrier of R
+      ex y being object st
+        y in the carrier of R & [x,y] in the InternalRel of R
+    proof
+      let x be object;
+      assume
+A5:   x in the carrier of R;
+A6:   (LAp R).{} = LAp {}R by Def10
+                .= { y where y is Element of R :
+        Class (the InternalRel of R, y) c= {} };
+      for y being Element of R holds Class (the InternalRel of R, y) <> {}
+      proof
+        let y be Element of R;
+        assume Class (the InternalRel of R, y) = {}; then
+        y in { y where y is Element of R :
+          Class (the InternalRel of R, y) c= {} };
+        hence contradiction by A6,A4,A2;
+      end; then
+      Class (the InternalRel of R, x) <> {} by A5; then
+      consider t be object such that
+A7:   t in Im(the InternalRel of R,x) by XBOOLE_0:def 1;
+A8:   [x,t] in the InternalRel of R by A7,RELAT_1:169; then
+      t in rng the InternalRel of R by A5,RELSET_1:25;
+      hence thesis by A8;
+    end; then
+    R is serial by Def1;
+    hence thesis by A4;
+  end;
+
+theorem Th32:  :: Proposition 2 1H 4H 2H
+  for A being non empty finite set,
+      U being Function of bool A, bool A st
+    U.A = A &
+    U.{} = {} &
+    (for X, Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y) holds
+  ex R being non empty finite serial RelStr st
+  the carrier of R = A & U = UAp R
+  proof
+    let A be non empty finite set;
+    let U be Function of bool A,bool A;
+    assume that
+A1: U.A = A and
+A2: U.{} = {} and
+A3: for X, Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y;
+    consider R being non empty finite RelStr such that
+A4: the carrier of R = A & U = UAp R by Th29,A2,A3;
+    for x being object st x in the carrier of R
+      ex y being object st
+        y in the carrier of R & [x,y] in the InternalRel of R
+    proof
+      let x be object;
+      assume
+A5:   x in the carrier of R;
+      reconsider Z = [#]A as Subset of R by A4;
+      UAp Z = Z by A4,A1,Def11; then
+      consider t being Element of R such that
+A6:   t = x & Class (the InternalRel of R,t) meets [#]A by A5,A4;
+      Class (the InternalRel of R,t) <> {} by A6; then
+      consider s being object such that
+A7:   s in Class (the InternalRel of R,t) by XBOOLE_0:def 1;
+      [t,s] in the InternalRel of R by A7,RELAT_1:169; then
+      [x,s] in the InternalRel of R & s in rng the InternalRel of R
+        by XTUPLE_0:def 13,A6;
+      hence thesis;
+    end; then
+    R is serial by Def1;
+    hence thesis by A4;
+  end;
+
+theorem Th33:  :: Proposition 3 1L 4L 8LH
+  for A being non empty finite set,
+      L being Function of bool A, bool A st
+    L.A = A &
+    (for X being Subset of A holds L.X c= (L.(X`))`) &
+    (for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y) holds
+  ex R being non empty finite serial RelStr st
+  the carrier of R = A & L = LAp R
+  proof
+    let A be non empty finite set;
+    let L be Function of bool A,bool A;
+    assume that
+A1: L.A = A and
+A2: for X being Subset of A holds L.X c= (L.(X`))` and
+A3: for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y;
+    consider R being non empty finite RelStr such that
+A4: the carrier of R = A & L = LAp R by Th30,A1,A3;
+    set XX = {}A;
+A5: (L.(XX`)) = A by A1; then
+A6: L.{} c= ([#]A)` by A2;
+    for x be object st x in the carrier of R
+    ex y being object st
+      y in the carrier of R & [x,y] in the InternalRel of R
+    proof
+      let x be object;
+      assume
+A7:   x in the carrier of R;
+      reconsider Z = [#]A as Subset of R by A4;
+A8:   (LAp R).{} = LAp {}R by Def10
+                .= { y where y is Element of R :
+         Class (the InternalRel of R, y) c= {} };
+      for y being Element of R holds Class (the InternalRel of R, y) <> {}
+      proof
+        let y be Element of R;
+        assume Class (the InternalRel of R, y) = {}; then
+        y in {z where z is Element of R :
+          Class (the InternalRel of R, z) c= {}};
+        hence contradiction by A8,A4,A6,A5;
+      end; then
+      Class (the InternalRel of R, x) <> {} by A7; then
+      consider t be object such that
+A9:   t in Im(the InternalRel of R,x) by XBOOLE_0:def 1;
+A10:   [x,t] in the InternalRel of R by A9,RELAT_1:169; then
+      t in rng the InternalRel of R by RELSET_1:25,A7;
+      hence thesis by A10;
+    end; then
+    R is serial by Def1;
+    hence thesis by A4;
+  end;
+
+theorem Th34:  :: Proposition 4 2H 4H 8LH
+  for A being non empty finite set,
+      U being Function of bool A, bool A st
+    U.{} = {} &
+    (for X being Subset of A holds (U.(X`))` c= U.X) &
+    (for X, Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y) holds
+  ex R being non empty serial RelStr st
+  the carrier of R = A & U = UAp R
+  proof
+    let A be non empty finite set;
+    let U be Function of bool A,bool A;
+    assume that
+A1: U.{} = {} and
+A2: for X being Subset of A holds (U.(X`))` c= U.X and
+A3: for X, Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y;
+    consider R being non empty finite RelStr such that
+A4: the carrier of R = A & U = UAp R by Th29,A1,A3;
+    for x being object st x in the carrier of R
+    ex y being object
+      st y in the carrier of R & [x,y] in the InternalRel of R
+    proof
+      let x be object;
+      assume
+A5:   x in the carrier of R;
+      reconsider Z = [#]A as Subset of R by A4;
+      set XX = [#]A;
+      (U.(XX`))` c= U.XX by A2; then
+      ({}A)` c= U.XX by A1; then
+A6:   (Flip UAp R).{} = {} by Th19,A4,XBOOLE_0:def 10;
+A7:   (LAp R).{} = LAp {}R by Def10
+                .= { y where y is Element of R :
+                  Class (the InternalRel of R, y) c= {} };
+      for y being Element of R holds Class (the InternalRel of R, y) <> {}
+      proof
+        let y be Element of R;
+        assume Class (the InternalRel of R, y) = {}; then
+        y in {z where z is Element of R :
+          Class (the InternalRel of R, z) c= {}};
+        hence contradiction by A7,A6,Th27;
+      end; then
+      Class (the InternalRel of R, x) <> {} by A5; then
+      consider t being object such that
+A8:   t in Im(the InternalRel of R,x) by XBOOLE_0:def 1;
+A9:   [x,t] in the InternalRel of R by A8,RELAT_1:169; then
+      t in rng the InternalRel of R by RELSET_1:25,A5;
+      hence thesis by A9;
+    end; then
+    R is serial by Def1;
+    hence thesis by A4;
+  end;
+
+:: Reflexive binary relations
+
+theorem  :: Proposition 5 3L
+  for R being non empty reflexive RelStr,
+      X being Subset of R holds
+    LAp X c= X
+  proof
+    let R be non empty reflexive RelStr;
+    let X be Subset of R;
+    let y be object;
+    assume y in LAp X; then
+    consider z being Element of R such that
+A1: z = y & Class (the InternalRel of R,z) c= X;
+A2: z in field the InternalRel of R by Th1;
+A3: z in {z} by TARSKI:def 1;
+    [z,z] in the InternalRel of R by A2,RELAT_2:def 1,def 9; then
+    z in (the InternalRel of R) .: {z} by RELAT_1:def 13,A3;
+    hence thesis by A1;
+  end;
+
+theorem  :: Proposition 5 3H
+  for R being non empty reflexive RelStr,
+      X being Subset of R holds
+    X c= UAp X
+  proof
+    let R be non empty reflexive RelStr,
+        X be Subset of R;
+    let y be object;
+    assume
+A1: y in X; then
+    y in Class (the InternalRel of R,y) by Th4; then
+    Class (the InternalRel of R,y) meets X by A1,XBOOLE_0:def 4;
+    hence thesis by A1;
+  end;
+
+theorem Th37:  :: Proposition 5 1H 4H 3H
+  for A being non empty finite set,
+      U being Function of bool A, bool A st
+    U.{} = {} &
+    (for X being Subset of A holds X c= U.X) &
+    (for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y) holds
+  ex R being non empty finite reflexive RelStr st
+    the carrier of R = A & U = UAp R
+  proof
+    let A be non empty finite set;
+    let U be Function of bool A, bool A;
+    assume that
+A1: U.{} = {} and
+A2: for X being Subset of A holds X c= U.X and
+A3: for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y;
+    U.([#]A) c= [#]A & [#]A c= U.([#]A) by A2; then
+    U.A = A; then
+    consider R being non empty finite serial RelStr such that
+A4: the carrier of R = A & U = UAp R by Th32,A1,A3;
+    for x being object st x in the carrier of R holds
+      [x,x] in the InternalRel of R
+    proof
+      let x be object;
+      assume
+A5:    x in the carrier of R; then
+A6:   {x} is Subset of R by ZFMISC_1:31;
+      reconsider Z = {x} as Subset of R by A5,ZFMISC_1:31;
+A7:   {x} c= U.({x}) by A4,A6,A2;
+      x in {x} by TARSKI:def 1; then
+A8:   x in U.({x}) by A7;
+      U.({x}) = UAp Z by Def11,A4
+             .= {y where y is Element of R :
+             Class (the InternalRel of R,y) meets Z}; then
+      consider t being Element of R such that
+A9:   t = x & Class (the InternalRel of R,t) meets Z by A8;
+      x in Class (the InternalRel of R,t)
+      proof
+        assume
+A10:     not x in Class (the InternalRel of R,t);
+        consider y being object such that
+A11:     y in Class (the InternalRel of R,t) /\ {x} by A9,XBOOLE_0:def 1;
+        y in Class (the InternalRel of R,t) & y in {x} by XBOOLE_0:def 4,A11;
+        hence contradiction by A10,TARSKI:def 1;
+      end;
+      hence thesis by A9,RELAT_1:169;
+    end;
+    then R is reflexive by ORDERS_2:def 2,RELAT_2:def 1;
+    hence thesis by A4;
+  end;
+
+theorem  :: Proposition 5 1L 4L 3L
+  for A being non empty finite set,
+      L being Function of bool A, bool A st
+    L.A = A &
+    (for X being Subset of A holds L.X c= X) &
+    (for X,Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y) holds
+  ex R being non empty finite reflexive RelStr st
+    the carrier of R = A & L = LAp R
+  proof
+    let A be non empty finite set;
+    let L be Function of bool A, bool A;
+    assume that
+A1: L.A = A and
+A2: for X being Subset of A holds L.X c= X and
+A3: for X,Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y;
+    set U = Flip L;
+A4: U.{} = {} by A1,Th19;
+A5: for X being Subset of A holds X c= U.X
+    proof
+      let X be Subset of A;
+      X`` c= (L.X`)` by A2,SUBSET_1:12;
+      hence thesis by Def14;
+    end;
+    for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y
+      by A3,Th22; then
+    consider R being non empty finite reflexive RelStr such that
+A6: the carrier of R = A & U = UAp R by Th37,A4,A5;
+    L = Flip UAp R by Th23,A6; then
+    L = LAp R by Th27;
+    hence thesis by A6;
+  end;
+
+:: Mediate Relations
+
+theorem Th39:  :: Proposition 6 5H'
+  for R being non empty mediate RelStr,
+      X being Subset of R holds
+    UAp X c= UAp (UAp X)
+  proof
+    let R be non empty mediate RelStr;
+    let X be Subset of R;
+    let y be object;
+    assume y in UAp X; then
+    consider t being Element of R such that
+A1: t = y & Class (the InternalRel of R,t) meets X;
+    ex w being object st
+    w in Class (the InternalRel of R,t) /\ X by A1,XBOOLE_0:def 1; then
+    consider w being Element of the carrier of R such that
+A2: w in Class (the InternalRel of R,t) /\ X;
+A3: w in Class (the InternalRel of R,t) & w in X by XBOOLE_0:def 4,A2; then
+    [t,w] in the InternalRel of R by RELAT_1:169; then
+    consider z being object such that
+A4: z in the carrier of R & [t,z] in the InternalRel of R &
+      [z,w] in the InternalRel of R by Def5,Def7;
+    reconsider z as Element of R by A4;
+A5: z in Class (the InternalRel of R,t) &
+      w in Class (the InternalRel of R,z) by A4,RELAT_1:169; then
+    Class (the InternalRel of R,z) meets X by A3,XBOOLE_0:def 4; then
+A6: z in {x where x is Element of R : Class (the InternalRel of R,x) meets X};
+A7: UAp {z} c= UAp (UAp X) by Th15,A6,ZFMISC_1:31;
+    z in {z} by TARSKI:def 1; then
+    Class (the InternalRel of R,t) meets {z} by A5,XBOOLE_0:def 4; then
+    t in {x where x is Element of R :
+      Class (the InternalRel of R,x) meets {z} };
+    hence thesis by A1,A7;
+  end;
+
+theorem  :: Proposition 6 5L'
+  for R being non empty mediate RelStr,
+      X being Subset of R holds
+    LAp (LAp X) c= LAp X
+  proof
+    let R be non empty mediate RelStr;
+    let X be Subset of R;
+A1: LAp (LAp X) = LAp ((LAp X)``)
+               .= (UAp (LAp (X``))`)` by Th16
+               .= (UAp ((UAp (X`))``))` by Th16
+               .= (UAp (UAp (X`)))`;
+    (UAp (X`))` = LAp (X``) by Th16
+               .= LAp X;
+    hence thesis by A1,SUBSET_1:12,Th39;
+  end;
+
+theorem Th41:  :: Proposition 7 2H 4H 5H'
+  for A being non empty finite set,
+      U being Function of bool A, bool A st
+    U.{} = {} &
+    (for X being Subset of A holds U.X c= U.(U.X)) &
+    (for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y) holds
+  ex R being non empty mediate finite RelStr st
+    the carrier of R = A & U = UAp R
+  proof
+    let A be non empty finite set;
+    let U be Function of bool A,bool A;
+    assume that
+A1: U.{} = {} and
+A2: for X being Subset of A holds U.X c= U.(U.X) and
+A3: for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y;
+    consider R being non empty finite RelStr such that
+A4: the carrier of R = A & U = UAp R by Th29,A1,A3;
+    for x,y being object st
+      x in the carrier of R & y in the carrier of R holds
+    [x,y] in the InternalRel of R implies
+    ex z being object
+      st z in the carrier of R & [x,z] in the InternalRel of R &
+    [z,y] in the InternalRel of R
+    proof
+      let x,y be object;
+      assume
+A5:  x in the carrier of R & y in the carrier of R; then
+      reconsider Y = {y} as Subset of R by ZFMISC_1:31;
+      assume
+A6:   [x,y] in the InternalRel of R;
+      reconsider x as Element of R by A5;
+      y in Class (the InternalRel of R,x) & y in {y}
+        by A6,TARSKI:def 1,RELAT_1:169; then
+      Class (the InternalRel of R,x) meets {y} by XBOOLE_0:def 4; then
+A7:   x in UAp Y;
+      x in UAp (UAp Y)
+      proof
+A8:     x in U.Y by A4,Def11,A7;
+        x in U.(U.Y) by A2,TARSKI:def 3,A4,A8; then
+        x in U.(UAp Y) by Def11,A4;
+        hence thesis by Def11,A4;
+      end; then
+      consider t being Element of R such that
+A9:   t = x & Class (the InternalRel of R,t) meets UAp Y;
+      consider z being object such that
+A10:   z in Class (the InternalRel of R,t) /\ UAp Y by A9,XBOOLE_0:def 1;
+      reconsider Z = {z} as Subset of R by ZFMISC_1:31,A10;
+A11:   z in {z} & z in Class (the InternalRel of R,t) & z in UAp Y
+        by A10,XBOOLE_0:def 4,TARSKI:def 1; then
+      Class (the InternalRel of R,t) meets {z} by XBOOLE_0:def 4; then
+      t in UAp Z; then
+      [t,z] in the InternalRel of R & [z,y] in the InternalRel of R
+        by A11,A5,Th5;
+      hence thesis by A9,A10;
+    end; then
+    R is mediate by Def5;
+    hence thesis by A4;
+  end;
+
+theorem  :: Proposition 8 1L 4L 5L'
+  for A being non empty finite set,
+      L being Function of bool A, bool A st
+    L.A = A &
+    (for X being Subset of A holds L.(L.X) c= L.X) &
+    (for X,Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y) holds
+  ex R being non empty mediate finite RelStr st
+    the carrier of R = A & L = LAp R
+  proof
+    let A be non empty finite set;
+    let L be Function of bool A, bool A;
+    assume that
+A1: L.A = A and
+A2: for X being Subset of A holds L.(L.X) c= L.X and
+A3: for X,Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y;
+    set U = Flip L;
+A4: U.{} = {} by A1,Th19;
+A5: for X being Subset of A holds U.X c= U.(U.X) by Th24,A2;
+    for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y by Th22,A3; then
+    consider R being non empty mediate finite RelStr such that
+A6: the carrier of R = A & U = UAp R by Th41,A4,A5;
+    take R;
+    L = Flip UAp R by Th23,A6;
+    hence thesis by A6,Th27;
+  end;
+
+:: Corollaries
+
+theorem  :: Corollary 1
+  for A being non empty finite set,
+      L being Function of bool A, bool A st
+    L.A = A &
+    (for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y) holds
+  (for X being Subset of A holds L.X c= (L.(X`))`)
+    iff
+  L.{} = {}
+  proof
+    let A be non empty finite set;
+    let L be Function of bool A,bool A;
+    assume that
+A1: L.A = A and
+A2: for X, Y being Subset of A holds L.(X /\ Y) = L.X /\ L.Y;
+    thus (for X being Subset of A holds L.X c= (L.(X`))` ) implies L.{} = {}
+    proof
+      assume for X being Subset of A holds L.X c= (L.(X`))`; then
+      consider R being non empty serial finite RelStr such that
+A3:   the carrier of R = A & L = LAp R by A1,Th33,A2;
+      L.{} = LAp {}R by Def10,A3;
+      hence thesis;
+    end;
+    assume L.{} = {}; then
+    consider R being non empty serial RelStr such that
+A4: the carrier of R = A & L = LAp R by A1,Th31,A2;
+    let X be Subset of A;
+    reconsider Xa = X as Subset of R by A4;
+    set U = Flip L;
+A5: U = UAp R by A4,Th28;
+    LAp Xa c= UAp Xa by Th17; then
+    LAp Xa c= (UAp R).X by Def11; then
+    (LAp R).X c= (UAp R).X by Def10;
+    hence thesis by Def14,A4,A5;
+  end;
+
+theorem  :: Corollary 2
+  for A being non empty finite set,
+      U being Function of bool A, bool A st
+    U.{} = {} &
+    (for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y) holds
+  (for X being Subset of A holds (U.(X`))` c= U.X)
+    iff
+  U.A = A
+  proof
+    let A be non empty finite set;
+    let U be Function of bool A,bool A;
+    assume that
+A1: U.{} = {} and
+A2: for X,Y being Subset of A holds U.(X \/ Y) = U.X \/ U.Y;
+    thus (for X being Subset of A holds (U.(X`))` c= U.X) implies U.A = A
+    proof
+      assume for X being Subset of A holds (U.(X`))` c= U.X; then
+      consider R being non empty serial RelStr such that
+A3:   the carrier of R = A & U = UAp R by Th34,A1,A2;
+      (UAp R).[#]R = UAp [#]R by Def11;
+      hence thesis by A3;
+    end;
+    assume U.A = A; then
+    consider R being non empty finite serial RelStr such that
+A4: the carrier of R = A & U = UAp R by A1,Th32,A2;
+    let X be Subset of A;
+    reconsider Xa = X as Subset of R by A4;
+    set L = Flip U;
+A5: L = LAp R by A4,Th27;
+    LAp Xa c= UAp Xa by Th17; then
+    LAp Xa c= (UAp R).X by Def11; then
+    (LAp R).X c= (UAp R).X by Def10;
+    hence thesis by Def14,A4,A5;
+  end;

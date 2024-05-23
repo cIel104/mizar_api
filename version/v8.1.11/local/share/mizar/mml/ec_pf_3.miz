@@ -1,0 +1,1729 @@
+:: Operations of Points on Elliptic Curve in Affine Coordinates
+::  by Yuichi Futa , Hiroyuki Okazaki and Yasunari Shidama
+:: 
+:: Received August 29, 2019
+:: Copyright (c) 2019-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies CARD_1, FUNCT_1, RELAT_1, XBOOLE_0, ARYTM_3, NEWTON, MCART_1,
+      SUBSET_1, ARYTM_1, XXREAL_0, BINOP_1, ZFMISC_1, SUPINF_2, ALGSTR_0,
+      GROUP_1, MESFUNC1, INT_1, EC_PF_1, EC_PF_2, RLVECT_1, SETWISEO, ALGSTR_1,
+      RECDEF_2, EC_PF_3;
+ notations XBOOLE_0, SUBSET_1, FUNCT_1, MCART_1, FUNCT_2, BINOP_1, DOMAIN_1,
+      SETWISEO, NUMBERS, XXREAL_0, NAT_1, INT_1, NEWTON, STRUCT_0, ALGSTR_0,
+      RLVECT_1, GROUP_1, VECTSP_1, ALGSTR_1, BINOM, EC_PF_1, EC_PF_2;
+ constructors NAT_D, NAT_3, REALSET1, GROUP_4, GR_CY_1, BHSP_1, POLYNOM5,
+      ALGSTR_1, HURWITZ, FUNCT_4, RECDEF_1, RELSET_1, BINOM, SETWISEO, EC_PF_2;
+ registrations XBOOLE_0, STRUCT_0, XREAL_0, ORDINAL1, INT_1, RELAT_1, FUNCT_2,
+      ALGSTR_0, VECTSP_1, INT_3, NEWTON, SUBSET_1, EC_PF_2;
+ requirements REAL, NUMERALS, SUBSET, BOOLE, ARITHM;
+ equalities STRUCT_0, ALGSTR_0, INT_3, EC_PF_2;
+ expansions ALGSTR_0, RLVECT_1;
+ theorems TARSKI, FUNCT_2, VECTSP_1, RLVECT_1, GROUP_1, NEWTON, XXREAL_0,
+      BINOP_1, ALGSTR_1, SETWISEO, MCART_1, BINOM, VECTSP_2, EC_PF_1, EC_PF_2,
+      RECDEF_2;
+ schemes FUNCT_2, BINOP_1, BINOP_2;
+
+begin :: 1. Set of points on elliptic curve in affine coordinates
+
+reserve p for 5_or_greater Prime;
+reserve z for Element of EC_WParam p;
+
+theorem ThRepPoint5:
+  for p be Prime, a, b be Element of GF(p),
+      P be Element of ProjCo(GF(p)) st
+  (P = [0, 1, 0] or P`3_3 = 1) holds rep_pt(P) = P
+  proof
+    let p be Prime, a, b be Element of GF(p),
+        P be Element of ProjCo(GF(p));
+    A1: P = [0, 1, 0] implies rep_pt(P) = P
+    proof
+      assume B1: P = [0, 1, 0]; then
+      P`3_3 = 0 by MCART_1:def 7;
+      hence rep_pt(P) = P by B1,EC_PF_2:def 7;
+    end;
+    P`3_3 = 1 implies rep_pt(P) = P
+    proof
+      assume B1: P`3_3 = 1; then
+      (P`3_3)" = (1.GF(p)) by EC_PF_2:2;
+      hence rep_pt(P) = [(P`1_3)*1.GF(p), (P`2_3)*1.GF(p), 1]
+      by B1,EC_PF_2:def 7
+      .= P by B1,RECDEF_2:3;
+    end;
+    hence thesis by A1;
+  end;
+
+theorem ThEQO:
+  for p be 5_or_greater Prime, z be Element of EC_WParam p,
+      P, O be Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0] holds
+  (P`3_3 = 0 iff P _EQ_ O)
+  proof
+    let p be 5_or_greater Prime, z be Element of EC_WParam p,
+        P, O be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A2: O = [0, 1, 0];
+    set a = z`1;
+    set b = z`2;
+    consider PP be Element of ProjCo(GF(p)) such that
+    A3: PP = P & PP in EC_SetProjCo(a,b,p);
+    hereby
+      assume P`3_3 = 0; then
+      PP`3_3 = 0 by A3,EC_PF_2:32;
+      then A5: rep_pt(P) = [0, 1, 0] by A3,EC_PF_2:def 7;
+      rep_pt(O) = [0, 1, 0] by A2,ThRepPoint5;
+      hence P _EQ_ O by A5,EC_PF_2:39;
+    end;
+    assume P _EQ_ O; then
+    rep_pt(P) = rep_pt(O) by EC_PF_2:39
+    .= O by A2,ThRepPoint5;
+    then (rep_pt(PP))`3_3 = 0 by A2,A3,MCART_1:def 7;
+    then PP`3_3 = 0 by EC_PF_2:37;
+    hence thesis by A3,EC_PF_2:32;
+  end;
+
+theorem ThEQCOMP4:
+  for p be 5_or_greater Prime, z be Element of EC_WParam p,
+  P be Element of EC_SetProjCo(z`1,z`2,p) holds
+  (P`3_3 = 0 implies P _EQ_ compell_ProjCo(z,p).P)
+  proof
+    let p be 5_or_greater Prime, z be Element of EC_WParam p,
+        P be Element of EC_SetProjCo(z`1,z`2,p);
+    set a = z`1;
+    set b = z`2;
+    set O = [0, 1, 0];
+    reconsider O as Element of EC_SetProjCo(a,b,p) by EC_PF_1:42;
+    assume A2: P`3_3 = 0;
+    A3: compell_ProjCo(z,p).O _EQ_ O by EC_PF_2:40;
+    A4: P _EQ_ O by A2,ThEQO;
+    then compell_ProjCo(z,p).P _EQ_ compell_ProjCo(z,p).O by EC_PF_2:46;
+    then compell_ProjCo(z,p).P _EQ_ O by A3,EC_PF_1:44;
+    hence thesis by A4,EC_PF_1:44;
+  end;
+
+theorem ThAddCompProjCo:
+  for P, O be Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0]
+  holds addell_ProjCo(z,p).(P,compell_ProjCo(z,p).P) _EQ_ O
+  proof
+    set a = z`1;
+    set b = z`2;
+    let P, O be Element of EC_SetProjCo(a,b,p) such that
+    A1: O = [0, 1, 0];
+    set Q = compell_ProjCo(z,p).P;
+    reconsider Q as Element of EC_SetProjCo(a,b,p);
+    consider OO be Element of ProjCo(GF(p)) such that
+    A3: OO = O & OO in EC_SetProjCo(a,b,p);
+    per cases;
+    suppose B1: P`3_3 = 0;
+      then B2: P _EQ_ O by A1,ThEQO;
+      P _EQ_ Q by B1,ThEQCOMP4;
+      then Q _EQ_ O by B2,EC_PF_1:44;
+      hence thesis by A1,B2,EC_PF_2:def 9;
+    end;
+    suppose B1: P`3_3 <> 0;
+      then B2: not P _EQ_ O by A1,ThEQO;
+      then B3: not Q _EQ_ compell_ProjCo(z,p).O by EC_PF_2:46;
+      compell_ProjCo(z,p).O _EQ_ O by A1,EC_PF_2:40;
+      then B4: not Q _EQ_ O by B3,EC_PF_1:44;
+      per cases;
+      suppose C1: P _EQ_ Q;
+        then C2: P`2_3 = 0 by B1,EC_PF_2:44;
+        reconsider g2 = 2 mod p as  Element of GF(p) by EC_PF_1:14;
+        reconsider g3 = 3 mod p as  Element of GF(p) by EC_PF_1:14;
+        reconsider g4 = 4 mod p as  Element of GF(p) by EC_PF_1:14;
+        reconsider g8 = 8 mod p as  Element of GF(p) by EC_PF_1:14;
+        set gf1 = a*(P`3_3 |^ 2) + g3*(P`1_3 |^ 2);
+        set gf2 = (P`2_3)*(P`3_3);
+        set gf3 = (P`1_3)*(P`2_3)*gf2;
+        set gf4 = (gf1 |^ 2) - g8*gf3;
+        reconsider gf1,gf2,gf3,gf4 as Element of GF(p);
+        set R = addell_ProjCo(z,p).(P,Q);
+        C7: R = [g2*gf4*gf2, gf1*(g4*gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^ 2),
+        g8*(gf2 |^ 3)] by A1,B2,B4,C1,EC_PF_2:def 9;
+        reconsider R as Element of EC_SetProjCo(a,b,p);
+        C12: gf1 <> 0 by B1,C2,EC_PF_2:53;
+        C13: gf1 <> 0.GF(p) by B1,C2,EC_PF_2:53;
+        gf4 = (gf1 |^2) by C2,VECTSP_1:18;
+        then gf4 <> 0 by C12,EC_PF_1:25;
+        then C14: gf4 <> 0.GF(p) by EC_PF_1:11;
+        R`2_3 = gf1*(g4*gf3-gf4)-g8*(P`2_3|^2)*(gf2|^2) by C7,EC_PF_2:def 4
+        .= gf1*(g4*0.GF(p)-gf4)-g8*(P`2_3|^2)*(gf2*gf2) by C2,EC_PF_1:22
+        .= gf1*(-gf4)-g8*(P`2_3|^2)*(0.GF(p)*0.GF(p)) by C2,VECTSP_1:18
+        .= gf1*(-gf4) by VECTSP_1:18
+        .= -(gf1*gf4) by VECTSP_1:8;
+        then -R`2_3 = gf1*gf4 by RLVECT_1:17;
+        then C15: -R`2_3 <> 0.GF(p) by C13,C14,VECTSP_1:12;
+        C17: gf2 |^3 = 0.GF(p) by C2,EC_PF_2:5;
+        set d = R`2_3;
+        reconsider d as Element of GF(p);
+        C19: OO`1_3 = 0 & OO`2_3 = 1 & OO`3_3 = 0 by A1,A3,MCART_1:64;
+        C20: d*(OO`1_3) = R`1_3 by C2,C7,C19,EC_PF_2:def 3;
+        C21: d*(OO`3_3) = R`3_3 by C7,C17,C19,EC_PF_2:def 5;
+        C22: d*(OO`2_3) = d*1.GF(p) by C19
+        .= R`2_3;
+        consider RR be Element of ProjCo(GF(p)) such that
+        C23: RR = R & RR in EC_SetProjCo(a,b,p);
+        RR`1_3 = d*(OO`1_3) & RR`2_3 = d*(OO`2_3) & RR`3_3 = d*(OO`3_3)
+        by C20,C21,C22,C23,EC_PF_2:32;
+        hence thesis by A3,C15,C23,EC_PF_1:def 10,VECTSP_2:3;
+      end;
+      suppose C1: not P _EQ_ Q;
+        reconsider g2 = 2 mod p as Element of GF(p) by EC_PF_1:14;
+        set gf1 = (Q`2_3)*(P`3_3) - (P`2_3)*(Q`3_3);
+        set gf2 = (Q`1_3)*(P`3_3) - (P`1_3)*(Q`3_3);
+        set gf3 = (gf1 |^2)*(P`3_3)*(Q`3_3) - (gf2 |^3)
+        - g2*(gf2 |^2)*(P`1_3)*(Q`3_3);
+        reconsider gf1,gf2,gf3 as Element of GF(p);
+        set R = addell_ProjCo(z,p).(P,Q);
+        C3: R= [gf2*gf3,
+        gf1 * ((gf2 |^2)*(P`1_3)*(Q`3_3)-gf3) - (gf2 |^3)*(P`2_3)*(Q`3_3),
+        (gf2|^3)*(P`3_3)*(Q`3_3)] by A1,B2,B4,C1,EC_PF_2:def 9;
+        Q = [P`1_3, -P`2_3, P`3_3] by EC_PF_2:def 8;
+        then C4: Q`3_3 <> 0 by B1,EC_PF_2:def 5;
+        then (P`1_3)*(Q`3_3) = (Q`1_3)*(P`3_3) by B1,EC_PF_2:50;
+        then C5: gf2 = 0.GF(p) by VECTSP_1:19;
+        then C6: gf2 |^2 = 0.GF(p) & gf2 |^3 = 0.GF(p) by EC_PF_2:5;
+        C7: gf1 <> 0.GF(p) by C1,EC_PF_2:52,VECTSP_1:19;
+        then C8: gf1 |^2 <> 0 by EC_PF_1:25;
+        C9: gf3 = (gf1 |^2)*(P`3_3)*(Q`3_3)
+        - (0.GF(p) + g2*(0.GF(p))*(P`1_3)*(Q`3_3))
+        by C6,VECTSP_1:17
+        .= (gf1 |^2)*(P`3_3)*(Q`3_3) - 0.GF(p) by ALGSTR_1:7
+        .= (gf1 |^2)*(P`3_3)*(Q`3_3) by VECTSP_1:18
+        .= (gf1 |^2)*((P`3_3)*(Q`3_3)) by GROUP_1:def 3;
+        (P`3_3)*(Q`3_3) <> 0 by B1,C4,EC_PF_1:20;
+        then gf3 <> 0 by C8,C9,EC_PF_1:20;
+        then gf1*gf3 <> 0 by C7,EC_PF_1:20;
+        then gf1*gf3 <> 0.GF(p) by EC_PF_1:11;
+        then gf1*gf3 <> -0.GF(p) by RLVECT_1:12;
+        then C10: -(gf1*gf3) <> 0 by EC_PF_2:6;
+        gf1 * ((gf2 |^2)*(P`1_3)*(Q`3_3)-gf3) - (gf2 |^3)*(P`2_3)*(Q`3_3)
+        = gf1*(0.GF(p)-gf3) by C6,VECTSP_1:18
+        .= gf1*(-gf3) by VECTSP_1:18
+        .= -(gf1*gf3) by VECTSP_1:8;
+        then C11: R`2_3 <> 0 by C3,C10,EC_PF_2:def 4;
+        C13: R`3_3 = (gf2 |^3)*(P`3_3)*(Q`3_3) by C3,EC_PF_2:def 5
+        .= (gf2 |^3)*((P`3_3)*(Q`3_3)) by GROUP_1:def 3;
+        set d = R`2_3;
+        reconsider d as Element of GF(p);
+        C15: OO`1_3 = 0 & OO`2_3 = 1 & OO`3_3 = 0 by A1,A3,MCART_1:64;
+        C16: d*(OO`1_3) = R`1_3 by C3,C5,C15,EC_PF_2:def 3;
+        C18: d*(OO`2_3) = d*1.GF(p) by C15
+        .= R`2_3;
+        consider RR be Element of ProjCo(GF(p)) such that
+        C19: RR = R & RR in EC_SetProjCo(a,b,p);
+        RR`1_3 = R`1_3 & RR`2_3 = R`2_3 & RR`3_3 = R`3_3 by C19,EC_PF_2:32;
+        hence thesis
+        by A3,C6,C11,C13,C15,C16,C18,C19,EC_PF_1:def 10;
+      end;
+    end;
+  end;
+
+definition
+  let p be 5_or_greater Prime;
+  let z be Element of EC_WParam p;
+  func EC_SetAffCo(z,p) -> non empty Subset of
+       EC_SetProjCo(z`1,z`2,p) equals
+  {P where P is Element of EC_SetProjCo(z`1,z`2,p) :
+        P`3_3 = 1 or P = [0,1,0] };
+  correctness
+  proof
+    set a = z`1;
+    set b = z`2;
+    A1:
+    now
+      let x be object;
+      assume x in {P where P is Element of EC_SetProjCo(a,b,p) :
+      P`3_3 = 1 or P = [0,1,0]}; then
+      ex P be Element of EC_SetProjCo(a,b,p) st
+      x = P & (P`3_3 = 1 or P = [0,1,0]);
+      hence x in EC_SetProjCo(a,b,p);
+    end;
+    reconsider O = [0,1,0] as Element of EC_SetProjCo(a,b,p) by EC_PF_1:42;
+    O in {P where P is Element of EC_SetProjCo(a,b,p) : P`3_3 = 1 or
+    P = [0,1,0] };
+    hence thesis by A1,TARSKI:def 3;
+  end;
+end;
+
+theorem ThAffCoZero:
+  [0, 1, 0] is Element of EC_SetAffCo(z,p)
+  proof
+    [0, 1, 0] is Element of EC_SetProjCo(z`1,z`2,p) by EC_PF_1:42;
+    then [0, 1, 0] in {P where P is Element of EC_SetProjCo(z`1,z`2,p) :
+    P`3_3 = 1 or P = [0,1,0] };
+    hence thesis;
+  end;
+
+theorem ThAffCo:
+  for p be 5_or_greater Prime,
+      z be Element of EC_WParam p,
+      P be Element of EC_SetProjCo(z`1,z`2,p)
+  holds rep_pt(P) is Element of EC_SetAffCo(z,p)
+  proof
+    let p be 5_or_greater Prime,
+        z be Element of EC_WParam p,
+        P be Element of EC_SetProjCo(z`1,z`2,p);
+    set a= z`1;
+    set b= z`2;
+    consider PP be Element of ProjCo(GF(p)) such that
+    A2: PP = P & PP in EC_SetProjCo(a,b,p);
+    consider Q be Element of ProjCo(GF(p)) such that
+    A3: Q = rep_pt(P);
+    reconsider Q as Element of EC_SetProjCo(a,b,p) by A3,EC_PF_2:36;
+    per cases;
+    suppose PP`3_3 = 0;
+      then B1: Q = [0,1,0] by A2,A3,EC_PF_2:def 7;
+      Q in {QQ where QQ is Element of EC_SetProjCo(a,b,p) :
+      QQ`3_3 = 1 or QQ = [0,1,0] } by B1;
+      hence thesis by A3;
+    end;
+    suppose PP`3_3 <> 0;
+      then rep_pt(PP) = [(PP`1_3)*(PP`3_3)",(PP`2_3)*(PP`3_3)",1]
+      by EC_PF_2:def 7;
+      then B1: Q`3_3 = 1 by A2,A3,EC_PF_2:def 5;
+      Q in {QQ where QQ is Element of EC_SetProjCo(a,b,p) :
+      QQ`3_3 = 1 or QQ = [0,1,0] } by B1;
+      hence thesis by A3;
+    end;
+  end;
+
+theorem ThRepPoint6:
+  for p be 5_or_greater Prime, z be Element of EC_WParam p,
+  P be Element of EC_SetProjCo(z`1,z`2,p)
+  st P in EC_SetAffCo(z,p)
+  holds rep_pt(P) = P
+  proof
+    let p be 5_or_greater Prime, z be Element of EC_WParam p,
+    P be Element of EC_SetProjCo(z`1,z`2,p);
+    assume P in EC_SetAffCo(z,p); then
+    X1: ex PP be Element of EC_SetProjCo(z`1,z`2,p)
+    st P = PP & (PP`3_3 = 1 or PP = [0,1,0]);
+    reconsider PP = P as Element of ProjCo(GF(p));
+    PP = [0, 1, 0] or PP`3_3 = 1 by X1,EC_PF_2:32;
+    hence thesis by ThRepPoint5;
+  end;
+
+theorem ThRepPoint7:
+  for P, O being Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0] & not P _EQ_ O
+  holds (rep_pt(P))`3_3 = 1
+  proof
+    let P, O be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: O = [0, 1, 0] & not P _EQ_ O;
+    reconsider PP = P as Element of ProjCo(GF(p));
+    P`3_3 <> 0 by A1,ThEQO;
+    then PP`3_3 <> 0 by EC_PF_2:32;
+    then rep_pt(PP) = [PP`1_3*(PP`3_3)",PP`2_3*(PP`3_3)",1] by EC_PF_2:def 7;
+    hence thesis by MCART_1:def 7;
+  end;
+
+theorem
+  for P, O being Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0] & rep_pt(P) _EQ_ O
+  holds rep_pt(P) = O & P _EQ_ O
+  proof
+    let P, O be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: O = [0, 1, 0] & rep_pt(P) _EQ_ O;
+    reconsider rP = rep_pt(P) as Element of EC_SetProjCo(z`1,z`2,p)
+    by EC_PF_2:36;
+    rP`3_3 = 0 by A1,ThEQO;
+    then (rep_pt(P))`3_3 = 0 by EC_PF_2:32;
+    hence rep_pt(P) = O by A1,EC_PF_2:37;
+    then rep_pt(P) = rep_pt(O) by A1,ThRepPoint5;
+    hence thesis by EC_PF_2:39;
+  end;
+
+theorem LmRepPoint9:
+  for P being Element of ProjCo(GF(p)) holds
+  rep_pt(rep_pt(P)) = rep_pt(P)
+  proof
+    let P be Element of ProjCo(GF(p));
+    set rP = rep_pt(P);
+    per cases;
+    suppose A1: P`3_3 = 0;
+      then rep_pt(P) = [0, 1, 0] by EC_PF_2:def 7;
+      then rP`3_3 = 0 by MCART_1:def 7;
+      hence rep_pt(rep_pt(P)) = [0, 1, 0] by EC_PF_2:def 7
+      .= rep_pt(P) by A1,EC_PF_2:def 7;
+    end;
+    suppose P`3_3 <> 0;
+      then rep_pt(P) = [P`1_3*(P`3_3)",P`2_3*(P`3_3)",1] by EC_PF_2:def 7;
+      then rP`3_3 = 1 by MCART_1:def 7;
+      hence thesis by ThRepPoint5;
+    end;
+  end;
+
+theorem
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p)
+  st rep_pt(P) _EQ_ rep_pt(Q) holds rep_pt(P) = rep_pt(Q)
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: rep_pt(P) _EQ_ rep_pt(Q);
+    reconsider rP = rep_pt(P), rQ = rep_pt(Q)
+    as Element of EC_SetProjCo(z`1,z`2,p) by EC_PF_2:36;
+    rep_pt(rP) = rep_pt(rQ) by A1,EC_PF_2:39
+    .= rep_pt(Q) by LmRepPoint9;
+    hence thesis by LmRepPoint9;
+  end;
+
+definition
+  let p be 5_or_greater Prime,
+      z be Element of EC_WParam p;
+  func compell_AffCo(z,p) -> UnOp of EC_SetAffCo(z,p) means
+  :DefAffCompEll:
+  for P be Element of EC_SetAffCo(z,p)
+  holds it.P = rep_pt(compell_ProjCo(z,p).P);
+  existence
+  proof
+    set a= z`1;
+    set b= z`2;
+    defpred P[Element of EC_SetAffCo(z,p),set] means
+    $2 = rep_pt(compell_ProjCo(z,p).$1);
+    A2: for P being Element of EC_SetAffCo(z,p)
+    ex R being Element of EC_SetAffCo(z,p) st P[P,R]
+    proof
+      let P be Element of EC_SetAffCo(z,p);
+      set Q = compell_ProjCo(z,p).P;
+      reconsider Q as Element of EC_SetProjCo(z`1,z`2,p);
+      set R = rep_pt(Q);
+      reconsider R as Element of EC_SetAffCo(z,p) by ThAffCo;
+      take R;
+      thus thesis;
+    end;
+    consider f being UnOp of EC_SetAffCo(z,p) such that
+    A3: for P being Element of EC_SetAffCo(z,p)
+    holds P[P,f.P] from FUNCT_2:sch 3(A2);
+    take f;
+    thus thesis by A3;
+  end;
+  uniqueness
+  proof
+    set a= z`1;
+    set b= z`2;
+    deffunc F(Element of EC_SetAffCo(z,p))
+    = rep_pt(compell_ProjCo(z,p).$1);
+    for f1, f2 being UnOp of EC_SetAffCo(z,p)
+    st (for x being Element of EC_SetAffCo(z,p) holds f1.x = F(x)) &
+    (for x being Element of EC_SetAffCo(z,p) holds f2.x = F(x))
+    holds f1 = f2
+    proof
+      let f1, f2 be UnOp of EC_SetAffCo(z,p) such that
+      A2: for x being Element of EC_SetAffCo(z,p) holds f1.x = F(x) and
+      A3: for x being Element of EC_SetAffCo(z,p) holds f2.x = F(x);
+      now
+        let x be Element of EC_SetAffCo(z,p);
+        thus f1.x = F(x) by A2
+        .= f2.x by A3;
+      end;
+      hence thesis by FUNCT_2:63;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let p be 5_or_greater Prime, z be Element of EC_WParam p;
+  let F be Function of EC_SetAffCo(z,p), EC_SetAffCo(z,p);
+  let P be Element of EC_SetAffCo(z,p);
+  redefine func F.P -> Element of EC_SetAffCo(z,p);
+  correctness
+  proof
+    F.P in EC_SetAffCo(z,p);
+    hence thesis;
+  end;
+end;
+
+definition
+  let p be 5_or_greater Prime,
+  z be Element of EC_WParam p;
+  func addell_AffCo(z,p) -> BinOp of EC_SetAffCo(z,p) means :DefAffAddEll:
+  for P, Q  be Element of EC_SetAffCo(z,p)
+  holds it.(P,Q) = rep_pt(addell_ProjCo(z,p).(P,Q));
+  existence
+  proof
+    defpred P[Element of EC_SetAffCo(z,p), Element of EC_SetAffCo(z,p),
+    set] means $3 = rep_pt(addell_ProjCo(z,p).($1,$2));
+    A1: for P, Q being Element of EC_SetAffCo(z,p)
+    ex R being Element of EC_SetAffCo(z,p) st P[P, Q, R]
+    proof
+      let P, Q be Element of EC_SetAffCo(z,p);
+      set R = rep_pt(addell_ProjCo(z,p).(P,Q));
+      reconsider R as Element of EC_SetAffCo(z,p) by ThAffCo;
+      take R;
+      thus thesis;
+    end;
+    consider f being Function of
+    [:EC_SetAffCo(z,p), EC_SetAffCo(z,p):], EC_SetAffCo(z,p) such that
+    A2: for P, Q being Element of EC_SetAffCo(z,p)
+    holds P[P, Q, f.(P,Q)] from BINOP_1:sch 3(A1);
+    take f;
+    thus thesis by A2;
+  end;
+  uniqueness
+  proof
+    deffunc O(Element of EC_SetAffCo(z,p), Element of EC_SetAffCo(z,p))
+    = rep_pt(addell_ProjCo(z,p).($1,$2));
+    for o1, o2 being BinOp of EC_SetAffCo(z,p) st
+    (for P, Q being Element of EC_SetAffCo(z,p) holds o1.(P, Q) = O(P, Q)) &
+    (for P, Q being Element of EC_SetAffCo(z,p) holds o2.(P, Q) = O(P, Q))
+    holds o1 = o2 from BINOP_2:sch 2;
+    hence thesis;
+  end;
+end;
+
+definition
+  let p be 5_or_greater Prime, z be Element of EC_WParam p;
+  let F be Function of
+  [:EC_SetAffCo(z,p),EC_SetAffCo(z,p):], EC_SetAffCo(z,p);
+  let Q,R be Element of EC_SetAffCo(z,p);
+  redefine func F.(Q,R) -> Element of EC_SetAffCo(z,p);
+  correctness
+  proof
+    F.(Q,R) in EC_SetAffCo(z,p);
+    hence thesis;
+  end;
+end;
+
+theorem ThUnityProjCo:
+  for P, O being Element of EC_SetProjCo(z`1,z`2,p) st O = [0, 1, 0]
+  holds addell_ProjCo(z,p).(P,O) _EQ_ P & addell_ProjCo(z,p).(O,P) _EQ_ P
+  proof
+    let P, O be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: O = [0, 1, 0];
+    addell_ProjCo(z,p).(P,O) _EQ_ P
+    proof
+      per cases;
+      suppose B1: P _EQ_ O;
+        then addell_ProjCo(z,p).(P,O) = O by A1,EC_PF_2:def 9;
+        hence addell_ProjCo(z,p).(P,O) _EQ_ P by B1;
+      end;
+      suppose not P _EQ_ O;
+        hence addell_ProjCo(z,p).(P,O) _EQ_ P by A1,EC_PF_2:def 9;
+      end;
+    end;
+    hence thesis by A1,EC_PF_2:def 9;
+  end;
+
+theorem ThLeftZeroedAffCo:
+  for P, O being Element of EC_SetAffCo(z,p) st O = [0, 1, 0]
+  holds addell_AffCo(z,p).(O,P) = P
+  proof
+    let P, O be Element of EC_SetAffCo(z,p) such that
+    A1: O = [0, 1, 0];
+    consider PP be Element of EC_SetProjCo(z`1,z`2,p) such that
+    B1: PP = P & PP in EC_SetAffCo(z,p);
+    addell_ProjCo(z,p).(O,PP) _EQ_ PP by A1,ThUnityProjCo;
+    then rep_pt(addell_ProjCo(z,p).(O,PP)) = rep_pt(PP) by EC_PF_2:39
+    .= PP by B1,ThRepPoint6;
+    hence thesis by B1,DefAffAddEll;
+  end;
+
+theorem ThRightZeroedAffCo:
+  for P, O being Element of EC_SetAffCo(z,p) st O = [0, 1, 0]
+  holds addell_AffCo(z,p).(P,O) = P
+  proof
+    let P, O be Element of EC_SetAffCo(z,p) such that
+    A1: O = [0, 1, 0];
+    consider PP be Element of EC_SetProjCo(z`1,z`2,p) such that
+    B1: PP = P & PP in EC_SetAffCo(z,p);
+    addell_ProjCo(z,p).(PP,O) _EQ_ PP by A1,ThUnityProjCo;
+    then rep_pt(addell_ProjCo(z,p).(PP,O)) = rep_pt(PP) by EC_PF_2:39
+    .= PP by B1,ThRepPoint6;
+    hence thesis by B1,DefAffAddEll;
+  end;
+
+theorem ThUnityAffCo:
+  for O being Element of EC_SetAffCo(z,p) st O = [0, 1, 0]
+  holds O is_a_unity_wrt addell_AffCo(z,p)
+  proof
+    let O be Element of EC_SetAffCo(z,p) such that
+    A1: O = [0, 1, 0];
+    for P being Element of EC_SetAffCo(z,p)
+    holds addell_AffCo(z,p).(O,P) = P by A1,ThLeftZeroedAffCo;
+    then A2: O is_a_left_unity_wrt addell_AffCo(z,p) by BINOP_1:def 5;
+    for P being Element of EC_SetAffCo(z,p)
+    holds addell_AffCo(z,p).(P,O) = P by A1,ThRightZeroedAffCo;
+    hence O is_a_unity_wrt addell_AffCo(z,p)
+    by A2,BINOP_1:def 6,BINOP_1:def 7;
+  end;
+
+theorem ThAddCompAffCo:
+  for P, O be Element of EC_SetAffCo(z,p)
+  st O = [0, 1, 0]
+  holds addell_AffCo(z,p).(P,compell_AffCo(z,p).P) = O
+  proof
+    let P, O be Element of EC_SetAffCo(z,p) such that
+    A1: O = [0, 1, 0];
+    set Q = compell_AffCo(z,p).P;
+    reconsider Q as Element of EC_SetAffCo(z,p);
+    consider PP be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A2: PP = P & PP in EC_SetAffCo(z,p);
+    consider OO be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A4: OO = O & OO in EC_SetAffCo(z,p);
+    per cases;
+    suppose B1: P`3_3 <> 0;
+      B2: compell_AffCo(z,p).P = rep_pt(compell_ProjCo(z,p).PP)
+      by A2,DefAffCompEll
+      .= compell_ProjCo(z,p).(rep_pt(PP)) by A2,B1,EC_PF_2:42
+      .= compell_ProjCo(z,p).PP by A2,ThRepPoint6;
+      B3: rep_pt(addell_ProjCo(z,p).(PP,compell_ProjCo(z,p).PP))
+      = addell_AffCo(z,p).(P,compell_AffCo(z,p).P) by A2,B2,DefAffAddEll;
+      rep_pt(OO) = addell_AffCo(z,p).(P,compell_AffCo(z,p).P)
+      by A1,A4,B3,ThAddCompProjCo,EC_PF_2:39;
+      hence addell_AffCo(z,p).(P,compell_AffCo(z,p).P) = O by A4,ThRepPoint6;
+    end;
+    suppose P`3_3 = 0;
+      then B2: PP _EQ_ OO by A1,A2,A4,ThEQO;
+      set COO = compell_ProjCo(z,p).OO;
+      reconsider COO as Element of EC_SetProjCo(z`1,z`2,p);
+      COO _EQ_ OO by A1,A4,EC_PF_2:40;
+      then COO _EQ_ PP by B2,EC_PF_1:44;
+      then compell_ProjCo(z,p).(COO) _EQ_
+      compell_ProjCo(z,p).PP by EC_PF_2:46;
+      then OO _EQ_ compell_ProjCo(z,p).PP by EC_PF_2:41;
+      then rep_pt(compell_ProjCo(z,p).PP) = rep_pt(OO) by EC_PF_2:39;
+      then B4: compell_AffCo(z,p).P = rep_pt(OO) by A2,DefAffCompEll
+      .= OO by A4,ThRepPoint6;
+      B5: addell_ProjCo(z,p).(PP,compell_AffCo(z,p).P)
+      = OO by A1,A4,B2,B4,EC_PF_2:def 9;
+      thus addell_AffCo(z,p).(P,compell_AffCo(z,p).P)
+      = rep_pt(addell_ProjCo(z,p).(PP,compell_AffCo(z,p).P)) by A2,DefAffAddEll
+      .= O by A4,B5,ThRepPoint6;
+    end;
+  end;
+
+begin :: 2. Commutative property of operations of points on elliptic curve
+
+theorem LmCommutative1:
+  for p be 5_or_greater Prime, z be Element of EC_WParam p,
+  P, Q, O, PQ, QP being Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0] &
+  not P _EQ_ O & not Q _EQ_ O & not P _EQ_ Q
+  holds
+  (PQ = addell_ProjCo(z,p).(P,Q) & QP = addell_ProjCo(z,p).(Q,P))
+  implies
+  QP`1_3 = -PQ`1_3 & QP`2_3 = -PQ`2_3 & QP`3_3 = -PQ`3_3
+  proof
+    let p be 5_or_greater Prime, z be Element of EC_WParam p,
+    P, Q, O, PQ, QP be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A2: O = [0, 1, 0] and
+    A3: not P _EQ_ O & not Q _EQ_ O & not P _EQ_ Q;
+    set a = z`1;
+    set b = z`2;
+    assume AS: PQ = addell_ProjCo(z,p).(P,Q) &
+    QP = addell_ProjCo(z,p).(Q,P);
+    reconsider g2 = 2 mod p as Element of GF(p) by EC_PF_1:14;
+    set gf1PQ = (Q`2_3)*(P`3_3) - (P`2_3)*(Q`3_3);
+    set gf2PQ = (Q`1_3)*(P`3_3) - (P`1_3)*(Q`3_3);
+    set gf3PQ = (gf1PQ|^2)*(P`3_3)*(Q`3_3)-(gf2PQ|^3)
+    -g2*(gf2PQ|^2)*(P`1_3)*(Q`3_3);
+    set gf1QP = (P`2_3)*(Q`3_3) - (Q`2_3)*(P`3_3);
+    set gf2QP = (P`1_3)*(Q`3_3) - (Q`1_3)*(P`3_3);
+    set gf3QP = (gf1QP|^2)*(Q`3_3)*(P`3_3)-(gf2QP|^3)
+    -g2*(gf2QP|^2)*(Q`1_3)*(P`3_3);
+    reconsider gf1PQ, gf2PQ, gf3PQ, gf1QP, gf2QP, gf3QP as Element of GF(p);
+    A5: PQ = [gf2PQ*gf3PQ,
+    gf1PQ*((gf2PQ |^2)*(P`1_3)*(Q`3_3)-gf3PQ)-(gf2PQ|^3)*(P`2_3)*(Q`3_3),
+    (gf2PQ|^3)*(P`3_3)*(Q`3_3)]
+    by A2,A3,AS,EC_PF_2:def 9;
+    A6: QP = [gf2QP*gf3QP,
+    gf1QP*((gf2QP |^2)*(Q`1_3)*(P`3_3)-gf3QP)-(gf2QP|^3)*(Q`2_3)*(P`3_3),
+    (gf2QP|^3)*(Q`3_3)*(P`3_3)]
+    by A2,A3,AS,EC_PF_2:def 9;
+    A7: gf1QP = -gf1PQ by VECTSP_1:17;
+    A8: gf2QP = -gf2PQ by VECTSP_1:17;
+    A10: gf2PQ |^2 = gf2QP |^2 by A8,EC_PF_2:1;
+    A11: gf3QP = gf3PQ
+    proof
+      B1: g2*(Q`1_3)*(P`3_3) - (Q`1_3)*(P`3_3)
+      = g2*((Q`1_3)*(P`3_3)) - ((Q`1_3)*(P`3_3)) by GROUP_1:def 3
+      .= (Q`1_3)*(P`3_3) by EC_PF_2:24;
+      B2: g2*(P`1_3)*(Q`3_3) - (P`1_3)*(Q`3_3)
+      = g2*((P`1_3)*(Q`3_3)) - ((P`1_3)*(Q`3_3)) by GROUP_1:def 3
+      .= (P`1_3)*(Q`3_3) by EC_PF_2:24;
+      gf2QP + g2*(Q`1_3)*(P`3_3)
+      = (P`1_3)*(Q`3_3) + (g2*(Q`1_3)*(P`3_3) + (-(Q`1_3)*(P`3_3)))
+      by ALGSTR_1:7
+      .= g2*(P`1_3)*(Q`3_3) + ((Q`1_3)*(P`3_3) +(-(P`1_3)*(Q`3_3)))
+      by B1,B2,ALGSTR_1:7
+      .= gf2PQ + g2*(P`1_3)*(Q`3_3);
+      then (gf2QP + g2*(Q`1_3)*(P`3_3))*(gf2QP |^2)
+      = (gf2PQ + g2*(P`1_3)*(Q`3_3))*(gf2PQ |^2) by A8,EC_PF_2:1
+      .= gf2PQ * (gf2PQ |^2) + (g2*(P`1_3)*(Q`3_3))*(gf2PQ |^2)
+      by VECTSP_1:def 3
+      .= gf2PQ * (gf2PQ |^2) + (g2*((P`1_3)*(Q`3_3)))*(gf2PQ |^2)
+      by GROUP_1:def 3
+      .= (gf2PQ * (gf2PQ |^2)) + g2*((P`1_3)*(Q`3_3)*(gf2PQ |^2))
+      by GROUP_1:def 3
+      .= (gf2PQ |^(2+1)) + g2*((P`1_3)*(Q`3_3)*(gf2PQ |^2)) by EC_PF_1:24
+      .= (gf2PQ |^3) + g2*(gf2PQ |^2)*((P`1_3)*(Q`3_3)) by GROUP_1:def 3
+      .= (gf2PQ |^3) + g2*(gf2PQ |^2)*(P`1_3)*(Q`3_3) by GROUP_1:def 3;
+      then B3: (gf2PQ |^3) + g2*(gf2PQ |^2)*(P`1_3)*(Q`3_3)
+      = gf2QP*(gf2QP |^2) + (g2*(Q`1_3)*(P`3_3))*(gf2QP |^2) by VECTSP_1:def 3
+      .= (gf2QP*(gf2QP |^2)) + (g2*((Q`1_3)*(P`3_3)))*(gf2QP |^2)
+      by GROUP_1:def 3
+      .= (gf2QP*(gf2QP |^2)) + g2*((Q`1_3)*(P`3_3)*(gf2QP |^2))
+      by GROUP_1:def 3
+      .= (gf2QP |^(2+1)) + g2*((Q`1_3)*(P`3_3)*(gf2QP |^2)) by EC_PF_1:24
+      .= (gf2QP |^3) + g2*(gf2QP |^2)*((Q`1_3)*(P`3_3)) by GROUP_1:def 3
+      .= (gf2QP |^3) + g2*(gf2QP |^2)*(Q`1_3)*(P`3_3) by GROUP_1:def 3;
+      (gf1QP |^2)*(Q`3_3)*(P`3_3) = (gf1QP |^2)*((Q`3_3)*(P`3_3))
+      by GROUP_1:def 3
+      .= (gf1PQ |^2)*((Q`3_3)*(P`3_3)) by A7,EC_PF_2:1
+      .= (gf1PQ |^2)*(P`3_3)*(Q`3_3) by GROUP_1:def 3;
+      then (gf1QP |^2)*(Q`3_3)*(P`3_3)
+      - ((gf2QP |^3) + g2*(gf2QP |^2)*(Q`1_3)*(P`3_3))
+      = gf3PQ by B3,VECTSP_1:17;
+      hence gf3PQ = gf3QP by VECTSP_1:17;
+    end;
+    thus QP`1_3 = -PQ`1_3
+    proof
+      (PQ`1_3) + (QP`1_3) = (gf2PQ*gf3PQ) + (QP`1_3) by A5,EC_PF_2:def 3
+      .= gf2PQ*gf3PQ + (-gf2PQ)*gf3PQ by A6,A8,A11,EC_PF_2:def 3
+      .= gf2PQ*gf3PQ - gf2PQ*gf3PQ by VECTSP_1:9
+      .= 0.GF(p) by VECTSP_1:19;
+      hence thesis by VECTSP_1:16;
+    end;
+    thus QP`2_3 = -PQ`2_3
+    proof
+      B1: gf1PQ * gf3PQ = (-gf1QP) * gf3PQ by VECTSP_1:17
+      .= - (gf1QP * gf3QP) by A11,VECTSP_1:9;
+      gf1PQ * ((gf2PQ |^2)*(P`1_3)*(Q`3_3))
+      = (-gf1QP) * ((gf2PQ |^2)*(P`1_3)*(Q`3_3)) by VECTSP_1:17
+      .= -(gf1QP) * ((gf2PQ |^2)*(P`1_3)*(Q`3_3)) by VECTSP_1:9
+      .= -(gf1QP) * ((gf2QP |^2)*((P`1_3)*(Q`3_3))) by A10,GROUP_1:def 3
+      .= -(gf1QP) * ((gf2QP |^2)*((P`1_3)*(Q`3_3) + 0.GF(p))) by ALGSTR_1:7
+      .= -(gf1QP) * ((gf2QP |^2)*((P`1_3)*(Q`3_3)
+      + (((Q`1_3)*(P`3_3)) - ((Q`1_3)*(P`3_3))))) by VECTSP_1:19
+      .= -(gf1QP) * ((gf2QP |^2)*((Q`1_3)*(P`3_3)
+      + ((P`1_3)*(Q`3_3) + (-(Q`1_3)*(P`3_3))))) by ALGSTR_1:7
+      .= -(gf1QP) * ((gf2QP |^2)*((Q`1_3)*(P`3_3)) + (gf2QP |^2)*gf2QP)
+      by VECTSP_1:def 3
+      .= -(gf1QP) * ((gf2QP |^2)*((Q`1_3)*(P`3_3)) + (gf2QP |^(2+1)))
+      by EC_PF_1:24
+      .= -(gf1QP) * ((gf2QP |^2)*((Q`1_3)*(P`3_3)) + (gf2QP |^3));
+      then gf1PQ * ((gf2PQ |^2)*(P`1_3)*(Q`3_3))
+      + ((gf1QP) * ((gf2QP |^2)*((Q`1_3)*(P`3_3))
+      +(gf2QP |^3))) = 0.GF(p) by VECTSP_1:19;
+      then gf1PQ * ((gf2PQ |^2)*(P`1_3)*(Q`3_3))
+      + ((gf1QP) * ((gf2QP |^2)*((Q`1_3)*(P`3_3)))
+      + gf1QP*(gf2QP |^3)) = 0.GF(p) by VECTSP_1:def 3;
+      then (gf1PQ * ((gf2PQ |^2)*(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*((Q`1_3)*(P`3_3))))
+      + gf1QP*(gf2QP |^3) = 0.GF(p) by ALGSTR_1:7;
+      then gf1PQ * ((gf2PQ |^2)*(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*((Q`1_3)*(P`3_3)))
+      = - (gf1QP*(gf2QP |^3)) by VECTSP_1:16;
+      then B2: gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3))
+      = -(gf1QP*(gf2QP |^3)) by GROUP_1:def 3;
+      B3: (gf2PQ|^3)*(P`2_3)*(Q`3_3) + (gf2QP |^3)*(Q`2_3)*(P`3_3)
+      = (gf2PQ |^(2+1))*((P`2_3)*(Q`3_3)) + (gf2QP |^(2+1))*(Q`2_3)*(P`3_3)
+      by GROUP_1:def 3
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (gf2QP |^2 * gf2QP)*(Q`2_3)*(P`3_3)
+      by EC_PF_1:24
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (gf2PQ |^2 * (-gf2PQ))*(Q`2_3)*(P`3_3)
+      by A8,EC_PF_2:1
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (-(gf2PQ |^2 * gf2PQ))*(Q`2_3)*(P`3_3)
+      by VECTSP_1:8
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (-(gf2PQ |^(2+1)))*(Q`2_3)*(P`3_3)
+      by EC_PF_1:24
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (-(gf2PQ |^3))*((Q`2_3)*(P`3_3))
+      by GROUP_1:def 3
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (-(gf2PQ |^3)*((Q`2_3)*(P`3_3)))
+      by VECTSP_1:9
+      .= (gf2PQ |^3)*((P`2_3)*(Q`3_3)) + (gf2PQ |^3) * (-((Q`2_3)*(P`3_3)))
+      by VECTSP_1:8
+      .= gf1QP*(gf2PQ |^(2+1)) by VECTSP_1:def 3
+      .= gf1QP*(gf2PQ |^2 * gf2PQ) by EC_PF_1:24
+      .= gf1QP*(gf2QP |^2 * gf2PQ) by A8,EC_PF_2:1
+      .= gf1QP*(gf2QP |^2 * (-gf2QP)) by VECTSP_1:17
+      .= gf1QP*(-(gf2QP |^2 * gf2QP)) by VECTSP_1:8
+      .= -gf1QP * (gf2QP |^2 * gf2QP) by VECTSP_1:9
+      .= -gf1QP * (gf2QP |^(2+1)) by EC_PF_1:24
+      .= -gf1QP * (gf2QP |^3);
+      gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3))
+      - ((gf2PQ|^3)*(P`2_3)*(Q`3_3) + (gf2QP |^3)*(Q`2_3)*(P`3_3))
+      - (gf1PQ * gf3PQ + gf1QP * gf3QP)
+      = -(gf1QP*(gf2QP |^3)) - (-gf1QP*(gf2QP |^3)) - (0.GF(p))
+      by B1,B2,B3,VECTSP_1:19
+      .= -(gf1QP*(gf2QP |^3)) + (-(-gf1QP*(gf2QP |^3))) by VECTSP_1:18
+      .= 0.GF(p) by VECTSP_1:19;
+      then 0.GF(p) =
+      gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3))
+      - ((gf2PQ|^3)*(P`2_3)*(Q`3_3) + (gf2QP |^3)*(Q`2_3)*(P`3_3))
+      - (gf1QP * gf3QP) - (gf1PQ * gf3PQ) by VECTSP_1:17
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3))
+      + (-((gf2QP |^3)*(Q`2_3)*(P`3_3)) - ((gf2PQ|^3)*(P`2_3)*(Q`3_3)))
+      + (-(gf1QP * gf3QP)) + (-(gf1PQ * gf3PQ)) by VECTSP_1:17
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3))
+      + (-((gf2QP |^3)*(Q`2_3)*(P`3_3))) + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3)))
+      + (-(gf1QP * gf3QP)) + (-(gf1PQ * gf3PQ)) by ALGSTR_1:7
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + (gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3))
+      + (-((gf2QP |^3)*(Q`2_3)*(P`3_3))) + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3)))
+      + (-(gf1QP * gf3QP))) + (-(gf1PQ * gf3PQ)) by EC_PF_2:8
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + ((gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3)) -(gf1QP * gf3QP))
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3)))
+      + (-((gf2QP |^3)*(Q`2_3)*(P`3_3)))) + (-(gf1PQ * gf3PQ)) by EC_PF_2:7
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + ((gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3) - gf3QP))
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3)))
+      + (-((gf2QP |^3)*(Q`2_3)*(P`3_3)))) + (-(gf1PQ * gf3PQ)) by VECTSP_1:11
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + ((gf1QP * ((gf2QP |^2)*(Q`1_3)*(P`3_3) - gf3QP))
+      + (-((gf2QP |^3)*(Q`2_3)*(P`3_3)))
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3)))) + (-(gf1PQ * gf3PQ)) by ALGSTR_1:8
+      .= gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))
+      + ((QP`2_3)
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3)))) + (-(gf1PQ * gf3PQ))
+      by A6,EC_PF_2:def 4
+      .= (gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))) + (QP`2_3)
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3))) + (-(gf1PQ * gf3PQ)) by ALGSTR_1:7
+      .= ((gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3))) -(gf1PQ * gf3PQ))
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3))) + (QP`2_3) by EC_PF_2:7
+      .= (gf1PQ * ((gf2PQ |^2) *(P`1_3)*(Q`3_3) - gf3PQ))
+      + (-((gf2PQ|^3)*(P`2_3)*(Q`3_3))) + (QP`2_3) by VECTSP_1:11
+      .= (PQ`2_3) + (QP`2_3) by A5,EC_PF_2:def 4;
+      hence thesis by VECTSP_1:16;
+    end;
+    thus QP`3_3 = -PQ`3_3
+    proof
+      gf2PQ |^2 * gf2PQ = gf2QP |^2 * gf2PQ by A8,EC_PF_2:1
+      .= gf2QP |^2 * (-gf2QP) by VECTSP_1:17
+      .= -(gf2QP |^2 * gf2QP) by VECTSP_1:8
+      .= -(gf2QP |^(2+1)) by EC_PF_1:24
+      .= -(gf2QP |^3);
+      then -(gf2QP |^3) = gf2PQ |^(2+1) by EC_PF_1:24
+      .= gf2PQ |^3;
+      then ((gf2PQ |^3) + (gf2QP |^3))*((P`3_3)*(Q`3_3))
+      = 0.GF(p)*((P`3_3)*(Q`3_3)) by VECTSP_1:19
+      .= 0.GF(p);
+      then (gf2PQ |^3)*((P`3_3)*(Q`3_3)) + (gf2QP |^3)*((Q`3_3)*(P`3_3))
+      = 0.GF(p) by VECTSP_1:def 3;
+      then (gf2PQ |^3)*(P`3_3)*(Q`3_3) + (gf2QP |^3)*((Q`3_3)*(P`3_3))
+      = 0.GF(p) by GROUP_1:def 3;
+      then (PQ`3_3) + (gf2QP |^3)*((Q`3_3)*(P`3_3)) = 0.GF(p)
+      by A5,EC_PF_2:def 5;
+      then (PQ`3_3) + (gf2QP |^3)*(Q`3_3)*(P`3_3) = 0.GF(p) by GROUP_1:def 3;
+      then (PQ`3_3) + (QP`3_3) = 0.GF(p) by A6,EC_PF_2:def 5;
+      hence thesis by VECTSP_1:16;
+    end;
+  end;
+
+theorem LmCommutative2:
+  for P, Q, O, PQ, QP being Element of EC_SetProjCo(z`1,z`2,p),
+  d being Element of GF(p)
+  st O = [0, 1, 0] & d <> 0.GF(p) &
+  (Q`1_3) = d*(P`1_3) & (Q`2_3) = d*(P`2_3) & (Q`3_3) = d*(P`3_3) &
+  not P _EQ_ O & not Q _EQ_ O & P _EQ_ Q &
+  PQ = addell_ProjCo(z,p).(P,Q) & QP = addell_ProjCo(z,p).(Q,P)
+  holds (QP`1_3) = (d |^6)*(PQ`1_3) & (QP`2_3) = (d |^6)*(PQ`2_3) &
+  (QP`3_3) = (d |^6)*(PQ`3_3)
+  proof
+    set a = z`1;
+    set b = z`2;
+    let P, Q, O, PQ, QP be Element of EC_SetProjCo(a,b,p),
+    d be Element of GF(p) such that
+    A0: O = [0, 1, 0] and
+    A1: d <> 0.GF(p) & (Q`1_3) = d*(P`1_3) & (Q`2_3) = d*(P`2_3) &
+    (Q`3_3) = d*(P`3_3) and
+    A2: not P _EQ_ O & not Q _EQ_ O & P _EQ_ Q and
+    A3: PQ = addell_ProjCo(z,p).(P,Q) and
+    A4: QP = addell_ProjCo(z,p).(Q,P);
+    reconsider g2 = 2 mod p as Element of GF(p) by EC_PF_1:14;
+    reconsider g3 = 3 mod p as Element of GF(p) by EC_PF_1:14;
+    reconsider g4 = 4 mod p as Element of GF(p) by EC_PF_1:14;
+    reconsider g8 = 8 mod p as Element of GF(p) by EC_PF_1:14;
+    set gf1P = a*((P`3_3) |^2) + g3*((P`1_3) |^2);
+    set gf2P = (P`2_3)*(P`3_3);
+    set gf3P = (P`1_3)*(P`2_3)*gf2P;
+    set gf4P = (gf1P |^2) -g8*gf3P;
+    reconsider gf1P, gf2P, gf3P, gf4P as Element of GF(p);
+    A9: PQ = [g2*gf4P*gf2P, gf1P*(g4*gf3P-gf4P)-g8*((P`2_3) |^2)*(gf2P |^2),
+    g8*(gf2P |^3)] by A0,A2,A3,EC_PF_2:def 9;
+    set gf1Q = a*((Q`3_3) |^2) + g3*((Q`1_3) |^2);
+    set gf2Q = (Q`2_3)*(Q`3_3);
+    set gf3Q = (Q`1_3)*(Q`2_3)*gf2Q;
+    set gf4Q = (gf1Q |^2) -g8*gf3Q;
+    reconsider gf1Q, gf2Q, gf3Q, gf4Q as Element of GF(p);
+    A10: QP = [g2*gf4Q*gf2Q, gf1Q*(g4*gf3Q-gf4Q)-g8*((Q`2_3) |^2)*(gf2Q |^2),
+    g8*(gf2Q |^3)] by A0,A2,A4,EC_PF_2:def 9;
+    A11: gf1Q = a*((d |^2)*((P`3_3) |^2)) + g3*((d*(P`1_3)) |^2) by A1,BINOM:9
+    .= a*((d |^2)*((P`3_3) |^2)) + g3*((d |^2)*((P`1_3) |^2)) by BINOM:9
+    .= (a*(d |^2))*((P`3_3) |^2) + g3*((d |^2)*((P`1_3) |^2)) by GROUP_1:def 3
+    .= (a*(d |^2))*((P`3_3) |^2) + (g3*(d |^2))*((P`1_3) |^2) by GROUP_1:def 3
+    .= (d |^2)*(a*((P`3_3) |^2)) + ((d |^2)*g3)*((P`1_3) |^2) by GROUP_1:def 3
+    .= (d |^2)*(a*((P`3_3) |^2)) + (d |^2)*(g3*((P`1_3) |^2)) by GROUP_1:def 3
+    .= (d |^2) * gf1P by VECTSP_1:def 3;
+    A12: gf2Q = d*((P`2_3)*d*(P`3_3)) by A1,GROUP_1:def 3
+    .= d*(d*((P`2_3)*(P`3_3))) by GROUP_1:def 3
+    .= (d*d)*((P`2_3)*(P`3_3)) by GROUP_1:def 3
+    .= (d |^2) * gf2P by EC_PF_1:22;
+    A13: gf3Q = (d*((P`1_3)*d*(P`2_3)))*gf2Q by A1,GROUP_1:def 3
+    .= (d*(d*((P`1_3)*(P`2_3))))*gf2Q by GROUP_1:def 3
+    .= ((d*d)*((P`1_3)*(P`2_3)))*gf2Q by GROUP_1:def 3
+    .= ((d |^2)*((P`1_3)*(P`2_3)))*gf2Q by EC_PF_1:22
+    .= (d |^2)*(((P`1_3)*(P`2_3))*(d |^2)*gf2P) by A12,GROUP_1:def 3
+    .= (d |^2)*((d |^2)*gf3P) by GROUP_1:def 3
+    .= ((d |^2)*(d |^2))*gf3P by GROUP_1:def 3
+    .= ((d |^2) |^2)*gf3P by EC_PF_1:22
+    .= (d |^(2*2)) *gf3P by BINOM:11
+    .= (d |^4) * gf3P;
+    A14: gf4Q = ((d |^2) |^2)*(gf1P |^2) - g8*((d |^4)*gf3P)
+    by A11,A13,BINOM:9
+    .= (d |^(2*2))*(gf1P |^2) - g8*((d |^4)*gf3P) by BINOM:11
+    .= (d |^4)*(gf1P |^2) - (d |^4)*(g8*gf3P) by GROUP_1:def 3
+    .= (d |^4) * gf4P by VECTSP_1:11;
+    thus (QP`1_3) = g2*gf4Q*gf2Q by A10,EC_PF_2:def 3
+    .= g2*(((d |^4)*gf4P)*((d |^2)*gf2P)) by A12,A14,GROUP_1:def 3
+    .= g2*((d |^4)*(gf4P*((d |^2)*gf2P))) by GROUP_1:def 3
+    .= g2*((d |^4)*((d |^2)*(gf4P*gf2P))) by GROUP_1:def 3
+    .= g2*(((d |^4)*(d |^2))*(gf4P*gf2P)) by GROUP_1:def 3
+    .= g2*((d |^(4+2))*(gf4P*gf2P)) by BINOM:10
+    .= (d |^6)*(g2*(gf4P*gf2P)) by GROUP_1:def 3
+    .= (d |^6)*(g2*gf4P*gf2P) by GROUP_1:def 3
+    .= (d |^6)*(PQ`1_3) by A9,EC_PF_2:def 3;
+    thus (QP`2_3) = gf1Q*(g4*gf3Q-gf4Q)-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by A10,EC_PF_2:def 4
+    .= gf1Q*((d |^4)*(g4*gf3P)-(d |^4)*gf4P)-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by A13,A14,GROUP_1:def 3
+    .= gf1Q*((d |^4)*(g4*gf3P-gf4P))-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by VECTSP_1:11
+    .= (gf1Q*(d |^4))*(g4*gf3P-gf4P)-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by GROUP_1:def 3
+    .= (((d |^2)*(d |^4))*gf1P)*(g4*gf3P-gf4P)-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by A11,GROUP_1:def 3
+    .= ((d |^(2+4))*gf1P)*(g4*gf3P-gf4P)-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by BINOM:10
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-g8*((Q`2_3) |^2)*(gf2Q |^2)
+    by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-g8*((d |^2)*((P`2_3) |^2))*
+    (((d |^2)*gf2P) |^2) by A1,A12,BINOM:9
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-g8*((d |^2)*((P`2_3) |^2))*
+    (((d |^2) |^2)*(gf2P |^2)) by BINOM:9
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-g8*((d |^2)*((P`2_3) |^2))*
+    ((d |^(2*2))*(gf2P |^2)) by BINOM:11
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-((g8*(d |^2))*((P`2_3) |^2))*
+    ((d |^4)*(gf2P |^2)) by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-(((d |^2)*g8)*((P`2_3) |^2)*
+    (gf2P |^2))*(d |^4) by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-(d |^4)*(((d |^2)*g8)*(((P`2_3) |^2)*
+    (gf2P |^2))) by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-(d |^4)*((d |^2)*(g8*(((P`2_3) |^2)*
+    (gf2P |^2)))) by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-(d |^4)*((d |^2)*(g8*((P`2_3) |^2)*
+    (gf2P |^2))) by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-((d |^4)*(d |^2))*(g8*((P`2_3) |^2)*
+    (gf2P |^2)) by GROUP_1:def 3
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P))-(d |^(4+2))*(g8*((P`2_3) |^2)*
+    (gf2P |^2)) by BINOM:10
+    .= (d |^6)*(gf1P*(g4*gf3P-gf4P)-(g8*((P`2_3) |^2)*(gf2P |^2)))
+    by VECTSP_1:11
+    .= (d |^6)*(PQ`2_3) by A9,EC_PF_2:def 4;
+    thus (QP`3_3) = g8*(gf2Q |^3) by A10,EC_PF_2:def 5
+    .= g8*(((d |^2) |^3)*(gf2P |^3)) by A12,BINOM:9
+    .= g8*((d |^(2*3))*(gf2P |^3)) by BINOM:11
+    .= (d |^6)*(g8*(gf2P |^3)) by GROUP_1:def 3
+    .= (d |^6)*(PQ`3_3) by A9,EC_PF_2:def 5;
+  end;
+
+theorem ThCommutativeProjCo:
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p) holds
+  addell_ProjCo(z,p).(P,Q) _EQ_ addell_ProjCo(z,p).(Q,P)
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p);
+    set O = [0, 1, 0];
+    reconsider O as Element of EC_SetProjCo(z`1,z`2,p) by EC_PF_1:42;
+    set PQ = addell_ProjCo(z,p).(P,Q);
+    set QP = addell_ProjCo(z,p).(Q,P);
+    consider PQQ be Element of ProjCo(GF(p)) such that
+    X1: PQQ = PQ & PQQ in EC_SetProjCo(z`1,z`2,p);
+    X2: (PQQ`1_3) = (PQ`1_3) & (PQQ`2_3) = (PQ`2_3) & (PQQ`3_3) = (PQ`3_3)
+    by X1,EC_PF_2:32;
+    consider QPP be Element of ProjCo(GF(p)) such that
+    X3: QPP = QP & QPP in EC_SetProjCo(z`1,z`2,p);
+    X4: (QPP`1_3) = (QP`1_3) & (QPP`2_3) = (QP`2_3) & (QPP`3_3) = (QP`3_3)
+    by X3,EC_PF_2:32;
+    per cases;
+    suppose A1: P _EQ_ O;
+      then A2: PQ _EQ_ Q by EC_PF_2:def 9;
+      QP _EQ_ Q
+      proof
+        per cases;
+        suppose B1: Q _EQ_ O;
+          then QP _EQ_ O by A1,EC_PF_2:def 9;
+          hence thesis by B1,EC_PF_1:44;
+        end;
+        suppose not Q _EQ_ O;
+          hence thesis by A1,EC_PF_2:def 9;
+        end;
+      end;
+      hence thesis by A2,EC_PF_1:44;
+    end;
+    suppose A1: Q _EQ_ O & not P _EQ_ O;
+      then PQ _EQ_ P by EC_PF_2:def 9;
+      hence thesis by A1,EC_PF_2:def 9;
+    end;
+    suppose A1: not P _EQ_ O & not Q _EQ_ O & not P _EQ_ Q;
+      consider d be Element of GF(p) such that
+      A2: d = -1.GF(p);
+      d*(PQ`1_3) = d*(-(QP`1_3)) & d*(PQ`2_3) = d*(-(QP`2_3)) &
+      d*(PQ`3_3) = d*(-(QP`3_3)) by A1,LmCommutative1;
+      then d*(PQ`1_3) = (1.GF(p))*(QP`1_3) & d*(PQ`2_3) = (1.GF(p))*(QP`2_3) &
+      d*(PQ`3_3) = (1.GF(p))*(QP`3_3) by A2,VECTSP_1:10;
+      then (QPP`1_3) = d*(PQ`1_3) & (QPP`2_3) = d*(PQ`2_3) &
+      (QPP`3_3) = d*(PQ`3_3) by X3,EC_PF_2:32;
+      hence thesis by A2,X1,X2,X3,EC_PF_1:def 10,VECTSP_2:3;
+    end;
+    suppose A1: not P _EQ_ O & not Q _EQ_ O & P _EQ_ Q;
+      consider PP be Element of ProjCo(GF(p)) such that
+      A2: PP = P & PP in EC_SetProjCo(z`1,z`2,p);
+      A3: PP`1_3 = P`1_3 & PP`2_3 = P`2_3 & PP`3_3 = P`3_3 by A2,EC_PF_2:32;
+      consider QQ be Element of ProjCo(GF(p)) such that
+      A4: QQ = Q & QQ in EC_SetProjCo(z`1,z`2,p);
+      consider d be Element of GF(p) such that
+      A6: d <> 0.GF(p) and
+      A7: QQ`1_3 = d*(PP`1_3) & QQ`2_3 = d*(PP`2_3) & QQ`3_3 = d*(PP`3_3)
+      by A1,A2,A4,EC_PF_1:def 10;
+      set d6 = d |^6;
+      reconsider d6 as Element of GF(p);
+      d6 <> 0 by A6,EC_PF_1:25;
+      then A8: d6 <> 0.GF(p) by EC_PF_1:11;
+      Q`1_3 = d*(PP`1_3) & Q`2_3 = d*(PP`2_3) & Q`3_3 = d*(PP`3_3)
+      by A4,A7,EC_PF_2:32;
+      then (QP`1_3) = d6*(PQ`1_3) & (QP`2_3) = d6*(PQ`2_3) &
+      (QP`3_3) = d6*(PQ`3_3) by A1,A3,A6,LmCommutative2;
+      hence thesis by A8,X1,X2,X3,X4,EC_PF_1:def 10;
+    end;
+  end;
+
+theorem ThCommutativeAffCo:
+  for P, Q being Element of EC_SetAffCo(z,p) holds
+  addell_AffCo(z,p).(P,Q) = addell_AffCo(z,p).(Q,P)
+  proof
+    let P, Q be Element of EC_SetAffCo(z,p);
+    rep_pt(addell_ProjCo(z,p).(P,Q)) =
+    rep_pt(addell_ProjCo(z,p).(Q,P)) by ThCommutativeProjCo,EC_PF_2:39
+    .= addell_AffCo(z,p).(Q,P) by DefAffAddEll;
+    hence thesis by DefAffAddEll;
+  end;
+
+registration
+  let p be 5_or_greater Prime,
+      z be Element of EC_WParam p;
+  cluster addell_AffCo(z,p) -> non empty commutative having_a_unity;
+  correctness
+  proof
+    reconsider O =  [0,1,0] as Element of EC_SetAffCo(z,p) by ThAffCoZero;
+    P1: O is_a_unity_wrt addell_AffCo(z,p) by ThUnityAffCo;
+    for P, Q being Element of EC_SetAffCo(z,p)
+    holds addell_AffCo(z,p).(P,Q) = addell_AffCo(z,p).(Q,P)
+    by ThCommutativeAffCo;
+    hence thesis by P1,BINOP_1:def 2,SETWISEO:def 2;
+  end;
+end;
+
+definition
+  let p be 5_or_greater Prime,
+  z be Element of EC_WParam p;
+  func 0_EC(z,p) -> Element of EC_SetAffCo(z,p) equals
+  [0,1,0];
+  correctness by ThAffCoZero;
+end;
+
+registration let p, z;
+  cluster addMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #) -> Abelian;
+  coherence by ThCommutativeAffCo;
+  cluster addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p), 0_EC(z,p) #) ->
+    left_zeroed right_zeroed;
+  coherence
+  proof
+    set ECSTR = addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p),
+    0_EC(z,p) #);
+    for P being Element of ECSTR holds 0.ECSTR + P = P
+      by ThLeftZeroedAffCo;
+    hence thesis by ALGSTR_1:def 2,ThRightZeroedAffCo;
+  end;
+end;
+
+ThECSTRLeftComp:
+  addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p), 0_EC(z,p) #)
+  is left_complementable
+  proof
+    set ECSTR =
+    addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p), 0_EC(z,p) #);
+    for P being Element of ECSTR holds P is left_complementable
+    proof
+      let P be Element of ECSTR;
+      ex Q being Element of ECSTR st Q + P = 0.ECSTR
+      proof
+        set O = 0.ECSTR;
+        set Q = compell_AffCo(z,p).P;
+        reconsider Q as Element of ECSTR by FUNCT_2:5;
+        A2: Q + P = addell_AffCo(z,p).(P,Q) by ThCommutativeAffCo
+        .= O by ThAddCompAffCo;
+        take Q;
+        thus thesis by A2;
+      end;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+ThECSTRRightComp:
+  addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p), 0_EC(z,p) #)
+    is right_complementable
+  proof
+    set ECSTR =
+    addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p), 0_EC(z,p) #);
+    for P being Element of ECSTR holds P is right_complementable
+    proof
+      let P be Element of ECSTR;
+      ex Q being Element of ECSTR st P + Q = 0.ECSTR
+      proof
+        set O = 0.ECSTR;
+        set Q = compell_AffCo(z,p).P;
+        reconsider Q as Element of ECSTR by FUNCT_2:5;
+        take Q;
+        thus thesis by ThAddCompAffCo;
+      end;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+
+registration let p,z;
+  cluster addLoopStr (# EC_SetAffCo(z,p), addell_AffCo(z,p), 0_EC(z,p) #) ->
+    complementable;
+  coherence by ThECSTRLeftComp,ThECSTRRightComp;
+end;
+
+registration
+  let p be 5_or_greater Prime,
+      z be Element of EC_WParam p;
+  cluster multMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #) -> unital;
+  coherence
+  proof
+    set F = multMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #);
+    reconsider E = 0_EC(z,p) as Element of F;
+    now let h be Element of F;
+      reconsider h1 = h as Element of EC_SetAffCo(z,p);
+      X1: 0_EC(z,p) is_a_unity_wrt addell_AffCo(z,p) by ThUnityAffCo;
+      hence h*E = h by BINOP_1:def 6,BINOP_1:def 7;
+      thus E*h = h by X1,BINOP_1:def 5,BINOP_1:def 7;
+    end;
+    hence thesis by GROUP_1:def 1;
+  end;
+end;
+
+theorem GP0:
+  for p be 5_or_greater Prime,
+      z be Element of EC_WParam p holds
+  1_( multMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #) ) = 0_EC(z,p)
+  proof
+    let p be 5_or_greater Prime,
+        z be Element of EC_WParam p;
+    set F=multMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #);
+    reconsider E = 0_EC(z,p) as Element of F;
+    for h being Element of F holds h * E = h & E * h = h
+    proof let h be Element of F;
+      reconsider h1 = h as Element of EC_SetAffCo(z,p);
+      X1: 0_EC(z,p) is_a_unity_wrt addell_AffCo(z,p) by ThUnityAffCo;
+      hence h*E = h by BINOP_1:def 6,BINOP_1:def 7;
+      thus E*h = h by X1,BINOP_1:def 5,BINOP_1:def 7;
+    end;
+    hence thesis by GROUP_1:def 4;
+  end;
+
+registration
+  let p be 5_or_greater Prime,
+      z be Element of EC_WParam p;
+  cluster multMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #) ->
+    commutative Group-like non empty;
+  coherence
+  proof
+    set F=multMagma (# EC_SetAffCo(z,p), addell_AffCo(z,p) #);
+    P1: for h being Element of F holds h * 1_F = h & 1_F * h = h
+    & ex g being Element of F st h * g = 1_F & g * h = 1_F
+    proof
+      let h be Element of F;
+      thus h * 1_F = h & 1_F * h = h by GROUP_1:def 4;
+      reconsider h1=h as Element of EC_SetAffCo(z,p);
+      reconsider g1=compell_AffCo(z,p).h1 as Element of EC_SetAffCo(z,p);
+      reconsider g= g1 as Element of F;
+      set O = [0, 1, 0];
+      reconsider O as Element of F by ThAffCoZero;
+      take g;
+      thus h * g = 0_EC(z,p) by ThAddCompAffCo
+      .= 1_F by GP0;
+      thus g * h = addell_AffCo(z,p).(h1,g1) by ThCommutativeAffCo
+      .= 0_EC(z,p) by ThAddCompAffCo
+      .= 1_F by GP0;
+    end;
+    for x, y being Element of F holds x*y = y*x by BINOP_1:def 2;
+    hence thesis by P1,GROUP_1:def 2,GROUP_1:def 12;
+  end;
+end;
+
+theorem ThAdd1:
+  for P1, P2, Q being Element of EC_SetProjCo(z`1,z`2,p) st P1 _EQ_ P2
+  holds
+  addell_ProjCo(z,p).(P1,Q) _EQ_ addell_ProjCo(z,p).(P2,Q)
+  proof
+    let P1, P2, Q be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: P1 _EQ_ P2;
+    reconsider O = [0, 1, 0] as Element of EC_SetProjCo(z`1,z`2,p)
+    by EC_PF_1:42;
+    reconsider P1Q = addell_ProjCo(z,p).(P1,Q),
+    P2Q = addell_ProjCo(z,p).(P2, Q)
+      as Element of EC_SetProjCo(z`1,z`2,p);
+    reconsider g2 = 2 mod p, g3 = 3 mod p, g4 = 4 mod p, g8 = 8 mod p
+      as Element of GF(p) by EC_PF_1:14;
+    per cases;
+    suppose B1: P1 _EQ_ O;
+      then B2: addell_ProjCo(z,p).(P1,Q) = Q by EC_PF_2:def 9;
+      P2 _EQ_ O by A1,B1,EC_PF_1:44;
+      hence thesis by B2,EC_PF_2:def 9;
+    end;
+    suppose B1: Q _EQ_ O & not P1 _EQ_ O;
+      then B2: addell_ProjCo(z,p).(P1,Q) = P1 by EC_PF_2:def 9;
+      not P2 _EQ_ O by A1,B1,EC_PF_1:44;
+      hence thesis by A1,B1,B2,EC_PF_2:def 9;
+    end;
+    suppose B1: not P1 _EQ_ O & not Q _EQ_ O & not P1 _EQ_ Q;
+      consider PP1 be Element of ProjCo(GF(p)) such that
+      B2: PP1 = P1 & PP1 in EC_SetProjCo(z`1,z`2,p);
+      consider PP2 be Element of ProjCo(GF(p)) such that
+      B3: PP2 = P2 & PP2 in EC_SetProjCo(z`1,z`2,p);
+      consider a be Element of GF(p) such that
+      B4: a <> 0.GF(p) & PP1`1_3 = a*(PP2`1_3) & PP1`2_3 = a*(PP2`2_3) &
+      PP1`3_3 = a*(PP2`3_3) by A1,B2,B3,EC_PF_1:def 10;
+      B5:
+      P1`1_3 = PP1`1_3 & P1`2_3 = PP1`2_3 & P1`3_3 = PP1`3_3 by B2,EC_PF_2:32;
+      P1`1_3 = a*(PP2`1_3) & P1`2_3 = a*(PP2`2_3) & P1`3_3 = a*(PP2`3_3)
+      by B2,B4,EC_PF_2:32;
+      then B51: P1`1_3 = a*(P2`1_3) & P1`2_3 = a*(P2`2_3) & P1`3_3 = a*(P2`3_3)
+        by B3,EC_PF_2:32;
+      set gf1P1 = Q`2_3*(P1`3_3) - P1`2_3*(Q`3_3);
+      set gf2P1 = Q`1_3*(P1`3_3) - P1`1_3*(Q`3_3);
+      set gf3P1 = (gf1P1 |^2)*(P1`3_3)*(Q`3_3) - (gf2P1 |^3)
+      - g2*(gf2P1 |^2)*(P1`1_3)*(Q`3_3);
+      set gf1P2 = Q`2_3*(P2`3_3) - P2`2_3*(Q`3_3);
+      set gf2P2 = Q`1_3*(P2`3_3) - P2`1_3*(Q`3_3);
+      set gf3P2 = (gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3)
+      - g2*(gf2P2 |^2)*(P2`1_3)*(Q`3_3);
+      reconsider gf1P1, gf2P1, gf3P1, gf1P2, gf2P2, gf3P2
+      as Element of GF(p);
+      B6: gf1P1 = Q`2_3*(a*(P2`3_3)) - P1`2_3*(Q`3_3) by B3,B4,B5,EC_PF_2:32
+      .= Q`2_3*(a*(P2`3_3)) - (a*(P2`2_3))*(Q`3_3) by B3,B4,B5,EC_PF_2:32
+      .= a*((Q`2_3)*(P2`3_3)) - (a*(P2`2_3))*(Q`3_3) by GROUP_1:def 3
+      .= a*((Q`2_3)*(P2`3_3)) - a*((P2`2_3)*(Q`3_3)) by GROUP_1:def 3
+      .= a*gf1P2 by VECTSP_1:11;
+      B7: gf2P1 = Q`1_3*(a*(P2`3_3)) - P1`1_3*(Q`3_3) by B3,B4,B5,EC_PF_2:32
+      .= Q`1_3*(a*(P2`3_3)) - (a*(P2`1_3))*(Q`3_3) by B3,B4,B5,EC_PF_2:32
+      .= a*((Q`1_3)*(P2`3_3)) - (a*(P2`1_3))*(Q`3_3) by GROUP_1:def 3
+      .= a*((Q`1_3)*(P2`3_3)) - a*((P2`1_3)*(Q`3_3)) by GROUP_1:def 3
+      .= a*gf2P2 by VECTSP_1:11;
+      B8: gf3P1 = ((a |^2)*(gf1P2 |^2))*(a*(P2`3_3))*(Q`3_3) - ((a*gf2P2) |^3)
+      - g2*((a*gf2P2) |^2)*(P1`1_3)*(Q`3_3) by B6,B7,B51,BINOM:9
+      .= (a |^2)*(gf1P2 |^2)*(a*(P2`3_3))*(Q`3_3) - ((a |^3)*(gf2P2 |^3))
+      - g2*((a*gf2P2) |^2)*(P1`1_3)*(Q`3_3) by BINOM:9
+      .= (a |^2)*(gf1P2 |^2)*a*(P2`3_3)*(Q`3_3) - ((a |^3)*(gf2P2 |^3))
+      - g2*((a*gf2P2) |^2)*(P1`1_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^2)*a*(gf1P2 |^2)*(P2`3_3)*(Q`3_3) - ((a |^3)*(gf2P2 |^3))
+      - g2*((a*gf2P2) |^2)*(P1`1_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^(2+1))*(gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (a |^3)*(gf2P2 |^3)
+      - g2*((a*gf2P2) |^2)*(P1`1_3)*(Q`3_3) by EC_PF_1:24
+      .= (a |^3)*(gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (a |^3)*(gf2P2 |^3)
+      - g2*((a |^2)*(gf2P2 |^2))*(a*(P2`1_3))*(Q`3_3) by B51,BINOM:9
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3)) - (a |^3)*(gf2P2 |^3)
+      - g2*((a |^2)*(gf2P2 |^2))*(a*(P2`1_3))*(Q`3_3) by EC_PF_2:11
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3))
+      - g2*((a |^2)*(gf2P2 |^2))*(a*(P2`1_3))*(Q`3_3) by VECTSP_1:11
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3))
+      - g2*(a |^2)*(gf2P2 |^2)*(a*(P2`1_3))*(Q`3_3) by GROUP_1:def 3
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3))
+      - (a |^2)*g2*(gf2P2 |^2)*a*(P2`1_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3))
+      - (a |^2)*a*g2*(gf2P2 |^2)*(P2`1_3)*(Q`3_3) by EC_PF_2:11
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3))
+      - (a |^(2+1))*g2*(gf2P2 |^2)*(P2`1_3)*(Q`3_3) by EC_PF_1:24
+      .= (a |^3)*((gf1P2 |^2)*(P2`3_3)*(Q`3_3) - (gf2P2 |^3))
+      - (a |^3)*(g2*(gf2P2 |^2)*(P2`1_3)*(Q`3_3)) by EC_PF_2:11
+      .= (a |^3)*gf3P2 by VECTSP_1:11;
+      B9: P1Q = [gf2P1*gf3P1,
+      gf1P1 * ((gf2P1 |^2)*(P1`1_3)*(Q`3_3)-gf3P1)
+      - (gf2P1 |^3)*(P1`2_3)*(Q`3_3), (gf2P1 |^3)*(P1`3_3)*(Q`3_3)]
+      by B1,EC_PF_2:def 9;
+      not P2 _EQ_ O & not P2 _EQ_ Q by A1,B1,EC_PF_1:44;
+      then B10: P2Q = [gf2P2*gf3P2,
+      gf1P2 * ((gf2P2 |^2)*(P2`1_3)*(Q`3_3)-gf3P2)
+      - (gf2P2 |^3)*(P2`2_3)*(Q`3_3), (gf2P2 |^3)*(P2`3_3)*(Q`3_3)]
+      by B1,EC_PF_2:def 9;
+      consider PP1Q be Element of ProjCo(GF(p)) such that
+      BX1: PP1Q = P1Q & PP1Q in EC_SetProjCo(z`1,z`2,p);
+      consider PP2Q be Element of ProjCo(GF(p)) such that
+      BX2: PP2Q = P2Q & PP2Q in EC_SetProjCo(z`1,z`2,p);
+      B11: PP1Q`1_3 = P1Q`1_3 by BX1,EC_PF_2:32
+      .= (a*gf2P2)*((a |^3)*gf3P2) by B7,B8,B9,EC_PF_2:def 3
+      .= a*gf2P2*(a |^3)*gf3P2 by GROUP_1:def 3
+      .= (a |^3)*a*gf2P2*gf3P2 by GROUP_1:def 3
+      .= (a |^(3+1))*gf2P2*gf3P2 by EC_PF_1:24
+      .= (a |^4)*(gf2P2*gf3P2) by GROUP_1:def 3
+      .= (a |^4)*(P2Q`1_3) by B10,EC_PF_2:def 3
+      .= (a |^4)*(PP2Q`1_3) by BX2,EC_PF_2:32;
+      B12: PP1Q`3_3 = P1Q`3_3 by BX1,EC_PF_2:32
+      .= (gf2P1 |^3)*(P1`3_3)*(Q`3_3) by B9,EC_PF_2:def 5
+      .= ((a*gf2P2) |^3)*(a*(P2`3_3))*(Q`3_3) by B3,B4,B5,B7,EC_PF_2:32
+      .= ((a |^3)*(gf2P2 |^3))*(a*(P2`3_3))*(Q`3_3) by BINOM:9
+      .= (a |^3)*(gf2P2 |^3)*a*(P2`3_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^3)*a*(gf2P2 |^3)*(P2`3_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^(3+1))*(gf2P2 |^3)*(P2`3_3)*(Q`3_3) by EC_PF_1:24
+      .= (a |^4)*((gf2P2 |^3)*(P2`3_3)*(Q`3_3)) by EC_PF_2:11
+      .= (a |^4)*(P2Q`3_3) by B10,EC_PF_2:def 5
+      .= (a |^4)*(PP2Q`3_3) by BX2,EC_PF_2:32;
+      B13: PP1Q`2_3 = P1Q`2_3 by BX1,EC_PF_2:32
+      .= (a*gf1P2) * (((a*gf2P2) |^2)*(a*(P2`1_3))*(Q`3_3)
+      -(a |^3)*gf3P2) - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3)
+      by B51,B6,B7,B8,B9,EC_PF_2:def 4
+      .= (a*gf1P2) * (((a |^2)*(gf2P2 |^2))*(a*(P2`1_3))*(Q`3_3)
+      -(a |^3)*gf3P2) - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by BINOM:9
+      .= (a*gf1P2) * ((a |^2)*(gf2P2 |^2)*a*(P2`1_3)*(Q`3_3)
+      -(a |^3)*gf3P2) - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by GROUP_1:def 3
+      .= (a*gf1P2) * ((a |^2)*a*(gf2P2 |^2)*(P2`1_3)*(Q`3_3)
+      -(a |^3)*gf3P2) - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3)
+      by GROUP_1:def 3
+      .= (a*gf1P2) * ((a |^(2+1))*(gf2P2 |^2)*(P2`1_3)*(Q`3_3)
+      -(a |^3)*gf3P2) - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by EC_PF_1:24
+      .= (a*gf1P2) * ((a |^3)*((gf2P2 |^2)*(P2`1_3)*(Q`3_3))
+      -(a |^3)*gf3P2) - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by EC_PF_2:11
+      .= (a*gf1P2) * ((a |^3)*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by VECTSP_1:11
+      .= (a*gf1P2)*(a |^3)*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2)
+      - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by GROUP_1:def 3
+      .= (a |^3)*a*gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2)
+      - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by GROUP_1:def 3
+      .= (a |^(3+1))*gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2)
+      - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by EC_PF_1:24
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - ((a*gf2P2) |^3)*(a*(P2`2_3))*(Q`3_3) by GROUP_1:def 3
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - ((a |^3)*(gf2P2 |^3))*(a*(P2`2_3))*(Q`3_3) by BINOM:9
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - (a |^3)*(gf2P2 |^3)*a*(P2`2_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - (a |^3)*a*(gf2P2 |^3)*(P2`2_3)*(Q`3_3) by GROUP_1:def 3
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - (a |^(3+1))*(gf2P2 |^3)*(P2`2_3)*(Q`3_3) by EC_PF_1:24
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2))
+      - (a |^4)*((gf2P2 |^3)*(P2`2_3)*(Q`3_3)) by EC_PF_2:11
+      .= (a |^4)*(gf1P2*((gf2P2 |^2)*(P2`1_3)*(Q`3_3) - gf3P2)
+      -(gf2P2 |^3)*(P2`2_3)*(Q`3_3)) by VECTSP_1:11
+      .= (a |^4)*(P2Q`2_3) by B10,EC_PF_2:def 4
+      .= (a |^4)*(PP2Q`2_3) by BX2,EC_PF_2:32;
+      a |^4 <> 0 by B4,EC_PF_1:25;
+      then a |^4 <> 0.GF(p) by EC_PF_1:11;
+      hence thesis by B11,B12,B13,BX1,BX2,EC_PF_1:def 10;
+    end;
+    suppose B1: not P1 _EQ_ O & not Q _EQ_ O & P1 _EQ_ Q;
+      then B2: not P2 _EQ_ O & P2 _EQ_ Q by A1,EC_PF_1:44;
+      reconsider gf1 = (z`1)*(Q`3_3 |^2) + g3*(Q`1_3 |^2),
+      gf2 = Q`2_3*(Q`3_3) as Element of GF(p);
+      reconsider gf3 = Q`1_3*(Q`2_3)*gf2 as Element of GF(p);
+      reconsider gf4 = (gf1 |^2) - g8*gf3 as Element of GF(p);
+      addell_ProjCo(z,p).(Q,P1) =
+      [g2*gf4*gf2, gf1*(g4 * gf3-gf4) - g8*(Q`2_3 |^2)*(gf2 |^2),
+      g8*(gf2 |^3)] by B1,EC_PF_2:def 9
+      .= addell_ProjCo(z,p).(Q,P2) by B1,B2,EC_PF_2:def 9;
+      then B4: P1Q _EQ_ addell_ProjCo(z,p).(Q,P2) by ThCommutativeProjCo;
+      P2Q _EQ_ addell_ProjCo(z,p).(Q,P2) by ThCommutativeProjCo;
+      hence thesis by B4,EC_PF_1:44;
+    end;
+  end;
+
+theorem ThAdd2:
+  for P, Q1, Q2 being Element of EC_SetProjCo(z`1,z`2,p) st Q1 _EQ_ Q2
+  holds
+  addell_ProjCo(z,p).(P,Q1) _EQ_ addell_ProjCo(z,p).(P,Q2)
+  proof
+    let P, Q1, Q2 be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: Q1 _EQ_ Q2;
+    A2: addell_ProjCo(z,p).(P,Q1) _EQ_ addell_ProjCo(z,p).(Q1,P)
+    by ThCommutativeProjCo;
+    addell_ProjCo(z,p).(Q1,P) _EQ_ addell_ProjCo(z,p).(Q2,P)
+    by A1,ThAdd1;
+    then A3: addell_ProjCo(z,p).(P,Q1) _EQ_ addell_ProjCo(z,p).(Q2,P)
+    by A2,EC_PF_1:44;
+    addell_ProjCo(z,p).(Q2,P) _EQ_ addell_ProjCo(z,p).(P,Q2)
+    by ThCommutativeProjCo;
+    hence thesis by A3,EC_PF_1:44;
+  end;
+
+theorem ThAdd3:
+  for P1, P2, Q1, Q2 being Element of EC_SetProjCo(z`1,z`2,p)
+  st P1 _EQ_ P2 & Q1 _EQ_ Q2 holds
+  addell_ProjCo(z,p).(P1,Q1) _EQ_ addell_ProjCo(z,p).(P2,Q2)
+  proof
+    let P1, P2, Q1, Q2 be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: P1 _EQ_ P2 & Q1 _EQ_ Q2;
+    A2: addell_ProjCo(z,p).(P1,Q1) _EQ_ addell_ProjCo(z,p).(P2,Q1)
+      by A1,ThAdd1;
+    addell_ProjCo(z,p).(P2,Q1) _EQ_ addell_ProjCo(z,p).(P2,Q2)
+      by A1,ThAdd2;
+    hence thesis by A2,EC_PF_1:44;
+  end;
+
+theorem ThCompellO:
+  for P, O being Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0] holds
+  P _EQ_ O iff compell_ProjCo(z,p).P _EQ_ O
+  proof
+    let P, O be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: O = [0, 1, 0];
+    hereby
+      assume P _EQ_ O;
+      then B2: compell_ProjCo(z,p).P _EQ_ compell_ProjCo(z,p).O by EC_PF_2:46;
+      compell_ProjCo(z,p).O _EQ_ O by A1,EC_PF_2:40;
+      hence compell_ProjCo(z,p).P _EQ_ O by B2,EC_PF_1:44;
+    end;
+    assume compell_ProjCo(z,p).P _EQ_ O;
+    then B2: P _EQ_ compell_ProjCo(z,p).O by EC_PF_2:47;
+    compell_ProjCo(z,p).O _EQ_ O by A1,EC_PF_2:40;
+    hence P _EQ_ O by B2,EC_PF_1:44;
+  end;
+
+theorem ThEQX:
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p), a being Element of GF(p)
+  st a <> 0.GF(p) &
+  P`1_3 = a * (Q`1_3) & P`2_3 = a * (Q`2_3) & P`3_3 = a * (Q`3_3)
+  holds P _EQ_ Q
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p), a be Element of GF(p)
+    such that
+    A1: a <> 0.GF(p) and
+    A2: P`1_3 = a * (Q`1_3) & P`2_3 = a * (Q`2_3) & P`3_3 = a * (Q`3_3);
+    reconsider PP = P, QQ = Q as Element of ProjCo(GF(p));
+    A3: PP`1_3 = a * (Q`1_3) by A2,EC_PF_2:32
+    .= a * (QQ`1_3) by EC_PF_2:32;
+    A4: PP`2_3 = a * (Q`2_3) by A2,EC_PF_2:32
+    .= a * (QQ`2_3) by EC_PF_2:32;
+    PP`3_3 = a * (Q`3_3) by A2,EC_PF_2:32
+    .= a * (QQ`3_3) by EC_PF_2:32;
+    hence thesis by A1,A3,A4,EC_PF_1:def 10;
+  end;
+
+theorem LmAddEll1:
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p),
+  g2, gf1, gf2, gf3 being Element of GF(p)
+  st not P _EQ_ Q & P`3_3 = 1 & Q`3_3 = 1 &
+  g2 = 2 mod p & gf1 = Q`2_3 - P`2_3 & gf2 = Q`1_3 - P`1_3 &
+  gf3 = (gf1 |^2) - (gf2 |^3) - g2*(gf2 |^2)*(P`1_3)
+  holds addell_ProjCo(z,p).(P,Q) = [gf2*gf3,
+  gf1 * ((gf2 |^2)*(P`1_3)-gf3) - (gf2 |^3)*(P`2_3), gf2 |^3]
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p),
+    g2, gf1, gf2, gf3 be Element of GF(p) such that
+    A1: not P _EQ_ Q & P`3_3 = 1 & Q`3_3 = 1 and
+    A2: g2 = 2 mod p and
+    A3: gf1 = Q`2_3 - P`2_3 & gf2 = Q`1_3 - P`1_3 &
+    gf3 = (gf1 |^2) - (gf2 |^3) - g2*(gf2 |^2)*(P`1_3);
+    reconsider O = [0, 1, 0] as Element of EC_SetProjCo(z`1,z`2,p)
+    by EC_PF_1:42;
+    A4: not P _EQ_ O by A1,ThEQO;
+    A5: not Q _EQ_ O by A1,ThEQO;
+    A6: Q`2_3*(P`3_3) - P`2_3*(Q`3_3) = Q`2_3 - P`2_3*1.GF(p) by A1
+    .= gf1 by A3;
+    A7: Q`1_3*(P`3_3) - P`1_3*(Q`3_3) = Q`1_3 - P`1_3*1.GF(p) by A1
+    .= gf2 by A3;
+    (gf1 |^2)*(P`3_3)*(Q`3_3) - (gf2 |^3) - g2*(gf2 |^2)*(P`1_3)*(Q`3_3)
+    = (gf1 |^2) - (gf2 |^3) - g2*(gf2 |^2)*(P`1_3)*1.GF(p) by A1
+    .= gf3 by A3;
+    hence addell_ProjCo(z,p).(P,Q) = [gf2*gf3,
+    gf1 * ((gf2 |^2)*(P`1_3)*1.GF(p)-gf3)
+    - (gf2 |^3)*(P`2_3)*(Q`3_3), (gf2 |^3)*(P`3_3)*(Q`3_3)]
+    by A1,A2,A4,A5,A6,A7,EC_PF_2:def 9
+    .= [gf2*gf3, gf1 * ((gf2 |^2)*(P`1_3)-gf3) - (gf2 |^3)*(P`2_3),
+    (gf2 |^3)] by A1;
+  end;
+
+theorem LmAddEll2:
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p),
+  g2, g3, g4, g8, gf1, gf2, gf3, gf4 being Element of GF(p)
+  st P _EQ_ Q & P`3_3 = 1 & Q`3_3 = 1 &
+  g2 = 2 mod p & g3 = 3 mod p & g4 = 4 mod p & g8 = 8 mod p &
+  gf1 = z`1 + g3*(P`1_3 |^2) & gf2 = P`2_3 & gf3 = P`1_3*(P`2_3)*gf2 &
+  gf4 = (gf1 |^2) - g8*gf3
+  holds addell_ProjCo(z,p).(P,Q) = [g2*gf4*gf2,
+  gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+  g8*(gf2 |^3)]
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p),
+    g2, g3, g4, g8, gf1, gf2, gf3, gf4 be Element of GF(p) such that
+    A1: P _EQ_ Q & P`3_3 = 1 & Q`3_3 = 1 and
+    A2: g2 = 2 mod p & g3 = 3 mod p & g4 = 4 mod p & g8 = 8 mod p and
+    A3: gf1 = z`1 + g3*(P`1_3 |^2) & gf2 = P`2_3 & gf3 = P`1_3*(P`2_3)*gf2 &
+    gf4 = (gf1 |^2) - g8*gf3;
+    reconsider O = [0, 1, 0] as Element of EC_SetProjCo(z`1,z`2,p)
+    by EC_PF_1:42;
+    A4: not P _EQ_ O by A1,ThEQO;
+    A5: not Q _EQ_ O by A1,ThEQO;
+    A6: (z`1)*(P`3_3 |^2) + g3*(P`1_3 |^2)
+    = (z`1)*(P`3_3 * (P`3_3)) + g3*(P`1_3 |^2) by EC_PF_1:22
+    .= (z`1)*1.GF(p) + g3*(P`1_3 |^2) by A1
+    .= gf1 by A3;
+    P`2_3*(P`3_3) = P`2_3*1.GF(p) by A1
+    .= gf2 by A3;
+    hence addell_ProjCo(z,p).(P,Q) = [g2*gf4*gf2,
+    gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+    g8*(gf2 |^3)] by A1,A2,A3,A4,A5,A6,EC_PF_2:def 9;
+  end;
+
+theorem LmCompAddCom:
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p)
+  st P`3_3 = 1 & Q`3_3 = 1 holds
+  compell_ProjCo(z,p).(addell_ProjCo(z,p).(P,Q)) _EQ_
+  addell_ProjCo(z,p).(compell_ProjCo(z,p).P,compell_ProjCo(z,p).Q)
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A3: P`3_3 = 1 & Q`3_3 = 1;
+    reconsider CP = compell_ProjCo(z,p).P, CQ = compell_ProjCo(z,p).Q
+    as Element of EC_SetProjCo(z`1,z`2,p);
+    A4: CP = [P`1_3, -P`2_3, P`3_3] &
+    CQ = [Q`1_3, -Q`2_3, Q`3_3] by EC_PF_2:def 8;
+    then A5: CP`3_3 = 1 & CQ`3_3 = 1 by A3,EC_PF_2:def 5;
+    A6: CP`1_3 = P`1_3 & CP`2_3 = -P`2_3 by A4,EC_PF_2:33;
+    A7: CQ`1_3 = Q`1_3 & CQ`2_3 = -Q`2_3 by A4,EC_PF_2:33;
+    reconsider PQ = addell_ProjCo(z,p).(P,Q)
+    as Element of EC_SetProjCo(z`1,z`2,p);
+    reconsider CP = compell_ProjCo(z,p).P, CQ = compell_ProjCo(z,p).Q
+    as Element of EC_SetProjCo(z`1,z`2,p);
+    per cases;
+    suppose B1: not P _EQ_ Q;
+      reconsider g2 = 2 mod p as Element of GF(p) by EC_PF_1:14;
+      reconsider gf1 = Q`2_3 - P`2_3 as Element of GF(p);
+      reconsider gf2 = Q`1_3 - P`1_3 as Element of GF(p);
+      reconsider gf3 = (gf1 |^2) - (gf2 |^3)
+      - g2*(gf2 |^2)*(P`1_3) as Element of GF(p);
+      reconsider gf1C = CQ`2_3 - CP`2_3 as Element of GF(p);
+      reconsider gf2C = CQ`1_3 - CP`1_3 as Element of GF(p);
+      reconsider gf3C = (gf1C |^2) - (gf2C |^3)
+      - g2*(gf2C |^2)*(CP`1_3) as Element of GF(p);
+      B2: gf1C = (-Q`2_3) - (-P`2_3) by A4,A7,EC_PF_2:33
+      .= - (-P`2_3 + Q`2_3) by RLVECT_1:31
+      .= -gf1;
+      B3: gf2C = Q`1_3 - CP`1_3 by A4,EC_PF_2:33
+      .= gf2 by A4,EC_PF_2:33;
+      B4: gf3C = (gf1C*gf1C) - (gf2C |^3) - g2*(gf2C |^2)*(CP`1_3)
+      by EC_PF_1:22
+      .= (gf1*gf1) - (gf2C |^3) - g2*(gf2C |^2)*(CP`1_3) by B2,EC_PF_1:26
+      .= (gf1 |^2) - (gf2C |^3) - g2*(gf2C |^2)*(CP`1_3) by EC_PF_1:22
+      .= gf3 by A4,B3,EC_PF_2:33;
+      B5: PQ = [gf2*gf3, gf1 * ((gf2 |^2)*(P`1_3)-gf3) - (gf2 |^3)*(P`2_3),
+      (gf2 |^3)] by A3,B1,LmAddEll1;
+      addell_ProjCo(z,p).(CP,CQ) = [gf2C*gf3C,
+      gf1C * ((gf2C |^2)*(CP`1_3)-gf3C) - (gf2C |^3)*(CP`2_3),
+      (gf2C |^3)] by A5,B1,LmAddEll1,EC_PF_2:46
+      .= [gf2*gf3,
+      (-gf1) * ((gf2 |^2)*(P`1_3)-gf3) - (-((gf2 |^3)*(P`2_3))),
+      (gf2 |^3)] by A6,B2,B3,B4,VECTSP_1:8
+      .= [gf2*gf3,
+      -(gf1 * ((gf2 |^2)*(P`1_3)-gf3)) - (-((gf2 |^3)*(P`2_3))),
+      (gf2 |^3)] by VECTSP_1:8
+      .= [gf2*gf3,
+      -((gf1 * ((gf2 |^2)*(P`1_3)-gf3)) + (-((gf2 |^3)*(P`2_3)))),
+      (gf2 |^3)] by RLVECT_1:31
+      .= [PQ`1_3, -((gf1 * ((gf2 |^2)*(P`1_3)-gf3)) -((gf2 |^3)*(P`2_3))),
+      (gf2 |^3)] by B5,EC_PF_2:33
+      .= [PQ`1_3, -PQ`2_3, (gf2 |^3)] by B5,EC_PF_2:33
+      .= [PQ`1_3, -PQ`2_3, PQ`3_3] by B5,EC_PF_2:33;
+      hence thesis by EC_PF_2:def 8;
+    end;
+    suppose B1: P _EQ_ Q;
+      reconsider g2 = 2 mod p, g3 = 3 mod p, g4 = 4 mod p, g8 = 8 mod p
+      as Element of GF(p) by EC_PF_1:14;
+      reconsider gf1 = z`1 + g3*(P`1_3 |^2),
+      gf2 = P`2_3 as Element of GF(p);
+      reconsider gf3 = P`1_3*(P`2_3)*gf2 as Element of GF(p);
+      reconsider gf4 = (gf1 |^2) - g8*gf3 as Element of GF(p);
+      reconsider gf1C = z`1 + g3*(CP`1_3 |^2),
+      gf2C = CP`2_3 as Element of GF(p);
+      reconsider gf3C = CP`1_3*(CP`2_3)*gf2C as Element of GF(p);
+      reconsider gf4C = (gf1C |^2) - g8*gf3C as Element of GF(p);
+      B2: gf1C = gf1 by A4,EC_PF_2:33;
+      B3: gf2C = -gf2 by A4,EC_PF_2:33;
+      B4: gf3C = P`1_3*((-P`2_3)*(-gf2)) by A6,GROUP_1:def 3
+      .= P`1_3*(P`2_3*gf2) by VECTSP_1:10
+      .= gf3 by GROUP_1:def 3;
+      B6: gf2C |^2 = gf2C * gf2C by EC_PF_1:22
+      .= gf2 * gf2 by B3,EC_PF_1:26
+      .= gf2 |^2 by EC_PF_1:22;
+      B7: CP`2_3 |^2 = CP`2_3 * (CP`2_3) by EC_PF_1:22
+      .= P`2_3 * (P`2_3) by A6,EC_PF_1:26
+      .= P`2_3 |^2 by EC_PF_1:22;
+      B8: gf2C |^3 = gf2C |^(2+1)
+      .= (gf2C |^2)*gf2C by EC_PF_1:24
+      .= -(gf2 |^2)*gf2 by B3,B6,VECTSP_1:8
+      .= -(gf2 |^(2+1)) by EC_PF_1:24
+      .= -(gf2 |^3);
+      B9: PQ = [g2*gf4*gf2,
+      gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+      g8*(gf2 |^3)] by A3,B1,LmAddEll2;
+      B11: addell_ProjCo(z,p).(CP,CQ) = [g2*gf4C*gf2C,
+      gf1C*(g4 * gf3C-gf4C) - g8*(CP`2_3 |^2)*(gf2C |^2),
+      g8*(gf2C |^3)] by A5,B1,LmAddEll2,EC_PF_2:46
+      .= [-g2*gf4*gf2,
+      gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+      g8*(-(gf2 |^3))] by B2,B3,B4,B7,B8,VECTSP_1:8
+      .= [-g2*gf4*gf2,
+      gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+      -g8*(gf2 |^3)] by VECTSP_1:8
+      .= [-PQ`1_3, gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+      -g8*(gf2 |^3)] by B9,EC_PF_2:33
+      .= [-PQ`1_3, PQ`2_3, -g8*(gf2 |^3)] by B9,EC_PF_2:33
+      .= [-PQ`1_3, PQ`2_3, -PQ`3_3] by B9,EC_PF_2:33;
+      B12: compell_ProjCo(z,p).PQ = [PQ`1_3, -PQ`2_3, PQ`3_3]
+      by EC_PF_2:def 8;
+      B13: (addell_ProjCo(z,p).(CP,CQ))`1_3 = -(1.GF(p)*(PQ`1_3))
+      by B11,EC_PF_2:33
+      .= (-1.GF(p))*(PQ`1_3) by VECTSP_1:9
+      .= (-1.GF(p))*((compell_ProjCo(z,p).PQ)`1_3)
+      by B12,EC_PF_2:33;
+      B14: (addell_ProjCo(z,p).(CP,CQ))`2_3 = (1.GF(p))*(PQ`2_3)
+      by B11,EC_PF_2:33
+      .= (-1.GF(p))*(-PQ`2_3) by VECTSP_1:10
+      .= (-1.GF(p))*((compell_ProjCo(z,p).PQ)`2_3) by B12,EC_PF_2:33;
+      B15: (addell_ProjCo(z,p).(CP,CQ))`3_3 = -(1.GF(p)*(PQ`3_3))
+      by B11,EC_PF_2:33
+      .= (-1.GF(p))*(PQ`3_3) by VECTSP_1:9
+      .= (-1.GF(p))*((compell_ProjCo(z,p).PQ)`3_3) by B12,EC_PF_2:33;
+      -1.GF(p) <> 0.GF(p)
+      proof
+        assume -1.GF(p) = 0.GF(p);
+        then 1.GF(p)-1.GF(p) = 1.GF(p) by RLVECT_1:4;
+        then 0.GF(p) = 1.GF(p) by RLVECT_1:15;
+        hence contradiction;
+      end;
+      hence thesis by B13,B14,B15,ThEQX;
+    end;
+  end;
+
+theorem
+  for P, Q being Element of EC_SetProjCo(z`1,z`2,p) holds
+  compell_ProjCo(z,p).(addell_ProjCo(z,p).(P,Q)) _EQ_
+  addell_ProjCo(z,p).(compell_ProjCo(z,p).P,compell_ProjCo(z,p).Q)
+  proof
+    let P, Q be Element of EC_SetProjCo(z`1,z`2,p);
+    reconsider O = [0, 1, 0] as Element of EC_SetProjCo(z`1,z`2,p)
+      by EC_PF_1:42;
+    per cases;
+    suppose A1: P _EQ_ O;
+      then A2: compell_ProjCo(z,p).(addell_ProjCo(z,p).(P,Q))
+      = compell_ProjCo(z,p).Q by EC_PF_2:def 9;
+      compell_ProjCo(z,p).P _EQ_ O by A1,ThCompellO;
+      hence thesis by A2,EC_PF_2:def 9;
+    end;
+    suppose A1: not P _EQ_ O & Q _EQ_ O;
+      then A2: compell_ProjCo(z,p).(addell_ProjCo(z,p).(P,Q))
+      = compell_ProjCo(z,p).P by EC_PF_2:def 9;
+      A3: not compell_ProjCo(z,p).P _EQ_ O by A1,ThCompellO;
+      compell_ProjCo(z,p).Q _EQ_ O by A1,ThCompellO;
+      hence thesis by A2,A3,EC_PF_2:def 9;
+    end;
+    suppose A1: not P _EQ_ O & not Q _EQ_ O;
+      reconsider rP = rep_pt(P), rQ = rep_pt(Q)
+      as Element of EC_SetProjCo(z`1,z`2,p) by EC_PF_2:36;
+      (rep_pt(P))`3_3 = 1 by A1,ThRepPoint7;
+      then A3: rP`3_3 = 1 by EC_PF_2:32;
+      (rep_pt(Q))`3_3 = 1 by A1,ThRepPoint7;
+      then rQ`3_3 = 1 by EC_PF_2:32;
+      then A5: compell_ProjCo(z,p).(addell_ProjCo(z,p).(rP,rQ)) _EQ_
+      addell_ProjCo(z,p).(compell_ProjCo(z,p).rP,compell_ProjCo(z,p).rQ)
+        by A3,LmCompAddCom;
+      rP _EQ_ P & rQ _EQ_ Q by EC_PF_2:36;
+      then addell_ProjCo(z,p).(rP,rQ) _EQ_ addell_ProjCo(z,p).(P,Q)
+        by ThAdd3;
+      then compell_ProjCo(z,p).(addell_ProjCo(z,p).(rP,rQ)) _EQ_
+      compell_ProjCo(z,p).(addell_ProjCo(z,p).(P,Q)) by EC_PF_2:46;
+      then A6: compell_ProjCo(z,p).(addell_ProjCo(z,p).(P,Q)) _EQ_
+      addell_ProjCo(z,p).(compell_ProjCo(z,p).rP,compell_ProjCo(z,p).rQ)
+      by A5,EC_PF_1:44;
+      P`3_3 <> 0 by A1,ThEQO;
+      then A7: compell_ProjCo(z,p).rP = rep_pt(compell_ProjCo(z,p).P)
+      by EC_PF_2:42;
+      Q`3_3 <> 0 by A1,ThEQO;
+      then A8: compell_ProjCo(z,p).rQ = rep_pt(compell_ProjCo(z,p).Q)
+      by EC_PF_2:42;
+      A9: rep_pt(compell_ProjCo(z,p).P) _EQ_ compell_ProjCo(z,p).P
+      by EC_PF_2:36;
+      rep_pt(compell_ProjCo(z,p).Q) _EQ_ compell_ProjCo(z,p).Q
+      by EC_PF_2:36;
+      then addell_ProjCo(z,p).(compell_ProjCo(z,p).rP,compell_ProjCo(z,p).rQ)
+      _EQ_ addell_ProjCo(z,p).(compell_ProjCo(z,p).P,compell_ProjCo(z,p).Q)
+      by A7,A8,A9,ThAdd3;
+      hence thesis by A6,EC_PF_1:44;
+    end;
+  end;
+
+theorem
+  for P, O being Element of EC_SetProjCo(z`1,z`2,p)
+  st O = [0, 1, 0] & not P _EQ_ O holds
+  (P`2_3 = 0.GF(p) iff addell_ProjCo(z,p).(P,P) _EQ_ O)
+  proof
+    let P, O be Element of EC_SetProjCo(z`1,z`2,p) such that
+    A1: O = [0, 1, 0] and
+    A2: not P _EQ_ O;
+    reconsider g2 = 2 mod p, g3 = 3 mod p, g4 = 4 mod p, g8 = 8 mod p
+      as Element of GF(p) by EC_PF_1:14;
+    set gf1 = (z`1)*(P`3_3 |^2) + g3*(P`1_3 |^2);
+    set gf2 = P`2_3*(P`3_3);
+    set gf3 = P`1_3*(P`2_3)*gf2;
+    set gf4 = (gf1 |^2) - g8*gf3;
+    A3: addell_ProjCo(z,p).(P,P) = [g2*gf4*gf2,
+    gf1*(g4 * gf3-gf4) - g8*(P`2_3 |^2)*(gf2 |^2),
+    g8*(gf2 |^3)] by A1,A2,EC_PF_2:def 9;
+    hereby
+      assume P`2_3 = 0.GF(p);
+      then g8*(gf2 |^3) = g8*((0.GF(p)) |^(2+1))
+      .= g8*(((0.GF(p)) |^2)*0.GF(p)) by EC_PF_1:24
+      .= 0.GF(p);
+      then (addell_ProjCo(z,p).(P,P))`3_3 = 0.GF(p) by A3,EC_PF_2:def 5
+      .= 0 by EC_PF_1:11;
+      hence addell_ProjCo(z,p).(P,P) _EQ_ O by A1,ThEQO;
+    end;
+    assume addell_ProjCo(z,p).(P,P) _EQ_ O; then
+B1: (addell_ProjCo(z,p).(P,P))`3_3 = 0 by A1,ThEQO
+    .= 0.GF(p) by EC_PF_1:11;
+    B2: (addell_ProjCo(z,p).(P,P))`3_3 = g8*(gf2 |^3) by A3,EC_PF_2:def 5;
+    g8 <> 0.GF(p)
+    proof
+      C1: g2 |^3 = 2 |^(2+1) mod p by EC_PF_1:23
+      .= ((2 |^(1+1)) * 2) mod p by NEWTON:6
+      .= (((2 |^1) * 2) * 2) mod p by NEWTON:6
+      .= g8;
+      p >= 3 + 2 by EC_PF_2:def 1;
+      then p > 2 by XXREAL_0:2;
+      hence thesis by C1,EC_PF_2:28;
+    end;
+    then gf2 |^3 = 0.GF(p) by B1,B2,VECTSP_1:12
+    .= 0 by EC_PF_1:11;
+    then B4: gf2 = 0.GF(p) by EC_PF_1:25;
+    P`3_3 <> 0 by A1,A2,ThEQO;
+    then P`3_3 <> 0.GF(p) by EC_PF_1:11;
+    hence P`2_3 = 0.GF(p) by B4,VECTSP_1:12;
+  end;

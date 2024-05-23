@@ -7,7 +7,7 @@
 * This API is currently under development.
 * ~~Please clone the repository directly under the C drive.(To be revised)~~
 * The response data is only in JSON.
-* Please fork the [mizar_repository](https://github.com/cIel104/mizar_repository) and create a "verifier" branch.
+* Please fork the [mizar-server-contents](https://github.com/mimosa-project/mizar-server-contents) and create a "verifier" branch.
 # Features
 * API for executing a verification program.
   * request(POST)  

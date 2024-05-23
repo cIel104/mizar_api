@@ -1,0 +1,1563 @@
+:: Introduction to {D}iophantine Approximation -- Part 2
+::  by Yasushige Watase
+:: 
+:: Received November 29, 2017
+:: Copyright (c) 2017-2021 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, CARD_1, FUNCT_1, RELAT_1, ARYTM_3, SUBSET_1, ZFMISC_1,
+      ARYTM_1, XXREAL_0, NAT_1, INT_1, REAL_1, COMPLEX1, SQUARE_1, IRRAT_1,
+      RAT_1, XBOOLE_0, TARSKI, PRE_POLY, NEWTON, FINSET_1, INT_2, XCMPLX_0,
+      FINSEQ_1, REAL_3, FUNCT_3, BORSUK_5, ORDINAL1, DIOPHAN2;
+ notations TARSKI, XBOOLE_0, SUBSET_1, XXREAL_0, NUMBERS, XXREAL_2, ORDINAL1,
+      BORSUK_5, XCMPLX_0, QUIN_1, ZFMISC_1, RELAT_1, FUNCT_1, FINSEQ_1,
+      RELSET_1, FUNCT_2, XREAL_0, COMPLEX1, IRRAT_1, REAL_3, NEWTON, SQUARE_1,
+      INT_1, INT_2, FINSET_1, RAT_1, PRE_POLY, BINOP_1;
+ constructors REAL_1, PROB_1, RELSET_1, XXREAL_2, BORSUK_5, QUIN_1, ALGSTR_0,
+      SQUARE_1, NAT_D, NEWTON, PRE_POLY, PYTHTRIP, REAL_3;
+ registrations XBOOLE_0, XREAL_0, ORDINAL1, NAT_1, INT_1, FINSET_1, XXREAL_0,
+      NEWTON, CARD_1, VALUED_0, RELSET_1, NUMBERS, XCMPLX_0, RAT_1, SQUARE_1,
+      QUIN_1, XXREAL_2, ABSVALUE, NEWTON03, PYTHTRIP, MEMBERED, REAL_3,
+      BORSUK_5, DIOPHAN1, BORSUK_7, COMPLEX1, FOMODEL0;
+ requirements REAL, NUMERALS, SUBSET, ARITHM;
+ definitions TARSKI, XBOOLE_0;
+ equalities SQUARE_1, BINOP_1, XCMPLX_0, RAT_1, FINSEQ_1;
+ expansions PBOOLE, INT_1, MEMBERED;
+ theorems INT_1, SQUARE_1, RAT_1, XCMPLX_1, SUBSET_1, XBOOLE_0, ABSVALUE,
+      ZFMISC_1, FUNCT_2, PRE_POLY, XREAL_1, INT_2, WSIERP_1, NAT_1, COMPLEX1,
+      XXREAL_0, XBOOLE_1, DIOPHAN1, XCMPLX_0, NUMBERS, ORDINAL1, XXREAL_2,
+      XREAL_0, INT_6, BINOP_1, FUNCT_1, PEPIN, AFINSQ_1, REAL_3, SERIES_2,
+      BORSUK_5, QUIN_1, IRRAT_1, EULER_1, GAUSSINT, SERIES_3;
+ schemes FUNCT_2, BINOP_1;
+
+begin :: Preliminaries
+
+reserve r1,r2,r3 for non negative Real;
+reserve n,m1 for Nat;
+reserve s for Real;
+reserve cn,cd,i1,j1 for Integer;
+reserve r for irrational Real;
+reserve q for Rational;
+
+theorem Th18:
+  r1*r2 <= r3 implies r1 <= sqrt r3 or r2 <= sqrt r3
+   proof
+     assume that
+A1:  r1*r2 <= r3 and
+A2:  not (r1 <= sqrt r3 or r2 <= sqrt r3);
+     sqrt r3 >= 0 by SQUARE_1:def 2; then
+     (sqrt r3)^2 < r1 * r2 by A2,XREAL_1:96;
+     hence contradiction by A1,SQUARE_1:def 2;
+   end;
+
+theorem Th19:
+  sqrt(r1*r2)=(r1+r2)/2 iff r1 = r2
+   proof
+   hereby
+     assume
+A1:  sqrt(r1*r2)=(r1+r2)/2;
+A2:  ((sqrt(r1*r2))*2)^2=(sqrt(r1*r2))^2*2^2.=r1*r2*4 by SQUARE_1:def 2
+     .= 4*r1*r2;
+     0 =(r1+r2)^2-((sqrt(r1*r2))*2)^2 by A1
+     .= (r1-r2)^2 by A2; then
+     r1-r2 = 0;
+     hence r1=r2;
+     end;
+     assume
+A3:  r1=r2; then
+     sqrt(r1*r2) = (sqrt(r1))^2 by SQUARE_1:29
+     .= (r1+r2)/2 by A3,SQUARE_1:def 2;
+     hence sqrt(r1*r2) = (r1+r2)/2;
+   end;
+
+theorem Th20:
+  r1*r2=((r1+r2)/2)^2 iff r1 = r2
+proof
+   hereby
+     assume r1*r2=((r1+r2)/2)^2;
+     then sqrt( r1*r2) = (r1+r2)/2 by SQUARE_1:22;
+     hence r1=r2 by Th19;
+   end;
+   thus thesis;
+end;
+
+theorem Th15:
+  for i1,j1 st i1,j1 are_coprime holds ex s,t be Integer st s*i1+t*j1=1
+   proof
+     let i1,j1;
+     assume
+A1:  i1,j1 are_coprime; then
+B1:  j1 gcd i1 = 1 by INT_2:def 3;
+     per cases;
+      suppose i1 >= 0 & j1 >= 0; then
+      i1 in NAT & j1 in NAT by INT_1:3;
+      hence thesis by A1,EULER_1:10;
+      end;
+      suppose
+A3:   i1 >= 0 & j1 < 0;
+      set j2 = -j1;
+      i1 in NAT & j2 in NAT by A3,INT_1:3; then
+      reconsider i1,j2 as Nat;
+      i1 gcd j2 = |.i1.| gcd |.-j1.|
+       .= i1 gcd |.j1.| by COMPLEX1:52
+       .= 1 by B1,INT_6:14; then
+      consider s,t be Integer such that
+A5:   s*i1 + t*j2 = 1 by EULER_1:10,INT_2:def 3;
+      s*i1 + (-t)*j1 = 1 by A5;
+      hence thesis;
+      end;
+      suppose
+A6:   i1 < 0 & j1 >= 0;
+      set i2 = -i1;
+      i2 in NAT & j1 in NAT by A6,INT_1:3; then
+      reconsider i2,j1 as Nat;
+      i2 gcd j1 = |.-i1.| gcd |.j1.|
+      .= |.i1.| gcd j1 by COMPLEX1:52
+      .= 1 by B1,INT_6:14; then
+      consider s,t be Integer such that
+A8:   s*i2 + t*j1 = 1 by EULER_1:10,INT_2:def 3;
+      (-s)*i1 + t*j1 = 1 by A8;
+      hence thesis;
+      end;
+      suppose
+A9:   i1 < 0 & j1 < 0;
+      set i2 = -i1, j2 = -j1;
+      i2 in NAT & j2 in NAT by A9,INT_1:3; then
+      reconsider i2,j2 as Nat;
+      i2 gcd j2 = |.-i1.| gcd |.-j1.|
+      .= |.i1.| gcd |.-j1.| by COMPLEX1:52 .= |.i1.| gcd |.j1.| by COMPLEX1:52
+      .= |.i1.| gcd j1 by INT_6:14
+      .= 1 by B1,INT_6:14; then
+      consider s,t be Integer such that
+A11:   s*i2 + t*j2 = 1 by EULER_1:10,INT_2:def 3;
+      (-s)*i1 + (-t)*j1 = 1 by A11;
+      hence thesis;
+      end;
+     end;
+
+   sqrt 5 > sqrt 2^2 by SQUARE_1:27; then
+SQRT2: 2 < sqrt 5 by SQUARE_1:22; then
+SQRT3: 1/sqrt 5 < 1/2 by XREAL_1:76;
+
+theorem Th1:
+   1 < s & s+1/s < sqrt 5 implies
+   s < (sqrt 5+1)/2 & 1/s > (sqrt 5 -1)/2
+   proof
+     assume that
+A1:  1 < s and
+A2:  s + 1/s < sqrt 5;
+A4:  (-1* sqrt 5)^2 = (-1)^2*(sqrt 5)^2 .= 5 by SQUARE_1:def 2;
+     s*(s+1/s) < s* sqrt 5 by A1,A2,XREAL_1:68; then
+     s*s + s*1/s < s* sqrt 5; then
+     s*s + 1 < s* sqrt 5 by A1,XCMPLX_0:def 7; then
+A5:  s*s + 1 - s* sqrt 5 < s* sqrt 5 - s * sqrt 5 by XREAL_1:14;
+     set a = 1, b=-sqrt 5, c = 1;
+A7:  a * s^2 + b * s + c < 0 by A5;
+A6:  delta(1,-sqrt 5,1) = (- sqrt 5)^2 - 4*1*1 by QUIN_1:def 1
+      .=1 by A4; then
+     (-b+sqrt delta(a,b,c))/(2 * a) = (sqrt 5+1)/2 by SQUARE_1:18; then
+A8:  s < (sqrt 5+1)/2 by A7,A6,QUIN_1:26;
+     sqrt 5-1 <> 0 by SQRT2; then
+A9:  (sqrt 5-1)/(sqrt 5-1) = 1 by XCMPLX_1:60;
+     1/((sqrt 5+1)/2)
+   = (2/(sqrt 5+1)) * ((sqrt 5-1)/(sqrt 5-1)) by A9,XCMPLX_1:57
+  .= (2*(sqrt 5-1))/((sqrt 5+1) * (sqrt 5-1)) by XCMPLX_1:76
+  .= (2*(sqrt 5-1))/((sqrt 5)^2-1)
+  .= (2*(sqrt 5-1))/(5-1) by SQUARE_1:def 2
+  .= (sqrt 5 -1)/2;
+     hence thesis by A1,A8,XREAL_1:88;
+   end;
+
+theorem Th8:
+  q=i1/m1 & m1<>0 & i1,m1 are_coprime implies
+    i1=numerator(q) & m1=denominator(q)
+   proof
+     assume that
+A1:  q=i1/m1 and
+A2:  m1<>0 and
+A3:  i1,m1 are_coprime;
+A4:  i1 gcd m1 = 1 by A3,INT_2:def 3;
+     ex m be Nat st i1=numerator(q)*m & m1=denominator(q)*m
+     by A1,A2,RAT_1:27; then
+     consider m be Nat such that
+A5:  i1 = m * numerator(q) and
+A6:  m1 = m * denominator(q);
+A7:  m divides i1 by A5;
+A8:  m divides m1 by A6;
+     m divides 1 by A4,A7,A8,INT_2:def 2;
+     then m=1 by WSIERP_1:15;
+     hence thesis by A6,A5;
+   end;
+
+definition
+  let f be Function;
+  func ZeroPointSet f -> set equals
+  dom f \ support f;
+  correctness;
+end;
+
+theorem Th13:
+  for f being Function,
+      o1,o2 being object holds
+  o1 in ZeroPointSet f iff o1 in dom f & f.o1 = 0
+  proof
+   let f be Function,
+      o1,o2 be object;
+   hereby
+     assume
+A1:  o1 in ZeroPointSet f;
+     then not o1 in support f by XBOOLE_0:def 5;
+     hence o1 in dom f & f.o1 = 0 by PRE_POLY:def 7,A1;
+   end;
+     assume that
+A1:  o1 in dom f and
+A2:  f.o1 = 0;
+     not o1 in support f by A2,PRE_POLY:def 7;
+     hence thesis by A1,XBOOLE_0:def 5;
+   end;
+
+begin :: The theorem of Hurwitz
+
+registration
+  let r be irrational Real;
+  let n be Nat;
+  cluster c_d(r).n -> positive natural;
+  coherence
+  proof
+    c_d(r).n >=1 & c_d(r).n in NAT by DIOPHAN1:7,REAL_3:50;
+    hence thesis;
+  end;
+end;
+
+:: Approximation an irrational by its simple continued fraction
+theorem Th3:
+  for r,n st n > 1 & |.r-c_n(r).n/c_d(r).n.|>= 1/(sqrt 5*c_d(r).n|^2) &
+    |.r-c_n(r).(n+1)/c_d(r).(n+1).| >= 1/(sqrt 5 * c_d(r).(n+1)|^2)
+   holds sqrt 5 > c_d(r).(n+1)/c_d(r).n + 1/(c_d(r).(n+1)/c_d(r).n)
+   proof
+     let r, n;
+     set s5 = sqrt 5;
+     assume that
+A2:  n > 1 and
+A3:  |.r-c_n(r).n/c_d(r).n .| >= 1/(sqrt 5 * c_d(r).n|^2) and
+A4:  |.r-c_n(r).(n+1)/c_d(r).(n+1).| >= 1/(sqrt 5 * c_d(r).(n+1)|^2);
+     |.r-c_n(r).n/c_d(r).n .| +  |.r - c_n(r).(n+1)/c_d(r).(n+1).| =
+     |.c_n(r).n/c_d(r).n - c_n(r).(n+1)/c_d(r).(n+1).| by A2,DIOPHAN1:17;
+       then
+A6:  |.c_n(r).n/c_d(r).n - c_n(r).(n+1)/c_d(r).(n+1).|
+     >= 1/(s5 * c_d(r).n|^2) + 1/(s5 * c_d(r).(n+1)|^2)
+       by A3,A4,XREAL_1:7;
+A7:  for n holds c_d(r).n<>0;
+A8:  |.c_n(r).n/c_d(r).n-c_n(r).(n+1)/c_d(r).(n+1).| =
+     |.c_n(r).(n+1)/c_d(r).(n+1)-c_n(r).n/c_d(r).n.| by COMPLEX1:60;
+     1/|.c_d(r).(n+1)*c_d(r).n.| = 1* (c_d(r).(n+1)*c_d(r).n)"; then
+     (c_d(r).(n+1)*c_d(r).n)" >=
+     1/(s5*c_d(r).n|^2)+1/(s5*c_d(r).(n+1)|^2) by A6,A7,A8,REAL_3:69; then
+A10: (c_d(r).(n+1)*c_d(r).n)*(c_d(r).(n+1)*c_d(r).n)" >=
+     (c_d(r).(n+1)*c_d(r).n)
+     *(1/(s5*c_d(r).n|^2)+1/(s5*c_d(r).(n+1)|^2)) by XREAL_1:64;
+     c_d(r).n|^2 = c_d(r).n*c_d(r).n by WSIERP_1:1; then
+A15: ((c_d(r).(n+1)*c_d(r).n))/(s5*c_d(r).n|^2)
+      =(c_d(r).(n+1)*c_d(r).n)*((s5)"*(c_d(r).n*c_d(r).n)") by XCMPLX_1:204
+     .=(c_d(r).(n+1)*c_d(r).n)*((s5)"*((c_d(r).n)"*(c_d(r).n)"))
+      by XCMPLX_1:204
+     .=(s5)"*c_d(r).(n+1)*(c_d(r).n*(c_d(r).n)")*(c_d(r).n)"
+     .=(s5)"*c_d(r).(n+1)*1*(c_d(r).n)" by XCMPLX_0:def 7
+     .=(s5)"*c_d(r).(n+1)*(c_d(r).n)";
+     c_d(r).(n+1)|^2 = c_d(r).(n+1)*c_d(r).(n+1) by WSIERP_1:1; then
+     ((c_d(r).(n+1)*c_d(r).n)* 1)/(s5*c_d(r).(n+1)|^2)
+      =(c_d(r).(n+1)*c_d(r).n)*((s5)"*(c_d(r).(n+1)*c_d(r).(n+1))")
+      by XCMPLX_1:204
+     .=(c_d(r).(n+1)*c_d(r).n)*((s5)"*((c_d(r).(n+1))"*(c_d(r).(n+1))"))
+      by XCMPLX_1:204
+     .=(sqrt 5)"*c_d(r).n*(c_d(r).(n+1)*(c_d(r).(n+1))")*(c_d(r).(n+1))"
+     .=(sqrt 5)"*c_d(r).n*1*(c_d(r).(n+1))" by XCMPLX_0:def 7
+     .=(sqrt 5)"*c_d(r).n*(c_d(r).(n+1))"; then
+A17: 1>=(sqrt 5)"*c_d(r).(n+1)*(c_d(r).n)"+(s5)"*c_d(r).n*(c_d(r).(n+1))"
+     by A15,A10,XCMPLX_0:def 7;
+     0 < sqrt 5 by SQUARE_1:20,27; then
+A18: s5 * 1>= s5 *
+     ((s5)"*c_d(r).(n+1)*(c_d(r).n)"+(s5)"*c_d(r).n*(c_d(r).(n+1))")
+     by A17,XREAL_1:64;
+A20: s5 *
+     ((s5)"*c_d(r).(n+1)*(c_d(r).n)"+(s5)"*c_d(r).n*(c_d(r).(n+1))")
+      =s5 *(s5)"*c_d(r).(n+1)*(c_d(r).n)"
+       +s5 *(s5)"*c_d(r).n*(c_d(r).(n+1))"
+     .=1*c_d(r).(n+1)*(c_d(r).n)"+ (s5 *(s5)")*c_d(r).n*(c_d(r).(n+1))"
+     by SQRT2,XCMPLX_0:def 7
+     .=c_d(r).(n+1)*(c_d(r).n)"+1*c_d(r).n*(c_d(r).(n+1))"
+     by SQRT2,XCMPLX_0:def 7
+     .=c_d(r).(n+1)/c_d(r).n +c_d(r).n/c_d(r).(n+1);
+     s5 <> c_d(r).(n+1)/c_d(r).n +c_d(r).n/c_d(r).(n+1)
+       by PEPIN:59,IRRAT_1:1; then
+     s5 > c_d(r).(n+1)/c_d(r).n +c_d(r).n/c_d(r).(n+1)
+     by A18,A20,XXREAL_0:1;
+     hence thesis by XCMPLX_1:213;
+   end;
+
+theorem Th4:
+   cn = c_n(r).n & cd = c_d(r).n implies cn,cd are_coprime
+   proof
+     set cd2 = c_d(r).(n+1);
+     set cn2 = c_n(r).(n+1);
+     assume that
+A1:  cn = c_n(r).n and
+A2:  cd = c_d(r).n;
+A6:  cn2*cd -cn*cd2 = (-1)|^n by A1,A2,REAL_3:64;
+     assume
+A5:  not cn,cd are_coprime;
+     consider cn0,cd0 be Integer such that
+A7:  cn = (cn gcd cd)*cn0 and
+A8:  cd = (cn gcd cd)*cd0 and
+     cn0,cd0 are_coprime by A2,INT_2:23;
+     cn gcd cd >= 0 + 1 by A2,INT_1:7; then
+A9:  cn gcd cd > 1 by A5,INT_2:def 3,XXREAL_0:1;
+A10: (-1)|^n = (cn gcd cd)*(cn2*cd0 - cn0*cd2) by A7,A6,A8;
+A11: 1=|.(-1)|^n.| by SERIES_2:1
+     .=|.(cn gcd cd).|*|.(cn2*cd0-cn0*cd2).| by COMPLEX1:65,A10
+     .=(cn gcd cd)*|.(cn2*cd0-cn0*cd2).|;
+     (cn gcd cd)" < 1 by A9,XREAL_1:212; then
+     |.(cn2*cd0-cn0*cd2).| < 1 by A11,XCMPLX_1:210; then
+     |.(cn2*cd0-cn0*cd2).| = 0 by NAT_1:14;
+     hence contradiction by A11;
+   end;
+
+::Hardy&Wright Th196
+theorem Th5:
+   n > 1 implies
+   |.r-c_n(r).n/c_d(r).n.| < 1/(sqrt 5 * c_d(r).n|^2) or
+   |.r-c_n(r).(n+1)/c_d(r).(n+1).| < 1/(sqrt 5*c_d(r).(n+1)|^2) or
+   |.r-c_n(r).(n+2)/c_d(r).(n+2).| < 1/(sqrt 5*c_d(r).(n+2)|^2)
+   proof
+     assume that
+A2:  n > 1 and
+A3:  not (|.r-c_n(r).n/c_d(r).n.| < 1/(sqrt 5*c_d(r).n|^2) or
+     |.r-c_n(r).(n+1)/c_d(r).(n+1).| < 1/(sqrt 5*c_d(r).(n+1)|^2) or
+     |.r-c_n(r).(n+2)/c_d(r).(n+2).| < 1/(sqrt 5*c_d(r).(n+2)|^2) );
+A4:  sqrt 5>c_d(r).(n+1)/c_d(r).n+1/(c_d(r).(n+1)/c_d(r).n) by A2,A3,Th3;
+     set m = n+1;
+     m > 1 + 1 by A2,XREAL_1:8; then
+     m > 1 by XXREAL_0:2; then
+A7:  sqrt 5 > c_d(r).(m+1)/c_d(r).m+1/(c_d(r).(m+1)/c_d(r).m) by A3,Th3;
+A10: c_d(r).(n+2)/c_d(r).(n+1) =
+     (scf(r).(n+2)*c_d(r).(n+1)+c_d(r).n)/c_d(r).m by REAL_3:def 6
+     .=scf(r).(n+2)*(c_d(r).(n+1)*(c_d(r).m)")+c_d(r).n/c_d(r).(n+1)
+     .=scf(r).(n+2)*1 + c_d(r).n/c_d(r).m by XCMPLX_0:def 7
+     .=scf(r).(n+2) + (c_d(r).m/c_d(r).n)" by XCMPLX_1:213;
+     c_d(r).(n+2)/c_d(r).m > c_d(r).m/c_d(r).m
+       by XREAL_1:74,DIOPHAN1:8; then
+A11: c_d(r).(n+2)/c_d(r).(n+1) > 1 by XCMPLX_1:60;
+     set m1 = n -1;
+     c_d(r).(m1+2)/c_d(r).(m1+1) > c_d(r).(m1+1)/c_d(r).(m1+1)
+       by XREAL_1:74,A2,DIOPHAN1:8; then
+     c_d(r).(n-1+2)/c_d(r).(n-1+1) > 1 by XCMPLX_1:60; then
+A13: 1/(c_d(r).(n+1)/c_d(r).n) > (sqrt 5 -1)/2 by A4,Th1;
+     scf(r).(n+1+1) > 0 by DIOPHAN1:5; then
+     scf(r).(n+2) >= 0+1 by INT_1:7; then
+     scf(r).(n+2)+1/(c_d(r).(n+1)/c_d(r).n) > 1+(sqrt 5 -1)/2
+       by A13,XREAL_1:8;
+     hence contradiction by A7,A10,A11,Th1;
+   end;
+
+definition let r;
+  func HWZSet(r) -> Subset of RAT equals
+  {p where p is Rational: |.r-p.| < 1/(sqrt 5 * denominator(p)|^2)};
+  coherence
+  proof
+    defpred P[Rational] means
+    |.r-$1.| < 1/(sqrt 5 * denominator($1)|^2);
+    {p where p is Rational: P[p] } c= RAT
+    proof
+      let y be object;assume y in {p where p is Rational: P[p] };
+      then ex r be Rational st y=r & P[r];
+      hence thesis by RAT_1:def 2;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition let r;
+  func HWZSet1(r) -> Subset of NAT equals
+  {x where x is Nat : ex p be Rational
+  st p in HWZSet(r) & x = denominator(p)};
+  coherence
+  proof
+    defpred P[Nat] means ex p be Rational
+    st p in HWZSet(r) & $1 = denominator(p);
+    {x where x is Nat: P[x] } c= NAT
+    proof
+      let y be object;assume y in {x where x is Nat: P[x] };
+      then ex x be Nat st y=x & P[x];
+      hence thesis by ORDINAL1:def 12;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  func TRANQN -> Function of RAT, NAT means   :Def3A:
+    for x be Rational holds it.x = denominator(x);
+   existence
+   proof
+     defpred P[Element of RAT,Element of NAT] means
+     $2 = denominator($1);
+A1:  for x being Element of RAT ex y being Element of NAT st P[x,y]
+     proof
+       let x be Element of RAT;
+       denominator(x) in NAT by ORDINAL1:def 12;
+       hence thesis;
+     end;
+     consider f being Function of RAT, NAT such that
+A2:  for x being Element of RAT holds P[x,f.x] from FUNCT_2:sch 3(A1);
+     take f;
+     let x be Rational;
+     x in RAT by RAT_1:def 2;
+     hence thesis by A2;
+   end;
+   uniqueness
+     proof
+       let f,g be Function of RAT, NAT;
+       assume that
+A3:    for x be Rational holds f.x = denominator(x) and
+A4:    for x be Rational holds g.x = denominator(x);
+       now
+       let x be Element of RAT;
+       f.x = denominator(x) by A3;
+       hence f.x = g.x by A4;
+     end;
+     hence thesis;
+     end;
+   end;
+
+theorem Th6:
+  TRANQN.:HWZSet(r) = HWZSet1(r)
+  proof
+    thus TRANQN.:HWZSet(r) c= HWZSet1(r)
+    proof
+      let y be object;
+      assume
+A2:   y in TRANQN.:HWZSet(r);
+      consider p be object such that
+A3:   p in dom TRANQN and
+A4:   p in HWZSet(r) and
+A5:   y = TRANQN.p by A2,FUNCT_1:def 6;
+      consider q be Element of RAT such that
+A6:   q = p by A3;
+      y = denominator(q) by Def3A,A5,A6;
+      hence thesis by A4,A6;
+    end;
+      let y be object;
+      assume y in HWZSet1(r); then
+      consider y1 be Nat such that
+A11:  y1 = y and
+A12:  ex p be Rational st p in HWZSet(r) & y1 = denominator(p);
+      consider p be Rational such that
+A13:  p in HWZSet(r) & y1 = denominator(p) by A12;
+A14:  dom TRANQN = RAT by FUNCT_2:def 1;
+      y1 = TRANQN.p by Def3A,A13;
+      hence thesis by A11,A13,A14,FUNCT_1:def 6;
+  end;
+
+theorem Th7:
+  HWZSet(r) is finite implies HWZSet1(r) is finite
+  proof
+    TRANQN.:HWZSet(r) = HWZSet1(r) by Th6;
+    hence thesis;
+  end;
+
+registration let r;
+  cluster HWZSet1(r) -> non empty;
+  coherence
+   proof
+     set n = 2;
+     per cases by Th5;
+     suppose
+A3:    |.r - c_n(r).n/c_d(r).n .| < 1/(sqrt 5 * c_d(r).n|^2);
+       set q1 = c_n(r).n;
+       reconsider q2 = c_d(r).n as Element of INT by NUMBERS:17,REAL_3:50;
+       set q = q1/q2;
+A5:    q1,q2 are_coprime by Th4;
+       |. r - q .| < 1/(sqrt 5 * denominator(q)|^2) by Th8,A3,A5;
+       then q in HWZSet(r); then
+       denominator(q) in HWZSet1(r);
+       hence thesis by XBOOLE_0:def 1;
+     end;
+     suppose
+A8:    |.r - c_n(r).(n+1)/c_d(r).(n+1) .| < 1/(sqrt 5 * c_d(r).(n+1)|^2);
+       set q1 = c_n(r).(n+1);
+       reconsider q2 = c_d(r).(n+1) as Element of INT by NUMBERS:17,REAL_3:50;
+       set q = q1/q2;
+       q1,q2 are_coprime by Th4; then
+       q1=numerator(q) & q2 = denominator(q) by Th8; then
+       q in HWZSet(r) by A8; then
+       denominator(q) in HWZSet1(r);
+       hence thesis by XBOOLE_0:def 1;
+     end;
+     suppose
+A14:   |.r - c_n(r).(n+2)/c_d(r).(n+2) .| < 1/(sqrt 5 * c_d(r).(n+2)|^2);
+       set q1 = c_n(r).(n+2);
+    reconsider q2 = c_d(r).(n+2) as Element of INT by NUMBERS:17,REAL_3:50;
+       set q = q1/q2;
+       q1,q2 are_coprime by Th4; then
+       |. r - q .| < 1/(sqrt 5 * denominator(q)|^2) by Th8,A14;
+       then q in HWZSet(r); then
+       denominator(q) in HWZSet1(r);
+       hence thesis by XBOOLE_0:def 1;
+     end;
+   end;
+end;
+
+theorem Th10:
+  for h being Nat st h in HWZSet1(r) holds h > 0
+   proof
+     let h be Nat;
+     assume h in HWZSet1(r); then
+     ex h1 be Nat st h1 = h & ex p be Rational st
+       p in HWZSet(r) & h1 = denominator(p);
+     hence thesis;
+   end;
+
+registration let r;
+  cluster HWZSet1(r) -> infinite;
+  coherence
+   proof
+     assume HWZSet1(r) is finite; then
+     reconsider HWS1 = HWZSet1(r) as finite non empty Subset of NAT;
+     reconsider j = max HWS1 as Element of NAT by ORDINAL1:def 12;
+     HWS1 c= REAL by NUMBERS:19; then
+     reconsider HWS1 as non empty Subset of ExtREAL by NUMBERS:31,XBOOLE_1:1;
+A4:  for s be Element of HWS1 holds j >= s & j > 0
+     proof
+       let s be Element of HWS1;
+A5:    s in HWS1 by SUBSET_1:def 1; then
+       j >= s by XXREAL_2:4;
+       hence thesis by A5,Th10;
+     end;
+     set n = j+1;
+     per cases by Th5, A4, XREAL_1:29;
+        suppose
+A7:       |.r - c_n(r).n/c_d(r).n .| < 1/(sqrt 5 * c_d(r).n|^2);
+          set q1 = c_n(r).n;
+          set q2 = c_d(r).n;
+          set q = q1/q2;
+A9:       q1,q2 are_coprime by Th4;
+          q1=numerator(q) & q2 = denominator(q) by Th8,A9; then
+          q in HWZSet(r) by A7; then
+          denominator(q) in HWZSet1(r); then
+A14:      q2 in HWZSet1(r) by Th8,A9;
+A15:      q2 >= j+1 by DIOPHAN1:9;
+          j+1 > j by XREAL_1:29; then
+          q2 > j by A15,XXREAL_0:2;
+          hence contradiction by A4,A14;
+        end;
+        suppose
+A17:      |.r-c_n(r).(n+1)/c_d(r).(n+1).|< 1/(sqrt 5*c_d(r).(n+1)|^2);
+          set q1 = c_n(r).(n+1);
+          set q2 = c_d(r).(n+1);
+          set q = q1/q2;
+A19:      q1,q2 are_coprime by Th4; then
+A20:      q1=numerator(q) & q2 = denominator(q) by Th8;
+          |. r - q .|<1/(sqrt 5 *denominator(q)|^2) by A17,Th8,A19; then
+          q in HWZSet(r); then
+          q2 in HWZSet1(r) by A20; then
+A23:      q2 <= j by A4;
+A24:      q2 >= j+2 by DIOPHAN1:9;
+          j+2 > j by XREAL_1:29;
+          hence contradiction by A23,A24,XXREAL_0:2;
+        end;
+        suppose
+A26:      |.r-c_n(r).(n+2)/c_d(r).(n+2).|<1/(sqrt 5*c_d(r).(n+2)|^2);
+          set q1 = c_n(r).(n+2);
+          set q2 = c_d(r).(n+2);
+          set q = q1/q2;
+A28:      q1,q2 are_coprime by Th4; then
+A29:      q1=numerator(q) & q2 = denominator(q) by Th8;
+          |.r-q.|<1/(sqrt 5*denominator(q)|^2) by Th8,A28,A26;then
+          q in HWZSet(r); then
+          q2 in HWZSet1(r) by A29; then
+A33:      q2 <= j by A4;
+A34:      q2 >= j+3 by DIOPHAN1:9;
+          j+3 > j by XREAL_1:29;
+          hence contradiction by A33,A34,XXREAL_0:2;
+        end;
+      end;
+end;
+
+::  The theorem of Hurwitz
+:: Hardy&Wright Th194
+
+::$N Hurwitz's theorem (number theory)
+
+theorem
+   for r holds
+   { q : |.r-q.| < 1/(sqrt 5 * denominator(q)|^2) } is infinite
+   proof
+     let r;
+     HWZSet1(r) is infinite;
+     hence thesis by Th7;
+   end;
+
+reserve c0,c1,c2,u,a0,b0 for Real;
+
+definition
+   let a0,b0,c0 be Real;
+   func LF(a0,b0,c0) -> Function of [:INT,INT:],REAL means  :Def4:
+   for x,y be Integer holds it.(x,y) = a0*x + b0*y + c0;
+   existence
+   proof
+   defpred P[Integer,Integer,set] means
+   $3 = a0 * $1 + b0 * $2 + c0;
+A1:  for x,y being Element of INT ex z being Element of REAL st P[x,y,z]
+     proof
+       let x,y be Element of INT;
+       a0*x + b0*y + c0 in REAL by XREAL_0:def 1;
+       hence thesis;
+     end;
+   consider f being Function of [:INT,INT:],REAL such that
+A3:for x,y being Element of INT holds P[x,y,f.(x,y)] from BINOP_1:sch 3(A1);
+   take f;
+   let x,y be Integer;
+   x in INT & y in INT by INT_1:def 2;
+   hence thesis by A3;
+end;
+   uniqueness
+   proof
+     let F1,F2 be Function of [:INT,INT:],REAL;
+     assume that
+A4:  for x,y being Integer holds F1.(x,y) = a0*x + b0*y + c0 and
+A5:  for x,y being Integer holds F2.(x,y) = a0*x + b0*y + c0;
+     now let x,y be Element of INT;
+      thus F1.(x,y)=a0*x + b0*y + c0 by A4
+        .=F2.(x,y) by A5;
+     end;
+     hence thesis by BINOP_1:2;
+   end;
+  end;
+
+begin
+::   lemma 2.1 of chapter 2 p16 of Niven[1]
+
+theorem Th16:
+   for rh0 be Element of REAL,p,q be Integer st p,q are_coprime holds
+   ex x,y be Element of INT st |. p*x - q*y +rh0 .| <= 1/2
+   proof
+     let rh0 be Element of REAL;
+     let p,q be Integer;
+     assume
+A1:  p,q are_coprime;
+     consider b be Element of INT such that
+A2:  |.rh0 - b .| <= 1/2 by GAUSSINT:48;
+     consider s,t be Integer such that
+A3:  s*p + t*q = 1 by A1,Th15;
+A4:  b*(s*p + t*q) = b by A3;
+     set x = (-b*s),y = b*t;
+  X: x in INT & y in INT by INT_1:def 2;
+     p*x -q*y + rh0 = rh0 - b by A4;
+     hence thesis by A2,X;
+   end;
+
+reserve a,b for Real;
+reserve n for Integer;
+
+theorem Th17:
+   n <= b & b <= n+1 implies |.n-b.|*|.n+1-b.| <=1/4
+   proof
+     assume that
+A1:  n <= b and
+A2:  b <= n+1;
+     set x=b-n,y=n+1-b;
+     x >= 0 by A1,XREAL_1:48; then
+A4:  |. n - b .| = -(-x) by ABSVALUE:30 .= x;
+A5:  x + y = 1;
+     |.n-b.|*|.n+1-b.| = x*y by A4,A2, XREAL_1:48,ABSVALUE:def 1;
+     hence thesis by A5,SERIES_3:18;
+   end;
+
+theorem Th21:
+   a is not Integer & (n=[\a/] or n=[\a/]+1) implies |.a-n.|<1
+   proof
+     assume
+A1:  a is not Integer & (n=[\a/] or n=[\a/]+1);
+     per cases by A1;
+       suppose
+A2:      n=[\a/]; then
+A3:      a-n > 0 by A1,INT_1:26,XREAL_1:50;
+         a-[\a/] < (1+[\a/])-[\a/] by INT_1:29,XREAL_1:14;
+         hence thesis by A2,A3,ABSVALUE:def 1;
+       end;
+       suppose
+A5:      n = [\a/]+1; then
+A6:      a - n < 0 by INT_1:29,XREAL_1:49;
+         [\a/] < [/a\] by A1,INT_1:35; then
+         n = [/a\] by A5,INT_1:41; then
+         n < a + 1 by INT_1:def 7; then
+A8:      n-a < 1 by XREAL_1:19;
+         |.a-n.|=-(a-n) by A6,ABSVALUE:def 1;
+         hence thesis by A8;
+       end;
+     end;
+
+theorem Th22:
+   |.n-a.|*|.n+1-a.| <=1/4 & |.n-b.|*|.n+1-b.| <=1/4 implies
+   |.n-a.|*|.n-b.| <= 1/4 or |.n+1-a.|*|.n+1-b.| <=1/4
+   proof
+     assume
+A1:  |.n-a.|*|.n+1-a.| <=1/4 & |.n-b.|*|.n+1-b.| <=1/4;
+     set r1=|.n-a.|,r2=|.n-b.|,s1=|.n+1-a.|,s2=|.n+1-b.|;
+A2:  (r1*s1)*(r2*s2) <= (1/4)*(1/4) by A1,XREAL_1:66;
+     set r3=r1*r2, r4=s1*s2, r5=(1/4)*(1/4);
+A3:  sqrt r5=(sqrt(1/4))^2 by SQUARE_1:29
+     .= 1/4 by SQUARE_1:def 2;
+     r3*r4 <= r5 by A2;
+     hence thesis by A3,Th18;
+   end;
+
+theorem Th23:
+   |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.| <= |.a-b.|^2/4 implies
+   |.a-n.|*|.b-n.|<=|.a-b.|/2 or |.a-n-1.|*|.b-n-1.|<=|.a-b.|/2
+   proof
+     assume
+A1:  |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.|<=|.a-b.|^2/4;
+     set r1=|.a-n.|,r2=|.b-n.|,s1=|.a-n-1.|,s2=|.b-n-1.|;
+     set t=a-b;
+     set r0=|.a-b.|/2;
+     set r3=r1*r2, r4=s1*s2;
+A3:  sqrt(|.a-b.|^2/4)=sqrt((|.a-b.|/2)*(|.a-b.|/2))
+     .=(sqrt(r0))^2 by SQUARE_1:29
+     .=r0 by SQUARE_1:def 2;
+     r3*r4 <= |.a-b.|^2/4 by A1;
+     hence thesis by A3, Th18;
+   end;
+
+theorem Th24:
+   (n-b)*(n+1-a)> 0 & (a-n)*(n+1-b)> 0 implies
+   (n-b)*(n+1-a)+(a-n)*(n+1-b)=a-b
+    & |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.| <= |.a-b.|^2/4
+   proof
+     assume that
+A1:  (n-b)*(n+1-a) > 0 and
+A2:  (a-n)*(n+1-b) > 0;
+     set s=(n-b)*(n+1-a);
+     set t=(a-n)*(n+1-b);
+A3:  sqrt(s*t)<=(s+t)/2 by A1,A2,SERIES_3:2;
+A4:  (sqrt(s*t))^2=s*t by A1, A2, SQUARE_1:def 2;
+A5:  sqrt(s*t) >= 0 by A1,A2,SQUARE_1:def 2;
+A6:  s=|.s.| by A1,COMPLEX1:43
+     .=|.n-b.|*|.n+1-a.| by COMPLEX1:65;
+A7:  t=|.t.| by A2,COMPLEX1:43
+     .=|.a-n.|*|.n+1-b.| by COMPLEX1:65;
+A9:  |.n-b.|=|.-(n-b).| by COMPLEX1:52 .=|.b-n.|;
+A10: |.n+1-a.|=|.-(n+1-a).| by COMPLEX1:52
+     .=|.a-n-1.|;
+A11: |.n+1-b.|=|.-(n+1-b).| by COMPLEX1:52 .=|.b-n-1.|;
+A12: s*t = |.n-b.|*|.n+1-a.|*(|.a-n.|*|.n+1-b.|) by A7,A6
+     .=|.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.| by A11,A10,A9;
+    ((a-b)/2)^2 = (a-b)^2/2^2 by XCMPLX_1:76
+     .=|.a-b.|^2/4 by COMPLEX1:75;
+     hence thesis by A3,A4,A5,A12,SQUARE_1:15;
+   end;
+
+::b< n< a< n+1 => |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.|<=|.a-b.|^2/4
+
+theorem Th25:
+   b<n & n<a & a<n+1 implies |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.|<=|.a-b.|^2/4
+   proof
+     assume that
+A1:  n>b and
+A2:  n<a & a < n + 1;
+A3:  n-b > 0 by A1,XREAL_1:50;
+A4:  n+1 -a > 0 by A2, XREAL_1:50;
+A5:  a-n > 0 by A2, XREAL_1:50;
+A6:  (n-b) + 1 > 0 by A3;
+A7:  (n-b)*(n+1-a) > 0 by A3,A4;
+     (a-n)*(n+1-b) > 0 by A5,A6;
+     hence thesis by A7,Th24;
+   end;
+
+theorem Th26:
+   (n-a)*(n+1-b)>0 & (b-n)*(n+1-a)> 0 implies
+   (n-a)*(n+1-b)+(b-n)*(n+1-a) = b-a &
+   |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.|<=|.a-b.|^2/4
+   proof
+     assume that
+A1:  (n-a)*(n+1-b) > 0 and
+A2:  (b-n)*(n+1-a) > 0;
+     set s = (n-a)*(n+1-b);
+     set t = (b-n)*(n+1-a);
+A3:  sqrt(s*t) <= (s+t)/2 by A1,A2,SERIES_3:2;
+A4:  (sqrt(s*t))^2 = s*t by A1, A2, SQUARE_1:def 2;
+A5:  sqrt(s*t) >= 0 by A1, A2, SQUARE_1:def 2;
+A6:  s=|.s.| by A1,COMPLEX1:43
+     .=|.n-a.|*|.n+1-b.| by COMPLEX1:65;
+A7:  t=|.t .| by A2,COMPLEX1:43
+     .=|.b-n.|*|.n+1-a.| by COMPLEX1:65;
+A8:  |.n-a .|=|. -(n-a).| by COMPLEX1:52 .= |. a-n.|;
+A9:  |.n+1-b.|=|.-(n+1-b).| by COMPLEX1:52
+     .= |.b -n-1.|;
+A10: |.n+1-a.|=|.-(n+1-a).| by COMPLEX1:52
+     .=|.a-n-1.|;
+A11: s*t=|.n-a.|*|.n+1-b.|*(|.b-n.|*|.n+1-a.|) by A7,A6
+     .=|.b-n.|*|.a-n .|*|.b-n-1.|*|.a-n-1.| by A10,A9,A8;
+     (b-a)^2 = |.b-a.|^2 by COMPLEX1:75 .=|.a-b.|^2 by COMPLEX1:60; then
+     ((b-a)/2)^2 =|.a-b.|^2/4;
+     hence thesis by A3,A4,A5,A11,SQUARE_1:15;
+   end;
+
+:: n <a<n+1 <b => |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.|<=|.a-b.|^2/4
+
+theorem Th27:
+  n+1 < b & n < a & a < n + 1 implies
+    |.a-n.|*|.b-n.|*|.a-n-1.|*|.b-n-1.| <= |.a - b.|^2/4
+   proof
+     assume
+A2:  n+1 < b & n < a & a < n + 1; then
+A3:  n+1-b < 0 by XREAL_1:49;
+A4:  n - a < 0 by A2,XREAL_1:49;
+A5:  (1+n)-n < b-n by A2,XREAL_1:14;
+A6:  n+1-a > 0 by A2,XREAL_1:50;
+A7:  (n-a)*(n+1-b) > 0 by A3,A4;
+     (b-n)*(n+1-a) > 0 by A5,A6;
+     hence thesis by A7,Th26;
+   end;
+
+theorem Th28:
+  a is not Integer & [\a/]<=b & b<=[\a/]+1 implies
+    ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.|<= 1/4
+   proof
+     assume that
+A1:  a is not Integer and
+A2:  [\a/]<=b & b<=[\a/]+1;
+     set n = [\a/];
+A3:  n<a by A1,INT_1:26;
+     a-1<n by INT_1:def 6; then
+     a<n+1 by XREAL_1:19; then
+A6:  |.n-a.|*|.n+1-a.| <=1/4 by Th17,A3;
+     |.n-b.|*|.n+1-b.| <=1/4 by Th17,A2; then
+     per cases by Th22,A6;
+       suppose
+A8:      |.n-a.|*|.n-b.| <= 1/4;
+         set u = n;
+A10:     |.a-u.|<1 by A1,Th21;
+         |.u-a.|*|.u-b.| = |.a-u.|*|.u-b.| by COMPLEX1:60
+         .= |.a-u.|*|.b-u.| by COMPLEX1:60;
+         hence thesis by A10,A8;
+       end;
+       suppose
+A12:      |.n+1-a.|*|.n+1-b.| <= 1/4;
+         set u = n+1;
+A14:     |.a-u.|<1 by A1,Th21;
+         |.u-a.|*|.u-b.| = |.a-u.|*|.u-b.| by COMPLEX1:60
+         .= |.a-u.|*|.b-u.| by COMPLEX1:60;
+         hence thesis by A14,A12;
+       end;
+     end;
+
+theorem Th32:
+  |.a-[\a/].|*|.b-[\a/].| >= |.a-b.|/2 &
+  |.a-([\a/]+1).|*|.b-([\a/]+1).| >= |.a-b.|/2 implies
+     a is Integer or [\a/]<=b
+   proof
+     set u = [\a/];
+     set v = [\a/]+1;
+     assume
+A5:  |.a-[\a/].|*|.b-[\a/].| >= |.a-b.|/2 &
+       |.a-([\a/]+1).|*|.b-([\a/]+1).| >= |.a-b.|/2;
+     assume that
+A1:  a is not Integer and
+A2:  [\a/] > b;
+A3:  a-[\a/] > 0 by A1,INT_1:26, XREAL_1:50;
+A4:  a-1 < [\a/] by INT_1:def 6;
+S:   [\a/]+1 > b by A2,XREAL_1:40; then
+A6:  [\a/]+1 - b > 0 by XREAL_1:50;
+A8:  [\a/]-b > 0 by A2,XREAL_1:50;
+A9:  [\a/]+1-a > 0 by A4,XREAL_1:19, XREAL_1:50;
+S2:  a < [\a/] + 1 by A4,XREAL_1:19; then
+a5:  |.a-[\a/].|*|.b-[\a/].|*|.a-[\a/]-1.|*|.b-[\a/]-1.| <= |.a - b.|^2/4
+       by A1,A2,INT_1:26,Th25;
+     per cases by A5,XXREAL_0:1;
+     suppose
+A5:  |.a-[\a/].|*|.b-[\a/].| = |.a-b.|/2 &
+       |.a-([\a/]+1).|*|.b-([\a/]+1).| > |.a-b.|/2;
+A8:  b - [\a/] < 0 by A2,XREAL_1:49;
+     (|.a-[\a/].|*|.b-[\a/].|)*(|.a-([\a/]+1).|*|.b-([\a/]+1).|)
+       >(|.a-b.|/2)*(|.a-b.|/2) by A3,A8,XREAL_1:98,A5;
+       hence contradiction by a5;
+     end;
+     suppose
+A5:  |.a-[\a/].|*|.b-[\a/].| > |.a-b.|/2 &
+       |.a-([\a/]+1).|*|.b-([\a/]+1).| = |.a-b.|/2;
+A4:  |.a-[\a/].|*|.b-[\a/].|*|.a-[\a/]-1.|*|.b-[\a/]-1.| <= |.a - b.|^2/4
+       by A1,A2,INT_1:26,Th25,S2;
+a6:  a-([\a/]+1) < 0 by XREAL_1:49,S2;
+     b-([\a/]+1) < 0 by XREAL_1:49,S; then
+     (|.a-[\a/].|*|.b-[\a/].|)*(|.a-([\a/]+1).|*|.b-([\a/]+1).|)
+     > (|.a-b.|/2)*(|.a-b.|/2) by A5,a6,XREAL_1:98;
+     hence contradiction by A4;
+     end;
+     suppose
+A5:  |.a-[\a/].|*|.b-[\a/].| > |.a-b.|/2 &
+       |.a-([\a/]+1).|*|.b-([\a/]+1).| > |.a-b.|/2;
+     |.a-[\a/].|*|.b-[\a/].|*|.a-[\a/]-1.|*|.b-[\a/]-1.| <= |.a - b.|^2/4
+       by A1,A2,S2,INT_1:26,Th25;
+     hence thesis by Th23,A5;
+     end;
+     suppose
+A5:  |.a-[\a/].|*|.b-[\a/].| = |.a-b.|/2 &
+       |.a-([\a/]+1).|*|.b-([\a/]+1).| = |.a-b.|/2;
+A10: |.a-u.|*|.u-b.|= |.a-u.|*|.-(u-b).| by COMPLEX1:52
+   .=|.a-b.|/2 by A5;
+A11: |.a-u.|*|.u-b.|= |.a-u.|*|.-(u-b).| by COMPLEX1:52
+   .=|.a-v.|*|.b-v.| by A5;
+A13: (a-u)*(u+1-b) = |.(a-u)*(u+1-b).| by A6,A3,ABSVALUE:def 1
+   .=|.(a-u).| *|.(u+ 1- b).| by COMPLEX1:65;
+a14: (u-b)*(u+1-a) = |.(u-b)*(u+1-a).| by A8,A9,ABSVALUE:def 1
+     .= |.u-b.| * |.u+ 1-a.| by COMPLEX1:65; then
+A14: |.a-u.|*|.u+1-b.|+|.u-b.|*|.u+1-a.| = |.a-b.| by A13;
+A15: |.a-u.|*|.u-b.|*|.a-u-1.|*|.b-u-1.|
+    =(|.a-u.|*|.u-b.|)*(|.a-u-1.|*|.b-u-1.|)
+   .=((|.a-u.|*|.u+1-b.|+|.u-b.|*|.u+1-a.|)/2)^2 by A13,a14,A10,A11;
+     set r1 = |.a-u.|*|.u+1-b.|;
+     set r2 = |.u-b.|*|.u+1-a.|;
+A17: |.u+1-a.| = |.-(u+1-a).| by COMPLEX1:52 .= |.a-u-1.|;
+A18: |.u+1-b.| = |.-(u+1-b).| by COMPLEX1:52 .= |.b-u-1.|;
+     r1*r2 = ((r1+r2)/2)^2 by A15,A18,A17; then
+A19:  r1 = r2 by Th20;
+A23: |.u+1-b.|-|.u-b.|
+    =(|.u+1-b.|*|.a-u.|-|.u-b.|*|.a-u.|)/|.a-u.| by A3,XCMPLX_1:129
+   .=0 by A10,A14,A19;
+     |.u+1-b.|-|.u-b.| = (u+1-b) - |.u-b.| by A6,ABSVALUE:def 1
+   .=(u+1-b) - (u-b) by A8,ABSVALUE:def 1
+   .= 1;
+     hence contradiction by A23;
+     end;
+    end;
+
+theorem Th33:
+  a is not Integer & [\a/] > b implies
+    ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.| < |.a-b.|/2
+   proof
+     assume that
+A1:  a is not Integer and
+A2:  [\a/] > b;
+     assume
+A3:  for u be Integer st |.a-u.|<1 holds
+     |.a-u.|*|.b-u.| >= |.a-b.|/2;
+     set u=[\a/],v=u+1;
+A4:  |.a-u.|<1 by A1,Th21;
+     |.a-v.|<1 by A1,Th21; then
+     |.a-u.|*|.b-u.| >= |.a-b.|/2 & |.a-v.|*|.b-v.| >= |.a-b.|/2 by A3,A4;
+     hence thesis by A1,A2,Th32;
+  end;
+
+theorem Th37:
+  |.a-[\a/].|*|.b-[\a/].| >= |.a-b.|/2 &
+    |.a-([\a/]+1).|*|.b-([\a/]+1).| >= |.a-b.|/2 implies
+  a is Integer or [\a/]+1 >= b
+  proof
+    set u=[\a/],v=u+1;
+    assume
+AA: |.a-[\a/].|*|.b-[\a/].| >= |.a-b.|/2 &
+    |.a-([\a/]+1).|*|.b-([\a/]+1).| >= |.a-b.|/2;
+    assume
+A2: a is not Integer & [\a/]+1 < b; then
+A3: a - [\a/] > 0 by INT_1:26,XREAL_1:50;
+A4: a - 1 < [\a/] by INT_1:def 6; then
+a3: a < [\a/] + 1 by XREAL_1:19; then
+A5: |.a-[\a/].|*|.b-[\a/].|*|.a-[\a/]-1.|*|.b-[\a/]-1.| <= |.a - b.|^2/4
+      by A2,INT_1:26,Th27;
+    per cases by XXREAL_0:1,AA;
+    suppose
+A6:   |.a-[\a/].|*|.b-[\a/].| = |.a-b.|/2 &
+      |.a-([\a/]+1).|*|.b-([\a/]+1).| > |.a-b.|/2;
+      (1+[\a/])-[\a/] < b-[\a/] by A2,XREAL_1:14; then
+      (|.a-[\a/].|*|.b-[\a/].|)*(|.a-([\a/]+1).|*|.b-([\a/]+1).|)
+        > (|.a-b.|/2)*(|.a-b.|/2) by A6,A3,XREAL_1:98;
+      hence thesis by A5;
+    end;
+    suppose
+A6:   |.a-[\a/].|*|.b-[\a/].| > |.a-b.|/2 &
+      |.a-([\a/]+1).|*|.b-([\a/]+1).| = |.a-b.|/2;
+a6:  a-([\a/]+1) < 0 by a3,XREAL_1:49;
+     b-([\a/]+1) > 0 by A2,XREAL_1:50; then
+     (|.a-[\a/].|*|.b-[\a/].|)*(|.a-([\a/]+1).|*|.b-([\a/]+1).|)
+     > (|.a-b.|/2)*(|.a-b.|/2) by a6,XREAL_1:98,A6;
+     hence thesis by A5;
+    end;
+    suppose |.a-[\a/].|*|.b-[\a/].| > |.a-b.|/2 &
+        |.a-([\a/]+1).|*|.b-([\a/]+1).| > |.a-b.|/2;
+     hence thesis by Th23,A5;
+    end;
+    suppose
+SS:   |.a-([\a/]+1).|*|.b-([\a/]+1).| = |.a-b.|/2 &
+      |.a-[\a/].|*|.b-[\a/].| = |.a-b.|/2;
+A6:   [\a/]+1-b < 0 by A2,XREAL_1:49;
+A7:   [\a/] - a < 0 by A2,INT_1:26,XREAL_1:49;
+A8:   (1+[\a/])-[\a/] < b-[\a/] by A2,XREAL_1:14;
+A9:   [\a/] + 1-a > 0 by A4,XREAL_1:19,XREAL_1:50;
+A11:  (u- a)*(u+ 1- b) = |.(u- a)*(u+ 1- b).| by A6,A7,ABSVALUE:def 1
+        .= |.(u- a).| * |.(u+ 1- b).| by COMPLEX1:65
+        .= |.-(u- a).| * |.u+ 1- b.| by COMPLEX1:52 .= |.a-u.| * |.u+ 1- b.|;
+      (b-u)*(u+ 1- a) = |.(b-u)*(u+ 1- a).| by A8,A9,ABSVALUE:def 1
+        .= |.b-u.| * |.u+ 1-a.| by COMPLEX1:65; then
+A12:  |.a-u.|*|.u+1-b.|+|.b-u.|*|.u+1-a.| = |.b-a.| by A11
+        .= |.-(b-a).| by COMPLEX1:52 .=|.a-b.|;
+      set r1 = |.a-u.|*|.u+1-b.|;
+      set r2 = |.b-u.|*|.u+1-a.|;
+A16:  |.u+1-a.| = |.-(u+1-a).| by COMPLEX1:52 .= |.a-u-1.|;
+A17:  |.u+1-b.| = |.-(u+1-b).| by COMPLEX1:52 .= |.b-u-1.|;
+      |.a-u.|*|.b-u.|*|.a-u-1.|*|.b-u-1.|
+         = (|.a-u.|*|.b-u.|)*(|.a-u-1.|*|.b-u-1.|)
+        .= ((r1+r2)/2)^2 by A12,SS; then
+      r1*r2 = ((r1+r2)/2)^2 by A17,A16; then
+A18:  r1 = r2 by Th20;
+A22:  |.u+1-b.|-|.b-u.|
+    = (|.u+1-b.|*|.a-u.|-|.b-u.|*|.a-u.|)/|.a-u.| by A3,XCMPLX_1:129
+   .= 0 by A12,A18,SS;
+       |.u+1-b.|-|.b-u.| = -(u+1-b) - |.b-u.| by A2,XREAL_1:49,ABSVALUE:def 1
+   .= -(u+1-b) - (b-u) by A8,ABSVALUE:def 1 .= -1;
+   hence contradiction by A22;
+    end;
+  end;
+
+theorem Th39:
+  a is not Integer & [\a/]+1<b implies
+   ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.|<|.a-b.|/2
+   proof
+     assume that
+A1:  a is not Integer and
+A2:  [\a/]+1 < b;
+     assume
+A3:  not ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.| < |.a-b.|/2;
+     set u=[\a/],v=u+1;
+A4:  |.a-u.|<1 by A1,Th21;
+     |.a-v.|<1 by A1,Th21; then
+b1:  |.a-v.|*|.b-v.| >= |.a-b.|/2 by A3;
+     |.a-u.|*|.b-u.| >= |.a-b.|/2 by A3,A4;
+     hence thesis by A1,A2,Th37,b1;
+   end;
+
+::   lemma 2.2 of chapter 2 p16 of Niven
+
+theorem Th41:
+   ex u be Integer st |.a - u.| < 1 &
+   (|.a - u .|*|. b - u .| <= 1/4 or |.a - u.|*|.b - u.| < |.a - b .|/2)
+   proof
+     per cases;
+       suppose A: a in INT;
+         |.a - a.|*|.b - a.| = 0;
+         hence thesis by A;
+       end;
+       suppose not a in INT; then
+A5:       a is not integer;
+         per cases;
+         suppose [\a/] <= b & b <= [\a/]+1; then
+           ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.|<= 1/4 by Th28,A5;
+           hence thesis;
+         end;
+         suppose b < [\a/]; then
+           ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.| < |.a-b.|/2
+             by Th33,A5;
+           hence thesis;
+         end;
+         suppose [\a/]+1 < b; then
+           ex u be Integer st |.a-u.|<1 & |.a-u.|*|.b-u.| < |.a-b.|/2
+             by Th39,A5;
+           hence thesis;
+         end;
+        end;
+     end;
+
+reserve a1,a2,b1,b2,c1,c2 for Element of REAL;
+reserve eps for positive Real;
+reserve r1 for non negative Real;
+reserve q,q1 for Element of RAT;
+
+theorem Th42:
+  ex q be Element of RAT st denominator(q) > [\r1/]+1 & q in HWZSet(r)
+  proof
+     0 < [\r1/]+1 by INT_1:29; then
+     reconsider m = [\r1/]+1 as Nat;
+     ex n st n in HWZSet1(r) & n > m
+     proof
+       assume
+A1:    not ex n st n in HWZSet1(r) & n > m;
+A2:    for n st n in HWZSet1(r) holds n in Seg(m)
+       proof
+         let n;
+         assume
+A3:      n in HWZSet1(r); then
+         n > 0 by Th10; then
+A4:      n+0 >= 1 by NAT_1:19;
+         n <= m by A1,A3;
+         hence thesis by A4;
+       end;
+       Seg(m) c= Segm(m+1) by AFINSQ_1:3; then
+       HWZSet1(r)c=Segm(m+1) by A2;
+       hence thesis;
+     end; then
+     consider n such that
+A8:  n in HWZSet1(r) and
+A9:  n > m;
+     ex n1 be Nat st n1 = n &
+   ex p be Rational st p in HWZSet(r) & n1 = denominator(p) by A8;
+   hence thesis by A9;
+   end;
+
+theorem Th43:
+   |.a1*b2-a2*b1.|<>0 & q <> q1 &
+   a2*denominator(q)+b2*numerator(q)=0 implies
+   a2*denominator(q1)+b2*numerator(q1)<>0
+   proof
+     assume that
+A1:  |.a1*b2-a2*b1.|<>0 and
+A2:  q <> q1 and
+A3:  a2*denominator(q)+b2*numerator(q)=0;
+A5:  (-a2)*denominator(q)= numerator(q)*b2 by A3;
+     per cases by A1;
+       suppose
+A4:     a2 <> 0 & b2 <> 0;
+        assume a2*denominator(q1)+b2*numerator(q1) = 0; then
+A7:     (-a2)*denominator(q1) = b2*numerator(q1);
+        q = numerator(q)/denominator(q) by RAT_1:15
+         .= (-a2)/b2 by A4,A5,XCMPLX_1:94
+         .= numerator(q1)/denominator(q1) by A4,A7,XCMPLX_1:94
+         .= q1 by RAT_1:15;
+         hence contradiction by A2;
+        end;
+        suppose a2 <> 0 & b2 = 0;
+          hence thesis;
+        end;
+        suppose
+A10:      a2 = 0 & b2 <> 0;
+          assume
+A11:      a2*denominator(q1)+b2*numerator(q1) = 0;
+          q = 0 by A3,A10 .= q1 by A10,A11;
+          hence contradiction by A2;
+         end;
+       end;
+
+theorem Th44:
+   for a1,a2,b1,b2,r1 st |.a1*b2-a2*b1.|<>0 holds
+   ex q be Element of RAT st denominator(q) > [\r1/]+1 & q in HWZSet(r) &
+   a2*denominator(q)+b2*numerator(q) <> 0
+   proof
+     let a1,a2,b1,b2,r1;
+     assume
+A1:  |.a1*b2-a2*b1.|<>0;
+     consider q be Element of RAT such that
+A2:  denominator(q) > [\r1/]+1 and
+A3:  q in HWZSet(r) by Th42;
+     per cases;
+       suppose a2*denominator(q)+b2*numerator(q)<>0;
+         hence thesis by A2,A3;
+       end;
+       suppose
+A5:      a2*denominator(q)+b2*numerator(q)=0;
+         consider q1 be Element of RAT such that
+A6:      denominator(q1) > [\ denominator(q) /]+1 and
+A7:      q1 in HWZSet(r) by Th42;
+         denominator(q1) > denominator(q) by A6,INT_1:29,XXREAL_0:2; then
+A8:      denominator(q1) > [\r1/]+1 by A2,XXREAL_0:2;
+         q1 <> q by A6,INT_1:29; then
+         a2*denominator(q1)+b2*numerator(q1)<>0 by A1,A5,Th43;
+         hence thesis by A7,A8;
+       end;
+     end;
+
+theorem Th45:
+  for a1,b1 be Real, n1,d1 be Integer st d1 > 0 &
+   |.a1/b1+n1/d1.|<1/(sqrt 5 * d1|^2)
+   holds ex d be Real st n1/d1 = -a1/b1 + d/d1|^2 & |.d.| < 1/sqrt 5
+   proof
+     let a1,b1 be Real, n1,d1 be Integer;
+     assume that
+A1:  d1 > 0 and
+A2:  |.a1/b1+n1/d1.|<1/(sqrt 5 * d1|^2);
+     set d = (a1/b1+n1/d1)*d1|^2;
+     d/d1|^2 = (a1/b1+n1/d1) by A1,XCMPLX_1:89; then
+A4:  -a1/b1 + d/d1|^2 = n1/d1;
+A5:  |.d .| = |.(a1/b1+n1/d1).|*|.d1|^2.| by COMPLEX1:65
+   .= |.(a1/b1+n1/d1).|*(d1|^2);
+     (1/(sqrt 5 * d1|^2))*(d1|^2)
+    =(1/(sqrt 5))*(1/(d1|^2))*(d1|^2) by XCMPLX_1:102
+   .=1/(sqrt 5) by A1,XCMPLX_1:109;
+     hence thesis by A4,A1,A2,XREAL_1:68,A5;
+   end;
+
+::   Theorem 2.3 of chapter 2 p18 of Niven[1]
+
+theorem Th46:
+  |.a1*b2-a2*b1.|<>0 & a1/b1 is irrational implies
+   ex x,y be Element of INT st
+   |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<|.a1*b2-a2*b1.|/4
+   & |.LF(a1,b1,c1).(x,y).| < eps
+   proof
+     set Delta = |.a1*b2-a2*b1.|;
+     assume that
+A1:  |.a1*b2-a2*b1.|<>0 and
+A2:  a1/b1 is irrational;
+     reconsider t = -a1/b1 as Element of IRRAT by A2,BORSUK_5:17;
+A4:  a2*b1-a1*b2 <> 0 by A1;
+     reconsider r1=max(|.b1.|/(sqrt 5 *eps),|.b1*b2.|/Delta)
+       as non negative Real by SQRT2,XXREAL_0:def 10;
+     consider q1 be Element of RAT such that
+A7:  denominator(q1) > [\r1/]+1 & q1 in HWZSet(t) &
+     a2*denominator(q1)+b2*numerator(q1) <> 0 by A1,Th44;
+     set n1 = numerator(q1);
+     set d1 = denominator(q1);
+A8:  d1 > r1 by A7,INT_1:29, XXREAL_0:2;
+     |.b1.|/(sqrt 5 *eps) <= r1 by XXREAL_0:25; then
+     |.b1.|/(sqrt 5 *eps) < 1*d1 by A8,XXREAL_0:2; then
+     |.b1.|/d1 < 1*(sqrt 5 *eps) by SQRT2,XREAL_1:113; then
+     (|.b1.|/d1)*1 < eps*sqrt 5; then
+     (|.b1.|/d1)/sqrt 5 < eps/1 by SQRT2,XREAL_1:106; then
+A11: |.b1.|/(d1*sqrt 5) < eps by XCMPLX_1:78;
+     |.b1*b2.|/Delta <= r1 by XXREAL_0:25; then
+     |.b1*b2.|/Delta < 1*d1 by A8,XXREAL_0:2; then
+A13:  |.b1*b2.|/d1 < 1*Delta by XREAL_1:113,A1;
+      d1+0 >= 1 by NAT_1:19; then
+      1/d1 <= 1 by XREAL_1:183; then
+A16: (|.b1*b2.|/d1)*(1/d1) <= |.b1*b2.|/d1 by XREAL_1:153;
+      (|.b1*b2.|/d1)*(1/d1) = (|.b1*b2.|*1)/(d1*d1) by XCMPLX_1:76
+   .= |.b1*b2.|/d1|^2 by WSIERP_1:1; then
+A17:  |.b1*b2.|/d1|^2 < Delta by A13,A16,XXREAL_0:2;
+      reconsider rh0=(d1*(c1*a2-c2*a1)+n1*(c1*b2-c2*b1))/(a2*b1-a1*b2)
+        as Element of REAL by XREAL_0:def 1;
+     d1,n1 are_coprime by WSIERP_1:22; then
+     consider s,r be Element of INT such that
+A19: |. d1*s - n1*r +rh0 .| <= 1/2 by Th16;
+     set h=n1,k=d1;
+     set a=(a1*r+b1*s+c1)/(a1*k+b1*h), b=(a2*r+b2*s+c2)/(a2*k+b2*h);
+     consider u be Integer such that
+A20:  |.a - u.| < 1 &
+     (|.a - u.|*|.b - u.|<=1/4 or |.a-u.|*|.b-u.|<|.a-b.|/2) by Th41;
+      set x = r-u*k, y = s-u*h;
+      t in IRRAT by SUBSET_1:def 1; then
+A22:  b1 <> 0;
+A23:  a1*k + b1*h <>0
+      proof
+        assume a1*k + b1*h = 0; then
+        (-n1)*b1 = a1*d1; then
+        (-n1)/d1 = a1/b1 by A22,XCMPLX_1:94;
+        hence contradiction by A2;
+      end;
+A26:  a-u = (a1*x+b1*y+c1)/(a1*k+b1*h)+u*(a1*k+b1*h)/(a1*k+b1*h)-u
+    .= (a1*x+b1*y+c1)/(a1*k+b1*h)+u*1-u by A23,XCMPLX_1:89
+    .= (a1*x+b1*y+c1)/(a1*k+b1*h); then
+A27:   |.(a1*x+b1*y+c1).|/|.(a1*k+b1*h).| < 1 by A20,COMPLEX1:67;
+      (|.(a1*x+b1*y+c1).|/|.(a1*k+b1*h).|)*|.(a1*k+b1*h).|
+     = |.(a1*x+b1*y+c1).|*(1/|.(a1*k+b1*h).|)*|.(a1*k+b1*h).|
+    .= |.(a1*x+b1*y+c1).| by A23,XCMPLX_1:109; then
+A30:  |.(a1*x+b1*y+c1).|<1*|.(a1*k+b1*h).| by XREAL_1:68,A27,A23;
+       consider q be Rational such that
+A32:   q1 = q and
+A33:   |. t - q .| < 1/(sqrt 5 * denominator(q)|^2) by A7;
+       |. t - q .| = |.-(a1/b1 +q1).| by A32
+    .= |. a1/b1 + q1.| by COMPLEX1:52 .= |. a1/b1 + n1/d1.| by RAT_1:15
+    .= |.( a1*d1+n1*b1)/(b1*d1) .| by A22,XCMPLX_1:116
+    .= |.( a1*d1+n1*b1).|/|.(b1*d1).| by COMPLEX1:67; then
+A36:  |.( a1*d1+n1*b1).|/1 <(1/(sqrt 5 * d1|^2))* |.(b1*d1).|
+        by A32,A33,A22,XREAL_1:113;
+    set S1 = 1/sqrt 5;
+A37:   (1/(sqrt 5 * d1|^2)) = S1*(1/d1|^2) by XCMPLX_1:102
+     .=S1*(1/(d1*d1)) by WSIERP_1:1
+     .=S1*((1/d1)*(1/d1)) by XCMPLX_1:102 .=S1*(1/d1)*(1/d1);
+     |.(b1*d1).| = |.d1.|*|.b1.| by COMPLEX1:65   .= d1*|.b1.|; then
+A39: (1/(sqrt 5 * d1|^2))* |.(b1*d1).|
+     =S1*(1/d1)*((1/d1)*d1)*|.b1.| by A37
+    .=S1*(1/d1)*1*|.b1.| by XCMPLX_1:106
+    .=(1/(sqrt 5 *d1))*|.b1.| by XCMPLX_1:102
+    .=|.b1.|/(d1*sqrt 5); then
+A40:  |.(a1*d1+b1*n1).| < eps by A36,A11,XXREAL_0:2;
+A41:  b-u = (a2*x+b2*y+c2)/(a2*k+b2*h)+u*(a2*k+b2*h)/(a2*k+b2*h)-u
+    .=(a2*x+b2*y+c2)/(a2*k+b2*h)+u*1-u by A7,XCMPLX_1:89
+    .=(a2*x+b2*y+c2)/(a2*k+b2*h);
+    set u1 = a1*x+b1*y+c1, u2 = a2*x+b2*y+c2,
+        v1 = a1*k+b1*h, v2 = a2*k+b2*h;
+A42: |.a-u.|*|.b-u.|=(|.u1.|/|.v1.|)*|.u2/v2.| by COMPLEX1:67,A41,A26
+   .=(|.u1.|/|.v1.|)*(|.u2.|/|.v2.|) by COMPLEX1:67
+   .=(|.u1.|*|.u2.|)/(|.v1.|*|.v2.|) by XCMPLX_1:76;
+A43: |.t - q.| = |.-(a1/b1 +q1).| by A32
+    .=|. a1/b1 + q1.| by COMPLEX1:52 .= |. a1/b1 + n1/d1.| by RAT_1:15;
+      consider d be Real such that
+A44:  n1/d1 = -a1/b1 + d/d1|^2 and
+A45:  |.d.| < S1 by A33,A32,A43,Th45;
+      b1/b1 = 1 by A22,XCMPLX_1:60; then
+A51:  |.a2+b2*(-a1/b1).|=|.a2*(b1/b1)-b2*a1*(1/b1).|
+         .=|.-(a1*b2-a2*b1)/b1.|
+         .=|.(a1*b2-a2*b1)/b1.| by COMPLEX1:52
+         .=Delta/|.b1.| by COMPLEX1:67;
+A52:  (|.b1.|/(d1*sqrt 5))*|.v2.|=|.b1.|*(1/(d1*sqrt 5))*|.a2*d1+b2*n1.|
+         .=|.b1.|*((1/d1)*(1/sqrt 5))*|.a2*d1+b2*n1.| by XCMPLX_1:102
+         .=|.b1.|*S1*(|.(1/d1).|*|.a2*d1+b2*n1.|)
+         .=|.b1.|*S1*|.(1/d1)*(a2*d1+b2*n1).| by COMPLEX1:65
+         .=|.b1.|*S1*|.(a2*d1)*(1/d1)+(b2*n1)*(1/d1).|
+         .=|.b1.|*S1*|.a2+b2*(n1/d1).| by XCMPLX_1:107
+         .=|.b1.|*S1*|.a2+b2*(-a1/b1)+ b2*(d/d1|^2).| by A44;
+A54:  |.b1.|*S1*Delta/|.b1.|=|.b1.|*(1/|.b1.|)*(1/sqrt 5)*Delta
+         .= Delta/sqrt 5 by A22,XCMPLX_1:106;
+A55:  |.b1.|*S1*|.b2*(d/d1|^2).|=S1*(|.b1.|*|.b2*(d/d1|^2).|)
+         .=S1*|.b1*(b2*(d/d1|^2)).| by COMPLEX1:65
+         .=S1*(|.d*((b1*b2)/(d1|^2)).|)
+         .=S1*(|.d.|*|.((b1*b2)/(d1|^2)).|) by COMPLEX1:65
+         .=S1*(|.d.|*(|.(b1*b2).|/|.(d1|^2).|)) by COMPLEX1:67
+         .=S1*|.d.|*(|.b1*b2.|/d1|^2);
+A49:  |.v1.|*|.v2.|<=(|.b1.|/(d1*sqrt 5))*|.v2.| by A36,A39,XREAL_1:64;
+A57:  |.b1.|*S1*|.b2*(d/d1|^2).|<=Delta*((1/sqrt 5)*|.d.|)
+           by A55,A17,SQRT2,XREAL_1:64;
+      |.b1.|*(1/sqrt 5)*(Delta/|.b1.|+|.b2*(d/d1|^2).|)
+          =Delta/sqrt 5 + |.b1.|*(1/sqrt 5)*|.b2*(d/d1|^2).| by A54; then
+A59:  (|.b1.|/(d1*sqrt 5))*|.v2.| <=
+           Delta/sqrt 5 + |.b1.|*(1/sqrt 5)*|.b2*(d/d1|^2).|
+           by A52,SQRT2,A51,COMPLEX1:56,XREAL_1:64;
+A60:  Delta/sqrt 5 + |.b1.|*(1/sqrt 5)*|.b2*(d/d1|^2).| <=
+           Delta/sqrt 5 + Delta*((1/sqrt 5)*|.d.|) by XREAL_1:6,A57;
+A61:  (|.b1.|/(d1*sqrt 5))*|.v2.|
+           <=Delta*((1/sqrt 5)+(1/sqrt 5)*|.d.|) by A59,A60,XXREAL_0:2;
+      (1/sqrt 5)*(1/sqrt 5)
+            =1/(sqrt 5)^2 by XCMPLX_1:102.= 1/5 by SQUARE_1:def 2; then
+      S1*|.d.| < 1/5 by A45,XREAL_1:68; then
+      S1 + S1*|.d.| < 1/5 +1/2 by SQRT3,XREAL_1:8; then
+      S1 + S1*|.d.| < 1 by XXREAL_0:2; then
+      (S1+S1*|.d.|)*Delta<1*Delta by A1,XREAL_1:68; then
+A66:  (|.b1.|/(d1*sqrt 5))*|.v2.| < Delta by A61,XXREAL_0:2;
+A71:  a-b=((a1*r+b1*s+c1)*(a2*k+b2*h)-(a2*r+b2*s+c2)*(a1*k+b1*h))
+           /((a1*k+b1*h)*(a2*k+b2*h)) by XCMPLX_1:130,A7,A23;
+      (a1*r+b1*s+c1)*(a2*k+b2*h)-(a2*r+b2*s+c2)*(a1*k+b1*h)
+         = (a1*b2-a2*b1)*(r*h-s*k)+(k*(c1*a2-c2*a1)+h*(c1*b2-c2*b1))*1
+        .= (a1*b2-a2*b1)*(r*h-s*k)+(k*(c1*a2-c2*a1)+h*(c1*b2-c2*b1))
+           *((1/(a2*b1-a1*b2))*(a2*b1-a1*b2)) by A4,XCMPLX_1:106
+        .=(a2*b1-a1*b2)*(k*s-h*r + rh0); then
+      |.a-b.| = |.-(a1*b2-a2*b1)*(k*s-h*r + rh0).|/|.(v1*v2).|
+          by COMPLEX1:67,A71
+        .= |.(a1*b2-a2*b1)*(k*s-h*r + rh0).|/|.(v1*v2).| by COMPLEX1:52
+        .= |.(a1*b2-a2*b1).|*|.(k*s-h*r + rh0).|/|.(v1*v2).| by COMPLEX1:65
+        .= Delta*|.(k*s-h*r + rh0).|/(|.v1.|*|.v2.|) by COMPLEX1:65; then
+A73:  (1/2)*|.a-b.|*(|.v1.|*|.v2.|)
+          =(1/2)*Delta*|.(k*s-h*r + rh0).|/(|.v1.|*|.v2.|)*(|.v1.|*|.v2.|)
+         .=(1/2)*Delta*|.(k*s-h*r + rh0).| by XCMPLX_1:87,A23,A7;
+A75:  (1/2)*Delta*|.(k*s-h*r+rh0).|<=(1/2)*Delta*(1/2) by A19,XREAL_1:64;
+A46:  |.u1.|*|.u2.| < Delta/4
+      proof
+       per cases by A20;
+         suppose |.a-u.|*|.b-u.|<=1/4; then
+          (|.u1.|*|.u2.|)*(1/(|.v1.|*|.v2.|))*(|.v1.|*|.v2.|)
+           <=(1/4)*(|.v1.|*|.v2.|) by A42,XREAL_1:64; then
+A48:      (|.u1.|*|.u2.|)<=(1/4)*(|.v1.|*|.v2.|) by XCMPLX_1:109,A23,A7;
+           (|.v1.|*|.v2.|)*(1/4)<=((|.b1.|/(d1*sqrt 5))*|.v2.|)*(1/4)
+             by XREAL_1:64,A49; then
+A67:      (|.u1.|*|.u2.|)<=((|.b1.|/(d1*sqrt 5))*|.v2.|)*(1/4)
+             by A48,XXREAL_0:2;
+          ((|.b1.|/(d1*sqrt 5))*|.v2.|)*(1/4)<Delta*(1/4) by XREAL_1:68,A66;
+          hence thesis by A67,XXREAL_0:2;
+         end;
+         suppose |.a-u.|*|.b-u.|<|.a-b.|/2; then
+         (|.u1.|*|.u2.|)*(1/(|.v1.|*|.v2.|))*(|.v1.|*|.v2.|)
+           <(|.a-b.|/2)*(|.v1.|*|.v2.|) by A23,A7,A42,XREAL_1:68; then
+         (|.u1.|*|.u2.|) < (1/2)*Delta*|.(k*s-h*r + rh0).|
+            by XCMPLX_1:109,A23,A7,A73;
+         hence thesis by A75,XXREAL_0:2;
+       end;
+      end;
+I:    x in INT & y in INT by INT_1:def 2;
+A77:  LF(a1,b1,c1).(x,y) = u1 & LF(a2,b2,c2).(x,y) = u2 by Def4;
+      |. u1 .| < eps by A30,A40,XXREAL_0:2;
+      hence thesis by I,A77,A46;
+   end;
+
+theorem Th47:
+   |.a1*b2-a2*b1.|<>0 & a2/b2 is irrational implies
+   ex x,y be Element of INT st
+   |.LF(a2,b2,c2).(x,y).|*|.LF(a1,b1,c1).(x,y).|<|.a1*b2-a2*b1.|/4 &
+   |.LF(a2,b2,c2).(x,y).| < eps
+   proof
+     |.a2*b1-a1*b2.| = |.-(a1*b2-a2*b1).| .=|.a1*b2-a2*b1.| by COMPLEX1:52;
+     hence thesis by Th46;
+   end;
+
+theorem Th48:
+  ZeroPointSet( LF(a1,b1,c1))<>{} implies
+    ex x,y be Element of INT st
+      |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+   proof
+     assume ZeroPointSet( LF(a1,b1,c1))<>{}; then
+     consider p be object such that
+A2:  p in ZeroPointSet( LF(a1,b1,c1)) by XBOOLE_0:def 1;
+     LF(a1,b1,c1).p = 0 & p in dom LF(a1,b1,c1) by A2,Th13; then
+     consider p1,p2 be object such that
+A4:  p1 in INT & p2 in INT & p = [p1,p2] by ZFMISC_1:def 2;
+     reconsider x = p1,y=p2 as Element of INT by A4;
+     LF(a1,b1,c1).(x,y)=0 by A2,Th13,A4; then
+     |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4;
+     hence thesis;
+   end;
+
+theorem Th49:
+  ZeroPointSet( LF(a2,b2,c2))<>{} implies
+    ex x,y be Element of INT st
+      |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+  proof
+    assume ZeroPointSet( LF(a2,b2,c2))<>{}; then
+    consider p be object such that
+A2: p in ZeroPointSet(LF(a2,b2,c2)) by XBOOLE_0:def 1;
+    LF(a2,b2,c2).p = 0 & p in dom LF(a2,b2,c2) by A2,Th13; then
+    consider p1,p2 be object such that
+A4: p1 in INT & p2 in INT & p = [p1,p2] by ZFMISC_1:def 2;
+    reconsider x = p1,y=p2 as Element of INT by A4;
+    LF(a2,b2,c2).(x,y)=0 by A2,Th13,A4; then
+    |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|
+    <= |.a1*b2-a2*b1.|/4;
+    hence thesis;
+  end;
+
+theorem Th50:
+   |.a1*b2-a2*b1.|<>0 & b1 <> 0 & a1/b1 is rational implies
+   ex x,y be Element of INT st
+   |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+   proof
+   set Delta = |.a1*b2-a2*b1.|;
+     assume that
+A1:  |.a1*b2-a2*b1.|<>0 and
+A2:  b1 <> 0 and
+A3:  a1/b1 is rational;
+     reconsider r1 = a1/b1 as Rational by A3;
+     set n1 = numerator(r1);
+     set d1 = denominator(r1);
+     reconsider t0 = b1/d1 as non zero Real by A2;
+A5:  b1 = t0 * d1 by XCMPLX_1:87;
+A6:  a1 = a1/b1 * b1 by A2,XCMPLX_1:87 .= n1/d1 * b1 by RAT_1:15
+       .= (n1/d1*d1)*t0 by A5.=t0*n1 by XCMPLX_1:87;
+     reconsider rh0 = c1/t0 as Element of REAL by XREAL_0:def 1;
+A7:  c1 = rh0*t0 by XCMPLX_1:87;
+     consider x0,y0 be Element of INT such that
+A8:  |.n1*x0-d1*y0+rh0.|<= 1/2 by Th16,WSIERP_1:22;
+     reconsider x=x0,y=-y0 as Element of INT by INT_1:def 2;
+     t0*(n1*x-d1*y0+rh0) = a1*x + (t0*d1)*(-y0) + rh0*t0 by A6
+     .= a1*x + b1*y + rh0*t0 by XCMPLX_1:87
+     .= LF(a1,b1,c1).(x,y) by A7,Def4; then
+A9:  |.LF(a1,b1,c1).(x,y).| = |.t0.|*|.(n1*x0-d1*y0+rh0).| by COMPLEX1:65;
+     reconsider r=-t0*(a2*x+b2*y+c2)/(a2*b1-b2*a1)
+       as Element of REAL by XREAL_0:def 1;
+     consider s be Element of INT such that
+A11: |.r - s .| <= 1/2 by GAUSSINT:48;
+A12: |.-t0*(a2*x+b2*y+c2)/(a2*b1-b2*a1)-s.|
+     =|.-(t0*(a2*x+b2*y+c2)/(a2*b1-b2*a1)+s).|
+    .=|.(t0*(a2*x+b2*y+c2)/(a2*b1-b2*a1)+s).| by COMPLEX1:52;
+    reconsider x1 = x + d1*s, y1 = y -n1*s as Element of INT by INT_1:def 2;
+     LF(a1,b1,c1).(x1,y1) = a1*x1 + b1*y1 +c1 by Def4
+    .= a1*x+b1*y+c1+(a1*d1-b1*n1)*s
+    .= LF(a1,b1,c1).(x,y) by Def4,A6,A5; then
+A24: |.LF(a1,b1,c1).(x1,y1).| <= |.t0.|*(1/2) by A9,A8,XREAL_1:64;
+A14: LF(a2,b2,c2).(x1,y1)= a2*x1+b2*y1+c2 by Def4
+    .=a2*x+b2*y+c2+(a2*d1-b2*n1)*s
+    .= a2*x+b2*y+c2+(a2*d1-b2*n1)*(s*t0/t0) by XCMPLX_1:89
+    .= a2*x+b2*y+c2+(a2*b1-b2*a1)*(s/t0) by A6,A5;
+      a2*b1-b2*a1 <> 0 by A1; then
+A16:  |.(t0*(a2*x+b2*y+c2)+(a2*b1-b2*a1)*s)/(a2*b1-b2*a1).| <= 1/2
+        by A11,A12,XCMPLX_1:113;
+      |.(a2*b1-b2*a1).| = |.-(a1*b2-a2*b1).|  .=Delta by COMPLEX1:52; then
+      |.(t0*(a2*x+b2*y+c2)+(a2*b1-b2*a1)*s).|/Delta<=1/2 by COMPLEX1:67,A16;
+        then
+      (|.(t0*(a2*x+b2*y+c2)+(a2*b1-b2*a1)*s).|/Delta)*Delta<=(1/2)*Delta
+        by XREAL_1:64; then
+A18:  |.(t0*(a2*x+b2*y+c2)+(a2*b1-b2*a1)*s).|<=(1/2)*Delta by A1,XCMPLX_1:87;
+      |.t0*(a2*x+b2*y+c2)+(a2*b1-b2*a1)*(s*t0/t0).|<=(1/2)*Delta
+        by A18,XCMPLX_1:89; then
+      |.t0*((a2*x+b2*y+c2)+(a2*b1-b2*a1)*(s/t0)).|<=(1/2)*Delta; then
+A20:  |.t0.|*|.(a2*x+b2*y+c2)+(a2*b1-b2*a1)*(s/t0).|<=(1/2)*Delta
+        by COMPLEX1:65;
+      (|.t0.|*|.(a2*x+b2*y+c2)+(a2*b1-b2*a1)*(s/t0).|)/|.t0.|
+     =((1/|.t0.|)*|.t0.|)*|.(a2*x+b2*y+c2)+(a2*b1-b2*a1)*(s/t0).|
+    .=1*|.(a2*x+b2*y+c2)+(a2*b1-b2*a1)*(s/t0).| by XCMPLX_1:106; then
+A23:  |.LF(a2,b2,c2).(x1,y1).| <= (1/2)*Delta/|.t0.|
+        by A14,A20,XREAL_1:72;
+      (|.t0.|*(1/2))*((1/2)*Delta/|.t0.|) = |.t0.|*((1/4)*Delta/|.t0.|)
+    .=Delta/4 by XCMPLX_1:87; then
+      |.LF(a1,b1,c1).(x1,y1).|*|.LF(a2,b2,c2).(x1,y1).|<= Delta/4
+        by A23,A24,XREAL_1:66;
+      hence thesis;
+    end;
+
+theorem Th51:
+   |.a1*b2-a2*b1.|<>0 & b2 <> 0 & a2/b2 is rational implies
+   ex x,y be Element of INT st
+   |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+   proof
+     assume
+A1:  |.a1*b2-a2*b1.|<>0 & b2 <> 0 & a2/b2 is rational;
+A4:  |.a2*b1-a1*b2.| = |.-(a1*b2-a2*b1).| .=|.a1*b2-a2*b1.| by COMPLEX1:52;
+     then ex x,y be Element of INT st
+      |.LF(a2,b2,c2).(x,y).|*|.LF(a1,b1,c1).(x,y).|<=|.a2*b1-a1*b2.|/4
+        by A1,Th50;
+    hence thesis by A4;
+   end;
+
+theorem Th52:
+   |.a1*b2-a2*b1.|<>0 & b1 = 0 implies
+   ex x,y be Element of INT st
+   |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+   proof
+     set Delta = |.a1*b2-a2*b1.|;
+     assume that
+A1:  |.a1*b2-a2*b1.|<>0 and
+A2:  b1 = 0;
+A4:  b2 <> 0 by A1,A2;
+     per cases;
+     suppose
+A5:    a2/b2 is irrational & ZeroPointSet(LF(a2,b2,c2))={};
+       for eps holds ex x,y be Element of INT st
+        |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+       proof
+         let eps;
+         ex x,y be Element of INT st
+         |.LF(a2,b2,c2).(x,y).|*|.LF(a1,b1,c1).(x,y).|<|.a1*b2-a2*b1.|/4 &
+         |.LF(a2,b2,c2).(x,y).| < eps by A1,A5,Th47;
+         hence thesis;
+       end;
+       hence thesis;
+     end;
+     suppose ZeroPointSet(LF(a2,b2,c2))<>{};
+       hence thesis by Th49;
+     end;
+     suppose a2/b2 is rational & ZeroPointSet(LF(a2,b2,c2))={};
+       hence thesis by A1,A4,Th51;
+     end;
+   end;
+
+::Hardy&Wright Th455
+theorem
+  |.a1*b2-a2*b1.|<>0 implies ex x,y be Element of INT st
+    |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+   proof
+     assume
+A1:  |.a1*b2-a2*b1.|<>0;
+     per cases;
+       suppose
+A2:     a1/b1 is irrational & ZeroPointSet(LF(a1,b1,c1))={};
+        for eps holds ex x,y be Element of INT st
+        |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<=|.a1*b2-a2*b1.|/4
+        proof
+         let eps;
+         ex x,y be Element of INT st
+           |.LF(a1,b1,c1).(x,y).|*|.LF(a2,b2,c2).(x,y).|<|.a1*b2-a2*b1.|/4 &
+         |.LF(a1,b1,c1).(x,y).| < eps by A1,A2,Th46;
+         hence thesis;
+         end;
+         hence thesis;
+       end;
+       suppose ZeroPointSet(LF(a1,b1,c1))<>{};
+         hence thesis by Th48;
+       end;
+       suppose a1/b1 is rational & ZeroPointSet(LF(a1,b1,c1))={};
+         hence thesis by A1,Th52,Th50;
+       end;
+    end;
