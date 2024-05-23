@@ -1,0 +1,2070 @@
+:: Arithmetic Operations on Short Finite Sequences
+::  by Rafa{\l} Ziobro
+::
+:: Received September 29, 2018
+:: Copyright (c) 2018-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, NAT_1, INT_1, FINSEQ_1, ARYTM_3, XXREAL_0, FINSEQ_2,
+      CARD_1, ARYTM_1, COMPLEX1, RELAT_1, FUNCT_1, CARD_3, TARSKI, REAL_1,
+      XCMPLX_0, ORDINAL1, ORDINAL4, NEWTON, PARTFUN3, SUBSET_1, VALUED_0,
+      FINSEQ_9, XBOOLE_0, MEMBERED, PARTFUN1, VALUED_1, FOMODEL0, ZFMISC_1;
+ notations TARSKI, XBOOLE_0, ORDINAL1, XCMPLX_0, XREAL_0, NUMBERS, XXREAL_0,
+      RVSUM_3, CARD_1, RELAT_1, FUNCT_1, INT_1, NEWTON, PARTFUN3, ABSVALUE,
+      RVSUM_1, FINSEQ_1, FINSEQ_2, SUBSET_1, VALUED_0, FUNCT_2, FINSEQ_4,
+      MEMBERED, PARTFUN1, VALUED_1, FOMODEL0, RELSET_1;
+ constructors NEWTON, WSIERP_1, RELSET_1, RVSUM_3, FINSEQ_4, NEWTON04;
+ registrations FUNCT_1, ORDINAL1, NUMBERS, XXREAL_0, XREAL_0, NAT_1, INT_1,
+      FINSEQ_1, NEWTON, XBOOLE_0, VALUED_0, FINSET_1, CARD_1, RVSUM_1, RVSUM_3,
+      FINSEQ_2, PARTFUN3, FOMODEL0, MEMBERED, NEWTON02, FUNCT_2, NEWTON04,
+      RELAT_1, ABSVALUE, NAT_2, EUCLID_9, VALUED_1, COMPLEX1, FINSEQ_4,
+      FUNCOP_1;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ definitions FUNCT_1, PARTFUN3;
+ equalities FINSEQ_1, FINSEQ_2;
+ theorems NAT_1, ABSVALUE, INT_1, NEWTON, XREAL_1, XREAL_0, RAT_1, FINSEQ_1,
+      FINSEQ_3, RVSUM_1, PARTFUN3, FINSEQ_2, CARD_1, NAT_4, ORDINAL1, XCMPLX_0,
+      TARSKI, SUBSET_1, NEWTON02, FINSEQ_4, NEWTON03, EUCLID, FUNCT_1, FUNCT_2,
+      RELAT_1, VALUED_0, VALUED_1, VALUED_2, TOPREALC, RFUNCT_1, ZFMISC_1,
+      PARTFUN1, XBOOLE_1, XXREAL_0, FINSEQ_5, PBOOLE, NEWTON04;
+
+begin
+
+:: empty Relations are full of adjectives
+
+registration
+  cluster empty -> positive-yielding for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume R is empty;
+    then for x be Real st x in rng R holds x > 0;
+    hence thesis by PARTFUN3:def 1;
+  end;
+  cluster empty -> negative-yielding for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume R is empty;
+    then for x be Real st x in rng R holds x < 0;
+    hence thesis by PARTFUN3:def 2;
+  end;
+end;
+
+registration
+  cluster natural-valued -> NAT-valued for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume R is natural-valued; then
+    rng R c= NAT by VALUED_0:def 6;
+    hence thesis by RELAT_1:def 19;
+  end;
+end;
+
+registration
+  let f be complex-valued Function, k be object;
+  reduce (0(#)f).k to 0;
+  reducibility
+  proof
+    per cases;
+    suppose
+      not k in dom (0(#)f);
+      hence thesis by FUNCT_1:def 2;
+    end;
+    suppose
+      k in dom (0(#)f); then
+      (0(#)f).k = 0 * f.k by VALUED_1:def 5;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let f be complex-valued Function;
+  reduce 1(#)f to f;
+  reducibility by RFUNCT_1:21;
+  reduce (-1)(#)(-f) to f;
+  reducibility
+  proof
+    (-1)(#)(-f) = (-1)(#)((-1)(#)(f)) by VALUED_1:def 6
+    .= ((-1)*(-1))(#)(f) by VALUED_2:16;
+    hence thesis;
+  end;
+  cluster 0(#)f -> empty-yielding;
+  coherence
+  proof
+    for k be object st k in dom (0(#)f) holds (0(#)f).k is empty
+      by ORDINAL1:def 13;
+    hence thesis by FUNCT_1:def 8;
+  end;
+  cluster f - f -> empty-yielding;
+  coherence
+  proof
+    f - f =  f + (-f) by VALUED_1:def 9
+    .= 1(#)f + (-1)(#)f by VALUED_1:def 6
+    .= (1 + (-1))(#)f by TOPREALC:2
+    .= 0(#)f;
+    hence thesis;
+  end;
+end;
+
+registration
+  let D be set;
+  cluster empty-yielding for D-valued FinSequence;
+  existence
+  proof
+    rng (0|->0) c= D by XBOOLE_1:2; then
+    0|->0 is empty-yielding &
+      0|->0 is D-valued by FINSEQ_1:def 4;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster empty-yielding -> NAT-valued for FinSequence;
+  coherence
+  proof
+    let f be FinSequence;
+    assume f is empty-yielding; then
+    0 in NAT & rng f = {{}} or f = {} by PBOOLE:2; then
+    f is natural-valued or thesis by ZFMISC_1:31,VALUED_0:def 6;
+    hence thesis;
+  end;
+  cluster non empty for empty-yielding FinSequence;
+  existence
+  proof
+    (1|->0) is empty-yielding &  (1|->0) is non empty;
+    hence thesis;
+  end;
+end;
+
+registration
+  let n be Nat;
+  cluster n-element for empty-yielding NAT-valued FinSequence;
+  existence
+  proof
+    len (n|->0) = n;
+    hence thesis;
+  end;
+  cluster min (n,0) -> zero;
+  coherence by XXREAL_0:def 9;
+  reduce max (n,0) to n;
+  reducibility by XXREAL_0:def 10;
+end;
+
+registration
+  let a be non zero Nat;
+  reduce min(a,1) to 1;
+  reducibility by NAT_1:14,XXREAL_0:def 9;
+  reduce max(a,1) to a;
+  reducibility by NAT_1:14,XXREAL_0:def 10;
+end;
+
+registration
+  let a be non trivial Nat;
+  reduce min(a,2) to 2;
+  reducibility
+  proof
+    a > 1 by NEWTON03:def 1; then
+    a >= 1+1  by NAT_1:13;
+    hence thesis by XXREAL_0:def 9;
+  end;
+  reduce max(a,2) to a;
+  reducibility
+  proof
+    a > 1 by NEWTON03:def 1; then
+    a >= 1+1 by INT_1:7;
+    hence thesis by XXREAL_0:def 10;
+  end;
+end;
+
+registration
+  let a be positive Real;
+  let b be positive Nat;
+  cluster b|->a -> positive;
+  coherence;
+end;
+
+registration
+  cluster empty-yielding -> Function-like for Relation;
+  coherence
+  proof
+    let R be Relation;
+    assume R is empty-yielding; then
+    R is {{}}-valued;
+    hence thesis;
+  end;
+  cluster empty-yielding -> natural-valued for Function;
+  coherence
+  proof
+    let f be Function;
+    assume f is empty-yielding; then
+    0 in NAT & (for x be object st x in rng f holds x = 0) by RELAT_1:149; then
+    for x be object st x in rng f holds x in NAT;
+    hence thesis by TARSKI:def 3,VALUED_0:def 6;
+  end;
+  cluster empty-yielding -> nonpositive-yielding for real-valued Function;
+  coherence
+  proof
+    let f be real-valued Function;
+    assume f is empty-yielding; then
+    for r be Real st r in rng f holds r <= 0 by RELAT_1:149;
+    hence thesis by PARTFUN3:def 3;
+  end;
+  cluster empty-yielding -> nonnegative-yielding for real-valued Function;
+  coherence
+  proof
+    let f be real-valued Function;
+    assume f is empty-yielding; then
+    for r be Real st r in rng f holds r >= 0;
+    hence thesis by PARTFUN3:def 4;
+  end;
+  cluster empty-yielding -> non positive-yielding
+    for non empty real-valued Function;
+  coherence
+  proof
+    let f be non empty real-valued Function;
+    assume
+    A1: f is empty-yielding;
+    take the Element of rng f;
+    thus thesis by A1,RELAT_1:149;
+  end;
+  cluster empty-yielding -> non negative-yielding
+    for non empty real-valued Function;
+  coherence
+  proof
+    let f be non empty real-valued Function;
+    assume
+    A1: f is empty-yielding;
+    take the Element of rng f;
+    thus thesis by A1;
+  end;
+  cluster positive-yielding -> non nonpositive-yielding
+    for non empty real-valued Function;
+  coherence
+  proof
+    let f be non empty real-valued Function;
+    assume
+    A1: f is positive-yielding;
+    take the Element of rng f;
+    thus thesis by A1,PARTFUN3:def 1;
+  end;
+  cluster negative-yielding -> non nonnegative-yielding
+    for non empty real-valued Function;
+  coherence
+  proof
+    let f be non empty real-valued Function;
+    assume
+    A1: f is negative-yielding;
+    take the Element of rng f;
+    thus thesis by A1,PARTFUN3:def 2;
+  end;
+end;
+
+registration
+  let f be empty-yielding Function, c be Complex;
+  cluster c(#)f -> empty-yielding;
+  coherence
+  proof
+    let k be object;
+    assume k in dom (c(#)f); then
+    (c(#)f).k =  c * f.k by VALUED_1:def 5;
+    hence thesis;
+  end;
+end;
+
+registration let f be empty-yielding Function, g be complex-valued Function;
+  cluster f(#)g -> empty-yielding;
+  coherence
+  proof
+    let k be object such that
+A1: k in dom (f(#)g);
+    (f(#)g).k = f.k* g.k by A1,VALUED_1:def 4;
+    hence thesis;
+  end;
+end;
+
+:: length of FinSequences
+
+registration
+  let f be complex-valued FinSequence, x be Complex;
+  cluster f + x -> (len f)-element;
+  coherence
+  proof
+    dom (f + x) = dom f by VALUED_1:def 2; then
+    len (f + x) = len f by FINSEQ_3:29; then
+    (f+x) null f is (len f)-element;
+    hence thesis;
+  end;
+  cluster f - x -> (len f)-element;
+  coherence
+  proof
+    f + (-x) is (len f)-element;
+    hence thesis by VALUED_1:def 3;
+  end;
+end;
+
+registration
+  let f be complex-valued FinSequence;
+  cluster abs f -> (len f)-element;
+  coherence
+  proof
+    dom (abs f) = dom f by VALUED_1:def 11; then
+    len (abs f) = len f by FINSEQ_3:29; then
+    abs f null f is (len f)-element;
+    hence thesis;
+  end;
+  cluster -f -> (len f)-element;
+  coherence
+  proof
+    -f = (-1)(#)f by VALUED_1:def 6;
+    hence thesis;
+  end;
+  cluster f" -> (len f)-element;
+  coherence
+  proof
+    dom (f") = dom f by VALUED_1:def 7; then
+    len (f") = len f by FINSEQ_3:29; then
+    f" null f is (len f)-element;
+    hence thesis;
+  end;
+end;
+
+registration
+  let n,m be Nat;
+  let f be n-element complex-valued FinSequence,
+      g be m-element complex-valued FinSequence;
+  cluster f+g -> min(n,m)-element;
+  coherence
+  proof
+    A1: len f = n & len g = m by CARD_1:def 7;
+    reconsider f as FinSequence of COMPLEX by NEWTON02:103;
+    reconsider g as FinSequence of COMPLEX by NEWTON02:103;
+    len (f+g)  = min (len f,len g) by NEWTON04:23;
+    hence thesis by A1,CARD_1:def 7;
+  end;
+  cluster f(#)g -> min(n,m)-element;
+  coherence
+  proof
+    A1: len f = n & len g = m by CARD_1:def 7;
+    reconsider f as FinSequence of COMPLEX by NEWTON02:103;
+    reconsider g as FinSequence of COMPLEX by NEWTON02:103;
+    len (f(#)g)  = min (len f,len g) by NEWTON04:24;
+    hence thesis by A1,CARD_1:def 7;
+  end;
+  cluster f-g -> min(n,m)-element;
+  coherence
+  proof
+    A1: len f = n & len g = m by CARD_1:def 7;
+    reconsider f as FinSequence of COMPLEX by NEWTON02:103;
+    reconsider g as FinSequence of COMPLEX by NEWTON02:103;
+    len (f-g)  = min (len f,len g) by NEWTON04:25;
+    hence thesis by A1,CARD_1:def 7;
+  end;
+  cluster f /" g -> min(n,m)-element;
+  coherence
+  proof
+    reconsider h = g" as m-element complex-valued FinSequence;
+    f(#)h is min(n,m)-element;
+    hence thesis by VALUED_1:def 10;
+  end;
+end;
+
+registration let n,m be Nat, f be n-element complex-valued FinSequence,
+  g be (n+m)-element empty-yielding complex-valued FinSequence;
+  reduce f + g to f;
+  reducibility
+  proof
+    min (n+0,n+m) = n by XREAL_1:6,XXREAL_0:def 9; then
+    reconsider h = f + g as n-element complex-valued FinSequence;
+    len f = n & len h = n by FINSEQ_3:153; then
+    A1: dom f = dom h by FINSEQ_3:29;
+    for c be Nat st c in dom (f + g) holds (f + g).c = f.c
+    proof
+      let c be Nat such that
+      B1: c in dom (f + g);
+      reconsider f as complex-valued Function;
+      reconsider g as complex-valued Function;
+      reconsider c as object;
+      (f + g).c = f.c + g.c by VALUED_1:def 1,B1
+      .= f.c + 0;
+      hence thesis;
+    end;
+    hence thesis by A1,FINSEQ_1:13;
+  end;
+end;
+
+registration let n be Nat, f be n-element complex-valued FinSequence,
+  g be n-element empty-yielding complex-valued FinSequence;
+  reduce f+g to f;
+  reducibility
+  proof
+    reconsider g as (n+0)-element empty-yielding complex-valued FinSequence;
+    f+g = f;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X be non empty set;
+  cluster total for X-defined empty-yielding Function;
+  existence
+  proof
+    consider f be Function such that
+    A1: dom f = X & rng f = {0} by FUNCT_1:5;
+    reconsider f as total X-defined Function
+      by A1,PARTFUN1:def 2,RELAT_1:def 18;
+    f is empty-yielding by A1,RELAT_1:def 15;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X be non empty set;
+  let f be total X-defined complex-valued Function;
+  let g be total X-defined empty-yielding Function;
+  reduce f + g to f;
+  reducibility
+  proof
+    reconsider g as complex-valued Function;
+    dom f = X &  dom g = X by PARTFUN1:def 2; then
+    A0: dom (f + g) = (dom f) /\ (dom f) by VALUED_1:def 1;
+    for k be object st k in dom f holds f.k = (f+g).k
+    proof
+      let k be object such that
+      A1: k in dom f;
+      reconsider c = f.k as Complex;
+      g.k = 0; then
+      c = (f.k) + (g.k)
+      .= (f + g).k by A0,A1,VALUED_1:def 1;
+      hence thesis;
+    end;
+    hence thesis by A0, FUNCT_1:def 11;
+  end;
+end;
+
+registration
+  let f be Relation;
+  cluster (dom f)-defined for Relation;
+  existence by RELAT_1:def 18;
+  cluster f null f -> (dom f)-defined;
+  coherence by RELAT_1:def 18;
+  cluster total for (dom f)-defined Relation;
+  existence
+  proof
+    dom (f null f) = dom f;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+registration
+  let f be complex-valued Function;
+  cluster total for (dom f)-defined empty-yielding Function;
+  existence
+  proof
+    reconsider X = dom f as set;
+    dom (0(#)f) = dom f by VALUED_1:def 5; then
+    reconsider h = (0(#)f) as X-defined empty-yielding Function
+      by RELAT_1:def 18;
+    dom h = X by VALUED_1:def 5; then
+    h is total by PARTFUN1:def 2;
+    hence thesis;
+  end;
+  cluster -f -> (dom f)-defined;
+  coherence
+  proof
+    dom (-f) = dom f by VALUED_1:8;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster -f -> total;
+  coherence
+  proof
+    dom (-f) = dom f by VALUED_1:8;
+    hence thesis by PARTFUN1:def 2;
+  end;
+  cluster f" -> (dom f)-defined;
+  coherence
+  proof
+    dom (f") = dom f by VALUED_1:def 7;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster f" -> total;
+  coherence
+  proof
+    dom (f") = dom f by VALUED_1:def 7;
+    hence thesis by PARTFUN1:def 2;
+  end;
+  cluster abs f -> (dom f)-defined;
+  coherence
+  proof
+    dom (abs f) = dom f by VALUED_1:def 11;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster abs f -> total;
+  coherence
+  proof
+    dom (abs f) = dom f by VALUED_1:def 11;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+registration
+  let f be complex-valued Function, c be Complex;
+  cluster c + f -> (dom f)-defined;
+  coherence
+  proof
+    dom (c+f) = dom f by VALUED_1:def 2;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster c + f -> total;
+  coherence
+  proof
+    dom (c+f) = dom f by VALUED_1:def 2;
+    hence thesis by PARTFUN1:def 2;
+  end;
+  cluster f - c -> (dom f)-defined;
+  coherence
+  proof
+    dom (f-c) = dom (-c+f) by VALUED_1:def 3
+    .= dom f by VALUED_1:def 2;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster f - c -> total;
+  coherence
+  proof
+    dom (f-c) = dom (-c+f) by VALUED_1:def 3
+    .= dom f by VALUED_1:def 2;
+    hence thesis by PARTFUN1:def 2;
+  end;
+  cluster c(#)f -> (dom f)-defined;
+  coherence
+  proof
+    dom (c(#)f) = dom f by VALUED_1:def 5;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster c(#)f -> total;
+  coherence
+  proof
+    dom (c(#)f) = dom f by VALUED_1:def 5;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+registration
+  let f be FinSequence;
+  cluster (len f)-element -> (dom f)-defined for FinSequence;
+  coherence
+  proof
+    let g be FinSequence;
+    assume g is (len f)-element; then
+    len f = len g by CARD_1:def 7; then
+    dom f = dom g by FINSEQ_3:29;
+    hence thesis by RELAT_1:def 18;
+  end;
+end;
+
+registration
+  let n be Nat;
+  cluster n-element -> (Seg n)-defined for FinSequence;
+  coherence
+  proof
+    reconsider f = idseq n as n-element FinSequence;
+    let g be FinSequence;
+    assume g is n-element; then
+    len g = len f by FINSEQ_3:153; then
+    dom g = dom id Seg n by FINSEQ_3:29;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster total (Seg n)-defined -> n-element for FinSequence;
+  coherence
+  proof
+    let f be FinSequence;
+    assume f is total (Seg n)-defined; then
+    Seg n = dom f by PARTFUN1:def 2; then
+    Seg (len f) = Seg n by FINSEQ_1:def 3;
+    hence thesis by CARD_1:def 7,FINSEQ_1:6;
+  end;
+end;
+
+theorem EMP:
+  for f be complex-valued FinSequence holds 0(#)f = (len f)|-> 0
+  proof
+    let f be complex-valued FinSequence;
+    A1: dom (0(#)f) = dom f by VALUED_1:def 5
+    .= Seg len ((len f)|-> 0) by FINSEQ_1:def 3
+    .= dom ((len f)|-> 0);
+    for c be Nat st c in dom (0(#)f) holds (0(#)f).c = ((len f)|-> 0).c;
+    hence thesis by A1,FINSEQ_1:13;
+  end;
+
+registration let f be complex-valued FinSequence;
+  reduce f + ((len f)|->0) to f;
+  reducibility
+  proof
+    (len f)|->0 = 0(#)f by EMP; then
+    reconsider g = ((len f)|-> 0) as total (dom f)-defined
+      empty-yielding complex-valued Function;
+    reconsider h = 1(#)f as total (dom f)-defined complex-valued Function;
+    h + g = h;
+    hence thesis;
+  end;
+end;
+
+registration
+  let n be Nat;
+  let D be non empty set;
+  let X be non empty Subset of D;
+    cluster n-element for X-valued FinSequence;
+  existence
+  proof
+    consider k be Element of D such that
+    A1: k in X by SUBSET_1:4;
+    reconsider f = n|-> k as X-valued FinSequence by A1;
+    f is n-element;
+    hence thesis;
+  end;
+  cluster n-element for FinSequence of X;
+  existence
+  proof
+    consider k be Element of D such that
+    A1: k in X by SUBSET_1:4;
+    reconsider f = n|-> k as FinSequence of X by A1,FINSEQ_2:63;
+    f is n-element;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be real-valued Function;
+  cluster f + (abs f) -> nonnegative-yielding;
+  coherence
+  proof
+    let r be Real such that
+A1: r in rng (f + (abs f));
+    consider i be object such that
+A2: i in dom (f + (abs f)) & (f + (abs f)).i = r by A1,FUNCT_1:def 3;
+A3: dom (f + abs f) = dom f /\ dom abs f by VALUED_1:def 1;
+A4: |.f.i.| = f.i or |.f.i.| = -f.i by ABSVALUE:1;
+    (f + (abs f)).i = f.i + (abs f).i by A2,VALUED_1:def 1
+    .= f.i + |.f.i.| by A2,A3,VALUED_1:def 11;
+    hence thesis by A2,A4;
+  end;
+  cluster (abs f) - f -> nonnegative-yielding;
+  coherence
+  proof
+    reconsider g = - f as real-valued Function;
+    (abs g) + g is nonnegative-yielding; then
+    (abs g) - f is nonnegative-yielding by VALUED_1:def 9;
+    hence thesis by EUCLID:5;
+  end;
+end;
+
+registration
+  let f be nonnegative-yielding real-valued Function, x be object;
+  cluster f.x -> non negative;
+  coherence
+  proof
+    per cases;
+    suppose x in dom f; then
+      f.x in rng f by FUNCT_1:3;
+      hence thesis by PARTFUN3:def 4;
+    end;
+    suppose not x in dom f;
+      hence thesis by FUNCT_1:def 2;
+    end;
+  end;
+end;
+
+registration
+  let f be nonpositive-yielding real-valued Function, x be object;
+  cluster f.x -> non positive;
+  coherence
+  proof
+    per cases;
+    suppose x in dom f; then
+      f.x in rng f by FUNCT_1:3;
+      hence thesis by PARTFUN3:def 3;
+    end;
+    suppose not x in dom f;
+      hence thesis by FUNCT_1:def 2;
+    end;
+  end;
+end;
+
+registration
+  let f be nonnegative-yielding real-valued Function, r be non negative Real;
+  cluster r(#)f -> nonnegative-yielding;
+  coherence
+  proof
+    let y be Real such that
+B1: y in rng (r(#)f);
+    consider x be object such that
+B2: x in dom (r(#)f) & y = (r(#)f).x by B1,FUNCT_1:def 3;
+    (r(#)f).x = r*(f.x) by B2,VALUED_1:def 5;
+    hence thesis by B2;
+  end;
+  cluster (-r)(#)f -> nonpositive-yielding;
+  coherence
+  proof
+    let y be Real such that
+B1: y in rng ((-r)(#)f);
+    consider x be object such that
+B2: x in dom ((-r)(#)f) & y = ((-r)(#)f).x by B1,FUNCT_1:def 3;
+    ((-r)(#)f).x = (-r)*(f.x) by B2,VALUED_1:def 5;
+    hence thesis by B2;
+  end;
+end;
+
+registration
+  let f be nonnegative-yielding real-valued Function;
+  cluster -f -> nonpositive-yielding;
+  coherence
+  proof
+    -f = (-1)(#)f by VALUED_1:def 6;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be nonpositive-yielding real-valued Function, r be non negative Real;
+  cluster r(#)f -> nonpositive-yielding;
+  coherence
+  proof
+    let y be Real such that
+B1: y in rng (r(#)f);
+    consider x be object such that
+B2: x in dom (r(#)f) & y = (r(#)f).x by B1,FUNCT_1:def 3;
+    (r(#)f).x = r*(f.x) by B2,VALUED_1:def 5;
+    hence thesis by B2;
+  end;
+  cluster (-r)(#)f -> nonnegative-yielding;
+  coherence
+  proof
+    let y be Real such that
+B1: y in rng ((-r)(#)f);
+    consider x be object such that
+B2: x in dom ((-r)(#)f) & y = ((-r)(#)f).x by B1,FUNCT_1:def 3;
+    ((-r)(#)f).x = (-r)*(f.x) by B2,VALUED_1:def 5;
+    hence thesis by B2;
+  end;
+end;
+
+registration
+  let f be nonpositive-yielding real-valued Function;
+  cluster -f -> nonnegative-yielding;
+  coherence
+  proof
+    -f = (-1)(#)f by VALUED_1:def 6;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster nonnegative-yielding -> natural-valued for INT-valued Function;
+  coherence
+  proof
+    let f be INT-valued Function;
+    assume f is nonnegative-yielding; then
+    for i be object holds f.i is natural;
+    hence thesis by VALUED_0:12;
+  end;
+end;
+
+registration
+  let f be INT-valued Function;
+  cluster (1/2)(#)(f+(abs f)) -> natural-valued;
+  coherence
+  proof
+    reconsider F = (1/2)(#)(f+(abs f)) as real-valued Function;
+    for i be object holds F.i is natural
+    proof
+      let i be object;
+      per cases;
+      suppose
+        B0: i in dom F; then
+        B1: i in dom (f + abs f) by VALUED_1:def 5; then
+        B2: i in (dom f /\ dom abs f) by VALUED_1:def 1;
+        reconsider a = f.i as Integer;
+        reconsider b = (abs f).i as Nat;
+        b =|.a.| by VALUED_1:def 11,B2; then
+        b = a or b = -a by ABSVALUE:1; then
+        a+b = b + b or a+b = -b + b; then
+        (f + abs f).i = 2*b or (f + abs f).i = 0 by B1,VALUED_1:def 1; then
+        F.i = (1/2)*(2*b) or F.i = (1/2)*0 by B0,VALUED_1:def 5;
+        hence thesis;
+      end;
+      suppose not i in dom F;
+        hence thesis by FUNCT_1:def 2;
+      end;
+    end;
+    hence thesis by VALUED_0:12;
+  end;
+  cluster (1/2)(#)((abs f)- f) -> natural-valued;
+  coherence
+  proof
+    reconsider g = - f as INT-valued Function;
+    (1/2)(#)((abs g) + g) is natural-valued; then
+    (1/2)(#)((abs g) - f) is natural-valued by VALUED_1:def 9;
+    hence thesis by EUCLID:5;
+  end;
+end;
+
+:: Values are members of the range
+
+theorem NV:
+  for f be Relation holds rng f is natural-membered iff f is natural-valued
+  proof
+    let f be Relation;
+    thus rng f is natural-membered implies f is natural-valued
+    proof
+      set E = (rng f)\/NAT;
+      reconsider X = rng f as Subset of E by XBOOLE_1:7;
+      reconsider Y = NAT as Subset of E by XBOOLE_1:7;
+      assume rng f is natural-membered; then
+      for x be Element of E st x in rng f holds x in NAT
+        by ORDINAL1:def 12; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by VALUED_0:def 6;
+    end;
+    thus thesis;
+  end;
+
+theorem
+  for f be Relation holds f is NAT-valued iff rng f is natural-membered
+  proof
+    let f be Relation;
+    f is NAT-valued iff f is natural-valued;
+    hence thesis by NV;
+  end;
+
+theorem
+  for f be Relation holds rng f is integer-membered iff f is INT-valued
+  proof
+    let f be Relation;
+    thus rng f is integer-membered implies f is INT-valued
+    proof
+      set E = (rng f)\/INT;
+      reconsider X = rng f as Subset of E by XBOOLE_1:7;
+      reconsider Y = INT as Subset of E by XBOOLE_1:7;
+      assume rng f is integer-membered; then
+      for x be Element of E st x in rng f holds x in INT by INT_1:def 2; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 19;
+    end;
+    thus thesis;
+  end;
+
+theorem
+  for f be Relation holds rng f is rational-membered iff f is RAT-valued
+  proof
+    let f be Relation;
+    thus rng f is rational-membered implies f is RAT-valued
+    proof
+      set E = (rng f)\/RAT;
+      reconsider X = rng f as Subset of E by XBOOLE_1:7;
+      reconsider Y = RAT as Subset of E by XBOOLE_1:7;
+      assume rng f is rational-membered; then
+      for x be Element of E st x in rng f holds x in RAT by RAT_1:def 2; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 19;
+    end;
+    thus thesis;
+  end;
+
+theorem RV:
+  for f be Relation holds rng f is real-membered iff f is real-valued
+  proof
+    let f be Relation;
+    thus rng f is real-membered implies f is real-valued
+    proof
+      set E = (rng f)\/REAL;
+      reconsider X = rng f as Subset of E by XBOOLE_1:7;
+      reconsider Y = REAL as Subset of E by XBOOLE_1:7;
+      assume rng f is real-membered; then
+      for x be Element of E st x in rng f holds x in REAL
+        by XREAL_0:def 1; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by VALUED_0:def 3;
+    end;
+    thus thesis;
+  end;
+
+theorem
+  for f be Relation holds f is REAL-valued iff rng f is real-membered
+  proof
+    let f be Relation;
+    f is REAL-valued iff f is real-valued;
+    hence thesis by RV;
+  end;
+
+theorem CV:
+  for f be Relation holds rng f is complex-membered iff f is complex-valued
+  proof
+    let f be Relation;
+    thus rng f is complex-membered implies f is complex-valued
+    proof
+      set E = (rng f)\/COMPLEX;
+      reconsider X = rng f as Subset of E by XBOOLE_1:7;
+      reconsider Y = COMPLEX as Subset of E by XBOOLE_1:7;
+      assume rng f is complex-membered; then
+      for x be Element of E st x in rng f holds x in COMPLEX
+        by XCMPLX_0:def 2; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by VALUED_0:def 1;
+    end;
+    thus thesis;
+  end;
+
+theorem
+  for f be Relation holds f is COMPLEX-valued iff rng f is complex-membered
+  proof
+    let f be Relation;
+    f is COMPLEX-valued iff f is complex-valued;
+    hence thesis by CV;
+  end;
+
+:: similarly: Relations are defined over members of their domain
+
+theorem
+  for f be Relation holds dom f is natural-membered iff f is NAT-defined
+  proof
+    let f be Relation;
+    thus dom f is natural-membered implies f is NAT-defined
+    proof
+      set E = (dom f)\/NAT;
+      reconsider X = dom f as Subset of E by XBOOLE_1:7;
+      reconsider Y = NAT as Subset of E by XBOOLE_1:7;
+      assume dom f is natural-membered; then
+      for x be Element of E st x in dom f holds x in NAT
+        by ORDINAL1:def 12; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 18;
+    end;
+    thus thesis;
+  end;
+
+registration
+  let f be INT-defined Relation;
+  cluster dom f -> integer-membered;
+  coherence;
+end;
+
+theorem
+  for f be Relation holds dom f is integer-membered iff f is INT-defined
+  proof
+    let f be Relation;
+    thus dom f is integer-membered implies f is INT-defined
+    proof
+      set E = (dom f)\/INT;
+      reconsider X = dom f as Subset of E by XBOOLE_1:7;
+      reconsider Y = INT as Subset of E by XBOOLE_1:7;
+      assume dom f is integer-membered; then
+      for x be Element of E st x in dom f holds x in INT by INT_1:def 2; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 18;
+    end;
+    thus thesis;
+  end;
+
+registration
+  let f be RAT-defined Relation;
+  cluster dom f -> rational-membered;
+  coherence;
+end;
+
+theorem
+  for f be Relation holds dom f is rational-membered iff f is RAT-defined
+  proof
+    let f be Relation;
+    thus dom f is rational-membered implies f is RAT-defined
+    proof
+      set E = (dom f)\/RAT;
+      reconsider X = dom f as Subset of E by XBOOLE_1:7;
+      reconsider Y = RAT as Subset of E by XBOOLE_1:7;
+      assume dom f is rational-membered; then
+      for x be Element of E st x in dom f holds x in RAT by RAT_1:def 2; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 18;
+    end;
+    thus thesis;
+  end;
+
+registration
+  let f be REAL-defined Relation;
+  cluster dom f -> real-membered;
+  coherence;
+end;
+
+theorem
+  for f be Relation holds dom f is real-membered iff f is REAL-defined
+  proof
+    let f be Relation;
+    thus dom f is real-membered implies f is REAL-defined
+    proof
+      set E = (dom f)\/REAL;
+      reconsider X = dom f as Subset of E by XBOOLE_1:7;
+      reconsider Y = REAL as Subset of E by XBOOLE_1:7;
+      assume dom f is real-membered; then
+      for x be Element of E st x in dom f holds x in REAL
+        by XREAL_0:def 1; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 18;
+    end;
+    thus thesis;
+  end;
+
+registration
+  let f be COMPLEX-defined Relation;
+  cluster dom f -> complex-membered;
+  coherence;
+end;
+
+theorem
+  for f be Relation holds dom f is complex-membered iff f is COMPLEX-defined
+  proof
+    let f be Relation;
+    thus dom f is complex-membered implies f is COMPLEX-defined
+    proof
+      set E = (dom f)\/COMPLEX;
+      reconsider X = dom f as Subset of E by XBOOLE_1:7;
+      reconsider Y = COMPLEX as Subset of E by XBOOLE_1:7;
+      assume dom f is complex-membered; then
+      for x be Element of E st x in dom f holds x in COMPLEX
+        by XCMPLX_0:def 2; then
+      X c= Y by SUBSET_1:2;
+      hence thesis by RELAT_1:def 18;
+    end;
+    thus thesis;
+  end;
+
+theorem N2103:
+  for D be set, f be Function holds
+  f is D-valued iff f is Function of dom f,D
+  proof
+    let D be set, f be Function;
+    thus f is D-valued implies f is Function of dom f,D
+    proof
+      assume f is D-valued; then
+      rng f c= D by RELAT_1:def 19;
+      hence thesis by FUNCT_2:2;
+    end;
+    thus thesis;
+  end;
+
+theorem T2103:
+  for C be set, f be total C-defined Function holds f is Function of C, rng f
+  proof
+    let C be set, f be total C-defined Function;
+    dom f = C by PARTFUN1:def 2;
+    hence thesis by FUNCT_2:1;
+  end;
+
+theorem
+  for C,D be set, f be total C-defined Function holds
+  f is Function of C,D iff f is D-valued
+  proof
+    let C,D be set, f be total C-defined Function;
+    reconsider f1 = f as Function of C, rng f by T2103;
+    f1 is D-valued implies f is Function of dom f, D by N2103;
+    hence thesis by PARTFUN1:def 2;
+ end;
+
+theorem
+  for f be real-valued Function holds f is Function of dom f,REAL
+  proof
+    let f be real-valued Function;
+    rng f c= REAL;
+    hence thesis by FUNCT_2:2;
+  end;
+
+theorem
+  for f be complex-valued FinSequence holds f-f = 0(#)f & f-f = ((len f)|-> 0)
+  proof
+    let f be complex-valued FinSequence;
+    f - f = f + (-f) by VALUED_1:def 9
+    .= 1(#)f + (-1)(#)f by VALUED_1:def 6
+    .= (1 + (-1))(#)f by TOPREALC:2
+    .= 0(#)f;
+    hence thesis by EMP;
+  end;
+
+theorem Lmkdf:
+  for a be Complex, f be FinSequence, k be Nat st k in dom f holds
+    ((len f) |-> a).k = a
+  proof
+    let a be Complex;
+    let f be FinSequence;
+    let k be Nat;
+    assume k in dom f; then
+    (len f) >= k >= 1 by FINSEQ_3:25; then
+    k in Seg (len f);
+    hence thesis by FINSEQ_2:57;
+  end;
+
+registration
+  let a be Real, k be non zero Nat, l be Nat, f be (k+l)-element FinSequence;
+  reduce ((len f) |-> a).k to a;
+  reducibility
+  proof
+    1 <= k & k + 0 <= k + l by NAT_1:14,XREAL_1:6; then
+    1 <= k <= len f by CARD_1:def 7; then
+    k in dom f by FINSEQ_3:25;
+    hence thesis by Lmkdf;
+  end;
+end;
+
+definition
+  let f be complex-valued Function;
+  func delneg f -> complex-valued Function equals
+  (1/2)(#)(f + (abs f));
+  correctness;
+  func delpos f -> complex-valued Function equals
+  (1/2)(#)((abs f) - f);
+  correctness;
+  func delall f -> complex-valued Function equals
+  0(#)f;
+  correctness;
+end;
+
+theorem DMN:
+  for f be complex-valued Function holds dom f = dom (delpos f)
+  & dom f = dom (delneg f) & dom f = dom (delall f)
+  proof
+    let f be complex-valued Function;
+    A1: dom ((1/2)(#)(f + abs f)) = dom (f + abs f) by VALUED_1:def 5
+    .= (dom f) /\ (dom (abs f)) by VALUED_1:def 1
+    .= dom f by VALUED_1:def 11;
+    dom ((1/2)(#)((abs f) -  f)) = dom ((abs f) - f) by VALUED_1:def 5
+    .= dom ((abs f) + (-f)) by VALUED_1:def 9
+    .= (dom (-f)) /\ (dom (abs f)) by VALUED_1:def 1
+    .= (dom ((-1)(#)f))/\(dom (abs f)) by VALUED_1:def 6
+    .= (dom f) /\ (dom (abs f)) by VALUED_1:def 5
+    .= dom f by VALUED_1:def 11;
+    hence thesis by A1,VALUED_1:def 5;
+  end;
+
+theorem VAL:
+  for f be complex-valued Function, x be object holds
+  f.x = (delneg f).x - (delpos f).x
+  proof
+    let f be complex-valued Function, x be object;
+K1: dom(delneg f) = dom f & dom(delpos f) = dom f by DMN;
+    per cases;
+    suppose not x in dom f;
+      then f.x = {} & (delneg f).x = {} & (delpos f).x = {}
+      by K1,FUNCT_1:def 2;
+      hence thesis;
+    end;
+    suppose
+    A1: x in dom f;
+    per cases;
+    suppose
+      B1: f is empty; then
+      (1/2)(#)(f + abs f) is empty & (1/2)(#)((abs f) - f) is empty;
+      hence thesis by B1;
+    end;
+    suppose not f is empty; then
+      reconsider X = dom f as non empty set;
+      reconsider f as total X-defined complex-valued Function
+        by RELAT_1:def 18,PARTFUN1:def 2;
+      A2: dom ((delneg f)-(delpos f)) = (dom (delneg f))/\(dom (delpos f))
+        by VALUED_1:12
+    .= (dom f) /\ (dom (delpos f)) by DMN
+    .= (dom f) /\ (dom f) by DMN
+    .= dom f;
+    f.x = ((1/2 + (1/2))(#)f).x
+    .= ((1/2)(#)f + ((1/2)(#)(abs f) - (1/2)(#)(abs f)) + (1/2)(#)f ).x
+      by TOPREALC:2
+    .= ((1/2)(#)f  + (1/2)(#)(abs f) - (1/2)(#)(abs f) + (1/2)(#)f).x
+      by RFUNCT_1:23
+    .= ((1/2)(#)f + (1/2)(#)(abs f) - ((1/2)(#)(abs f) - (1/2)(#)f)).x
+      by RFUNCT_1:22
+    .= (delneg f - ((1/2)(#)(abs f) - (1/2)(#)f)).x by RFUNCT_1:16
+    .= ((delneg f) - (delpos f)).x   by RFUNCT_1:18
+    .= (delneg f).x - (delpos f).x by A1,A2,VALUED_1:13;
+    hence thesis;
+  end;
+  end;
+end;
+
+theorem DNP:
+  for f be complex-valued Function holds f = delneg f - delpos f
+  proof
+    let f be complex-valued Function;
+    dom (delneg f) = dom f & dom (delpos f) = dom f by DMN; then
+    A1: dom f =  dom (delneg f) /\ dom (delpos f)
+    .= dom ((delneg f) - (delpos f)) by VALUED_1:12;
+    for x be object st x in dom f holds
+    (delneg f).x - (delpos f).x = f.x by VAL;
+    hence thesis by A1,VALUED_1:14;
+  end;
+
+theorem VOR:
+  for f be real-valued Function, x be object holds
+  f.x = (delneg f).x or f.x = -(delpos f).x
+  proof
+    let f be real-valued Function, x be object;
+A2: dom (delneg f) = dom f & dom (delpos f) = dom f by DMN;
+    per cases;
+    suppose not x in dom f;
+      then f.x = {} & (delneg f).x = {} & (delpos f).x = {}
+      by A2,FUNCT_1:def 2;
+      hence thesis;
+    end;
+    suppose
+    A0: x in dom f;
+    A3: dom (abs f) = dom f by VALUED_1:def 11; then
+    (dom f)/\dom (abs f) = dom f & (dom (abs f))/\ dom f = dom f; then
+    A4: dom (f + abs f) = dom f & dom ((abs f) - f)= dom f
+      by VALUED_1:def 1,VALUED_1:12;
+    per cases;
+    suppose
+      B1: f.x >= 0;
+      (abs f).x = |.f.x.| by A0,A3,VALUED_1:def 11
+      .= f.x by B1,ABSVALUE:def 1; then
+      f.x = (1/2)*((f).x + (abs f).x)
+      .= (1/2)*(f + (abs f)).x by A0,A4,VALUED_1:def 1
+      .= ((1/2)(#)(f + (abs f))).x by VALUED_1:def 5,A0,A2;
+      hence thesis;
+    end;
+    suppose
+      B1: f.x < 0;
+      (abs f).x = |.f.x.| by A0,A3,VALUED_1:def 11
+      .= -f.x by B1,ABSVALUE:def 1; then
+      f.x = -(1/2)*((abs f).x - f.x)
+      .= -(1/2)*((abs f) - f).x by A0,A4,VALUED_1:13
+      .= (-1)*((1/2)*((abs f) - f).x)
+      .= (-1)*(((1/2)(#)((abs f) -f)).x) by A0,VALUED_1:def 5,A2;
+      hence thesis;
+    end;
+    end;
+  end;
+
+theorem ZOR:
+  for f be real-valued Function, x be object holds
+  (delneg f).x = 0 or (delpos f).x = 0
+  proof
+    let f be real-valued Function, x be object;
+B2: f.x = (delneg f).x - (delpos f).x by VAL;
+    f.x = (delneg f).x or f.x = -(delpos f).x by VOR;
+    hence thesis by B2;
+  end;
+
+registration
+  let f be real-valued Function;
+  cluster (delneg f)(#)(delpos f) -> empty-yielding;
+  coherence
+  proof
+    for x be object st x in dom ((delneg f)(#)(delpos f)) holds
+    ((delneg f)(#)(delpos f)).x is empty
+    proof
+      let x be object such that
+      A1: x in dom ((delneg f)(#)(delpos f));
+      A2: (delneg f).x = 0 or (delpos f).x = 0 by ZOR;
+      ((delneg f)(#)(delpos f)).x = (delneg f).x * (delpos f).x
+        by A1, VALUED_1:def 4
+      .= 0 by A2;
+      hence thesis by ORDINAL1:def 13;
+    end;
+    hence thesis by FUNCT_1:def 8;
+  end;
+end;
+
+theorem for f be real-valued Function holds delall f = (delneg f)(#)(delpos f)
+  proof
+    let f be real-valued Function;
+    dom (delneg f) = dom f & dom (delpos f) = dom f by DMN; then
+    A1: dom ((delneg f)(#)(delpos f)) = (dom f) /\ (dom f) by VALUED_1:def 4
+    .= dom (delall f) by DMN;
+    for k be object st k in dom (delall f) holds
+      ((delneg f)(#)(delpos f)).k = (delall f).k;
+    hence thesis by A1,FUNCT_1:2;
+  end;
+
+registration
+  let f be complex-valued Function;
+  let f1 be total (dom f)-defined empty-yielding Function;
+  reduce f + f1 to f;
+  reducibility
+  proof
+    A1: dom (f+f1) = dom f /\ dom f1 by VALUED_1:def 1
+    .= dom f by PARTFUN1:def 2;
+    reconsider f1 as complex-valued Function;
+    for k be object st k in dom f holds (f+f1).k = f.k
+    proof
+      let k be object such that
+      B1: k in dom f;
+      (f + f1).k = (f.k) + (f1.k) by A1,B1,VALUED_1:def 1
+      .= (f.k) + 0;
+      hence thesis;
+    end;
+    hence thesis by A1,FUNCT_1:2;
+  end;
+  reduce (f - f1) to f;
+  reducibility
+  proof
+    (-1)(#)f1 is total (dom f)-defined empty-yielding Function; then
+    reconsider f2 = -f1 as total (dom f)-defined empty-yielding Function
+      by VALUED_1:def 6;
+    f + f2 = f;
+    hence thesis by VALUED_1:def 9;
+  end;
+end;
+
+registration
+  let f be complex-valued Function;
+  let f1 be total (dom f)-defined complex-valued Function;
+  let f2 be total (dom f)-defined empty-yielding Function;
+  reduce f1 + f2 to f1;
+  reducibility
+  proof
+    dom f1 = dom f & dom f2 = dom f by PARTFUN1:def 2;
+    hence thesis;
+  end;
+  reduce f1 - f2 to f1;
+  reducibility
+  proof
+    dom f1 = dom f & dom f2 = dom f by PARTFUN1:def 2;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be complex-valued Function;
+  cluster f - f -> (dom f)-defined;
+  coherence
+  proof
+    dom (f-f) = dom f /\ dom f by VALUED_1:12;
+    hence thesis by RELAT_1:def 18;
+  end;
+  cluster f - f -> total;
+  coherence
+  proof
+    dom (f - f) = dom f /\ dom f by VALUED_1:12;
+    hence thesis by PARTFUN1:def 2;
+  end;
+end;
+
+theorem
+  for f be complex-valued Function holds abs f = delneg f + delpos f
+  proof
+    let f be complex-valued Function;
+    reconsider fabs = abs f as (dom f)-defined complex-valued Function;
+    reconsider g = (1/2)(#)f as (dom f)-defined complex-valued Function;
+    reconsider h = g - g as total (dom f)-defined empty-yielding Function;
+    delneg f + delpos f = (1/2)(#)fabs + (1/2)(#)f + (1/2)(#)(fabs - f)
+      by RFUNCT_1:16
+    .= (1/2)(#)fabs + (1/2)(#)f + ((1/2)(#)(fabs) - (1/2)(#)f) by RFUNCT_1:18
+    .= (1/2)(#)fabs + (1/2)(#)f + (1/2)(#)fabs - (1/2)(#)f by RFUNCT_1:23
+    .= (1/2)(#)f + ((1/2)(#)fabs + (1/2)(#)fabs) - (1/2)(#)f by RFUNCT_1:8
+    .= (1/2)(#)f - (1/2)(#)f + ((1/2)(#)fabs + (1/2)(#)(fabs)) by RFUNCT_1:23
+    .= ((1/2)(#)f - (1/2)(#)f) + ((1/2)+(1/2))(#)(fabs) by TOPREALC:2
+    .= fabs;
+    hence thesis;
+  end;
+
+registration
+  let f be empty FinSequence;
+  cluster Product f -> natural;
+  coherence by RVSUM_1:94;
+  cluster Product f -> non zero;
+  coherence by RVSUM_1:94;
+end;
+
+registration
+  let f be positive-yielding real-valued FinSequence;
+  cluster Product f -> positive;
+  coherence
+  proof
+    f is empty or f is non empty;
+    hence thesis;
+  end;
+end;
+
+registration
+  let f be complex-valued FinSequence;
+  cluster delneg f -> (len f)-element;
+  coherence
+  proof
+    reconsider af = abs f as (len f)-element real-valued FinSequence;
+    f null f is (len f)-element FinSequence; then
+    reconsider g = (f + (abs f)) as (len f)-element
+      complex-valued FinSequence;
+    reconsider h = (1/2)(#)g as (len f)-element FinSequence;
+    h null f is (len f)-element;
+    hence thesis;
+  end;
+  cluster delpos f -> (len f)-element;
+  coherence
+    proof
+    reconsider af = abs f as (len f)-element real-valued FinSequence;
+    f null f is (len f)-element FinSequence; then
+    reconsider g  =  ((abs f) - f) as (len f)-element
+      complex-valued FinSequence;
+    reconsider h = (1/2)(#)g as (len f)-element FinSequence;
+    h null f is (len f)-element;
+    hence thesis;
+  end;
+end;
+
+theorem DNF:
+  for f be complex-valued Function holds delneg f = delpos (-f)
+  proof
+    let f be complex-valued Function;
+    reconsider g = -f as complex-valued Function;
+    (1/2)(#)(f + (abs f)) = (1/2)(#)f + (1/2)(#)(abs f) by RFUNCT_1:16
+    .= (1/2)(#)(abs g) + (1/2)(#)(-g) by EUCLID:5
+    .= (1/2)(#)(abs g) + -((1/2)(#)g) by VALUED_2:23
+    .= (1/2)(#)(abs g) - (1/2)(#)g by VALUED_1:def 9;
+    hence thesis by RFUNCT_1:18;
+  end;
+
+registration
+  let f be nonnegative-yielding real-valued Function;
+  reduce (abs f) to f;
+  reducibility
+  proof
+    A1: dom (abs f) = dom f by VALUED_1:def 11;
+    for x be object st x in dom (abs f) holds (abs f).x = f.x
+    proof
+      let x be object such that
+      A1: x in dom (abs f);
+      (abs f).x = |. f.x .| by A1,VALUED_1:def 11
+      .= f.x;
+      hence thesis;
+    end;
+   hence thesis by A1, FUNCT_1:2;
+ end;
+  reduce delneg f to f;
+  reducibility
+  proof
+    (1/2)(#)(f + (abs f)) = (1/2)(#)f + (1/2)(#)f by RFUNCT_1:16
+    .= ((1/2)+(1/2))(#)f by TOPREALC:2;
+    hence thesis;
+  end;
+  identify delpos f with delall f;
+  correctness
+  proof
+    A1: dom (delpos f) = dom f by DMN
+    .= dom (delall f) by DMN;
+    for k be object st k in dom (delall f) holds (delpos f).k = (delall f).k;
+    hence thesis by A1,FUNCT_1:2;
+  end;
+  identify delall f with delpos f;
+  correctness;
+end;
+
+registration
+  let f be nonpositive-yielding real-valued Function;
+  reduce - delpos f to f;
+  reducibility
+  proof
+    reconsider g = -f as nonnegative-yielding real-valued Function;
+    - delneg g = --f;
+    hence thesis by DNF;
+  end;
+  cluster delneg f -> empty-yielding;
+  coherence
+  proof
+    reconsider g = -f as nonnegative-yielding real-valued Function;
+    delneg f = delpos g by DNF;
+    hence thesis;
+  end;
+  identify delneg f with delall f;
+  correctness
+  proof
+    A1: dom (delneg f) =  dom f by DMN
+    .= dom (delall f) by DMN;
+    for k be object st k in dom (delall f) holds (delneg f).k = (delall f).k;
+    hence thesis by A1,FUNCT_1:2;
+  end;
+  identify delall f with delneg f;
+  correctness;
+end;
+
+theorem
+  for f be FinSequence of INT holds ex f1,f2 be FinSequence of NAT st
+    f = f1 - f2
+  proof
+    let f be FinSequence of INT;
+    reconsider f1 = delneg f as FinSequence of NAT by NEWTON02:103;
+    reconsider f2 = delpos f as FinSequence of NAT by NEWTON02:103;
+    f = f1 - f2 by DNP;
+    hence thesis;
+  end;
+
+registration
+  let a be Integer, n be Nat;
+  cluster n|->a -> INT-valued;
+  coherence;
+end;
+
+registration
+  let f be non empty empty-yielding FinSequence;
+  cluster Product f -> zero;
+  coherence
+  proof
+    1 in dom f & f.1 = 0 by FINSEQ_5:6;
+    hence thesis by RVSUM_1:103;
+  end;
+end;
+
+theorem for f1,f2 being FinSequence of REAL st len f1 = len f2 & (for k
+  being Element of NAT st k in dom f1 holds f1.k>=f2.k & f2.k>0) holds
+  Product f1 >= Product f2
+proof
+  let f1,f2 be FinSequence of REAL such that
+  A1: len f1 = len f2 & (for k
+  being Element of NAT st k in dom f1 holds f1.k>=f2.k & f2.k>0);
+  for k be Element of NAT st k in dom f2 holds f1.k>=f2.k & f2.k>0
+  proof
+    let k be Element of NAT such that
+    B1: k in dom f2;
+    k in dom f1 by A1,B1,FINSEQ_3:29;
+    hence thesis by A1;
+  end;
+hence thesis by A1,NAT_4:54;
+end;
+
+theorem
+for a be Real for f be FinSequence of REAL st
+(for k be Element of NAT st k in dom f holds 0 < f.k <= a)
+holds Product f <= Product ((len f) |-> a)
+proof
+  let a be Real;
+  let f be FinSequence of REAL such that
+  A0: for k be Element of NAT st k in dom f holds 0 < f.k <= a;
+  a in REAL by XREAL_0:def 1; then
+  reconsider g = (len f)|-> a as FinSequence of REAL by FINSEQ_2:63;
+  A1: len f = len g;
+  for k be Element of NAT st k in dom f holds  f.k <= g.k & f.k > 0
+  proof
+    let k be Element of NAT such that
+    B1: k in dom f;
+    g.k = a by B1,Lmkdf;
+    hence thesis by A0,B1;
+  end;
+  hence thesis by A1,NAT_4:54;
+end;
+
+theorem
+  for a be non negative Real, f be FinSequence of REAL st (for k be Nat
+  st k in dom f holds f.k >= a)  holds Product (f) >= a|^(len f)
+  proof
+    let a be non negative Real, f be FinSequence of REAL such that
+    A1: for k be Nat st k in dom f holds f.k >= a;
+    a in REAL by XREAL_0:def 1; then
+    reconsider g = ((len f)|-> a) as FinSequence of REAL by FINSEQ_2:63;
+    for r be Real st r in rng f holds r >= 0
+    proof
+      let r be Real such that
+      B1: r in rng f;
+      consider k be object such that
+      B2: k in dom f & f.k = r by B1,FUNCT_1:def 3;
+      reconsider k as Element of NAT by B2;
+      thus thesis by A1,B2;
+    end; then
+    reconsider f as nonnegative-yielding FinSequence of REAL by PARTFUN3:def 4;
+    per cases;
+    suppose
+      B1: a = 0;
+      per cases;
+      suppose
+        f is empty; then
+        Product f = Product g;
+        hence thesis by NEWTON:def 1;
+      end;
+      suppose
+        not f is empty; then
+        reconsider k = len ((len f)|->a) as non zero Nat;
+        Product f >= 0 & Product (k|->a) = 0 by B1;
+        hence thesis by B1;
+      end;
+    end;
+    suppose
+      a > 0; then
+      reconsider a as positive Real;
+    A2: for k be Element of NAT st k in dom f holds
+      f.k >= ((len f) |-> a).k > 0
+    proof
+      let k be Element of NAT such that
+      B1: k in dom f;
+      reconsider k as non zero Nat by B1,FINSEQ_3:25;
+      ((len f) |-> a).k = a by B1,Lmkdf;
+      hence thesis by A1,B1;
+    end;
+    len f = len g; then
+    dom f = dom g by FINSEQ_3:29; then
+    len f = len g & (for k be Element of NAT st k in dom g holds
+    f.k >= g.k & g.k > 0) by A2; then
+    Product (f) >= Product (g) by NAT_4:54;
+    hence thesis by NEWTON:def 1;
+  end;
+  end;
+
+theorem N454:
+  for f1,f2 be nonnegative-yielding FinSequence of REAL st len f1 = len f2
+  & (for k be Element of NAT st k in dom f2 holds f1.k>=f2.k) holds
+  Product f1 >= Product f2
+  proof
+    let f1,f2 be nonnegative-yielding FinSequence of REAL such that
+    A1: len f1 = len f2 & (for k be Element of NAT st k in dom f2 holds
+    f1.k >= f2.k);
+    per cases;
+    suppose ex l be Element of NAT st l in dom f2 & f2.l = 0;
+      hence thesis by RVSUM_1:103;
+    end;
+    suppose
+      for l be Element of NAT st l in dom f2 holds f2.l <> 0; then
+      for k be Element of NAT st k in dom f2 holds f1.k >= f2.k & f2.k > 0
+        by A1,XXREAL_0:1;
+      hence thesis by A1,NAT_4:54;
+    end;
+  end;
+
+theorem ::NAT454:
+  for f1,f2 being FinSequence of REAL st len f1 = len f2 &
+  (for k be Element of NAT
+  st k in dom f2 holds f1.k>=f2.k & f2.k>=0) holds Product f1 >= Product f2
+  proof
+    let f1,f2 be FinSequence of REAL such that
+    A1: len f1 = len f2 & (for k be Element of NAT st k in dom f2 holds
+    f1.k >= f2.k & f2.k >= 0);
+    for r be Real st r in rng f2 holds r >= 0
+    proof
+      let r be Real such that
+      B1: r in rng f2;
+      consider k be object such that
+      B2: k in dom f2 & f2.k = r by B1,FUNCT_1:def 3;
+      reconsider k as Element of NAT by B2;
+      thus thesis by A1,B2;
+    end; then
+    reconsider f2 as nonnegative-yielding FinSequence of REAL
+      by PARTFUN3:def 4;
+    for r be Real st r in rng f1 holds r >= 0
+    proof
+      let r be Real such that
+      B1: r in rng f1;
+      consider k be object such that
+      B2: k in dom f1 & f1.k = r by B1,FUNCT_1:def 3;
+      reconsider k as Element of NAT by B2;
+      dom f1 = dom f2 by A1,FINSEQ_3:29; then
+      f1.k >= f2.k & f2.k >= 0 by A1,B2;
+      hence thesis by B2;
+    end; then
+    reconsider f1 as nonnegative-yielding FinSequence of REAL
+      by PARTFUN3:def 4;
+    len f1 = len f2 &
+      (for k be Element of NAT st k in dom f2 holds f1.k>=f2.k) by A1;
+    hence thesis by N454;
+  end;
+
+theorem
+  for a be positive Real, f be nonnegative-yielding FinSequence of REAL st
+    (for k be Element of NAT st k in dom f holds f.k <= a)
+  holds Product (f) <= a|^(len f)
+  proof
+    let a be positive Real, f be nonnegative-yielding FinSequence of REAL
+      such that
+    A1: for k be Element of NAT st k in dom f holds f.k <= a;
+    a in REAL by XREAL_0:def 1; then
+    reconsider g = ((len f)|-> a) as FinSequence of REAL by FINSEQ_2:63;
+    reconsider g as positive-yielding FinSequence of REAL;
+    A2: (len f = len g);
+    for k be Element of NAT st k in dom f holds g.k >= f.k
+    proof
+      let k be Element of NAT such that
+      B1: k in dom f;
+      g.k = a by B1,Lmkdf;
+      hence thesis by A1,B1;
+    end;  then
+    Product (f) <= Product (g) by A2,N454;
+    hence thesis by NEWTON:def 1;
+  end;
+
+:: Basic operations on short finsequences
+
+registration
+  let a be Complex;
+  reduce (-<*(-a)*>).1 to a;
+  reducibility
+  proof
+    (-<*(-a)*>).1 = -<*(-a)*>.1 by VALUED_1:8;
+    hence thesis;
+  end;
+  reduce (<*(a")*>").1 to a;
+  reducibility
+  proof
+    (<*(a")*>.1)" = (<*(a")*>").1 by VALUED_1:10;
+    hence thesis;
+  end;
+end;
+
+theorem APB:
+  for a,b be Complex holds <*a*>+<*b*> = <*(a+b)*>
+  proof
+    let a,b be Complex;
+    dom <*a*> = Seg 1 & dom <*b*> = Seg 1 & dom <*(a+b)*> = Seg 1
+      by FINSEQ_1:def 8; then
+    A2: dom (<*a*>+<*b*>) = (Seg 1)/\(Seg 1) by VALUED_1:def 1
+    .= Seg 1; then
+    1 in dom (<*a*>+<*b*>); then
+    (<*a*>+<*b*>).1 = <*a*>.1+<*b*>.1 by VALUED_1:def 1;
+    hence thesis by A2,FINSEQ_1:def 8;
+  end;
+
+theorem
+  for a,b be Complex holds <*a*>-<*b*> = <*(a-b)*>
+  proof
+    let a,b be Complex;
+    reconsider p = <*(-b)*> as 1-element FinSequence;
+    reconsider q = -<*b*> as 1-element FinSequence;
+    A1: len p = 1 & len q = 1 by CARD_1:def 7;
+    (-<*b*>).1 = -(<*b*>.1) by VALUED_1:8
+    .= <*(-b)*>.1; then
+    A2: q = p by A1,FINSEQ_1:40;
+    <*a*>+<*(-b)*> = <*(a+(-b))*> by APB;
+    hence thesis by A2,VALUED_1:def 9;
+  end;
+
+theorem AMB:
+  for a,b be Complex holds <*a*>(#)<*b*> = <*(a*b)*>
+  proof
+    let a,b be Complex;
+    dom <*a*> = Seg 1 & dom <*b*> = Seg 1 & dom <*(a*b)*> = Seg 1
+      by FINSEQ_1:def 8; then
+    A2: dom (<*a*>(#)<*b*>) = (Seg 1)/\(Seg 1) by VALUED_1:def 4
+    .= Seg 1; then
+    1 in dom (<*a*>(#)<*b*>); then
+    (<*a*>(#)<*b*>).1 = <*a*>.1*<*b*>.1 by VALUED_1:def 4;
+    hence thesis by A2,FINSEQ_1:def 8;
+  end;
+
+theorem
+  for a,b be Complex holds <*a*>/"<*b*> = <*(a*b")*>
+  proof
+    let a,b be Complex;
+    reconsider p = <*(b")*> as 1-element FinSequence;
+    reconsider q = <*b*>" as 1-element FinSequence;
+    A1: len p = 1 & len q = 1 by CARD_1:def 7;
+     (<*b*>").1 = (<*b*>.1)" by VALUED_1:10
+    .= <*(b")*>.1; then
+    A2: q = p by A1,FINSEQ_1:40;
+    <*a*>(#)<*(b")*> = <*(a*(b"))*> by AMB;
+    hence thesis by A2,VALUED_1:def 10;
+  end;
+
+registration
+  let n be Nat, f be n-element FinSequence, a be Complex;
+  reduce (f^<*a*>).(n+1) to a;
+  reducibility
+  proof
+    len f = n by FINSEQ_3:153;
+    hence thesis;
+  end;
+  reduce (f^<*a*>)|n to f;
+  reducibility
+  proof
+    len f = n by FINSEQ_3:153;
+    hence thesis;
+  end;
+ end;
+
+registration
+  let a,b,c,d be Complex;
+  cluster <*a,b,c,d*> -> complex-valued;
+  coherence
+  proof
+    reconsider f = <*a,b,c*> as complex-valued FinSequence;
+    f^<*d*> is complex-valued;
+    hence thesis by FINSEQ_4:def 7;
+  end;
+end;
+
+registration
+  let a,b be Complex;
+  reduce (-<*(-a),b*>).1 to a;
+  reducibility
+  proof
+    (-<*(-a),b*>).1 = -<*(-a),b*>.1 by VALUED_1:8;
+    hence thesis;
+  end;
+  reduce (-<*a,(-b)*>).2 to b;
+  reducibility
+  proof
+    (-<*a,(-b)*>).2 = -<*a,(-b)*>.2 by VALUED_1:8;
+    hence thesis;
+  end;
+  reduce (<*(a"),b*>").1 to a;
+  reducibility
+  proof
+    (<*(a"),b*>").1 = (<*(a"),b*>.1)" by VALUED_1:10;
+    hence thesis;
+  end;
+  reduce (<*a,(b")*>").2 to b;
+  reducibility
+  proof
+    (<*a,(b")*>").2 = (<*a,(b")*>.2)" by VALUED_1:10;
+    hence thesis;
+  end;
+end;
+
+
+registration
+  let a,b,c be Complex;
+  reduce <*a,b,c*>.1 to a;
+  reducibility by FINSEQ_1:45;
+  reduce <*a,b,c*>.2 to b;
+  reducibility by FINSEQ_1:45;
+  reduce (-<*(-a),b,c*>).1 to a;
+  reducibility
+  proof
+    (-<*(-a),b,c*>).1 = -<*(-a),b,c*>.1 by VALUED_1:8
+    .= -(-a);
+    hence thesis;
+  end;
+  reduce (-<*a,(-b),c*>).2 to b;
+  reducibility
+  proof
+    (-<*a,(-b),c*>).2 = -<*a,(-b),c*>.2 by VALUED_1:8
+    .= -(-b);
+    hence thesis;
+  end;
+  reduce (-<*a,b,(-c)*>).3 to c;
+  reducibility
+  proof
+    (-<*a,b,(-c)*>).3 = -<*a,b,(-c)*>.3 by VALUED_1:8
+    .= -(-c);
+    hence thesis;
+  end;
+  reduce (<*(a"),b,c*>").1 to a;
+  reducibility
+  proof
+    (<*(a"),b,c*>").1 = (<*(a"),b,c*>.1)" by VALUED_1:10
+    .= (a")";
+    hence thesis;
+  end;
+  reduce (<*a,(b"),c*>").2 to b;
+  reducibility
+  proof
+    (<*a,(b"),c*>").2 = (<*a,(b"),c*>.2)" by VALUED_1:10
+    .= (b")";
+    hence thesis;
+  end;
+  reduce (<*a,b,(c")*>").3 to c;
+  reducibility
+  proof
+    (<*a,b,(c")*>").3 = (<*a,b,(c")*>.3)" by VALUED_1:10
+    .= (c")";
+    hence thesis;
+  end;
+end;
+
+theorem FPA:
+  for a,b be Complex, n be Nat,
+      f,g be n-element complex-valued FinSequence holds
+  (f^<*a*>)+(g^<*b*>) = (f+g)^<*a+b*>
+  proof
+    let a,b be Complex, n be Nat, f,g be n-element complex-valued FinSequence;
+    reconsider fa = f^<*a*> as (n+1)-element FinSequence of COMPLEX
+      by NEWTON02:103;
+    reconsider gb = g^<*b*> as (n+1)-element FinSequence of COMPLEX
+      by NEWTON02:103;
+    reconsider fg = f+g as n-element complex-valued FinSequence;
+    A0: len f = n & len g = n & len fg = n by FINSEQ_3:153;
+    A1: len fa = n+1 & len gb = n+1 & len (fg^<*(a+b)*>) = n+1
+      by FINSEQ_3:153;
+    A2: n+1 = len (fa+gb) by FINSEQ_3:153; then
+    A3: dom (fa+gb) = Seg (n+1) & dom ((f+g)^<*(a+b)*>)= Seg (n+1)
+      by A1,FINSEQ_1:def 3;
+    for k be object st k in dom (fa+gb) holds
+    (fa+gb).k = ((f+g)^<*(a+b)*>).k
+    proof
+      let k be object such that
+      B1: k in dom (fa+gb);
+      B2: (fa+gb).k = fa.k+gb.k by B1,VALUED_1:def 1;
+      reconsider k as Nat by B1;
+      B3: 1 <= k <= n+1 by A2,B1,FINSEQ_3:25;
+      per cases by B3,XXREAL_0:1;
+      suppose
+        k < n+1; then
+        k <= n by INT_1:7; then
+        C1: k in dom f & k in dom g & k in dom (f+g) by A0,B3,FINSEQ_3:25; then
+        f.k = fa.k & g.k = gb.k & ((f+g)^<*(a+b)*>).k = (f+g).k
+          by FINSEQ_1:def 7;
+        hence thesis by B2,C1,VALUED_1:def 1;
+      end;
+      suppose
+        k = n+1;
+        hence thesis by B2;
+      end;
+    end;
+    hence thesis by FUNCT_1:2,A3;
+  end;
+
+theorem AP2:
+  for a,b,x,y be Complex holds <*a,b*>+<*x,y*> = <*a+x,b+y*>
+  proof
+    let a,b,x,y be Complex;
+    <*a,b*>+<*x,y*>  = (<*a*>+<*x*>)^<*(b+y)*> by FPA;
+    hence thesis by APB;
+  end;
+
+theorem AP3:
+  for a,b,c,x,y,z be Complex holds <*a,b,c*>+<*x,y,z*> = <*a+x,b+y,c+z*>
+  proof
+    let a,b,c,x,y,z be Complex;
+    <*a,b,c*>+<*x,y,z*> = (<*a,b*>+<*x,y*>)^<*(c+z)*> by FPA
+    .= <*(a+x),(b+y)*>^<*(c+z)*> by AP2;
+    hence thesis;
+  end;
+
+theorem
+  for a,b,c,d,x,y,z,v be Complex holds
+    <*a,b,c,d*>+<*x,y,z,v*> = <*a+x,b+y,c+z,d+v*>
+  proof
+    let a,b,c,d,x,y,z,v be Complex;
+    reconsider f = <*a,b,c*> as 3-element complex-valued FinSequence;
+    reconsider g = <*x,y,z*> as 3-element complex-valued FinSequence;
+    <*a,b,c,d*> = f^<*d*> & <*x,y,z,v*> = g^<*v*> by FINSEQ_4:def 7; then
+    <*a,b,c,d*>+<*x,y,z,v*> = (f+g)^<*(d+v)*> by FPA
+    .= <*(a+x),(b+y),(c+z)*>^<*(d+v)*> by AP3;
+    hence thesis by FINSEQ_4:def 7;
+  end;
+
+theorem FMA:
+  for a,b be Complex, n be Nat,
+      f,g be n-element complex-valued FinSequence holds
+  (f^<*a*>)(#)(g^<*b*>) = (f(#)g)^<*a*b*>
+  proof
+    let a,b be Complex, n be Nat, f,g be n-element complex-valued FinSequence;
+    reconsider fa = f^<*a*> as (n+1)-element FinSequence of COMPLEX
+      by NEWTON02:103;
+    reconsider gb = g^<*b*> as (n+1)-element FinSequence of COMPLEX
+      by NEWTON02:103;
+    reconsider fg = f(#)g as n-element complex-valued FinSequence;
+    A0: len f = n & len g = n & len fg = n by FINSEQ_3:153;
+    A1: len fa = n+1 & len gb = n+1 & len (fg^<*(a*b)*>) = n+1 by FINSEQ_3:153;
+    A2: n+1 = len (fa(#)gb) by FINSEQ_3:153; then
+    A3: dom (fa(#)gb) = Seg (n+1) & dom ((f(#)g)^<*(a*b)*>)= Seg (n+1)
+      by A1,FINSEQ_1:def 3;
+    for k be object st k in dom (fa(#)gb) holds
+    (fa(#)gb).k = ((f(#)g)^<*(a*b)*>).k
+    proof
+      let k be object such that
+      B1: k in dom (fa(#)gb);
+      B2: (fa(#)gb).k = fa.k *gb.k by B1,VALUED_1:def 4;
+      reconsider k as Nat by B1;
+      B3: 1 <= k <= n+1 by A2,B1,FINSEQ_3:25;
+      per cases by B3,XXREAL_0:1;
+      suppose
+        k < n+1; then
+        k <= n by INT_1:7; then
+        C1: k in dom f & k in dom g & k in dom (f(#)g)
+          by A0,B3,FINSEQ_3:25; then
+        f.k = fa.k & g.k = gb.k & ((f(#)g)^<*(a*b)*>).k = (f(#)g).k
+          by FINSEQ_1:def 7;
+        hence thesis by B2,C1,VALUED_1:def 4;
+      end;
+      suppose
+        k = n+1;
+        hence thesis by B2;
+      end;
+    end;
+    hence thesis by FUNCT_1:2,A3;
+  end;
+
+theorem AM2:
+  for a,b,x,y be Complex holds <*a,b*>(#)<*x,y*> = <*a*x,b*y*>
+  proof
+    let a,b,x,y be Complex;
+    <*a,b*>(#)<*x,y*>  = (<*a*>(#)<*x*>)^<*(b*y)*> by FMA;
+    hence thesis by AMB;
+  end;
+
+theorem AM3:
+  for a,b,c,x,y,z be Complex holds
+    <*a,b,c*>(#)<*x,y,z*> = <*a*x,b*y,c*z*>
+  proof
+    let a,b,c,x,y,z be Complex;
+    <*a,b,c*>(#)<*x,y,z*> = (<*a,b*>(#)<*x,y*>)^<*(c*z)*> by FMA
+    .= <*(a*x),(b*y)*>^<*(c*z)*> by AM2;
+    hence thesis;
+  end;
+
+theorem
+  for a,b,c,d,x,y,z,v be Complex holds
+    <*a,b,c,d*>(#)<*x,y,z,v*> = <*a*x,b*y,c*z,d*v*>
+  proof
+    let a,b,c,d,x,y,z,v be Complex;
+    reconsider f = <*a,b,c*> as 3-element complex-valued FinSequence;
+    reconsider g = <*x,y,z*> as 3-element complex-valued FinSequence;
+    <*a,b,c,d*> = f^<*d*> & <*x,y,z,v*> = g^<*v*> by FINSEQ_4:def 7; then
+    <*a,b,c,d*>(#)<*x,y,z,v*> = (f(#)g)^<*(d*v)*> by FMA
+    .= <*(a*x),(b*y),(c*z)*>^<*(d*v)*> by AM3;
+    hence thesis by FINSEQ_4:def 7;
+  end;
+
+theorem
+  for a be Complex, n be non zero Nat,
+      f be n-element complex-valued FinSequence holds <*a*>+f = <*(a+f.1)*>
+  proof
+    let a be Complex, n be non zero Nat,
+        f be n-element complex-valued FinSequence;
+    reconsider g = <*a*> as 1-element complex-valued FinSequence;
+    A2: len (g+f) = 1 by CARD_1:def 7; then
+    1 in dom (g+f) by FINSEQ_3:25; then
+    (<*a*>+f).1 = <*a*>.1+f.1 by VALUED_1:def 1;
+    hence thesis by A2,FINSEQ_1:40;
+  end;
+
+theorem
+  for a,b be Complex, n be non trivial Nat,
+      f be n-element complex-valued FinSequence holds
+        <*a,b*>+f = <*a+f.1,b+f.2*>
+  proof
+    let a,b be Complex, n be non trivial Nat,
+        f be n-element complex-valued FinSequence;
+    reconsider g = <*a,b*> as 2-element complex-valued FinSequence;
+    A1: len (g+f) = 2 by CARD_1:def 7; then
+    1 in dom (g+f) & 2 in dom (g+f) by FINSEQ_3:25; then
+    (g+f).1 = g.1+f.1 & (g+f).2 = g.2+f.2 by VALUED_1:def 1;
+    hence thesis by A1,FINSEQ_1:44;
+  end;
+
+theorem
+  for a be Complex, n be non zero Nat,
+      f be n-element complex-valued FinSequence holds <*a*>(#)f = <*a*f.1*>
+  proof
+    let a be Complex, n be non zero Nat,
+        f be n-element complex-valued FinSequence;
+    reconsider g = <*a*> as 1-element complex-valued FinSequence;
+    A2: len (g(#)f) = 1 by CARD_1:def 7; then
+    1 in dom (g(#)f) by FINSEQ_3:25; then
+    (<*a*>(#)f).1 = <*a*>.1*f.1 by VALUED_1:def 4;
+    hence thesis by A2,FINSEQ_1:40;
+  end;
+
+theorem
+  for a,b be Complex, n be non trivial Nat,
+      f be n-element complex-valued FinSequence holds
+        <*a,b*>(#)f = <*a*f.1,b*f.2*>
+  proof
+    let a,b be Complex, n be non trivial Nat,
+        f be n-element complex-valued FinSequence;
+    reconsider g = <*a,b*> as 2-element complex-valued FinSequence;
+    A1: len (g(#)f) = 2 by CARD_1:def 7; then
+    1 in dom (g(#)f) & 2 in dom (g(#)f) by FINSEQ_3:25; then
+    (g(#)f).1 = g.1*f.1 & (g(#)f).2 = g.2*f.2 by VALUED_1:def 4;
+    hence thesis by A1,FINSEQ_1:44;
+  end;

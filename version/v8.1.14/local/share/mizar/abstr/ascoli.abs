@@ -1,0 +1,368 @@
+:: Ascoli-Arzela's Theorem
+::  by Hiroshi Yamazaki , Keiichi Miyajima and Yasunari Shidama
+:: 
+:: Received June 30, 2021
+:: Copyright (c) 2021-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies ASCOLI, STRUCT_0, NUMBERS, PRE_TOPC, ORDINAL2, PCOMPS_1,
+      NORMSP_0, SUBSET_1, RCOMP_1, RELAT_1, XBOOLE_0, FUNCT_1, TARSKI, CARD_1,
+      ARYTM_3, ARYTM_1, REAL_1, FUNCT_2, ZFMISC_1, RSSPACE4, XXREAL_2,
+      XXREAL_0, NORMSP_1, NORMSP_2, REWRITE1, NAT_1, ORDINAL4, RSSPACE3, SEQ_2,
+      TMAP_1, ORDEQ_01, PARTFUN1, C0SP2, LOPBAN_1, METRIC_1, SETFAM_1,
+      FINSET_1, METRIC_6, SEQ_4, TBSP_1, TOPMETR4, BHSP_3, C0SP3, UPROOTS,
+      FINSEQ_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, FUNCT_1, CARD_1,
+      ORDINAL1, RELSET_1, PARTFUN1, FUNCT_2, BINOP_1, FINSET_1, NUMBERS,
+      XCMPLX_0, XXREAL_0, XREAL_0, XXREAL_2, SEQ_4, STRUCT_0, PCOMPS_1, TBSP_1,
+      RLVECT_1, NORMSP_0, NORMSP_1, NFCONT_1, PRE_TOPC, COMPTS_1, TOPS_2,
+      METRIC_1, TMAP_1, TOPMETR, RSSPACE3, LOPBAN_1, NORMSP_2, RSSPACE4,
+      NORMSP_3, TOPMETR4, C0SP3, METRIC_6, FINSEQ_1;
+ constructors RSSPACE3, COMPLEX1, PCOMPS_1, TBSP_1, NFCONT_1, TOPMETR, SEQ_4,
+      NORMSP_2, TMAP_1, TOPS_2, RSSPACE4, NORMSP_3, TOPMETR4, C0SP3, METRIC_6;
+ registrations XBOOLE_0, SUBSET_1, STRUCT_0, PRE_TOPC, XREAL_0, NUMBERS,
+      ORDINAL1, MEMBERED, VALUED_0, COMPTS_1, XXREAL_0, FUNCT_2, XXREAL_2,
+      TOPMETR, RELSET_1, WAYBEL_2, XCMPLX_0, TOPS_1, RSSPACE4, NORMSP_3, C0SP3,
+      TBSP_1, PCOMPS_1, CARD_1, NAT_1, FINSEQ_1, FINSET_1;
+ requirements NUMERALS, BOOLE, SUBSET, ARITHM, REAL;
+
+
+begin :: Equicontinuousness and Equiboundedness of Continuous Functions
+
+ reserve S, T for RealNormSpace;
+ reserve F for Subset of Funcs(the carrier of S,the carrier of T);
+
+definition
+  let X be non empty MetrSpace, Y be Subset of X;
+  func Cl Y -> Subset of X means
+:: ASCOLI:def 1
+  ex Z be Subset of TopSpaceMetr X st Z = Y & it = Cl Z;
+end;
+
+theorem :: ASCOLI:1
+ for X be RealNormSpace,
+     Y be Subset of X,
+     Z be Subset of MetricSpaceNorm X
+  st Y = Z
+holds Cl(Y) = Cl(Z);
+
+registration
+  let X be non empty MetrSpace;
+  let H be non empty Subset of X;
+  cluster Cl(H) -> non empty;
+end;
+
+theorem :: ASCOLI:2
+for S be TopSpace,
+    F be FinSequence of bool the carrier of S
+    st for i be Nat st i in Seg len F
+        holds F/.i is compact
+holds
+  union rng F is compact;
+
+theorem :: ASCOLI:3
+for S be non empty TopSpace,T be NormedLinearTopSpace,
+    f be Function of S,T,
+    x be Point of S holds
+(  f is_continuous_at x
+iff
+ for e be Real
+     st 0 < e
+ holds ex H being Subset of S st
+( H is open & x in H
+&
+for y be Point of S
+   st y in H holds ||.f.x-f.y.|| < e ) );
+
+theorem :: ASCOLI:4
+for S be non empty MetrSpace,
+    V be non empty compact TopSpace,
+    T be NormedLinearTopSpace,
+    f be Function of V,T
+  st V = TopSpaceMetr(S)
+holds
+  f is continuous
+iff
+ for e be Real
+     st 0 < e
+ holds ex d be Real
+  st 0 < d
+    & for x1,x2 be Point of S
+      st dist(x1,x2) < d holds ||.f/.x1-f/.x2.|| < e;
+
+definition
+  let S be non empty MetrSpace,T be RealNormSpace;
+  let F be Subset of Funcs(the carrier of S,the carrier of T);
+  attr F is equibounded means
+:: ASCOLI:def 2
+   ex K be Real
+      st for f be Function of the carrier of S,the carrier of T
+             st f in F
+          holds
+            for x be Element of S
+               holds
+            ||.f.x.|| <= K;
+end;
+
+definition
+  let S be non empty MetrSpace, T be RealNormSpace;
+  let F be Subset of Funcs(the carrier of S,the carrier of T);
+  let x0 be Point of S;
+  pred F is_equicontinuous_at x0 means
+:: ASCOLI:def 3
+  for e be Real st 0 < e
+   ex d be Real st 0 < d &
+    for f be Function of the carrier of S,the carrier of T
+             st f in F
+      holds
+      for x be Point of S
+          st dist(x,x0) < d holds ||.f.x-f.x0.|| < e;
+end;
+
+definition
+  let S be non empty MetrSpace, T be RealNormSpace;
+  let F be Subset of Funcs(the carrier of S,the carrier of T);
+  attr F is equicontinuous means
+:: ASCOLI:def 4
+  for e be Real st 0 < e
+   ex d be Real st 0 < d &
+    for f be Function of the carrier of S,the carrier of T
+             st f in F
+      holds
+      for x1,x2 be Point of S
+          st dist(x1,x2) < d holds ||.f.x1-f.x2.|| < e;
+end;
+
+theorem :: ASCOLI:5
+ for S be non empty MetrSpace,
+      T be RealNormSpace,
+      F be Subset of Funcs(the carrier of S,the carrier of T)
+    st TopSpaceMetr(S) is compact
+       holds
+   F is equicontinuous
+      iff
+   for x be Point of S holds F is_equicontinuous_at x;
+
+begin :: Ascoli-Arzela's Theorem
+
+ reserve S,Z for RealNormSpace;
+ reserve T for RealBanachSpace;
+ reserve F for Subset of Funcs(the carrier of S,the carrier of T);
+
+theorem :: ASCOLI:6
+for Z be RealNormSpace
+   holds
+Z is complete iff MetricSpaceNorm Z is complete;
+
+theorem :: ASCOLI:7
+for Z be RealNormSpace,
+    H be non empty Subset of MetricSpaceNorm Z
+   st Z is complete
+holds
+(MetricSpaceNorm Z) | Cl(H) is complete;
+
+theorem :: ASCOLI:8
+for Z be RealNormSpace,
+      H be non empty Subset of MetricSpaceNorm Z
+    holds
+         (MetricSpaceNorm Z) | H is totally_bounded
+     iff (MetricSpaceNorm Z) | Cl(H) is totally_bounded;
+
+theorem :: ASCOLI:9
+  for Z be RealNormSpace,
+      F be non empty Subset of Z,
+      H be non empty Subset of MetricSpaceNorm Z
+   st Z is complete & H = F
+      & (MetricSpaceNorm Z) | H is totally_bounded
+holds
+  Cl(H) is sequentially_compact
+  &
+  (MetricSpaceNorm Z) | Cl(H) is compact
+  &
+  Cl(F) is compact;
+
+theorem :: ASCOLI:10
+  for Z be RealNormSpace,
+      F be non empty Subset of Z,
+      H be non empty Subset of MetricSpaceNorm Z,
+      T being Subset of TopSpaceNorm Z
+   st Z is complete & H = F & H = T
+holds
+( (MetricSpaceNorm Z) | H is totally_bounded
+     iff Cl(H) is sequentially_compact) &
+( (MetricSpaceNorm Z) | H is totally_bounded
+  iff
+ (MetricSpaceNorm Z) | Cl(H) is compact) &
+( (MetricSpaceNorm Z) | H is totally_bounded
+  iff
+ Cl(F) is compact) &
+( (MetricSpaceNorm Z) | H is totally_bounded
+  iff
+ Cl(T) is compact);
+
+theorem :: ASCOLI:11
+  for S be non empty compact TopSpace,T be NormedLinearTopSpace
+    st T is complete holds
+  for H be non empty Subset of
+      (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T))
+  holds
+      Cl(H) is sequentially_compact iff
+      (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T) )
+   | H is totally_bounded;
+
+theorem :: ASCOLI:12
+  for S be non empty compact TopSpace,T be NormedLinearTopSpace
+   st T is complete holds
+  for F be non empty Subset of
+           R_NormSpace_of_ContinuousFunctions(S,T),
+      H be non empty Subset of
+           MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T) st
+    H = F holds
+    Cl(F) is compact iff
+      (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T) )
+        | H is totally_bounded;
+
+theorem :: ASCOLI:13
+  for M be non empty MetrSpace,S be non empty compact TopSpace,
+      T be NormedLinearTopSpace
+   st S = TopSpaceMetr(M) & T is complete holds
+  for G be Subset of Funcs(the carrier of M, the carrier of T),
+      H be non empty Subset of
+    MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T) st
+     G = H & (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T))
+       | H is totally_bounded holds
+    G is equibounded & G is equicontinuous;
+
+theorem :: ASCOLI:14
+  for M be non empty MetrSpace,S be non empty compact TopSpace,
+      T be NormedLinearTopSpace
+   st S = TopSpaceMetr(M) & T is complete holds
+  for G be Subset of Funcs(the carrier of M, the carrier of T),
+      H be non empty Subset of
+    MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T)
+  st G = H &
+  (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T))
+ | H is totally_bounded holds
+( for x be Point of S,
+    Hx be non empty Subset of MetricSpaceNorm T
+       st Hx = {f.x where f is Function of S,T :f in H }
+     holds (MetricSpaceNorm T) | Hx is totally_bounded )
+& G is equicontinuous;
+
+theorem :: ASCOLI:15
+  for T be NormedLinearTopSpace,
+      RNS be RealNormSpace st
+    RNS = the NORMSTR of T &
+    the topology of T = the topology of TopSpaceNorm RNS holds
+  distance_by_norm_of RNS = distance_by_norm_of T &
+  MetricSpaceNorm RNS = MetricSpaceNorm T &
+  TopSpaceNorm T = TopSpaceNorm RNS;
+
+theorem :: ASCOLI:16
+  for M be non empty MetrSpace,S be non empty compact TopSpace,
+      T be NormedLinearTopSpace,
+      G be Subset of Funcs(the carrier of M, the carrier of T),
+      H be non empty Subset of
+        MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T)
+  st S = TopSpaceMetr(M) & T is complete & G = H holds
+  (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T))
+     | H is totally_bounded
+    iff
+    G is equicontinuous &
+    for x be Point of S,
+        Hx be non empty Subset of MetricSpaceNorm T
+    st Hx = {f.x where f is Function of S,T :f in H }
+       holds (MetricSpaceNorm T) | Cl(Hx) is compact;
+
+theorem :: ASCOLI:17
+  for M be non empty MetrSpace,S be non empty compact TopSpace,
+      T be NormedLinearTopSpace,
+      G be Subset of Funcs(the carrier of M, the carrier of T),
+      H be non empty Subset of
+        (MetricSpaceNorm R_NormSpace_of_ContinuousFunctions(S,T))
+  st S = TopSpaceMetr(M) & T is complete & G = H
+    holds
+      Cl(H) is sequentially_compact
+    iff
+      G is equicontinuous
+  &
+  for x be Point of S, Hx be non empty Subset of MetricSpaceNorm T
+       st Hx = {f.x where f is Function of S,T :f in H }
+     holds (MetricSpaceNorm T) | Cl(Hx) is compact;
+
+theorem :: ASCOLI:18
+for M be non empty MetrSpace,S be non empty compact TopSpace,
+    T be NormedLinearTopSpace,
+    F be non empty Subset of
+      R_NormSpace_of_ContinuousFunctions(S,T),
+    G be Subset of Funcs(the carrier of M, the carrier of T)
+  st S = TopSpaceMetr(M) & T is complete & G = F holds
+      Cl(F) is compact
+    iff
+      G is equicontinuous
+  &
+for x be Point of S,
+    Fx be non empty Subset of MetricSpaceNorm T
+      st Fx = {f.x where f is Function of S,T :f in F }
+     holds
+   (MetricSpaceNorm T) | Cl(Fx) is compact;
+
+theorem :: ASCOLI:19
+  for M be non empty MetrSpace,S be non empty compact TopSpace,
+      T be NormedLinearTopSpace,
+      F be non empty Subset of
+         R_NormSpace_of_ContinuousFunctions(S,T),
+       G be Subset of Funcs(the carrier of M, the carrier of T)
+    st S = TopSpaceMetr(M) & T is complete & G = F
+    holds
+      Cl(F) is compact
+  iff
+   ( for x be Point of M holds G is_equicontinuous_at x ) &
+   for x be Point of S,
+    Fx be non empty Subset of MetricSpaceNorm T
+       st Fx = {f.x where f is Function of S,T :f in F }
+     holds (MetricSpaceNorm T) | Cl(Fx) is compact;
+
+theorem :: ASCOLI:20
+  for T be NormedLinearTopSpace holds
+    T is compact iff TopSpaceNorm T is compact;
+
+theorem :: ASCOLI:21
+  for T be NormedLinearTopSpace,
+      X be set holds
+  X is compact Subset of T
+    iff
+  X is compact Subset of TopSpaceNorm T;
+
+theorem :: ASCOLI:22
+  for T be NormedLinearTopSpace
+    st T is compact holds
+      T is complete;
+
+registration
+  cluster compact -> complete for NormedLinearTopSpace;
+end;
+
+theorem :: ASCOLI:23
+for M be non empty MetrSpace,S be non empty compact TopSpace,
+    T be NormedLinearTopSpace,
+    U be compact Subset of T,
+    F be non empty Subset of
+    R_NormSpace_of_ContinuousFunctions(S,T),
+    G be Subset of Funcs(the carrier of M, the carrier of T)
+st S = TopSpaceMetr(M) & T is complete
+    & G = F & for f be Function st f in F holds rng f c= U
+  holds
+( Cl(F) is compact implies G is equibounded & G is equicontinuous )
+    &
+( G is equicontinuous implies Cl(F) is compact );
+

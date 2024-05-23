@@ -1,0 +1,686 @@
+:: Dynamic Programming for the Subset Sum Problem
+::  by Hiroshi Fujiwara , Hokuto Watari and Hiroaki Yamamoto
+:: 
+:: Received January 13, 2020
+:: Copyright (c) 2020-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies PRSUBSET, NUMBERS, NAT_1, FINSEQ_1, CARD_1, RELAT_1, SUBSET_1,
+      XBOOLE_0, FUNCT_1, TARSKI, ORDINAL4, ARYTM_1, ARYTM_3, REAL_1, ZFMISC_1,
+      XXREAL_0, CARD_3, XBOOLEAN, MARGREL1, VALUED_0, FUNCOP_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1, ORDINAL1,
+      RELSET_1, FUNCT_2, BINOP_1, NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0,
+      FUNCOP_1, VALUED_0, FINSEQ_1, FINSEQOP, XBOOLEAN, MARGREL1, RVSUM_1,
+      RVSUM_3;
+ constructors FINSEQOP, RELSET_1, REAL_1, RVSUM_1, MARGREL1, VALUED_0, RVSUM_3;
+ registrations XBOOLE_0, FUNCT_1, ORDINAL1, NUMBERS, XREAL_0, NAT_1, FINSEQ_1,
+      VALUED_0, RELAT_1, CARD_1, XBOOLEAN, MARGREL1, RVSUM_1;
+ requirements NUMERALS, SUBSET, BOOLE, ARITHM, REAL;
+ definitions TARSKI;
+ equalities FINSEQ_1, XBOOLEAN, MARGREL1, BINOP_1;
+ expansions TARSKI, BINOP_1, XBOOLE_0, RVSUM_3;
+ theorems FUNCT_1, FUNCT_2, FINSEQ_1, FINSEQOP, RELAT_1, XREAL_0, ZFMISC_1,
+      FINSEQ_3, XXREAL_0, XREAL_1, XBOOLE_1, XBOOLE_0, TARSKI, RVSUM_1, NAT_1,
+      XBOOLEAN, GRFUNC_1, FUNCOP_1;
+ schemes BINOP_1;
+
+begin :: Recurrence Relation of Dynamic Programming for the Subset Sum Problem
+
+definition
+  let x be FinSequence;
+  let I be set;
+  func Seq (x, I) -> FinSequence equals
+  Seq (x | I);
+  coherence;
+end;
+
+registration
+  let D be set;
+  let x be D-valued FinSequence;
+  let I be set;
+  cluster Seq (x, I) -> D-valued;
+  coherence;
+end;
+
+registration
+  let x be real-valued FinSequence;
+  let I be set;
+  cluster Seq (x, I) -> real-valued;
+  coherence;
+end;
+
+registration
+  let D be set;
+  let x be D-valued FinSequence;
+  let i be Nat;
+  cluster x | i -> D-valued for FinSequence-like Function;
+  correctness;
+end;
+
+registration
+  let x be real-valued FinSequence;
+  let i be Nat;
+  cluster x | i -> real-valued for FinSequence-like Function;
+  correctness;
+end;
+
+definition
+  let x be REAL-valued FinSequence;
+  let a be Real;
+  pred x exist_subset_sum_eq a means
+  ex I being set st I c= dom x & Sum (Seq (x, I)) = a;
+end;
+
+  LM010:
+  for x being REAL-valued FinSequence holds
+  ex Q being Function of [:Seg len x, REAL:],BOOLEAN
+  st
+  for i being Nat,s being Real st 1 <= i <= len x
+  holds
+  (x | i exist_subset_sum_eq s implies Q . (i, s) = TRUE)
+  &
+  (not (x | i) exist_subset_sum_eq s implies Q . (i, s) = FALSE)
+  proof
+    let x be REAL-valued FinSequence;
+    set L = Seg len x;
+    defpred P1[object, object, object] means
+    ex i being Nat,s being Real
+    st $1 = i & $2 = s
+    &
+    (x | i exist_subset_sum_eq s implies $3 = TRUE)
+    &
+    (not x | i exist_subset_sum_eq s implies $3 = FALSE);
+    A1: for u,t being object st u in L & t in REAL holds
+    ex z being object st z in BOOLEAN & P1[u, t, z]
+    proof
+      let u,t be object;
+      assume A2: u in L & t in REAL;
+      then reconsider i = u as Nat;
+      reconsider s = t as Real by A2;
+      per cases;
+      suppose
+        A3: x | i exist_subset_sum_eq s;
+        take z = TRUE;
+        thus z in BOOLEAN;
+        thus P1[u, t, z] by A3;
+      end;
+      suppose
+        A4: not x | i exist_subset_sum_eq s;
+        take z = FALSE;
+        thus z in BOOLEAN;
+        thus P1[u, t, z] by A4;
+      end;
+    end;
+    consider Q being Function of [:L, REAL:],BOOLEAN such that
+    A5: for x,y being object st x in L & y in REAL holds
+    P1[x, y, Q . (x, y)] from BINOP_1:sch 1(A1);
+    take Q;
+    let i be Nat, s be Real;
+    assume
+A6: 1 <= i <= len x;
+    i in L by A6; then
+    ex i0 being Nat, s0 being Real st i = i0 & s = s0
+    &
+    ((x | i0) exist_subset_sum_eq s0 implies Q . (i, s) = TRUE)
+    &
+    (not x | i0 exist_subset_sum_eq s0 implies Q . (i, s) = FALSE)
+    by A5,XREAL_0:def 1;
+    hence thesis;
+  end;
+
+  LM020:
+  for x being REAL-valued FinSequence holds
+  for Q1,Q2 being Function of [:Seg len x, REAL:],BOOLEAN
+  st
+  (for i being Nat, s being Real st 1 <= i <= len x
+  holds
+  (x | i exist_subset_sum_eq s implies Q1 . (i, s) = TRUE)
+  &
+  (not x | i exist_subset_sum_eq s implies Q1 . (i, s) = FALSE)
+  )
+  &
+  (for i being Nat, s being Real st 1 <= i & i <= len x
+  holds
+  (x | i exist_subset_sum_eq s implies Q2 . (i, s) = TRUE)
+  &
+  (not x | i exist_subset_sum_eq s implies Q2 . (i, s) = FALSE)
+  )
+  holds Q1 = Q2
+  proof
+    let x be REAL-valued FinSequence;
+    set L = Seg len x;
+    let Q1,Q2 be Function of [:L,REAL:],BOOLEAN;
+    assume that
+    A1:
+    for i being Nat, s being Real
+    st 1 <= i <= len x holds
+    (x | i exist_subset_sum_eq s implies Q1 . (i, s) = TRUE)
+    &
+    (not x | i exist_subset_sum_eq s implies Q1 . (i, s) = FALSE)
+    and
+    A2:
+    for i being Nat, s being Real
+    st 1 <= i <= len x holds
+    (x | i exist_subset_sum_eq s
+    implies Q2 . (i, s) = TRUE)
+    &
+    (not x | i exist_subset_sum_eq s
+    implies Q2 . (i, s) = FALSE);
+    for i,s being set st i in L & s in REAL holds
+    Q1 . (i, s) = Q2 . (i, s)
+    proof
+      let i,s be set;
+      assume A3: i in L & s in REAL; then
+      reconsider i0 = i as Nat;
+      reconsider s0 = s as Real by A3;
+      A4: 1 <= i0 & i0 <= len x by A3,FINSEQ_1:1;
+      per cases;
+      suppose
+        A5: x | i0 exist_subset_sum_eq s0;
+        hence Q1 . (i, s) = TRUE by A1,A4
+        .= Q2 . (i, s) by A2,A4,A5;
+      end;
+      suppose
+        A6: not x | i0 exist_subset_sum_eq s0;
+        hence Q1 . (i, s) = FALSE by A1,A4
+        .= Q2 . (i, s) by A2,A4,A6;
+      end;
+    end;
+    hence Q1 = Q2;
+  end;
+
+definition
+  let x be REAL-valued FinSequence;
+  func Q_ex(x) -> Function of [:Seg (len x), REAL:], BOOLEAN means  :defQ:
+  for i being Nat, s being Real
+  st 1 <= i <= len x
+  holds
+  (x | i exist_subset_sum_eq s
+  implies it . (i, s) = TRUE)
+  &
+  (not x | i exist_subset_sum_eq s
+  implies it . (i, s) = FALSE);
+  existence by LM010;
+  uniqueness by LM020;
+end;
+
+registration
+  let A be Subset of NAT;
+  let i be Nat, s be Real;
+  let f be Function of [:A, REAL:], BOOLEAN;
+  cluster f . (i, s) -> boolean;
+  correctness;
+end;
+
+definition
+  let a, b be object;
+  func a _eq_ b -> object equals
+  IFEQ(a,b,TRUE,FALSE);
+  correctness;
+end;
+
+registration
+  let a, b be object;
+  cluster a _eq_ b -> boolean;
+  correctness;
+end;
+
+definition
+  let a, b be ExtReal;
+  func a _le_ b -> object equals
+  IFGT(a,b,FALSE,TRUE);
+  correctness;
+end;
+
+registration
+  let a, b be ExtReal;
+  cluster a _le_ b -> boolean;
+  correctness by XXREAL_0:def 11;
+end;
+
+:: Recurrence Relation: Base Case
+
+Lemacik1:
+  for x being REAL-valued FinSequence st 1 <= len x holds dom (x | 1) = { 1 }
+proof
+  let x be REAL-valued FinSequence;
+  assume 1 <= len x; then
+  A3: len (x | 1) = 1 by FINSEQ_1:59;
+  1 in Seg 1; then
+  (x | 1) . 1 = x . 1 by FUNCT_1:49; then
+  x | 1 = <* x . 1 *> by FINSEQ_1:40,A3;
+  hence thesis by FINSEQ_1:2,38;
+end;
+
+theorem
+  for s being Real, x being REAL-valued FinSequence
+  st 1 <= len x holds
+  (Q_ex(x)) . (1, s) = ((x . 1) _eq_ s) 'or' (s _eq_ 0)
+  proof
+    let s be Real, x be REAL-valued FinSequence;
+    assume
+    A1: 1 <= len x; then
+    Q1: ((x | 1) exist_subset_sum_eq s
+    implies (Q_ex(x)) . (1, s) = TRUE) &
+    (not (x | 1) exist_subset_sum_eq s
+    implies (Q_ex(x)) . (1, s) = FALSE) by defQ;
+    A3: len (x | 1) = 1 by FINSEQ_1:59,A1;
+    1 in Seg 1; then
+A4: (x | 1) . 1 = x . 1 by FUNCT_1:49;
+    A5: {1} = dom (x | 1) by A1,Lemacik1;
+    A8: Seq (x | 1, {1}) = (x | 1) | {1} by A5,FINSEQ_3:116
+    .= <* x . 1 *> by FINSEQ_1:40,A3,A5,A4;
+    per cases;
+    suppose A9: s <> 0; then
+      A10: s _eq_ 0 = FALSE by FUNCOP_1:def 8;
+      per cases;
+      suppose A11: x . 1 = s; then
+        A12: (x . 1) _eq_ s = TRUE by FUNCOP_1:def 8;
+        Sum (Seq (x | 1, {1})) = s by A11,A8,RVSUM_1:73;
+        hence (Q_ex(x)) . (1, s) = ((x . 1) _eq_ s) 'or' (s _eq_ 0)
+        by Q1,A12,A5;
+      end;
+      suppose A13: x . 1 <> s;
+        not x | 1 exist_subset_sum_eq s
+        proof
+          assume x | 1 exist_subset_sum_eq s; then
+          consider I being set such that
+          A15: I c= dom (x | 1) & Sum (Seq (x | 1, I)) = s;
+          dom (x | 1) = {1} by A1,Lemacik1;
+          then per cases by A15,ZFMISC_1:33;
+          suppose I = {};
+            hence contradiction by A9,A15,RVSUM_1:72;
+          end;
+          suppose I = {1};
+            hence contradiction by A13,A15,A8,RVSUM_1:73;
+          end;
+        end;
+        hence (Q_ex(x)) . (1, s) = ((x . 1) _eq_ s) 'or' (s _eq_ 0)
+        by A13,A10,Q1,FUNCOP_1:def 8;
+      end;
+    end;
+    suppose A20: s = 0; then
+      A21: s _eq_ 0 = TRUE by FUNCOP_1:def 8;
+      x | 1 exist_subset_sum_eq s
+      proof
+        take {};
+        thus thesis by A20,RVSUM_1:72;
+      end;
+      hence (Q_ex(x)) . (1, s) = ((x . 1) _eq_ s) 'or' (s _eq_ 0)
+      by A21,A1,defQ;
+    end;
+  end;
+
+  LM040: for i,k,x being Nat,
+  I being set
+  st I c= Seg k & k < x & x in Seg i
+  holds
+  Sgm (I \/ {x}) = Sgm (I) ^ <* x *>
+  proof
+    let i,k,x be Nat, I be set;
+    assume that
+    A1: I c= Seg k and
+    A2: k < x and
+    A3: x in Seg i;
+    A5: {x} c= Seg i by A3,ZFMISC_1:31;
+    for m,n being Nat
+    st m in I & n in {x} holds m < n
+    proof
+      let m,n be Nat;
+      assume A6: m in I & n in {x}; then
+      A8: n = x by TARSKI:def 1;
+      1 <= m & m <= k by A1,A6,FINSEQ_1:1;
+      hence m < n by A8,A2,XXREAL_0:2;
+    end;
+    hence Sgm (I \/ {x}) = Sgm (I) ^ Sgm {x} by A1,A5,FINSEQ_3:42
+    .= Sgm (I) ^ <* x *> by FINSEQ_3:44,A2;
+  end;
+
+theorem LM050:
+  for f,g being Function,
+  X,Y being set
+  st rng g c= X holds (f | (X \/ Y)) * g = (f | X) * g
+  proof
+    let f,g be Function,
+    X,Y be set;
+    assume
+    A1: rng g c= X;
+    A2: for i being object holds
+    i in dom ((f | (X \/ Y)) * g)
+    iff
+    i in dom g & g . i in dom (f | X)
+    proof
+      let i be object;
+      hereby assume AA: i in dom ((f | (X \/ Y)) * g);
+        then
+        A3: i in dom g & g . i in dom (f | (X \/ Y)) by FUNCT_1:11;
+        then
+        g . i in (dom f) /\ (X \/ Y) by  RELAT_1:61;
+        then
+        P3: g . i in dom f & g . i in (X \/ Y) by XBOOLE_0:def 4;
+        g . i in rng g by A3,FUNCT_1:3; then
+        g . i in (dom f) /\ X by A1,P3,XBOOLE_0:def 4;
+        hence i in dom g & g . i in dom (f | X) by AA,FUNCT_1:11,RELAT_1:61;
+      end;
+      assume
+      A4: i in dom g & g . i in dom (f | X); then
+      g . i in (dom f) /\ X by RELAT_1:61; then
+      A5: g . i in dom f & g . i in X by XBOOLE_0:def 4; then
+      g . i in X \/ Y by XBOOLE_0:def 3; then
+      g . i in (dom f) /\ (X \/ Y) by A5,XBOOLE_0:def 4;
+      then g . i in dom (f | (X \/ Y)) by RELAT_1:61;
+      hence i in dom ((f | (X \/ Y)) * g) by A4,FUNCT_1:11;
+    end;
+    for i being object
+    st i in dom ((f | (X \/ Y)) * g)
+    holds
+    ((f | (X \/ Y)) * g) . i = (f | X) . (g . i)
+    proof
+      let i be object;
+      assume A7: i in dom ((f | (X \/ Y)) * g);
+      then i in dom g & g . i in dom (f | X) by A2;
+      then g . i in (dom f) /\ X by RELAT_1:61;
+      then g . i in dom f & g . i in X by XBOOLE_0:def 4;
+      then
+      A9: g . i in X \/ Y by XBOOLE_0:def 3;
+      thus
+      ((f | (X \/ Y)) * g).i = (f | (X \/ Y)) . (g . i) by A7,FUNCT_1:12
+      .= f . (g . i) by  FUNCT_1:49,A9
+      .= (f | X) . (g . i) by A2,A7,FUNCT_1:47;
+    end;
+    hence thesis by FUNCT_1:10,A2;
+  end;
+
+theorem LM060:
+  for x being REAL-valued FinSequence,
+      i being Nat,
+      I0 being set
+  st I0 c= Seg i & Seg (i+1) c= dom x
+  holds
+  Seq (x | (i+1), I0 \/ {i+1}) = Seq (x | i, I0) ^ <* x . (i+1) *>
+  proof
+    let x be REAL-valued FinSequence,
+    i be Nat,
+    I0 be set;
+    assume A1: I0 c= Seg i & Seg (i+1) c= dom x;
+    A4: Seg i c= Seg (i+1) by NAT_1:11,FINSEQ_1:5; then
+    A17: I0 c= dom x by A1;
+A6: dom (x | (i+1)) = Seg (i+1) by A1,RELAT_1:62; then
+    A7: {i+1} c= dom (x | (i+1)) by FINSEQ_1:4,ZFMISC_1:31;
+    A8: I0 c= Seg (i+1) by A4,A1; then
+    A9: I0 \/ {i+1} c= Seg (i+1) by A7,A6,XBOOLE_1:8;
+    A10: Seq (x | (i+1),I0 \/ {i+1}) = Seq (x | (I0 \/ {i+1}))
+      by A8,A7,A6,XBOOLE_1:8,RELAT_1:74
+    .= (x | (I0 \/ {i+1})) * Sgm (dom (x | (I0 \/ {i+1})));
+    A11: I0 \/ {i+1} c= dom x by A1,A9; then
+    A12: dom (x | (I0 \/ {i+1})) = I0 \/ {i+1} by RELAT_1:62;
+    i < i + 1 & i+1 in Seg(i+1) by FINSEQ_1:4,NAT_1:16;
+    then
+A13: Sgm (I0 \/ {i+1}) = Sgm (I0) ^ <* i+1 *> by A1,LM040;
+    A14: dom (x | (I0 \/ {i+1})) = (I0 \/ {i+1}) by RELAT_1:62,A11;
+    rng (x | (I0 \/ {i+1})) c= REAL; then
+    reconsider f = x | (I0 \/ {i+1})
+      as Function of (I0 \/ {i+1}), REAL by A14,FUNCT_2:2;
+    rng Sgm (I0) = I0 by FINSEQ_1:def 13,A1; then
+    reconsider p = Sgm (I0) as FinSequence of (I0 \/ {i+1})
+    by FINSEQ_1:def 4,XBOOLE_1:10;
+    i+1 in {i+1} by TARSKI:def 1; then
+    reconsider d = i+1 as Element of (I0 \/ {i+1}) by XBOOLE_0:def 3;
+    A15: Seq (x | (i+1), I0 \/ {i+1})
+      = (f * p) ^ <* f . d *> by FINSEQOP:8,A13,A10,A12;
+    A19: rng Sgm (I0) = I0 by FINSEQ_1:def 13,A1;
+    (f * p) = (x | I0) * (Sgm (I0)) by LM050,A19
+    .= Seq ((x | I0) | I0) by A17,RELAT_1:62
+    .= Seq (x | i, I0) by A1,RELAT_1:74;
+    hence thesis by A15,FUNCT_1:49;
+  end;
+
+theorem LM080:  ::: should be somewhere
+  for x being real-valued FinSequence
+  st x <> {} & x is positive
+  holds 0 < Sum x
+  proof
+    let x be real-valued FinSequence;
+    assume that
+    A1: x <> {} and
+    A2: x is positive;
+    consider i being object such that
+    A3: i in dom x by A1,XBOOLE_0:def 1;
+    A4: 0 < x . i by A3,A2;
+    for i being Nat st i in dom x holds 0 <= x . i by A2;
+    hence 0 < Sum x by RVSUM_1:85,A3,A4;
+  end;
+
+theorem LM090:
+  for x being real-valued FinSequence, i being Nat
+  st x is positive & 1 <= i <= len x holds
+  x | i is positive & x | i <> {}
+  proof
+    let x be real-valued FinSequence;
+    let i be Nat;
+    assume that
+    A2: x is positive and
+    A3: 1 <= i and
+    A4: i <= len x;
+    A5: dom (x | i) c= dom x by RELAT_1:60;
+    A6: len (x | i) = i by A4,FINSEQ_1:59;
+    for j being Nat st j in dom (x | i)
+    holds 0 < (x | i) . j
+    proof
+      let j be Nat;
+      assume A7: j in dom (x | i); then
+      A8: 0 < x . j by A2,A5;
+      Seg i c= Seg len x by A4,FINSEQ_1:5; then
+      Seg i c= dom x by FINSEQ_1:def 3; then
+      dom (x | i) = Seg i by RELAT_1:62; then
+      j <= i by A7,FINSEQ_1:1;
+      hence thesis by A8,FINSEQ_3:112;
+    end;
+    hence x | i is positive & x | i <> {} by A3,A6;
+  end;
+
+theorem LM100:
+  for x being real-valued FinSequence,
+  I being set
+  st x is positive & I c= dom x & I <> {}
+  holds
+  Seq (x, I) is positive & Seq (x, I) <> {}
+  proof
+    let x be real-valued FinSequence;
+    let I be set;
+    assume that
+    A2: x is positive and
+    A3: I c= dom x and
+    A4: I <> {};
+    A5: dom x meets I by A4,A3,XBOOLE_1:28;
+    for j being Nat st j in dom (Seq (x, I)) holds 0 < Seq (x, I) . j
+    proof
+      let j be Nat;
+      assume A6: j in dom (Seq (x, I));
+      reconsider sfi = Seq (x | I) as real-valued FinSequence;
+      A9: (Sgm (dom (x | I))) . j in dom (x | I) by A6,FUNCT_1:11;
+      A10: dom (x | I) c= dom x by RELAT_1:60;
+      Seq (x, I) . j = (x | I) . ((Sgm (dom (x | I))) . j) by A6,FUNCT_1:12
+      .= x . ((Sgm (dom (x | I))) . j) by A9,FUNCT_1:47;
+      hence thesis by A10,A2,A9;
+    end;
+    hence thesis by A5,RELAT_1:66,FINSEQ_1:97;
+  end;
+
+:: Recurrence Relation: Induction Case
+
+theorem
+  for x being REAL-valued FinSequence
+  st x is positive holds
+  for i being Nat, s being Real st
+  1 <= i < len x
+  holds
+  ((Q_ex(x)) . (i+1, s)) =
+  ((Q_ex(x)) . (i, s)) 'or'
+  ((x . (i+1) _le_ s) '&' ((Q_ex(x)) . (i, s - x . (i+1))))
+  proof
+    let x be REAL-valued FinSequence;
+    assume AS0: x is positive;
+    let i be Nat, s be Real;
+    assume
+    A1: 1 <= i < len x;
+    A2: 1 <= i+1 by NAT_1:11;
+    A3: i+1 <= len x by A1,NAT_1:13; then
+    A4: i+1 in Seg len x by A2;
+    s in REAL by XREAL_0:def 1; then
+    [i+1, s] in [:Seg (len x), REAL:] by ZFMISC_1:87,A4; then
+    (Q_ex(x)) . [i+1, s] in BOOLEAN by FUNCT_2:5; then
+    A5: (Q_ex(x)) . (i+1, s) = TRUE or (Q_ex(x)) . (i+1, s) = FALSE
+    by TARSKI:def 2;
+    Seg i c= Seg len x by A1, FINSEQ_1:5;
+    then Seg i c= dom x by FINSEQ_1:def 3;
+    then
+    A8: dom (x | i) = Seg i by RELAT_1:62;
+    A9: Seg i c= Seg (i+ 1) by NAT_1:11,FINSEQ_1:5;
+    Seg (i+1) c= Seg len x by FINSEQ_1:5,A3; then
+    A10: Seg (i+1) c= dom x by FINSEQ_1:def 3; then
+    A11: dom (x | (i+1)) = Seg (i+1) by RELAT_1:62;
+    A12: dom (x | i) c= dom (x | (i+1)) by A9,A8,A10,RELAT_1:62;
+    A14: {i+1} c= dom (x | (i+1)) by A11,FINSEQ_1:4,ZFMISC_1:31;
+    A15: i+1 in dom x by A10,FINSEQ_1:4;
+    ((Q_ex(x)) . (i+1, s)) = TRUE
+    iff
+    ((Q_ex(x)) . (i, s)) 'or'
+    ((x . (i+1) _le_ s) '&' ((Q_ex(x)) . (i, s - x . (i+1)))) = TRUE
+    proof
+      hereby
+        assume (Q_ex(x)) . (i+1, s) = TRUE;
+        then x | (i+1) exist_subset_sum_eq s by A2,A3,defQ;
+        then consider I being set such that
+        A18: I c= dom (x | (i+1)) &
+        Sum (Seq (x | (i+1), I)) = s;
+        per cases;
+        suppose A19: I c= dom (x | i); then
+          A21: I c= Seg (i+1) by A9,A8;
+          Seq (x | (i+1), I) = Seq (x | I) by A21,RELAT_1:74
+          .= Seq ((x | i) | I) by A19,A8,RELAT_1:74; then
+          Sum (Seq (x | i, I)) = s by A18; then
+          x | i exist_subset_sum_eq s by A19; then
+          (Q_ex(x)) . (i, s) = TRUE by defQ,A1;
+          hence ((Q_ex(x)) . (i, s)) 'or'
+          ((x . (i+1) _le_ s) '&' ((Q_ex(x)) . (i, s - x . (i+1)))) = TRUE;
+        end;
+        suppose A22: not I c= dom (x | i);
+          A23: i+1 in I
+          proof
+            assume A24: not i+1 in I;
+            I c= dom (x | i)
+            proof let j be object;
+              assume A25: j in I; then
+              j in Seg (i+1) by A11,A18; then
+              reconsider j0 = j as Nat;
+              A27: 1 <= j0 & j0 <= i+1 by A25,A11,A18,FINSEQ_1:1;
+              j0 < i+1 by A24,A25,XXREAL_0:1,A27; then
+              j0 <= i by NAT_1:13;
+              hence j in dom (x | i) by A8,A27;
+            end;
+            hence contradiction by A22;
+          end;
+          set I0 = I \ {i+1};
+          A28: I = I0 \/ {i+1} by A23,ZFMISC_1:31,XBOOLE_1:45;
+          A32: I0 c= Seg i
+          proof
+            let k be object;
+            assume W: k in I0; then
+            A29: k in I & not k in {i+1} by XBOOLE_0:def 5;
+            k in Seg (i+1) by A11,A18,W; then
+            reconsider j = k as Nat;
+            A31: 1 <= j & j <= i+1 by A29,A11,A18,FINSEQ_1:1;
+            j <> i+1 by A29,TARSKI:def 1; then
+            j < i+1 by A31,XXREAL_0:1; then
+            j <= i by NAT_1:13;
+            hence k in Seg i by A31;
+          end;
+          A34: Seq (x | (i+1), I) = Seq (x | i, I0) ^ <* x . (i+1) *>
+          by A10,A32,LM060,A28; then
+          Sum (Seq (x | (i+1), I))
+          = Sum (Seq (x | i, I0)) + x . (i+1) by RVSUM_1:74; then
+          A35: x | i exist_subset_sum_eq s - x . (i+1) by A8,A32,A18;
+          A36: s < x . (i+1) implies s < Sum (Seq (x | (i+1), I))
+          proof
+            assume A37: s < x . (i+1);
+            per cases;
+            suppose A38: I0 <> {};
+              x | i is positive & x | i <> {} by AS0,A1,LM090; then
+              Seq (x | i, I0) is positive & Seq (x | i, I0) <> {}
+                by A32,A8,A38,LM100; then
+              s + 0 < Sum (Seq (x | i, I0)) + x . (i+1) by A37,XREAL_1:8,LM080;
+              hence thesis by A34,RVSUM_1:74;
+            end;
+            suppose A39: I0 = {}; then
+              A42: x | I = {[i+1, x . (i+1)]} by GRFUNC_1:28,A15,A28;
+              Seq (x | (i+1), I) = <* x . (i+1) *>
+              by A42,FINSEQ_3:157,A11,A14,A28,A39,RELAT_1:74;
+              hence thesis by A37,RVSUM_1:73;
+            end;
+          end;
+          A43: x . (i+1) _le_ s = TRUE by A36,A18,XXREAL_0:def 11;
+          (Q_ex(x)) . (i, s - x . (i+1)) = TRUE by A35,defQ,A1;
+          hence ((Q_ex(x)) . (i, s)) 'or'
+          ((x . (i+1) _le_ s) '&' ((Q_ex(x)) . (i, s - x . (i+1))))
+          = TRUE by A43;
+        end;
+      end;
+      assume A44: ((Q_ex(x)) . (i, s)) 'or'
+      ((x . (i+1) _le_ s) '&' ((Q_ex(x)) . (i, s - x . (i+1)))) = TRUE;
+      (Q_ex(x)) . (i, s) = TRUE
+      or ((x . (i+1) _le_ s) = TRUE
+      & (Q_ex(x)) . (i, s - x . (i+1)) = TRUE)
+      proof
+        assume not ((Q_ex(x)) . (i, s) = TRUE
+        or ((x . (i+1) _le_ s) = TRUE
+        & (Q_ex(x)) . (i, s - x . (i+1)) = TRUE));
+        then
+        (Q_ex(x)) . (i, s) = FALSE
+        & ((x . (i+1) _le_ s) = FALSE
+        or (Q_ex(x)) . (i, s - x . (i+1)) = FALSE) by XBOOLEAN:def 3;
+        hence contradiction by A44;
+      end;
+      then
+      per cases;
+      suppose
+        A45: (Q_ex(x)) . (i, s) = TRUE;
+        x | i exist_subset_sum_eq s by A1,defQ,A45;
+        then
+        consider I being set such that
+        A46: I c= dom (x | i) & Sum (Seq (x | i, I)) = s;
+        A47: I c= dom (x | (i+1)) by A46,A12;
+        Seq (x | i, I) = Seq (x | I) by A46,RELAT_1:74,A8
+        .= Seq ((x | (i+1)), I) by A11,A47,RELAT_1:74;
+        then x | (i+1) exist_subset_sum_eq s by A47,A46;
+        hence (Q_ex(x)) . (i+1, s) = TRUE by A2,A3,defQ;
+      end;
+      suppose
+        ((x . (i+1) _le_ s) = TRUE
+        & (Q_ex(x)) . (i, s - x . (i+1)) = TRUE); then
+        x | i exist_subset_sum_eq s - x . (i+1) by A1,defQ; then
+        consider I being set such that
+        A49: I c= dom (x | i) &
+        Sum (Seq (x | i, I)) = s - x . (i+1);
+        set I1 = I \/ {i+1};
+        A50: I c= dom (x | (i+1)) by A12,A49;
+        Seq (x | (i+1), I1) = Seq (x | i, I) ^ <* x . (i+1) *>
+          by A10,A49,A8,LM060; then
+        Sum (Seq (x | (i+1), I1)) = Sum (Seq (x | i, I)) + x . (i+1)
+          by RVSUM_1:74
+        .= s by A49;
+        then x | (i+1) exist_subset_sum_eq s by A50,XBOOLE_1:8,A14;
+        hence (Q_ex(x)) . (i+1, s) = TRUE by A2,A3,defQ;
+      end;
+    end;
+    hence thesis by A5,XBOOLEAN:def 3;
+  end;

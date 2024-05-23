@@ -1,0 +1,3328 @@
+:: Unification of Graphs and Relations in {M}izar
+::  by Sebastian Koch
+::
+:: Received May 31, 2020
+:: Copyright (c) 2020-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, FINSET_1, RELAT_1, FUNCT_1, XBOOLE_0, TARSKI, SUBSET_1,
+      FINSEQ_1, FUNCT_4, ZFMISC_1, CARD_1, ARYTM_3, XXREAL_0, PBOOLE, GLIB_000,
+      RING_3, GLIB_002, PARTFUN1, FUNCT_2, CHORD, SCMYCIEL, REWRITE1, GLIB_006,
+      GLIB_007, GLIB_009, GLIB_010, GLIB_012, MCART_1, WAYBEL_0, MOD_4,
+      RELAT_2, GLIB_001, SGRAPH1, GLUNIR00, EQREL_1, GLIB_013;
+ notations TARSKI, XBOOLE_0, XTUPLE_0, ZFMISC_1, SUBSET_1, RELAT_1, FUNCT_1,
+      RELAT_2, RELSET_1, PARTFUN1, BINOP_1, DOMAIN_1, EQREL_1, FUNCT_3,
+      FUNCT_4, FINSET_1, CARD_1, XCMPLX_0, XXREAL_0, FINSEQ_1, GLIB_000,
+      GLIB_001, GLIB_002, CHORD, GLIB_006, GLIB_007, GLIB_008, GLIB_009,
+      GLIB_010, GLIB_012, GLIB_013;
+ constructors DOMAIN_1, FUNCT_4, CHORD, GLIB_002, GLIB_007, GLIB_008, GLIB_009,
+      GLIB_010, GLIB_012, COMPUT_1, EQREL_1, GLIB_013;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, ORDINAL1, FINSET_1, XREAL_0,
+      PARTFUN1, RELSET_1, GLIB_000, GLIB_002, GLIB_007, GLIB_009, GLIB_008,
+      GLIB_010, XTUPLE_0, GLIB_012, ZFMISC_1, RELAT_2, GLIBPRE0, GLIB_013;
+ requirements ARITHM, BOOLE, NUMERALS, REAL, SUBSET;
+ theorems RELSET_1, GLIB_000, CHORD, GLIB_002, GLIB_006, GLIB_007, GLIB_009,
+      GLIB_010, TARSKI, ZFMISC_1, FUNCT_1, XBOOLE_0, XBOOLE_1, FUNCT_2,
+      PARTFUN1, FUNCT_4, GLIB_001, RELAT_1, CARD_1, XTUPLE_0, XXREAL_0,
+      ENUMSET1, GLIB_012, RELAT_2, POLYFORM, EQREL_1, TOPGEN_2, SYSREL,
+      BINOP_1, FUNCT_3, GLIBPRE0, ROUGHS_1;
+ schemes FUNCT_1;
+
+begin :: The Adjacency Relation
+
+reserve G for _Graph;
+
+definition
+  let G;
+  func VertexDomRel(G) -> Relation of the_Vertices_of G equals
+  (the_Source_of G qua Relation)~ * (the_Target_of G);
+  coherence
+  proof
+    reconsider S = the_Source_of G as Relation;
+    set T = the_Target_of G;
+    set E = the_Edges_of G, V = the_Vertices_of G;
+    for x being object holds x in S~ * T implies x in [: V, V :]
+    proof
+      let x be object;
+      assume A1: x in (S~) * T;
+      then consider y,z being object such that
+        A2: x = [y,z] by RELAT_1:def 1;
+      consider a being object such that
+        A3: [y,a] in S~ & [a,z] in T by A1, A2, RELAT_1:def 8;
+      [a,y] in S by A3, RELAT_1:def 7;
+      then A4: y in V by ZFMISC_1:87;
+      z in V by A3, ZFMISC_1:87;
+      hence x in [: V, V :] by A2, A4, ZFMISC_1:def 2;
+    end;
+    hence thesis by TARSKI:def 3;
+  end;
+end;
+
+theorem Th1:
+  for v,w being object holds [v,w] in VertexDomRel(G) iff
+    ex e being object st e DJoins v,w,G
+proof
+  let v,w be object;
+  reconsider S = the_Source_of G
+    as Relation of the_Edges_of G, the_Vertices_of G;
+  hereby
+    assume [v,w] in VertexDomRel(G);
+    then consider e being object such that
+      A1: [v,e] in S~ & [e,w] in the_Target_of G by RELAT_1:def 8;
+    take e;
+    [e,v] in S by A1, RELAT_1:def 7;
+    then A2: e in dom the_Source_of G & (the_Source_of G).e = v by FUNCT_1:1;
+    (the_Target_of G).e = w by A1, FUNCT_1:1;
+    hence e DJoins v,w,G by A2, GLIB_000:def 14;
+  end;
+  given e being object such that
+    A3: e DJoins v,w,G;
+  e in the_Edges_of G by A3, GLIB_000:def 14;
+  then A4: e in dom the_Source_of G & e in dom the_Target_of G
+    by FUNCT_2:def 1;
+  (the_Source_of G).e = v & (the_Target_of G).e = w by A3, GLIB_000:def 14;
+  then [e,v] in the_Source_of G & [e,w] in the_Target_of G by A4, FUNCT_1:1;
+  then [v,e] in S~ & [e,w] in the_Target_of G by RELAT_1:def 7;
+  hence [v,w] in VertexDomRel(G) by RELAT_1:def 8;
+end;
+
+theorem Th2:
+  for v,w being object holds [v,w] in (VertexDomRel(G))~ iff
+    ex e being object st e DJoins w,v,G
+proof
+  let v,w be object;
+  thus [v,w] in (VertexDomRel(G))~ implies ex e being object st e DJoins w,v,G
+  proof
+    assume [v,w] in (VertexDomRel(G))~;
+    then [w,v] in VertexDomRel(G) by RELAT_1:def 7;
+    then consider e being object such that
+      A1: e DJoins w,v,G by Th1;
+    take e;
+    thus thesis by A1;
+  end;
+  thus (ex e being object st e DJoins w,v,G)implies [v,w] in (VertexDomRel(G))~
+  proof
+    assume ex e being object st e DJoins w,v,G;
+    then [w,v] in VertexDomRel(G) by Th1;
+    hence thesis by RELAT_1:def 7;
+  end;
+end;
+
+Lm1:
+  G is loopless iff VertexDomRel(G) misses id the_Vertices_of G
+proof
+  set V = the_Vertices_of G;
+  hereby
+    assume A1: G is loopless;
+    VertexDomRel(G) /\ id V = {}
+    proof
+      assume VertexDomRel(G) /\ id V <> {};
+      then consider z being object such that
+        A2: z in VertexDomRel(G) /\ id V by XBOOLE_0:def 1;
+      consider x,y being object such that
+        A3: z = [x,y] by A2, RELAT_1:def 1;
+      A4: [x,y] in VertexDomRel(G) & [x,y] in id V by A2, A3, XBOOLE_0:def 4;
+      then x = y by RELAT_1:def 10;
+      then ex e being object st e DJoins x,x,G by A4, Th1;
+      hence contradiction by A1, GLIB_009:17;
+    end;
+    hence VertexDomRel(G) misses id V by XBOOLE_0:def 7;
+  end;
+  assume VertexDomRel(G) misses id V;
+  then A5: VertexDomRel(G) /\ id V = {} by XBOOLE_0:def 7;
+  assume G is non loopless;
+  then consider v, e being object such that
+    A6: e DJoins v,v,G by GLIB_009:17;
+  A7: [v,v] in VertexDomRel(G) by A6, Th1;
+  e Joins v,v,G by A6, GLIB_000:16;
+  then v in the_Vertices_of G by GLIB_000:13;
+  then [v,v] in id V by RELAT_1:def 10;
+  hence contradiction by A5, A7, XBOOLE_0:def 4;
+end;
+
+theorem Th3:
+  G is loopless iff VertexDomRel(G) is irreflexive
+proof
+  hereby
+    assume G is loopless;
+    then VertexDomRel(G) misses id the_Vertices_of G by Lm1;
+    hence VertexDomRel(G) is irreflexive by GLIBPRE0:11;
+  end;
+  assume VertexDomRel(G) is irreflexive;
+  then VertexDomRel(G) misses id the_Vertices_of G by GLIBPRE0:11;
+  hence G is loopless by Lm1;
+end;
+
+registration
+  let G be loopless _Graph;
+  cluster VertexDomRel(G) -> irreflexive;
+  coherence by Th3;
+end;
+
+registration
+  let G be non loopless _Graph;
+  cluster VertexDomRel(G) -> non irreflexive;
+  coherence by Th3;
+end;
+
+registration
+  let G be non-multi _Graph;
+  cluster VertexDomRel(G) -> antisymmetric;
+  coherence
+  proof
+    set F = field VertexDomRel(G);
+    now
+      let x,y be object;
+      assume x in F & y in F;
+      assume A1: [x,y] in VertexDomRel(G) & [y,x] in VertexDomRel(G);
+      then consider e1 being object such that
+        A2: e1 DJoins x,y,G by Th1;
+      consider e2 being object such that
+        A3: e2 DJoins y,x,G by A1, Th1;
+      e1 Joins x,y,G & e2 Joins x,y,G by A2, A3, GLIB_000:16;
+      then e1 = e2 by GLIB_000:def 20;
+      hence x = y by A2, A3, GLIB_009:6;
+    end;
+    hence VertexDomRel(G) is antisymmetric by RELAT_2:def 4, RELAT_2:def 12;
+  end;
+end;
+
+registration
+  let G be simple _Graph;
+  cluster VertexDomRel(G) -> asymmetric;
+  coherence
+  proof
+    set F = field VertexDomRel(G);
+    now
+      let x,y be object;
+      assume x in F & y in F;
+      assume A1: [x,y] in VertexDomRel(G) & [y,x] in VertexDomRel(G);
+      then consider e1 being object such that
+        A2: e1 DJoins x,y,G by Th1;
+      consider e2 being object such that
+        A3: e2 DJoins y,x,G by A1, Th1;
+      e1 Joins x,y,G & e2 Joins x,y,G by A2, A3, GLIB_000:16;
+      then e1 = e2 by GLIB_000:def 20;
+      then x = y by A2, A3, GLIB_009:6;
+      hence contradiction by A2, GLIB_009:17;
+    end;
+    hence VertexDomRel(G) is asymmetric by RELAT_2:def 5, RELAT_2:def 13;
+  end;
+end;
+
+theorem Th4:
+  for G being _Graph
+  st ex e1,e2,x,y being object st e1 DJoins x,y,G & e2 DJoins y,x,G
+  holds VertexDomRel(G) is non asymmetric
+proof
+  let G be _Graph;
+  given e1,e2,x,y being object such that
+    A1: e1 DJoins x,y,G & e2 DJoins y,x,G;
+  set R = VertexDomRel(G);
+  ex x,y being object st x in field R & y in field R & [x,y] in R & [y,x] in R
+  proof
+    take x,y;
+    [x,y] in R & [y,x] in R by A1, Th1;
+    hence thesis by RELAT_1:15;
+  end;
+  hence VertexDomRel(G) is non asymmetric by RELAT_2:def 5, RELAT_2:def 13;
+end;
+
+registration
+  let G be non non-multi non-Dmulti _Graph;
+  cluster VertexDomRel(G) -> non asymmetric;
+  coherence
+  proof
+    ex e1,e2,x,y being object st e1 DJoins x,y,G & e2 DJoins y,x,G
+    proof
+      consider e1,e2,x,y being object such that
+        A1: e1 Joins x,y,G & e2 Joins x,y,G & e1 <> e2 by GLIB_000:def 20;
+      per cases by A1, GLIB_000:16;
+      suppose A2: e1 DJoins x,y,G;
+        then not e2 DJoins x,y,G by A1, GLIB_000:def 21;
+        then A3: e2 DJoins y,x,G by A1, GLIB_000:16;
+        take e1,e2,x,y;
+        thus thesis by A2, A3;
+      end;
+      suppose A4: e1 DJoins y,x,G;
+        then not e2 DJoins y,x,G by A1, GLIB_000:def 21;
+        then A5: e2 DJoins x,y,G by A1, GLIB_000:16;
+        take e1,e2,y,x;
+        thus thesis by A4, A5;
+      end;
+    end;
+    hence thesis by Th4;
+  end;
+end;
+
+:: means G is then without isolated vertices
+theorem Th5:
+  for G being loopless _Graph
+  st field VertexDomRel(G) = the_Vertices_of G
+  holds for C being Component of G holds C is non _trivial
+proof
+  let G be loopless _Graph;
+  assume A1: field VertexDomRel(G) = the_Vertices_of G;
+  let C be Component of G;
+  assume C is _trivial;
+  then consider v being Vertex of C such that
+    A2: the_Vertices_of C = {v} by GLIB_000:22;
+  A3: v in the_Vertices_of G by A2, ZFMISC_1:31;
+  reconsider v0 = v as Vertex of G by A2, ZFMISC_1:31;
+  the_Vertices_of G = dom VertexDomRel(G) \/ rng VertexDomRel(G)
+    by A1, RELAT_1:def 6;
+  then per cases by A3, XBOOLE_0:def 3;
+  suppose v in dom VertexDomRel(G);
+    then consider w being object such that
+      A4: [v,w] in VertexDomRel(G) by XTUPLE_0:def 12;
+    consider e being object such that
+      A5: e DJoins v,w,G by A4, Th1;
+    e Joins v,w,G by A5, GLIB_000:16;
+    then w in G.reachableFrom(v0) by GLIB_002:9, GLIB_002:10;
+    then w in the_Vertices_of C by GLIB_002:33;
+    then w = v by A2, TARSKI:def 1;
+    hence contradiction by A5, GLIB_009:17;
+  end;
+  suppose v in rng VertexDomRel(G);
+    then consider w being object such that
+      A6: [w,v] in VertexDomRel(G) by XTUPLE_0:def 13;
+    consider e being object such that
+      A7: e DJoins w,v,G by A6, Th1;
+    e Joins v,w,G by A7, GLIB_000:16;
+    then w in G.reachableFrom(v0) by GLIB_002:9, GLIB_002:10;
+    then w in the_Vertices_of C by GLIB_002:33;
+    then w = v by A2, TARSKI:def 1;
+    hence contradiction by A7, GLIB_009:17;
+  end;
+end;
+
+:: means if G is without isolated vertices
+theorem Th6:
+  for G being _Graph st for C being Component of G holds C is non _trivial
+  holds field VertexDomRel(G) = the_Vertices_of G
+proof
+  let G be _Graph;
+  assume A1: for C being Component of G holds C is non _trivial;
+  A2: field VertexDomRel(G) c= the_Vertices_of G \/ the_Vertices_of G
+    by RELSET_1:8;
+  now
+    let x be object;
+    assume x in the_Vertices_of G;
+    then reconsider v = x as Vertex of G;
+    set H = the inducedSubgraph of G,G.reachableFrom(v);
+    reconsider H0 = H as non _trivial _Graph by A1;
+    the_Vertices_of H = G.reachableFrom(v) by GLIB_000:def 37;
+    then reconsider v0 = v as Vertex of H0 by GLIB_002:9;
+    (the_Vertices_of H0) \ {v0} is non empty by GLIB_000:20;
+    then consider w being object such that
+      A3: w in (the_Vertices_of H) \ {v0} by XBOOLE_0:def 1;
+    reconsider w as Vertex of H by A3, XBOOLE_0:def 5;
+    the_Vertices_of H = G.reachableFrom(v) by GLIB_000:def 37;
+    then consider W being Walk of G such that
+      A4: W is_Walk_from v,w by GLIB_002:def 5;
+    A5: W.first() = v & W.last() = w by A4, GLIB_001:def 23;
+    not w in {v} by A3, XBOOLE_0:def 5;
+    then v <> w by TARSKI:def 1;
+    then 3 <= len W by A5, GLIB_001:125, GLIB_001:127;
+    then 1 < len W by XXREAL_0:2;
+    then W.(1+1) Joins W.1,W.(1+2),G by GLIB_001:def 3, POLYFORM:4;
+    then W.2 Joins v,W.3,G by A5, GLIB_001:def 6;
+    then per cases by GLIB_000:16;
+    suppose W.2 DJoins v,W.3,G;
+      then [v,W.3] in VertexDomRel(G) by Th1;
+      hence x in field VertexDomRel(G) by RELAT_1:15;
+    end;
+    suppose W.2 DJoins W.3,v,G;
+      then [W.3,v] in VertexDomRel(G) by Th1;
+      hence x in field VertexDomRel(G) by RELAT_1:15;
+    end;
+  end;
+  then the_Vertices_of G c= field VertexDomRel(G) by TARSKI:def 3;
+  hence thesis by A2, XBOOLE_0:def 10;
+end;
+
+theorem
+  for G being non _trivial connected _Graph
+  holds field VertexDomRel(G) = the_Vertices_of G
+proof
+  let G be non _trivial connected _Graph;
+  now
+    let C be Component of G;
+    set v = the Vertex of C;
+    the_Vertices_of C c= the_Vertices_of G;
+    then v in the_Vertices_of G & G is Component of G
+      by GLIB_002:30, TARSKI:def 3;
+    then C == G by GLIB_002:34;
+    hence C is non _trivial by GLIB_000:89;
+  end;
+  hence thesis by Th6;
+end;
+
+registration
+  let G be complete _Graph;
+  cluster VertexDomRel(G) -> connected;
+  coherence
+  proof
+    set F = field VertexDomRel(G);
+    now
+      let x,y be object;
+      assume A1: x in F & y in F & x <> y;
+      F c= the_Vertices_of G \/ the_Vertices_of G by RELSET_1:8;
+      then reconsider v = x, w = y as Vertex of G by A1;
+      consider e being object such that
+        A2: e Joins v,w,G by A1, CHORD:def 3, CHORD:def 6;
+      per cases by A2, GLIB_000:16;
+      suppose e DJoins v,w,G;
+        hence [x,y] in VertexDomRel(G) or [y,x] in VertexDomRel(G) by Th1;
+      end;
+      suppose e DJoins w,v,G;
+        hence [x,y] in VertexDomRel(G) or [y,x] in VertexDomRel(G) by Th1;
+      end;
+    end;
+    hence VertexDomRel(G) is connected by RELAT_2:def 6, RELAT_2:def 14;
+  end;
+end;
+
+::registration
+::  let G be non complete without_isolated_vertices _Graph;
+::  cluster VertexDomRel(G) -> non connected;
+::  coherence;
+::end;
+
+theorem Th8:
+  G is edgeless iff VertexDomRel(G) is empty
+proof
+  thus G is edgeless implies VertexDomRel(G) is empty;
+  thus VertexDomRel(G) is empty implies G is edgeless
+  proof
+    assume A1: VertexDomRel(G) is empty;
+    thus G is edgeless
+    proof
+      assume not G is edgeless;
+      then consider e being object such that
+        A2: e in the_Edges_of G by XBOOLE_0:def 1;
+      e DJoins (the_Source_of G).e,(the_Target_of G).e,G
+        by A2, GLIB_000:def 14;
+      hence contradiction by A1, Th1;
+    end;
+  end;
+end;
+
+registration
+  let G be edgeless _Graph;
+  cluster VertexDomRel(G) -> empty;
+  coherence;
+end;
+
+registration
+  let G be non edgeless _Graph;
+  cluster VertexDomRel(G) -> non empty;
+  coherence by Th8;
+end;
+
+Lm2:
+  G is loopfull iff id the_Vertices_of G c= VertexDomRel(G)
+proof
+  hereby
+    assume A1: G is loopfull;
+    now
+      let x,y be object;
+      assume [x,y] in id the_Vertices_of G;
+      then A2: x in the_Vertices_of G & x = y by RELAT_1:def 10;
+      then ex e being object st e DJoins x,x,G by A1, GLIB_012:1;
+      hence [x,y] in VertexDomRel(G) by A2, Th1;
+    end;
+    hence id the_Vertices_of G c= VertexDomRel(G) by RELAT_1:def 3;
+  end;
+  assume A3: id the_Vertices_of G c= VertexDomRel(G);
+  now
+    let v be Vertex of G;
+    [v,v] in id the_Vertices_of G by RELAT_1:def 10;
+    hence ex e being object st e DJoins v,v,G by A3, Th1;
+  end;
+  hence thesis by GLIB_012:1;
+end;
+
+theorem Th9:
+  G is loopfull iff VertexDomRel(G) is total reflexive
+proof
+  hereby
+    assume G is loopfull;
+    then id the_Vertices_of G c= VertexDomRel(G) by Lm2;
+    hence VertexDomRel(G) is total reflexive by ROUGHS_1:3;
+  end;
+  assume VertexDomRel(G) is total reflexive;
+  then id the_Vertices_of G c= VertexDomRel(G) by ROUGHS_1:3;
+  hence G is loopfull by Lm2;
+end;
+
+registration
+  let G be loopfull _Graph;
+  cluster VertexDomRel(G) -> reflexive total;
+  coherence by Th9;
+end;
+
+::registration
+::  let G be non loopfull without_isolated_vertices _Graph;
+::  cluster VertexDomRel(G) -> non reflexive;
+::  coherence;
+::end;
+
+registration
+  let G be vertex-finite _Graph;
+  cluster VertexDomRel(G) -> finite;
+  coherence;
+end;
+
+theorem Th10:
+  card VertexDomRel(G) = card Class DEdgeAdjEqRel(G)
+proof
+  set R = VertexDomRel(G);
+  defpred P[object,object] means ex e being object st
+    e DJoins $1`1,$1`2,G & $2 = Class(DEdgeAdjEqRel(G),e);
+  A1: for x,y1,y2 being object st x in R & P[x,y1] & P[x,y2] holds y1 = y2
+  proof
+    let x,y1,y2 be object;
+    assume A2: x in R & P[x,y1] & P[x,y2];
+    then consider e1 being object such that
+      A3: e1 DJoins x`1,x`2,G & y1 = Class(DEdgeAdjEqRel(G),e1);
+    consider e2 being object such that
+      A4: e2 DJoins x`1,x`2,G & y2 = Class(DEdgeAdjEqRel(G),e2) by A2;
+    [e1,e2] in DEdgeAdjEqRel(G) by A3, A4, GLIB_009:def 4;
+    then A5: e2 in Class(DEdgeAdjEqRel(G),e1) by EQREL_1:18;
+    e1 in the_Edges_of G by A3, GLIB_000:def 14;
+    hence thesis by A3, A4, A5, EQREL_1:23;
+  end;
+  A6: for x being object st x in R ex y being object st P[x,y]
+  proof
+    let x be object;
+    assume A7: x in R;
+    then consider v,w being object such that
+      A8: x = [v,w] by RELAT_1:def 1;
+    consider e being object such that
+      A9: e DJoins v,w,G by A7, A8, Th1;
+    take Class(DEdgeAdjEqRel(G),e),e;
+    thus thesis by A8, A9;
+  end;
+  consider f being Function such that
+    A10: dom f = R & for x being object st x in R holds P[x,f.x]
+    from FUNCT_1:sch 2(A1,A6);
+  now
+    let y be object;
+    hereby
+      assume y in rng f;
+      then consider x being object such that
+        A11: x in dom f & f.x = y by FUNCT_1:def 3;
+      consider e being object such that
+        A12: e DJoins x`1,x`2,G & y = Class(DEdgeAdjEqRel(G),e) by A10, A11;
+      e in the_Edges_of G by A12, GLIB_000:def 14;
+      hence y in Class DEdgeAdjEqRel(G) by A12, EQREL_1:def 3;
+    end;
+    assume y in Class DEdgeAdjEqRel(G);
+    then consider e being object such that
+A13: e in the_Edges_of G & y = Class(DEdgeAdjEqRel(G),e) by EQREL_1:def 3;
+    set x = [(the_Source_of G).e,(the_Target_of G).e];
+    A14: e DJoins x`1,x`2,G by A13, GLIB_000:def 14; then
+    P[x,f.x] by A10,Th1;
+    then f.x = y by A1, A13, A14, Th1;
+    hence y in rng f by A10, A14, Th1, FUNCT_1:3;
+  end;
+  then A16: rng f = Class DEdgeAdjEqRel(G) by TARSKI:2;
+  for x1,x2 being object st x1 in dom f & x2 in dom f & f.x1=f.x2 holds x1=x2
+  proof
+    let x1, x2 be object;
+    assume A17: x1 in dom f & x2 in dom f & f.x1 = f.x2;
+    then consider e1 being object such that
+      A18: e1 DJoins x1`1,x1`2,G & f.x1 = Class(DEdgeAdjEqRel(G),e1) by A10;
+    consider e2 being object such that
+      A19: e2 DJoins x2`1,x2`2,G & f.x2 = Class(DEdgeAdjEqRel(G),e2) by A10,
+A17;
+    e1 in the_Edges_of G by A18, GLIB_000:def 14;
+    then e2 in Class(DEdgeAdjEqRel(G),e1) by A17, A18, A19, EQREL_1:23;
+    then [e1,e2] in DEdgeAdjEqRel(G) by EQREL_1:18;
+    then consider v,w being object such that
+      A20: e1 DJoins v,w,G & e2 DJoins v,w,G by GLIB_009:def 4;
+    v = x1`1 & w = x1`2 & v = x2`1 & w = x2`2 by A18, A19, A20, GLIB_009:6;
+    then A21: [x1`1,x1`2] = [x2`1,x2`2];
+    (ex a,b being object st x1=[a,b])&(ex a,b being object st x2=[a,b])
+      by A10, A17, RELAT_1:def 1;
+    hence thesis by A21;
+  end;
+  hence thesis by A10, A16, FUNCT_1:def 4, CARD_1:70;
+end;
+
+theorem
+  card VertexDomRel(G) c= G.size()
+proof
+  set E = the RepDEdgeSelection of G;
+  card E c= card the_Edges_of G by CARD_1:11;
+  then card E c= G.size() by GLIB_000:def 25;
+  then card Class DEdgeAdjEqRel(G) c= G.size() by GLIBPRE0:71;
+  hence thesis by Th10;
+end;
+
+theorem Th12:
+  for G being non-Dmulti _Graph holds G.size() = card VertexDomRel(G)
+proof
+  let G be non-Dmulti _Graph;
+  DEdgeAdjEqRel(G) = id the_Edges_of G by GLIB_009:71;
+  then Class DEdgeAdjEqRel(G) = SmallestPartition the_Edges_of G
+    by EQREL_1:def 5;
+  then card Class DEdgeAdjEqRel(G) = card the_Edges_of G by TOPGEN_2:12;
+  then card VertexDomRel(G) = card the_Edges_of G by Th10;
+  hence thesis by GLIB_000:def 25;
+end;
+
+theorem
+  for v being Vertex of G holds Im(VertexDomRel(G),v) = v.outNeighbors()
+proof
+  let v be Vertex of G;
+  now
+    let x be object;
+    hereby
+      assume x in (VertexDomRel(G)).:{v};
+      then consider v0 being object such that
+        A1: [v0,x] in VertexDomRel(G) & v0 in {v} by RELAT_1:def 13;
+      [v,x] in VertexDomRel(G) by A1, TARSKI:def 1;
+      then x is set & ex e being object st e DJoins v,x,G by Th1, TARSKI:1;
+      hence x in v.outNeighbors() by GLIB_000:70;
+    end;
+    assume x in v.outNeighbors();
+    then ex e being object st e DJoins v,x,G by GLIB_000:70;
+    then [v,x] in VertexDomRel(G) & v in {v} by Th1, TARSKI:def 1;
+    hence x in (VertexDomRel(G)).:{v} by RELAT_1:def 13;
+  end;
+  then (VertexDomRel(G)).:{v} = v.outNeighbors() by TARSKI:2;
+  hence thesis by RELAT_1:def 16;
+end;
+
+theorem
+  for v being Vertex of G holds Coim(VertexDomRel(G),v) = v.inNeighbors()
+proof
+  let v be Vertex of G;
+  now
+    let x be object;
+    hereby
+      assume x in (VertexDomRel(G))"{v};
+      then consider v0 being object such that
+        A1: [x,v0] in VertexDomRel(G) & v0 in {v} by RELAT_1:def 14;
+      [x,v] in VertexDomRel(G) by A1, TARSKI:def 1;
+      then x is set & ex e being object st e DJoins x,v,G by Th1, TARSKI:1;
+      hence x in v.inNeighbors() by GLIB_000:69;
+    end;
+    assume x in v.inNeighbors();
+    then ex e being object st e DJoins x,v,G by GLIB_000:69;
+    then [x,v] in VertexDomRel(G) & v in {v} by Th1, TARSKI:def 1;
+    hence x in (VertexDomRel(G))"{v} by RELAT_1:def 14;
+  end;
+  then (VertexDomRel(G))"{v} = v.inNeighbors() by TARSKI:2;
+  hence thesis by RELAT_1:def 17;
+end;
+
+theorem Th15:
+  for H being Subgraph of G holds VertexDomRel(H) c= VertexDomRel(G)
+proof
+  let H be Subgraph of G;
+  now
+    let v,w be object;
+    assume [v,w] in VertexDomRel(H);
+    then consider e being object such that
+      A1: e DJoins v,w,H by Th1;
+    e is set & v is set & w is set by TARSKI:1;
+    then e DJoins v,w,G by A1, GLIB_000:72;
+    hence [v,w] in VertexDomRel(G) by Th1;
+  end;
+  hence thesis by RELAT_1:def 3;
+end;
+
+theorem Th16:
+  for H being removeDParallelEdges of G
+  holds VertexDomRel(H) = VertexDomRel(G)
+proof
+  let H be removeDParallelEdges of G;
+  consider E being RepDEdgeSelection of G such that
+    A1: H is inducedSubgraph of G, the_Vertices_of G, E by GLIB_009:def 8;
+  A2: VertexDomRel(H) c= VertexDomRel(G) by Th15;
+  now
+    let v,w be object;
+    assume [v,w] in VertexDomRel(G);
+    then consider e0 being object such that
+      A3: e0 DJoins v,w,G by Th1;
+    the_Edges_of G = G.edgesBetween(the_Vertices_of G) &
+      the_Vertices_of G c= the_Vertices_of G by GLIB_000:34;
+    then A4: the_Edges_of H = E by A1, GLIB_000:def 37;
+    consider e being object such that
+      A5: e DJoins v,w,G & e in E and
+      for e9 being object st e9 DJoins v,w,G & e9 in E holds e9 = e
+      by A3, GLIB_009:def 6;
+    v is set & w is set by TARSKI:1;
+    then e DJoins v,w,H by A4, A5, GLIB_000:73;
+    hence [v,w] in VertexDomRel(H) by Th1;
+  end;
+  then VertexDomRel(G) c= VertexDomRel(H) by RELAT_1:def 3;
+  hence thesis by A2, XBOOLE_0:def 10;
+end;
+
+theorem Th17:
+  for H being removeLoops of G
+  holds VertexDomRel(H) = VertexDomRel(G) \ id the_Vertices_of G
+proof
+  let H be removeLoops of G;
+  now
+    let v,w be object;
+    hereby
+      assume A1: [v,w] in VertexDomRel(H);
+      then consider e being object such that
+        A2: e DJoins v,w,H by Th1;
+      v <> w by A2, GLIB_009:17;
+      then A3: not [v,w] in id the_Vertices_of G by RELAT_1:def 10;
+      [v,w] in VertexDomRel(G) by A1, Th15, TARSKI:def 3;
+      hence [v,w] in VertexDomRel(G) \ id the_Vertices_of G
+        by A3, XBOOLE_0:def 5;
+    end;
+    assume [v,w] in VertexDomRel(G) \ id the_Vertices_of G;
+    then A4: [v,w] in VertexDomRel(G) & not [v,w] in id the_Vertices_of G
+      by XBOOLE_0:def 5;
+    then consider e being object such that
+      A5: e DJoins v,w,G by Th1;
+    A6: e Joins v,w,G by A5, GLIB_000:16;
+    then v in the_Vertices_of G by GLIB_000:13;
+    then v <> w by A4, RELAT_1:def 10;
+    then A7: not e in G.loops() by A6, GLIB_009:46;
+    e in the_Edges_of G by A5, GLIB_000:def 14;
+    then e in the_Edges_of G \ G.loops() by A7, XBOOLE_0:def 5;
+    then A8: e in the_Edges_of H by GLIB_000:53;
+    v is set & w is set & e is set by TARSKI:1;
+    then e DJoins v,w,H by A5, A8, GLIB_000:73;
+    hence [v,w] in VertexDomRel(H) by Th1;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem
+  for H being DSimpleGraph of G
+  holds VertexDomRel(H) = VertexDomRel(G) \ id the_Vertices_of G
+proof
+  let H be DSimpleGraph of G;
+  consider G9 being removeDParallelEdges of G such that
+    A1: H is removeLoops of G9 by GLIB_009:120;
+  A2: the_Vertices_of G9 = the_Vertices_of G by GLIB_000:def 33;
+  thus VertexDomRel(H) = VertexDomRel(G9) \ id the_Vertices_of G9 by A1, Th17
+    .= VertexDomRel(G) \ id the_Vertices_of G by A2, Th16;
+end;
+
+theorem Th19:
+  for G1, G2 being _Graph st G1 == G2
+  holds VertexDomRel(G1) = VertexDomRel(G2)
+proof
+  let G1, G2 be _Graph such that A1: G1 == G2;
+  now
+    let v,w be object;
+    hereby
+      assume [v,w] in VertexDomRel(G1);
+      then consider e being object such that
+        A2: e DJoins v,w,G1 by Th1;
+      e DJoins v,w,G2 by A1, A2, GLIB_000:88;
+      hence [v,w] in VertexDomRel(G2) by Th1;
+    end;
+    assume [v,w] in VertexDomRel(G2);
+    then consider e being object such that
+      A3: e DJoins v,w,G2 by Th1;
+    e DJoins v,w,G1 by A1, A3, GLIB_000:88;
+    hence [v,w] in VertexDomRel(G1) by Th1;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem Th20:
+  for H being reverseEdgeDirections of G
+  holds VertexDomRel(H) = (VertexDomRel(G))~
+proof
+  let H be reverseEdgeDirections of G;
+  now
+    let w,v be object;
+    hereby
+      assume [w,v] in (VertexDomRel(G))~;
+      then [v,w] in VertexDomRel(G) by RELAT_1:def 7;
+      then consider e being object such that
+        A1: e DJoins v,w,G by Th1;
+      e in the_Edges_of G by A1, GLIB_000:def 14;
+      then e DJoins w,v,H by A1, GLIB_007:7;
+      hence [w,v] in VertexDomRel(H) by Th1;
+    end;
+    assume [w,v] in VertexDomRel(H);
+    then consider e being object such that
+      A2: e DJoins w,v,H by Th1;
+    e in the_Edges_of H by A2, GLIB_000:def 14;
+    then e in the_Edges_of G by GLIB_007:4;
+    then e DJoins v,w,G by A2, GLIB_007:7;
+    then [v,w] in VertexDomRel(G) by Th1;
+    hence [w,v] in (VertexDomRel(G))~ by RELAT_1:def 7;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem Th21:
+  for V being non empty Subset of the_Vertices_of G
+  for H being inducedSubgraph of G, V
+  holds VertexDomRel(H) = VertexDomRel(G) /\ [: V, V :]
+proof
+  let V be non empty Subset of the_Vertices_of G;
+  let H be inducedSubgraph of G, V;
+  A1: the_Vertices_of H = V & the_Edges_of H = G.edgesBetween(V)
+    by GLIB_000:def 37;
+  now
+    let v,w be object;
+    hereby
+      assume A2: [v,w] in VertexDomRel(H);
+      then consider e being object such that
+        A3: e DJoins v,w,H by Th1;
+      e Joins v,w,H by A3, GLIB_000:16;
+      then v in V & w in V by A1, GLIB_000:13;
+      then A4: [v,w] in [: V, V :] by ZFMISC_1:87;
+      [v,w] in VertexDomRel(G) by A2, Th15, TARSKI:def 3;
+      hence [v,w] in VertexDomRel(G) /\ [: V, V :] by A4, XBOOLE_0:def 4;
+    end;
+    assume [v,w] in VertexDomRel(G) /\ [: V, V :];
+    then A5: [v,w] in VertexDomRel(G) & [v,w] in [: V, V :] by XBOOLE_0:def 4;
+    then consider e being object such that
+      A6: e DJoins v,w,G by Th1;
+    A7: e in the_Edges_of G & (the_Source_of G).e = v &
+      (the_Target_of G).e = w by A6, GLIB_000:def 14;
+    v in V & w in V by A5, ZFMISC_1:87;
+    then A8: e in the_Edges_of H by A1, A7, GLIB_000:31;
+    e is set & v is set & w is set by TARSKI:1;
+    then e DJoins v,w,H by A6, A8, GLIB_000:73;
+    hence [v,w] in VertexDomRel(H) by Th1;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem Th22:
+  for V being set, H being removeVertices of G, V st V c< the_Vertices_of G
+  holds VertexDomRel(H) = VertexDomRel(G)
+    \ ([: V, the_Vertices_of G :] \/ [: the_Vertices_of G, V :])
+proof
+  let V be set, H be removeVertices of G, V;
+  assume V c< the_Vertices_of G;
+  then A1: the_Vertices_of H = the_Vertices_of G \ V &
+    the_Edges_of H = G.edgesBetween(the_Vertices_of G \ V) by GLIB_000:49;
+  now
+    let v,w be object;
+    hereby
+      assume A2: [v,w] in VertexDomRel(H);
+      then A3: [v,w] in VertexDomRel(G) by Th15, TARSKI:def 3;
+      consider e being object such that
+        A4: e DJoins v,w,H by A2, Th1;
+      e Joins v,w,H by A4, GLIB_000:16;
+      then v in the_Vertices_of H & w in the_Vertices_of H by GLIB_000:13;
+      then not v in V & not w in V by A1, XBOOLE_0:def 5;
+      then not [v,w] in [: V, the_Vertices_of G :] &
+        not [v,w] in [: the_Vertices_of G, V :] by ZFMISC_1:87;
+      then not [v,w] in [: V, the_Vertices_of G :]\/[: the_Vertices_of G, V :]
+        by XBOOLE_0:def 3;
+      hence [v,w] in VertexDomRel(G) \ ([: V, the_Vertices_of G :] \/
+        [: the_Vertices_of G, V :]) by A3, XBOOLE_0:def 5;
+    end;
+    assume [v,w] in VertexDomRel(G) \ ([: V, the_Vertices_of G :] \/
+      [: the_Vertices_of G, V :]);
+    then A5: [v,w] in VertexDomRel(G) &
+      not [v,w] in [: V, the_Vertices_of G :]\/[: the_Vertices_of G, V :]
+      by XBOOLE_0:def 5;
+    then A6: not [v,w] in [: V, the_Vertices_of G :] &
+      not [v,w] in [: the_Vertices_of G, V :] by XBOOLE_0:def 3;
+    consider e being object such that
+      A7: e DJoins v,w,G by A5, Th1;
+    A8: e Joins v,w,G by A7, GLIB_000:16;
+    then A9: v in the_Vertices_of G & w in the_Vertices_of G by GLIB_000:13;
+    then not v in V & not w in V by A6, ZFMISC_1:87;
+    then v in the_Vertices_of G \ V & w in the_Vertices_of G \ V
+      by A9, XBOOLE_0:def 5;
+    then A10: e in the_Edges_of H by A1, A8, GLIB_000:32;
+    e is set & v is set & w is set by TARSKI:1;
+    then e DJoins v,w,H by A7, A10, GLIB_000:73;
+    hence [v,w] in VertexDomRel(H) by Th1;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem Th23:
+  for G being non _trivial _Graph, v being Vertex of G
+  for H being removeVertex of G, v
+  holds VertexDomRel(H) = VertexDomRel(G)
+    \ ([: {v}, the_Vertices_of G :] \/ [: the_Vertices_of G, {v} :])
+proof
+  let G be non _trivial _Graph, v be Vertex of G;
+  let H be removeVertex of G, v;
+  (the_Vertices_of G) \ {v} is non empty by GLIB_000:20;
+  then not (the_Vertices_of G) c= {v} by XBOOLE_1:37;
+  hence thesis by Th22, XBOOLE_0:def 8;
+end;
+
+theorem Th24:
+  for G being non _trivial _Graph, v being Vertex of G
+  for H being removeVertex of G, v st v is isolated
+  holds VertexDomRel(H) = VertexDomRel(G)
+proof
+  let G be non _trivial _Graph, v be Vertex of G;
+  let H be removeVertex of G, v;
+  assume A1: v is isolated;
+  set V1 = [: {v}, the_Vertices_of G :];
+  set V2 = [: the_Vertices_of G, {v} :];
+  (V1 \/ V2) /\ VertexDomRel(G) = {}
+  proof
+    assume (V1 \/ V2) /\ VertexDomRel(G) <> {};
+    then consider z being object such that
+      A2: z in (V1 \/ V2) /\ VertexDomRel(G) by XBOOLE_0:def 1;
+    consider u,w being object such that
+      A3: z = [u,w] by A2, RELAT_1:def 1;
+    A4: [u,w] in V1 \/ V2 & [u,w] in VertexDomRel(G) by A2, A3, XBOOLE_0:def 4;
+    then consider e being object such that
+      A5: e DJoins u,w,G by Th1;
+    per cases by A4, XBOOLE_0:def 3;
+    suppose [u,w] in V1;
+      then u in {v} by ZFMISC_1:87;
+      then u = v by TARSKI:def 1;
+      hence contradiction by A1, A5, GLIBPRE0:22;
+    end;
+    suppose [u,w] in V2;
+      then w in {v} by ZFMISC_1:87;
+      then w = v by TARSKI:def 1;
+      hence contradiction by A1, A5, GLIBPRE0:22;
+    end;
+  end;
+  then VertexDomRel(G) = VertexDomRel(G) \ (V1 \/ V2)
+    by XBOOLE_1:83,XBOOLE_0:def 7;
+  hence thesis by Th23;
+end;
+
+theorem Th25:
+  for V being set, H being addVertices of G, V
+  holds VertexDomRel(H) = VertexDomRel(G)
+proof
+  let V be set, H be addVertices of G, V;
+  G is Subgraph of H by GLIB_006:57;
+  then A1: VertexDomRel(G) c= VertexDomRel(H) by Th15;
+  now
+    let v,w be object;
+    assume [v,w] in VertexDomRel(H);
+    then consider e being object such that
+      A2: e DJoins v,w,H by Th1;
+    e DJoins v,w,G by A2, GLIB_006:85;
+    hence [v,w] in VertexDomRel(G) by Th1;
+  end;
+  then VertexDomRel(H) c= VertexDomRel(G) by RELAT_1:def 3;
+  hence thesis by A1, XBOOLE_0:def 10;
+end;
+
+theorem Th26:
+  for v, e, w being object, H being addEdge of G,v,e,w
+  st ex e0 being object st e0 DJoins v,w,G
+  holds VertexDomRel(H) = VertexDomRel(G)
+proof
+  let v, e, w be object, H be addEdge of G,v,e,w;
+  given e0 being object such that
+    A1: e0 DJoins v,w,G;
+  per cases;
+  suppose A2: v in the_Vertices_of G & w in the_Vertices_of G &
+      not e in the_Edges_of G;
+    G is Subgraph of H by GLIB_006:57;
+    then A3: VertexDomRel(G) c= VertexDomRel(H) by Th15;
+    now
+      let x,y be object;
+      assume [x,y] in VertexDomRel(H);
+      then consider e9 being object such that
+        A4: e9 DJoins x,y,H by Th1;
+      per cases by A4, GLIB_006:71;
+      suppose e9 DJoins x,y,G;
+        hence [x,y] in VertexDomRel(G) by Th1;
+      end;
+      suppose A5: not e9 in the_Edges_of G;
+        A6: the_Edges_of H = the_Edges_of G \/ {e} by A2, GLIB_006:def 11;
+        e9 in the_Edges_of H by A4, GLIB_000:def 14;
+        then e9 in {e} by A5, A6, XBOOLE_0:def 3;
+        then A7: e DJoins x,y,H by A4, TARSKI:def 1;
+        e DJoins v,w,H by A2, GLIB_006:105;
+        then v = x & w = y by A7, GLIB_009:6;
+        hence [x,y] in VertexDomRel(G) by A1, Th1;
+      end;
+    end;
+    then VertexDomRel(H) c= VertexDomRel(G) by RELAT_1:def 3;
+    hence thesis by A3, XBOOLE_0:def 10;
+  end;
+  suppose not(v in the_Vertices_of G & w in the_Vertices_of G &
+      not e in the_Edges_of G);
+    then G == H by GLIB_006:def 11;
+    hence thesis by Th19;
+  end;
+end;
+
+theorem Th27:
+  for v, w being Vertex of G, e being object, H being addEdge of G,v,e,w
+  st not e in the_Edges_of G holds VertexDomRel(H) = VertexDomRel(G) \/ {[v,w]}
+proof
+  let v,w be Vertex of G, e be object, H be addEdge of G,v,e,w;
+  assume A1: not e in the_Edges_of G;
+  now
+    let x,y be object;
+    hereby
+      assume [x,y] in VertexDomRel(H);
+      then consider e0 being object such that
+        A2: e0 DJoins x,y,H by Th1;
+      per cases by A2, GLIB_006:71;
+      suppose e0 DJoins x,y,G;
+        then [x,y] in VertexDomRel(G) by Th1;
+        hence [x,y] in VertexDomRel(G) \/ {[v,w]} by XBOOLE_0:def 3;
+      end;
+      suppose A3: not e0 in the_Edges_of G;
+        A4: the_Edges_of H = the_Edges_of G \/ {e} by A1, GLIB_006:def 11;
+        e0 in the_Edges_of H by A2, GLIB_000:def 14;
+        then e0 in {e} by A3, A4, XBOOLE_0:def 3;
+        then A5: e DJoins x,y,H by A2, TARSKI:def 1;
+        e DJoins v,w,H by A1, GLIB_006:105;
+        then x = v & y = w by A5, GLIB_009:6;
+        then [x,y] in {[v,w]} by TARSKI:def 1;
+        hence [x,y] in VertexDomRel(G) \/ {[v,w]} by XBOOLE_0:def 3;
+      end;
+    end;
+    assume [x,y] in VertexDomRel(G) \/ {[v,w]};
+    then per cases by XBOOLE_0:def 3;
+    suppose A6: [x,y] in VertexDomRel(G);
+      G is Subgraph of H by GLIB_006:57;
+      hence [x,y] in VertexDomRel(H) by A6, Th15, TARSKI:def 3;
+    end;
+    suppose [x,y] in {[v,w]};
+      then [x,y] = [v,w] by TARSKI:def 1;
+      hence [x,y] in VertexDomRel(H) by A1, Th1, GLIB_006:105;
+    end;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem
+  for v being Vertex of G, e,w being object, H being addAdjVertex of G,v,e,w
+  st not e in the_Edges_of G & not w in the_Vertices_of G
+  holds VertexDomRel(H) = VertexDomRel(G) \/ {[v,w]}
+proof
+  let v be Vertex of G, e,w be object, H be addAdjVertex of G,v,e,w;
+  assume A1: not e in the_Edges_of G & not w in the_Vertices_of G;
+  then consider G9 being addVertex of G,w such that
+    A2: H is addEdge of G9,v,e,w by GLIB_006:125;
+  A3: not e in the_Edges_of G9 by A1, GLIB_006:def 10;
+  v is Vertex of G9 & w is Vertex of G9 by GLIB_006:68, GLIB_006:94;
+  hence VertexDomRel(H) = VertexDomRel(G9) \/ {[v,w]} by A2, A3, Th27
+    .= VertexDomRel(G) \/ {[v,w]} by Th25;
+end;
+
+theorem
+  for v,e being object, w being Vertex of G, H being addAdjVertex of G,v,e,w
+  st not e in the_Edges_of G & not v in the_Vertices_of G
+  holds VertexDomRel(H) = VertexDomRel(G) \/ {[v,w]}
+proof
+  let v,e be object, w be Vertex of G, H be addAdjVertex of G,v,e,w;
+  assume A1: not e in the_Edges_of G & not v in the_Vertices_of G;
+  then consider G9 being addVertex of G,v such that
+    A2: H is addEdge of G9,v,e,w by GLIB_006:126;
+  A3: not e in the_Edges_of G9 by A1, GLIB_006:def 10;
+  v is Vertex of G9 & w is Vertex of G9 by GLIB_006:68, GLIB_006:94;
+  hence VertexDomRel(H) = VertexDomRel(G9) \/ {[v,w]} by A2, A3, Th27
+    .= VertexDomRel(G) \/ {[v,w]} by Th25;
+end;
+
+:: In their current form addAdjVertexTo/FromAll seem like their definition
+:: will be changed in the future to allow a more general edge set.
+:: Therefore the following theorems will not be proven here at the the moment.
+:: theorem
+  :: for v being object, V being Subset of the_Vertices_of G
+  :: for H being addAdjVertexToAll of G,v,V st not v in the_Vertices_of G
+  :: holds VertexDomRel(H) = VertexDomRel(G) \/ [: {v},V :];
+::
+:: theorem
+  :: for v being object, V being Subset of the_Vertices_of G
+  :: for H being addAdjVertexFromAll of G,v,V st not v in the_Vertices_of G
+  :: holds VertexDomRel(H) = VertexDomRel(G) \/ [: V,{v} :];
+
+theorem Th30:
+  for V being Subset of the_Vertices_of G, H being addLoops of G, V
+  holds VertexDomRel(H) = VertexDomRel(G) \/ id V
+proof
+  let V be Subset of the_Vertices_of G, H be addLoops of G,V;
+  consider E being set, f being one-to-one Function such that
+    A1: E misses the_Edges_of G & the_Edges_of H = the_Edges_of G \/ E and
+    A2: dom f = E & rng f = V and
+    A3: the_Source_of H = the_Source_of G +* f and
+    A4: the_Target_of H = the_Target_of G +* f by GLIB_012:def 5;
+  now
+    let v,w be object;
+    hereby
+      assume [v,w] in VertexDomRel(H);
+      then consider e being object such that
+        A5: e DJoins v,w,H by Th1;
+      per cases by A5, GLIB_006:71;
+      suppose e DJoins v,w,G;
+        then [v,w] in VertexDomRel(G) by Th1;
+        hence [v,w] in VertexDomRel(G) \/ id V by XBOOLE_0:def 3;
+      end;
+      suppose A6: not e in the_Edges_of G;
+        e in the_Edges_of H by A5, GLIB_000:def 14;
+        then A7: e in E by A1, A6, XBOOLE_0:def 3;
+        A8: v = (the_Source_of H).e by A5, GLIB_000:def 14
+          .= f.e by A2, A3, A7, FUNCT_4:13;
+        w = (the_Target_of H).e by A5, GLIB_000:def 14
+          .= f.e by A2, A4, A7, FUNCT_4:13;
+        then A9: v = w by A8;
+        v in V by A2, A7, A8, FUNCT_1:3;
+        then [v,w] in id V by A9, RELAT_1:def 10;
+        hence [v,w] in VertexDomRel(G) \/ id V by XBOOLE_0:def 3;
+      end;
+    end;
+    assume [v,w] in VertexDomRel(G) \/ id V;
+    then per cases by XBOOLE_0:def 3;
+    suppose A10: [v,w] in VertexDomRel(G);
+      G is Subgraph of H by GLIB_006:57;
+      hence [v,w] in VertexDomRel(H) by A10, Th15, TARSKI:def 3;
+    end;
+    suppose [v,w] in id V;
+      then A11: v = w & v in V by RELAT_1:def 10;
+      then reconsider v0 = v as Vertex of H by GLIB_012:def 5;
+      v0,v0 are_adjacent by A11, GLIB_012:18;
+      then consider e being object such that
+        A12: e Joins v,v,H by CHORD:def 3;
+      e DJoins v,v,H by A12, GLIB_000:16;
+      hence [v,w] in VertexDomRel(H) by A11, Th1;
+    end;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem
+  for H being DLGraphComplement of G holds VertexDomRel(H)
+    = [: the_Vertices_of G, the_Vertices_of G :] \ VertexDomRel(G)
+proof
+  let H be DLGraphComplement of G;
+  set N = [: the_Vertices_of G, the_Vertices_of G :];
+  now
+    let x,y be object;
+    hereby
+      assume A1: [x,y] in VertexDomRel(H);
+      the_Vertices_of G = the_Vertices_of H by GLIB_012:def 6;
+      then A2: [x,y] in N by A1;
+      consider e2 being object such that
+        A3: e2 DJoins x,y,H by A1, Th1;
+      x in the_Vertices_of G & y in the_Vertices_of G by A2, ZFMISC_1:87;
+      then not ex e1 being object st e1 DJoins x,y,G by A3, GLIB_012:def 6;
+      then not [x,y] in VertexDomRel(G) by Th1;
+      hence [x,y] in N \ VertexDomRel(G) by A2, XBOOLE_0:def 5;
+    end;
+    assume [x,y] in N \ VertexDomRel(G);
+    then A4: [x,y] in N & not [x,y] in VertexDomRel(G) by XBOOLE_0:def 5;
+    then A5: x in the_Vertices_of G & y in the_Vertices_of G by ZFMISC_1:87;
+    not ex e1 being object st e1 DJoins x,y,G by A4, Th1;
+    then ex e2 being object st e2 DJoins x,y,H by A5, GLIB_012:def 6;
+    hence [x,y] in VertexDomRel(H) by Th1;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+definition
+  let G;
+  func VertexAdjSymRel(G) -> Relation of the_Vertices_of G equals
+  VertexDomRel(G) \/ ((VertexDomRel(G))~);
+  coherence;
+end;
+
+theorem Th32:
+  for v, w being object
+  holds [v,w] in VertexAdjSymRel(G) iff ex e being object st e Joins v,w,G
+proof
+  let v, w be object;
+  hereby
+    assume [v,w] in VertexAdjSymRel(G);
+    then per cases by XBOOLE_0:def 3;
+    suppose [v,w] in VertexDomRel(G);
+      then consider e being object such that
+        A1: e DJoins v,w,G by Th1;
+      take e;
+      thus e Joins v,w,G by A1, GLIB_000:16;
+    end;
+    suppose [v,w] in (VertexDomRel(G))~;
+      then consider e being object such that
+        A2: e DJoins w,v,G by Th2;
+      take e;
+      thus e Joins v,w,G by A2, GLIB_000:16;
+    end;
+  end;
+  given e being object such that
+    A3: e Joins v,w,G;
+  per cases by A3, GLIB_000:16;
+  suppose e DJoins v,w,G;
+    then [v,w] in VertexDomRel(G) by Th1;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+  suppose e DJoins w,v,G;
+    then [v,w] in (VertexDomRel(G))~ by Th2;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+end;
+
+theorem Th33:
+  for v, w being Vertex of G
+  holds [v,w] in VertexAdjSymRel(G) iff v, w are_adjacent
+proof
+  let v, w be Vertex of G;
+  hereby
+    assume [v,w] in VertexAdjSymRel(G);
+    then consider e being object such that
+      A1: e Joins v,w,G by Th32;
+    thus v,w are_adjacent by A1, CHORD:def 3;
+  end;
+  assume v,w are_adjacent;
+  then consider e being object such that
+    A2: e Joins v,w,G by CHORD:def 3;
+  thus [v,w] in VertexAdjSymRel(G) by A2, Th32;
+end;
+
+theorem Th34:
+  VertexDomRel(G) c= VertexAdjSymRel(G) by XBOOLE_1:7;
+
+theorem
+  VertexAdjSymRel(G) = ((the_Source_of G qua Relation)~ * (the_Target_of G))
+    \/ ((the_Target_of G qua Relation)~ * (the_Source_of G))
+proof
+  set S = the_Source_of G, T = the_Target_of G;
+  thus VertexAdjSymRel(G)
+     = ((S qua Relation)~ * T) \/ ((T qua Relation)~ * ((S qua Relation)~~))
+      by RELAT_1:35
+    .= ((S qua Relation)~ * T) \/ ((T qua Relation)~ * S);
+end;
+
+registration
+  let G;
+  cluster VertexAdjSymRel(G) -> symmetric;
+  coherence
+  proof
+    (VertexAdjSymRel(G))~
+       = ((VertexDomRel(G))~ \/ ((VertexDomRel(G))~~)) by RELAT_1:23
+      .= VertexAdjSymRel(G);
+    hence thesis by RELAT_2:13;
+  end;
+end;
+
+Lm3:
+  G is loopless iff VertexAdjSymRel(G) misses id the_Vertices_of G
+proof
+  hereby
+    set H = the reverseEdgeDirections of G;
+    A1: VertexDomRel(H) = (VertexDomRel(G))~ by Th20;
+    assume A2: G is loopless;
+    then A3: VertexDomRel(G) misses id the_Vertices_of G by Lm1;
+    VertexDomRel(H) misses id the_Vertices_of H by A2, Lm1;
+    then (VertexDomRel(G))~ misses id the_Vertices_of G by A1, GLIB_007:4;
+    hence VertexAdjSymRel(G) misses id the_Vertices_of G by A3, XBOOLE_1:70;
+  end;
+  assume VertexAdjSymRel(G) misses id the_Vertices_of G;
+  then VertexDomRel(G) misses id the_Vertices_of G by XBOOLE_1:70;
+  hence thesis by Lm1;
+end;
+
+theorem Th36:
+  G is loopless iff VertexAdjSymRel(G) is irreflexive
+proof
+  thus G is loopless implies VertexAdjSymRel(G) is irreflexive;
+  assume VertexAdjSymRel(G) is irreflexive;
+  then VertexAdjSymRel(G) misses id the_Vertices_of G by GLIBPRE0:11;
+  hence G is loopless by Lm3;
+end;
+
+registration
+  let G be loopless _Graph;
+  cluster VertexAdjSymRel(G) -> irreflexive;
+  coherence;
+end;
+
+registration
+  let G be non loopless _Graph;
+  cluster VertexAdjSymRel(G) -> non irreflexive;
+  coherence by Th36;
+end;
+
+:: means G is then without isolated vertices
+theorem
+  for G being loopless _Graph st VertexAdjSymRel(G) is total
+  holds for C being Component of G holds C is non _trivial
+proof
+  let G be loopless _Graph;
+  assume VertexAdjSymRel(G) is total;
+  then A1: dom VertexAdjSymRel(G) = the_Vertices_of G by PARTFUN1:def 2;
+  field VertexDomRel(G)
+     = field VertexDomRel(G) \/ field VertexDomRel(G)
+    .= field VertexDomRel(G) \/ field ((VertexDomRel(G))~) by RELAT_1:21
+    .= field VertexAdjSymRel(G) by RELAT_1:18
+    .= dom VertexAdjSymRel(G) \/ rng VertexAdjSymRel(G) by RELAT_1:def 6;
+  then A2: the_Vertices_of G c= field VertexDomRel(G) by A1, XBOOLE_1:7;
+  field VertexDomRel(G) c= the_Vertices_of G \/the_Vertices_of G by RELSET_1:8;
+  hence thesis by A2, Th5, XBOOLE_0:def 10;
+end;
+
+:: means if G is without isolated vertices
+theorem Th38:
+  for G being _Graph st for C being Component of G holds C is non _trivial
+  holds VertexAdjSymRel(G) is total
+proof
+  let G be _Graph;
+  assume for C being Component of G holds C is non _trivial;
+  then A1: field VertexDomRel(G) = the_Vertices_of G by Th6;
+  dom VertexAdjSymRel(G)
+     = dom VertexDomRel(G) \/ dom ((VertexDomRel(G))~) by XTUPLE_0:23
+    .= dom VertexDomRel(G) \/ rng VertexDomRel(G) by RELAT_1:20
+    .= the_Vertices_of G by A1, RELAT_1:def 6;
+  hence thesis by PARTFUN1:def 2;
+end;
+
+registration
+  let G be non _trivial connected _Graph;
+  cluster VertexAdjSymRel(G) -> total;
+  coherence
+  proof
+    now
+      let C be Component of G;
+      set v = the Vertex of C;
+      the_Vertices_of C c= the_Vertices_of G;
+      then v in the_Vertices_of G & G is Component of G
+        by GLIB_002:30, TARSKI:def 3;
+      then C == G by GLIB_002:34;
+      hence C is non _trivial by GLIB_000:89;
+    end;
+    hence thesis by Th38;
+  end;
+end;
+
+registration
+  let G be complete _Graph;
+  cluster VertexAdjSymRel(G) -> connected;
+  coherence
+  proof
+    set F = field VertexAdjSymRel(G);
+    now
+      let x,y be object;
+      assume A1: x in F & y in F & x <> y;
+      F c= the_Vertices_of G \/ the_Vertices_of G by RELSET_1:8;
+      then reconsider v = x, w = y as Vertex of G by A1;
+      v,w are_adjacent by A1, CHORD:def 6;
+      hence [x,y] in VertexAdjSymRel(G) or [y,x] in VertexAdjSymRel(G) by Th33;
+    end;
+    hence VertexAdjSymRel(G) is connected by RELAT_2:def 6, RELAT_2:def 14;
+  end;
+end;
+
+:: registration
+  :: let G be non complete without_isolated_vertices _Graph;
+  :: cluster VertexAdjSymRel(G) -> non connected;
+  :: coherence;
+:: end;
+
+theorem
+  G is edgeless iff VertexAdjSymRel(G) is empty
+proof
+  hereby
+    assume G is edgeless;
+    then VertexDomRel(G) is empty;
+    hence VertexAdjSymRel(G) is empty;
+  end;
+  thus thesis;
+end;
+
+registration
+  let G be edgeless _Graph;
+  cluster VertexAdjSymRel(G) -> empty;
+  coherence;
+end;
+
+registration
+  let G be non edgeless _Graph;
+  cluster VertexAdjSymRel(G) -> non empty;
+  coherence;
+end;
+
+Lm4:
+  G is loopfull iff id the_Vertices_of G c= VertexAdjSymRel(G)
+proof
+  hereby
+    assume G is loopfull;
+    then A1: id the_Vertices_of G c= VertexDomRel(G) by Lm2;
+    VertexDomRel(G) c= VertexAdjSymRel(G) by Th34;
+    hence id the_Vertices_of G c= VertexAdjSymRel(G) by A1, XBOOLE_1:1;
+  end;
+  assume A2: id the_Vertices_of G c= VertexAdjSymRel(G);
+  now
+    let v be Vertex of G;
+    [v,v] in id the_Vertices_of G by RELAT_1:def 10;
+    hence ex e being object st e Joins v,v,G by A2, Th32;
+  end;
+  hence thesis by GLIB_012:def 1;
+end;
+
+theorem Th40:
+  G is loopfull iff VertexAdjSymRel(G) is total reflexive
+proof
+  hereby
+    assume G is loopfull;
+    then id the_Vertices_of G c= VertexAdjSymRel(G) by Lm4;
+    hence VertexAdjSymRel(G) is total reflexive by ROUGHS_1:3;
+  end;
+  assume VertexAdjSymRel(G) is total reflexive;
+  then id the_Vertices_of G c= VertexAdjSymRel(G) by ROUGHS_1:3;
+  hence G is loopfull by Lm4;
+end;
+
+registration
+  let G be loopfull _Graph;
+  cluster VertexAdjSymRel(G) -> reflexive total;
+  coherence by Th40;
+end;
+
+:: registration
+  :: let G be non loopfull without_isolated_vertices _Graph;
+  :: cluster VertexAdjSymRel(G) -> non reflexive;
+  :: coherence;
+:: end;
+
+registration
+  let G be vertex-finite _Graph;
+  cluster VertexAdjSymRel(G) -> finite;
+  coherence;
+end;
+
+theorem Th41:
+  card Class DEdgeAdjEqRel(G) c= card VertexAdjSymRel(G)
+proof
+  card VertexDomRel(G) c= card VertexAdjSymRel(G) by Th34, CARD_1:11;
+  hence thesis by Th10;
+end;
+
+theorem
+  card Class EdgeAdjEqRel(G) c= card VertexAdjSymRel(G)
+proof
+  set R = VertexAdjSymRel(G);
+  defpred P[object,object] means ex e being object st
+    e Joins $1`1,$1`2,G & $2 = Class(EdgeAdjEqRel(G),e);
+  A1: for x,y1,y2 being object st x in R & P[x,y1] & P[x,y2] holds y1 = y2
+  proof
+    let x,y1,y2 be object;
+    assume A2: x in R & P[x,y1] & P[x,y2];
+    then consider e1 being object such that
+      A3: e1 Joins x`1,x`2,G & y1 = Class(EdgeAdjEqRel(G),e1);
+    consider e2 being object such that
+      A4: e2 Joins x`1,x`2,G & y2 = Class(EdgeAdjEqRel(G),e2) by A2;
+    [e1,e2] in EdgeAdjEqRel(G) by A3, A4, GLIB_009:def 3;
+    then A5: e2 in Class(EdgeAdjEqRel(G),e1) by EQREL_1:18;
+    e1 in the_Edges_of G by A3, GLIB_000:def 13;
+    hence thesis by A3, A4, A5, EQREL_1:23;
+  end;
+  A6: for x being object st x in R ex y being object st P[x,y]
+  proof
+    let x be object;
+    assume A7: x in R;
+    then consider v,w being object such that
+      A8: x = [v,w] by RELAT_1:def 1;
+    consider e being object such that
+      A9: e Joins v,w,G by A7, A8, Th32;
+    take Class(EdgeAdjEqRel(G),e),e;
+    thus thesis by A8, A9;
+  end;
+  consider f being Function such that
+    A10: dom f = R & for x being object st x in R holds P[x,f.x]
+    from FUNCT_1:sch 2(A1,A6);
+  now
+    let y be object;
+    hereby
+      assume y in rng f;
+      then consider x being object such that
+        A11: x in dom f & f.x = y by FUNCT_1:def 3;
+      consider e being object such that
+        A12: e Joins x`1,x`2,G & y = Class(EdgeAdjEqRel(G),e) by A10, A11;
+      e in the_Edges_of G by A12, GLIB_000:def 13;
+      hence y in Class EdgeAdjEqRel(G) by A12, EQREL_1:def 3;
+    end;
+    assume y in Class EdgeAdjEqRel(G);
+    then consider e being object such that
+      A13: e in the_Edges_of G & y = Class(EdgeAdjEqRel(G),e) by EQREL_1:def 3;
+    set x = [(the_Source_of G).e,(the_Target_of G).e];
+    A14: e Joins x`1,x`2,G by A13, GLIB_000:def 13;
+    then A15: x in R by Th32;
+    then P[x,f.x] by A10;
+    then f.x = y by A1, A13, A14, A15;
+    hence y in rng f by A10, A15, FUNCT_1:3;
+  end;
+  then rng f = Class EdgeAdjEqRel(G) by TARSKI:2;
+  hence thesis by A10, CARD_1:12;
+end;
+
+theorem
+  for G being non-Dmulti _Graph holds G.size() c= card VertexAdjSymRel(G)
+proof
+  let G be non-Dmulti _Graph;
+  card VertexDomRel(G) = card Class DEdgeAdjEqRel(G) by Th10;
+  then G.size() = card Class DEdgeAdjEqRel(G) by Th12;
+  hence G.size() c= card VertexAdjSymRel(G) by Th41;
+end;
+
+theorem
+  for v being Vertex of G holds Im(VertexAdjSymRel(G),v) = v.allNeighbors()
+proof
+  let v be Vertex of G;
+  now
+    let x be object;
+    hereby
+      assume x in (VertexAdjSymRel(G)).:{v};
+      then consider v0 being object such that
+        A1: [v0,x] in VertexAdjSymRel(G) & v0 in {v} by RELAT_1:def 13;
+      [v,x] in VertexAdjSymRel(G) by A1, TARSKI:def 1;
+      then x is set & ex e being object st e Joins v,x,G by Th32, TARSKI:1;
+      hence x in v.allNeighbors() by GLIB_000:71;
+    end;
+    assume x in v.allNeighbors();
+    then ex e being object st e Joins v,x,G by GLIB_000:71;
+    then [v,x] in VertexAdjSymRel(G) & v in {v} by Th32, TARSKI:def 1;
+    hence x in (VertexAdjSymRel(G)).:{v} by RELAT_1:def 13;
+  end;
+  then (VertexAdjSymRel(G)).:{v} = v.allNeighbors() by TARSKI:2;
+  hence thesis by RELAT_1:def 16;
+end;
+
+theorem Th45:
+  for H being Subgraph of G holds VertexAdjSymRel(H) c= VertexAdjSymRel(G)
+proof
+  let H be Subgraph of G;
+  A1: VertexDomRel(H) c= VertexDomRel(G) by Th15;
+  then (VertexDomRel(H))~ c= (VertexDomRel(G))~ by SYSREL:11;
+  hence thesis by A1, XBOOLE_1:13;
+end;
+
+theorem Th46:
+  for H being removeParallelEdges of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+proof
+  let H be removeParallelEdges of G;
+  consider E being RepEdgeSelection of G such that
+    A1: H is inducedSubgraph of G, the_Vertices_of G, E by GLIB_009:def 7;
+  A2: VertexAdjSymRel(H) c= VertexAdjSymRel(G) by Th45;
+  now
+    let v,w be object;
+    assume [v,w] in VertexAdjSymRel(G);
+    then consider e0 being object such that
+      A3: e0 Joins v,w,G by Th32;
+    the_Edges_of G = G.edgesBetween(the_Vertices_of G) &
+      the_Vertices_of G c= the_Vertices_of G by GLIB_000:34;
+    then A4: the_Edges_of H = E by A1, GLIB_000:def 37;
+    consider e being object such that
+      A5: e Joins v,w,G & e in E and
+      for e9 being object st e9 Joins v,w,G & e9 in E holds e9 = e
+      by A3, GLIB_009:def 5;
+    v is set & w is set by TARSKI:1;
+    then e Joins v,w,H by A4, A5, GLIB_000:73;
+    hence [v,w] in VertexAdjSymRel(H) by Th32;
+  end;
+  then VertexAdjSymRel(G) c= VertexAdjSymRel(H) by RELAT_1:def 3;
+  hence thesis by A2, XBOOLE_0:def 10;
+end;
+
+theorem Th47:
+  for H being removeLoops of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \ id the_Vertices_of G
+proof
+  let H be removeLoops of G;
+  A1: VertexDomRel(H) = VertexDomRel(G) \ id the_Vertices_of G by Th17;
+  then (VertexDomRel(H))~
+     = (VertexDomRel(G))~ \ (id the_Vertices_of G qua Relation)~ by RELAT_1:24
+    .= (VertexDomRel(G))~ \ id the_Vertices_of G;
+  hence thesis by A1, XBOOLE_1:42;
+end;
+
+theorem
+  for H being SimpleGraph of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \ id the_Vertices_of G
+proof
+  let H be SimpleGraph of G;
+  consider G9 being removeParallelEdges of G such that
+    A1: H is removeLoops of G9 by GLIB_009:119;
+  A2: the_Vertices_of G9 = the_Vertices_of G by GLIB_000:def 33;
+  thus VertexAdjSymRel(H)
+     = VertexAdjSymRel(G9) \ id the_Vertices_of G9 by A1, Th47
+    .= VertexAdjSymRel(G) \ id the_Vertices_of G by A2, Th46;
+end;
+
+theorem Th49:
+  for G1, G2 being _Graph st G1 == G2
+  holds VertexAdjSymRel(G1) = VertexAdjSymRel(G2)
+proof
+  let G1, G2 be _Graph such that A1: G1 == G2;
+  thus VertexAdjSymRel(G1)
+     = VertexDomRel(G2) \/ ((VertexDomRel(G1))~) by A1, Th19
+    .= VertexAdjSymRel(G2) by A1, Th19;
+end;
+
+theorem
+  for E being set, H being reverseEdgeDirections of G, E
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+proof
+  let E be set, H be reverseEdgeDirections of G, E;
+  now
+    let v,w be object;
+    hereby
+      assume [v,w] in VertexAdjSymRel(G);
+      then consider e being object such that
+        A1: e Joins v,w,G by Th32;
+      e Joins v,w,H by A1, GLIB_007:9;
+      hence [v,w] in VertexAdjSymRel(H) by Th32;
+    end;
+    assume [v,w] in VertexAdjSymRel(H);
+    then consider e being object such that
+      A2: e Joins v,w,H by Th32;
+    e Joins v,w,G by A2, GLIB_007:9;
+    hence [v,w] in VertexAdjSymRel(G) by Th32;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem
+  for V being non empty Subset of the_Vertices_of G
+  for H being inducedSubgraph of G, V
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) /\ [: V, V :]
+proof
+  let V be non empty Subset of the_Vertices_of G;
+  let H be inducedSubgraph of G, V;
+  A1: VertexDomRel(H) = VertexDomRel(G) /\ [: V, V :] by Th21;
+  then (VertexDomRel(H))~ = (VertexDomRel(G))~ /\ [: V, V :]~ by RELAT_1:22
+    .= (VertexDomRel(G))~ /\ [: V, V :] by SYSREL:5;
+  hence VertexAdjSymRel(H) = VertexAdjSymRel(G) /\ [: V, V :]
+    by A1, XBOOLE_1:23;
+end;
+
+theorem Th52:
+  for V being set, H being removeVertices of G, V st V c< the_Vertices_of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+    \ ([: V, the_Vertices_of G :] \/ [: the_Vertices_of G, V :])
+proof
+  let V be set, H be removeVertices of G, V;
+  assume A1: V c< the_Vertices_of G;
+  set V1 = [: V, the_Vertices_of G :], V2 = [: the_Vertices_of G, V :];
+  A2: VertexDomRel(H) = VertexDomRel(G) \ (V1 \/ V2) by A1, Th22;
+  then (VertexDomRel(H))~ = (VertexDomRel(G))~ \ ((V1 \/ V2)~) by RELAT_1:24
+    .= (VertexDomRel(G))~ \ (V1~ \/ V2~) by RELAT_1:23
+    .= (VertexDomRel(G))~ \ (V1~ \/ V1) by SYSREL:5
+    .= (VertexDomRel(G))~ \ (V2 \/ V1) by SYSREL:5;
+  hence thesis by A2, XBOOLE_1:42;
+end;
+
+theorem
+  for G being non _trivial _Graph, v being Vertex of G
+  for H being removeVertex of G, v
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+    \ ([: {v}, the_Vertices_of G :] \/ [: the_Vertices_of G, {v} :])
+proof
+  let G be non _trivial _Graph, v be Vertex of G;
+  let H be removeVertex of G, v;
+  (the_Vertices_of G) \ {v} is non empty by GLIB_000:20;
+  then not (the_Vertices_of G) = {v} by XBOOLE_1:37;
+  hence thesis by Th52, XBOOLE_0:def 8;
+end;
+
+theorem
+  for G being non _trivial _Graph, v being Vertex of G
+  for H being removeVertex of G, v st v is isolated
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+proof
+  let G be non _trivial _Graph, v be Vertex of G;
+  let H be removeVertex of G, v;
+  assume v is isolated;
+  then VertexDomRel(H) = VertexDomRel(G) by Th24;
+  hence thesis;
+end;
+
+theorem Th55:
+  for V being set, H being addVertices of G, V
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+proof
+  let V be set, H be addVertices of G, V;
+  VertexDomRel(H) = VertexDomRel(G) by Th25;
+  hence thesis;
+end;
+
+theorem
+  for v, w being Vertex of G, e being object, H being addEdge of G,v,e,w
+  st v,w are_adjacent holds VertexAdjSymRel(H) = VertexAdjSymRel(G)
+proof
+  let v,w be Vertex of G, e be object, H be addEdge of G,v,e,w;
+  assume v,w are_adjacent;
+  then consider e0 being object such that
+    A1: e0 Joins v,w,G by CHORD:def 3;
+  per cases;
+  suppose A2: not e in the_Edges_of G;
+    per cases by A1, GLIB_000:16;
+    suppose A3: e0 DJoins v,w,G;
+      thus VertexAdjSymRel(H)
+         = VertexDomRel(G) \/ (VertexDomRel(H))~ by A3, Th26
+        .= VertexAdjSymRel(G) by A3, Th26;
+    end;
+    suppose e0 DJoins w,v,G;
+      then A4: [w,v] in VertexDomRel(G) by Th1;
+      then A5: [v,w] in (VertexDomRel(G))~ by RELAT_1:def 7;
+      set R = VertexDomRel(G), U = R \/ {[v,w]};
+      A6: U~ = R~ \/ ({[v,w]} qua Relation)~ by RELAT_1:23;
+      thus VertexAdjSymRel(H) = U \/ (VertexDomRel(H))~ by A2, Th27
+        .= U \/ U~ by A2, Th27
+        .= U \/ (R~ \/ {[w,v]}) by A6, GLIBPRE0:12
+        .= (U \/ {[w,v]}) \/ R~ by XBOOLE_1:4
+        .= ((R \/ {[w,v]}) \/ {[v,w]}) \/ R~ by XBOOLE_1:4
+        .= (R \/ {[w,v]}) \/ (R~ \/ {[v,w]}) by XBOOLE_1:4
+        .= R \/ (R~ \/ {[v,w]}) by A4, ZFMISC_1:31, XBOOLE_1:12
+        .= VertexAdjSymRel(G) by A5, ZFMISC_1:31, XBOOLE_1:12;
+    end;
+  end;
+  suppose e in the_Edges_of G;
+    then G == H by GLIB_006:def 11;
+    hence thesis by Th49;
+  end;
+end;
+
+theorem Th57:
+  for v, w being Vertex of G, e being object, H being addEdge of G,v,e,w
+  st not e in the_Edges_of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \/ {[v,w], [w,v]}
+proof
+  let v,w be Vertex of G, e be object, H be addEdge of G,v,e,w;
+  assume A1: not e in the_Edges_of G;
+  set R = VertexDomRel(G), U = R \/ {[v,w]};
+  A2: U~ = R~ \/ ({[v,w]} qua Relation)~ by RELAT_1:23;
+  thus VertexAdjSymRel(H) = U \/ (VertexDomRel(H))~ by A1, Th27
+    .= U \/ U~ by A1, Th27
+    .= U \/ (R~ \/ {[w,v]}) by A2, GLIBPRE0:12
+    .= (U \/ R~) \/ {[w,v]} by XBOOLE_1:4
+    .= ((R \/ R~) \/ {[v,w]}) \/ {[w,v]} by XBOOLE_1:4
+    .= (R \/ R~) \/ ({[v,w]} \/ {[w,v]}) by XBOOLE_1:4
+    .= VertexAdjSymRel(G) \/ {[v,w], [w,v]} by ENUMSET1:1;
+end;
+
+theorem
+  for v being Vertex of G, e,w being object, H being addAdjVertex of G,v,e,w
+  st not e in the_Edges_of G & not w in the_Vertices_of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \/ {[v,w], [w,v]}
+proof
+  let v be Vertex of G, e,w be object, H be addAdjVertex of G,v,e,w;
+  assume A1: not e in the_Edges_of G & not w in the_Vertices_of G;
+  then consider G9 being addVertex of G,w such that
+    A2: H is addEdge of G9,v,e,w by GLIB_006:125;
+  A3: not e in the_Edges_of G9 by A1, GLIB_006:def 10;
+  v is Vertex of G9 & w is Vertex of G9 by GLIB_006:68, GLIB_006:94;
+  hence VertexAdjSymRel(H)
+     = VertexAdjSymRel(G9) \/ {[v,w],[w,v]} by A2, A3, Th57
+    .= VertexAdjSymRel(G) \/ {[v,w],[w,v]} by Th55;
+end;
+
+theorem
+  for v,e being object, w being Vertex of G, H being addAdjVertex of G,v,e,w
+  st not e in the_Edges_of G & not v in the_Vertices_of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \/ {[v,w], [w,v]}
+proof
+  let v,e be object, w be Vertex of G, H be addAdjVertex of G,v,e,w;
+  assume A1: not e in the_Edges_of G & not v in the_Vertices_of G;
+  then consider G9 being addVertex of G,v such that
+    A2: H is addEdge of G9,v,e,w by GLIB_006:126;
+  A3: not e in the_Edges_of G9 by A1, GLIB_006:def 10;
+  v is Vertex of G9 & w is Vertex of G9 by GLIB_006:68, GLIB_006:94;
+  hence VertexAdjSymRel(H)
+     = VertexAdjSymRel(G9) \/ {[v,w],[w,v]} by A2, A3, Th57
+    .= VertexAdjSymRel(G) \/ {[v,w],[w,v]} by Th55;
+end;
+
+theorem
+  for v being object, V being Subset of the_Vertices_of G
+  for H being addAdjVertexAll of G,v,V st not v in the_Vertices_of G
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \/ [: {v},V :] \/ [: V,{v} :]
+proof
+  let v be object, V be Subset of the_Vertices_of G;
+  let H be addAdjVertexAll of G,v,V;
+  assume A1: not v in the_Vertices_of G;
+  then consider E being set such that
+    A2: card V = card E & E misses the_Edges_of G and
+    A3: the_Edges_of H = the_Edges_of G \/ E and
+    A4: for v1 being object st v1 in V ex e1 being object st e1 in E &
+      e1 Joins v1,v,H & for e2 being object st e2 Joins v1,v,H holds e1 = e2
+    by GLIB_007:def 4;
+  set F = [: {v},V :], L = [: V,{v} :];
+  now
+    let v1,v2 be object;
+    hereby
+      assume [v1,v2] in VertexAdjSymRel(H);
+      then consider e being object such that
+        A5: e Joins v1,v2,H by Th32;
+      per cases by A5, GLIB_006:72;
+      suppose e Joins v1,v2,G;
+        then [v1,v2] in VertexAdjSymRel(G) by Th32;
+        then [v1,v2] in VertexAdjSymRel(G) \/ F by XBOOLE_0:def 3;
+        hence [v1,v2] in VertexAdjSymRel(G) \/ F \/ L by XBOOLE_0:def 3;
+      end;
+      suppose not e in the_Edges_of G;
+        then per cases by A1, A2, A3, A5, GLIB_007:51;
+        suppose v1 = v & v2 in V;
+          then v1 in {v} & v2 in V by TARSKI:def 1;
+          then [v1,v2] in F by ZFMISC_1:87;
+          then [v1,v2] in VertexAdjSymRel(G) \/ F by XBOOLE_0:def 3;
+          hence [v1,v2] in VertexAdjSymRel(G) \/ F \/ L by XBOOLE_0:def 3;
+        end;
+        suppose v2 = v & v1 in V;
+          then v2 in {v} & v1 in V by TARSKI:def 1;
+          then [v1,v2] in L by ZFMISC_1:87;
+          hence [v1,v2] in VertexAdjSymRel(G) \/ F \/ L by XBOOLE_0:def 3;
+        end;
+      end;
+    end;
+    assume [v1,v2] in VertexAdjSymRel(G) \/ F \/ L;
+    then [v1,v2] in VertexAdjSymRel(G) \/ F or [v1,v2] in L by XBOOLE_0:def 3;
+    then per cases by XBOOLE_0:def 3;
+    suppose A6: [v1,v2] in VertexAdjSymRel(G);
+      G is Subgraph of H by GLIB_006:57;
+      hence [v1,v2] in VertexAdjSymRel(H) by A6, Th45, TARSKI:def 3;
+    end;
+    suppose [v1,v2] in F;
+      then A7: v1 in {v} & v2 in V by ZFMISC_1:87;
+      then consider e1 being object such that
+        A8: e1 in E & e1 Joins v2,v,H and
+        for e2 being object st e2 Joins v2,v,H holds e1 = e2 by A4;
+      e1 Joins v2,v1,H by A7, A8, TARSKI:def 1;
+      then e1 Joins v1,v2,H by GLIB_000:14;
+      hence [v1,v2] in VertexAdjSymRel(H) by Th32;
+    end;
+    suppose [v1,v2] in L;
+      then A9: v2 in {v} & v1 in V by ZFMISC_1:87;
+      then consider e1 being object such that
+        A10: e1 in E & e1 Joins v1,v,H and
+        for e2 being object st e2 Joins v1,v,H holds e1 = e2 by A4;
+      e1 Joins v1,v2,H by A9, A10, TARSKI:def 1;
+      hence [v1,v2] in VertexAdjSymRel(H) by Th32;
+    end;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem
+  for V being Subset of the_Vertices_of G, H being addLoops of G, V
+  holds VertexAdjSymRel(H) = VertexAdjSymRel(G) \/ id V
+proof
+  let V be Subset of the_Vertices_of G, H be addLoops of G, V;
+  set R = VertexDomRel(G);
+  reconsider I = id V as Relation;
+  thus VertexAdjSymRel(H) = (R \/ I) \/ (VertexDomRel(H))~ by Th30
+    .= (R \/ I) \/ (R \/ I)~ by Th30
+    .= (R \/ I) \/ (R~ \/ I~) by RELAT_1:23
+    .= (R \/ (R~ \/ I)) \/ I by XBOOLE_1:4
+    .= (R \/ R~ \/ I) \/ I by XBOOLE_1:4
+    .= (R \/ R~) \/ (I \/ I) by XBOOLE_1:4
+    .= VertexAdjSymRel(G) \/ id V;
+end;
+
+theorem
+  for H being LGraphComplement of G holds VertexAdjSymRel(H)
+    = [: the_Vertices_of G, the_Vertices_of G :] \ VertexAdjSymRel(G)
+proof
+  let H be LGraphComplement of G;
+  set N = [: the_Vertices_of G, the_Vertices_of G :];
+  now
+    let x,y be object;
+    hereby
+      assume A1: [x,y] in VertexAdjSymRel(H);
+      the_Vertices_of G = the_Vertices_of H by GLIB_012:def 7;
+      then A2: [x,y] in N by A1;
+      consider e2 being object such that
+        A3: e2 Joins x,y,H by A1, Th32;
+      x in the_Vertices_of G & y in the_Vertices_of G by A2, ZFMISC_1:87;
+      then not ex e1 being object st e1 Joins x,y,G by A3, GLIB_012:def 7;
+      then not [x,y] in VertexAdjSymRel(G) by Th32;
+      hence [x,y] in N \ VertexAdjSymRel(G) by A2, XBOOLE_0:def 5;
+    end;
+    assume [x,y] in N \ VertexAdjSymRel(G);
+    then A4: [x,y] in N & not [x,y] in VertexAdjSymRel(G) by XBOOLE_0:def 5;
+    then A5: x in the_Vertices_of G & y in the_Vertices_of G by ZFMISC_1:87;
+    not ex e1 being object st e1 Joins x,y,G by A4, Th32;
+    then ex e2 being object st e2 Joins x,y,H by A5, GLIB_012:def 7;
+    hence [x,y] in VertexAdjSymRel(H) by Th32;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+begin :: Create non-Dmulti Graphs from Relations
+
+reserve V for non empty set, E for Relation of V;
+
+definition
+  let V, E;
+  func createGraph(V,E) -> _Graph equals
+  createGraph(V, E, pr1(V,V) | E, pr2(V,V) | E);
+  coherence;
+end;
+
+registration
+  let V, E;
+  cluster the_Edges_of createGraph(V,E) -> Relation-like;
+  coherence;
+end;
+
+theorem Th63:
+  for v,w being object holds [v,w] in E iff [v,w] DJoins v,w,createGraph(V,E)
+proof
+  let v,w be object;
+  set G0 = createGraph(V,E);
+  hereby
+    assume A1: [v,w] in E;
+    then A2: [v,w] in the_Edges_of G0;
+    A3: v in V & w in V by A1, ZFMISC_1:87;
+    A4: (the_Source_of G0).[v,w] = (pr1(V,V)|E).[v,w]
+      .= pr1(V,V).[v,w] by A1, FUNCT_1:49
+      .= pr1(V,V).(v,w) by BINOP_1:def 1
+      .= v by A3, FUNCT_3:def 4;
+    (the_Target_of G0).[v,w] = (pr2(V,V)|E).[v,w]
+      .= pr2(V,V).[v,w] by A1, FUNCT_1:49
+      .= pr2(V,V).(v,w) by BINOP_1:def 1
+      .= w by A3, FUNCT_3:def 5;
+    hence [v,w] DJoins v,w,G0 by A2, A4, GLIB_000:def 14;
+  end;
+  assume [v,w] DJoins v,w,G0;
+  then [v,w] in the_Edges_of G0 by GLIB_000:def 14;
+  hence [v,w] in E;
+end;
+
+theorem Th64:
+  for e,v,w being object st e DJoins v,w,createGraph(V,E) holds e = [v,w]
+proof
+  let e,v,w be object;
+  assume A1: e DJoins v,w,createGraph(V,E);
+  then e in the_Edges_of createGraph(V,E) by GLIB_000:def 14;
+  then A2: e in E;
+  then consider v1,w1 being object such that
+    A3: e = [v1,w1] by RELAT_1:def 1;
+  e DJoins v1,w1,createGraph(V,E) by A2, A3, Th63;
+  then v1 = v & w1 = w by A1, GLIB_009:6;
+  hence thesis by A3;
+end;
+
+theorem Th65:
+  VertexDomRel(createGraph(V,E)) = E
+proof
+  set G0 = createGraph(V,E);
+  now
+    let v,w be object;
+    hereby
+      assume [v,w] in VertexDomRel(G0);
+      then consider e being object such that
+        A1: e DJoins v,w,G0 by Th1;
+      e in the_Edges_of G0 by A1, GLIB_000:def 14;
+      then A2: e in E;
+      then consider v0,w0 being object such that
+        A3: e = [v0,w0] by RELAT_1:def 1;
+      e DJoins v0,w0,G0 by A2, A3, Th63;
+      then v0 = v & w0 = w by A1, GLIB_009:6;
+      hence [v,w] in E by A2, A3;
+    end;
+    assume [v,w] in E;
+    then [v,w] DJoins v,w,G0 by Th63;
+    hence [v,w] in VertexDomRel(G0) by Th1;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+registration let V, E;
+  reduce VertexDomRel createGraph(V,E) to E;
+  reducibility by Th65;
+end;
+
+registration
+  let V, E;
+  cluster createGraph(V,E) -> plain non-Dmulti;
+  coherence
+  proof
+    set G0 = createGraph(V,E);
+    thus G0 is plain;
+    now
+      let e1,e2,v,w be object;
+      assume e1 DJoins v,w,G0 & e2 DJoins v,w,G0;
+      then e1 = [v,w] & e2 = [v,w] by Th64;
+      hence e1 = e2;
+    end;
+    hence thesis by GLIB_000:def 21;
+  end;
+end;
+
+theorem Th66:
+  V is trivial iff createGraph(V,E) is _trivial
+proof
+  hereby
+    assume V is trivial;
+    then the_Vertices_of createGraph(V,E) is trivial;
+    then consider v being object such that
+      A1: the_Vertices_of createGraph(V,E) = {v} by ZFMISC_1:131;
+    card the_Vertices_of createGraph(V,E) = 1 by A1, CARD_1:30;
+    hence createGraph(V,E) is _trivial;
+  end;
+  assume createGraph(V,E) is _trivial;
+  then the_Vertices_of createGraph(V,E) is trivial;
+  hence V is trivial;
+end;
+
+registration
+  let V be trivial non empty set; let E be Relation of V;
+  cluster createGraph(V,E) -> _trivial;
+  coherence by Th66;
+end;
+
+registration
+  let V be non trivial set; let E be Relation of V;
+  cluster createGraph(V,E) -> non _trivial;
+  coherence by Th66;
+end;
+
+theorem Th67:
+  E is irreflexive iff createGraph(V,E) is loopless
+proof
+  hereby
+    assume E is irreflexive;
+    then VertexDomRel(createGraph(V,E)) is irreflexive;
+    hence createGraph(V,E) is loopless;
+  end;
+  assume createGraph(V,E) is loopless;
+  then VertexDomRel(createGraph(V,E)) is irreflexive;
+  hence thesis;
+end;
+
+registration
+  let V; let E be irreflexive Relation of V;
+  cluster createGraph(V,E) -> loopless;
+  coherence by Th67;
+end;
+
+registration
+  let V; let E be non irreflexive Relation of V;
+  cluster createGraph(V,E) -> non loopless;
+  coherence by Th67;
+end;
+
+theorem Th68:
+  E is antisymmetric iff createGraph(V,E) is non-multi
+proof
+  set G0 = createGraph(V,E);
+  hereby
+    assume E is antisymmetric;
+    then A1: E is_antisymmetric_in field E by RELAT_2:def 12;
+    assume G0 is non non-multi;
+    then consider e1,e2,v,w being object such that
+      A2: e1 Joins v,w,G0 & e2 Joins v,w,G0 & e1 <> e2 by GLIB_000:def 20;
+    e1 in the_Edges_of G0 & e2 in the_Edges_of G0 by A2, GLIB_000:def 13;
+    then A3: e1 in E & e2 in E;
+    per cases by A2, GLIB_000:16;
+    suppose e1 DJoins v,w,G0 & e2 DJoins v,w,G0;
+      then e1 = [v,w] & e2 = [v,w] by Th64;
+      hence contradiction by A2;
+    end;
+    suppose e1 DJoins v,w,G0 & e2 DJoins w,v,G0;
+      then A4: e1 = [v,w] & e2 = [w,v] by Th64;
+      then v in field E & w in field E by A3, RELAT_1:15;
+      then v = w by A1, A3, A4, RELAT_2:def 4;
+      hence contradiction by A2, A4;
+    end;
+    suppose e1 DJoins w,v,G0 & e2 DJoins v,w,G0;
+      then A5: e1 = [w,v] & e2 = [v,w] by Th64;
+      then v in field E & w in field E by A3, RELAT_1:15;
+      then v = w by A1, A3, A5, RELAT_2:def 4;
+      hence contradiction by A2, A5;
+    end;
+    suppose e1 DJoins w,v,G0 & e2 DJoins w,v,G0;
+      then e1 = [w,v] & e2 = [w,v] by Th64;
+      hence contradiction by A2;
+    end;
+  end;
+  assume G0 is non-multi;
+  then VertexDomRel(G0) is antisymmetric;
+  hence thesis;
+end;
+
+registration
+  let V; let E be antisymmetric Relation of V;
+  cluster createGraph(V,E) -> non-multi;
+  coherence by Th68;
+end;
+
+registration
+  let V be non trivial set; let E be non antisymmetric Relation of V;
+  cluster createGraph(V,E) -> non non-multi;
+  coherence by Th68;
+end;
+
+registration
+  let V; let E be asymmetric Relation of V;
+  cluster createGraph(V,E) -> simple;
+  coherence;
+end;
+
+theorem Th69:
+  createGraph(V,E) is complete implies E is connected
+proof
+  assume createGraph(V,E) is complete;
+  then VertexDomRel(createGraph(V,E)) is connected;
+  hence thesis;
+end;
+
+registration
+  let V be non trivial set; let E be non connected Relation of V;
+  cluster createGraph(V,E) -> non complete;
+  coherence by Th69;
+end;
+
+theorem Th70:
+  E is empty iff createGraph(V,E) is edgeless
+proof
+  thus E is empty implies createGraph(V,E) is edgeless;
+  assume createGraph(V,E) is edgeless;
+  then VertexDomRel(createGraph(V,E)) is empty;
+  hence thesis;
+end;
+
+registration
+  let V; let E be empty Relation of V;
+  cluster createGraph(V,E) -> edgeless;
+  coherence;
+end;
+
+registration
+  let V; let E be non empty Relation of V;
+  cluster createGraph(V,E) -> non edgeless;
+  coherence by Th70;
+end;
+
+theorem Th71:
+  E is total reflexive iff createGraph(V,E) is loopfull
+proof
+  set G = createGraph(V,E);
+  hereby
+    assume E is total reflexive;
+    then id V c= E by ROUGHS_1:3;
+    then id the_Vertices_of G c= E;
+    then id the_Vertices_of G c= VertexDomRel(G);
+    hence createGraph(V,E) is loopfull by Lm2;
+  end;
+  assume G is loopfull;
+  then id the_Vertices_of G c= VertexDomRel(G) by Lm2;
+  then id the_Vertices_of G c= E;
+  then id V c= E;
+  hence thesis by ROUGHS_1:3;
+end;
+
+registration
+  let V; let E be total reflexive Relation of V;
+  cluster createGraph(V,E) -> loopfull;
+  coherence by Th71;
+end;
+
+registration
+  let V; let E be non total Relation of V;
+  cluster createGraph(V,E) -> non loopfull;
+  coherence by Th71;
+end;
+
+registration
+  let V be finite non empty set, E be Relation of V;
+  cluster createGraph(V,E) -> finite;
+  coherence;
+end;
+
+registration
+  let V; let E be finite Relation of V;
+  cluster createGraph(V,E) -> edge-finite;
+  coherence;
+end;
+
+theorem Th72:
+  for v being Vertex of createGraph(V,E) holds Im(E,v) = v.outNeighbors()
+proof
+  let v be Vertex of createGraph(V,E);
+  now
+    let y be object;
+    hereby
+      assume y in Im(E,v);
+      then y in E.:{v} by RELAT_1:def 16;
+      then consider x being object such that
+        A1: [x,y] in E & x in {v} by RELAT_1:def 13;
+      x = v by A1, TARSKI:def 1;
+      then A2: [x,y] DJoins v,y,createGraph(V,E) by A1, Th63;
+      y is set by TARSKI:1;
+      hence y in v.outNeighbors() by A2, GLIB_000:70;
+    end;
+    assume y in v.outNeighbors();
+    then consider e being object such that
+      A3: e DJoins v,y,createGraph(V,E) by GLIB_000:70;
+    e = [v,y] by A3, Th64;
+    then A4: [v,y] in E by A3, Th63;
+    v in {v} by TARSKI:def 1;
+    then y in E.:{v} by A4, RELAT_1:def 13;
+    hence y in Im(E,v) by RELAT_1:def 16;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem Th73:
+  for v being Vertex of createGraph(V,E) holds Coim(E,v) = v.inNeighbors()
+proof
+  let v be Vertex of createGraph(V,E);
+  now
+    let x be object;
+    hereby
+      assume x in Coim(E,v);
+      then x in E"{v} by RELAT_1:def 17;
+      then consider y being object such that
+        A1: [x,y] in E & y in {v} by RELAT_1:def 14;
+      y = v by A1, TARSKI:def 1;
+      then A2: [x,y] DJoins x,v,createGraph(V,E) by A1, Th63;
+      x is set by TARSKI:1;
+      hence x in v.inNeighbors() by A2, GLIB_000:69;
+    end;
+    assume x in v.inNeighbors();
+    then consider e being object such that
+      A3: e DJoins x,v,createGraph(V,E) by GLIB_000:69;
+    e = [x,v] by A3, Th64;
+    then A4: [x,v] in E by A3, Th63;
+    v in {v} by TARSKI:def 1;
+    then x in E"{v} by A4, RELAT_1:def 14;
+    hence x in Coim(E,v) by RELAT_1:def 17;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem Th74:
+  for X being set holds E|X = createGraph(V,E).edgesOutOf(X)
+proof
+  let X be set;
+  set G = createGraph(V,E);
+  now
+    let z be object;
+    hereby
+      assume A1: z in E|X;
+      then consider x,y being object such that
+        A2: z = [x,y] by RELAT_1:def 1;
+      A3: x in X & [x,y] in E by A1, A2, RELAT_1:def 11;
+      then [x,y] DJoins x,y,G by Th63;
+      then [x,y] in the_Edges_of G & (the_Source_of G).[x,y] = x
+        by GLIB_000:def 14;
+      hence z in G.edgesOutOf(X) by A2, A3, GLIB_000:def 27;
+    end;
+    set x = (the_Source_of G).z, y = (the_Target_of G).z;
+    assume z in G.edgesOutOf(X);
+    then A4: z in the_Edges_of G & x in X by GLIB_000:def 27;
+    then z DJoins x,y,G by GLIB_000:def 14;
+    then z = [x,y] by Th64;
+    hence z in E|X by A4, RELAT_1:def 11;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem Th75:
+  for Y being set holds Y|`E = createGraph(V,E).edgesInto(Y)
+proof
+  let Y be set;
+  set G = createGraph(V,E);
+  now
+    let z be object;
+    hereby
+      assume A1: z in Y|`E;
+      then consider x,y being object such that
+        A2: z = [x,y] by RELAT_1:def 1;
+      A3: y in Y & [x,y] in E by A1, A2, RELAT_1:def 12;
+      then [x,y] DJoins x,y,G by Th63;
+      then [x,y] in the_Edges_of G & (the_Target_of G).[x,y] = y
+        by GLIB_000:def 14;
+      hence z in G.edgesInto(Y) by A2, A3, GLIB_000:def 26;
+    end;
+    set x = (the_Source_of G).z, y = (the_Target_of G).z;
+    assume z in G.edgesInto(Y);
+    then A4: z in the_Edges_of G & y in Y by GLIB_000:def 26;
+    then z DJoins x,y,G by GLIB_000:def 14;
+    then z = [x,y] by Th64;
+    hence z in Y|`E by A4, RELAT_1:def 12;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem Th76:
+  for X,Y being set holds Y|`E|X = createGraph(V,E).edgesDBetween(X,Y)
+proof
+  let X,Y be set;
+  thus Y|`E|X = Y|`E /\ E|X by GLIBPRE0:9
+    .= createGraph(V,E).edgesInto(Y) /\ E|X by Th75
+    .= createGraph(V,E).edgesInto(Y) /\ createGraph(V,E).edgesOutOf(X) by Th74
+    .= createGraph(V,E).edgesDBetween(X,Y) by GLIBPRE0:30;
+end;
+
+theorem Th77:
+  for X,Y being set
+  holds Y|`E|X \/ X|`E|Y = createGraph(V,E).edgesBetween(X,Y)
+proof
+  let X,Y be set;
+  set G = createGraph(V,E);
+  thus Y|`E|X \/ X|`E|Y = Y|`E|X \/ G.edgesDBetween(Y,X) by Th76
+    .= G.edgesDBetween(X,Y) \/ G.edgesDBetween(Y,X) by Th76
+    .= G.edgesBetween(X,Y) by GLIBPRE0:28;
+end;
+
+theorem Th78:
+  for v being Vertex of createGraph(V,E) holds E|{v} = v.edgesOut()
+proof
+  let v be Vertex of createGraph(V,E);
+  thus E|{v} = createGraph(V,E).edgesOutOf({v}) by Th74
+    .= v.edgesOut() by GLIB_000:def 39;
+end;
+
+theorem Th79:
+  for v being Vertex of createGraph(V,E) holds {v}|`E = v.edgesIn()
+proof
+  let v be Vertex of createGraph(V,E);
+  thus {v}|`E = createGraph(V,E).edgesInto({v}) by Th75
+    .= v.edgesIn() by GLIB_000:def 38;
+end;
+
+theorem Th80:
+  for X being set holds E|X \/ X|`E = createGraph(V,E).edgesInOut(X)
+proof
+  let X be set;
+  thus E|X \/ X|`E = createGraph(V,E).edgesOutOf(X) \/ X|`E by Th74
+    .= createGraph(V,E).edgesOutOf(X) \/ createGraph(V,E).edgesInto(X) by Th75
+    .= createGraph(V,E).edgesInOut(X) by GLIB_000:def 28;
+end;
+
+theorem
+  dom E = rng the_Source_of createGraph(V,E)
+proof
+  now
+    let v be object;
+    hereby
+      assume v in dom E;
+      then consider w being object such that
+        A1: [v,w] in E by XTUPLE_0:def 12;
+      [v,w] DJoins v,w,createGraph(V,E) by A1, Th63;
+      then A2: [v,w] in the_Edges_of createGraph(V,E) &
+        (the_Source_of createGraph(V,E)).[v,w] = v by GLIB_000:def 14;
+      then [v,w] in dom the_Source_of createGraph(V,E) by FUNCT_2:def 1;
+      hence v in rng the_Source_of createGraph(V,E) by A2, FUNCT_1:3;
+    end;
+    assume v in rng the_Source_of createGraph(V,E);
+    then consider e being object such that
+      A3: e in dom the_Source_of createGraph(V,E) &
+        (the_Source_of createGraph(V,E)).e = v by FUNCT_1:def 3;
+    A4: e in the_Edges_of createGraph(V,E) by A3;
+    set w = (the_Target_of createGraph(V,E)).e;
+    e DJoins v,w,createGraph(V,E) by A3, GLIB_000:def 14;
+    then A5: e = [v,w] by Th64;
+    e in E by A4;
+    hence v in dom E by A5, XTUPLE_0:def 12;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem
+  rng E = rng the_Target_of createGraph(V,E)
+proof
+  now
+    let w be object;
+    hereby
+      assume w in rng E;
+      then consider v being object such that
+        A1: [v,w] in E by XTUPLE_0:def 13;
+      [v,w] DJoins v,w,createGraph(V,E) by A1, Th63;
+      then A2: [v,w] in the_Edges_of createGraph(V,E) &
+        (the_Target_of createGraph(V,E)).[v,w] = w by GLIB_000:def 14;
+      then [v,w] in dom the_Target_of createGraph(V,E) by FUNCT_2:def 1;
+      hence w in rng the_Target_of createGraph(V,E) by A2, FUNCT_1:3;
+    end;
+    assume w in rng the_Target_of createGraph(V,E);
+    then consider e being object such that
+      A3: e in dom the_Target_of createGraph(V,E) &
+        (the_Target_of createGraph(V,E)).e = w by FUNCT_1:def 3;
+    A4: e in the_Edges_of createGraph(V,E) by A3;
+    set v = (the_Source_of createGraph(V,E)).e;
+    e DJoins v,w,createGraph(V,E) by A3, GLIB_000:def 14;
+    then A5: e = [v,w] by Th64;
+    e in E by A4;
+    hence w in rng E by A5, XTUPLE_0:def 13;
+  end;
+  hence thesis by TARSKI:2;
+end;
+
+theorem Th83:
+  for v being Vertex of createGraph(V,E)
+  holds v is isolated iff not v in field E
+proof
+  let v be Vertex of createGraph(V,E);
+  hereby
+    assume A1: v is isolated;
+    assume v in field E;
+    then v in dom E \/ rng E by RELAT_1:def 6;
+    then per cases by XBOOLE_0:def 3;
+    suppose v in dom E;
+      then consider w being object such that
+        A2: [v,w] in E by XTUPLE_0:def 12;
+      thus contradiction by A1, A2, Th63, GLIBPRE0:22;
+    end;
+    suppose v in rng E;
+      then consider w being object such that
+        A3: [w,v] in E by XTUPLE_0:def 13;
+      thus contradiction by A1, A3, Th63, GLIBPRE0:22;
+    end;
+  end;
+  assume A4: not v in field E;
+  assume not v is isolated;
+  then v.edgesInOut() <> {} by GLIB_000:def 49;
+  then consider e being object such that
+    A5: e in v.edgesInOut() by XBOOLE_0:def 1;
+  e in v.edgesIn() \/ v.edgesOut() by A5, GLIB_000:60;
+  then per cases by XBOOLE_0:def 3;
+  suppose e in v.edgesIn();
+    then consider w being set such that
+      A6: e DJoins w,v,createGraph(V,E) by GLIB_000:57;
+    e = [w,v] by A6, Th64;
+    then [w,v] in E by A6, Th63;
+    hence contradiction by A4, RELAT_1:15;
+  end;
+  suppose e in v.edgesOut();
+    then consider w being set such that
+      A7: e DJoins v,w,createGraph(V,E) by GLIB_000:59;
+    e = [v,w] by A7, Th64;
+    then [v,w] in E by A7, Th63;
+    hence contradiction by A4, RELAT_1:15;
+  end;
+end;
+
+theorem
+  E is symmetric iff VertexAdjSymRel(createGraph(V,E)) = E
+proof
+  set G = createGraph(V,E);
+  hereby
+    assume E is symmetric;
+    then A1: E = E~ by RELAT_2:13;
+    thus VertexAdjSymRel(G) = E \/ ((VertexDomRel(G))~)
+      .= E \/ E~
+      .= E by A1;
+  end;
+  assume VertexAdjSymRel(G) = E;
+  then E = E \/ ((VertexDomRel(G))~)
+    .= E \/ E~;
+  then A2: E~ c= E by XBOOLE_1:7;
+  then E~~ c= E~ by SYSREL:11;
+  hence thesis by A2, XBOOLE_0:def 10, RELAT_2:13;
+end;
+
+theorem
+  for V1 being non empty set, V2 being non empty Subset of V1
+  for E1 being (Relation of V1), E2 being Relation of V2 st E2 c= E1
+  holds createGraph(V2,E2) is inducedSubgraph of createGraph(V1,E1),V2,E2
+proof
+  let V1 be non empty set, V2 be non empty Subset of V1;
+  let E1 be (Relation of V1), E2 be Relation of V2;
+  assume A1: E2 c= E1;
+  set G1 = createGraph(V1,E1), G2 = createGraph(V2,E2);
+  A2: the_Vertices_of G2 = V2 & the_Edges_of G2 = E2;
+  A3: V2 is non empty Subset of the_Vertices_of G1;
+  now
+    let e be object;
+    set v = (the_Source_of G2).e, w = (the_Target_of G2).e;
+    assume A4: e in E2;
+    then e in the_Edges_of G2;
+    then A5: e DJoins v,w,G2 by GLIB_000:def 14;
+    then e Joins v,w,G2 by GLIB_000:16;
+    then v in the_Vertices_of G2 & w in the_Vertices_of G2 by GLIB_000:13;
+    then A6: v in V2 & w in V2;
+    e = [v,w] by A5, Th64;
+    then e DJoins v,w,G1 by A1, A4, Th63;
+    then e in the_Edges_of G1 & (the_Source_of G1).e = v &
+      (the_Target_of G1).e = w by GLIB_000:def 14;
+    hence e in G1.edgesBetween(V2) by A6, GLIB_000:31;
+  end;
+  then A7: E2 c= G1.edgesBetween(V2) by TARSKI:def 3;
+  G2 is Subgraph of G1
+  proof
+    A9: the_Edges_of G2 c= the_Edges_of G1 by A1;
+    now
+      let e be set;
+      assume A10: e in the_Edges_of G2;
+      set v = (the_Source_of G2).e, w = (the_Target_of G2).e;
+      e DJoins v,w,G2 by A10, GLIB_000:def 14;
+      then A11: e = [v,w] by Th64;
+      e in E2 by A10;
+      then e DJoins v,w,G1 by A1, A11, Th63;
+      hence v = (the_Source_of G1).e & w = (the_Target_of G1).e
+        by GLIB_000:def 14;
+    end;
+    hence thesis by A9, GLIB_000:def 32;
+  end;
+  hence thesis by A2, A3, A7, GLIB_000:def 37;
+end;
+
+theorem Th86:
+  for G being non-Dmulti _Graph
+  ex F being PGraphMapping of G, createGraph(the_Vertices_of G,VertexDomRel(G))
+  st F is Disomorphism & F_V = id the_Vertices_of G &
+    for e being object st e in the_Edges_of G
+    holds F_E.e = [(the_Source_of G).e,(the_Target_of G).e]
+proof
+  let G be non-Dmulti _Graph;
+  set G9 = createGraph(the_Vertices_of G, VertexDomRel(G));
+  reconsider f = id the_Vertices_of G
+    as PartFunc of the_Vertices_of G, the_Vertices_of G9;
+  deffunc G(object) = [(the_Source_of G).$1,(the_Target_of G).$1];
+  consider g being Function such that
+    A1: dom g = the_Edges_of G and
+    A2: for x being object st x in the_Edges_of G holds g.x = G(x)
+    from FUNCT_1:sch 3;
+  now
+    let y be object;
+    hereby
+      assume y in rng g;
+      then consider x being object such that
+        A3: x in dom g & g.x = y by FUNCT_1:def 3;
+      A4: y = [(the_Source_of G).x,(the_Target_of G).x] by A1, A2, A3;
+      x DJoins (the_Source_of G).x,(the_Target_of G).x,G
+        by A1, A3, GLIB_000:def 14;
+      then y in VertexDomRel(G) by A4, Th1;
+      hence y in the_Edges_of G9;
+    end;
+    assume y in the_Edges_of G9;
+    then A5: y in VertexDomRel(G);
+    then consider v,w being object such that
+      A6: y = [v,w] by RELAT_1:def 1;
+    consider e being object such that
+      A7: e DJoins v,w,G by A5, A6, Th1;
+    A8: e in the_Edges_of G & (the_Source_of G).e = v &
+      (the_Target_of G).e = w by A7, GLIB_000:def 14;
+    then g.e = y by A2, A6;
+    hence y in rng g by A1, A8, FUNCT_1:3;
+  end;
+  then A9: rng g = the_Edges_of G9 by TARSKI:2;
+  then reconsider g as PartFunc of the_Edges_of G, the_Edges_of G9
+    by A1, RELSET_1:4;
+  now
+    thus for e being object st e in dom g holds
+      (the_Source_of G).e in dom f & (the_Target_of G).e in dom f by FUNCT_2:5;
+    let e,v,w be object;
+    assume A10: e in dom g & v in dom f & w in dom f & e DJoins v,w,G;
+    then A11: (the_Source_of G).e = v & (the_Target_of G).e = w
+      by GLIB_000:def 14;
+    A12: g.e = [v,w] by A2, A10, A11;
+    g.e in rng g by A10, FUNCT_1:3;
+    then g.e in the_Edges_of G9;
+    then g.e in VertexDomRel(G);
+    then g.e DJoins v,w,G9 by A12, Th63;
+    then g.e DJoins f.v,w,G9 by A10, FUNCT_1:18;
+    hence g.e DJoins f.v,f.w,G9 by A10, FUNCT_1:18;
+  end;
+  then reconsider F = [f,g] as directed PGraphMapping of G, G9 by GLIB_010:30;
+  take F;
+  now
+    let x1,x2 be object;
+    assume A13: x1 in dom g & x2 in dom g & g.x1 = g.x2;
+    then g.x1 = [(the_Source_of G).x1,(the_Target_of G).x1] &
+      g.x2 = [(the_Source_of G).x2,(the_Target_of G).x2] by A2;
+    then (the_Source_of G).x1 = (the_Source_of G).x2 &
+      (the_Target_of G).x1 = (the_Target_of G).x2 by A13, XTUPLE_0:1;
+    then x1 DJoins (the_Source_of G).x1,(the_Target_of G).x1,G &
+      x2 DJoins (the_Source_of G).x1,(the_Target_of G).x1,G
+      by A13, GLIB_000:def 14;
+    hence x1 = x2 by GLIB_000:def 21;
+  end;
+  then A14: g is one-to-one by FUNCT_1:def 4;
+  f is one-to-one & F_V = f & F_E = g;
+  then A15: F is one-to-one by A14, GLIB_010:def 13;
+  A16: dom f = the_Vertices_of G & rng f = the_Vertices_of G9;
+  F_V = f & F_E = g;
+  then A17: F is total onto by A1, A9, A16, GLIB_010:def 11, GLIB_010:def 12;
+  thus F is Disomorphism by A15, A17;
+  thus F_V = id the_Vertices_of G;
+  let e be object;
+  assume e in the_Edges_of G;
+  hence F_E.e = [(the_Source_of G).e,(the_Target_of G).e] by A2;
+end;
+
+theorem
+  for G being non-Dmulti _Graph
+  holds createGraph(the_Vertices_of G,VertexDomRel(G)) is G-Disomorphic
+proof
+  let G be non-Dmulti _Graph;
+  set G9 = createGraph(the_Vertices_of G,VertexDomRel(G));
+  consider F being PGraphMapping of G, G9 such that
+    A1: F is Disomorphism and F_V = id the_Vertices_of G &
+      for e being object st e in the_Edges_of G
+      holds F_E.e = [(the_Source_of G).e,(the_Target_of G).e] by Th86;
+  thus thesis by A1, GLIB_010:def 24;
+end;
+
+:: Using the isomorphism predicate from WELLORD1:def 8 we could
+:: also write something like the graphs created from isomorphic relations
+:: are Disomorphic. However, since the relations can only capture edges
+:: the number of isolated vertices in both graphs may differ, depending
+:: the underlying sets V1 and V2 of which E1 and E2 are relations of.
+:: Therefore, such a theorem is better written after functors
+:: changing RelStrs to _Graphs are introduced in a later article.
+
+begin :: create non-multi Graphs from symmetric Relations
+
+reserve E for symmetric Relation of V;
+
+definition
+  let V, E;
+  mode GraphFromSymRel of V, E is removeParallelEdges of createGraph(V,E);
+end;
+
+reserve G for GraphFromSymRel of V, E;
+
+theorem Th88:
+  for v,w being object
+  holds [v,w] in E iff [v,w] DJoins v,w,G or [w,v] DJoins w,v,G
+proof
+  let v,w be object;
+  A1: v is set & w is set by TARSKI:1;
+  set G0 = createGraph(V,E);
+  consider E0 being RepEdgeSelection of G0 such that
+    A2: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+  hereby
+    assume [v,w] in E;
+    then A3: [v,w] DJoins v,w,G0 & [w,v] DJoins w,v,G0 by Th63, GLIBPRE0:13;
+    [v,w] Joins v,w,G0 by A3, GLIB_000:16;
+    then consider e being object such that
+      A4: e Joins v,w,G0 & e in E0 and
+      for e9 being object st e9 Joins v,w,G0 & e9 in E0 holds e9 = e
+      by GLIB_009:def 5;
+    e in the_Edges_of G0 by A4;
+    then A5: e in E;
+    then consider v0, w0 being object such that
+      A6: e = [v0,w0] by RELAT_1:def 1;
+    A7: e DJoins v0,w0,G0 by A5, A6, Th63;
+    A8: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+    the_Vertices_of G0 c= the_Vertices_of G0;
+    then A9: E0 = the_Edges_of G by A2, A8, GLIB_000:def 37;
+    e is set & v0 is set & w0 is set by TARSKI:1;
+    then A10: e DJoins v0,w0,G by A4, A7, A9, GLIB_000:73;
+    e Joins v0,w0,G0 by A7, GLIB_000:16;
+    then per cases by A4, GLIB_000:15;
+    suppose v = v0 & w = w0;
+      hence [v,w] DJoins v,w,G or [w,v] DJoins w,v,G by A6, A10;
+    end;
+    suppose v = w0 & w = v0;
+      hence [v,w] DJoins v,w,G or [w,v] DJoins w,v,G by A6, A10;
+    end;
+  end;
+  assume [v,w] DJoins v,w,G or [w,v] DJoins w,v,G;
+  then per cases;
+  suppose [v,w] DJoins v,w,G;
+    hence [v,w] in E by A1, Th63, GLIB_000:72;
+  end;
+  suppose [w,v] DJoins w,v,G;
+    then [w,v] DJoins w,v,G0 by A1, GLIB_000:72;
+    hence [v,w] in E by Th63, GLIBPRE0:13;
+  end;
+end;
+
+theorem Th89:
+  for v, w being Vertex of G holds [v,w] in E iff v,w are_adjacent
+proof
+  let v, w be Vertex of G;
+  hereby
+    assume [v,w] in E;
+    then per cases by Th88;
+    suppose [v,w] DJoins v,w,G;
+      then [v,w] Joins v,w,G by GLIB_000:16;
+      hence v,w are_adjacent by CHORD:def 3;
+    end;
+    suppose [w,v] DJoins w,v,G;
+      then [w,v] Joins v,w,G by GLIB_000:16;
+      hence v,w are_adjacent by CHORD:def 3;
+    end;
+  end;
+  set G0 = createGraph(V,E);
+  consider E0 being RepEdgeSelection of G0 such that
+    A1: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+  A2: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+  the_Vertices_of G0 c= the_Vertices_of G0;
+  then A3: the_Edges_of G = E0 by A1, A2, GLIB_000:def 37;
+  assume v,w are_adjacent;
+  then consider e being object such that
+    A4: e Joins v,w,G by CHORD:def 3;
+  e in E0 by A3, A4, GLIB_000:def 13;
+  then e in the_Edges_of G0;
+  then A5: e in E;
+  then consider v0, w0 being object such that
+    A6: e = [v0,w0] by RELAT_1:def 1;
+  e DJoins v0,w0,G0 by A5, A6, Th63;
+  then A7: e Joins v0,w0,G0 by GLIB_000:16;
+  e Joins v,w,G0 by A4, GLIB_000:72;
+  then per cases by A7, GLIB_000:15;
+  suppose v = v0 & w = w0;
+    hence [v,w] in E by A5, A6;
+  end;
+  suppose v = w0 & w = v0;
+    hence [v,w] in E by A5, A6, GLIBPRE0:13;
+  end;
+end;
+
+registration
+  let V, E;
+  cluster -> non-multi for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+theorem
+  the_Edges_of G c= E;
+
+theorem
+  for G1, G2 being GraphFromSymRel of V, E
+  holds the_Vertices_of G1 = the_Vertices_of G2
+proof
+  let G1, G2 be GraphFromSymRel of V, E;
+  set G0 = createGraph(V,E);
+  the_Vertices_of G1 = the_Vertices_of G0 &
+    the_Vertices_of G2 = the_Vertices_of G0 by GLIB_000:def 33;
+  hence thesis;
+end;
+
+theorem
+  for G1, G2 being GraphFromSymRel of V, E holds G2 is G1-isomorphic
+  by GLIB_010:169;
+
+theorem
+  V is trivial iff G is _trivial;
+
+registration
+  let V be trivial non empty set; let E be symmetric Relation of V;
+  cluster -> _trivial for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+registration
+  let V be non trivial set; let E be symmetric Relation of V;
+  cluster -> non _trivial for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+theorem
+  E is irreflexive iff G is loopless;
+
+registration
+  let V; let E be symmetric irreflexive Relation of V;
+  cluster -> loopless for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+registration
+  let V; let E be symmetric non irreflexive Relation of V;
+  cluster -> non loopless for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+theorem
+  G is complete implies E is connected
+proof
+  assume G is complete;
+  then createGraph(V,E) is complete; :: because of removeParallelEdges
+  hence E is connected by Th69;
+end;
+
+registration
+  let V be non trivial set; let E be symmetric non connected Relation of V;
+  cluster -> non complete for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+theorem
+  E is empty iff G is edgeless;
+
+registration
+  let V; let E be empty Relation of V;
+  cluster -> edgeless for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+registration
+  let V; let E be symmetric non empty Relation of V;
+  cluster -> non edgeless for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+theorem
+  E is total reflexive iff G is loopfull
+proof
+  thus E is total reflexive implies G is loopfull;
+  assume G is loopfull;
+  then createGraph(V,E) is loopfull;
+  hence E is total reflexive by Th71;
+end;
+
+registration
+  let V; let E be total reflexive symmetric Relation of V;
+  cluster -> loopfull for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+registration
+  let V; let E be symmetric non total Relation of V;
+  cluster -> non loopfull for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+registration
+  let V be finite non empty set, E be symmetric Relation of V;
+  cluster -> finite for GraphFromSymRel of V, E;
+  coherence;
+end;
+
+theorem
+  for v being Vertex of G holds Im(E,v) = v.allNeighbors()
+proof
+  let v be Vertex of G;
+  set G0 = createGraph(V,E);
+  consider E0 being RepEdgeSelection of G0 such that
+    A1: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+  A2: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+  the_Vertices_of G0 c= the_Vertices_of G0;
+  then reconsider v0 = v as Vertex of G0 by A1, A2, GLIB_000:def 37;
+  thus Im(E,v) = Im(E,v) \/ Im(E,v)
+    .= Im(E,v) \/ Coim(E,v) by GLIBPRE0:10
+    .= v0.outNeighbors() \/ Coim(E,v) by Th72
+    .= v0.outNeighbors() \/ v0.inNeighbors() by Th73
+    .= v0.allNeighbors() by GLIB_000:def 48
+    .= v.allNeighbors() by GLIBPRE0:66;
+end;
+
+theorem
+  for X being set holds G.edgesInOut(X) c= (E|X) \/ (X|`E)
+proof
+  let X be set;
+  (E|X) \/ (X|`E) = createGraph(V,E).edgesInOut(X) by Th80;
+  hence thesis by GLIB_000:76;
+end;
+
+theorem
+  for X, Y being set holds G.edgesBetween(X,Y) c= Y|`E|X \/ X|`E|Y
+proof
+  let X, Y be set;
+  Y|`E|X \/ X|`E|Y = createGraph(V,E).edgesBetween(X,Y) by Th77;
+  hence thesis by GLIB_000:77;
+end;
+
+::theorem
+::  for v being Vertex of G holds card(E|{v}) = card(v.edgesInOut());
+
+theorem
+  for v being Vertex of G holds v.edgesOut() c= E|{v}
+proof
+  let v be Vertex of G;
+  set G0 = createGraph(V,E);
+  consider E0 being RepEdgeSelection of G0 such that
+    A1: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+  A2: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+  the_Vertices_of G0 c= the_Vertices_of G0;
+  then reconsider v0 = v as Vertex of G0 by A1, A2, GLIB_000:def 37;
+  v0.edgesOut() = E|{v} by Th78;
+  hence thesis by GLIB_000:78;
+end;
+
+theorem
+  for v being Vertex of G holds v.edgesIn() c= {v}|`E
+proof
+  let v be Vertex of G;
+  set G0 = createGraph(V,E);
+  consider E0 being RepEdgeSelection of G0 such that
+    A1: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+  A2: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+  the_Vertices_of G0 c= the_Vertices_of G0;
+  then reconsider v0 = v as Vertex of G0 by A1, A2, GLIB_000:def 37;
+  v0.edgesIn() = {v}|`E by Th79;
+  hence thesis by GLIB_000:78;
+end;
+
+theorem
+  for v being Vertex of G holds v is isolated iff not v in field E
+proof
+  let v be Vertex of G;
+  set G0 = createGraph(V,E);
+  consider E0 being RepEdgeSelection of G0 such that
+    A1: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+  A2: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+  the_Vertices_of G0 c= the_Vertices_of G0;
+  then reconsider v0 = v as Vertex of G0 by A1, A2, GLIB_000:def 37;
+  v is isolated iff v0 is isolated by GLIB_009:111;
+  hence thesis by Th83;
+end;
+
+theorem
+  for G being GraphFromSymRel of V, E holds VertexAdjSymRel(G) = E
+proof
+  let G be GraphFromSymRel of V, E;
+  now
+    let x,y be object;
+    hereby
+      assume A1: [x,y] in VertexAdjSymRel(G);
+      then reconsider v = x, w = y as Vertex of G by ZFMISC_1:87;
+      v,w are_adjacent by A1, Th33;
+      hence [x,y] in E by Th89;
+    end;
+    set G0 = createGraph(V,E);
+    consider E0 being RepEdgeSelection of G0 such that
+      A2: G is inducedSubgraph of G0, the_Vertices_of G0, E0 by GLIB_009:def 7;
+    A3: the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) by GLIB_000:34;
+    the_Vertices_of G0 c= the_Vertices_of G0;
+    then A4: the_Vertices_of G = the_Vertices_of G0 by A2, A3, GLIB_000:def 37
+      .= V;
+    assume A5: [x,y] in E;
+    then reconsider v = x, w = y as Vertex of G by A4, ZFMISC_1:87;
+    v,w are_adjacent by A5, Th89;
+    hence [x,y] in VertexAdjSymRel(G) by Th33;
+  end;
+  hence thesis by RELAT_1:def 2;
+end;
+
+theorem
+  for V1 being non empty set, V2 being non empty Subset of V1
+  for E1 being symmetric Relation of V1 for E2 being symmetric Relation of V2
+  for G1 being GraphFromSymRel of V1, E1, G2 being GraphFromSymRel of V2, E2
+  st E2 c= E1
+  ex F being PGraphMapping of G2, G1
+  st F is weak_SG-embedding & F_V = id V2 &
+    for v,w being object st [v,w] in the_Edges_of G2
+    holds F_E.[v,w] = [v,w] or F_E.[v,w] = [w,v]
+proof
+  let V1 be non empty set, V2 be non empty Subset of V1;
+  let E1 be symmetric Relation of V1;
+  let E2 be symmetric Relation of V2;
+  let G1 be GraphFromSymRel of V1, E1, G2 be GraphFromSymRel of V2, E2;
+  assume A1: E2 c= E1;
+  set G3 = createGraph(V1,E1), G4 = createGraph(V2,E2);
+  set f = id V2;
+  the_Vertices_of G1 = the_Vertices_of G3 &
+    the_Vertices_of G2 = the_Vertices_of G4 by GLIB_000:def 33;
+  then A2: the_Vertices_of G1 = V1 & the_Vertices_of G2 = V2;
+  then dom id V2 = the_Vertices_of G2 & rng id V2 c= the_Vertices_of G1;
+  then reconsider f as PartFunc of the_Vertices_of G2, the_Vertices_of G1
+    by RELSET_1:4;
+  defpred P[object,object] means ex v,w being object st $1 = [v,w] &
+    $2 in the_Edges_of G1 & ($2 = [v,w] or $2 = [w,v]);
+  A3: for x,y1,y2 being object st x in the_Edges_of G2 & P[x,y1] & P[x,y2]
+    holds y1 = y2
+  proof
+    let x,y1,y2 be object;
+    assume A4: x in the_Edges_of G2 & P[x,y1] & P[x,y2];
+    then consider v,w being object such that
+      A5: x = [v,w] & y1 in the_Edges_of G1 & (y1 = [v,w] or y1 = [w,v]);
+    consider v0,w0 being object such that
+      A6: x = [v0,w0] & y2 in the_Edges_of G1 & (y2 = [v0,w0] or y2 = [w0,v0])
+      by A4;
+    A7: v = v0 & w = w0 by A5, A6, XTUPLE_0:1;
+    per cases by A5, A6, A7;
+    suppose y1 = [v,w] & y2 = [v,w];
+      hence thesis;
+    end;
+    suppose A8: y1 = [v,w] & y2 = [w,v];
+      y1 in E1 & y2 in E1 by A5, A6;
+      then A9: y1 DJoins v,w,G3 & y2 DJoins w,v,G3 by A8, Th63;
+      G3 is Supergraph of G1 by GLIB_006:57;
+      then y1 DJoins v,w,G1 & y2 DJoins w,v,G1 by A5, A6, A9, GLIB_006:71;
+      then y1 Joins v,w,G1 & y2 Joins v,w,G1 by GLIB_000:16;
+      hence thesis by GLIB_000:def 20;
+    end;
+    suppose A10: y1 = [w,v] & y2 = [v,w];
+      y1 in E1 & y2 in E1 by A5, A6;
+      then A11: y1 DJoins w,v,G3 & y2 DJoins v,w,G3 by A10, Th63;
+      G3 is Supergraph of G1 by GLIB_006:57;
+      then y1 DJoins w,v,G1 & y2 DJoins v,w,G1 by A5, A6, A11, GLIB_006:71;
+      then y1 Joins v,w,G1 & y2 Joins v,w,G1 by GLIB_000:16;
+      hence thesis by GLIB_000:def 20;
+    end;
+    suppose y1 = [w,v] & y2 = [w,v];
+      hence thesis;
+    end;
+  end;
+  A12: for x being object st x in the_Edges_of G2 ex y being object st P[x,y]
+  proof
+    let x be object;
+    assume x in the_Edges_of G2;
+    then A13: x in E2;
+    then consider v,w being object such that
+      A14: x = [v,w] by RELAT_1:def 1;
+    per cases by A1, A13, A14, Th88;
+    suppose A15: [v,w] DJoins v,w,G1;
+      take [v,w],v,w;
+      thus thesis by A14, A15, GLIB_000:def 14;
+    end;
+    suppose A16: [w,v] DJoins w,v,G1;
+      take [w,v],v,w;
+      thus thesis by A14, A16, GLIB_000:def 14;
+    end;
+  end;
+  consider g being Function such that
+    A17: dom g = the_Edges_of G2 and
+    A18: for x being object st x in the_Edges_of G2 holds P[x,g.x]
+    from FUNCT_1:sch 2(A3,A12);
+  now
+    let y be object;
+    assume y in rng g;
+    then consider x being object such that
+      A19: x in dom g & g.x = y by FUNCT_1:def 3;
+    consider v,w being object such that
+      A20: x = [v,w] & y in the_Edges_of G1 & (y = [v,w] or y = [w,v])
+      by A17, A18, A19;
+    thus y in the_Edges_of G1 by A20;
+  end;
+  then rng g c= the_Edges_of G1 by TARSKI:def 3;
+  then reconsider g as PartFunc of the_Edges_of G2, the_Edges_of G1
+    by A17, RELSET_1:4;
+  now
+    hereby
+      let e be object;
+      assume e in dom g;
+      then e Joins (the_Source_of G2).e,(the_Target_of G2).e,G2
+        by GLIB_000:def 13;
+      hence (the_Source_of G2).e in dom f &(the_Target_of G2).e in dom f
+        by A2,GLIB_000:13;
+    end;
+    let e,v,w be object;
+    assume A21: e in dom g & v in dom f & w in dom f;
+    assume A22: e Joins v,w,G2;
+    consider v0, w0 being object such that
+      A23: e = [v0,w0] & g.e in the_Edges_of G1 and
+      A24: g.e = [v0,w0] or g.e = [w0,v0] by A18, A21;
+    e in E2 by A21, TARSKI:def 3;
+    then e DJoins v0,w0,G4 by A23, Th63;
+    then A25: e Joins v0,w0,G4 by GLIB_000:16;
+    A26: e in the_Edges_of G2 & e is set & v is set & w is set by A21;
+    then e Joins v,w,G4 by A22, GLIB_000:72;
+    then v = v0 & w = w0 or v = w0 & w = v0 by A25, GLIB_000:15;
+    then per cases by A24;
+    suppose A27: g.e = [v,w];
+      g.e in E1 by A23;
+      then g.e DJoins v,w,G3 by A27, Th63;
+      then g.e DJoins v,w,G1 by A23, A26, GLIB_000:73;
+      then g.e Joins v,w,G1 by GLIB_000:16;
+      then g.e Joins v,f.w,G1 by A21, FUNCT_1:18;
+      hence g.e Joins f.v,f.w,G1 by A21, FUNCT_1:18;
+    end;
+    suppose A28: g.e = [w,v];
+      g.e in E1 by A23;
+      then g.e DJoins w,v,G3 by A28, Th63;
+      then g.e DJoins w,v,G1 by A23, A26, GLIB_000:73;
+      then g.e Joins v,w,G1 by GLIB_000:16;
+      then g.e Joins v,f.w,G1 by A21, FUNCT_1:18;
+      hence g.e Joins f.v,f.w,G1 by A21, FUNCT_1:18;
+    end;
+  end;
+  then reconsider F = [f,g] as PGraphMapping of G2, G1 by GLIB_010:8;
+  take F;
+  for x1,x2 being object st x1 in dom g & x2 in dom g & g.x1 = g.x2 holds x1=x2
+  proof
+    let x1,x2 be object;
+    assume A29: x1 in dom g & x2 in dom g & g.x1 = g.x2;
+    then consider v1,w1 being object such that
+      A30: x1 = [v1,w1] & g.x1 in the_Edges_of G1 and
+      A31: g.x1 = [v1,w1] or g.x1 = [w1,v1] by A18;
+    consider v2,w2 being object such that
+      A32: x2 = [v2,w2] & g.x2 in the_Edges_of G1 and
+      A33: g.x2 = [v2,w2] or g.x2 = [w2,v2] by A18, A29;
+    per cases by A31, A33;
+    suppose g.x1=[v1,w1] & g.x2=[v2,w2] or g.x1=[w1,v1] & g.x2=[w2,v2];
+      then v1 = v2 & w1 = w2 by A29, XTUPLE_0:1;
+      hence thesis by A30, A32;
+    end;
+    suppose g.x1=[v1,w1] & g.x2=[w2,v2] or g.x1=[w1,v1] & g.x2=[v2,w2];
+      then A34: v1 = w2 & w1 = v2 by A29, XTUPLE_0:1;
+      x1 in E2 & x2 in E2 by A29, TARSKI:def 3;
+      then A35: x1 DJoins v1,w1,G4 & x2 DJoins w1,v1,G4 by A30, A32, A34, Th63;
+      x1 in the_Edges_of G2 & x2 in the_Edges_of G2 & x1 is set & x2 is set &
+        v1 is set & w1 is set by A29, TARSKI:1;
+      then x1 DJoins v1,w1,G2 & x2 DJoins w1,v1,G2 by A35, GLIB_000:73;
+      then x1 Joins v1,w1,G2 & x2 Joins v1,w1,G2 by GLIB_000:16;
+      hence thesis by GLIB_000:def 20;
+    end;
+  end;
+  then A36: F_E is one-to-one by FUNCT_1:def 4;
+  F_V is one-to-one;
+  then A37: F is one-to-one by A36, GLIB_010:def 13;
+  dom F_V = the_Vertices_of G2 & dom F_E = the_Edges_of G2 by A2, A17;
+  then F is total by GLIB_010:def 11;
+  hence F is weak_SG-embedding by A37;
+  thus F_V = id V2;
+  let v,w be object;
+  assume [v,w] in the_Edges_of G2;
+  then consider v0, w0 being object such that
+    A38: [v,w] = [v0,w0] & g.[v,w] in the_Edges_of G1 and
+    A39: g.[v,w] = [v0,w0] or g.[v,w] = [w0,v0] by A18;
+  v = v0 & w = w0 by A38, XTUPLE_0:1;
+  hence F_E.[v,w] = [v,w] or F_E.[v,w] = [w,v] by A39;
+end;
+
+theorem Th106:
+  for G1 being non-multi _Graph
+  for G2 being GraphFromSymRel of the_Vertices_of G1, VertexAdjSymRel(G1)
+  ex F being PGraphMapping of G1, G2
+  st F is isomorphism & F_V = id the_Vertices_of G1 &
+    for e being object st e in the_Edges_of G1
+    holds F_E.e = [(the_Source_of G1).e,(the_Target_of G1).e] or
+      F_E.e = [(the_Target_of G1).e,(the_Source_of G1).e]
+proof
+  let G be non-multi _Graph;
+  set E0 = VertexAdjSymRel(G), G0 = createGraph(the_Vertices_of G, E0);
+  let G9 be GraphFromSymRel of the_Vertices_of G, E0;
+  the_Vertices_of G9 = the_Vertices_of G0 by GLIB_000:def 33
+    .= the_Vertices_of G;
+  then reconsider f = id the_Vertices_of G
+    as PartFunc of the_Vertices_of G, the_Vertices_of G9;
+  consider E9 being RepEdgeSelection of G0 such that
+    A1: G9 is inducedSubgraph of G0, the_Vertices_of G0, E9
+    by GLIB_009:def 7;
+  the_Edges_of G0 = G0.edgesBetween(the_Vertices_of G0) &
+    the_Vertices_of G0 c= the_Vertices_of G0 by GLIB_000:34;
+  then A2: the_Edges_of G9 = E9 by A1, GLIB_000:def 37;
+  defpred P[object,object] means $2 in E9 &
+    ($2 = [(the_Source_of G).$1,(the_Target_of G).$1] or
+     $2 = [(the_Target_of G).$1,(the_Source_of G).$1]);
+  A3: for x,y1,y2 being object st x in the_Edges_of G & P[x,y1] & P[x,y2]
+    holds y1 = y2
+  proof
+    let x,y1,y2 be object;
+    assume A4: x in the_Edges_of G & P[x,y1] & P[x,y2];
+    set v = (the_Source_of G).x, w = (the_Target_of G).x;
+    per cases by A4;
+    suppose y1 = [v,w] & y2 = [v,w];
+      hence thesis;
+    end;
+    suppose A5: y1 = [v,w] & y2 = [w,v];
+      A6: y1 in the_Edges_of G9 & y2 in the_Edges_of G9 by A2, A4;
+      then y1 in the_Edges_of G0 & y2 in the_Edges_of G0;
+      then y1 in E0 & y2 in E0;
+      then y1 DJoins v,w,G0 & y2 DJoins w,v,G0 by A5, Th63;
+      then A7: y1 Joins v,w,G0 & y2 Joins v,w,G0 by GLIB_000:16;
+      then consider y0 being object such that
+        y0 Joins v,w,G0 & y0 in E9 and
+        A8: for y9 being object st y9 Joins v,w,G0 & y9 in E9 holds y9 = y0
+        by GLIB_009:def 5;
+      y1 = y0 & y2 = y0 by A2, A6, A7, A8;
+      hence thesis;
+    end;
+    suppose A9: y1 = [w,v] & y2 = [v,w];
+      A10: y1 in the_Edges_of G9 & y2 in the_Edges_of G9 by A2, A4;
+      then y1 in the_Edges_of G0 & y2 in the_Edges_of G0;
+      then y1 in E0 & y2 in E0;
+      then y1 DJoins w,v,G0 & y2 DJoins v,w,G0 by A9, Th63;
+      then A11: y1 Joins v,w,G0 & y2 Joins v,w,G0 by GLIB_000:16;
+      then consider y0 being object such that
+        y0 Joins v,w,G0 & y0 in E9 and
+        A12: for y9 being object st y9 Joins v,w,G0 & y9 in E9 holds y9 = y0
+        by GLIB_009:def 5;
+      y1 = y0 & y2 = y0 by A2, A10, A11, A12;
+      hence thesis;
+    end;
+    suppose y1 = [w,v] & y2 = [w,v];
+      hence thesis;
+    end;
+  end;
+  A13: for x being object st x in the_Edges_of G ex y being object st P[x,y]
+  proof
+    let x be object;
+    assume A14: x in the_Edges_of G;
+    set v = (the_Source_of G).x, w = (the_Target_of G).x;
+    x Joins v,w,G & x Joins w,v,G by A14, GLIB_000:def 13;
+    then A15: [v,w] DJoins v,w,G0 & [w,v] DJoins w,v,G0 by Th32, Th63;
+    then [v,w] Joins v,w,G0 by GLIB_000:16;
+    then consider z being object such that
+      A16: z Joins v,w,G0 & z in E9 and
+      for e9 being object st e9 Joins v,w,G0 & e9 in E9 holds e9 = z
+      by GLIB_009:def 5;
+    take z;
+    per cases by A16, GLIB_000:16;
+    suppose z DJoins v,w,G0;
+      hence thesis by A15, A16, GLIB_000:def 21;
+    end;
+    suppose z DJoins w,v,G0;
+      hence thesis by A15, A16, GLIB_000:def 21;
+    end;
+  end;
+  consider g being Function such that
+    A17: dom g = the_Edges_of G and
+    A18: for x being object st x in the_Edges_of G holds P[x,g.x]
+    from FUNCT_1:sch 2(A3, A13);
+  now
+    let y be object;
+    hereby
+      assume y in rng g;
+      then consider x being object such that
+        A19: x in dom g & g.x = y by FUNCT_1:def 3;
+      thus y in the_Edges_of G9 by A2,A17,A18,A19;
+    end;
+    assume A20: y in the_Edges_of G9;
+    set v = (the_Source_of G9).y, w = (the_Target_of G9).y;
+    y DJoins v,w,G9 by A20, GLIB_000:def 14;
+    then A21: y DJoins v,w,G0 by GLIB_000:72;
+    then A22: y = [v,w] by Th64;
+    then consider x being object such that
+      A23: x Joins v,w,G by A21, Th32, Th63;
+    A24: x in the_Edges_of G by A23, GLIB_000:def 13;
+    per cases by A23, GLIB_000:def 13;
+    suppose (the_Source_of G).x = v & (the_Target_of G).x = w;
+      then A25: P[x,y] by A2, A20, A22;
+      P[x,g.x] by A18, A24;
+      then y = g.x by A3, A24, A25;
+      hence y in rng g by A17, A24, FUNCT_1:3;
+    end;
+    suppose (the_Source_of G).x = w & (the_Target_of G).x = v;
+      then A26: P[x,y] by A2, A20, A22;
+      P[x,g.x] by A18, A24;
+      then y = g.x by A3, A24, A26;
+      hence y in rng g by A17, A24, FUNCT_1:3;
+    end;
+  end;
+  then A27: rng g = the_Edges_of G9 by TARSKI:2;
+  then reconsider g as PartFunc of the_Edges_of G, the_Edges_of G9
+    by A17, RELSET_1:4;
+  now
+    thus for e being object st e in dom g holds
+      (the_Source_of G).e in dom f & (the_Target_of G).e in dom f by FUNCT_2:5;
+    let e,v,w be object;
+    assume A28: e in dom g & v in dom f & w in dom f & e Joins v,w,G;
+    then A29: e in the_Edges_of G;
+    per cases by A28, GLIB_000:def 13;
+    suppose A30: (the_Source_of G).e = v & (the_Target_of G).e = w;
+      per cases by A18, A28;
+      suppose g.e in E9 & g.e=[(the_Source_of G).e,(the_Target_of G).e];
+        then A31: g.e = [v,w] by A30;
+        g.e in rng g by A28, FUNCT_1:3;
+        then A32: g.e in the_Edges_of G9;
+        e Joins v,w,G by A30, A29, GLIB_000:def 13;
+        then [v,w] in E0 by Th32;
+        then g.e DJoins v,w,G0 & v is set & w is set by A31, Th63, TARSKI:1;
+        then g.e DJoins v,w,G9 by A32, GLIB_000:73;
+        then g.e Joins v,w,G9 by GLIB_000:16;
+        then g.e Joins f.v,w,G9 by A28, FUNCT_1:18;
+        hence g.e Joins f.v,f.w,G9 by A28, FUNCT_1:18;
+      end;
+      suppose g.e in E9 & g.e=[(the_Target_of G).e,(the_Source_of G).e];
+        then A33: g.e = [w,v] by A30;
+        g.e in rng g by A28, FUNCT_1:3;
+        then A34: g.e in the_Edges_of G9;
+        e Joins w,v,G by A30, A29, GLIB_000:def 13;
+        then g.e DJoins w,v,G0 & v is set & w is set
+          by A33, Th63, TARSKI:1, Th32;
+        then g.e DJoins w,v,G9 by A34, GLIB_000:73;
+        then g.e Joins v,w,G9 by GLIB_000:16;
+        then g.e Joins f.v,w,G9 by A28, FUNCT_1:18;
+        hence g.e Joins f.v,f.w,G9 by A28, FUNCT_1:18;
+      end;
+    end;
+    suppose A35: (the_Source_of G).e = w & (the_Target_of G).e = v;
+      per cases by A18, A28;
+      suppose g.e in E9 & g.e=[(the_Source_of G).e,(the_Target_of G).e];
+        then A36: g.e = [w,v] by A35;
+        g.e in rng g by A28, FUNCT_1:3;
+        then A37: g.e in the_Edges_of G9;
+        e Joins w,v,G by A35, A29, GLIB_000:def 13;
+        then [w,v] in E0 by Th32;
+        then g.e DJoins w,v,G0 & v is set & w is set by A36, Th63, TARSKI:1;
+        then g.e DJoins w,v,G9 by A37, GLIB_000:73;
+        then g.e Joins v,w,G9 by GLIB_000:16;
+        then g.e Joins f.v,w,G9 by A28, FUNCT_1:18;
+        hence g.e Joins f.v,f.w,G9 by A28, FUNCT_1:18;
+      end;
+      suppose g.e in E9 & g.e=[(the_Target_of G).e,(the_Source_of G).e];
+        then A38: g.e = [v,w] by A35;
+        g.e in rng g by A28, FUNCT_1:3;
+        then A39: g.e in the_Edges_of G9;
+        e Joins v,w,G by A35, A29, GLIB_000:def 13;
+        then g.e DJoins v,w,G0 & v is set & w is set
+          by A38, Th63, TARSKI:1, Th32;
+        then g.e DJoins v,w,G9 by A39, GLIB_000:73;
+        then g.e Joins v,w,G9 by GLIB_000:16;
+        then g.e Joins f.v,w,G9 by A28, FUNCT_1:18;
+        hence g.e Joins f.v,f.w,G9 by A28, FUNCT_1:18;
+      end;
+    end;
+  end;
+  then reconsider F = [f,g] as PGraphMapping of G, G9 by GLIB_010:8;
+  take F;
+  now
+    let x1,x2 be object;
+    assume A40: x1 in dom g & x2 in dom g & g.x1 = g.x2;
+    per cases by A18, A40;
+    suppose g.x1=[(the_Source_of G).x1,(the_Target_of G).x1] &
+        g.x2=[(the_Source_of G).x2,(the_Target_of G).x2];
+      then (the_Source_of G).x1 = (the_Source_of G).x2 &
+        (the_Target_of G).x1 = (the_Target_of G).x2 by A40, XTUPLE_0:1;
+      then x1 DJoins (the_Source_of G).x1,(the_Target_of G).x1,G &
+        x2 DJoins (the_Source_of G).x1,(the_Target_of G).x1,G
+        by A40, GLIB_000:def 14;
+      hence x1 = x2 by GLIB_000:def 21;
+    end;
+    suppose g.x1=[(the_Source_of G).x1,(the_Target_of G).x1] &
+        g.x2=[(the_Target_of G).x2,(the_Source_of G).x2];
+      then (the_Source_of G).x1 = (the_Target_of G).x2 &
+        (the_Target_of G).x1 = (the_Source_of G).x2 by A40, XTUPLE_0:1;
+      then x1 Joins (the_Source_of G).x1,(the_Target_of G).x1,G &
+        x2 Joins (the_Source_of G).x1,(the_Target_of G).x1,G
+        by A40, GLIB_000:def 13;
+      hence x1 = x2 by GLIB_000:def 20;
+    end;
+    suppose g.x1=[(the_Target_of G).x1,(the_Source_of G).x1] &
+        g.x2=[(the_Source_of G).x2,(the_Target_of G).x2];
+      then (the_Source_of G).x1 = (the_Target_of G).x2 &
+        (the_Target_of G).x1 = (the_Source_of G).x2 by A40, XTUPLE_0:1;
+      then x1 Joins (the_Source_of G).x1,(the_Target_of G).x1,G &
+        x2 Joins (the_Source_of G).x1,(the_Target_of G).x1,G
+        by A40, GLIB_000:def 13;
+      hence x1 = x2 by GLIB_000:def 20;
+    end;
+    suppose g.x1=[(the_Target_of G).x1,(the_Source_of G).x1] &
+        g.x2=[(the_Target_of G).x2,(the_Source_of G).x2];
+      then (the_Source_of G).x1 = (the_Source_of G).x2 &
+        (the_Target_of G).x1 = (the_Target_of G).x2 by A40, XTUPLE_0:1;
+      then x1 DJoins (the_Source_of G).x1,(the_Target_of G).x1,G &
+        x2 DJoins (the_Source_of G).x1,(the_Target_of G).x1,G
+        by A40, GLIB_000:def 14;
+      hence x1 = x2 by GLIB_000:def 21;
+    end;
+  end;
+  then A41: g is one-to-one by FUNCT_1:def 4;
+  f is one-to-one & F_V = f & F_E = g;
+  then A42: F is one-to-one by A41, GLIB_010:def 13;
+  the_Vertices_of G = the_Vertices_of G0
+    .= the_Vertices_of G9 by GLIB_000:def 33;
+  then A43: dom f=the_Vertices_of G & rng f=the_Vertices_of G9;
+  F_V = f & F_E = g;
+  then A44: F is total onto by A17, A27, A43, GLIB_010:def 11, GLIB_010:def 12;
+  thus F is isomorphism by A42, A44;
+  thus F_V = id the_Vertices_of G;
+  thus thesis by A18;
+end;
+
+theorem
+  for G1 being non-multi _Graph
+  for G2 being GraphFromSymRel of the_Vertices_of G1, VertexAdjSymRel(G1)
+  holds G2 is G1-isomorphic
+proof
+  let G1 be non-multi _Graph;
+  let G2 be GraphFromSymRel of the_Vertices_of G1, VertexAdjSymRel(G1);
+  consider F being PGraphMapping of G1, G2 such that
+    A1: F is isomorphism and F_V = id the_Vertices_of G1 &
+      for e being object st e in the_Edges_of G1
+      holds F_E.e = [(the_Source_of G1).e,(the_Target_of G1).e] or
+        F_E.e = [(the_Target_of G1).e,(the_Source_of G1).e] by Th106;
+  thus thesis by A1, GLIB_010:def 23;
+end;
+

@@ -1,0 +1,434 @@
+:: The Divergence of the Sum of Prime Reciprocals
+::  by Mario Carneiro
+:: 
+:: Received September 30, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, ARYTM_3, ARYTM_1, RELAT_1, FUNCT_1, INT_1, SQUARE_1,
+      SEQ_1, SERIES_1, FINSET_1, CARD_1, NEWTON, XXREAL_0, XBOOLE_0, REAL_1,
+      TARSKI, NAT_1, CARD_3, XCMPLX_0, SUBSET_1, ZFMISC_1, NUMBERS, MOEBIUS2,
+      MOEBIUS3, COMPLEX1, MSAFREE;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ORDINAL1, NUMBERS, CARD_1, XXREAL_0,
+      XCMPLX_0, FINSET_1, SQUARE_1, INT_1, NAT_1, INT_2, XREAL_0, RELAT_1,
+      FINSEQ_1, SEQ_1, SERIES_1, NEWTON, PEPIN, MOEBIUS2, MOEBIUS3, ABSVALUE,
+      MCART_1, FUNCT_1, FUNCT_2;
+ constructors MOEBIUS1, SERIES_1, PARTFUN3, PEPIN, RELSET_1, MOEBIUS2,
+      PYTHTRIP, MOEBIUS3, NAT_D, SETFAM_1, FIB_NUM2;
+ registrations RELSET_1, INT_1, XREAL_0, NAT_1, FINSEQ_1, FINSET_1, XXREAL_0,
+      NEWTON, XCMPLX_0, NUMBERS, ORDINAL1, MOEBIUS2, VALUED_0, NEWTON03,
+      SUBSET_1, NEWTON04, MOEBIUS3, FOMODEL0, SQUARE_1, PARTFUN3, FINSEQ_9,
+      SETFAM_1, FIB_NUM2;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ definitions TARSKI, FUNCT_1;
+ equalities SQUARE_1;
+ expansions NAT_D;
+ theorems XCMPLX_1, ORDINAL1, SQUARE_1, NAT_1, NEWTON, XREAL_1, FINSEQ_1,
+      RELAT_1, SERIES_1, XXREAL_0, FUNCT_1, NAT_D, INT_1, XBOOLE_0, PARTFUN1,
+      ZFMISC_1, MOEBIUS2, CARD_1, CARD_2, MOEBIUS3, COMPLEX1, XTUPLE_0,
+      FIELD_5, SEQM_3;
+ schemes NAT_1, FUNCT_2;
+
+begin
+
+ reserve i,j,k,k0,m,n,N for Nat;
+ reserve x,y for Real;
+ reserve p for Prime;
+
+theorem NatOneLe:
+  k is non zero iff 1 <= k
+  proof
+    hereby
+      assume k is non zero;
+      then 0+1 <= k by NAT_1:13;
+      hence 1 <= k;
+    end;
+    assume 1 <= k;
+    hence thesis;
+  end;
+
+theorem LeSqrt:
+  x^2 <= y implies x <= sqrt y
+  proof
+    assume A1: x^2 <= y;
+    A2: x <= |.x.| by COMPLEX1:76;
+    |.x.|^2 <= y by A1,COMPLEX1:75;
+    then sqrt |.x.|^2 <= sqrt y by SQUARE_1:26;
+    then |.x.| <= sqrt y by COMPLEX1:46,SQUARE_1:22;
+    hence thesis by A2,XXREAL_0:2;
+  end;
+
+theorem ::LtSqrt:
+  x^2 < y implies x < sqrt y
+  proof
+    assume A1: x^2 < y;
+    A2: x <= |.x.| by COMPLEX1:76;
+    |.x.|^2 < y by A1,COMPLEX1:75;
+    then sqrt |.x.|^2 < sqrt y by SQUARE_1:27;
+    then |.x.| < sqrt y by COMPLEX1:46,SQUARE_1:22;
+    hence thesis by A2,XXREAL_0:2;
+  end;
+
+theorem ::SqrtLe:
+  0 <= x & 0 <= y & x <= y^2 implies sqrt x <= y
+  proof
+    assume A1: 0 <= x & 0 <= y & x <= y^2; then
+    sqrt x <= sqrt y^2 by SQUARE_1:26;
+    hence thesis by A1,SQUARE_1:22;
+  end;
+
+theorem ::SqrtLt:
+  0 <= x & 0 <= y & x < y^2 implies sqrt x < y
+  proof
+    assume A1: 0 <= x & 0 <= y & x < y^2; then
+    sqrt x < sqrt y^2 by SQUARE_1:27;
+    hence thesis by A1,SQUARE_1:22;
+  end;
+
+definition
+  let x be non negative Real;
+  redefine func [\ x /] -> Nat;
+  correctness by INT_1:53;
+end;
+
+ reserve s for Real_Sequence;
+
+theorem PartialNonneg:
+  (for n holds 0<=s.n) implies 0<=Partial_Sums(s).n
+  proof
+    assume A1: for n holds 0<=s.n;
+    Partial_Sums(s).0<=Partial_Sums(s).n & 0<=s.0 by A1,SERIES_1:16,SEQM_3:11;
+    hence thesis by SERIES_1:def 1;
+  end;
+
+theorem PartialLeSum:
+  s is summable & (for n holds 0<=s.n) implies
+  Partial_Sums(s).i <= Sum(s)
+  proof
+    assume A1: s is summable & for n holds 0<=s.n; then
+A2: Sum(s) = Partial_Sums(s).i + Sum(s^\(i+1)) by SERIES_1:15;
+A3: s^\(i+1) is summable by A1,SERIES_1:12;
+    for n holds 0 <= (s^\(i+1)).n
+    proof
+      let n;
+      0 <= s.((i+1)+n) by A1;
+      hence thesis by NAT_1:def 3;
+    end;
+    hence thesis by A2,A3,SERIES_1:18,XREAL_1:31;
+  end;
+
+theorem SumMono:
+  s is summable & (for n holds 0<=s.n) &
+  i <= j implies Sum(s^\j) <= Sum(s^\i)
+  proof
+    assume A1: s is summable & for n holds 0<=s.n;
+    assume i <= j; then
+    per cases by XXREAL_0:1;
+    suppose i = j;
+      hence thesis;
+    end;
+    suppose i < j; then
+      i+1 <= j by NAT_1:13; then
+      0 <= j-(i+1) by XREAL_1:48; then
+      reconsider k = j-(i+1) as Nat;
+      s^\i is summable by A1,SERIES_1:12; then
+A2:   Sum(s^\i) = Partial_Sums(s^\i).k + Sum(s^\i^\(k+1)) by SERIES_1:15
+        .= Partial_Sums(s^\i).k + Sum(s^\(i+(k+1))) by NAT_1:48
+        .= Partial_Sums(s^\i).k + Sum(s^\j);
+      for n holds 0 <= (s^\i).n
+      proof
+        let n;
+        0 <= s.(i+n) by A1;
+        hence thesis by NAT_1:def 3;
+      end;
+      hence thesis by A2,PartialNonneg,XREAL_1:31;
+    end;
+  end;
+
+theorem ::SumMono0:
+  s is summable & (for n holds 0<=s.n) implies
+  Sum(s^\i) <= Sum(s)
+  proof
+    assume s is summable & for n holds 0<=s.n; then
+    Sum(s^\i) <= Sum(s^\0) by SumMono;
+    hence thesis by NAT_1:47;
+  end;
+
+theorem CardSetPrime1:
+  p < n implies card SetPrimenumber p + 1 <= card SetPrimenumber n
+  proof
+    assume p < n; then
+    card (SetPrimenumber p \/ {p}) <= card SetPrimenumber n
+      by NEWTON:76,NAT_1:43;
+    hence thesis by NEWTON:74,CARD_2:41;
+  end;
+
+theorem LePrimeSelf:
+  n <= primenumber n
+  proof
+    SetPrimenumber primenumber n c= Seg primenumber n by NEWTON:73; then
+    card SetPrimenumber primenumber n <= card Seg primenumber n
+      by CARD_1:11,FIELD_5:3;
+    hence thesis by NEWTON:def 8;
+  end;
+
+theorem LtPrimenumber:
+  p < primenumber (n+1) implies p <= primenumber n
+  proof
+    assume A1: p < primenumber (n+1);
+    set q1 = primenumber n, q2 = primenumber (n+1);
+    card SetPrimenumber p + 1 <= card SetPrimenumber q2
+      by A1,CardSetPrime1; then
+    card SetPrimenumber p + 1 <= n + 1 by NEWTON:def 8; then
+A2: card SetPrimenumber p <= n by XREAL_1:6;
+    assume q1 < p; then
+    card SetPrimenumber q1 + 1 <= card SetPrimenumber p by CardSetPrime1; then
+    n + 1 <= card SetPrimenumber p by NEWTON:def 8; then
+    n + 1 <= n by A2,XXREAL_0:2;
+    hence thesis by XREAL_1:29;
+  end;
+
+ reserve N for non zero Nat;
+
+theorem ReciPrimeNotSummable:
+  ReciPrime is not summable
+  proof
+    defpred P[non zero Nat,Nat,Nat] means
+      $1 <= $3 & for p st p divides $1 holds p <= primenumber $2;
+    deffunc M(Nat,Nat) = {n where n is non zero Nat : P[n,$1,$2]};
+UB: for k, N holds
+      M(k,N) is finite & card M(k,N) c= (2 |^ primenumber k) * [\ sqrt N /]
+    proof
+      let k, N;
+      set p = primenumber k;
+      1^2 <= N by NatOneLe; then
+      1 <= sqrt N by LeSqrt; then
+      reconsider sN = [\ sqrt N /] as non zero Nat by INT_1:54;
+      set T = [:FreeGen p, Seg sN:];
+      deffunc F(non zero Nat) = [SquarefreePart $1, SqF $1];
+      defpred Q[object,object] means
+        ex n being non zero Nat st n = $1 & P[n,k,N] & $2 = F(n);
+B1:   for x being object st x in M(k,N) holds
+        ex y being object st y in T & Q[x,y]
+      proof
+        let x be object such that
+C1:     x in M(k,N);
+        consider n being non zero Nat such that
+C2:     n = x & P[n,k,N] by C1;
+C3:     n = (SquarefreePart n) * ((SqF n) ^2) by MOEBIUS3:47;
+        for i being Prime st i divides SquarefreePart n holds i <= p
+        proof
+          let i be Prime such that
+C4:       i divides SquarefreePart n;
+          SquarefreePart n divides n by C3;
+          hence thesis by C2,C4,NAT_D:4;
+        end; then
+C5:     SquarefreePart n in FreeGen p by MOEBIUS2:def 5;
+        (SqF n)^2 divides n by C3; then
+        (SqF n)^2 <= n by NAT_D:7; then
+        (SqF n)^2 <= N by C2,XXREAL_0:2; then
+        SqF n <= sqrt N by LeSqrt; then
+        1 <= SqF n & SqF n <= sN by INT_1:54,INT_1:74; then
+        SqF n in Seg sN by FINSEQ_1:1; then
+        F(n) in T & Q[x,F(n)] by C2,C5,ZFMISC_1:87;
+        hence thesis;
+      end;
+      consider f being Function of M(k,N), T such that
+B2:   for x being object st x in M(k,N) holds
+        Q[x,f.x] from FUNCT_2:sch 1(B1);
+B3:   dom f = M(k,N) & rng f c= T by PARTFUN1:def 2,RELAT_1:def 19;
+B4:   f is one-to-one
+      proof
+        let x1, x2 be object such that
+C1:     x1 in dom f & x2 in dom f and
+C2:     f.x1 = f.x2;
+C3:     x1 in M(k,N) & x2 in M(k,N) by C1,PARTFUN1:def 2;
+        consider n1 being non zero Nat such that
+C4:     n1 = x1 & P[n1,k,N] & f.x1 = F(n1) by B2,C3;
+        consider n2 being non zero Nat such that
+C5:     n2 = x2 & P[n2,k,N] & f.x2 = F(n2) by B2,C3;
+        (SqF n1)|^2 = TSqF n1 & (SqF n2)|^2 = TSqF n2 &
+          F(n1) = F(n2) by MOEBIUS3:46,C2,C4,C5; then
+        SquarefreePart n1 = SquarefreePart n2 &
+          TSqF n1 = TSqF n2 by XTUPLE_0:1;
+        hence x1 = x2 by C4,C5,MOEBIUS3:52;
+      end; then
+      card M(k,N) c= card T by B3,CARD_1:10; then
+      reconsider Mf = M(k,N) as finite set by CARD_2:49;
+B5:   card FreeGen p * sN <= 2 |^ p * sN by MOEBIUS2:39,NAT_1:4;
+      card Mf <= card T by B3,B4,CARD_1:10,FIELD_5:3; then
+      card Mf <= card FreeGen p * card Seg sN by CARD_2:46;
+      hence thesis by B5,XXREAL_0:2,FIELD_5:3;
+    end;
+LB:   for k, N holds
+      N * Partial_Sums(ReciPrime).k + card (Seg N \ M(k,N)) <=
+      N * Partial_Sums(ReciPrime).(k+N)
+    proof
+      let k0, N;
+      deffunc W(Nat) = Seg N \ M($1,N);
+      deffunc A(Nat) = N * Partial_Sums(ReciPrime).$1 + card W($1);
+      defpred P[Nat] means A(k0) <= A(k0+$1);
+B1:   P[0];
+B2:   for k holds P[k] implies P[k+1]
+      proof
+        let k;
+        set k1 = k0+k, k2 = k1+1, M = [\ N * ReciPrime.k2 /];
+        deffunc F(Nat) = primenumber k2 * $1;
+        defpred Q[object,object] means ex y being Nat st $1 = y & $2 = F(y);
+C2:     for x being object st x in Seg M holds
+          ex y being object st y in NAT & Q[x,y]
+        proof
+          let x be object such that
+D1:       x in Seg M;
+          reconsider n = x as Nat by D1;
+          F(n) in NAT & Q[x,F(n)] by ORDINAL1:def 12;
+          hence thesis;
+        end;
+        consider f being Function of Seg M,NAT such that
+C3:     for x being object st x in Seg M holds Q[x,f.x] from FUNCT_2:sch 1(C2);
+        W(k1) c= W(k2) \/ rng f
+        proof
+          let n be object such that
+D1:       n in W(k1);
+D2:       n in Seg N & not n in M(k1,N) by D1,XBOOLE_0:def 5; then
+          reconsider n as non zero Nat;
+          assume
+D3:       not thesis; then
+          not (n in W(k2) or n in rng f) by XBOOLE_0:def 3; then
+          n in M(k2,N) & not n in rng f by D2,XBOOLE_0:def 5; then
+          consider n2 being non zero Nat such that
+D4:       n2 = n & P[n2,k2,N];
+          for i being Prime st i divides n holds i <= primenumber k1
+          proof
+            let i be Prime such that
+E1:         i divides n;
+            consider d being Nat such that
+E2:         n = i * d by E1;
+E3:         i <= primenumber k2 by D4,E1;
+            not i = primenumber k2
+            proof
+              assume
+F1:           i = primenumber k2;
+              d is non zero by E2; then
+F3:           1 <= d by NatOneLe;
+              d <= (N * 1) / i by E2,D2,FINSEQ_1:1,XREAL_1:77; then
+              d <= N * (1 / i) by XCMPLX_1:74; then
+              d <= N * ReciPrime.k2 by F1,MOEBIUS2:def 1; then
+F4:           d <= M by INT_1:54; then
+F5:           d in Seg M by F3,FINSEQ_1:1;
+              consider y being Nat such that
+F6:           d = y & f.d = F(y) by C3,F3,F4,FINSEQ_1:1;
+              d in dom f by F5,PARTFUN1:def 2; then
+              n in rng f by FUNCT_1:3,F6,F1,E2;
+              hence contradiction by D3,XBOOLE_0:def 3;
+            end; then
+            i < primenumber k2 by E3,XXREAL_0:1;
+            hence thesis by LtPrimenumber;
+          end;
+          hence contradiction by D2,D4;
+        end; then
+C4:     card W(k1) <= card (W(k2) \/ rng f) by NAT_1:43;
+        card (W(k2) \/ rng f) <= card W(k2) + card rng f by CARD_2:43; then
+C5:     card W(k1) <= card W(k2) + card rng f by C4,XXREAL_0:2;
+C6:     M <= N * ReciPrime.k2 by INT_1:def 6;
+        card rng f <= card dom f by CARD_2:47; then
+        card rng f <= card Seg M by PARTFUN1:def 2; then
+        card rng f <= N * ReciPrime.k2 by C6,XXREAL_0:2; then
+        card W(k2) + card rng f <= card W(k2) + N * ReciPrime.k2
+          by XREAL_1:6; then
+C7:     card W(k1) <= card W(k2) + N * ReciPrime.k2 by C5,XXREAL_0:2;
+        A(k2) = N * (Partial_Sums(ReciPrime).k1 + ReciPrime.k2) + card W(k2)
+          by SERIES_1:def 1
+        .= N * Partial_Sums(ReciPrime).k1 + (N * ReciPrime.k2 + card W(k2));
+        then A(k1) <= A(k2) by C7,XREAL_1:6;
+        hence thesis by XXREAL_0:2;
+      end;
+      for k holds P[k] from NAT_1:sch 2(B1,B2); then
+B3:   N * Partial_Sums(ReciPrime).k0 + card W(k0) <=
+        N * Partial_Sums(ReciPrime).(k0+N) + card W(k0+N);
+      for n being object holds not n in W(k0+N)
+      proof
+        let n be object;
+        assume n in W(k0+N); then
+C2:     n in Seg N & not n in M(k0+N,N) by XBOOLE_0:def 5; then
+        reconsider n as non zero Nat;
+        for i being Prime st i divides n holds i <= primenumber (k0+N)
+        proof
+          let i be Prime;
+          assume i divides n; then
+          i <= n & n <= N by NAT_D:7,C2,FINSEQ_1:1; then
+          i <= N & N <= k0+N by XXREAL_0:2,XREAL_1:31; then
+          i <= k0+N & k0+N <= primenumber (k0+N) by XXREAL_0:2,LePrimeSelf;
+          hence i <= primenumber (k0+N) by XXREAL_0:2;
+        end; then
+        P[n,k0+N,N] by C2,FINSEQ_1:1;
+        hence contradiction by C2;
+      end; then
+      W(k0+N) is empty by XBOOLE_0:def 1;
+      hence thesis by B3,CARD_1:27;
+    end;
+A0: for n holds 0 <= ReciPrime.n;
+    assume
+A1: ReciPrime is summable; then
+    consider k being Element of NAT such that
+A2: Sum (ReciPrime ^\ k) < 1 / 2 by MOEBIUS2:25;
+    set p = primenumber k;
+    for N holds N / 2 < (2 |^ p) * [\ sqrt N /]
+    proof
+      let N;
+B1:   N * Sum (ReciPrime ^\ k) < N * (1/2) by A2,XREAL_1:68;
+      Sum (ReciPrime ^\ (k+1)) <= Sum (ReciPrime ^\ k)
+        by A0,A1,SumMono,XREAL_1:31; then
+B2:   Partial_Sums(ReciPrime).k + Sum (ReciPrime ^\ (k+1)) <=
+        Partial_Sums(ReciPrime).k + Sum (ReciPrime ^\ k) by XREAL_1:6;
+      Partial_Sums(ReciPrime).(k+N) <= Sum(ReciPrime)
+        by A0,A1,PartialLeSum; then
+      Partial_Sums(ReciPrime).(k+N) <= Partial_Sums(ReciPrime).k +
+        Sum (ReciPrime ^\ (k+1)) by A1,SERIES_1:15; then
+      Partial_Sums(ReciPrime).(k+N) <= Partial_Sums(ReciPrime).k +
+        Sum (ReciPrime ^\ k) by B2,XXREAL_0:2; then
+B3:   N * Partial_Sums(ReciPrime).(k+N) <= N *
+        (Partial_Sums(ReciPrime).k + Sum (ReciPrime ^\ k)) by XREAL_1:64;
+      N * Partial_Sums(ReciPrime).k + card (Seg N \ M(k,N)) <=
+        N * Partial_Sums(ReciPrime).(k+N) by LB; then
+      N * Partial_Sums(ReciPrime).k + card (Seg N \ M(k,N)) <=
+        N * Partial_Sums(ReciPrime).k + N * Sum (ReciPrime ^\ k)
+          by B3,XXREAL_0:2; then
+B4:   card (Seg N \ M(k,N)) <= N * Sum (ReciPrime ^\ k) by XREAL_1:6;
+      reconsider Mf = M(k,N) as finite set by UB;
+B6:   card Mf <= (2 |^ p) * [\ sqrt N /] by UB,FIELD_5:3;
+      Mf c= Seg N
+      proof
+        let x be object such that
+C1:     x in Mf;
+        consider n being non zero Nat such that
+C2:     n = x & P[n,k,N] by C1;
+        1 <= n by NatOneLe;
+        hence thesis by C2,FINSEQ_1:1;
+      end; then
+      card (Seg N \ Mf) = card Seg N - card Mf by CARD_2:44
+        .= N * 1 - card Mf; then
+      N * 1 - card Mf < N * (1/2) by B1,B4,XXREAL_0:2; then
+      N * 1 - N * (1/2) < card Mf by XREAL_1:11;
+      hence thesis by B6,XXREAL_0:2;
+    end; then
+    (2 * 2 |^ p) ^2 / 2 < (2 |^ p) * [\ sqrt ((2 * 2 |^ p) ^2) /];
+      then
+    2 |^ p * (2 * 2 |^ p) < (2 |^ p) * [\ 2 * 2 |^ p /]
+      by SQUARE_1:22; 
+    hence contradiction;
+  end;
+
+registration
+  cluster ReciPrime -> non summable for Real_Sequence;
+  coherence by ReciPrimeNotSummable;
+end;

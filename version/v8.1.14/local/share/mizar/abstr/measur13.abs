@@ -1,0 +1,498 @@
+:: Multidimensional Measure Space and Integration
+::  by Noboru Endou and Yasunari Shidama
+:: 
+:: Received November 21, 2023
+:: Copyright (c) 2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, NUMBERS, XXREAL_0, SUBSET_1, CARD_1, ARYTM_3, ARYTM_1,
+      RELAT_1, REAL_1, FUNCT_1, XBOOLE_0, TARSKI, ZFMISC_1, PROB_1, SUPINF_2,
+      PARTFUN1, MEASURE1, MESFUNC5, MESFUNC1, SRINGS_3, MEASUR10, MEASUR11,
+      COMPLEX1, MESFUN12, INTEGRA5, LPSPACE1, NAT_1, ORDINAL4, FUNCT_2, CARD_3,
+      XCMPLX_0, MEASURE8, PROB_3, FUNCT_7, MEASUR13;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, FUNCT_1, ORDINAL1, RELSET_1,
+      PARTFUN1, FUNCT_2, BINOP_1, CARD_1, CARD_3, NUMBERS, XXREAL_0, XREAL_0,
+      XXREAL_3, NAT_1, FINSEQ_1, PROB_1, MEASURE1, MESFUNC1, MESFUNC5,
+      LPSPACE1, MEASURE8, SRINGS_3, MEASUR10, PROB_3, MEASUR11, MESFUN12;
+ constructors EXTREAL1, MEASUR11, MESFUN12, LPSPACE1, DOMAIN_1, PROB_3,
+      KURATO_0;
+ registrations ORDINAL1, XBOOLE_0, RELAT_1, SUBSET_1, XXREAL_0, XREAL_0, NAT_1,
+      VALUED_0, RELSET_1, MEASURE1, XXREAL_3, FINSEQ_1, FUNCT_1, FUNCT_2,
+      CARD_1, CARD_3, PRVECT_3, PROB_1, SRINGS_4, SETFAM_1, INT_1;
+ requirements BOOLE, SUBSET, NUMERALS, REAL, ARITHM;
+
+
+begin :: Preliminaries
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence;
+assume n <= m;
+func ElmFin(X,n) -> non empty set equals
+:: MEASUR13:def 1
+  X.n;
+end;
+
+definition
+let m be Nat, X be non-empty m-element FinSequence;
+mode sigmaFieldFamily of X -> m-element FinSequence means
+:: MEASUR13:def 2
+  for i being Nat st i in Seg m holds it.i is SigmaField of X.i;
+end;
+
+theorem :: MEASUR13:1
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st n <= m holds
+  S.n is SigmaField of ElmFin(X,n);
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence;
+func ProdFinSeq X -> non-empty m-element FinSequence means
+:: MEASUR13:def 3
+   it.1 = X.1
+ & for i be non zero Nat st i < m holds it.(i+1) = [: it.i,X.(i+1) :];
+end;
+
+definition
+  let m be non zero Nat, X be non-empty m-element FinSequence;
+  func CarProduct X -> set equals
+:: MEASUR13:def 4
+    (ProdFinSeq X).m;
+end;
+
+registration
+  let m be non zero Nat, X be non-empty m-element FinSequence;
+  cluster CarProduct X -> non empty;
+end;
+
+theorem :: MEASUR13:2
+for m be non zero Nat, k be Nat, X be non-empty m-element FinSequence
+ st k <= m holds
+ X|k is non-empty k-element FinSequence;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence;
+assume n<=m;
+func SubFin(X,n) -> non-empty n-element FinSequence equals
+:: MEASUR13:def 5
+  X|n;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X;
+assume n <= m;
+func SubFin(S,n) -> sigmaFieldFamily of SubFin(X,n) equals
+:: MEASUR13:def 6
+  S|n;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+assume n <= m;
+func ElmFin(S,n) -> SigmaField of ElmFin(X,n) equals
+:: MEASUR13:def 7
+  S.n;
+end;
+
+definition
+  let m be non zero Nat, X be non-empty m-element FinSequence;
+  redefine mode sigmaFieldFamily of X -> SemialgebraFamily of X;
+end;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+ mode sigmaMeasureFamily of S -> m-element FinSequence means
+:: MEASUR13:def 8
+  for i being Nat st i in Seg m
+   ex Si being SigmaField of X.i st Si = S.i & it.i is sigma_Measure of Si;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+assume n <= m;
+func SubFin(M,n) -> sigmaMeasureFamily of SubFin(S,n) equals
+:: MEASUR13:def 9
+  M|n;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+assume n <= m;
+func ElmFin(M,n) -> sigma_Measure of ElmFin(S,n) equals
+:: MEASUR13:def 10
+  M.n;
+end;
+
+theorem :: MEASUR13:3
+for m,i,j,k be non zero Nat, X be non-empty m-element FinSequence
+ st i <= j & j <= k & k <= m holds
+  (ProdFinSeq SubFin(X,j)).i = (ProdFinSeq SubFin(X,k)).i;
+
+theorem :: MEASUR13:4
+for m,n be non zero Nat, X be non-empty m-element FinSequence
+ st n <= m holds
+  (ProdFinSeq X).n = (ProdFinSeq SubFin(X,n)).n;
+
+theorem :: MEASUR13:5
+for m,n be non zero Nat, X be non-empty m-element FinSequence st n < m holds
+  (ProdFinSeq X).(n+1) = [: (ProdFinSeq SubFin(X,n)).n,ElmFin(X,n+1) :];
+
+theorem :: MEASUR13:6
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence holds
+  CarProduct X = [: CarProduct SubFin(X,n),ElmFin(X,n+1) :];
+
+theorem :: MEASUR13:7
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence
+ st k <= n & n <= m holds SubFin(X,k) = SubFin(SubFin(X,n),k);
+
+theorem :: MEASUR13:8
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence
+ st k <= n & n <= m holds ElmFin(X,k) = ElmFin(SubFin(X,n),k);
+
+theorem :: MEASUR13:9
+for m,n be non zero Nat, X be non-empty m-element FinSequence
+ st n < m holds
+ CarProduct SubFin(X,n+1) = [: CarProduct SubFin(X,n),ElmFin(X,n+1) :];
+
+theorem :: MEASUR13:10
+for m,n be non zero Nat, X be non-empty m-element FinSequence
+ st n < m holds
+ (ProdFinSeq SubFin(X,n+1)).(n+1)
+  = [: (ProdFinSeq SubFin(X,n)).n, ElmFin(X,n+1) :];
+
+theorem :: MEASUR13:11
+for n,i be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X st i <= n holds
+ CarProduct SubFin(X,i) = CarProduct SubFin(SubFin(X,n),i);
+
+theorem :: MEASUR13:12
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X st k <= n & n <= m holds
+ ElmFin(S,k) = ElmFin(SubFin(S,n),k);
+
+theorem :: MEASUR13:13
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+ Y be non-empty n-element FinSequence, S be sigmaFieldFamily of X
+  st n <= m & Y = X|n holds SubFin(S,n) is sigmaFieldFamily of Y;
+
+theorem :: MEASUR13:14
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X
+ st k <= n & n <= m holds SubFin(S,k) = SubFin(SubFin(S,n),k);
+
+theorem :: MEASUR13:15
+for m be non zero Nat, X be non-empty m-element FinSequence holds
+ ex F be Function of CarProduct X,product X st F is one-to-one & F is onto;
+
+theorem :: MEASUR13:16
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ P be SemialgebraFamily of ProdFinSeq X
+ st n <= m holds
+  P.n is semialgebra_of_sets of CarProduct SubFin(X,n);
+
+theorem :: MEASUR13:17
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st
+  k <= n & n <= m holds ElmFin(M,k) = ElmFin(SubFin(M,n),k);
+
+theorem :: MEASUR13:18
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st
+  k <= n & n <= m holds SubFin(M,k) = SubFin(SubFin(M,n),k);
+
+begin :: Construction of m-dimensional measure space
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+func ProdSigmaFldFinSeq S -> sigmaFieldFamily of ProdFinSeq X means
+:: MEASUR13:def 11
+
+   it.1 = S.1
+ & for i be non zero Nat st i < m holds
+    ex Si be SigmaField of CarProduct SubFin(X,i) st Si = it.i &
+     it.(i+1) = sigma measurable_rectangles(Si,ElmFin(S,i+1));
+end;
+
+theorem :: MEASUR13:19
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st n <= m holds
+  (ProdSigmaFldFinSeq S).n is SigmaField of (ProdFinSeq X).n;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+func Prod_Field S -> SigmaField of CarProduct X equals
+:: MEASUR13:def 12
+  (ProdSigmaFldFinSeq S).m;
+end;
+
+theorem :: MEASUR13:20
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st k <= n & n <= m holds
+  (ProdSigmaFldFinSeq S).k = (ProdSigmaFldFinSeq SubFin(S,n)).k;
+
+theorem :: MEASUR13:21
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st n < m holds
+  Prod_Field SubFin(S,n+1)
+  = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1));
+
+definition
+let m be non zero Nat,X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+func ProdSigmaMesFinSeq M -> sigmaMeasureFamily of ProdSigmaFldFinSeq S
+ means
+:: MEASUR13:def 13
+   it.1 = M.1
+ & for i be non zero Nat st i < m holds
+    ex Mi be sigma_Measure of Prod_Field SubFin(S,i) st Mi = it.i
+    & it.(i+1) = product_sigma_Measure(Mi,ElmFin(M,i+1));
+end;
+
+theorem :: MEASUR13:22
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st n <= m holds
+  (ProdSigmaMesFinSeq M).n is sigma_Measure of Prod_Field SubFin(S,n);
+
+definition
+let m be non zero Nat,X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+func Prod_Measure M -> sigma_Measure of Prod_Field S equals
+:: MEASUR13:def 14
+   (ProdSigmaMesFinSeq M).m;
+end;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+attr M is sigma_finite means
+:: MEASUR13:def 15
+for i being Nat st i in Seg m
+ ex Xi be non empty set, Si being SigmaField of Xi, Mi be sigma_Measure of Si
+  st Xi = X.i & Si = S.i &  Mi = M.i & Mi is sigma_finite;
+end;
+
+theorem :: MEASUR13:23
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st
+  k <= n & n <= m holds
+  (ProdSigmaMesFinSeq SubFin(M,n)).k
+   = (ProdSigmaMesFinSeq SubFin(M,k)).k;
+
+theorem :: MEASUR13:24
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st n <= m holds
+  (ProdSigmaMesFinSeq M).n = Prod_Measure SubFin(M,n);
+
+theorem :: MEASUR13:25
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S holds
+ Prod_Measure M
+ = product_sigma_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1));
+
+theorem :: MEASUR13:26
+for X be non empty set, S be Field_Subset of X, E being Set_Sequence of S
+ for i be Nat holds (Partial_Union E).i in S;
+
+theorem :: MEASUR13:27
+for X,Y be non empty set, S1 be SigmaField of X, S2 be SigmaField of Y,
+    M1 be sigma_Measure of S1, M2 be sigma_Measure of S2
+ st M1 is sigma_finite & M2 is sigma_finite
+  holds Prod_Measure(M1,M2) is sigma_finite;
+
+theorem :: MEASUR13:28
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S holds
+  Prod_Measure M = Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1));
+
+theorem :: MEASUR13:29
+for m be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st M is sigma_finite
+ holds Prod_Measure M is sigma_finite;
+
+theorem :: MEASUR13:30
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+   S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S
+  st n <= m & M is sigma_finite holds SubFin(M,n) is sigma_finite;
+
+theorem :: MEASUR13:31
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S
+  st n <= m & M is sigma_finite holds ElmFin(M,n) is sigma_finite;
+
+begin :: Integrability of functions on (n+1)-dimensional space
+
+theorem :: MEASUR13:32
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL st
+  f is_integrable_on Prod_Measure M holds
+ex g be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL st
+   f = g
+ & g is_integrable_on Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+ & Integral(Prod_Measure M,f)
+    = Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g);
+
+theorem :: MEASUR13:33
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL,
+ g be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL st
+  M is sigma_finite & f is_integrable_on Prod_Measure M & f = g
+ & ( for y be Element of ElmFin(X,n+1)
+       holds Integral1(Prod_Measure SubFin(M,n),|.g.|).y < +infty )
+  holds
+   ( for y being Element of ElmFin(X,n+1) holds
+          ProjPMap2(g,y) is_integrable_on Prod_Measure SubFin(M,n) )
+     & ( for V being Element of ElmFin(S,n+1) holds
+          Integral1(Prod_Measure SubFin(M,n),g) is V-measurable )
+     & Integral1(Prod_Measure SubFin(M,n),g) is_integrable_on ElmFin(M,n+1)
+     & Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+        = Integral(ElmFin(M,n+1),(Integral1(Prod_Measure SubFin(M,n),g)))
+     & Integral1(Prod_Measure SubFin(M,n),g) in L1_Functions ElmFin(M,n+1);
+
+definition
+let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    f be PartFunc of CarProduct X,ExtREAL,
+    x be Element of CarProduct(SubFin(X,n));
+func ProjPMap1(f,x) -> PartFunc of ElmFin(X,n+1),ExtREAL means
+:: MEASUR13:def 16
+  ex g be PartFunc of [: CarProduct(SubFin(X,n)),ElmFin(X,n+1) :],ExtREAL
+   st f = g & it = ProjPMap1(g,x);
+end;
+
+theorem :: MEASUR13:34
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S holds
+   Prod_Field S
+    = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1));
+
+theorem :: MEASUR13:35
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL,
+ fn1 be PartFunc of [: CarProduct SubFin(X,n), ElmFin(X,n+1) :],ExtREAL
+  st M is sigma_finite & f = fn1 & f is_integrable_on Prod_Measure M
+   & for x be Element of CarProduct(SubFin(X,n)) holds
+        (Integral2(ElmFin(M,n+1),|.fn1.|)).x < +infty
+  holds
+   Integral(Prod_Measure M,f)
+     = Integral(Prod_Measure(Prod_Measure(SubFin(M,n)),ElmFin(M,n+1)),fn1)
+ & ( for x being Element of CarProduct(SubFin(X,n)) holds
+       ProjPMap1(fn1,x) is_integrable_on ElmFin(M,n+1) )
+ & ( for U being Element of Prod_Field(SubFin(S,n)) holds
+       Integral2(ElmFin(M,n+1),fn1) is U-measurable )
+ & Integral2(ElmFin(M,n+1),fn1) is_integrable_on Prod_Measure(SubFin(M,n))
+ & Integral(Prod_Measure(Prod_Measure(SubFin(M,n)),ElmFin(M,n+1)),fn1)
+     = Integral(Prod_Measure(SubFin(M,n)),(Integral2(ElmFin(M,n+1),fn1)))
+ & Integral2(ElmFin(M,n+1),fn1) in L1_Functions Prod_Measure(SubFin(M,n));
+
+theorem :: MEASUR13:36
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL,
+    f1 be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL,
+    f2 be PartFunc of CarProduct SubFin(X,n+1),ExtREAL
+ st M is sigma_finite & f = f1 & f = f2 & f is_integrable_on Prod_Measure M
+    & for x be Element of CarProduct SubFin(X,n) holds
+        (Integral2(ElmFin(M,n+1),|.f1.|)).x < +infty
+holds
+   Integral(Prod_Measure SubFin(M,n+1),f2)
+      = Integral(Prod_Measure SubFin(M,n),Integral2(ElmFin(M,n+1),f1));
+
+theorem :: MEASUR13:37
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL, E be Element of Prod_Field S,
+ g be PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL
+ st M is sigma_finite & E = dom f & f is E-measurable & f = g
+holds
+   g is_integrable_on  Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+    iff
+   Integral(Prod_Measure SubFin(M,n),Integral2(ElmFin(M,n+1),|.g.|)) < +infty;
+
+definition
+let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL;
+func FSqIntg(M,f) -> (n+1)-element FinSequence means
+:: MEASUR13:def 17
+  it.1 = f &
+  for i be Nat st 1 <= i & i < n+1 holds
+   ex k be non zero Nat,
+      g be PartFunc of [: CarProduct SubFin(X,k),ElmFin(X,k+1) :],ExtREAL
+    st k = n+1-i & g = it.i & it.(i+1) = Integral2(ElmFin(M,k+1),g);
+end;
+
+definition
+let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL;
+pred f is_Sequentially_integrable_on M means
+:: MEASUR13:def 18
+  for k be non zero Nat st k < n+1 holds
+   ex G be PartFunc of CarProduct SubFin(X,k+1),ExtREAL,
+      H be PartFunc of CarProduct SubFin(X,k),ExtREAL
+    st G = FSqIntg(M,f).(n+1-k) & H = (FSqIntg(SubFin(M,k+1),|.G.|)).2
+     & for x be Element of CarProduct SubFin(X,k) holds H.x < +infty;
+end;
+
+theorem :: MEASUR13:38
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+  f be PartFunc of CarProduct X,ExtREAL
+ st M is sigma_finite & f is_Sequentially_integrable_on M
+  & f is_integrable_on Prod_Measure M holds
+ for k be non zero Nat st k < n+1 holds
+  ex g be PartFunc of CarProduct SubFin(X,k+1),ExtREAL
+   st g = FSqIntg(M,f).(n+1-k) & g is_integrable_on Prod_Measure SubFin(M,k+1);
+
+theorem :: MEASUR13:39
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL,
+ g be PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL
+ st f = g holds FSqIntg(M,f).1 = f &
+       FSqIntg(M,f).2 = Integral2(ElmFin(M,n+1),g);
+
+theorem :: MEASUR13:40
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL st M is sigma_finite
+  & f is_Sequentially_integrable_on M & f is_integrable_on Prod_Measure M
+holds
+  for k be non zero Nat st k < n holds
+   ex Fk1 be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL,
+      Gk1 be PartFunc of CarProduct SubFin(X,k+1),ExtREAL,
+      Fk be Function of CarProduct SubFin(X,k),ExtREAL
+    st Gk1 = Fk1
+     & Gk1 = FSqIntg(M,f).(n+1-k)
+     & Fk = FSqIntg(M,f).(n+1-(k-1))
+     & Fk = Integral2(ElmFin(M,k+1),Fk1)
+     & Gk1 is_integrable_on Prod_Measure SubFin(M,k+1)
+     & Integral(Prod_Measure SubFin(M,k+1),Gk1)
+        = Integral(Prod_Measure(Prod_Measure SubFin(M,k),ElmFin(M,k+1)),Fk1)
+     & ( for x being Element of CarProduct SubFin(X,k) holds
+          ProjPMap1(Fk1,x) is_integrable_on ElmFin(M,k+1) )
+     & ( for U being Element of Prod_Field SubFin(S,k) holds
+          Fk is U-measurable )
+     & Fk is_integrable_on Prod_Measure SubFin(M,k)
+     & Integral(Prod_Measure(Prod_Measure SubFin(M,k),ElmFin(M,k+1)),Fk1)
+        = Integral(Prod_Measure SubFin(M,k),Fk)
+     & Fk in L1_Functions Prod_Measure SubFin(M,k)
+     & Integral(Prod_Measure SubFin(M,k+1),Gk1)
+        = Integral(Prod_Measure SubFin(M,k),Fk);

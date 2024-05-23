@@ -1,0 +1,382 @@
+:: On Primary Ideals. {P}art {I}
+::  by Yasushige Watase
+:: 
+:: Received June 30, 2021
+:: Copyright (c) 2021-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies ARYTM_3, FUNCT_1, RELAT_1, CARD_3, XBOOLE_0, TARSKI, XCMPLX_0,
+      STRUCT_0, SUBSET_1, SUPINF_2, NAT_1, CARD_1, MESFUNC1, GROUP_1, ARYTM_1,
+      FINSEQ_1, SETFAM_1, INT_2, QUOFIELD, BINOP_1, GROUP_4, NUMBERS, IDEAL_1,
+      ZFMISC_1, FUNCSDOM, CARD_FIL, RING_1, SQUARE_1, BCIALG_2, NEWTON, RING_2,
+      XXREAL_0, TOPZARI1, ALGSTR_0, LATTICEA, RINGFRAC, EQREL_1, WAYBEL20,
+      VECTSP10, PARTFUN1, IDEAL_2, ORDINAL4, RAMSEY_1, GCD_1, LATTICE3,
+      VECTSP_1, CATALG_1, COHSP_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, SETFAM_1, FUNCT_1, ORDINAL1, RELSET_1,
+      PARTFUN1, FUNCT_2, DOMAIN_1, NUMBERS, XCMPLX_0, XXREAL_0, NAT_1,
+      FINSEQ_1, FINSEQOP, EQREL_1, NEWTON, STRUCT_0, ALGSTR_0, RLVECT_1,
+      GROUP_1, VECTSP_1, BINOM, VECTSP10, IDEAL_1, RING_1, RING_2, TOPZARI1,
+      RINGFRAC, COHSP_1;
+ constructors RELSET_1, FINSEQOP, NEWTON, RINGCAT1, MOD_4, GCD_1, BINOM,
+      COHSP_1, RINGFRAC, WSIERP_1;
+ registrations XBOOLE_0, ORDINAL1, RELSET_1, XREAL_0, NAT_1, STRUCT_0, CARD_1,
+      VECTSP_1, ALGSTR_1, SUBSET_1, ALGSTR_0, RLVECT_1, IDEAL_1, RING_2, MOD_4,
+      RING_1, TOPZARI1, FINSEQ_1, INT_1;
+ requirements NUMERALS, SUBSET, BOOLE, ARITHM, REAL;
+
+
+begin :: Preliminaries: Some Properties of Ideals
+
+reserve R for commutative Ring;
+reserve A for non degenerated commutative Ring;
+reserve I,J,q for Ideal of A;
+reserve p for prime Ideal of A;
+reserve M,M1,M2 for Ideal of A/q;
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::   Preliminary Propositions on Ideal Operation
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\\\\\\\\\
+
+theorem :: IDEAL_2:1
+    for a,b be Ideal of A, p be prime Ideal of A st a /\ b c= p holds
+    a c= p or b c= p;
+
+definition
+  let A;
+  let a be non empty FinSequence of Ideals(A);
+  let i be Element of dom a;
+  redefine func a.i -> non empty Subset of A;
+end;
+
+registration
+  let A;
+  let a be non empty FinSequence of Ideals(A);
+  let i be Element of dom a;
+  cluster a.i -> add-closed left-ideal right-ideal for Subset of A;
+end;
+
+registration
+  let A;
+  let a be non empty FinSequence of Ideals(A);
+  cluster meet (rng a) -> add-closed left-ideal right-ideal for Subset of A;
+end;
+
+::[AM]Prop1.11 ii)
+theorem :: IDEAL_2:2
+    for a be non empty FinSequence of Ideals(A), p be prime Ideal of A
+    holds
+    meet rng a c= p implies ex i be object st i in dom a & a.i c= p;
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Functional Notation of radical Ideal (L % I) = %I.L
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+definition
+  let A;
+  let I be Ideal of A;
+  func %I -> Function of bool the carrier of A, bool the carrier of A
+   means
+:: IDEAL_2:def 1
+
+  for x be Subset of A holds it.x = (x % I);
+ end;
+
+theorem :: IDEAL_2:3
+    for I be proper Ideal of A, F be non empty FinSequence of Ideals(A) holds
+    rng((%I)*F) <> {} & rng F <> {} &
+    meet rng((%I)*F) c= the carrier of A;
+
+::[AM]Ex.1.12. iv) (/\F_i % I) = /\(F_i % I)
+theorem :: IDEAL_2:4
+    for I be proper Ideal of A, F be non empty FinSequence of Ideals(A) holds
+    (%I).(meet rng F) = meet rng((%I)*F);
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: redefine power of Ideal form FVALUAT1:def 4
+:: func S |^ n -> Subset of K
+:: due to a conflict of function symobol function |^
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+definition
+  let K be non empty doubleLoopStr;
+  let S be Subset of K;
+  let n be Nat;
+  func S||^n -> Subset of K means
+:: IDEAL_2:def 2
+
+  it = the carrier of K if n = 0 otherwise
+  ex f being FinSequence of bool the carrier of K st
+  it = f.len f & len f = n & f.1 = S &
+  for i being Nat st i in dom f & i+1 in dom f holds
+  f.(i+1) = S *' (f/.i);
+ end;
+
+registration
+  let R be Ring;
+  let S be Ideal of R;
+  let n be Nat;
+  cluster S||^n -> non empty add-closed left-ideal right-ideal;
+end;
+
+theorem :: IDEAL_2:5
+    I ||^ 1 = I & I *' [#]A = I;
+
+theorem :: IDEAL_2:6
+    for f,g be FinSequence of bool the carrier of A st
+    len f >= len g & len g > 0 & (I||^(len f) = f.len f & f.1 = I &
+    for i being Nat st i in dom f & i+1 in dom f
+    holds
+    f.(i+1) = I *' (f/.i)) & (I||^(len g) = g.len g & g.1 = I &
+    for i being Nat st i in dom g & i+1 in dom g holds
+    g.(i+1) = I *' (g/.i)) holds f|(dom g) = g;
+
+theorem :: IDEAL_2:7
+    for n be Nat st n > 0 holds I||^(n+1) = I *' (I||^n);
+
+::[AM] Ex.1.13 ii)
+theorem :: IDEAL_2:8
+     sqrt I = sqrt(sqrt I);
+
+::[AM] Ex.1.13 iii)  sqrt(I*'J) = sqrt(I /\ J) referred to IDEAL_1:92
+theorem :: IDEAL_2:9
+     sqrt(I /\ J) = sqrt(I) /\ sqrt(J);
+
+::[AM] Ex.1.13 iv)
+theorem :: IDEAL_2:10
+    sqrt I = [#]A iff I = [#]A;
+
+::[AM] Ex1.13 v)
+theorem :: IDEAL_2:11
+    sqrt(I+J) = sqrt( sqrt(I)+ sqrt(J));
+
+::[AM] Ex1.13 vi)
+theorem :: IDEAL_2:12
+    for p be prime Ideal of A, n be non zero Nat holds sqrt(p||^n) = p;
+
+::[AM] Prop1.16
+theorem :: IDEAL_2:13
+     sqrt(I),sqrt(J) are_co-prime implies I,J are_co-prime;
+
+theorem :: IDEAL_2:14
+    for x,y be Element of the carrier of A/q st
+    x in (canHom(q)).:I & y in (canHom(q)).:I holds x + y in (canHom(q)).:I;
+
+theorem :: IDEAL_2:15
+    for a,x be Element of the carrier of A/q st
+    x in (canHom(q)).:I holds a*x in (canHom(q)).:I;
+
+theorem :: IDEAL_2:16
+    (canHom q).:I is Ideal of A/q;
+
+theorem :: IDEAL_2:17
+    for x,y be Element of the carrier of A st x in (canHom q)"M1  &
+    y in (canHom q)"M1 holds x + y in (canHom q)"M1;
+
+theorem :: IDEAL_2:18
+    for r,x be Element of the carrier of A st x in (canHom q)"M1
+    holds r*x in (canHom q)"M1;
+
+theorem :: IDEAL_2:19
+    (canHom q)"M1 is Ideal of A;
+
+theorem :: IDEAL_2:20
+    q c= (canHom q)"M1;
+
+theorem :: IDEAL_2:21
+    (canHom q).:(canHom q)"M1 = M1;
+
+theorem :: IDEAL_2:22
+    q c= I implies (canHom q)"((canHom q).:I) = I;
+
+theorem :: IDEAL_2:23
+    I c= J implies (canHom q).:I c= (canHom q).:J;
+
+theorem :: IDEAL_2:24
+    M1 c= M2 implies (canHom q)"M1 c= (canHom q)"M2;
+
+theorem :: IDEAL_2:25
+    (canHom q)"([#](A/q)) = [#]A;
+
+theorem :: IDEAL_2:26
+    M is proper implies (canHom q)"M is proper;
+
+theorem :: IDEAL_2:27
+    q c= I & I is maximal implies (canHom q).:I is maximal;
+
+definition let A,q;
+  func Psi q -> Function of Ideals(A/q), Ideals(A,q) means
+:: IDEAL_2:def 3
+  for x be Element of Ideals (A/q) holds it.x = (canHom q)"x;
+end;
+
+registration let A;
+  let J be proper Ideal of A;
+  cluster A/J -> non degenerated commutative;
+end;
+
+::[AM] Prop1.1
+registration let A;
+  let q be Ideal of A;
+  cluster Psi q -> one-to-one c=-monotone;
+end;
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Primary Ideal Definition of quasi-primary/primary/p-primary  [AM]Chapter 4
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+definition
+  let A be well-unital non empty doubleLoopStr,
+      S be Subset of A;
+  attr S is quasi-primary means
+:: IDEAL_2:def 4
+
+  for x,y be Element of A st x*y in S holds x in S or y in sqrt S;
+end;
+
+definition
+  let A be well-unital non empty doubleLoopStr,
+      S be Subset of A;
+  attr S is primary means
+:: IDEAL_2:def 5
+  S is proper quasi-primary;
+end;
+
+registration
+  let K be well-unital non empty doubleLoopStr;
+  cluster primary -> proper quasi-primary for Subset of K;
+  cluster proper quasi-primary -> primary for Subset of K;
+end;
+
+theorem :: IDEAL_2:28
+    for p be Ideal of A holds p is prime implies p is primary;
+
+registration
+  let A;
+  cluster prime -> primary for Ideal of A;
+end;
+
+registration
+  let A be non degenerated commutative Ring;
+  cluster primary for proper Ideal of A;
+end;
+
+theorem :: IDEAL_2:29
+    I is primary iff I <> [#]A &
+    for x,y be Element of A st x*y in I & not x in I holds y in sqrt I;
+
+theorem :: IDEAL_2:30
+    (I <> [#]A &
+    for x,y be Element of A st x*y in I & not x in I holds y in sqrt I)
+    iff
+    A/I is non degenerated &
+    (for z be Element of A/I st z is zero_divisible holds z is nilpotent );
+
+theorem :: IDEAL_2:31
+    I is primary iff
+    A/I is non degenerated &
+    (for x be Element of A/I st x is zero_divisible holds x is nilpotent);
+
+::[AM] prop4.1
+registration let A;
+  let Q be primary Ideal of A;
+  cluster sqrt Q -> prime;
+end;
+
+registration let A;
+  let I be primary Ideal of A;
+  cluster zero_divisible -> nilpotent for Element of A/I;
+end;
+
+definition let A;
+  let P,Q be Ideal of A;
+  attr Q is P-primary means
+:: IDEAL_2:def 6
+  sqrt Q = P;
+end;
+
+definition
+  let A;
+  func PRIMARY(A)-> Subset-Family of the carrier of A equals
+:: IDEAL_2:def 7
+    the set of all I where I is primary Ideal of A;
+end;
+
+registration
+  let A;
+  cluster PRIMARY(A) -> non empty;
+end;
+
+definition
+  let A,p;
+   func PRIMARY(A,p) -> non empty Subset of PRIMARY(A) equals
+:: IDEAL_2:def 8
+    {I where I is primary Ideal of A: I is p-primary};
+end;
+
+theorem :: IDEAL_2:32
+    for q be proper Ideal of A holds
+    (canHom q).:(sqrt q) = nilrad(A/q);
+
+theorem :: IDEAL_2:33
+    for q be proper Ideal of A holds
+    sqrt q is maximal implies A/q is local;
+
+::[AM] Prop4.2
+theorem :: IDEAL_2:34
+    for q be proper Ideal of A holds sqrt q is maximal implies q is primary;
+
+::[AM] Prop4.2 particular case of maximal Ideal
+theorem :: IDEAL_2:35
+    for M be maximal Ideal of A, n be non zero Nat holds M||^n in PRIMARY(A,M);
+
+theorem :: IDEAL_2:36
+    for q1,q2 be Ideal of A st q1 in PRIMARY(A,p) & q2 in PRIMARY(A,p)
+    holds q1 /\ q2 in PRIMARY(A,p);
+
+::[AM] Lemma4.3
+:::      {Fi} is p-primary,  F1 /\ F2 /\...../\Fn is p-primary
+theorem :: IDEAL_2:37
+    for p be prime Ideal of A, F be non empty FinSequence of PRIMARY(A,p)
+    holds meet rng F in PRIMARY(A,p);
+
+theorem :: IDEAL_2:38
+    for I be proper Ideal of A, x be Element of (sqrt I)
+    ex m be Nat
+    st m in {n where n is Element of NAT: not(x|^n in I)} & x|^(m+1) in I;
+
+theorem :: IDEAL_2:39
+    for I,J be proper Ideal of A holds
+    I c= J & J c= sqrt I &
+    (for x, y be Element of A holds x*y in I & not(x in I) implies y in J)
+    implies
+    I is primary & sqrt I = J & J is prime;
+
+theorem :: IDEAL_2:40
+    for Q be proper Ideal of A holds
+    (for x,y be Element of A holds x*y in Q & not y in sqrt Q implies x in Q)
+    implies
+    Q is primary & sqrt Q is prime;
+
+::[AM] Lemma4.4 i)
+theorem :: IDEAL_2:41
+    for q be Ideal of A, x be Element of A
+    holds x in q implies q % ({x}-Ideal) = [#]A;
+
+::[AM] Lemma4.4 ii)
+theorem :: IDEAL_2:42
+    for q be Ideal of A, x be Element of A st q in PRIMARY(A,p)
+    holds not(x in q) implies q % ({x}-Ideal) in PRIMARY(A,p);
+
+::[AM] Lemma4.4 iii)
+theorem :: IDEAL_2:43
+    for q be Ideal of A,x be Element of A st q in PRIMARY(A,p)
+    holds not x in p implies q % ({x}-Ideal) = q;
+

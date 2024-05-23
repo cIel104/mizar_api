@@ -1,0 +1,1604 @@
+:: Topological Interpretation of Rough Sets
+::  by Adam Grabowski
+:: 
+:: Received March 31, 2014
+:: Copyright (c) 2014-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies SUBSET_1, PRE_TOPC, SETFAM_1, STRUCT_0, TARSKI, ZFMISC_1,
+      XBOOLE_0, FUNCT_1, RELAT_1, RCOMP_1, XXREAL_0, CARD_1, QC_LANG1,
+      ORDERS_2, WAYBEL_9, TOPS_1, FINSUB_1, ROUGHS_4, BINOP_1, WAYBEL_1,
+      COHSP_1, ROUGHS_1, ROUGHS_2, ISOMICHI, FRECHET2, FRECHET, KURATO_1,
+      ARYTM_1, TDLAT_3;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ORDINAL1, NUMBERS, XXREAL_0,
+      SETFAM_1, RELAT_1, FUNCT_1, RELSET_1, PARTFUN1, FINSUB_1, XXREAL_2,
+      XXREAL_3, CARD_1, ENUMSET1, BINOP_1, FUNCT_2, FUNCT_3, XCMPLX_0, XREAL_0,
+      NAT_1, RCOMP_1, FUNCOP_1, FINSEQ_1, STRUCT_0, PRE_TOPC, ORDERS_2,
+      EQREL_1, TOPMETR, COHSP_1, TOPS_1, TDLAT_2, WAYBEL_9, ROUGHS_1, ROUGHS_2,
+      ISOMICHI, FRECHET, FRECHET2, KURATO_1, TDLAT_3;
+ constructors SETFAM_1, PARTFUN1, FUNCT_3, XXREAL_0, XREAL_0, NAT_1, MEMBERED,
+      XXREAL_1, XXREAL_2, XXREAL_3, FINSEQ_1, CONNSP_1, RELSET_1, NUMBERS,
+      BINOP_1, COHSP_1, TDLAT_2, FUNCOP_1, ORDERS_2, FINSUB_1, EQREL_1,
+      PCOMPS_1, PCOMPS_2, ROUGHS_1, ROUGHS_2, WAYBEL_9, TDLAT_3, TOPS_1,
+      ISOMICHI, FRECHET, FRECHET2, KURATO_1, TOPMETR, RCOMP_1, MEASURE6;
+ registrations XBOOLE_0, SUBSET_1, RELSET_1, FUNCT_2, STRUCT_0, XREAL_0,
+      FUNCT_1, ORDINAL1, TOPS_1, ROUGHS_1, ROUGHS_2, WAYBEL_9, PROB_1,
+      ISOMICHI, KURATO_1;
+ requirements NUMERALS, BOOLE, SUBSET;
+ definitions TARSKI;
+ equalities STRUCT_0, SUBSET_1, KURATO_1, ISOMICHI, ROUGHS_1;
+ expansions TARSKI, XBOOLE_0, FUNCT_2, ROUGHS_1, FINSUB_1, ISOMICHI, TDLAT_3,
+      ROUGHS_2;
+ theorems XBOOLE_1, PRE_TOPC, ZFMISC_1, SETFAM_1, TOPS_1, ROUGHS_1, ROUGHS_2,
+      FUNCT_1, TARSKI, MEASURE1, ISOMICHI, FRECHET2, FRECHET, KURATO_1,
+      ENUMSET1, CARD_2;
+ schemes FRAENKEL, SUBSET_1, XBOOLE_0, FUNCT_2;
+
+begin :: Preliminaries
+
+theorem Lemma:
+  for T being set, F being Subset-Family of T holds
+    F = { B where B is Subset of T : B in F }
+  proof
+    let T be set, F be Subset-Family of T;
+A1: F c= { B where B is Subset of T : B in F };
+    { B where B is Subset of T : B in F } c= F
+    proof
+      let x be object;
+      assume x in { B where B is Subset of T : B in F }; then
+      ex B being Subset of T st x = B & B in F;
+      hence thesis;
+    end;
+    hence thesis by A1;
+  end;
+
+definition
+  let f be Function;
+  let A be set;
+  attr A is f-closed means
+    A = f.A;
+end;
+
+definition let X be set, F be Subset-Family of X;
+  redefine attr F is cap-closed means
+    for a,b being Subset of X st a in F & b in F holds a /\ b in F;
+  compatibility;
+end;
+
+definition let X be set;
+           let F be Subset-Family of X;
+  attr F is union-closed means
+    for a being Subset-Family of X st a c= F holds union a in F;
+end;
+
+definition let X be set;
+           let F be Subset-Family of X;
+  attr F is topology-like means :TLDef:
+    {} in F & X in F & F is union-closed cap-closed;
+end;
+
+registration let X be set;
+  cluster topology-like for Subset-Family of X;
+  existence
+  proof
+    reconsider F = {{}X,[#]X} as Subset-Family of X by MEASURE1:2;
+    take F;
+    for a being Subset-Family of X st a c= F holds union a in F
+    proof
+      let a be Subset-Family of X;
+      assume a c= F; then
+      a = {} or a = {X} or a = {{},X} or a = {{}} by ZFMISC_1:36; then
+      union a = {} or union a = X or union a = {} \/ X or union a = {}
+        by ZFMISC_1:75,ZFMISC_1:25,2;
+      hence thesis by TARSKI:def 2;
+    end; then
+    F is union-closed;
+    hence thesis by TARSKI:def 2;
+  end;
+end;
+
+begin :: Maps
+
+definition let X be set;
+           let f be Function of bool X, bool X;
+  attr f is extensive means
+    for A being Subset of X holds A c= f.A;
+  attr f is intensive means
+    for A being Subset of X holds f.A c= A;
+  attr f is idempotent means
+    for A being Subset of X holds f.(f.A) = f.A;
+  attr f is c=-monotone means
+    for A,B being Subset of X st A c= B holds f.A c= f.B;
+  attr f is \/-preserving means
+    for A,B being Subset of X holds f.(A \/ B) = f.A \/ f.B;
+  attr f is /\-preserving means
+    for A,B being Subset of X holds f.(A /\ B) = f.A /\ f.B;
+end;
+
+definition let X be set,
+               O be Function of bool X, bool X;
+  attr O is preclosure means :: Cech preclosure axioms
+    O is extensive \/-preserving empty-preserving;
+  attr O is closure means :: Kuratowski closure axioms
+    O is extensive idempotent \/-preserving empty-preserving;
+  attr O is preinterior means :: Kuratowski interior axioms
+    O is intensive /\-preserving universe-preserving;
+  attr O is interior means :: Kuratowski interior axioms
+    O is intensive idempotent /\-preserving universe-preserving;
+end;
+
+registration let X be set;
+  cluster \/-preserving -> c=-monotone for Function of bool X, bool X;
+  coherence
+  proof
+    let f be Function of bool X, bool X;
+    assume
+A1: f is \/-preserving;
+    let A, B be Subset of X;
+    assume A c= B; then
+    A \/ B = B by XBOOLE_1:12; then
+    f.A \/ f.B = f.B by A1;
+    hence thesis by XBOOLE_1:7;
+  end;
+  cluster /\-preserving -> c=-monotone for Function of bool X, bool X;
+  coherence
+  proof
+    let f be Function of bool X, bool X;
+    assume
+A1: f is /\-preserving;
+    let A, B be Subset of X;
+    assume A c= B; then
+    A /\ B = A by XBOOLE_1:28; then
+    f.A /\ f.B = f.A by A1;
+    hence thesis by XBOOLE_1:17;
+  end;
+end;
+
+:: preclosure implies monotonicity
+:: Cl_Seq from FRECHET2 is important example of preclosure
+
+registration let X be set;
+  cluster id bool X -> closure for Function of bool X, bool X;
+  coherence
+  proof
+    set f = id bool X;
+    reconsider f as Function of bool X, bool X;
+A1: f is idempotent;
+A2: f is extensive;
+    {} c= X; then
+A3: f is empty-preserving by FUNCT_1:17;
+    f is \/-preserving;
+    hence thesis by A1,A2,A3;
+  end;
+  cluster id bool X -> interior for Function of bool X, bool X;
+  coherence
+  proof
+    set f = id bool X;
+    reconsider f as Function of bool X, bool X;
+A1: f is idempotent;
+A2: f is intensive;
+    X in bool X by ZFMISC_1:def 1; then
+A3: f is universe-preserving by FUNCT_1:17;
+    f is /\-preserving;
+    hence thesis by A1,A2,A3;
+  end;
+end;
+
+registration let X be set;
+  cluster closure interior for Function of bool X, bool X;
+  existence
+  proof
+    set f = id bool X;
+    f is closure interior;
+    hence thesis;
+  end;
+end;
+
+registration let X be set;
+  cluster closure -> preclosure for Function of bool X, bool X;
+  coherence;
+end;
+
+begin :: Structural Part
+
+definition let T be 1-sorted;
+  mode map of T is Function of bool the carrier of T, bool the carrier of T;
+end;
+
+definition
+  struct (1-sorted) 1stOpStr
+    (# carrier -> set,
+       FirstOp -> Function of bool the carrier, bool the carrier #);
+end;
+
+definition
+  struct (1-sorted) 2ndOpStr
+    (# carrier -> set,
+      SecondOp -> Function of bool the carrier, bool the carrier #);
+end;
+
+definition
+  struct (1stOpStr, 2ndOpStr) TwoOpStruct
+    (# carrier -> set,
+       FirstOp, SecondOp ->
+          Function of bool the carrier, bool the carrier #);
+end;
+
+definition let X be 1stOpStr;
+  attr X is with_closure means :CDef:
+    the FirstOp of X is closure;
+  attr X is with_preclosure means
+    the FirstOp of X is preclosure;
+end;
+
+registration let T be TopSpace;
+  cluster ClMap T -> closure;
+  coherence
+  proof
+    set f = ClMap T;
+A1: f.{}T = Cl {}T by ROUGHS_2:def 15 .= {}T by PRE_TOPC:22;
+    f. [#]T = Cl [#]T by ROUGHS_2:def 15 .= [#]T by PRE_TOPC:22; then
+A2: f is empty-preserving universe-preserving by A1;
+    for A being Subset of T holds A c= f.A
+    proof
+      let A be Subset of T;
+      A c= Cl A by PRE_TOPC:18;
+      hence thesis by ROUGHS_2:def 15;
+    end; then
+A3: f is extensive;
+A4: f is idempotent
+    proof
+      for A being Subset of T holds f.A = f.(f.A)
+      proof
+        let A be Subset of T;
+        f.A = Cl Cl A by ROUGHS_2:def 15
+           .= f.Cl A by ROUGHS_2:def 15
+           .= f.(f.A) by ROUGHS_2:def 15;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+    for A,B being Subset of T holds f.(A \/ B) = f.A \/ f.B
+    proof
+      let A,B be Subset of T;
+      f.(A \/ B) = Cl (A \/ B) by ROUGHS_2:def 15
+                .= Cl A \/ Cl B by PRE_TOPC:20
+                .= f.A \/ Cl B by ROUGHS_2:def 15
+                .= f.A \/ f.B by ROUGHS_2:def 15;
+      hence thesis;
+    end; then
+    f is \/-preserving;
+    hence thesis by A2,A3,A4;
+  end;
+  cluster IntMap T -> interior;
+  coherence
+  proof
+    set f = IntMap T;
+A1: f.{}T = Int {}T by ROUGHS_2:def 16 .= {}T;
+    f. [#]T = Int [#]T by ROUGHS_2:def 16 .= [#]T by TOPS_1:15; then
+A2: f is empty-preserving universe-preserving by A1;
+    for A being Subset of T holds f.A c= A
+    proof
+      let A be Subset of T;
+      Int A c= A by TOPS_1:16;
+      hence thesis by ROUGHS_2:def 16;
+    end; then
+A3: f is intensive;
+A4: f is idempotent
+    proof
+      for A being Subset of T holds f.A = f.(f.A)
+      proof
+        let A be Subset of T;
+        f.A = Int Int A by ROUGHS_2:def 16
+           .= f.Int A by ROUGHS_2:def 16
+           .= f.(f.A) by ROUGHS_2:def 16;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+    for A,B being Subset of T holds f.(A /\ B) = f.A /\ f.B
+    proof
+      let A,B be Subset of T;
+      f.(A /\ B) = Int (A /\ B) by ROUGHS_2:def 16
+                .= Int A /\ Int B by TOPS_1:17
+                .= f.A /\ Int B by ROUGHS_2:def 16
+                .= f.A /\ f.B by ROUGHS_2:def 16;
+      hence thesis;
+    end; then
+    f is /\-preserving;
+    hence thesis by A2,A3,A4;
+  end;
+end;
+
+registration
+  cluster with_closure non empty for 1stOpStr;
+  existence
+  proof
+    set C = the non empty set;
+    set f = the closure Function of bool C, bool C;
+    take 1stOpStr (#C, f#);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster with_closure -> with_preclosure for 1stOpStr;
+  coherence;
+end;
+
+definition let X be 1stOpStr;
+           let A be Subset of X;
+  attr A is op-closed means
+    A = (the FirstOp of X).A;
+end;
+
+definition let X be 1stOpStr;
+  attr X is with_op-closed_subsets means :OCS:
+    ex A being Subset of X st A is op-closed;
+end;
+
+registration
+  cluster with_op-closed_subsets for 1stOpStr;
+  existence
+  proof
+    set C = id bool {};
+    reconsider C as Function of bool {}, bool {};
+    take T = 1stOpStr (#{},C#);
+    T is with_op-closed_subsets
+    proof
+      {} c= {}; then
+      reconsider CC = {}C as Subset of T;
+      CC is op-closed;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let X be with_op-closed_subsets 1stOpStr;
+  cluster op-closed for Subset of X;
+  existence by OCS;
+end;
+
+definition let X be 2ndOpStr;
+           let A be Subset of X;
+  attr A is op-open means
+    A = (the SecondOp of X).A;
+end;
+
+definition let X be 2ndOpStr;
+  attr X is with_op-open_subsets means :OOS:
+    ex A being Subset of X st A is op-open;
+end;
+
+registration
+  cluster with_op-open_subsets for 2ndOpStr;
+  existence
+  proof
+    set C = id bool {};
+    reconsider C as Function of bool {}, bool {};
+    take T = 2ndOpStr (#{},C#);
+    T is with_op-open_subsets
+    proof
+      {} c= {}; then
+      reconsider CC = {}C as Subset of T;
+      CC is op-open;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let X be with_op-open_subsets 2ndOpStr;
+  cluster op-open for Subset of X;
+  existence by OOS;
+end;
+
+definition let X be 2ndOpStr;
+  attr X is with_interior means
+    the SecondOp of X is interior;
+  attr X is with_preinterior means
+    the SecondOp of X is preinterior;
+end;
+
+registration
+  cluster with_closure with_interior for TwoOpStruct;
+  existence
+  proof
+    set C = the non empty set;
+    set f = the closure Function of bool C, bool C;
+    set g = the interior Function of bool C, bool C;
+    take TwoOpStruct (#C, f, g#);
+    thus thesis;
+  end;
+end;
+
+begin :: Merging with Topologies
+
+definition
+  struct (1stOpStr,TopStruct) 1TopStruct
+    (# carrier -> set,
+       FirstOp -> Function of bool the carrier, bool the carrier,
+      topology -> Subset-Family of the carrier #);
+end;
+
+definition
+  struct (2ndOpStr,TopStruct) 2TopStruct
+    (# carrier -> set,
+      SecondOp -> Function of bool the carrier, bool the carrier,
+      topology -> Subset-Family of the carrier #);
+end;
+
+registration
+  cluster non empty strict for 1TopStruct;
+  existence
+  proof
+    set EX = the non empty TopStruct;
+    set C = the carrier of EX;
+    set T = the topology of EX;
+    set F = the Function of bool C, bool C;
+    take TT = 1TopStruct(#C,F,T#);
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster non empty strict for 2TopStruct;
+  existence
+  proof
+    set EX = the non empty TopStruct;
+    set C = the carrier of EX;
+    set T = the topology of EX;
+    set F = the Function of bool C, bool C;
+    take TT = 2TopStruct(#C,F,T#);
+    thus thesis;
+  end;
+end;
+
+definition let T be 1TopStruct;
+  attr T is with_properly_defined_topology means :PDT:
+    for x being object holds
+    x in the topology of T iff
+      ex S being Subset of T st S` = x & S is op-closed;
+end;
+
+definition let T be 2TopStruct;
+  attr T is with_properly_defined_Topology means :PDTo:
+    for x being object holds
+    x in the topology of T iff
+      ex S being Subset of T st S = x & S is op-open;
+end;
+
+registration
+  cluster with_closure with_properly_defined_topology for 1TopStruct;
+  existence
+  proof
+    set EX = the TopSpace;
+    set C = the carrier of EX;
+    set T = the topology of EX;
+    set F = ClMap EX;
+    take TT = 1TopStruct(#C,F,T#);
+    for x being object holds
+    x in the topology of TT iff
+      ex S being Subset of TT st S` = x & S is op-closed
+    proof
+      let x be object;
+      thus x in the topology of TT implies
+        ex S being Subset of TT st S` = x & S is op-closed
+      proof
+        assume
+E1:     x in the topology of TT; then
+        reconsider X = x as Subset of TT;
+        reconsider Y = X as Subset of EX;
+        Y is open by E1,PRE_TOPC:def 2; then
+        Cl (Y`) = Y` by PRE_TOPC:22; then
+E5:     X` is op-closed by ROUGHS_2:def 15;
+        X`` = x;
+        hence thesis by E5;
+      end;
+      assume ex S being Subset of TT st S` = x & S is op-closed; then
+      consider S being Subset of TT such that
+F1:   S` = x & S is op-closed;
+      reconsider SS = S as Subset of EX;
+      F.SS = Cl SS by ROUGHS_2:def 15;
+      hence thesis by F1,PRE_TOPC:def 2;
+    end;
+    hence thesis;
+  end;
+  cluster with_interior with_properly_defined_Topology for 2TopStruct;
+  existence
+  proof
+    set EX = the TopSpace;
+    set C = the carrier of EX;
+    set T = the topology of EX;
+    set F = IntMap EX;
+    take TT = 2TopStruct(#C,F,T#);
+    for x being object holds
+    x in the topology of TT iff
+      ex S being Subset of TT st S = x & S is op-open
+    proof
+      let x be object;
+      thus x in the topology of TT implies
+        ex S being Subset of TT st S = x & S is op-open
+      proof
+        assume
+E1:     x in the topology of TT; then
+        reconsider X = x as Subset of TT;
+        reconsider Y = X as Subset of EX;
+        Int Y = Y by TOPS_1:23,E1,PRE_TOPC:def 2; then
+        X is op-open by ROUGHS_2:def 16;
+        hence thesis;
+      end;
+      assume ex S being Subset of TT st S = x & S is op-open; then
+      consider S being Subset of TT such that
+F1:   S = x & S is op-open;
+      reconsider SS = S as Subset of EX;
+      Int SS = SS by F1,ROUGHS_2:def 16;
+      hence thesis by F1,PRE_TOPC:def 2;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem Lem1:
+  for T being with_properly_defined_topology 1TopStruct,
+      A being Subset of T holds
+    A is op-closed iff A is closed
+  proof
+    let T be with_properly_defined_topology 1TopStruct;
+    let A be Subset of T;
+    set f = the FirstOp of T;
+    thus A is op-closed implies A is closed
+    proof
+      assume A is op-closed; then
+      A` in the topology of T by PDT;
+      hence thesis by TOPS_1:3,PRE_TOPC:def 2;
+    end;
+    thus A is closed implies A is op-closed
+    proof
+      assume A is closed; then
+      A` in the topology of T by PRE_TOPC:def 2,TOPS_1:3; then
+      consider S being Subset of T such that
+K1:   S` = A` & S is op-closed by PDT;
+      S`` = A`` by K1;
+      hence thesis by K1;
+    end;
+  end;
+
+registration
+  cluster with_preclosure -> TopSpace-like for
+    with_properly_defined_topology 1TopStruct;
+  coherence
+  proof
+    let T be with_properly_defined_topology 1TopStruct;
+    set f = the FirstOp of T;
+    assume T is with_preclosure; then
+T1: f is preclosure;
+    f is empty-preserving by T1; then
+    {}T is op-closed; then
+XX: ({}T)` in the topology of T by PDT;
+s:  ([#] T)` = ({} T)``;
+X2: f is extensive by T1;
+    [#]T = f.([#]T) by X2; then
+aa: ({}T)` is op-closed;
+A2: for a being Subset-Family of T st a c= the topology of T holds
+      union a in the topology of T
+    proof
+      let a be Subset-Family of T;
+      assume
+J0:   a c= the topology of T;
+      reconsider ua = union a as Subset of T;
+      set b = COMPLEMENT a;
+      per cases;
+      suppose a = {};
+        hence thesis by aa,ZFMISC_1:2,s,PDT;
+      end;
+      suppose
+xx:     a <> {}; then
+f2:     ([#]the carrier of T) \ ua = meet COMPLEMENT a by SETFAM_1:33;
+f3:     f is extensive by T1;
+        f.meet b c= meet b
+        proof
+          for bb being set st bb in b holds f.meet b c= bb
+          proof
+            let bb be set;
+            assume
+FG:         bb in b;
+            reconsider b1 = bb as Subset of T by FG;
+fh:         f is c=-monotone by T1;
+            b1` in a by FG,SETFAM_1:def 7; then
+            consider F being Subset of T such that
+J1:         F` = b1` & F is op-closed by PDT,J0;
+            F`` = b1`` by J1;
+            hence thesis by fh,FG,SETFAM_1:3,J1;
+          end;
+          hence thesis by SETFAM_1:5,xx,SETFAM_1:32;
+        end; then
+        meet b = f.meet b by f3; then
+        ua` is op-closed by f2; then
+        ua`` in the topology of T by PDT;
+        hence thesis;
+      end;
+    end;
+    for a,b being Subset of T st a in the topology of T
+      & b in the topology of T holds a /\ b in the topology of T
+    proof
+      let a,b be Subset of T;
+      assume
+Y0:   a in the topology of T & b in the topology of T; then
+      consider A being Subset of T such that
+Y1:   A` = a & A is op-closed by PDT;
+      consider B being Subset of T such that
+Y2:   B` = b & B is op-closed by PDT,Y0;
+zz:   f is extensive \/-preserving empty-preserving by T1;
+ZZ:   A \/ B is op-closed by zz,Y1,Y2;
+      a /\ b = (A \/ B)` by XBOOLE_1:53,Y1,Y2;
+      hence thesis by PDT,ZZ;
+    end;
+    hence thesis by XX,A2,PRE_TOPC:def 1;
+  end;
+end;
+
+theorem
+  for T being with_properly_defined_Topology 2TopStruct,
+      A being Subset of T holds
+    A is op-open iff A is open
+  proof
+    let T be with_properly_defined_Topology 2TopStruct;
+    let A be Subset of T;
+    set f = the SecondOp of T;
+    thus A is op-open implies A is open
+    proof
+      assume A is op-open; then
+      A in the topology of T by PDTo;
+      hence thesis by PRE_TOPC:def 2;
+    end;
+    assume A is open; then
+    A in the topology of T by PRE_TOPC:def 2; then
+    ex S being Subset of T st S = A & S is op-open by PDTo;
+    hence thesis;
+  end;
+
+registration
+  cluster with_preinterior -> TopSpace-like for
+    with_properly_defined_Topology 2TopStruct;
+  coherence
+  proof
+    let T be with_properly_defined_Topology 2TopStruct;
+    set f = the SecondOp of T;
+    assume T is with_preinterior; then
+T1: f is preinterior;
+    f is universe-preserving by T1; then
+xx: [#]T is op-open;
+A1: the carrier of T in the topology of T by PDTo,xx;
+A2: for a being Subset-Family of T st a c= the topology of T holds
+      union a in the topology of T
+    proof
+      let a be Subset-Family of T;
+      assume
+J0:   a c= the topology of T;
+      reconsider ua = union a as Subset of T;
+      set b = COMPLEMENT a;
+f3:     f is intensive by T1;
+        union a c= f.union a
+        proof
+          for bb being set st bb in a holds bb c= f.union a
+          proof
+            let bb be set;
+            assume
+FG:         bb in a;
+            reconsider b1 = bb as Subset of T by FG;
+fh:         f is c=-monotone by T1;
+            ex F being Subset of T st F = b1 & F is op-open by PDTo,J0,FG;
+            hence thesis by fh,FG,ZFMISC_1:74;
+          end;
+          hence thesis by ZFMISC_1:76;
+        end; then
+        union a = f.union a by f3; then
+        ua is op-open;
+        hence thesis by PDTo;
+    end;
+    for a,b being Subset of T st a in the topology of T
+      & b in the topology of T holds a /\ b in the topology of T
+    proof
+      let a,b be Subset of T;
+      assume
+Y0:   a in the topology of T & b in the topology of T; then
+      consider A being Subset of T such that
+Y1:   A = a & A is op-open by PDTo;
+      consider B being Subset of T such that
+Y2:   B = b & B is op-open by PDTo,Y0;
+zz:   f is intensive /\-preserving universe-preserving by T1;
+      A /\ B is op-open by zz,Y1,Y2;
+      hence thesis by PDTo,Y1,Y2;
+    end;
+    hence thesis by A1,A2,PRE_TOPC:def 1;
+  end;
+end;
+
+theorem
+  for T being with_closure with_properly_defined_topology 1TopStruct,
+      A being Subset of T holds
+    (the FirstOp of T).A = Cl A
+  proof
+    let T be with_closure with_properly_defined_topology 1TopStruct,
+        A be Subset of T;
+    set f = the FirstOp of T;
+    consider F being Subset-Family of T such that
+A2: (for C being Subset of T holds C in F iff C is closed & A c= C) &
+       Cl A = meet F by PRE_TOPC:16;
+B1: f is closure by CDef;
+Z1: Cl A c= f.A
+    proof
+      f is idempotent by B1; then
+      f.A is op-closed; then
+A3:   f.A is closed by Lem1;
+      f is extensive by B1; then
+      f.A in F by A3,A2;
+      hence thesis by A2,SETFAM_1:3;
+    end;
+    f is closure by CDef; then
+N2: f is c=-monotone;
+    defpred P[Subset of T] means $1 in F;
+    set G = { f.B where B is Subset of T : B in F };
+    deffunc T() = bool the carrier of T;
+    deffunc F(Element of T()) = f.$1;
+    deffunc G(Element of T()) = $1;
+TT: for B being Element of T() st P[B] holds F(B) = G(B)
+    proof
+      let B be Subset of T;
+      assume B in F; then
+      B is op-closed by Lem1,A2;
+      hence thesis;
+    end;
+    { F(B) where B is Element of T() : P[B] } =
+      { G(B) where B is Element of T() : P[B] } from FRAENKEL:sch 6(TT); then
+f3: F = G by Lemma;
+    [#]T is closed & A c= [#]T; then
+j1: G <> {} by f3,A2;
+    for Z1 being set st Z1 in G holds f.A c= Z1
+    proof
+      let Z1 be set;
+      assume Z1 in G; then
+      ex B being Subset of T st Z1 = f.B & B in F;
+      hence thesis by N2,A2;
+    end;
+    hence thesis by Z1,A2,f3,j1,SETFAM_1:5;
+  end;
+
+begin :: Introducing Rough Sets
+
+registration let R be Tolerance_Space;
+  cluster LAp R -> preinterior;
+  coherence
+  proof
+    set f = LAp R;
+    set T = R;
+A1: f.{}T = LAp {}T by ROUGHS_2:def 10 .= {}T by ROUGHS_1:18;
+    f. [#]T = LAp [#]T by ROUGHS_2:def 10 .= [#]T; then
+A2: f is empty-preserving universe-preserving by A1;
+    for A being Subset of T holds f.A c= A
+    proof
+      let A be Subset of T;
+      LAp A c= A by ROUGHS_1:12;
+      hence thesis by ROUGHS_2:def 10;
+    end; then
+A3: f is intensive;
+    for A,B being Subset of T holds f.(A /\ B) = f.A /\ f.B
+    proof
+      let A,B be Subset of T;
+      f.(A /\ B) = LAp (A /\ B) by ROUGHS_2:def 10
+                .= LAp A /\ LAp B by ROUGHS_1:22
+                .= f.A /\ LAp B by ROUGHS_2:def 10
+                .= f.A /\ f.B by ROUGHS_2:def 10;
+      hence thesis;
+    end; then
+    f is /\-preserving;
+    hence thesis by A2,A3;
+  end;
+  cluster UAp R -> preclosure;
+  coherence
+  proof
+    set f = UAp R;
+    set T = R;
+A1: f.{}T = UAp {}T by ROUGHS_2:def 11 .= {}T;
+    f. [#]T = UAp [#]T by ROUGHS_2:def 11 .= [#]T by ROUGHS_1:21; then
+A2: f is empty-preserving universe-preserving by A1;
+    for A being Subset of T holds A c= f.A
+    proof
+      let A be Subset of T;
+      A c= UAp A by ROUGHS_1:13;
+      hence thesis by ROUGHS_2:def 11;
+    end; then
+A3: f is extensive;
+    for A,B being Subset of T holds f.(A \/ B) = f.A \/ f.B
+    proof
+      let A,B be Subset of T;
+      f.(A \/ B) = UAp (A \/ B) by ROUGHS_2:def 11
+                .= UAp A \/ UAp B by ROUGHS_1:23
+                .= f.A \/ UAp B by ROUGHS_2:def 11
+                .= f.A \/ f.B by ROUGHS_2:def 11;
+      hence thesis;
+    end; then
+    f is \/-preserving;
+    hence thesis by A2,A3;
+  end;
+end;
+
+registration let R be Approximation_Space;
+  cluster LAp R -> interior;
+  coherence
+  proof
+    set f = LAp R;
+A:  f is preinterior;
+    f is idempotent
+    proof
+      for A being Subset of R holds f.A = f.(f.A)
+      proof
+        let A be Subset of R;
+        f.A = LAp A by ROUGHS_2:def 10
+           .= LAp LAp A by ROUGHS_1:33
+           .= f.LAp A by ROUGHS_2:def 10
+           .= f.(f.A) by ROUGHS_2:def 10;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+    hence thesis by A;
+  end;
+  cluster UAp R -> closure;
+  coherence
+  proof
+    set f = UAp R;
+A:  f is preclosure;
+    f is idempotent
+    proof
+      for A being Subset of R holds f.A = f.(f.A)
+      proof
+        let A be Subset of R;
+        f.A = UAp A by ROUGHS_2:def 11
+           .= UAp UAp A by ROUGHS_1:35
+           .= f.UAp A by ROUGHS_2:def 11
+           .= f.(f.A) by ROUGHS_2:def 11;
+        hence thesis;
+      end;
+      hence thesis;
+    end;
+    hence thesis by A;
+  end;
+end;
+
+definition let X be set,
+               f be Function of bool X, bool X;
+  func GenTop f -> Subset-Family of X means :GTDef:
+    for x being object holds
+      x in it iff ex S being Subset of X st S = x & S is f-closed;
+  existence
+  proof
+    defpred P[set] means
+      ex S being Subset of X st S = $1 & S is f-closed;
+    consider Y being Subset of bool X such that
+A1: for x being set holds
+      x in Y iff x in bool X & P[x] from SUBSET_1:sch 1;
+    take Y;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    let A1, A2 being Subset-Family of X such that
+A1: for x being object holds
+      x in A1 iff ex S being Subset of X st S = x & S is f-closed and
+A2: for x being object holds
+      x in A2 iff ex S being Subset of X st S = x & S is f-closed;
+    defpred P[object] means
+      ex S being Subset of X st S = $1 & S is f-closed;
+A3: for x being object holds x in A1 iff P[x] by A1;
+A4: for x being object holds x in A2 iff P[x] by A2;
+    A1 = A2 from XBOOLE_0:sch 2(A3,A4);
+    hence thesis;
+  end;
+end;
+
+theorem ImportTop:
+  for X being set,
+      f being Function of bool X, bool X st
+    f is preinterior holds
+    GenTop f is topology-like
+  proof
+    let X be set,
+        f be Function of bool X, bool X;
+    assume
+AA: f is preinterior;
+    set F = GenTop f;
+a1: ex S being Subset of X st S = X & S is f-closed
+    proof
+      take S = [#]X;
+      f is universe-preserving by AA;
+      hence thesis;
+    end;
+a0: ex S being Subset of X st S = {} & S is f-closed
+    proof
+      take S = {}X;
+      f is intensive by AA; then
+      f.S c= S;
+      hence thesis;
+    end;
+A2: F is cap-closed
+    proof
+      let a,b be Subset of X;
+      assume
+Y0:   a in F & b in F; then
+      consider A being Subset of X such that
+Y1:   A = a & A is f-closed by GTDef;
+      consider B being Subset of X such that
+Y2:   B = b & B is f-closed by GTDef,Y0;
+      f is intensive /\-preserving universe-preserving by AA; then
+      A /\ B is f-closed by Y1,Y2;
+      hence thesis by GTDef,Y1,Y2;
+    end;
+    for a being Subset-Family of X st a c= F holds union a in F
+    proof
+      let a be Subset-Family of X;
+      assume
+J0:   a c= F;
+      reconsider ua = union a as Subset of X;
+      set b = COMPLEMENT a;
+f3:     f is intensive by AA;
+        union a c= f.union a
+        proof
+          for bb being set st bb in a holds bb c= f.union a
+          proof
+            let bb be set;
+            assume
+FG:         bb in a;
+            reconsider b1 = bb as Subset of X by FG;
+fh:         f is c=-monotone by AA;
+            consider F being Subset of X such that
+J1:         F = b1 & F is f-closed by GTDef,FG,J0;
+            thus thesis by fh,J1,FG,ZFMISC_1:74;
+          end;
+          hence thesis by ZFMISC_1:76;
+        end; then
+        union a = f.union a by f3; then
+        ua is f-closed;
+        hence thesis by GTDef;
+    end; then
+    F is union-closed;
+    hence thesis by a0,a1,A2,GTDef;
+  end;
+
+registration let C be set,
+                 I be (Relation of C),
+                 f be topology-like Subset-Family of C;
+  cluster TopRelStr (#C,I,f#) -> TopSpace-like;
+  coherence
+  proof
+    set IT = TopRelStr (#C,I,f#);
+A1: C in the topology of IT by TLDef;
+    f is cap-closed union-closed by TLDef;
+    hence thesis by PRE_TOPC:def 1,A1;
+  end;
+end;
+
+registration
+  cluster TopSpace-like with_equivalence non empty for TopRelStr;
+  existence
+  proof
+    set R = the non empty Approximation_Space;
+    set C = the carrier of R;
+    set I = the InternalRel of R;
+    set t = the Subset-Family of C;
+    set f = LAp R;
+    set F = GenTop f;
+    set EX = TopRelStr (#C,I,F#);
+T1: F is topology-like by ImportTop;
+    EX is with_equivalence;
+    hence thesis by T1;
+  end;
+end;
+
+begin :: On Sequential Closure and Frechet Spaces
+
+definition let T be non empty TopSpace;
+  func Cl_Seq T -> map of T means :SeqDef:
+    for A being Subset of T holds
+      it.A = Cl_Seq A;
+  existence
+  proof
+    deffunc F(Subset of T) = Cl_Seq $1;
+    consider f being map of T such that
+A1: for A being Subset of T holds f.A = F(A) from FUNCT_2:sch 4;
+    take f;
+    let A be Subset of T;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof
+    let f1, f2 be map of T such that
+A1: for A being Subset of T holds f1.A = Cl_Seq A and
+A2: for A being Subset of T holds f2.A = Cl_Seq A;
+    for A being Subset of T holds f1.A = f2.A
+    proof
+      let A be Subset of T;
+      f1.A = Cl_Seq A by A1 .= f2.A by A2;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+  correctness;
+end;
+
+registration let T be non empty TopSpace;
+  cluster Cl_Seq T -> preclosure;
+  coherence
+  proof
+    set f = Cl_Seq T;
+z2: f.{}T = Cl_Seq {}T by SeqDef;
+z1: for A, B being Subset of T holds f.(A \/ B) = f.A \/ f.B
+    proof
+      let A, B be Subset of T;
+      f.(A \/ B) = Cl_Seq (A \/ B) by SeqDef
+         .= Cl_Seq A \/ Cl_Seq B by FRECHET2:19
+         .= f.A \/ Cl_Seq B by SeqDef
+         .= f.A \/ f.B by SeqDef;
+      hence thesis;
+    end;
+    for A being Subset of T holds A c= f.A
+    proof
+      let A be Subset of T;
+      A c= Cl_Seq A by FRECHET2:18;
+      hence thesis by SeqDef;
+    end; then
+    f is extensive \/-preserving empty-preserving by z1,z2,FRECHET2:17;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster Frechet for non empty TopSpace;
+  existence by FRECHET:33;
+end;
+
+registration let T be Frechet non empty TopSpace;
+  cluster Cl_Seq T -> closure;
+  coherence
+  proof
+    set f = Cl_Seq T;
+    for A being Subset of T holds f.(f.A) = f.A
+    proof
+      let A be Subset of T;
+      f.(f.A) = f.(Cl_Seq A) by SeqDef
+             .= Cl_Seq Cl_Seq A by SeqDef
+             .= Cl_Seq A by FRECHET2:21
+             .= f.A by SeqDef;
+      hence thesis;
+    end; then
+A1: f is idempotent;
+    f is preclosure;
+    hence thesis by A1;
+  end;
+end;
+
+begin :: Connections between Closures and Approximations
+
+definition let T be non empty TopRelStr;
+  attr T is Natural means
+    for x being Subset of T holds
+      x in the topology of T iff x is (LAp T)-closed;
+end;
+
+definition let T be non empty TopRelStr;
+  attr T is naturally_generated means
+    the topology of T = GenTop LAp T;
+end;
+
+theorem OpIsLap:
+  for T being non empty TopRelStr st T is naturally_generated holds
+    for A being Subset of T holds
+      A is open iff LAp A = A
+  proof
+    let T be non empty TopRelStr;
+    assume
+A1: T is naturally_generated;
+    let A be Subset of T;
+    thus A is open implies LAp A = A
+    proof
+      assume A is open; then
+      A in GenTop LAp T by A1,PRE_TOPC:def 2; then
+      ex S being Subset of T st S = A & S is (LAp T)-closed by GTDef;
+      hence thesis by ROUGHS_2:def 10;
+    end; ::::::
+    assume LAp A = A; then
+    A is (LAp T)-closed by ROUGHS_2:def 10; then
+    A in GenTop LAp T by GTDef;
+    hence thesis by PRE_TOPC:def 2,A1;
+  end;
+
+theorem Fiu:
+  for T being non empty TopRelStr,
+      R being non empty RelStr st
+        the RelStr of T = the RelStr of R holds
+    LAp T = LAp R
+  proof
+    let T be non empty TopRelStr,
+        R be non empty RelStr;
+    assume
+A0: the RelStr of T = the RelStr of R;
+    for x being Element of bool the carrier of R holds
+      (LAp T).x = (LAp R).x
+    proof
+      let x be Element of bool the carrier of R;
+      reconsider xx = x as Subset of R;
+A2:   (LAp R).xx = LAp xx by ROUGHS_2:def 10;
+      reconsider y = x as Subset of T by A0;
+      (LAp T).y = LAp y by ROUGHS_2:def 10;
+      hence thesis by A2,A0;
+    end;
+    hence thesis by A0;
+  end;
+
+theorem
+  for T being non empty TopRelStr,
+      R being non empty RelStr st
+        the RelStr of T = the RelStr of R holds
+    UAp T = UAp R
+  proof
+    let T be non empty TopRelStr,
+        R be non empty RelStr;
+    assume
+A0: the RelStr of T = the RelStr of R;
+    for x being Element of bool the carrier of R holds
+      (UAp T).x = (UAp R).x
+    proof
+      let x be Element of bool the carrier of R;
+      reconsider xx = x as Subset of R;
+A2:   (UAp R).xx = UAp xx by ROUGHS_2:def 11;
+      reconsider y = x as Subset of T by A0;
+      (UAp T).y = UAp y by ROUGHS_2:def 11;
+      hence thesis by A2,A0;
+    end;
+    hence thesis by A0;
+  end;
+
+registration
+  cluster Natural TopSpace-like with_equivalence for non empty TopRelStr;
+  existence
+  proof
+    set R = the non empty Approximation_Space;
+    set C = the carrier of R;
+    set I = the InternalRel of R;
+    set f = LAp R;
+    set F = GenTop f;
+    set EX = TopRelStr (#C,I,F#);
+    take EX;
+t1: F is topology-like by ImportTop;
+    set T = EX;
+    set U = the RelStr of T;
+XX: the RelStr of R = the RelStr of T;
+    for x being Subset of T holds
+      x in the topology of T iff x is (LAp T)-closed
+    proof
+      let x be Subset of T;
+      hereby assume x in the topology of T; then
+        ex S being Subset of T st S = x & S is f-closed by GTDef;
+        hence x is (LAp T)-closed by Fiu,XX;
+      end;
+      assume
+v4:   x is (LAp T)-closed;
+      reconsider y = x as Subset of R;
+      y is (LAp R)-closed by v4,Fiu,XX;
+      hence thesis by GTDef;
+    end;
+    hence thesis by t1;
+  end;
+end;
+
+registration
+  cluster naturally_generated -> TopSpace-like for with_equivalence
+    non empty TopRelStr;
+  coherence
+  proof
+    let R be with_equivalence non empty TopRelStr;
+    set f = LAp R;
+    set F = GenTop f;
+    assume
+tt: R is naturally_generated;
+a1: F is topology-like by ImportTop;
+    F is topology-like by ImportTop; then
+    F is cap-closed union-closed;
+    hence thesis by PRE_TOPC:def 1,a1,tt;
+  end;
+end;
+
+registration
+  cluster naturally_generated TopSpace-like with_equivalence for
+    non empty TopRelStr;
+  existence
+  proof
+    set R = the non empty Approximation_Space;
+    set C = the carrier of R;
+    set I = the InternalRel of R;
+    set F = GenTop LAp R;
+    set EX = TopRelStr (#C,I,F#);
+    take EX;
+T2: EX is with_equivalence non empty;
+    the RelStr of R = the RelStr of EX; then
+    EX is naturally_generated by Fiu;
+    hence thesis by T2;
+  end;
+end;
+
+OpenLap:
+  for T being naturally_generated non empty with_equivalence TopRelStr,
+      A being open Subset of T holds
+    LAp A = Int A
+  proof
+    let T be naturally_generated non empty with_equivalence TopRelStr,
+        A be open Subset of T;
+    Int A = A by TOPS_1:23;
+    hence thesis by OpIsLap;
+  end;
+
+registration
+  let T be naturally_generated non empty with_equivalence TopRelStr;
+  let A be Subset of T;
+  cluster LAp A -> open;
+  coherence
+  proof
+    LAp LAp A = LAp A by ROUGHS_1:33;
+    hence thesis by OpIsLap;
+  end;
+end;
+
+theorem LApInt:
+  for T being naturally_generated non empty with_equivalence TopRelStr,
+      A being Subset of T holds
+    LAp A = Int A
+  proof
+    let T be naturally_generated non empty with_equivalence TopRelStr,
+        A be Subset of T;
+    Int A c= LAp A
+    proof
+      let x be object;
+      assume
+A1:   x in Int A; then
+      reconsider xx = x as set;
+      consider Q being Subset of T such that
+A2:   Q is open & Q c= A & xx in Q by TOPS_1:22,A1;
+      Q = Int Q by A2,TOPS_1:23; then
+A3:   Q = LAp Q by OpenLap;
+      LAp Q c= LAp A by A2,ROUGHS_1:24;
+      hence thesis by A2,A3;
+    end;
+    hence thesis by TOPS_1:24,ROUGHS_1:12;
+  end;
+
+theorem UApCl1:
+  for T being naturally_generated non empty with_equivalence TopRelStr,
+      A being Subset of T holds
+    A is closed iff UAp A = A
+  proof
+    let T be naturally_generated non empty with_equivalence TopRelStr,
+        A be Subset of T;
+    thus A is closed implies UAp A = A
+    proof
+      assume A is closed; then
+Z:    (LAp A`)` = A`` by OpIsLap;
+      (LAp A`)` = (UAp A)`` by ROUGHS_1:28 .= UAp A;
+      hence thesis by Z;
+    end;
+    assume
+Z1: UAp A = A;
+    (LAp A`)` = (UAp A)`` by ROUGHS_1:28 .= UAp A;
+    hence thesis by Z1;
+  end;
+
+registration
+  let T be naturally_generated non empty with_equivalence TopRelStr,
+      A be Subset of T;
+  cluster UAp A -> closed;
+  coherence
+  proof
+    UAp UAp A = UAp A by ROUGHS_1:35;
+    hence thesis by UApCl1;
+  end;
+end;
+
+theorem UApCl:
+  for T being naturally_generated non empty with_equivalence TopRelStr,
+      A being Subset of T holds
+    UAp A = Cl A
+  proof
+    let T be naturally_generated non empty with_equivalence TopRelStr,
+        A be Subset of T;
+    UAp A c= Cl A
+    proof
+      let x be object;
+      assume
+A1:   x in UAp A; then
+      reconsider xx = x as set;
+      for C being Subset of T st C is closed & A c= C holds xx in C
+      proof
+        let C be Subset of T;
+        assume C is closed; then
+B3:     UAp C = C by UApCl1;
+        assume A c= C; then
+        UAp A c= UAp C by ROUGHS_1:25;
+        hence thesis by B3,A1;
+      end;
+      hence thesis by PRE_TOPC:15,A1;
+    end;
+    hence thesis by TOPS_1:5,ROUGHS_1:13;
+  end;
+
+theorem
+  for T being naturally_generated non empty with_equivalence TopRelStr,
+      A being Subset of T holds
+    BndAp A = Fr A
+  proof
+    let T be naturally_generated non empty with_equivalence TopRelStr,
+        A be Subset of T;
+    UAp A = Cl A & Int A = LAp A by UApCl,LApInt;
+    hence thesis;
+  end;
+
+registration
+  let T be with_equivalence naturally_generated non empty TopRelStr;
+  let A be Subset of T;
+  identify Int A with LAp A;
+  correctness by LApInt;
+  identify Cl A with UAp A;
+  correctness by UApCl;
+  identify LAp A with Int A;
+  correctness;
+  identify UAp A with Cl A;
+  correctness;
+  identify BndAp A with Fr A;
+  correctness;
+  identify Fr A with BndAp A;
+  correctness;
+end;
+
+begin :: Isomichi Results Reuse
+
+theorem
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    A is 1st_class iff LAp UAp A c= UAp LAp A;
+
+theorem FirstApprox:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    A is 1st_class iff UAp A c= LAp A
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+A2: LAp UAp A = UAp UAp A by ROUGHS_1:36 .= UAp A;
+    UAp LAp A = LAp LAp A by ROUGHS_1:34 .= LAp A;
+    hence thesis by A2;
+  end;
+
+theorem FirstIsExact:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    A is 1st_class iff A is exact
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+    thus A is 1st_class implies A is exact
+    proof
+      assume A is 1st_class; then
+      LAp A = UAp A by ROUGHS_1:14,FirstApprox; then
+      LAp A = A by ROUGHS_1:13,12;
+      hence thesis;
+    end;
+    assume A is exact;
+    hence thesis by ROUGHS_1:16;
+  end;
+
+registration
+  let T be with_equivalence naturally_generated non empty TopRelStr;
+  cluster 1st_class -> exact for Subset of T;
+  coherence by FirstIsExact;
+  cluster exact -> 1st_class for Subset of T;
+  coherence by FirstIsExact;
+end;
+
+theorem SecondClass:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    A is 2nd_class iff LAp A c< UAp A
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+a2: LAp UAp A = UAp UAp A by ROUGHS_1:36 .= UAp A;
+    UAp LAp A = LAp LAp A by ROUGHS_1:34 .= LAp A;
+    hence thesis by a2;
+  end;
+
+theorem SecondRough:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    A is 2nd_class iff A is rough
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+    thus A is 2nd_class implies A is rough;
+    assume
+C1: A is rough;
+    LAp A <> UAp A
+    proof
+      assume LAp A = UAp A; then
+      LAp A = A by ROUGHS_1:13,12;
+      hence thesis by C1;
+    end; then
+    LAp A c< UAp A by ROUGHS_1:14;
+    hence thesis by SecondClass;
+  end;
+
+registration
+  let T be with_equivalence naturally_generated non empty TopRelStr;
+  cluster 2nd_class -> rough for Subset of T;
+  coherence;
+  cluster rough -> 2nd_class for Subset of T;
+  coherence by SecondRough;
+end;
+
+theorem
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    Cl Int A, Cl A are_c=-comparable by ROUGHS_1:25,12;
+
+theorem ApproxWithout:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    not A is 3rd_class
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+      A be Subset of T;
+A1: A is 3rd_class iff Cl Int A, Int Cl A are_c=-incomparable;
+    LAp UAp A = UAp UAp A by ROUGHS_1:36 .= UAp A;
+    hence thesis by ROUGHS_1:25,12,A1;
+  end;
+
+notation let T be TopSpace;
+  antonym T is without_3rd_class_subsets for
+    T is with_3rd_class_subsets;
+end;
+
+registration
+  cluster -> without_3rd_class_subsets for
+    with_equivalence naturally_generated non empty TopRelStr;
+  coherence by ApproxWithout;
+  cluster without_3rd_class_subsets for TopSpace;
+  existence
+  proof
+    take T = the with_equivalence naturally_generated non empty TopRelStr;
+    thus thesis;
+  end;
+end;
+
+registration
+  let T be TopSpace,
+      A be 1st_class Subset of T;
+  cluster Border A -> empty;
+  coherence by ISOMICHI:37;
+end;
+
+registration
+  let T be with_equivalence naturally_generated non empty TopRelStr,
+      A be Subset of T;
+  cluster Cl A -> open;
+  coherence
+  proof
+    LAp UAp A = UAp UAp A by ROUGHS_1:36 .= UAp A;
+    hence thesis;
+  end;
+  cluster Int A -> closed;
+  coherence
+  proof
+    UAp LAp A = LAp LAp A by ROUGHS_1:34 .= LAp A;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster -> extremally_disconnected for
+    with_equivalence naturally_generated non empty TopRelStr;
+  coherence;
+end;
+
+begin :: Reexamination of Kuratowski 14 Sets for Approximation Spaces
+::$N Kuratowski's closure-complement problem
+
+theorem Seven1:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    Kurat7Set A = { A, Cl A, Int A }
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+A1: Cl Int Cl A = Cl A by ROUGHS_1:30;
+    Kurat7Set A = { A } \/ { Int A, Int Cl A, Int Cl Int A } \/ { Cl A, Cl
+     Int A, Cl Int Cl A } by KURATO_1:8
+     .= { A } \/ { Int A, Int Cl A, Int A } \/ { Cl A, Cl
+     Int A, Cl Int Cl A } by ROUGHS_1:31
+      .= { A } \/ { Int A, Int A, Int Cl A } \/
+         { Cl A, Cl Int A, Cl A } by ENUMSET1:57,A1
+      .= { A } \/ { Int A, Int Cl A } \/
+         { Cl A, Cl Int A, Cl A } by ENUMSET1:30
+      .= { A } \/ { Int A, Int Cl A } \/
+         { Cl A, Cl A, Cl Int A } by ENUMSET1:57
+      .= { A } \/ { Int A, Int Cl A } \/ { Cl A, Cl Int A } by ENUMSET1:30
+      .= { A } \/ { Int A, Cl Cl A } \/ { Cl A, Cl Int A } by ROUGHS_1:36
+      .= { A } \/ { Int A, Cl A } \/ { Cl A, Int Int A } by ROUGHS_1:34
+      .= { A } \/ ({ Cl A, Int A } \/ { Cl A, Int A }) by XBOOLE_1:4
+      .= { A, Cl A, Int A } by ENUMSET1:2;
+    hence thesis;
+  end;
+
+theorem
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    card Kurat7Set A <= 3
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+    Kurat7Set A = { A, Cl A, Int A } by Seven1;
+    hence thesis by CARD_2:51;
+  end;
+
+theorem Fourteen:
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    Kurat14Set A = { A, UAp A, (UAp A)`, A`, (LAp A)`, LAp A }
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+Z1: now let A be Subset of T;
+      A-`-` = (LAp (A-))`` by ROUGHS_1:29; then
+      A-`-` = UAp UAp A by ROUGHS_1:36
+           .= UAp A;
+      hence Kurat14Part A = { A, A-, A-`, A-`} \/ { A-, A-, A-` }
+            by ENUMSET1:19
+        .= { A, A-, A-`, A-`} \/ { A-, A-` } by ENUMSET1:30
+        .= { A, A- } \/ { A-`, A-`} \/ { A-, A-` } by ENUMSET1:5
+        .= { A, A- } \/ { A-` } \/ { A-, A-` } by ENUMSET1:29
+        .= { A, A- } \/ ({ A-` } \/ { A-, A-` }) by XBOOLE_1:4
+        .= { A, A- } \/ { A-`, A-, A-` } by ENUMSET1:2
+        .= { A, A- } \/ { A-, A-`, A-` } by ENUMSET1:58
+        .= { A, A- } \/ ({ A- } \/ { A-`, A-` }) by ENUMSET1:2
+        .= { A, A- } \/ ({ A- } \/ { A-` }) by ENUMSET1:29
+        .= { A, A- } \/ { A- } \/ { A-` } by XBOOLE_1:4
+        .= { A, A-, A- } \/ { A-` } by ENUMSET1:3
+        .= { A-, A-, A } \/ { A-` } by ENUMSET1:59
+        .= { A, A- } \/ { A-` } by ENUMSET1:30
+        .= { A, A-, A-` } by ENUMSET1:3;
+    end; then
+Z2: Kurat14Part A` = { A`, A`-, A`-` };
+z3: Kurat14Part A = { A, A-, A-` } by Z1;
+    A`-` = (LAp A)`` by ROUGHS_1:29;
+    hence thesis by ENUMSET1:13,z3,Z2;
+  end;
+
+theorem
+  for T being with_equivalence naturally_generated non empty TopRelStr,
+      A being Subset of T holds
+    card Kurat14Set A <= 6
+  proof
+    let T be with_equivalence naturally_generated non empty TopRelStr,
+        A be Subset of T;
+    Kurat14Set A = { A, UAp A, (UAp A)`, A`, (LAp A)`, LAp A }
+      by Fourteen;
+    hence thesis by CARD_2:54;
+  end;
+

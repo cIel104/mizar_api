@@ -1,0 +1,1552 @@
+:: The Semantics of MML Query -- Ordering
+::  by Grzegorz Bancerek
+::
+:: Received December 1, 2012
+:: Copyright (c) 2012-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies MMLQUER2, RELAT_1, XBOOLE_0, SUBSET_1, AOFA_000, RELAT_2, TARSKI,
+      FUNCT_1, NUMBERS, MMLQUERY, ARYTM_3, ORDINAL1, PARTFUN1, ORDERS_1,
+      ORDINAL4, ZFMISC_1, XXREAL_0, FINSEQ_1, FINSEQ_4, SETFAM_1, CARD_1,
+      NAT_1, FUNCT_7, WELLORD1, REWRITE1, FINSET_1, PEPIN, AFINSQ_1, WELLORD2,
+      ORDINAL2;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, RELAT_1, AOFA_000,
+      RELAT_2, FUNCT_1, FINSET_1, FINSEQ_1, CARD_1, NAT_1, MEMBERED, ORDERS_1,
+      ORDINAL1, NUMBERS, PARTFUN1, FUNCT_2, MMLQUERY, ORDINAL2, ORDINAL4,
+      AFINSQ_1, XXREAL_0, XCMPLX_0, WELLORD1, FUNCT_7, RELSET_1, REWRITE1,
+      WELLORD2, TOLER_1;
+ constructors TARSKI, XBOOLE_0, SUBSET_1, RELAT_1, RELAT_2, MMLQUERY, XXREAL_0,
+      ORDINAL1, VALUED_0, ORDERS_1, FINSEQ_4, XCMPLX_0, FUNCT_1, FUNCT_7,
+      ZFMISC_1, WELLORD2, PARTFUN1, FUNCT_2, NUMBERS, NAT_1, REWRITE1,
+      MEMBERED, RELSET_1, WELLORD1, TOLER_1, ORDINAL2, ORDINAL3, ORDINAL4;
+ registrations RELAT_1, RELSET_1, ARMSTRNG, VALUED_0, ARROW, XXREAL_0, CARD_1,
+      SUBSET_1, XCMPLX_0, ORDINAL1, NAT_1, FINSET_1, XBOOLE_0, AFINSQ_1;
+ requirements BOOLE, SUBSET, NUMERALS;
+ definitions TARSKI, XBOOLE_0, RELAT_1, RELAT_2, WELLORD1, FUNCT_1, PARTFUN1,
+      REWRITE1, MMLQUERY;
+ equalities RELAT_1, ORDINAL1;
+ expansions XBOOLE_0, RELAT_2, WELLORD1, FUNCT_1, REWRITE1, MMLQUERY;
+ theorems XBOOLE_0, XBOOLE_1, ZFMISC_1, RELAT_1, RELAT_2, ORDERS_1, MMLQUERY,
+      NAT_1, XXREAL_0, SETFAM_1, AFINSQ_1, ORDINAL3, ORDINAL1, FUNCT_1, CARD_2,
+      TARSKI, FINSEQ_3, FUNCT_7, RELSET_1, FUNCT_2, AFINSQ_2, RELSET_2,
+      WELLORD1, WELLORD2, PARTFUN1, CARD_1, ORDINAL4, XTUPLE_0;
+ schemes NAT_1, RELAT_1, RECDEF_1, FINSET_1, FUNCT_1;
+
+begin :: Preliminaries
+
+reserve X for set, R,R1,R2 for Relation;
+reserve x,y,z for set;
+reserve n,m,k for Nat;
+
+theorem
+  for R being Relation of X holds field R c= X
+  proof
+    let R be Relation of X;
+    dom R c= X & rng R c= X;
+    hence field R c= X by XBOOLE_1:8;
+  end;
+
+theorem Th2:
+  for R being Relation of X st x,y in R holds x in X & y in X
+  by ZFMISC_1:87;
+
+theorem Th3:
+  for X,Y being set holds (id X).:Y = X /\ Y
+  proof let X,Y be set;
+    thus (id X).:Y c= X /\ Y
+    proof let x be object; assume x in (id X).:Y; then
+      consider y be object such that
+A1:   [y,x] in id X & y in Y by RELAT_1:def 13;
+      x = y & y in X by A1,RELAT_1:def 10;
+      hence thesis by A1,XBOOLE_0:def 4;
+    end;
+    let x be object; assume x in X /\ Y; then
+A2: x in X & x in Y by XBOOLE_0:def 4; then
+    [x,x] in id X by RELAT_1:def 10;
+    hence thesis by A2,RELAT_1:def 13;
+  end;
+
+theorem Th4:
+  [x,y] in R |_2 X iff x in X & y in X & [x,y] in R
+  proof
+    R |_2 X = X|`(R|X) by WELLORD1:11; then
+    [x,y] in R |_2 X iff y in X & [x,y] in R|X by RELAT_1:def 12;
+    hence thesis by RELAT_1:def 11;
+  end;
+
+::$CT
+
+theorem Th6:
+  for R being total reflexive Relation of X
+  for S being Subset of X holds
+  R |_2 S is total reflexive Relation of S
+  proof
+    let R be total reflexive Relation of X;
+    let S be Subset of X;
+    set Q = R |_2 S;
+    dom Q = S
+    proof
+      thus dom Q c= S;
+      let x be object; assume
+A1:   x in S; then x in X; then
+      x in field R & R is_reflexive_in field R
+      by RELAT_2:def 9,ORDERS_1:12; then
+      [x,x] in R; then
+      [x,x] in Q by A1,Th4;
+      hence thesis by XTUPLE_0:def 12;
+    end;
+    hence R |_2 S is total reflexive Relation of S
+    by PARTFUN1:def 2,WELLORD1:15;
+  end;
+
+::$CT
+
+Th7: ::: AFINSQ_1:26 generalized = ORDINAL4:2
+  for f,g being Sequence holds rng(f^g) = rng f \/ rng g by ORDINAL4:2;
+
+definition
+  let R;
+  redefine attr R is transitive means :Def1:
+  x,y in R & y,z in R implies x,z in R;
+  compatibility
+  proof
+    thus R is transitive implies
+    for x,y,z be set holds x,y in R & y,z in R implies x,z in R
+    by RELAT_2:31;
+    assume
+A1: x,y in R & y,z in R implies x,z in R;
+    let x,y,z be object;
+    reconsider xx = x, yy = y, zz = z as set by TARSKI:1;
+    assume
+    x in field R & y in field R & z in field R & [x,y] in R & [y,z] in R; then
+    xx,yy in R & yy,zz in R;
+    hence thesis by A1,MMLQUERY:def 1;
+  end;
+  redefine attr R is antisymmetric means :Def2:
+  x,y in R & y,x in R implies x = y;
+  compatibility
+  proof
+    thus R is antisymmetric implies for x,y st x,y in R & y,x in R holds x = y
+    proof
+      assume
+A2:   for x,y be object st x in field R & y in field R &
+      [x,y] in R & [y,x] in R holds x = y;
+      let x,y be set;
+      assume
+A3:   [x,y] in R & [y,x] in R; then
+      x in field R & y in field R by RELAT_1:15;
+      hence thesis by A2,A3;
+    end;
+    assume
+A4: for x,y be set st x,y in R & y,x in R holds x = y;
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    assume
+    x in field R & y in field R & [x,y] in R & [y,x] in R; then
+    xx,yy in R & yy,xx in R;
+    hence thesis by A4;
+  end;
+end;
+
+theorem
+  for X being non empty set
+  for R being total connected Relation of X
+  for x,y being Element of X st x <> y holds x,y in R or y,x in R
+  proof
+    let X be non empty set;
+    let R be total connected Relation of X;
+    let x,y be Element of X;
+    field R = X by ORDERS_1:12; then
+    x <> y implies [x,y] in R or [y,x] in R by RELAT_2:def 6,def 14;
+    hence thesis;
+  end;
+
+begin :: Composition of orders
+
+definition
+  let R1,R2 be Relation;
+  func R1\,R2 -> Relation equals
+    R1 \/ (R2 \ R1~);
+  coherence;
+end;
+
+theorem Th9:
+  x,y in R1\,R2 iff x,y in R1 or y,x nin R1 & x,y in R2
+  proof
+    set R={[a,b] where a,b is Element of field R2: b,a nin R1 & a,b in R2};
+    thus x,y in R1\,R2 implies x,y in R1 or y,x nin R1 & x,y in R2
+    proof
+      assume [x,y] in R1\,R2; then
+      [x,y] in R1 or [x,y] in (R2 \ R1~) by XBOOLE_0:def 3; then
+      [x,y] in R1 or ([x,y] in R2 & not [x,y] in R1~) by XBOOLE_0:def 5; then
+A1:    [x,y] in R1 or ([x,y] in R2 & not [y,x] in R1) by RELAT_1:def 7;
+      reconsider xx=x, yy=y as set;
+      xx,yy in R1 or (xx,yy in R2 & not yy,xx in R1)
+        by A1;
+      hence thesis;
+    end;
+    assume x,y in R1 or y,x nin R1 & x,y in R2; then
+    [x,y] in R1 or [x,y] in R2 & not [y,x] in R1; then
+    [x,y] in R1 or [x,y] in R2 & not [x,y] in R1~ by RELAT_1:def 7; then
+    [x,y] in R1 or [x,y] in R2 \ R1~ by XBOOLE_0:def 5;
+    hence [x,y] in R1\,R2 by XBOOLE_0:def 3;
+  end;
+
+theorem Th10:
+  field (R1\,R2) = field R1 \/ field R2
+  proof
+    thus field (R1\,R2) c= field R1 \/ field R2
+    proof
+      let z be object; assume z in field (R1\,R2); then
+      z in dom (R1\,R2) or z in rng (R1\,R2) by XBOOLE_0:def 3; then
+      consider y be object such that
+A1:   [z,y] in R1\,R2 or [y,z] in R1\,R2 by XTUPLE_0:def 12,def 13;
+      reconsider zz = z, y as set by TARSKI:1;
+      zz,y in R1\,R2 or y,zz in R1\,R2 by A1; then
+      zz,y in R1 or y,zz in R1 or zz,y in R2 or y,zz in R2 by Th9; then
+      [z,y] in R1 or [y,z] in R1 or [z,y] in R2 or [y,z] in R2; then
+      z in field R1 or z in field R2 by RELAT_1:15;
+      hence thesis by XBOOLE_0:def 3;
+    end;
+    let z be object;
+    assume z in field R1 \/ field R2; then
+    z in field R1 or z in field R2 by XBOOLE_0:def 3; then
+    z in dom R1 or z in rng R1 or z in dom R2 or z in rng R2 by XBOOLE_0:def 3;
+    then
+    consider y be object such that
+A2: [z,y] in R1 or [y,z] in R1 or [z,y] in R2 or [y,z] in R2
+    by XTUPLE_0:def 12,def 13;
+    reconsider zz = z, y as set by TARSKI:1;
+    zz,y in R1 or y,zz in R1 or zz,y in R2 & y,zz nin R1 or y,zz in R1 or
+    y,zz in R2 & zz,y nin R1 or zz,y in R1 by A2; then
+    zz,y in R1\,R2 or y,zz in R1\,R2 by Th9; then
+    [z,y] in R1\,R2 or [y,z] in R1\,R2;
+    hence thesis by RELAT_1:15;
+  end;
+
+theorem Th11:
+  R1\,R2 c= R1 \/ R2
+  proof
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    assume [x,y] in R1\,R2; then
+    xx,yy in R1\,R2; then
+    xx,yy in R1 or xx,yy in R2 by Th9; then
+    [x,y] in R1 or [x,y] in R2;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+
+definition
+  let X be set;
+  let R1,R2 be Relation of X;
+  redefine func R1\,R2 -> Relation of X;
+  coherence
+  proof
+    R1\,R2 c= R1 \/ R2 by Th11;
+    hence thesis by XBOOLE_1:1;
+  end;
+end;
+
+registration
+  let R1,R2 be reflexive Relation;
+  cluster R1\,R2 -> reflexive;
+  coherence
+  proof
+    let z be object; assume z in field(R1\,R2); then
+    z in field R1 \/ field R2 by Th10; then
+    z in field R1 or z in field R2 by XBOOLE_0:def 3; then
+A1: [z,z] in R1 or [z,z] in R2 & [z,z] nin R1 by RELAT_2:def 1,def 9;
+    reconsider zz = z as set by TARSKI:1;
+    zz,zz in R1 or zz,zz in R2 & zz,zz nin R1 by A1; then
+    zz,zz in R1\,R2 by Th9;
+    hence thesis;
+  end;
+end;
+
+registration
+  let R1,R2 be antisymmetric Relation;
+  cluster R1\,R2 -> antisymmetric;
+  coherence
+  proof
+    let z,y;
+    assume
+A1: [z,y] in R1\,R2 & [y,z] in R1\,R2;
+    z,y in R1\,R2 & y,z in R1\,R2 by A1; then
+    (z,y in R1 or y,z nin R1 & z,y in R2) &
+    (y,z in R1 or z,y nin R1 & y,z in R2) by Th9; then
+    [z,y] in R1 & [y,z] in R1 or [z,y] in R2 & [y,z] in R2; then
+    [z,y] in R1 & [y,z] in R1 & y in field R1 & z in field R1 or
+    [z,y] in R2 & [y,z] in R2 & y in field R2 & z in field R2 by RELAT_1:15;
+    hence y = z by RELAT_2:def 4,def 12;
+  end;
+end;
+
+definition
+  let X be set;
+  let R be Relation of X;
+  attr R is beta-transitive means :Def4:
+  for x,y being Element of X st x,y nin R
+  for z being Element of X holds (x,z in R implies y,z in R);
+end;
+
+registration
+  let X be set;
+  cluster connected total transitive -> beta-transitive for Relation of X;
+  coherence
+  proof
+    let R be Relation of X;
+    assume
+A1: R is connected total transitive; then
+    field R = X by ORDERS_1:12; then
+A2: R is_connected_in X by A1;
+    let x,y be Element of X;
+    assume
+A3: x,y nin R;
+    let z be Element of X;
+    assume
+A4: [x,z] in R; then
+    x in X by ZFMISC_1:87; then
+    x <> y implies [x,y] in R or [y,x] in R by A2; then
+    (x = y or y,x in R) & x,z in R by A3,A4;
+    hence y,z in R by A1;
+  end;
+end;
+
+registration
+  let X be set;
+  cluster connected for Order of X;
+  existence
+  proof
+    set R = the connected Order of X;
+    take R; thus thesis;
+  end;
+end;
+
+registration
+  let X be set;
+  let R1 be beta-transitive transitive Relation of X;
+  let R2 be transitive Relation of X;
+  cluster R1\,R2 -> transitive;
+  coherence
+  proof
+    let x,y,z be set;
+    assume
+A1: x,y in R1\,R2 & y,z in R1\,R2; then
+    [x,y] in R1\,R2 & [y,z] in R1\,R2; then
+    reconsider x,y,z as Element of X by ZFMISC_1:87;
+    per cases by A1,Th9;
+    suppose
+      x,y in R1 & y,z in R1 or z,x nin R1 & x,y in R2 & y,z in R2; then
+      x,z in R1 or z,x nin R1 & x,z in R2 by Def1;
+      hence thesis by Th9;
+    end;
+    suppose y,x nin R1 & z,y nin R1 & z,x in R1;
+      hence thesis by Def4;
+    end;
+    suppose
+A2:   x,y in R1 & z,y nin R1 & y,z in R2;
+      assume not thesis; then
+      x,z nin R1 by Th9;
+      hence contradiction by A2,Def4;
+    end;
+    suppose
+A3:   y,z in R1 & y,x nin R1 & x,y in R2;
+      assume not thesis; then
+      x,z nin R1 by Th9;
+      hence contradiction by A3,Def4;
+    end;
+  end;
+end;
+
+registration
+  let X be set;
+  let R1 be Relation of X;
+  let R2 be total reflexive Relation of X;
+  cluster R1\,R2 -> total reflexive for Relation of X;
+  coherence
+  proof
+    field R2 = X by ORDERS_1:12; then
+A1: R2 is_reflexive_in X by RELAT_2:def 9;
+    let R be Relation of X; assume
+A2: R = R1\,R2;
+    thus
+A3: R is total
+    proof
+      thus dom R c= X;
+      let x be object; assume
+A4:   x in X; then
+      reconsider x as Element of X;
+      [x,x] in R2 by A4,A1; then
+      x,x in R1 or not x,x in R1 & x,x in R2; then
+      x,x in R by A2,Th9; then
+      [x,x] in R;
+      hence thesis by XTUPLE_0:def 12;
+    end; then
+A5: field R = X by ORDERS_1:12;
+    let x be object; assume
+A6: x in field R; then
+    reconsider x as Element of X by A3,ORDERS_1:12;
+    [x,x] in R2 by A6,A5,A1; then
+    x,x in R1 or not x,x in R1 & x,x in R2; then
+    x,x in R by A2,Th9;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X be set;
+  let R1 be Relation of X;
+  let R2 be total connected reflexive Relation of X;
+  cluster R1\,R2 -> connected;
+  coherence
+  proof
+    set R = R1\,R2;
+A1: field R = X & field R2 = X by ORDERS_1:12; then
+A2: R2 is_connected_in X by RELAT_2:def 14;
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    assume x in field R & y in field R & x <> y; then
+    [x,y] in R2 or [y,x] in R2 by A1,A2; then
+    xx,yy in R1 or yy,xx nin R1 & xx,yy in R2 or yy,xx in R1 or xx,yy nin R1
+    & yy,xx in R2;
+    then xx,yy in R or yy,xx in R by Th9;
+    hence thesis;
+  end;
+end;
+
+theorem
+  (R\,R1)\,R2 = R\,(R1\,R2)
+  proof
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    thus [x,y] in (R\,R1)\,R2 implies [x,y] in R\,(R1\,R2)
+    proof
+      assume [x,y] in (R\,R1)\,R2; then
+      xx,yy in (R\,R1)\,R2; then
+      xx,yy in R\,R1 or yy,xx nin R\,R1 & xx,yy in R2 by Th9; then
+      xx,yy in R or yy,xx nin R & xx,yy in R1 or
+      yy,xx nin R & (xx,yy in R or yy,xx nin R1) & xx,yy in R2 by Th9; then
+      xx,yy in R or yy,xx nin R & xx,yy in R1\,R2 by Th9; then
+      xx,yy in R\,(R1\,R2) by Th9;
+      hence thesis;
+    end;
+    assume [x,y] in R\,(R1\,R2); then
+    xx,yy in R\,(R1\,R2); then
+    xx,yy in R or yy,xx nin R & xx,yy in R1\,R2 by Th9; then
+    xx,yy in R or yy,xx nin R & (xx,yy in R1 or yy,xx nin R1 &
+      xx,yy in R2) by Th9;then
+    xx,yy in R\,R1 or yy,xx nin R\,R1 & xx,yy in R2 by Th9; then
+    xx,yy in (R\,R1)\,R2 by Th9;
+    hence thesis;
+  end;
+
+theorem
+  for R being connected reflexive total Relation of X
+  for R2 being Relation of X holds R\,R2 = R
+  proof
+    let R be connected reflexive total Relation of X;
+    let R2 be Relation of X;
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    hereby assume [x,y] in R\,R2; then xx,yy in R\,R2; then
+      xx,yy in R or yy,xx nin R & xx,yy in R2 by Th9; then
+      [x,y] in R or [y,x] nin R & x in X & y in X & field R = X &
+      R is_connected_in field R & R is_reflexive_in field R & (x = y or x <> y)
+      by Th2,RELAT_2:def 9,def 14,ORDERS_1:12;
+      hence [x,y] in R;
+    end;
+    assume [x,y] in R; then
+    xx,yy in R; then
+    xx,yy in R\,R2 by Th9;
+    hence thesis;
+  end;
+
+begin :: "number of" ordering
+
+definition
+  let X be set;
+  let f be Function of X,NAT;
+  func value_of(f) -> Relation of X means :Def5:
+  x,y in it iff x in X & y in X & f.x < f.y;
+  existence
+  proof
+    defpred P[object,object] means f.$1 < f.$2;
+    consider R being Relation such that
+A1: for x,y be object holds
+      [x,y] in R iff x in X & y in X & P[x,y] from RELAT_1:sch 1;
+    R c= [:X,X:]
+    proof
+      let x,y be object; assume [x,y] in R; then
+      x in X & y in X by A1;
+      hence [x,y] in [:X,X:] by ZFMISC_1:87;
+    end; then
+    reconsider R as Relation of X;
+    take R;
+    let x,y;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof let R1,R2 be Relation of X such that
+A2: x,y in R1 iff x in X & y in X & f.x < f.y and
+A3: x,y in R2 iff x in X & y in X & f.x < f.y;
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    [x,y] in R1 iff xx,yy in R1; then
+    [x,y] in R1 iff x in X & y in X & f.x < f.y by A2; then
+    [x,y] in R1 iff xx,yy in R2 by A3;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X be set;
+  let f be Function of X,NAT;
+  cluster value_of f -> antisymmetric transitive beta-transitive;
+  coherence
+  proof
+    set R = value_of f;
+    thus R is antisymmetric
+    proof
+      let x,y; assume x,y in R & y,x in R; then
+      f.x < f.y & f.y < f.x by Def5;
+      hence thesis;
+    end;
+    thus R is transitive
+    proof
+      let x,y,z; assume x,y in R & y,z in R; then
+A1:   x in X & z in X & f.x < f.y & f.y < f.z by Def5; then
+      f.x < f.z by XXREAL_0:2;
+      hence thesis by A1,Def5;
+    end;
+    let x,y be Element of X such that
+A2: x,y nin R;
+    let z be Element of X; assume
+    x,z in R; then
+A3: x in X & f.x < f.z by Def5; then
+    f.x >= f.y by A2,Def5; then
+    f.y < f.z by A3,XXREAL_0:2;
+    hence y,z in R by A3,Def5;
+  end;
+end;
+
+definition
+  let X be finite set;
+  let O be Operation of X;
+  func number_of O -> Function of X,NAT means :Def6:
+  for x being Element of X holds it.x = card (x.O);
+  existence
+  proof
+    deffunc F(object) = card Im(O,$1);
+    consider f being Function such that
+A1: dom f = X & for x be object st x in X holds f.x = F(x)
+      from FUNCT_1:sch 3;
+    rng f c= NAT
+    proof
+      let y be object; assume y in rng f; then
+      consider x be object such that
+A2:   x in dom f & y = f.x by FUNCT_1:def 3;
+      reconsider x as Element of X by A1,A2;
+      y = card(x.O) by A1,A2;
+      hence thesis;
+    end; then
+    reconsider f as Function of X,NAT by A1,FUNCT_2:2;
+    take f; let x be Element of X;
+    per cases;
+    suppose X = {}; then
+      f.x = 0 & x.O = {} by A1,FUNCT_1:def 2;
+      hence thesis;
+    end;
+    suppose X <> {};
+      hence thesis by A1;
+    end;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of X,NAT such that
+A3: for x being Element of X holds f1.x = card (x.O) and
+A4: for x being Element of X holds f2.x = card (x.O);
+A5: dom f1 = X & dom f2 = X by FUNCT_2:def 1;
+    now let x be object; assume x in X; then
+      reconsider y = x as Element of X;
+      thus f1.x = card(y.O) by A3 .= f2.x by A4;
+    end;
+    hence thesis by A5;
+  end;
+end;
+
+theorem
+  for X being finite set
+  for O being Operation of X, x,y being Element of X holds
+  x,y in value_of number_of O iff card(x.O) < card(y.O)
+  proof
+    let X be finite set;
+    let O be Operation of X;
+    let x,y be Element of X;
+    hereby
+      assume x,y in value_of number_of O; then
+      (number_of O).x < (number_of O).y by Def5; then
+      card(x.O) < (number_of O).y by Def6;
+      hence card(x.O) < card(y.O) by Def6;
+    end;
+    assume A1: card(x.O) < card(y.O);
+    0 <= card(x.O) by NAT_1:2; then
+    y.O <> {} by A1; then
+    y in dom O & (number_of O).x = card(x.O) & (number_of O).y = card(y.O)
+    by Def6,RELAT_1:170;
+    hence x,y in value_of number_of O by A1,Def5;
+  end;
+
+definition
+  let X;
+  let O be Operation of X;
+  func first O -> Relation of X means :Def7:
+  for x,y being Element of X holds x,y in it iff x.O <> {} & y.O = {};
+  existence
+  proof
+    defpred P[object,object] means Im(O,$1) <> {} & Im(O,$2) = {};
+    consider R such that
+A1: for x,y be object holds
+      [x,y] in R iff x in X & y in X & P[x,y] from RELAT_1:sch 1;
+    R c= [:X,X:]
+    proof
+      let x,y be object; assume [x,y] in R; then
+      x in X & y in X by A1;
+      hence thesis by ZFMISC_1:87;
+    end; then
+    reconsider R as Relation of X;
+    take R;
+    let x,y be Element of X;
+A2: x.O <> {} iff x in dom O by RELAT_1:170;
+    thus thesis by A1,A2;
+  end;
+  uniqueness
+  proof let R1,R2 be Relation of X such that
+A3: for x,y being Element of X holds x,y in R1 iff x.O <> {} & y.O = {} and
+A4: for x,y being Element of X holds x,y in R2 iff x.O <> {} & y.O = {};
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    thus [x,y] in R1 implies [x,y] in R2
+    proof assume
+A5:   [x,y] in R1;
+      then reconsider x,y as Element of X by ZFMISC_1:87;
+      x,y in R1 by A5; then
+      x.O <> {} & y.O = {} by A3;
+      hence thesis by A4,MMLQUERY:def 1;
+    end;
+    assume
+A6: [x,y] in R2;
+    then reconsider x,y as Element of X by ZFMISC_1:87;
+    x,y in R2 by A6; then
+    x.O <> {} & y.O = {} by A4;
+    hence thesis by A3,MMLQUERY:def 1;
+  end;
+end;
+
+registration
+  let X;
+  let O be Operation of X;
+  cluster first O -> antisymmetric transitive beta-transitive;
+  coherence
+  proof set R = first O;
+    thus first O is antisymmetric
+    proof
+      let x,y; assume
+A1:   x,y in R & y,x in R; then
+      reconsider x,y as Element of X by Th2;
+      y = y; then
+      x.O <> {} & x.O = {} by A1,Def7;
+      hence thesis;
+    end;
+    thus first O is transitive
+    proof
+      let x,y,z; assume
+A2:   x,y in R & y,z in R; then
+      reconsider x,y,z as Element of X by Th2;
+      x = x & z = z; then
+      y.O <> {} & y.O = {} by A2,Def7;
+      hence thesis;
+    end;
+    let x,y be Element of X such that
+A3: x,y nin R;
+    let z be Element of X; assume
+    x,z in R; then
+A4: x.O <> {} & z.O = {} by Def7; then
+    y.O <> {} by A3,Def7;
+    hence y,z in R by A4,Def7;
+  end;
+end;
+
+begin :: Ordering by resources
+
+definition
+  let A be FinSequence;
+  let x be object;
+  func A <- x -> set equals meet (A"{x});
+  coherence;
+end;
+
+registration
+  let A be FinSequence;
+  let x;
+  cluster A <- x -> natural;
+  coherence
+  proof
+    per cases;
+    suppose A"{x} = {};
+      hence thesis by SETFAM_1:def 1;
+    end;
+    suppose A"{x} <> {}; then
+      consider y be object such that
+A1:   y in A"{x} by XBOOLE_0:def 1;
+A2:   A"{x} c= dom A by RELAT_1:132; then
+      y in dom A by A1; then
+      reconsider y as Element of NAT;
+A3:   A<-x is Ordinal by A2,XBOOLE_1:1,ORDINAL3:11;
+      A<-x c= y by A1,SETFAM_1:3;
+      hence thesis by A3;
+    end;
+  end;
+end;
+
+theorem
+  for A being FinSequence st x nin rng A holds A <- x = 0
+  proof
+    let A be FinSequence;
+    assume x nin rng A; then
+    A"{x} = {} by FUNCT_1:72;
+    hence A <- x = 0 by SETFAM_1:def 1;
+  end;
+
+theorem Th16:
+  for A being FinSequence st x in rng A holds A <- x in dom A & x = A.(A <- x)
+  proof
+    let A be FinSequence;
+    assume x in rng A; then A"{x} <> {} by FUNCT_1:72; then
+    consider y be object such that
+A1: y in A"{x} by XBOOLE_0:def 1;
+A2: A"{x} c= dom A by RELAT_1:132; then
+    y in dom A by A1; then
+    reconsider y as Element of NAT;
+    defpred P[Nat] means $1 in A"{x};
+    y = y; then
+A3: ex n st P[n] by A1;
+    consider n such that
+A4: P[n] & for m st P[m] holds n <= m from NAT_1:sch 5(A3);
+A5: A<-x c= n by A4,SETFAM_1:3;
+    for z st z in A"{x} holds Segm n c= z
+     proof let z;
+      assume
+A6:      z in A"{x};
+       then z in dom A by A2;
+       then reconsider z as Element of NAT;
+       P[z] by A6;
+       then n <= z by A4;
+       then Segm n c= Segm z by NAT_1:39;
+      hence thesis;
+     end;
+then
+    n c= A<-x by A1,SETFAM_1:5; then
+A7: A<-x = n by A5;
+    hence A <- x in dom A by A4,FUNCT_1:def 7;
+    A.(A<-x) in {x} by A4,A7,FUNCT_1:def 7;
+    hence x = A.(A <- x) by TARSKI:def 1;
+  end;
+
+theorem
+  for A being FinSequence st A <- x = 0 holds x nin rng A
+  proof
+    let A be FinSequence;
+    assume A <- x = 0 & x in rng A; then
+    0 in dom A by Th16;
+    hence thesis by FINSEQ_3:24;
+  end;
+
+definition
+  let X;
+  let A be FinSequence;
+  let f be Function;
+  func resource(X,A,f) -> Relation of X means :Def9:
+  x,y in it iff x in X & y in X &
+  A <- (f.x) <> 0 & (A <- (f.x) < A <- (f.y) or A <- (f.y) = 0);
+  existence
+  proof
+    defpred P[object,object] means
+    A <- (f.$1) <> 0 & (A <- (f.$1) < A <- (f.$2) or A <- (f.$2) = 0);
+    consider R such that
+A1: for x,y be object holds
+      [x,y] in R iff x in X & y in X & P[x,y] from RELAT_1:sch 1;
+    R c= [:X,X:]
+    proof
+      let x,y be object; assume [x,y] in R; then
+      x in X & y in X by A1;
+      hence thesis by ZFMISC_1:87;
+    end; then
+    reconsider R as Relation of X;
+    take R;
+    let x,y;
+    thus thesis by A1;
+  end;
+  uniqueness
+  proof let R1,R2 be Relation of X such that
+A2: x,y in R1 iff x in X & y in X &
+    A<-(f.x) <> 0 & (A <- (f.x) < A <- (f.y) or A <- (f.y) = 0) and
+A3: x,y in R2 iff x in X & y in X &
+    A<-(f.x) <> 0 & (A <- (f.x) < A <- (f.y) or A <- (f.y) = 0);
+    let x,y be object;
+    reconsider xx = x, yy = y as set by TARSKI:1;
+    [x,y] in R1 iff xx,yy in R1; then
+    [x,y] in R1 iff x in X & y in X &
+    A<-(f.x) <> 0 & (A <- (f.x) < A <- (f.y) or A <- (f.y) = 0) by A2; then
+    [x,y] in R1 iff xx,yy in R2 by A3;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X;
+  let A be FinSequence;
+  let f be Function;
+  cluster resource(X,A,f) -> antisymmetric transitive beta-transitive;
+  coherence
+  proof set R = resource(X,A,f);
+    thus R is antisymmetric
+    proof
+      let x,y; assume x,y in R & y,x in R; then
+      A <- (f.x) <> 0 & (A <- (f.x) < A <- (f.y) or A <- (f.y) = 0) &
+      A <- (f.y) <> 0 & (A <- (f.y) < A <- (f.x) or A <- (f.x) = 0) by Def9;
+      hence thesis;
+    end;
+    thus R is transitive
+    proof
+      let x,y,z; assume
+      x,y in R & y,z in R; then
+A1:   x in X & y in X & A <- (f.x) <> 0 & (A <- (f.x) < A <- (f.y) or
+      A <- (f.y) = 0) & z in X & A <- (f.y) <> 0 &
+      (A <- (f.y) < A <- (f.z) or A <- (f.z) = 0) by Def9;then
+      A <- (f.x) < A <- (f.z) or A <- (f.z) = 0 by XXREAL_0:2;
+      hence thesis by A1,Def9;
+    end;
+    let x,y be Element of X such that
+A2: x,y nin R;
+    let z be Element of X; assume x,z in R; then
+A3: x in X & z in X & A <- (f.x) <> 0 &
+    (A <- (f.x) < A <- (f.z) or A <- (f.z) = 0) &
+    not (x in X & y in X & A <- (f.x) <> 0 & (A <- (f.x) < A <- (f.y) or
+    A <- (f.y) = 0)) by A2,Def9; then
+    A <- (f.y) <> 0 & (A <- (f.y) < A <- (f.z) or A <- (f.z) = 0)
+    by XXREAL_0:2;
+    hence y,z in R by A3,Def9;
+  end;
+end;
+
+begin :: Ordering by number of iteration
+
+definition
+  let X;
+  let R be Relation of X;
+  let n be Nat;
+  redefine func iter(R,n) -> Relation of X;
+  coherence
+  proof
+    consider p being Function of NAT, bool [:field R,field R:] such that
+A1: p.n = iter(R,n) & p.0 = id(field R) and
+A2: for k being Nat holds p.(k+1) = R*p.k by FUNCT_7:def 11;
+    defpred P[Nat] means p.$1 is Relation of X;
+    field R c= X \/ X by RELSET_1:8; then
+    dom id(field R) c= X & rng id(field R) c= X; then
+A3: P[0] by A1,RELSET_1:4;
+A4: for m being Nat holds P[m] implies P[m+1]
+    proof let m be Nat;
+      assume P[m]; then
+      reconsider g = p.m as Relation of X;
+      p.(m+1) = R*g by A2;
+      hence thesis;
+    end;
+    for m being Nat holds P[m] from NAT_1:sch 2(A3,A4);
+    hence thesis by A1;
+  end;
+end;
+
+theorem Th18:
+  iter(R,n).:X = {} & m >= n implies iter(R,m).:X = {}
+  proof assume
+A1: iter(R,n).:X = {} & m >= n; then
+    consider k such that
+A2: m = n+k by NAT_1:10;
+    thus iter(R,m).:X = (iter(R,n)*iter(R,k)).:X by A2,FUNCT_7:77
+    .= iter(R,k).:{} by A1,RELAT_1:126
+    .= {};
+  end;
+
+theorem Th19:
+  (for n holds iter(R,n).:X <> {}) & X is finite implies ex x st x in X &
+  for n holds Im(iter(R,n),x) <> {}
+  proof
+    assume that
+A1: for n holds iter(R,n).:X <> {} and
+A2: X is finite and
+A3: for x st x in X ex n st Im(iter(R,n),x) = {};
+    defpred P[object,object] means
+      ex n st $2 = n & Im(iter(R,n),$1) = {};
+A4: for x be object st x in X ex y be object st y in NAT & P[x,y]
+    proof let x be object; assume x in X; then
+      consider n such that
+A5:   Im(iter(R,n),x) = {} by A3;
+      take y = n; thus thesis by A5,ORDINAL1:def 12;
+    end;
+    consider f being Function such that
+A6: dom f = X & rng f c= NAT &
+    for x be object st x in X holds P[x,f.x] from FUNCT_1:sch 6(A4);
+    reconsider f as Function of X,NAT by A6,FUNCT_2:2;
+    consider n such that
+A7: rng f c= Segm n by A2,AFINSQ_2:2;
+    {{x} where x is Element of X: x in X} c= bool X
+    proof let z be object;
+      assume z in {{x} where x is Element of X: x in X}; then
+      consider x being Element of X such that
+A8:   z = {x} & x in X;
+      z is Subset of X by A8,ZFMISC_1:31;
+      hence thesis;
+    end; then
+    reconsider Y = {{x} where x is Element of X: x in X} as Subset-Family of X;
+    X = union Y
+    proof
+      thus X c= union Y
+      proof
+        let x be object; assume x in X; then
+        x in {x} & {x} in Y by TARSKI:def 1;
+        hence thesis by TARSKI:def 4;
+      end;
+      let x be object; assume x in union Y; then
+      consider z such that
+A9:   x in z & z in Y by TARSKI:def 4;
+      thus thesis by A9;
+    end; then
+A10: iter(R,n).:X = union {iter(R,n).:y where y is Subset of X: y in Y}
+    by RELSET_2:14;
+    {iter(R,n).:y where y is Subset of X: y in Y} c= {{}}
+    proof
+      let z be object;
+      assume z in {iter(R,n).:y where y is Subset of X: y in Y}; then
+      consider y being Subset of X such that
+A11:   z = iter(R,n).:y & y in Y;
+      consider x being Element of X such that
+A12:   y = {x} & x in X by A11;
+      consider m such that
+A13:   f.x = m & Im(iter(R,m),x) = {} by A6,A12;
+      m in rng f by A6,A12,A13,FUNCT_1:def 3; then
+      m < n by A7,NAT_1:44; then
+      z = {} by A11,A12,A13,Th18;
+      hence thesis by TARSKI:def 1;
+    end; then
+    iter(R,n).:X c= union {{}} by A10,ZFMISC_1:77; then
+    iter(R,n).:X c= {} by ZFMISC_1:25; then
+    iter(R,n).:X = {};
+    hence contradiction by A1;
+  end;
+
+theorem Th20:
+  R is co-well_founded irreflexive & X is finite & R is finite
+  implies ex n st iter(R,n).:X = {}
+  proof
+    assume that
+A1: R is co-well_founded irreflexive & X is finite and
+A2: R is finite and
+A3: iter(R,n).:X <> {};
+    defpred Q[object] means for n holds Im(iter(R,n),$1) <> {};
+    consider x0 being set such that
+A4: x0 in X & Q[x0] by A1,A3,Th19;
+    defpred P[object,object,object] means
+    (Q[$2] implies $3 in Im(R,$2) & Q[$3]);
+A5: for n being Nat, x be set ex y be set st P[n,x,y]
+    proof
+      let n be Nat, x be set;
+      per cases;
+      suppose
+A6:     not Q[x];
+        take 0; thus thesis by A6;
+      end;
+      suppose
+A7:     Q[x];
+A8:     Im(R,x) c= rng R by RELAT_1:111;
+        now let n;
+          iter(R,n).:Im(R,x) = (R*iter(R,n)).:{x} by RELAT_1:126
+          .= Im(iter(R,n+1),x) by FUNCT_7:69;
+          hence iter(R,n).:Im(R,x) <> {} by A7;
+        end; then
+        consider y such that
+A9:     y in Im(R,x) & Q[y] by A2,A8,Th19;
+        take y; thus thesis by A9;
+      end;
+    end;
+    consider f being Function such that
+A10: dom f = NAT & f.0 = x0 & for n being Nat holds P[n,f.n,f.(n+1)]
+    from RECDEF_1:sch 1(A5);
+    defpred R[Nat] means Q[f.$1];
+A11: R[0] by A4,A10;
+A12: R[k] implies R[k+1] by A10;
+A13: R[k] from NAT_1:sch 2(A11,A12);
+A14: rng f c= field R
+    proof
+      let z be object; assume z in rng f; then
+      consider y be object such that
+A15:   y in NAT & z = f.y by A10,FUNCT_1:def 3;
+      reconsider y as Element of NAT by A15;
+      P[y,z,f.(y+1)] & R[y] by A10,A13,A15; then
+      [z,f.(y+1)] in R by A15,RELAT_1:169;
+      hence thesis by RELAT_1:15;
+    end; then
+    consider z be object such that
+A16: z in rng f & for x be object st x in rng f & z <> x holds [z,x] nin R
+    by A1,A10,RELAT_1:42;
+    consider y be object such that
+A17: y in NAT & z = f.y by A10,A16,FUNCT_1:def 3;
+    reconsider y as Element of NAT by A17;
+    P[y,z,f.(y+1)] & R[y] & y+1 in NAT by A10,A13,A17,ORDINAL1:def 12; then
+A18: [z,f.(y+1)] in R & f.(y+1) in rng f
+    by A10,A17,RELAT_1:169,FUNCT_1:def 3; then
+    z = f.(y+1) & R is_irreflexive_in field R by A1,A16;
+    hence contradiction by A14,A18;
+  end;
+
+definition
+  let X;
+  let O be Operation of X such that
+A1: O is co-well_founded irreflexive finite;
+  func iteration_of O -> Relation of X means :Def10:
+  ex f being Function of X,NAT st it = value_of f &
+  for x being Element of X st x in X
+  ex n st f.x = n & (x.iter(O,n) <> {} or n = 0 & x.iter(O,n) = {}) &
+  x.iter(O,n+1) = {};
+  existence
+  proof
+    defpred P[object,object] means
+    ex n st $2 = n & (Im(iter(O,n),$1) <> {} or n = 0 & Im(iter(O,n),$1) = {})
+    & Im(iter(O,n+1),$1) = {};
+A2: for x be object st x in X ex y be object st y in NAT & P[x,y]
+    proof
+      let x be object; assume x in X;
+      per cases;
+      suppose x nin field O; then
+        {x} /\ field O = {} by XBOOLE_0:def 7,ZFMISC_1:50; then
+        Im(id field O,x) = {} by Th3; then
+A3:     Im(iter(O,0),x) = {} by FUNCT_7:68;
+        take y = 0; thus y in NAT;
+        take n = 0;
+        thus y = n & (Im(iter(O,n),x) <> {} or n = 0 & Im(iter(O,n),x) = {});
+        thus Im(iter(O,n+1),x) = Im(iter(O,n)*O,x) by FUNCT_7:71
+        .= O.:{} by A3,RELAT_1:126 .= {};
+      end;
+      suppose
+        x in field O; then
+        {x} /\ field O = {x} by XBOOLE_1:28,ZFMISC_1:31; then
+        (id field O).:{x} = {x} by Th3; then
+A4:     Im(iter(O,0),x) = {x} by FUNCT_7:68;
+        defpred P[Nat] means iter(O,$1).:{x} = {};
+A5:     ex n st P[n] by A1,Th20;
+        consider n such that
+A6:     P[n] & for k st P[k] holds n <= k from NAT_1:sch 5(A5);
+        consider m such that
+A7:     n = m+1 by A4,A6,NAT_1:6;
+        take y = m; thus y in NAT by ORDINAL1:def 12;
+        take m;
+        m < n by A7,NAT_1:13;
+        hence thesis by A6,A7;
+      end;
+    end;
+    consider f being Function such that
+A8: dom f = X & rng f c= NAT & for x be object st x in X holds P[x,f.x]
+    from FUNCT_1:sch 6(A2);
+    reconsider f as Function of X,NAT by A8,FUNCT_2:2;
+    take R = value_of f, f; thus R = value_of f;
+    let x be Element of X; assume x in X; then
+    consider n such that
+A9: f.x = n & (Im(iter(O,n),x) <> {} or n = 0 & Im(iter(O,n),x) = {}) &
+    Im(iter(O,n+1),x) = {} by A8;
+    take n;
+    thus thesis by A9;
+  end;
+  uniqueness
+  proof
+    let R1,R2 be Relation of X;
+    given f1 being Function of X,NAT such that
+A10: R1 = value_of f1 and
+A11: for x being Element of X st x in X
+    ex n st f1.x = n & (x.iter(O,n) <> {} or n = 0 & x.iter(O,n) = {}) &
+    x.iter(O,n+1) = {};
+    given f2 being Function of X,NAT such that
+A12: R2 = value_of f2 and
+A13: for x being Element of X st x in X
+    ex n st f2.x = n & (x.iter(O,n) <> {} or n = 0 & x.iter(O,n) = {}) &
+    x.iter(O,n+1) = {};
+A14: dom f1 = X & dom f2 = X by FUNCT_2:def 1;
+    now
+      let y be object; assume
+A15:  y in X; then reconsider x = y as Element of X;
+      consider n1 being Nat such that
+A16:  f1.x = n1 & (x.iter(O,n1) <> {} or n1 = 0 & x.iter(O,n1) = {}) &
+      x.iter(O,n1+1) = {} by A15,A11;
+      consider n2 being Nat such that
+A17:  f2.x = n2 & (x.iter(O,n2) <> {} or n2 = 0 & x.iter(O,n2) = {}) &
+      x.iter(O,n2+1) = {} by A15,A13;
+A18:   now assume
+A19:     n1 < n2; then n1+1 <= n2 by NAT_1:13;
+        hence contradiction by A19,A16,A17,Th18,NAT_1:2;
+      end;
+      now assume
+A20:     n2 < n1; then n2+1 <= n1 by NAT_1:13;
+        hence contradiction by A20,A16,A17,Th18,NAT_1:2;
+      end;
+      hence f1.y = f2.y by A16,A17,A18,XXREAL_0:1;
+    end;
+    hence thesis by A10,A12,A14,FUNCT_1:2;
+  end;
+end;
+
+registration
+  cluster empty -> irreflexive co-well_founded for Relation;
+  coherence
+  proof
+    let R; assume
+A1: R is empty; then
+A2: dom R = {} & rng R = {};
+    thus R is irreflexive
+    proof let x be object;
+      thus thesis by A1;
+    end;
+    let X; assume X c= field R & X <> {};
+    hence thesis by A2;
+  end;
+end;
+
+registration
+  let X;
+  cluster empty for Operation of X;
+  existence
+  proof
+    take {}[:X,X:]; thus thesis;
+  end;
+end;
+
+registration
+  let X;
+  let O be co-well_founded irreflexive finite Operation of X;
+  cluster iteration_of O -> antisymmetric transitive beta-transitive;
+  coherence
+  proof
+    consider f being Function of X,NAT such that
+A1: iteration_of O = value_of f and
+    for x being Element of X st x in X
+    ex n st f.x = n & (x.iter(O,n) <> {} or n = 0 & x.iter(O,n) = {}) &
+    x.iter(O,n+1) = {} by Def10;
+    thus thesis by A1;
+  end;
+end;
+
+begin :: "value of" ordering
+
+registration
+  let X be finite set;
+  cluster -> well_founded for Order of X;
+  coherence
+  proof let R be Order of X;
+    let Y be set; assume
+A1: Y c= field R & Y <> {};
+    defpred P[set] means $1 <> {} implies
+    ex a being set st a in $1 & R-Seg a misses $1;
+A2: Y is finite by A1;
+A3: P[{}];
+A4: for x, B being set st x in Y & B c= Y & P[B] holds P[B \/ {x}]
+    proof
+      let x, B be set; assume that
+A5:   x in Y & B c= Y & P[B] and
+      B \/ {x} <> {};
+      per cases;
+      suppose
+A6:     B = {};
+        take a = x; thus a in B\/{x} by A6,TARSKI:def 1;
+        x nin R-Seg a by WELLORD1:1;
+        hence R-Seg a misses B \/ {x} by A6,ZFMISC_1:50;
+      end;
+      suppose
+        B <> {}; then
+        consider a being set such that
+A7:     a in B & R-Seg a misses B by A5;
+        per cases;
+        suppose x nin R-Seg a; then
+A8:       R-Seg a misses {x} by ZFMISC_1:50;
+          take a; thus a in B\/{x} by A7,XBOOLE_0:def 3;
+          thus R-Seg a misses B \/ {x} by A7,A8,XBOOLE_1:70;
+        end;
+        suppose x in R-Seg a; then
+A9:       x <> a & [x,a] in R by WELLORD1:1;
+          take b = x;
+          b in {x} by TARSKI:def 1;
+          hence b in B\/{x} by XBOOLE_0:def 3;
+          assume R-Seg b meets B \/ {x}; then
+          consider c being object such that
+A10:      c in R-Seg b & c in B \/ {x} by XBOOLE_0:3;
+          reconsider cc = c, xx = x, aa = a as set by TARSKI:1;
+A11:      c <> b & [c,b] in R by A10,WELLORD1:1; then
+          cc,xx in R & x,a in R by A9; then
+A12:      cc,aa in R & c <> a by A11,Def2,Def1; then
+          [c,a] in R & (c in B or c in {x})
+          by A10,XBOOLE_0:def 3; then
+          c in R-Seg a & c in B by A11,A12,TARSKI:def 1,WELLORD1:1;
+          hence thesis by A7,XBOOLE_0:3;
+        end;
+      end;
+    end;
+    P[Y] from FINSET_1:sch 2(A2,A3,A4);
+    hence ex a being object st a in Y & R-Seg a misses Y by A1;
+  end;
+end;
+
+registration
+  let X be finite set;
+  cluster -> well-ordering for connected Order of X;
+  coherence;
+end;
+
+definition
+  let X;
+  let R be connected Order of X;
+  let S be finite Subset of X;
+  func order(S,R) -> XFinSequence of X means :Def11:
+  rng it = S & it is one-to-one &
+  for i,j being Nat st i in dom it & j in dom it holds
+  i <= j iff it.i,it.j in R;
+  existence
+  proof
+    set Q = R|_2 S;
+A1: Q is total Relation of S &Q is reflexive transitive antisymmetric connected
+    by Th6,WELLORD1:16,17,18; then
+    Q, RelIncl order_type_of Q are_isomorphic by WELLORD2:def 2; then
+    consider f being Function such that
+A2: f is_isomorphism_of RelIncl order_type_of Q, Q by WELLORD1:def 8,40;
+ field RelIncl order_type_of Q = order_type_of Q by WELLORD2:def 1; then
+A3: dom f = order_type_of Q by A2;
+A4: rng f = field Q & f is one-to-one by A2; then
+    order_type_of Q, field Q are_equipotent by A3,WELLORD2:def 4; then
+    order_type_of Q is finite by CARD_1:38; then
+    reconsider f as XFinSequence by A3,AFINSQ_1:5;
+    field Q c= S by WELLORD1:13; then
+    reconsider f as XFinSequence of X by RELAT_1:def 19,A4,XBOOLE_1:1;
+    take f;
+    thus
+A5: rng f = S & f is one-to-one by A4,A1,ORDERS_1:12;
+    let i,j be Nat; assume
+A6: i in dom f & j in dom f; then
+A7: f.i in S & f.j in S by A5,FUNCT_1:def 3;
+    [i,j] in RelIncl order_type_of Q
+      iff Segm i c= Segm j by A3,A6,WELLORD2:def 1; then
+    i <= j iff [f.i,f.j] in Q by A2,A6,NAT_1:39; then
+    i <= j iff [f.i,f.j] in R by A7,Th4;
+    hence i <= j iff f.i,f.j in R;
+  end;
+  uniqueness
+  proof let f1,f2 be XFinSequence of X such that
+A8: rng f1 = S & f1 is one-to-one &
+    for i,j being Nat st i in dom f1 & j in dom f1 holds
+    i <= j iff f1.i,f1.j in R and
+A9: rng f2 = S & f2 is one-to-one &
+    for i,j being Nat st i in dom f2 & j in dom f2 holds
+    i <= j iff f2.i,f2.j in R;
+    dom f1, S are_equipotent & dom f2, S are_equipotent
+    by A8,A9,WELLORD2:def 4; then
+    dom f1, dom f2 are_equipotent by WELLORD2:15; then
+    card dom f1 = dom f2 by CARD_1:def 2; then
+A10: dom f1 = dom f2;
+    assume f1 <> f2; then
+    consider x be object such that
+A11: x in dom f1 & f1.x <> f2.x by A10;
+    defpred P[Nat] means $1 in dom f1 & f1.$1 <> f2.$1;
+A12: ex n st P[n] by A11;
+    consider n such that
+A13: P[n] & for m st P[m] holds n <= m from NAT_1:sch 5(A12);
+    f1.n in S by A8,A13,FUNCT_1:def 3; then
+    consider a being object such that
+A14: a in dom f2 & f1.n = f2.a by A9,FUNCT_1:def 3;
+    f2.n in S by A9,A10,A13,FUNCT_1:def 3; then
+    consider b being object such that
+A15: b in dom f1 & f2.n = f1.b by A8,FUNCT_1:def 3;
+    reconsider a,b as Element of NAT by A14,A15;
+A16: now
+      assume a < n; then
+      f1.a = f2.a by A10,A13,A14;
+      hence contradiction by A8,A10,A13,A14;
+    end;
+    now
+      assume b < n; then
+      f1.b = f2.b by A13,A15;
+      hence contradiction by A9,A10,A13,A15;
+    end; then
+    f1.n,f1.b in R & f2.n,f2.a in R by A8,A9,A10,A13,A14,A15,A16;
+    hence contradiction by A13,A14,A15,Def2;
+  end;
+end;
+
+theorem
+  for S1,S2 being finite Subset of X
+  for R being connected Order of X holds
+  order(S1 \/ S2,R) = order(S1,R)^order(S2,R) iff
+  for x,y st x in S1 & y in S2 holds x <> y & x,y in R
+  proof
+    let S1,S2 be finite Subset of X;
+    let R be connected Order of X;
+A1: rng order(S1\/S2,R) = S1\/S2 & rng order(S1,R) = S1 & rng order(S2,R) = S2
+    by Def11;
+A2: dom (order(S1,R)^order(S2,R)) = dom order(S1,R)+^dom order(S2,R)
+    by ORDINAL4:def 1;
+A3: order(S1\/S2,R) is one-to-one & order(S1,R) is one-to-one &
+    order(S2,R) is one-to-one by Def11;
+    hereby
+      assume
+A4:   order(S1 \/ S2,R) = order(S1,R)^order(S2,R);
+      let x,y; assume
+A5:   x in S1 & y in S2; then
+      consider z be object such that
+A6:   z in dom order(S1,R) & x = order(S1,R).z by A1,FUNCT_1:def 3;
+      consider s being object such that
+A7:   s in dom order(S2,R) & y = order(S2,R).s by A1,A5,FUNCT_1:def 3;
+      reconsider z,s as Element of NAT by A6,A7;
+A8:   order(S1\/S2,R).z = x & order(S1\/S2,R).(dom order(S1,R)+^s) = y
+      by A4,A6,A7,ORDINAL4:def 1;
+A9:   z in dom order(S1\/S2,R) & dom order(S1,R)+^s in dom order(S1\/S2,R)
+      by A2,A6,A7,A4,ORDINAL3:17,25;
+A10:   dom order(S1,R)+^s = Segm (dom order(S1,R)+s) by CARD_2:36;
+      z in dom order(S1,R)+^s by A6,ORDINAL3:25; then
+      z < dom order(S1,R)+s by A10,NAT_1:44;
+      hence x <> y & x,y in R by A3,A8,A9,A10,Def11;
+    end;
+    assume
+A11: for x,y st x in S1 & y in S2 holds x <> y & x,y in R;
+A12: rng(order(S1,R)^order(S2,R)) = S1 \/ S2 by A1,Th7;
+    set o1 = order(S1,R), o2 = order(S2,R);
+A13: order(S1,R)^order(S2,R) is one-to-one
+    proof
+      let x,y be object; assume
+A14:  x in dom (o1^o2) & y in dom (o1^o2) & (o1^o2).x = (o1^o2).y;
+      per cases by A14,A2,ORDINAL3:38;
+      suppose
+A15:    x in dom o1 & y in dom o1; then
+        (o1^o2).x = o1.x & (o1^o2).y = o1.y by ORDINAL4:def 1;
+        hence x = y by A3,A14,A15;
+      end;
+      suppose
+A16:    x in dom o1 & ex a being Ordinal st a in dom o2 & y = dom o1+^a; then
+        consider a being Ordinal such that
+A17:    a in dom o2 & y = dom o1+^a;
+        (o1^o2).x = o1.x & (o1^o2).y = o2.a by A16,A17,ORDINAL4:def 1; then
+        (o1^o2).x in S1 & (o1^o2).y in S2 by A1,A16,A17,FUNCT_1:def 3;
+        hence thesis by A11,A14;
+      end;
+      suppose
+A18:     y in dom o1 & ex a being Ordinal st a in dom o2 & x = dom o1+^a; then
+        consider a being Ordinal such that
+A19:     a in dom o2 & x = dom o1+^a;
+        (o1^o2).y = o1.y & (o1^o2).x = o2.a by A18,A19,ORDINAL4:def 1; then
+        (o1^o2).x in S2 & (o1^o2).y in S1 by A1,A18,A19,FUNCT_1:def 3;
+        hence thesis by A11,A14;
+      end;
+      suppose
+A20:    (ex a being Ordinal st a in dom o2 & x = dom o1+^a) &
+        ex a being Ordinal st a in dom o2 & y = dom o1+^a; then
+        consider a being Ordinal such that
+A21:    a in dom o2 & x = dom o1+^a;
+        consider b being Ordinal such that
+A22:    b in dom o2 & y = dom o1+^b by A20;
+        (o1^o2).x = o2.a & (o1^o2).y = o2.b by A21,A22,ORDINAL4:def 1;
+        hence thesis by A21,A22,A3,A14;
+      end;
+    end;
+    now let x,y be Nat;
+      assume
+A23:   x in dom(o1^o2) & y in dom(o1^o2);
+      per cases by A23,A2,ORDINAL3:38;
+      suppose
+A24:    x in dom o1 & y in dom o1; then
+        (o1^o2).x = o1.x & (o1^o2).y = o1.y by ORDINAL4:def 1;
+        hence x <= y iff (o1^o2).x, (o1^o2).y in R by A24,Def11;
+      end;
+      suppose
+A25:    x in dom o1 & ex a being Ordinal st a in dom o2 & y = dom o1+^a; then
+        consider a being Ordinal such that
+A26:    a in dom o2 & y = dom o1+^a;
+        (o1^o2).x = o1.x & (o1^o2).y = o2.a & x in Segm y
+        by A25,A26,ORDINAL3:25,ORDINAL4:def 1; then
+        (o1^o2).x in S1 & (o1^o2).y in S2 & x < y
+        by A1,A25,A26,FUNCT_1:def 3,NAT_1:44;
+        hence x <= y iff (o1^o2).x, (o1^o2).y in R by A11;
+      end;
+      suppose
+A27:    y in dom o1 & ex a being Ordinal st a in dom o2 & x = dom o1+^a; then
+        consider a being Ordinal such that
+A28:     a in dom o2 & x = dom o1+^a;
+A29:     (o1^o2).y = o1.y & (o1^o2).x = o2.a & y in Segm x
+        by A27,A28,ORDINAL3:25,ORDINAL4:def 1; then
+A30:     (o1^o2).x in S2 & (o1^o2).y in S1 & y < x
+        by A1,A27,A28,FUNCT_1:def 3,NAT_1:44;
+        thus x <= y implies (o1^o2).x, (o1^o2).y in R by A29,NAT_1:44;
+        assume
+A31:     (o1^o2).x, (o1^o2).y in R;
+        (o1^o2).y, (o1^o2).x in R by A30,A11;
+        hence x <= y by A23,A13,A31,Def2;
+      end;
+      suppose
+A32:     (ex a being Ordinal st a in dom o2 & x = dom o1+^a) &
+        ex a being Ordinal st a in dom o2 & y = dom o1+^a; then
+        consider a being Ordinal such that
+A33:     a in dom o2 & x = dom o1+^a;
+        consider b being Ordinal such that
+A34:     b in dom o2 & y = dom o1+^b by A32;
+        reconsider a,b as Element of NAT by A33,A34;
+        x <= y iff Segm x c= Segm y by NAT_1:39; then
+     x <= y iff Segm a c= Segm b by A33,A34,ORDINAL3:23,18;
+        then
+A35:     (x <= y iff a <= b) by NAT_1:39;
+         (o1^o2).x = o2.a & (o1^o2).y = o2.b
+        by A33,A34,ORDINAL4:def 1;
+        hence x <= y iff (o1^o2).x, (o1^o2).y in R by A33,A34,Def11,A35;
+      end;
+    end;
+    hence thesis by A12,A13,Def11;
+  end;
+
+definition
+  let X be finite set;
+  let O be Operation of X;
+  let R be connected Order of X;
+  func value_of(O,R) -> Relation of X means :Def12:
+  for x,y being Element of X holds
+  x,y in it iff x.O <> {} & (y.O = {} or
+  y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+  order(x.O,R)/.0 <> order(y.O,R)/.0);
+  existence
+  proof
+    defpred P[object,object] means
+      ex x,y being Element of X st $1 = x & $2 = y &
+    x.O <> {} & (y.O = {} or y.O <> {} & order(x.O,R)/.0,order(y.O,R)/.0 in R &
+    order(x.O,R)/.0 <> order(y.O,R)/.0);
+    consider R1 such that
+A1: for x,y be object holds [x,y] in R1 iff x in X & y in X & P[x,y]
+      from RELAT_1:sch 1;
+    R1 c= [:X,X:]
+    proof
+      let x,y be object; assume [x,y] in R1; then
+      x in X & y in X by A1;
+      hence thesis by ZFMISC_1:87;
+    end; then
+    reconsider R1 as Relation of X;
+    take R1;
+    let x,y be Element of X;
+A2: x.O <> {} implies x in dom O by RELAT_1:170;
+    hereby
+      assume x,y in R1; then P[x,y] by A1;
+      hence x.O <> {} & (y.O = {} or
+      y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+      order(x.O,R)/.0 <> order(y.O,R)/.0);
+    end;
+    assume x.O <> {} & (y.O = {} or
+    y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+    order(x.O,R)/.0 <> order(y.O,R)/.0);
+    hence thesis by A1,A2;
+  end;
+  uniqueness
+  proof
+    let R1,R2 be Relation of X such that
+A3: for x,y being Element of X holds
+    x,y in R1 iff x.O <> {} & (y.O = {} or
+    y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+    order(x.O,R)/.0 <> order(y.O,R)/.0) and
+A4: for x,y being Element of X holds
+    x,y in R2 iff x.O <> {} & (y.O = {} or
+    y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+    order(x.O,R)/.0 <> order(y.O,R)/.0);
+    let x,y be object;
+    thus [x,y] in R1 implies [x,y] in R2
+    proof assume
+A5:   [x,y] in R1; then
+      reconsider x,y as Element of X by ZFMISC_1:87;
+      x,y in R1 by A5; then
+      x.O <> {} & (y.O = {} or
+      y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+      order(x.O,R)/.0 <> order(y.O,R)/.0) by A3; then
+      x,y in R2 by A4;
+      hence thesis;
+    end;
+    assume
+A6: [x,y] in R2; then
+    reconsider x,y as Element of X by ZFMISC_1:87;
+    x,y in R2 by A6; then
+    x.O <> {} & (y.O = {} or
+    y.O <> {} & order(x.O,R)/.0, order(y.O,R)/.0 in R &
+    order(x.O,R)/.0 <> order(y.O,R)/.0) by A4; then
+    x,y in R1 by A3;
+    hence thesis;
+  end;
+end;
+
+registration
+  let X be finite set;
+  let O be Operation of X;
+  let R1 be connected Order of X;
+  cluster value_of(O,R1) -> antisymmetric transitive beta-transitive;
+  coherence
+  proof set R = value_of(O,R1);
+    thus R is antisymmetric
+    proof
+      let x,y; assume
+A1:   x,y in R & y,x in R; then
+      reconsider x,y as Element of X by Th2;
+      y = y & x = x; then
+      x.O <> {} & (y.O = {} or
+      y.O <> {} & order(x.O,R1)/.0, order(y.O,R1)/.0 in R1 &
+      order(x.O,R1)/.0 <> order(y.O,R1)/.0) &
+      y.O <> {} & (x.O = {} or
+      x.O <> {} & order(y.O,R1)/.0, order(x.O,R1)/.0 in R1 &
+      order(y.O,R1)/.0 <> order(x.O,R1)/.0) by A1,Def12;
+      hence thesis by Def2;
+    end;
+    thus R is transitive
+    proof
+      let x,y,z; assume
+A2:   x,y in R & y,z in R; then
+      reconsider x,y,z as Element of X by Th2;
+      y = y & z = z; then
+      x.O <> {} & (y.O = {} or
+      y.O <> {} & order(x.O,R1)/.0, order(y.O,R1)/.0 in R1 &
+      order(x.O,R1)/.0 <> order(y.O,R1)/.0) &
+      y.O <> {} & (z.O = {} or
+      z.O <> {} & order(y.O,R1)/.0, order(z.O,R1)/.0 in R1 &
+      order(y.O,R1)/.0 <> order(z.O,R1)/.0) by A2,Def12; then
+      x.O <> {} & (z.O = {} or
+      z.O <> {} & order(x.O,R1)/.0, order(z.O,R1)/.0 in R1 &
+      order(x.O,R1)/.0 <> order(z.O,R1)/.0) by Def1,Def2;
+      hence thesis by Def12;
+    end;
+    let x,y be Element of X such that
+A3: x,y nin R;
+    let z be Element of X; assume x,z in R; then
+    x in X & z in X & x.O <> {} & (z.O = {} or
+    z.O <> {} & order(x.O,R1)/.0, order(z.O,R1)/.0 in R1 &
+    order(x.O,R1)/.0 <> order(z.O,R1)/.0) &
+    (x.O = {} or y.O <> {} &
+    (y.O = {} or order(x.O,R1)/.0,order(y.O,R1)/.0 nin R1 or
+    order(x.O,R1)/.0 = order(y.O,R1)/.0))
+    by A3,Th2,Def12; then
+    y.O <> {} & (z.O = {} or
+    z.O <> {} & order(y.O,R1)/.0, order(z.O,R1)/.0 in R1 &
+    order(y.O,R1)/.0 <> order(z.O,R1)/.0) by Def4;
+    hence y,z in R by Def12;
+  end;
+end;

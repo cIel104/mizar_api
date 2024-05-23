@@ -1,0 +1,1146 @@
+:: Introduction to Stopping Time in Stochastic Finance Theory
+::  by Peter Jaeger
+:: 
+:: Received June 27, 2017
+:: Copyright (c) 2017-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, XBOOLE_0, PROB_1, SUBSET_1, RELAT_1, FUNCT_1, TARSKI,
+      ARYTM_3, XXREAL_0, ARYTM_1, NAT_1, CARD_1, RPR_1, FINANCE3, MATRIX_7,
+      FUNCOP_1, FINANCE4, FUNCT_7, MEMBERED, RANDOM_1;
+ notations TARSKI, SUBSET_1, XBOOLE_0, ORDINAL1,
+      SERIES_1, SETFAM_1, ENUMSET1, RELAT_1,
+      RANDOM_3, NUMBERS, XREAL_0, XXREAL_0, XCMPLX_0, SUPINF_1, FUNCT_1,
+      VALUED_1, NAT_1, FUNCT_2, PROB_1, SEQ_4, RELSET_1, MEMBERED, MATRIX_7,
+      FUNCOP_1, KOLMOG01, FINANCE3, RANDOM_1;
+ constructors SERIES_1, REAL_1, RELSET_1, SEQ_4, FINANCE2, ENUMSET1, RANDOM_2,
+      KOLMOG01, RANDOM_3, FINANCE3, SUPINF_1, SUBSET_1, MATRIX_7, NUMBERS,
+      XXREAL_0, XREAL_0, MEMBERED, RANDOM_1;
+ registrations PROB_1, SUBSET_1, NAT_1, XREAL_0, MEMBERED, ORDINAL1, FUNCT_2,
+      NUMBERS, VALUED_0, RELSET_1, INT_1, XBOOLE_0, XXREAL_0;
+ requirements NUMERALS, REAL, BOOLE, SUBSET, ARITHM;
+ definitions XBOOLE_0, TARSKI, FUNCT_2;
+ equalities XCMPLX_0, FINANCE3, RELAT_1;
+ expansions TARSKI;
+ theorems TARSKI, XBOOLE_0, PROB_1, NAT_1, ZFMISC_1, ORDINAL1, FUNCT_2,
+      XREAL_0, FUNCT_1, NUMBERS, RELAT_1, ENUMSET1, FUNCOP_1, KOLMOG01,
+      FINANCE3, XTUPLE_0, XXREAL_0, XBOOLE_1, MEMBERED, MATRIX_7;
+ schemes NAT_1, FUNCT_2;
+
+begin
+
+reserve Omega for non empty set;
+reserve Sigma for SigmaField of Omega;
+reserve T for Nat;
+
+theorem L:
+  for X being non empty set
+  for t being object
+  for f being Function st dom f = X holds
+  {w where w is Element of X: f.w = t} = Coim(f,t)
+proof
+  let X be non empty set;
+  let t be object;
+  let f be Function such that
+AA: dom f = X;
+  set A = {w where w is Element of X: f.w = t};
+A0: t in {t} by TARSKI:def 1;
+  thus A c= Coim(f,t)
+  proof
+    let x be object;
+    assume x in A;
+    then ex w being Element of X st x = w & f.w = t;
+    then [x,t] in f by AA,FUNCT_1:1;
+    hence thesis by A0,RELAT_1:def 14;
+  end;
+  let x be object;
+  assume x in Coim(f,t);
+  then consider y being object such that
+A1: [x,y] in f and
+A2: y in {t} by RELAT_1:def 14;
+A4: y = t by A2,TARSKI:def 1;
+A3: x in dom f by A1,XTUPLE_0:def 12;
+    f.x = t by A1,A4,FUNCT_1:1;
+  hence thesis by AA,A3;
+end;
+
+definition
+  let I be ext-real-membered set;
+  func StoppingSetExt(I) -> Subset of ExtREAL equals
+    I \/ {+infty};
+  correctness by MEMBERED:2;
+end;
+
+registration
+  let I be ext-real-membered set;
+  cluster StoppingSetExt(I) -> non empty;
+  correctness;
+end;
+
+:: Definition of stopping time
+definition
+  let T be Nat; ::: Segm (T+1)
+  func StoppingSet(T) -> Subset of REAL equals
+  {t where t is Element of NAT: 0<=t<=T};
+  correctness
+  proof
+    {t where t is Element of NAT: 0<=t<=T} c= REAL
+    proof
+      let q be object;
+      assume q in {t where t is Element of NAT: 0<=t<=T}; then
+      consider q1 being Element of NAT such that C1: q=q1 & (0<=q1 & q1<=T);
+      thus thesis by NUMBERS:19,C1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let T be Nat;
+  cluster StoppingSet(T) -> non empty;
+  correctness
+  proof
+    0 in StoppingSet(T);
+    hence thesis;
+  end;
+end;
+
+definition
+  let T be Nat;
+  func StoppingSetExt(T) -> Subset of ExtREAL equals
+    StoppingSet T \/ {+infty};
+  correctness
+  proof
+a1:StoppingSet T c= ExtREAL by XXREAL_0:def 4,XBOOLE_0:def 3;
+   {+infty} c= ExtREAL by ZFMISC_1:31;
+   hence thesis by a1,XBOOLE_1:8;
+   end;
+end;
+
+registration
+  let T be Nat;
+  cluster StoppingSetExt(T) -> non empty;
+  coherence;
+end;
+
+ reserve TFix for Element of StoppingSetExt(T);
+ reserve MyFunc for Filtration of StoppingSet(T),Sigma;
+ reserve k,k1,k2 for Function of Omega,StoppingSetExt(T);
+
+definition
+  let T be Nat;
+  let F be Function;
+  let R be Relation;
+  pred R is_StoppingTime_wrt F,T means
+  for t being Element of StoppingSet(T) holds Coim(R,t) in F.t;
+end;
+
+definition
+  let Omega be non empty set;
+  let T be Nat;
+  let MyFunc be Function;
+  let k be Function of Omega,StoppingSetExt(T);
+  redefine pred k is_StoppingTime_wrt MyFunc,T means
+  for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k.w=t} in MyFunc.t;
+  compatibility
+  proof
+A0: dom k = Omega by FUNCT_2:def 1;
+    hereby
+      assume
+A1:   k is_StoppingTime_wrt MyFunc,T;
+      let t be Element of StoppingSet(T);
+      {w where w is Element of Omega: k.w=t} = Coim(k,t) by A0,L;
+      hence {w where w is Element of Omega: k.w=t} in MyFunc.t by A1;
+    end;
+    assume
+A2: for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k.w=t} in MyFunc.t;
+    let t be Element of StoppingSet(T);
+    {w where w is Element of Omega: k.w=t} = Coim(k,t) by A0,L;
+    hence thesis by A2;
+  end;
+end;
+
+:: Alternative definition for stopping time
+theorem KJK:
+  k is_StoppingTime_wrt MyFunc,T iff
+   for t being Element of StoppingSet(T) holds
+     {w where w is Element of Omega: k.w<=t} in MyFunc.t
+proof
+  thus k is_StoppingTime_wrt MyFunc,T implies
+    for t being Element of StoppingSet(T) holds
+         {w where w is Element of Omega: k.w<=t} in MyFunc.t
+  proof
+   assume ASS: k is_StoppingTime_wrt MyFunc,T;
+   for t being Element of StoppingSet(T) holds
+         {w where w is Element of Omega: k.w<=t} in MyFunc.t
+   proof
+    defpred J[Nat] means
+     $1 in StoppingSet(T) implies
+      {w where w is Element of Omega: k.w<=$1} in MyFunc.$1;
+      K1: {w where w is Element of Omega: k.w<=0}=
+        {w where w is Element of Omega: k.w=0}
+      proof
+       for q being object holds
+       q in {w where w is Element of Omega: k.w<=0} iff
+        q in {w where w is Element of Omega: k.w=0}
+       proof
+         let q be object;
+         I1: (ex q1 being Element of Omega st q=q1 & k.q1<=0) implies
+         (ex q2 being Element of Omega st q=q2 & k.q2=0)
+         proof
+          given q2 being Element of Omega such that II: q=q2 & k.q2<=0;
+          k.q2=0
+          proof
+           per cases by XBOOLE_0:def 3;
+           suppose k.q2 in StoppingSet T;
+             then ex s being Element of NAT st k.q2=s & 0<=s & s<=T;
+             hence thesis by II;
+           end;
+           suppose k.q2 in {+infty};
+           hence thesis by II,TARSKI:def 1;
+           end;
+           end;
+          hence thesis by II;
+          end;
+         (ex q2 being Element of Omega st q=q2 & k.q2=0) implies
+          (ex q1 being Element of Omega st q=q1 & k.q1<=0);
+        hence thesis by I1;
+        end;
+       hence thesis by TARSKI:2;
+       end;
+    J0: J[0]
+    proof
+     {w where w is Element of Omega: k.w<=0} in MyFunc.0
+     proof
+      0 in StoppingSet T;
+      hence thesis by K1,ASS;
+     end;
+    hence thesis;
+    end;
+    J1: for n being Nat st J[n] holds J[n+1]
+    proof
+     let n be Nat;
+     assume j1: J[n];
+     n+1 in StoppingSet(T) implies
+      {w where w is Element of Omega: k.w<=n+1} in MyFunc.(n+1)
+     proof
+      assume ASSJ10: n+1 in StoppingSet(T);
+      J10: {w where w is Element of Omega: k.w<=n+1} =
+      ({w where w is Element of Omega: k.w<=n} \/
+       {w where w is Element of Omega: k.w=n+1})
+      proof
+       for x being object holds
+        x in {w where w is Element of Omega: k.w<=n+1} iff
+        x in ({w where w is Element of Omega: k.w<=n} \/
+             {w where w is Element of Omega: k.w=n+1})
+       proof
+        let x be object;
+        thus x in {w where w is Element of Omega: k.w<=n+1} implies
+            x in ({w where w is Element of Omega: k.w<=n} \/
+                 {w where w is Element of Omega: k.w=n+1})
+        proof
+         assume x in {w where w is Element of Omega: k.w<=n+1}; then
+         consider w being Element of Omega such that XX: x=w & k.w<=n+1;
+          set KW=k.w;
+         per cases by XX;
+         suppose x=w & k.w<=n;
+          then x in {w where w is Element of Omega: k.w<=n};
+          hence thesis by XBOOLE_0:def 3;
+         end;
+         suppose S1:x=w & not k.w<=n;
+          k.w=n+1
+          proof
+           k.w is Element of NAT or k.w=+infty
+           proof
+            k.w in StoppingSet T or k.w in {+infty} by XBOOLE_0:def 3; then
+            per cases by TARSKI:def 1;
+            suppose k.w=+infty; hence thesis; end;
+            suppose k.w in StoppingSet T;
+            then ex q being Element of NAT st k.w=q & 0<=q<=T;
+            hence thesis;
+            end;
+           end; then
+           reconsider KW as Element of NAT by NUMBERS:19,XX,XXREAL_0:9;
+           per cases by XX,NAT_1:8;
+           suppose KW<=n; hence thesis by S1; end;
+           suppose KW=n+1; hence thesis; end;
+          end;
+          then x in {w where w is Element of Omega: k.w=n+1} by XX;
+          hence thesis by XBOOLE_0:def 3;
+        end;
+        end;
+         assume x in {w where w is Element of Omega: k.w<=n} \/
+           {w where w is Element of Omega: k.w=n+1};
+         then per cases by XBOOLE_0:def 3;
+         suppose JP:x in {w where w is Element of Omega: k.w<=n};
+         x in {w where w is Element of Omega: k.w<=n+1}
+         proof
+          consider q being Element of Omega such that Q1:x=q & k.q<=n by JP;
+          set KJ=k.q;
+           KJ is Element of NAT or KJ=+infty
+           proof
+            k.q in StoppingSet T or k.q in {+infty}
+             by XBOOLE_0:def 3;
+            then per cases by TARSKI:def 1;
+            suppose k.q=+infty; hence thesis; end;
+            suppose k.q in StoppingSet T;
+            then ex q1 being Element of NAT st k.q=q1 & 0<=q1 & q1<=T;
+            hence thesis;
+            end;
+           end;
+           then reconsider KJ as Element of NAT
+             by XREAL_0:def 1,Q1,XXREAL_0:9;
+          KJ<=n implies KJ<=n+1 by NAT_1:12;
+         hence thesis by Q1;
+         end;
+         hence thesis; end;
+         suppose JP:x in {w where w is Element of Omega: k.w=n+1};
+         x in {w where w is Element of Omega: k.w<=n+1}
+         proof
+          ex q being Element of Omega st x=q & k.q=n+1 by JP;
+          hence thesis;
+         end;
+         hence thesis; end;
+       end;
+      hence thesis by TARSKI:2;
+      end;
+      reconsider n as Element of NAT by ORDINAL1:def 12;
+     {w where w is Element of Omega: k.w<=n} \/
+       {w where w is Element of Omega: k.w=n+1} in MyFunc.(n+1)
+     proof
+      set A={w where w is Element of Omega: k.w<=n};
+      set B={w where w is Element of Omega: k.w=n+1};
+      set C=MyFunc.(n+1);
+      reconsider C as SigmaField of Omega by ASSJ10,KOLMOG01:def 2;
+      n in StoppingSet T
+      proof
+       consider t being Element of NAT such that
+       Y20: n+1=t & 0<=t & t<=T by ASSJ10;
+       0<=n & n<=T by Y20,NAT_1:13;
+       hence thesis;
+      end; then
+      reconsider n as Element of StoppingSet(T);
+h2:    A is Element of C
+       proof
+         for x being set holds x in MyFunc.n implies x in MyFunc.(n+1)
+         proof
+          MyFunc.n is Subset of MyFunc.(n+1) by FINANCE3:def 9,NAT_1:12,ASSJ10;
+          hence thesis;
+         end;
+        hence thesis by j1;
+       end;
+      B is Event of C by ASSJ10,ASS; then
+      A\/B is Event of C by h2,PROB_1:21;
+      hence thesis;
+     end;
+     hence thesis by J10;
+     end;
+    hence thesis;
+    end;
+    Q1: for n being Nat holds J[n] from NAT_1:sch 2(J0,J1);
+    for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k.w<=t} in MyFunc.t
+    proof
+     let t be Element of StoppingSet(T);
+      t in StoppingSet T; then
+      ex s being Element of NAT st t=s & 0<=s<=T;
+      hence thesis by Q1;
+    end;
+   hence thesis;
+   end;
+  hence thesis;
+  end;
+   assume ASSJ1: for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k.w<=t} in MyFunc.t;
+   for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k.w=t} in MyFunc.t
+   proof
+    let t be Element of StoppingSet(T);
+    defpred J[Nat] means
+     ($1+1) in StoppingSet(T) implies
+      {w where w is Element of Omega: k.w<$1+1} in MyFunc.($1+1);
+    J01: J[0]
+    proof
+     (0+1) in StoppingSet(T) implies
+      {w where w is Element of Omega: k.w<0+1} in MyFunc.(0+1)
+     proof
+      assume ASS: 0+1 in StoppingSet(T);
+      {w where w is Element of Omega: k.w<0+1} in MyFunc.(0+1)
+      proof
+       H1: {w where w is Element of Omega: k.w<=0} =
+       {w where w is Element of Omega: k.w<0+1}
+       proof
+        for x being object holds
+         x in {w where w is Element of Omega: k.w<=0} iff
+          x in {w where w is Element of Omega: k.w<0+1}
+        proof
+         let x be object;
+         thus x in {w where w is Element of Omega: k.w<=0} implies
+              x in {w where w is Element of Omega: k.w<0+1}
+         proof
+           assume x in {w where w is Element of Omega: k.w<=0}; then
+           consider w1 being Element of Omega such that
+           W1: x=w1 & k.w1<=0;
+           thus thesis by W1;
+         end;
+          assume x in {w where w is Element of Omega: k.w<0+1};
+          then consider w1 being Element of Omega such that
+          W1: x=w1 & k.w1<0+1;
+          set KWJ=k.w1;
+           KWJ is Element of NAT or KWJ=+infty
+           proof
+            k.w1 in StoppingSet T or k.w1 in {+infty}
+             by XBOOLE_0:def 3;
+            then per cases by TARSKI:def 1;
+            suppose k.w1=+infty; hence thesis; end;
+            suppose k.w1 in StoppingSet T;
+             then ex q1 being Element of NAT st k.w1=q1 & 0<=q1<=T;
+             hence thesis;
+            end;
+           end; then
+          reconsider KWJ as Nat by NUMBERS:19,W1,XXREAL_0:9;
+          KWJ<=0 by NAT_1:13,W1;
+         hence thesis by W1;
+        end;
+       hence thesis by TARSKI:2;
+       end;
+T1:    0 in StoppingSet(T); then
+       reconsider JA = 0 as Element of StoppingSet(T);
+       reconsider JB = 0 + 1 as Element of StoppingSet(T) by ASS;
+h2:    MyFunc.JA is Subset of MyFunc.JB by FINANCE3:def 9;
+       {w where w is Element of Omega: k.w<=0} in MyFunc.0 by ASSJ1,T1;
+       hence thesis by H1,h2;
+      end;
+     hence thesis;
+     end;
+    hence thesis;
+    end;
+J11: for n being Nat st J[n] holds J[n+1]
+    proof
+     let n be Nat;
+     assume J[n];
+     (n+1)+1 in StoppingSet(T) implies
+      {w where w is Element of Omega: k.w<(n+1)+1} in MyFunc.((n+1)+1)
+      proof
+       assume N01: (n+1)+1 in StoppingSet(T);
+       M10: {w where w is Element of Omega: k.w<(n+1)+1}=
+        {w where w is Element of Omega: k.w<=n+1}
+       proof
+        for x being object holds
+         x in {w where w is Element of Omega: k.w<(n+1)+1} iff
+          x in {w where w is Element of Omega: k.w<=n+1}
+        proof
+         let x be object;
+          thus x in {w where w is Element of Omega: k.w<(n+1)+1} implies
+          x in {w where w is Element of Omega: k.w<=n+1}
+          proof
+          assume x in {w where w is Element of Omega: k.w<(n+1)+1};
+          then consider w being Element of Omega such that
+           F11: x=w & k.w<(n+1)+1;
+           set KW=k.w;
+a1:        k.w in StoppingSet T
+           proof
+            (n+1)+1 in REAL by NUMBERS:19; then
+            k.w < +infty by F11,XXREAL_0:2,XXREAL_0:9; then
+            not k.w in {+infty} by TARSKI:def 1;
+            hence thesis by XBOOLE_0:def 3;
+           end;
+           consider w2 being Element of NAT such that
+           L21: KW=w2 & 0<=w2<=T by a1;
+          KW<(n+1)+1 iff KW<=n+1 by NAT_1:13,L21;
+        hence thesis by F11;
+        end;
+          assume x in {w where w is Element of Omega: k.w<=n+1};
+          then consider w3 being Element of Omega such that
+           QZ1: x=w3 & k.w3<=n+1;
+          set KW=k.w3;
+          k.w3 in StoppingSet T
+          proof
+           not k.w3 in {+infty}
+           proof
+            n+1 < +infty by XXREAL_0:9,NUMBERS:19;
+            hence thesis by TARSKI:def 1,QZ1;
+           end;
+          hence thesis by XBOOLE_0:def 3;
+          end; then
+          consider w2 being Element of NAT such that
+           L21: k.w3=w2 & 0<=w2<=T;
+           KW<(n+1)+1 by QZ1,NAT_1:13,L21;
+          hence thesis by QZ1;
+        end;
+       hence thesis by TARSKI:2;
+       end;
+s1:     n+1 in StoppingSet(T)
+        proof
+         consider w3 being Element of NAT such that
+          QZ10: w3=(n+1)+1 & 0<=w3 & w3<=T by N01;
+         n+1<T by NAT_1:13,QZ10;
+         hence thesis;
+        end;
+        n+1 in StoppingSet(T) & n+1<=(n+1)+1 by NAT_1:13,s1; then
+        MyFunc.(n+1) is Subset of MyFunc.((n+1)+1) by FINANCE3:def 9,N01;
+        then MyFunc.(n+1) c= MyFunc.((n+1)+1);
+      hence thesis by M10,ASSJ1,s1;
+      end;
+     hence thesis;
+    end;
+    Q1: for n being Nat holds J[n] from NAT_1:sch 2(J01,J11);
+    reconsider M = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+    QH1: {w where w is Element of Omega: k.w<=t} is Element of M by ASSJ1;
+    t in StoppingSet T; then
+    consider q being Element of NAT such that QH3: t=q & 0<=q<=T;
+    reconsider t as Nat by QH3;
+    Q2: {w where w is Element of Omega: k.w<=t} \
+         {w where w is Element of Omega: k.w<t} is Event of M
+    proof
+     {w where w is Element of Omega: k.w<t} is Element of M
+     proof
+      per cases;
+      suppose S1:t=0;
+s2:    {w where w is Element of Omega: k.w<0} c= {}
+       proof
+         let x be object;
+         assume x in {w where w is Element of Omega: k.w<0}; then
+         consider w being Element of Omega such that
+TT:      x = w & k.w < 0;
+         k.w>=0
+         proof
+          k.w in StoppingSet T or k.w in {+infty} by XBOOLE_0:def 3; then
+          per cases by TARSKI:def 1;
+          suppose k.w in StoppingSet T;
+          then ex t being Element of NAT st t=k.w & 0<=t<=T;
+          hence thesis;
+          end;
+          suppose k.w=+infty;
+          hence thesis;
+          end;
+         end;
+         hence thesis by TT;
+       end;
+       reconsider M as SigmaField of Omega;
+       {} is Element of M by PROB_1:22;
+      hence thesis by s2,S1;
+      end;
+      suppose t>0; then
+        {w where w is Element of Omega: k.w<(t-1)+1} is Element
+          of MyFunc.((t-1)+1) by Q1;
+        hence thesis;
+      end;
+     end;
+    hence thesis by QH1,PROB_1:24;
+    end;
+    {w where w is Element of Omega: k.w<=t} \
+         {w where w is Element of Omega: k.w<t} =
+        {w where w is Element of Omega: k.w=t}
+    proof
+     for x being object holds
+      x in {w where w is Element of Omega: k.w<=t} \
+            {w where w is Element of Omega: k.w<t} iff
+       x in {w where w is Element of Omega: k.w=t}
+     proof
+      let x be object;
+       thus x in {w where w is Element of Omega: k.w<=t} \
+              {w where w is Element of Omega: k.w<t} implies
+            x in {w where w is Element of Omega: k.w=t}
+       proof
+        assume x in {w where w is Element of Omega: k.w<=t} \
+                     {w where w is Element of Omega: k.w<t}; then
+        JJJ:x in {w where w is Element of Omega: k.w<=t} &
+        not x in {w where w is Element of Omega: k.w<t} by XBOOLE_0:def 5;
+          then
+        consider w1 being Element of Omega such that
+        JJJ1: w1=x & k.w1<=t;
+        w1 in {w where w is Element of Omega: k.w=t}
+        proof
+         k.w1<=t & k.w1>=t implies k.w1=t
+         proof
+          assume Q0: k.w1<=t & k.w1>=t;
+          set W=k.w1;
+          W in StoppingSet T or W in {+infty} by XBOOLE_0:def 3; then
+          (ex w3 being Element of NAT st w3=W & 0<=w3 & w3<=T) or
+            W=+infty by TARSKI:def 1;
+          then reconsider W as Nat by JJJ1,XXREAL_0:9;
+          W+1>t by NAT_1:13,Q0;
+         hence thesis by Q0,NAT_1:22;
+         end;
+        hence thesis by JJJ1,JJJ;
+        end;
+       hence thesis by JJJ1;
+       end;
+        assume x in {w where w is Element of Omega: k.w=t};
+        then consider w being Element of Omega such that
+         W1: x=w & k.w=t;
+        (ex w1 being Element of Omega st x=w1 & k.w1<=t) &
+        (not ex w1 being Element of Omega st x=w1 & k.w1<t) by W1; then
+        x in {w where w is Element of Omega: k.w<=t} &
+              (not x in {w where w is Element of Omega: k.w<t});
+       hence thesis by XBOOLE_0:def 5;
+     end;
+    hence thesis by TARSKI:2;
+    end;
+   hence thesis by Q2;
+  end;
+  hence thesis;
+end;
+
+:: Examples of stopping times
+theorem
+  Omega-->TFix is_StoppingTime_wrt MyFunc,T
+ proof
+ set const = Omega --> TFix;
+  for t being Element of StoppingSet(T) holds
+  {w where w is Element of Omega: const.w=t} in MyFunc.t
+  proof
+   let t be Element of StoppingSet(T);
+   per cases;
+   suppose S0: t=TFix;
+    C1: {w where w is Element of Omega: const.w=t}=Omega
+    proof
+     for x being object holds
+      x in {w where w is Element of Omega: const.w=t} iff x in Omega
+     proof
+      let x be object;
+      thus x in {w where w is Element of Omega: const.w=t} implies x in Omega
+      proof
+       assume x in {w where w is Element of Omega: const.w=t};
+       then consider s being Element of Omega such that E1: s=x & const.s=t;
+       thus thesis by E1;
+      end;
+       assume x in Omega; then
+       consider y being Element of Omega such that
+       F10: y=x & y in Omega;
+       y in Omega implies t=const.y by FUNCOP_1:7,S0;
+       hence thesis by F10;
+     end;
+    hence thesis by TARSKI:2;
+    end;
+    MyFunc.t is SigmaField of Omega by KOLMOG01:def 2;
+    hence thesis by C1,PROB_1:5;
+   end;
+   suppose S1: t<>TFix;
+c1:  {w where w is Element of Omega: const.w=t} c= {}
+     proof
+      let x be object;
+       assume x in {w where w is Element of Omega: const.w=t};
+       then ex s being Element of Omega st s=x & const.s=t;
+       then consider s being Element of Omega such that
+       E1: s=x & const.s<>TFix by S1;
+      thus thesis by E1,FUNCOP_1:7;
+     end;
+    MyFunc.t is SigmaField of Omega by KOLMOG01:def 2; then
+    {} in MyFunc.t by PROB_1:4;
+   hence thesis by c1;
+  end;
+  end;
+ hence thesis;
+ end;
+
+definition
+  let Omega,T,k1,k2;
+  func max(k1,k2) -> Function of Omega,ExtREAL means :Def20:
+    for w being Element of Omega holds it.w = max(k1.w,k2.w);
+  existence
+  proof
+    deffunc U(Element of Omega)=In(max(k1.$1,k2.$1),ExtREAL);
+    consider f being Function of Omega,ExtREAL such that
+A1: for w being Element of Omega holds f.w = U(w) from FUNCT_2:sch 4;
+    take f;
+    let n be Element of Omega;
+    In(max(k1.n,k2.n),ExtREAL) = max(k1.n,k2.n);
+    hence thesis by A1;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of Omega,ExtREAL;
+    assume that
+A2: for w being Element of Omega holds f1.w = max(k1.w,k2.w) and
+A3: for w being Element of Omega holds f2.w = max(k1.w,k2.w);
+    let w be Element of Omega;
+    f2.w = In(max(k1.w,k2.w),ExtREAL) by A3;
+    hence thesis by A2;
+  end;
+end;
+
+definition
+  let Omega,T,k1,k2;
+  func min(k1,k2) -> Function of Omega,ExtREAL means :Def21:
+    for w being Element of Omega holds it.w=min(k1.w,k2.w);
+  existence
+  proof
+    deffunc U(Element of Omega)=In(min(k1.$1,k2.$1),ExtREAL);
+    consider f being Function of Omega,ExtREAL such that
+A1: for w being Element of Omega holds f.w = U(w) from FUNCT_2:sch 4;
+    take f;
+    let n be Element of Omega;
+    f.n = In(min(k1.n,k2.n),ExtREAL) by A1;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of Omega,ExtREAL;
+    assume that
+A2: for w being Element of Omega holds f1.w = min(k1.w,k2.w) and
+A3: for w being Element of Omega holds f2.w = min(k1.w,k2.w);
+    let w be Element of Omega;
+    f2.w = min(k1.w,k2.w) by A3;
+    hence thesis by A2;
+  end;
+end;
+
+theorem
+  k1 is_StoppingTime_wrt MyFunc,T & k2 is_StoppingTime_wrt MyFunc,T implies
+  ex k3 being Function of Omega,StoppingSetExt(T) st k3=max(k1,k2) &
+     k3 is_StoppingTime_wrt MyFunc,T
+proof
+ assume ASS: k1 is_StoppingTime_wrt MyFunc,T & k2 is_StoppingTime_wrt MyFunc,T;
+ set k3=max(k1,k2);
+  k3 is Function of Omega,StoppingSetExt(T)
+  proof
+   rng k3 c= StoppingSetExt(T)
+   proof
+     let x be object;
+     assume x in rng k3; then
+     consider x2 being object such that
+      C1: x2 in dom k3 & x = k3.x2 by FUNCT_1:def 3;
+    O1: x2 in Omega by C1;
+     x2 in dom k1 by O1,FUNCT_2:def 1; then
+     ZW1: k1.x2 in rng k1 by FUNCT_1:3;
+     x2 in dom k2 by O1,FUNCT_2:def 1; then
+     ZW2: k2.x2 in rng k2 by FUNCT_1:3;
+    max(k1.x2,k2.x2) in StoppingSetExt(T)
+    proof
+     per cases;
+     suppose k2.x2 <= k1.x2;
+      then k1.x2=max(k1.x2,k2.x2) by XXREAL_0:def 10;
+     hence thesis by ZW1;
+     end;
+     suppose not(k2.x2 <= k1.x2);
+      then k2.x2=max(k1.x2,k2.x2) by XXREAL_0:def 10;
+     hence thesis by ZW2;
+     end;
+    end;
+    hence thesis by Def20,C1;
+   end; then
+   k3 is Function of dom k3,StoppingSetExt(T) by FUNCT_2:2;
+  hence thesis by FUNCT_2:def 1;
+  end;
+  then reconsider k3 as Function of Omega,StoppingSetExt(T);
+  k3 is_StoppingTime_wrt MyFunc,T
+  proof
+   for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k3.w<=t} in MyFunc.t
+   proof
+    let t be Element of StoppingSet(T);
+    O1: {w where w is Element of Omega: k3.w<=t} =
+     {w where w is Element of Omega: k2.w<=t & k1.w<=t}
+    proof
+     for x being object holds
+      x in {w where w is Element of Omega: k3.w<=t} iff
+       x in{w where w is Element of Omega: k2.w<=t & k1.w<=t}
+     proof
+      let x be object;
+      thus x in {w where w is Element of Omega: k3.w<=t} implies
+       x in {w where w is Element of Omega: k2.w<=t & k1.w<=t}
+      proof
+       assume x in {w where w is Element of Omega: k3.w<=t};
+       then consider w2 being Element of Omega such that R1: x=w2 & k3.w2<=t;
+       HHH: k3.w2=max(k1.w2,k2.w2) by Def20;
+       set K3=k3.w2, K1=k1.w2, K2=k2.w2;
+       per cases;
+       suppose S1: K1<=K2;
+        then K3=K2 by HHH,XXREAL_0:def 10;
+        then K2<=t & K1<=t by XXREAL_0:2,S1,R1;
+       hence thesis by R1;
+       end;
+       suppose S1: K1>K2;
+        then K3=K1 by HHH,XXREAL_0:def 10;
+        then K2<=t & K1<=t by XXREAL_0:2,S1,R1;
+       hence thesis by R1;
+       end;
+      end;
+       assume x in {w where w is Element of Omega: k2.w<=t & k1.w<=t}; then
+       consider w2 being Element of Omega such that
+       R1: x=w2 & k2.w2<=t & k1.w2<=t;
+       HHH: k3.w2=max(k1.w2,k2.w2) by Def20;
+       k3.w2<=t by HHH,XXREAL_0:def 10,R1;
+       hence thesis by R1;
+     end;
+    hence thesis by TARSKI:2;
+    end;
+    O2: {w where w is Element of Omega: k2.w<=t & k1.w<=t} =
+     {w where w is Element of Omega: k2.w<=t} /\
+      {w where w is Element of Omega: k1.w<=t}
+     proof
+      for x being object holds
+       x in {w where w is Element of Omega: k2.w<=t & k1.w<=t} iff
+        x in {w where w is Element of Omega: k2.w<=t} /\
+             {w where w is Element of Omega: k1.w<=t}
+      proof
+       let x be object;
+       thus x in {w where w is Element of Omega: k2.w<=t & k1.w<=t} implies
+        x in {w where w is Element of Omega: k2.w<=t} /\
+             {w where w is Element of Omega: k1.w<=t}
+       proof
+        assume x in {w where w is Element of Omega: k2.w<=t & k1.w<=t}; then
+        consider w3 being Element of Omega such that
+        V2: x=w3 & k2.w3<=t & k1.w3<=t;
+        V3: x in {w where w is Element of Omega: k2.w<=t} by V2;
+        x in {w where w is Element of Omega: k1.w<=t} by V2;
+       hence thesis by V3,XBOOLE_0:def 4;
+       end;
+        assume x in {w where w is Element of Omega: k2.w<=t} /\
+          {w where w is Element of Omega: k1.w<=t}; then
+        V0: x in {w where w is Element of Omega: k2.w<=t} &
+         x in {w where w is Element of Omega: k1.w<=t} by XBOOLE_0:def 4;
+        consider w3 being Element of Omega such that
+        V1: x=w3 & k2.w3<=t by V0;
+        consider w3 being Element of Omega such that
+        V2: x=w3 & k1.w3<=t by V0;
+       thus thesis by V1,V2;
+      end;
+     hence thesis by TARSKI:2;
+     end;
+    {w where w is Element of Omega: k2.w<=t} /\
+      {w where w is Element of Omega: k1.w<=t} in MyFunc.t
+    proof
+     reconsider M = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+     {w where w is Element of Omega: k1.w<=t} is Event of M &
+     {w where w is Element of Omega: k2.w<=t} is Event of M by ASS,KJK; then
+     {w where w is Element of Omega: k1.w<=t} /\
+     {w where w is Element of Omega: k2.w<=t} is Event of M by PROB_1:19;
+    hence thesis;
+    end;
+   hence thesis by O2,O1;
+   end;
+  hence thesis by KJK;
+  end;
+ hence thesis;
+end;
+
+theorem
+  k1 is_StoppingTime_wrt MyFunc,T & k2 is_StoppingTime_wrt MyFunc,T implies
+  ex k3 being Function of Omega,StoppingSetExt(T) st k3=min(k1,k2) &
+     k3 is_StoppingTime_wrt MyFunc,T
+proof
+ assume ASS: k1 is_StoppingTime_wrt MyFunc,T & k2 is_StoppingTime_wrt MyFunc,T;
+  set k3 = min(k1,k2);
+  k3 is Function of Omega,StoppingSetExt(T)
+  proof
+   rng k3 c= StoppingSetExt(T)
+   proof
+     let x be object;
+     assume x in rng k3; then
+     consider x2 being object such that
+ C1: x2 in dom k3 & x = k3.x2 by FUNCT_1:def 3;
+ O1: x2 in Omega by C1; then
+     x2 in dom k1 by FUNCT_2:def 1; then
+ZW1: k1.x2 in rng k1 by FUNCT_1:3;
+     x2 in dom k2 by O1,FUNCT_2:def 1; then
+ZW2: k2.x2 in rng k2 by FUNCT_1:3;
+    min(k1.x2,k2.x2) in StoppingSetExt(T)
+    proof
+     per cases;
+     suppose not(k2.x2 <= k1.x2);
+      then k1.x2=min(k1.x2,k2.x2) by XXREAL_0:def 9;
+     hence thesis by ZW1;
+     end;
+     suppose k2.x2 <= k1.x2;
+      then k2.x2=min(k1.x2,k2.x2) by XXREAL_0:def 9;
+     hence thesis by ZW2;
+     end;
+    end;
+    hence thesis by Def21,C1;
+   end; then
+   k3 is Function of dom k3,StoppingSetExt(T) by FUNCT_2:2;
+  hence thesis by FUNCT_2:def 1;
+  end;
+  then reconsider k3 as Function of Omega,StoppingSetExt(T);
+  k3 is_StoppingTime_wrt MyFunc,T
+  proof
+   for t being Element of StoppingSet(T) holds
+    {w where w is Element of Omega: k3.w<=t} in MyFunc.t
+   proof
+    let t be Element of StoppingSet(T);
+    O1: {w where w is Element of Omega: k3.w<=t} =
+     {w where w is Element of Omega: k2.w<=t or k1.w<=t}
+    proof
+     for x being object holds
+      x in {w where w is Element of Omega: k3.w<=t} iff
+       x in{w where w is Element of Omega: k2.w<=t or k1.w<=t}
+     proof
+      let x be object;
+      thus x in {w where w is Element of Omega: k3.w<=t} implies
+       x in {w where w is Element of Omega: k2.w<=t or k1.w<=t}
+      proof
+       assume x in {w where w is Element of Omega: k3.w<=t};
+       then consider w2 being Element of Omega such that R1: x=w2 & k3.w2<=t;
+  HHH: k3.w2=min(k1.w2,k2.w2) by Def21;
+       set K3=k3.w2, K1=k1.w2, K2=k2.w2;
+       per cases;
+       suppose K1>K2;
+        then K3=K2 by HHH,XXREAL_0:def 9;
+        hence thesis by R1;
+       end;
+       suppose K1<=K2;
+        then K3=K1 by HHH,XXREAL_0:def 9;
+        hence thesis by R1;
+       end;
+      end;
+       assume x in{w where w is Element of Omega: k2.w<=t or k1.w<=t}; then
+       consider w2 being Element of Omega such that
+       R1: x=w2 & (k2.w2<=t or k1.w2<=t);
+       HHH: k3.w2=min(k1.w2,k2.w2) by Def21;
+       per cases by R1;
+       suppose S1J: k2.w2<=t;
+       min(k1.w2,k2.w2)<=t
+       proof
+        per cases;
+        suppose QS:k1.w2<=k2.w2;
+         then min(k1.w2,k2.w2)=k1.w2 by XXREAL_0:def 9;
+         hence thesis by QS,S1J,XXREAL_0:2;
+        end;
+        suppose k1.w2>k2.w2;
+         hence thesis by S1J,XXREAL_0:def 9;
+        end;
+       end;
+       hence thesis by R1,HHH;
+       end;
+       suppose S1J: k1.w2<=t;
+       min(k1.w2,k2.w2)<=t
+       proof
+        per cases;
+        suppose k1.w2<=k2.w2;
+        hence thesis by S1J,XXREAL_0:def 9;
+        end;
+        suppose QS: not(k1.w2<=k2.w2); then
+         min(k1.w2,k2.w2)=k2.w2 by XXREAL_0:def 9;
+        hence thesis by QS,S1J,XXREAL_0:2;
+        end;
+       end;
+       hence thesis by R1,HHH;
+       end;
+     end;
+    hence thesis by TARSKI:2;
+    end;
+    O2: {w where w is Element of Omega: k2.w<=t or k1.w<=t} =
+     {w where w is Element of Omega: k2.w<=t} \/
+      {w where w is Element of Omega: k1.w<=t}
+     proof
+      for x being object holds
+       x in {w where w is Element of Omega: k2.w<=t or k1.w<=t} iff
+        x in {w where w is Element of Omega: k2.w<=t} \/
+             {w where w is Element of Omega: k1.w<=t}
+      proof
+       let x be object;
+       thus x in {w where w is Element of Omega: k2.w<=t or k1.w<=t} implies
+        x in {w where w is Element of Omega: k2.w<=t} \/
+             {w where w is Element of Omega: k1.w<=t}
+       proof
+        assume x in {w where w is Element of Omega: k2.w<=t or k1.w<=t};
+        then consider w3 being Element of Omega such that
+         V2: x=w3 & (k2.w3<=t or k1.w3<=t);
+        x in {w where w is Element of Omega: k2.w<=t} or
+        x in {w where w is Element of Omega: k1.w<=t} by V2;
+       hence thesis by XBOOLE_0:def 3;
+       end;
+        assume x in {w where w is Element of Omega: k2.w<=t} \/
+             {w where w is Element of Omega: k1.w<=t}; then
+        V0: x in {w where w is Element of Omega: k2.w<=t} or
+         x in {w where w is Element of Omega: k1.w<=t} by XBOOLE_0:def 3;
+        (ex w3 being Element of Omega st x=w3 & k2.w3<=t) or
+        (ex w3 being Element of Omega st x=w3 & k1.w3<=t) by V0;
+       hence thesis;
+      end;
+     hence thesis by TARSKI:2;
+     end;
+    {w where w is Element of Omega: k2.w<=t} \/
+      {w where w is Element of Omega: k1.w<=t} in MyFunc.t
+    proof
+     reconsider M = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+     {w where w is Element of Omega: k1.w<=t} is Element of M &
+     {w where w is Element of Omega: k2.w<=t} is Element of M by ASS,KJK;
+    hence thesis by PROB_1:3;
+    end;
+   hence thesis by O2,O1;
+   end;
+  hence thesis by KJK;
+  end;
+ hence thesis;
+end;
+
+Lemma1: 1 in StoppingSetExt(2)
+  proof
+    1 in StoppingSet 2;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+
+Lemma2: 2 in StoppingSetExt(2)
+  proof
+    2 in StoppingSet 2;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+
+definition let t be object;
+  func Special_StoppingSet(t) -> Element of StoppingSetExt(2) equals
+  IFIN(t,{1,2},1,2);
+  correctness
+  proof
+    per cases;
+    suppose t in {1,2};
+      hence thesis by Lemma1,MATRIX_7:def 1;
+    end;
+    suppose not t in {1,2};
+      hence thesis by Lemma2,MATRIX_7:def 1;
+    end;
+  end;
+end;
+
+theorem
+  Omega = {1,2,3,4} implies
+  for MyFunc being Filtration of StoppingSet(2),Sigma st
+      MyFunc.0 = Special_SigmaField1 &
+      MyFunc.1 = Special_SigmaField2 &
+      MyFunc.2 = Trivial-SigmaField (Omega)
+    ex ST being Function of Omega,StoppingSetExt(2) st
+      ST is_StoppingTime_wrt MyFunc,2 &
+       ST.1=1 & ST.2=1 & ST.3=2 & ST.4=2 &
+       {w where w is Element of Omega: ST.w=0} = {} &
+       {w where w is Element of Omega: ST.w=1} = {1,2} &
+       {w where w is Element of Omega: ST.w=2} = {3,4}
+proof
+  assume
+ASS0: Omega={1,2,3,4};
+  let MyFunc be Filtration of StoppingSet(2),Sigma;
+  assume
+ASS2: MyFunc.0=Special_SigmaField1 &
+      MyFunc.1=Special_SigmaField2 &
+      MyFunc.2=Trivial-SigmaField(Omega);
+  deffunc U(Element of Omega) = Special_StoppingSet($1);
+  consider f being Function of Omega,StoppingSetExt(2) such that
+A1: for d be Element of Omega holds f.d = U(d) from FUNCT_2:sch 4;
+B1: 1 in {1,2} & 2 in {1,2} & not 3 in {1,2} & not 4 in {1,2}
+    by TARSKI:def 2;
+  take f;
+A2: f.1=1 & f.2=1 & f.3=2 & f.4=2
+ proof
+   set O1=1, O2=2, O3=3, O4=4;
+   reconsider O1,O2,O3,O4 as Element of Omega by ASS0,ENUMSET1:def 2;
+   f.1=U(O1) & f.2=U(O2) & f.3=U(O3) & f.4=U(O4) by A1;
+   hence thesis by B1,MATRIX_7:def 1;
+ end;
+ f is_StoppingTime_wrt MyFunc,2 &
+  {w where w is Element of Omega: f.w=0}={} &
+  {w where w is Element of Omega: f.w=1}={1,2} &
+  {w where w is Element of Omega: f.w=2}={3,4}
+ proof
+G1: for t being Element of StoppingSet(2) holds
+   {w where w is Element of Omega: f.w=t} in MyFunc.t &
+   (t=0 implies {w where w is Element of Omega: f.w=0}={}) &
+   (t=1 implies {w where w is Element of Omega: f.w=1}={1,2}) &
+   (t=2 implies {w where w is Element of Omega: f.w=2}={3,4})
+  proof
+   let t be Element of StoppingSet(2);
+   t in StoppingSet 2; then
+   consider t1 being Element of NAT such that H1: t=t1 & 0<=t1 & t1<=2;
+   t<=1 or t=1+1 by NAT_1:9,H1; then
+g2:t<=0 or t=0+1 or t=2 by NAT_1:9,H1;
+   {w where w is Element of Omega: f.w=t} in MyFunc.t &
+   (t=0 implies {w where w is Element of Omega: f.w=0}={}) &
+   (t=1 implies {w where w is Element of Omega: f.w=1}={1,2}) &
+   (t=2 implies {w where w is Element of Omega: f.w=2}={3,4})
+   proof
+    reconsider M = MyFunc.t as SigmaField of Omega by KOLMOG01:def 2;
+    per cases by g2,H1;
+    suppose S1: t=0;
+     {w where w is Element of Omega: f.w=0} in M &
+     (t=0 implies {w where w is Element of Omega: f.w=0}={})
+     proof
+      {w where w is Element of Omega: f.w=0} c= {}
+      proof
+        let y be object;
+        assume y in {w where w is Element of Omega: f.w=0};
+        then ex y1 being Element of Omega st y=y1 & f.y1=0;
+        hence thesis by A2,ASS0,ENUMSET1:def 2;
+      end;
+     then {w where w is Element of Omega: f.w=0} = {};
+     hence thesis by PROB_1:4;
+     end;
+    hence thesis by S1;
+    end;
+    suppose S1: t=1;
+    {w where w is Element of Omega: f.w=1} = {1,2}
+    proof
+     for x being object holds
+      x in {w where w is Element of Omega: f.w=1} iff x in {1,2}
+     proof
+      let x be object;
+      thus x in {w where w is Element of Omega: f.w=1} implies x in {1,2}
+      proof
+       assume x in {w where w is Element of Omega: f.w=1};
+       then consider w2 being Element of Omega such that K2: x=w2 & f.w2=1;
+        not w2 in {1,2} implies f.w2>1
+        proof
+         assume ASSJ: not w2 in {1,2};
+         w2=1 or w2=2 or w2=3 or w2=4 by ASS0,ENUMSET1:def 2;
+        hence thesis by A2,ASSJ,TARSKI:def 2;
+       end;
+      hence thesis by K2;
+      end;
+       assume ASSJ: x in {1,2}; then
+       x=1 or x=2 or x=3 or x=4 by TARSKI:def 2; then
+S:     x in Omega by ASS0,ENUMSET1:def 2;
+       x=1 or x=2 by ASSJ,TARSKI:def 2;
+       hence thesis by S,A2;
+     end;
+    hence thesis by TARSKI:2;
+    end;
+    hence thesis by S1,ENUMSET1:def 2,ASS2;
+    end;
+    suppose S1: t=2;
+    S2: {w where w is Element of Omega: f.w=t} = {3,4}
+    proof
+     for x being object holds
+      x in {w where w is Element of Omega: f.w=t} iff x in {3,4}
+     proof
+      let x be object;
+      thus x in {w where w is Element of Omega: f.w=t} implies x in {3,4}
+      proof
+       assume x in {w where w is Element of Omega: f.w=t};
+       then consider w2 being Element of Omega such that
+   K2: x=w2 & f.w2=2 by S1;
+       assume ASSJ: not x in {3,4};
+       w2=1 or w2=2 or w2=3 or w2=4 by ASS0,ENUMSET1:def 2;
+       hence thesis by A2,ASSJ,TARSKI:def 2,K2;
+      end;
+      assume x in {3,4}; then
+T:    x=3 or x=4 by TARSKI:def 2; then
+      x in Omega by ASS0,ENUMSET1:def 2;
+      hence thesis by A2,S1,T;
+    end;
+   hence thesis by TARSKI:2;
+   end;
+   {3,4} in Special_SigmaField2 &
+   Special_SigmaField2 c= Trivial-SigmaField({1,2,3,4}) by FINANCE3:24;
+   hence thesis by S2,S1,ASS2;
+   end;
+   end;
+   hence thesis;
+   end;
+j1:0 in StoppingSet(2);
+j2:1 in StoppingSet(2);
+   2 in StoppingSet(2);
+  hence thesis by j1,j2,G1;
+ end;
+hence thesis by A2;
+end;

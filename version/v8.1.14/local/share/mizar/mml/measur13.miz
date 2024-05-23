@@ -1,0 +1,2680 @@
+:: Multidimensional Measure Space and Integration
+::  by Noboru Endou and Yasunari Shidama
+:: 
+:: Received November 21, 2023
+:: Copyright (c) 2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, NUMBERS, XXREAL_0, SUBSET_1, CARD_1, ARYTM_3, ARYTM_1,
+      RELAT_1, REAL_1, FUNCT_1, XBOOLE_0, TARSKI, ZFMISC_1, PROB_1, SUPINF_2,
+      PARTFUN1, MEASURE1, MESFUNC5, MESFUNC1, SRINGS_3, MEASUR10, MEASUR11,
+      COMPLEX1, MESFUN12, INTEGRA5, LPSPACE1, NAT_1, ORDINAL4, FUNCT_2, CARD_3,
+      XCMPLX_0, MEASURE8, PROB_3, FUNCT_7, MEASUR13;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, FUNCT_1, ORDINAL1, RELSET_1,
+      PARTFUN1, FUNCT_2, BINOP_1, CARD_1, CARD_3, NUMBERS, XXREAL_0, XREAL_0,
+      XXREAL_3, NAT_1, FINSEQ_1, PROB_1, MEASURE1, MESFUNC1, MESFUNC5,
+      LPSPACE1, MEASURE8, SRINGS_3, MEASUR10, PROB_3, MEASUR11, MESFUN12;
+ constructors EXTREAL1, MEASUR11, MESFUN12, LPSPACE1, DOMAIN_1, PROB_3,
+      KURATO_0;
+ registrations ORDINAL1, XBOOLE_0, RELAT_1, SUBSET_1, XXREAL_0, XREAL_0, NAT_1,
+      VALUED_0, RELSET_1, MEASURE1, XXREAL_3, FINSEQ_1, FUNCT_1, FUNCT_2,
+      CARD_1, CARD_3, PRVECT_3, PROB_1, SRINGS_4, SETFAM_1, INT_1;
+ requirements BOOLE, SUBSET, NUMERALS, REAL, ARITHM;
+ equalities FINSEQ_1, MEASUR10, BINOP_1;
+ expansions XBOOLE_0, FINSEQ_1, FUNCT_1, PROB_1, RELAT_1, MEASURE1;
+ theorems FUNCT_1, XXREAL_0, MEASURE1, FUNCT_2, RELAT_1, MEASUR10, SUBSET_1,
+      MEASUR11, MESFUN12, SRINGS_3, FINSEQ_1, TARSKI, ZFMISC_1, NAT_1, XREAL_1,
+      PROB_1, ORDINAL1, MEASURE8, CARD_1, XTUPLE_0, CARD_3, PROB_3, PRVECT_3,
+      FINSEQ_3, XREAL_0, MESFUN13, INT_1;
+ schemes RECDEF_1, FINSEQ_1, NAT_1, FUNCT_2, BINOP_1;
+
+begin :: Preliminaries
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence;
+assume A1:n <= m;
+func ElmFin(X,n) -> non empty set equals :Def1:
+  X.n;
+correctness
+proof
+    1 <= n by NAT_1:14; then
+A2: n in Seg m by A1;
+    len X = m by CARD_1:def 7; then
+    n in dom X by A2,FINSEQ_1:def 3;
+    hence thesis;
+end;
+end;
+
+definition
+let m be Nat, X be non-empty m-element FinSequence;
+mode sigmaFieldFamily of X -> m-element FinSequence means :Def2:
+  for i being Nat st i in Seg m holds it.i is SigmaField of X.i;
+existence
+proof
+    deffunc F(set) = bool(X.$1);
+    consider p being FinSequence such that
+A1:  len p = m and
+A2:  for i being Nat st i in dom p holds p.i=F(i) from FINSEQ_1:sch 2;
+    reconsider p as m-element FinSequence by A1,CARD_1:def 7;
+    take p;
+    hereby
+     let i be Nat;
+     assume i in Seg m; then
+     i in dom p by A1,FINSEQ_1:def 3; then
+     p.i = bool(X.i) by A2;
+     hence p.i is SigmaField of X.i;
+    end;
+end;
+end;
+
+theorem
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st n <= m holds
+  S.n is SigmaField of ElmFin(X,n)
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume
+A1:  n <= m; then
+A2: ElmFin(X,n) = X.n by Def1;
+    1 <= n by NAT_1:14; then
+    n in Seg m by A1;
+    hence S.n is SigmaField of ElmFin(X,n) by A2,Def2;
+end;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence;
+func ProdFinSeq X -> non-empty m-element FinSequence means :Def3:
+   it.1 = X.1
+ & for i be non zero Nat st i < m holds it.(i+1) = [: it.i,X.(i+1) :];
+existence
+proof
+    defpred Q[Nat,set,set] means $3 = [: $2,X.($1+1) :];
+
+A1: for n be Nat st 1 <= n & n < m holds
+     for x be set ex y be set st Q[n,x,y];
+
+    consider p being FinSequence such that
+A2:  len p = m & (p.1 = X.1 or m = 0)
+   & for n be Nat st 1 <= n & n < m holds Q[ n,p.n,p.(n+1) ]
+       from RECDEF_1:sch 3(A1);
+    reconsider p as m-element FinSequence by A2,CARD_1:def 7;
+
+    defpred P[Nat] means $1 < len p implies p.($1+1) <> {};
+
+    1 <= len X by NAT_1:14; then
+    1 in dom X by FINSEQ_3:25; then
+A3: P[0] by A2;
+
+A4: for i be Nat st P[i] holds P[i+1]
+    proof
+     let i be Nat;
+     assume A5: P[i];
+     assume A6: i+1 < len p; then
+     1 <= (i+1)+1 & (i+1)+1 <= len p by NAT_1:13,14; then
+     i+1+1 in Seg m by A2; then
+A7: (i+1)+1 in dom X by FINSEQ_1:89;
+     1 <= i+1 by NAT_1:12; then
+     p.((i+1)+1) =[:p.(i+1),X.((i+1)+1):] by A2,A6;
+     hence p.((i+1)+1) <> {} by A5,A6,A7,NAT_1:12;
+    end;
+A8:for i be Nat holds P[i] from NAT_1:sch 2(A3,A4);
+
+    for i be object st i in dom p holds p.i <> {}
+    proof
+     let i be object;
+     assume A9: i in dom p; then
+     reconsider j = i as Nat;
+     reconsider j1 = j-1 as Nat by A9,FINSEQ_3:25,NAT_1:21;
+     j1+1 <= len p by A9,FINSEQ_3:25;
+     hence thesis by A8,NAT_1:13;
+    end; then
+    not {} in rng p by FUNCT_1:def 3; then
+    reconsider p as non-empty m-element FinSequence by RELAT_1:def 9;
+    take p;
+    thus thesis by A2,NAT_1:14;
+end;
+uniqueness
+proof
+    let P1,P2 be non-empty m-element FinSequence;
+    assume that
+A10:  P1.1 = X.1
+   & for i be non zero Nat st i < m holds P1.(i+1) = [: P1.i,X.(i+1) :]
+ and
+A11:  P2.1 = X.1
+   & for i be non zero Nat st i < m holds P2.(i+1) = [: P2.i,X.(i+1) :];
+
+    defpred P[Nat,set,set] means $3 = [:$2,X.($1+1):];
+
+A12: for n be Nat st 1 <= n & n < m
+     for x,y1,y2 being set st P[n,x,y1] & P[n,x,y2] holds y1 = y2;
+A13:len P1 = m & (P1.1 = X.1 or m = 0)
+     & for n be Nat st 1 <= n & n < m holds P[n,P1.n,P1.(n+1)]
+       by A10,CARD_1:def 7;
+A14:len P2 = m & (P2.1 = X.1 or m = 0)
+     & for n be Nat st 1 <= n & n < m holds P[n,P2.n,P2.(n+1)]
+       by A11,CARD_1:def 7;
+    P1=P2 from RECDEF_1:sch 7(A12,A13,A14);
+    hence P1=P2;
+end;
+end;
+
+definition
+  let m be non zero Nat, X be non-empty m-element FinSequence;
+  func CarProduct X -> set equals
+    (ProdFinSeq X).m;
+  correctness;
+end;
+
+registration
+  let m be non zero Nat, X be non-empty m-element FinSequence;
+  cluster CarProduct X -> non empty;
+  coherence
+  proof
+    1 <= m by NAT_1:14; then
+    m in Seg m; then
+    m in dom ProdFinSeq X by FINSEQ_1:89;
+    hence thesis;
+  end;
+end;
+
+theorem Th2:
+for m be non zero Nat, k be Nat, X be non-empty m-element FinSequence
+ st k <= m holds
+ X|k is non-empty k-element FinSequence
+proof
+    let m be non zero Nat, k be Nat, X be non-empty m-element FinSequence;
+    assume
+A1:  k <= m;
+A2: len X = m by CARD_1:def 7; then
+A3: len(X|k) = k by FINSEQ_1:59,A1;
+
+    set X1 = X|k;
+
+    now assume {} in rng X1; then
+     consider i be object such that
+A4:   i in dom X1 & {} = X1.i by FUNCT_1:def 3;
+A5:  i in Seg len X1 by A4,FINSEQ_1:def 3; then
+A6:  X1.i = X.i by A3,FUNCT_1:49;
+
+     Seg k c= Seg (len X) by FINSEQ_1:5,A1,A2; then
+     i in Seg (len X) by A3,A5; then
+     i in dom X by FINSEQ_1:def 3;
+     hence contradiction by A4,A6;
+    end;
+    hence thesis by A3,CARD_1:def 7,RELAT_1:def 9;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence;
+assume A1:n<=m;
+func SubFin(X,n) -> non-empty n-element FinSequence equals :Def5:
+  X|n;
+correctness by A1,Th2;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X;
+assume A1:n <= m;
+func SubFin(S,n) -> sigmaFieldFamily of SubFin(X,n) equals :Def6:
+  S|n;
+correctness
+proof
+A2: len X = m & len S = m by CARD_1:def 7;
+    set Xn = SubFin(X,n);
+    set Sn = S|n;
+A3: Xn = X|n by A1,Def5;
+    len Sn = n by FINSEQ_1:59,A2,A1; then
+    reconsider Sn as n-element FinSequence by CARD_1:def 7;
+    for i be Nat st i in Seg n holds Sn.i is SigmaField of Xn.i
+    proof
+     let i be Nat;
+     assume
+A4:   i in Seg n; then
+A5:  1 <= i & i <= n by FINSEQ_1:1; then
+     i <= m by A1,XXREAL_0:2; then
+A6:  i in Seg m by A5;
+     S.i = Sn.i & X.i = Xn.i by A4,A3,FUNCT_1:49;
+     hence thesis by A6,Def2;
+    end; then
+    reconsider Sn as sigmaFieldFamily of SubFin(X,n) by Def2;
+    Sn = S|n;
+    hence thesis;
+end;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+assume A1:n <= m;
+func ElmFin(S,n) -> SigmaField of ElmFin(X,n) equals :Def7:
+  S.n;
+correctness
+proof
+    1 <= n by NAT_1:14; then
+A2: n in Seg m by A1;
+    ElmFin(X,n) = X.n by Def1,A1;
+    hence thesis by A2,Def2;
+end;
+end;
+
+Lm1:
+for n be non zero Nat, X be non-empty n-element FinSequence,
+    S be sigmaFieldFamily of X holds S is SemialgebraFamily of X
+proof
+   let n be non zero Nat, X be non-empty n-element FinSequence,
+       S be sigmaFieldFamily of X;
+   for i be Nat st i in Seg n holds S.i is semialgebra_of_sets of X.i
+   proof
+    let i be Nat;
+    assume i in Seg n;
+    then S.i is SigmaField of X.i by Def2;
+    hence thesis by SRINGS_3:20;
+   end;
+   hence thesis by MEASUR10:def 2;
+end;
+
+definition
+  let m be non zero Nat, X be non-empty m-element FinSequence;
+  redefine mode sigmaFieldFamily of X -> SemialgebraFamily of X;
+  correctness by Lm1;
+end;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+ mode sigmaMeasureFamily of S -> m-element FinSequence means :Def8:
+  for i being Nat st i in Seg m
+   ex Si being SigmaField of X.i st Si = S.i & it.i is sigma_Measure of Si;
+existence
+proof
+    defpred P[Nat, object] means
+     ex F being SigmaField of X.$1 st F = S.$1 & $2 is sigma_Measure of F;
+
+A1: now let i be Nat;
+     assume i in Seg m;
+     then reconsider F = S.i as SigmaField of X.i by Def2;
+     set M = the sigma_Measure of F;
+     M is sigma_Measure of F;
+     hence ex M be object st P[i,M];
+    end;
+    consider M be FinSequence such that
+A2:  dom M = Seg m & for i be Nat st i in Seg m holds P[i,M.i]
+      from FINSEQ_1:sch 1(A1);
+    Seg len M = Seg m by A2,FINSEQ_1:def 3; then
+    reconsider M as m-element FinSequence by CARD_1:def 7,FINSEQ_1:6;
+    take M;
+    thus for i be Nat st i in Seg m
+     ex Si be SigmaField of X.i st Si = S.i & M.i is sigma_Measure of Si
+       by A2;
+end;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+assume A1:n <= m;
+func SubFin(M,n) -> sigmaMeasureFamily of SubFin(S,n) equals :Def9:
+  M|n;
+correctness
+proof
+A2: len X = m & len S = m & len M = m by CARD_1:def 7;
+    set Xn = SubFin(X,n), Sn = SubFin(S,n), Mn = M|n;
+
+A3: Xn=X|n & Sn =S|n by A1,Def5,Def6;
+    len Mn = n by FINSEQ_1:59,A2,A1; then
+    reconsider Mn as n-element FinSequence by CARD_1:def 7;
+
+    for i be Nat st i in Seg n
+     ex Sni be SigmaField of Xn.i st Sni = Sn.i & Mn.i is sigma_Measure of Sni
+    proof
+     let i be Nat;
+     assume
+A4:   i in Seg n; then
+A5:  1 <= i & i <= n by FINSEQ_1:1; then
+     i <= m by A1,XXREAL_0:2; then
+     i in Seg m by A5; then
+     consider Si be SigmaField of X.i such that
+A6:   Si = S.i & M.i is sigma_Measure of Si by Def8;
+     S.i = Sn.i & X.i = Xn.i & M.i = Mn.i by A4,A3,FUNCT_1:49;
+     hence thesis by A6;
+    end; then
+    reconsider Mn as sigmaMeasureFamily of SubFin(S,n) by Def8;
+    Mn = M|n;
+    hence thesis;
+end;
+end;
+
+definition
+let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+assume A1:n <= m;
+func ElmFin(M,n) -> sigma_Measure of ElmFin(S,n) equals :Def10:
+  M.n;
+correctness
+proof
+    1 <= n by NAT_1:14; then
+    n in Seg m by A1; then
+    consider Si be SigmaField of X.n such that
+A2:  Si = S.n & M.n is sigma_Measure of Si by Def8;
+A3: X.n = ElmFin(X,n) by Def1,A1;
+    Si = ElmFin(S,n) by Def7,A1,A2;
+    hence thesis by A2,A3;
+end;
+end;
+
+theorem Th3:
+for m,i,j,k be non zero Nat, X be non-empty m-element FinSequence
+ st i <= j & j <= k & k <= m holds
+  (ProdFinSeq SubFin(X,j)).i = (ProdFinSeq SubFin(X,k)).i
+proof
+    let m,i,j,k be non zero Nat, X be non-empty m-element FinSequence;
+    assume that
+A1:  i <= j and
+A2:  j <= k and
+A3:  k <= m;
+
+    1 <= j & 1 <= k by NAT_1:14; then
+A4: 1 in Seg j & 1 in Seg k;
+
+    defpred P[Nat] means
+     1 <= $1 & $1 <= j implies
+      (ProdFinSeq SubFin(X,j)).$1 = (ProdFinSeq SubFin(X,k)).$1;
+
+A5: P[0];
+
+A6: for n be Nat st P[n] holds P[n+1]
+    proof
+     let n be Nat;
+     assume
+A7:   P[n];
+     assume
+A8:   1 <= n+1 & n+1 <= j;
+     per cases;
+     suppose n = 0; then
+      (ProdFinSeq SubFin(X,j)).(n+1) = SubFin(X,j).1
+    & (ProdFinSeq SubFin(X,k)).(n+1) = SubFin(X,k).1 by Def3; then
+      (ProdFinSeq SubFin(X,j)).(n+1) = (X|j).1
+    & (ProdFinSeq SubFin(X,k)).(n+1) = (X|k).1 by A2,A3,Def5,XXREAL_0:2; then
+      (ProdFinSeq SubFin(X,j)).(n+1) = X.1
+    & (ProdFinSeq SubFin(X,k)).(n+1) = X.1 by A4,FUNCT_1:49;
+      hence (ProdFinSeq SubFin(X,j)).(n+1) = (ProdFinSeq SubFin(X,k)).(n+1);
+     end;
+     suppose A9: n <> 0; then
+      reconsider n1 = n as non zero Nat;
+A10:   1 <= n by A9,NAT_1:14;
+A11:  n < j by A8,NAT_1:13;
+
+      n+1 <= k by A8,A2,XXREAL_0:2; then
+A12:   n+1 in Seg j & n+1 in Seg k by A8;
+      SubFin(X,j) = X|j & SubFin(X,k) = X|k by A2,A3,Def5,XXREAL_0:2; then
+A13:   SubFin(X,j).(n+1) = X.(n+1) & SubFin(X,k).(n+1) = X.(n+1)
+        by A12,FUNCT_1:49;
+
+      reconsider j1 = j-1 as non zero Nat by A9,A8,NAT_1:13,14,20;
+
+      1 < j by A10,A11,XXREAL_0:2; then
+      1 < k by A2,XXREAL_0:2; then
+      reconsider k1 = k-1 as Nat by NAT_1:20;
+      j1 <= k1 by A2,XREAL_1:9; then
+      reconsider k1 as non zero Nat;
+
+A14:  n1 < k1+1 by A2,A11,XXREAL_0:2;
+      (ProdFinSeq SubFin(X,j1+1)).(n1+1)
+       = [: (ProdFinSeq SubFin(X,k1+1)).n, SubFin(X,k1+1).(n1+1) :]
+         by A13,A11,A7,Def3,NAT_1:14;
+      hence (ProdFinSeq SubFin(X,j)).(n+1) = (ProdFinSeq SubFin(X,k)).(n+1)
+        by A14,Def3;
+     end;
+    end;
+
+A15:for n be Nat holds P[n] from NAT_1:sch 2(A5,A6);
+    1 <= i by NAT_1:14;
+    hence (ProdFinSeq SubFin(X,j)).i = (ProdFinSeq SubFin(X,k)).i by A1,A15;
+end;
+
+theorem Th4:
+for m,n be non zero Nat, X be non-empty m-element FinSequence
+ st n <= m holds
+  (ProdFinSeq X).n = (ProdFinSeq SubFin(X,n)).n
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence;
+    assume
+A1:  n <= m;
+
+    len X = m by FINSEQ_3:153; then
+    X = X|m by FINSEQ_1:58; then
+    X = SubFin(X,m) by Def5;
+    hence (ProdFinSeq X).n = (ProdFinSeq SubFin(X,n)).n by A1,Th3;
+end;
+
+theorem Th5:
+for m,n be non zero Nat, X be non-empty m-element FinSequence st n < m holds
+  (ProdFinSeq X).(n+1) = [: (ProdFinSeq SubFin(X,n)).n,ElmFin(X,n+1) :]
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence;
+    assume
+A1:  n < m; then
+A2: n+1 <= m by NAT_1:13;
+    (ProdFinSeq X).(n+1) = [: (ProdFinSeq X).n, X.(n+1) :] by A1,Def3
+     .= [: (ProdFinSeq SubFin(X,n)).n, X.(n+1) :] by A1,Th4;
+    hence (ProdFinSeq X).(n+1)
+     = [: (ProdFinSeq SubFin(X,n)).n,ElmFin(X,n+1) :] by A2,Def1;
+end;
+
+theorem Th6:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence holds
+  CarProduct X = [: CarProduct SubFin(X,n),ElmFin(X,n+1) :]
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence;
+A1: n < n+1 by NAT_1:13; then
+A2: CarProduct X = [: (ProdFinSeq X).n,X.(n+1) :] by Def3;
+    CarProduct SubFin(X,n) = (ProdFinSeq X).n by A1,Th4;
+    hence thesis by A2,Def1;
+end;
+
+theorem Th7:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence
+ st k <= n & n <= m holds SubFin(X,k) = SubFin(SubFin(X,n),k)
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+A3: SubFin(X,n) = X|n by A2,Def5;
+A4: SubFin(SubFin(X,n),k) = (X|n)|k by A1,A3,Def5;
+
+    SubFin(X,k) = X|k by A2,A1,XXREAL_0:2,Def5;
+    hence SubFin(X,k) = SubFin(SubFin(X,n),k) by A4,A1,FINSEQ_1:82;
+end;
+
+theorem Th8:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence
+ st k <= n & n <= m holds ElmFin(X,k) = ElmFin(SubFin(X,n),k)
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+A3: ElmFin(X,k) = X.k by A1,A2,Def1,XXREAL_0:2;
+
+    1 <= k by NAT_1:14; then
+A4: k in Seg n by A1;
+
+    SubFin(X,n) = X|n by A2,Def5; then
+    ElmFin(SubFin(X,n),k) = (X|n).k by A1,Def1;
+    hence ElmFin(X,k) = ElmFin(SubFin(X,n),k) by A3,A4,FUNCT_1:49;
+end;
+
+theorem Th9:
+for m,n be non zero Nat, X be non-empty m-element FinSequence
+ st n < m holds
+ CarProduct SubFin(X,n+1) = [: CarProduct SubFin(X,n),ElmFin(X,n+1) :]
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence;
+    assume n < m; then
+A1: n <= n+1 & n+1 <= m by NAT_1:13; then
+A2: ElmFin(SubFin(X,n+1),n+1) = ElmFin(X,n+1) by Th8;
+
+    CarProduct SubFin(X,n+1)
+     = [: CarProduct SubFin(SubFin(X,n+1),n),ElmFin(SubFin(X,n+1),n+1) :]
+       by Th6;
+    hence CarProduct SubFin(X,n+1)
+     = [: CarProduct SubFin(X,n),ElmFin(X,n+1) :] by A1,A2,Th7;
+end;
+
+theorem
+for m,n be non zero Nat, X be non-empty m-element FinSequence
+ st n < m holds
+ (ProdFinSeq SubFin(X,n+1)).(n+1)
+  = [: (ProdFinSeq SubFin(X,n)).n, ElmFin(X,n+1) :]
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence;
+    assume A1: n < m;
+    CarProduct SubFin(X,n+1) = (ProdFinSeq SubFin(X,n+1)).(n+1); then
+    (ProdFinSeq SubFin(X,n+1)).(n+1)
+     = [: CarProduct SubFin(X,n),ElmFin(X,n+1) :] by A1,Th9;
+    hence
+ (ProdFinSeq SubFin(X,n+1)).(n+1)
+  = [: (ProdFinSeq SubFin(X,n)).n, ElmFin(X,n+1) :];
+end;
+
+theorem
+for n,i be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X st i <= n holds
+ CarProduct SubFin(X,i) = CarProduct SubFin(SubFin(X,n),i)
+proof
+    let n,i be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume A1: i <= n;
+    n <= n+1 by NAT_1:13;
+    hence thesis by A1,Th7;
+end;
+
+theorem Th12:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X st k <= n & n <= m holds
+ ElmFin(S,k) = ElmFin(SubFin(S,n),k)
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+A3: ElmFin(S,k) = S.k by A1,A2,Def7,XXREAL_0:2;
+    1 <= k by NAT_1:14; then
+A4: k in Seg n by A1;
+
+    SubFin(S,n) = S|n by A2,Def6; then
+    ElmFin(SubFin(S,n),k) = (S|n).k by A1,Def7;
+    hence ElmFin(S,k) = ElmFin(SubFin(S,n),k) by A3,A4,FUNCT_1:49;
+end;
+
+theorem
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+ Y be non-empty n-element FinSequence, S be sigmaFieldFamily of X
+  st n <= m & Y = X|n holds SubFin(S,n) is sigmaFieldFamily of Y
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    Y be non-empty n-element FinSequence, S be sigmaFieldFamily of X;
+    assume that
+A1:  n <= m and
+A2:  Y = X|n;
+
+    for i be Nat st i in Seg n holds (SubFin(S,n)).i is SigmaField of Y.i
+    proof
+     let i be Nat;
+     assume
+A3:   i in Seg n;
+A4:  Seg n c= Seg m by A1,FINSEQ_1:5;
+
+     (S|n).i = S.i by A3,FUNCT_1:49; then
+A5:  (S|n).i is SigmaField of X.i by A3,A4,Def2;
+     Y.i = X.i by A2,A3,FUNCT_1:49;
+     hence thesis by A5,A1,Def6;
+    end;
+    hence SubFin(S,n) is sigmaFieldFamily of Y by Def2;
+end;
+
+theorem Th14:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X
+ st k <= n & n <= m holds SubFin(S,k) = SubFin(SubFin(S,n),k)
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+    SubFin(SubFin(S,n),k) = (SubFin(S,n))|k by A1,Def6; then
+    SubFin(SubFin(S,n),k) = (S|n)|k by A2,Def6; then
+    SubFin(SubFin(S,n),k) = S|k by A1,FINSEQ_1:82;
+    hence thesis by A2,A1,Def6,XXREAL_0:2;
+end;
+
+theorem
+for m be non zero Nat, X be non-empty m-element FinSequence holds
+ ex F be Function of CarProduct X,product X st F is one-to-one & F is onto
+proof
+    defpred P[non zero Nat] means
+     for X be non-empty $1-element FinSequence holds
+      ex F be Function of CarProduct X,product X
+       st F is one-to-one & F is onto;
+
+A1: P[1]
+    proof
+     let X be non-empty 1-element FinSequence;
+     set P = ProdFinSeq X;
+A2:   P.1 = X.1
+    & ( for i be Nat st 1 <= i & i < 1 holds P.(i+1) = [:P.i,X.(i+1):] )
+    & CarProduct X = P.1 by Def3;
+
+     dom X = Seg len X by FINSEQ_1:def 3; then
+A3:  dom X = Seg 1 by CARD_1:def 7; then
+     1 in dom X; then
+     consider I be Function of X.1,product X such that
+A4:   I is one-to-one & I is onto
+    & for x be object st x in X.1 holds I.x = <*x*>
+       by A3,FINSEQ_1:2,PRVECT_3:2;
+     reconsider I as Function of CarProduct X,product X by A2;
+     take I;
+     thus thesis by A4;
+    end;
+
+A5: for n be non zero Nat st P[n] holds P[n+1]
+    proof
+     let n be non zero Nat;
+     assume A6: P[n];
+     let X be non-empty (n+1)-element FinSequence;
+A7:  len X = n+1 by CARD_1:def 7;
+
+A8:  CarProduct X =[: CarProduct SubFin(X,n),ElmFin(X,n+1) :] by Th6;
+
+     set X1 = SubFin(X,n);
+     consider F1 be Function of CarProduct X1,product X1 such that
+A9:  F1 is one-to-one & F1 is onto by A6;
+
+     n+1 in Seg (n+1) by FINSEQ_1:4; then
+A10: n+1 in dom X by A7,FINSEQ_1:def 3;
+
+     reconsider Y = <*X.(n+1)*> as non empty FinSequence;
+A11: len Y = 1 & rng Y = {X.(n+1)} by FINSEQ_1:39; then
+     not {} in rng Y by A10; then
+     reconsider Y as non-empty non empty FinSequence by RELAT_1:def 9;
+A12: dom Y = Seg len Y by FINSEQ_1:def 3;
+
+     Y.1 = X.(n+1) by FINSEQ_1:40; then
+     consider J be Function of X.(n+1),product Y such that
+A13:  J is one-to-one & J is onto
+    & for x be object st x in X.(n+1) holds J.x = <*x*>
+       by A10,A11,A12,FINSEQ_1:2,PRVECT_3:2;
+
+     n < n+1 by NAT_1:13; then
+A14:  X1 = X|n by Def5; then
+A15: X1^Y = X by FINSEQ_3:55,A7;
+
+A16:  ElmFin(X,n+1) = X.(n+1) by Def1;
+     consider I be Function of [: product X1,product Y :],product(X1^Y)
+       such that
+A17:  I is one-to-one & I is onto
+    & for x,y be FinSequence st x in product X1 & y in product Y holds
+       I.(x,y) = x^y by PRVECT_3:6;
+     reconsider I as Function of [: product X1,product Y :],product X
+       by FINSEQ_3:55,A7,A14;
+
+     deffunc B(object,object) = [F1.$1,J.$2];
+
+A18: for x,y be object st x in CarProduct X1 & y in X.(n+1) holds
+      B(x,y) in [: product X1,product Y :]
+     proof
+      let x,y be object;
+      assume x in CarProduct X1 & y in X.(n+1); then
+      F1.x in product X1 & J.y in product Y by FUNCT_2:5;
+      hence B(x,y) in [: product X1,product Y :] by ZFMISC_1:87;
+     end;
+
+     consider K being Function of [: CarProduct X1,X.(n+1):],
+               [: product X1,product Y :] such that
+A19:  for x,y be object st x in CarProduct X1 & y in X.(n+1)
+       holds K.(x,y) = B(x,y) from BINOP_1:sch 2(A18);
+A20: dom K = [: CarProduct X1,X.(n+1):] by FUNCT_2:def 1;
+
+     now let z1,z2 be object;
+      assume
+A21:   z1 in dom K & z2 in dom K & K.z1 = K.z2; then
+      consider x1,y1 being object such that
+A22:   x1 in CarProduct X1 & y1 in X.(n+1) & z1 = [x1,y1] by ZFMISC_1:def 2;
+      consider x2,y2 being object such that
+A23:   x2 in CarProduct X1 & y2 in X.(n+1) & z2 = [x2,y2]
+         by A21,ZFMISC_1:def 2;
+
+      [F1.x1,J.y1] = K.(x1,y1) by A19,A22; then
+      [F1.x1,J.y1] = K.(x2,y2) by A21,A22,A23; then
+      [F1.x1,J.y1] = [F1.x2,J.y2] by A19,A23; then
+A24:  F1.x1 = F1.x2 & J.y1 = J.y2 by XTUPLE_0:1;
+A25:  x1 in dom F1 & x2 in dom F1 by A22,A23,FUNCT_2:def 1;
+      y1 in dom J & y2 in dom J by A22,A23,FUNCT_2:def 1; then
+      y1 = y2 by A13,A24;
+      hence z1=z2 by A9,A25,A24,A22,A23;
+     end; then
+A26: K is one-to-one;
+
+     now let z be object;
+      assume z in [: product X1,product Y :]; then
+      consider x,y being object such that
+A27:   x in product X1 & y in product Y & z = [x,y] by ZFMISC_1:def 2;
+
+A28:  x in rng F1 & y in rng J by A13,A9,A27,FUNCT_2:def 3; then
+      consider s be object such that
+A29:   s in dom F1 & x=F1.s by FUNCT_1:def 3;
+      consider t be object such that
+A30:   t in dom J & y=J.t by A28,FUNCT_1:def 3;
+
+A31:  [s,t] in dom K by A20,A29,A30,ZFMISC_1:87;
+
+      K.(s,t) = B(s,t) by A19,A29,A30;
+      hence z in rng K by A27,A29,A30,A31,FUNCT_1:3;
+     end; then
+     rng K = [: product X1,product Y :]; then
+A32: K is onto by FUNCT_2:def 3;
+
+     reconsider F=I*K as Function of [:CarProduct X1,X.(n+1):],product X;
+     reconsider F as Function of CarProduct X,product X by A8,A16;
+     take F;
+     thus F is one-to-one & F is onto by A15,A17,A26,A32,FUNCT_2:27;
+    end;
+
+A33:for n be non zero Nat holds P[n] from NAT_1:sch 10(A1,A5);
+
+    let m be non zero Nat;
+    let X be non-empty m-element FinSequence;
+    thus ex F be Function of CarProduct X,product X st
+     F is one-to-one & F is onto by A33;
+end;
+
+theorem
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ P be SemialgebraFamily of ProdFinSeq X
+ st n <= m holds
+  P.n is semialgebra_of_sets of CarProduct SubFin(X,n)
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    P be SemialgebraFamily of ProdFinSeq X;
+    assume
+A1: n <= m;
+
+    1 <= n by NAT_1:14; then
+    n in Seg m by A1; then
+    P.n is semialgebra_of_sets of (ProdFinSeq X).n by MEASUR10:def 2;
+    hence P.n is semialgebra_of_sets of CarProduct SubFin(X,n) by A1,Th4;
+end;
+
+theorem Th17:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st
+  k <= n & n <= m holds ElmFin(M,k) = ElmFin(SubFin(M,n),k)
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+A3: ElmFin(M,k) = M.k by A1,A2,Def10,XXREAL_0:2;
+
+    1 <= k by NAT_1:14; then
+A4: k in Seg n by A1;
+
+    SubFin(M,n) = M|n by A2,Def9; then
+    ElmFin(SubFin(M,n),k) = (M|n).k by A1,Def10;
+    hence ElmFin(M,k) = ElmFin(SubFin(M,n),k) by A3,A4,FUNCT_1:49;
+end;
+
+theorem Th18:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st
+  k <= n & n <= m holds SubFin(M,k) = SubFin(SubFin(M,n),k)
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+    SubFin(SubFin(M,n),k) = (SubFin(M,n))|k by A1,Def9; then
+    SubFin(SubFin(M,n),k) = (M|n)|k by A2,Def9; then
+    SubFin(SubFin(M,n),k) = M|k by A1,FINSEQ_1:82;
+    hence SubFin(M,k) = SubFin(SubFin(M,n),k) by Def9,A1,A2,XXREAL_0:2;
+end;
+
+begin :: Construction of m-dimensional measure space
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+func ProdSigmaFldFinSeq S -> sigmaFieldFamily of ProdFinSeq X means
+  :Def11:
+   it.1 = S.1
+ & for i be non zero Nat st i < m holds
+    ex Si be SigmaField of CarProduct SubFin(X,i) st Si = it.i &
+     it.(i+1) = sigma measurable_rectangles(Si,ElmFin(S,i+1));
+existence
+proof
+    defpred Q[Nat,set,set] means
+     ( ex i be non zero Nat
+        st i = $1 & $2 is SigmaField of CarProduct SubFin(X,i) )
+    implies
+     ex i be non zero Nat, Si be SigmaField of CarProduct SubFin(X,i)
+     st i = $1 & $2 = Si
+      & $3 = sigma measurable_rectangles(Si,ElmFin(S,i+1));
+
+A1: for n be Nat st 1 <= n & n < m
+     for x be set ex y be set st Q[n,x,y]
+    proof
+     let n be Nat;
+     assume 1 <= n & n < m;
+     let x be set;
+     now assume
+      ex k be non zero Nat
+        st k = n & x is SigmaField of CarProduct SubFin(X,k); then
+      consider k be non zero Nat such that
+A2:    k = n & x is SigmaField of CarProduct SubFin(X,k);
+      reconsider Sn = x as SigmaField of CarProduct SubFin(X,k) by A2;
+      reconsider y= sigma measurable_rectangles(Sn,ElmFin(S,n+1)) as set;
+      take y;
+      thus Q[n,x,y] by A2;
+     end;
+     hence thesis;
+    end;
+
+    consider P be FinSequence such that
+A3:  len P = m & (P.1 = S.1 or m = 0) &
+     for n be Nat st 1 <= n & n < m holds Q[n,P.n,P.(n+1)]
+       from RECDEF_1:sch 3(A1);
+
+    reconsider P as m-element FinSequence by A3,CARD_1:def 7;
+
+    defpred L[Nat] means 1 <= $1 & $1 <= m implies
+     ex k be non zero Nat st k = $1
+      & P.$1 is SigmaField of CarProduct SubFin(X,k);
+
+A4: L[0];
+A5: for n be Nat st L[n] holds L[n+1]
+    proof
+     let n be Nat;
+     assume A6: L[n];
+     assume A7: 1 <= n+1 & n+1 <= m;
+
+     per cases;
+     suppose A8: n = 0;
+      1 <= m by NAT_1:14; then
+A9:   1 in Seg m;
+A10:   1 in Seg 1;
+      reconsider k = 1 as non zero Nat;
+      take k;
+      thus k = n+1 by A8;
+      SubFin(X,k) = X|1 by Def5,NAT_1:14; then
+      CarProduct SubFin(X,k) = (X|k).k by Def3; then
+      X.1 = CarProduct SubFin(X,k) by A10,FUNCT_1:49;
+      hence P.(n+1) is SigmaField of CarProduct SubFin(X,k) by A3,A8,A9,Def2;
+     end;
+     suppose A11: n <> 0; then
+      reconsider n1=n as non zero Nat;
+A12:  1 <= n & n < m by A11,A7,NAT_1:13,14; then
+      consider k be non zero Nat, Pk be SigmaField of CarProduct SubFin(X,k)
+       such that
+A13:   k = n & P.n = Pk
+     & P.(n+1) = sigma measurable_rectangles(Pk,ElmFin(S,k+1)) by A3,A6;
+
+      CarProduct SubFin(X,k+1)
+       = [: CarProduct SubFin(X,k),ElmFin(X,k+1) :] by A12,A13,Th9;
+      hence thesis by A13;
+     end;
+    end;
+
+A14:for n be Nat holds L[n] from NAT_1:sch 2(A4,A5);
+
+    for i be Nat st i in Seg m holds P.i is SigmaField of (ProdFinSeq X).i
+    proof
+     let i be Nat;
+     assume A15: i in Seg m; then
+A16:  1 <= i & i <= m by FINSEQ_1:1;
+     per cases;
+     suppose
+A17:   i = 1; then
+      (ProdFinSeq X).i = X.1 by Def3;
+      hence P.i is SigmaField of (ProdFinSeq X).i by A17,A3,A15,Def2;
+     end;
+     suppose i <> 1; then
+      1 < i by A16,XXREAL_0:1; then
+      reconsider i1 = i-1 as non zero Nat by NAT_1:20;
+A18:   1 <= i1 by NAT_1:14;
+      i < m+1 by A16,NAT_1:13; then
+A19:   i1 < m+1-1 by XREAL_1:9; then
+      Q[i1,P.i1,P.(i1+1)] by A3,A18; then
+      consider i2 be non zero Nat,
+       Si be SigmaField of CarProduct SubFin(X,i2) such that
+A20:    i2 = i1 & P.i1 = Si
+     & P.(i1+1) = sigma measurable_rectangles(Si,ElmFin(S,i2+1)) by A18,A19,A14
+;
+
+A21:  i1 < i1+1 & i1+1 <= m by A15,NAT_1:13,FINSEQ_1:1; then
+      SubFin(X,i1) = SubFin(SubFin(X,i1+1),i1)
+    & ElmFin(X,i1+1) = ElmFin(SubFin(X,i1+1),i1+1) by Th7,Th8; then
+      [: CarProduct SubFin(X,i1),ElmFin(X,i1+1) :]
+        = (ProdFinSeq SubFin(X,i1+1)).(i1+1) by A21,Th5; then
+      [: CarProduct SubFin(X,i1),ElmFin(X,i1+1) :]
+        = (ProdFinSeq X).(i1+1) by A21,Th4;
+      hence P.i is SigmaField of (ProdFinSeq X).i by A20;
+     end;
+    end; then
+    reconsider P as sigmaFieldFamily of ProdFinSeq X by Def2;
+    take P;
+
+    thus P.1 = S.1 by A3;
+    thus for i be non zero Nat st i < m holds
+     ex Si be SigmaField of CarProduct SubFin(X,i) st Si = P.i &
+      P.(i+1) = sigma measurable_rectangles(Si,ElmFin(S,i+1))
+    proof
+     let i be non zero Nat;
+     assume
+A22:  i < m;
+A23: 1 <= i by NAT_1:14; then
+     Q[ i,P.i,P.(i+1) ] by A3,A22;
+     hence thesis by A14,A22,A23;
+    end;
+end;
+uniqueness
+proof
+    let S1,S2 be sigmaFieldFamily of ProdFinSeq X;
+    assume that
+A24: S1.1 = S.1
+   & for i be non zero Nat st i < m
+      ex Si be SigmaField of CarProduct SubFin(X,i) st Si = S1.i
+       & S1.(i+1) = sigma measurable_rectangles(Si,ElmFin(S,i+1))
+and
+A25: S2.1 = S.1
+   & for i be non zero Nat st i < m
+      ex Si be SigmaField of CarProduct SubFin(X,i) st Si = S2.i
+       & S2.(i+1) = sigma measurable_rectangles(Si,ElmFin(S,i+1));
+
+A26:len S1 = m & len S2 = m by CARD_1:def 7;
+
+    defpred Q[Nat] means 1 <= $1 & $1 <= m implies S1.$1 = S2.$1;
+
+A27:Q[0];
+A28:for k be Nat st Q[k] holds Q[k+1]
+    proof
+     let k be Nat;
+     assume
+A29:  Q[k];
+     assume
+A30:  1 <= k+1 & k+1 <= m;
+     per cases;
+     suppose k = 0;
+      hence S1.(k+1) = S2.(k+1) by A24,A25;
+     end;
+     suppose
+A31:  k <> 0; then
+      reconsider j = k as non zero Nat;
+      k+1 <> 1 by A31; then
+A32:  1 < k+1 by A30,XXREAL_0:1;
+
+A33:  ex Si be SigmaField of CarProduct SubFin(X,j) st Si = S1.j
+       & S1.(j+1) = sigma measurable_rectangles(Si,ElmFin(S,j+1))
+         by A24,A30,NAT_1:13;
+      ex Si be SigmaField of CarProduct SubFin(X,j) st Si = S2.j
+       & S2.(j+1) = sigma measurable_rectangles(Si,ElmFin(S,j+1))
+         by A25,A30,NAT_1:13;
+      hence S1.(k+1) = S2.(k+1) by A33,A29,A32,A30,NAT_1:13;
+     end;
+    end;
+    for k be Nat holds Q[k] from NAT_1:sch 2(A27,A28);
+    hence S1 = S2 by A26;
+end;
+end;
+
+theorem Th19:
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st n <= m holds
+  (ProdSigmaFldFinSeq S).n is SigmaField of (ProdFinSeq X).n
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume
+A1:  n <= m;
+    1 <= n by NAT_1:14; then
+    n in Seg m by A1;
+    hence thesis by Def2;
+end;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+func Prod_Field S -> SigmaField of CarProduct X equals
+  (ProdSigmaFldFinSeq S).m;
+correctness by Th19;
+end;
+
+theorem Th20:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st k <= n & n <= m holds
+  (ProdSigmaFldFinSeq S).k = (ProdSigmaFldFinSeq SubFin(S,n)).k
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+A3: SubFin(S,n) = S|n by A2,Def6;
+
+A4: 1 <= k by NAT_1:14;
+
+    defpred P[Nat] means 1 <= $1 & $1 <= n implies
+     (ProdSigmaFldFinSeq S).$1 = (ProdSigmaFldFinSeq SubFin(S,n)).$1;
+
+A5: P[0];
+A6: for i be Nat st P[i] holds P[i+1]
+    proof
+     let i be Nat;
+     assume
+A7:   P[i];
+     assume
+A8:   1 <= i+1 & i+1 <= n;
+     per cases;
+     suppose
+A9:   i = 0; then
+A10:   (ProdSigmaFldFinSeq S).(i+1) = S.1 by Def11;
+A11:  (ProdSigmaFldFinSeq SubFin(S,n)).(i+1) = SubFin(S,n).1 by A9,Def11;
+      1 <= n by A8,XXREAL_0:2; then
+      1 in Seg n;
+      hence (ProdSigmaFldFinSeq S).(i+1)
+        = (ProdSigmaFldFinSeq SubFin(S,n)).(i+1) by A3,A10,A11,FUNCT_1:49;
+     end;
+     suppose i <> 0; then
+      reconsider i1=i as non zero Nat;
+A12:  i1 < n by A8,NAT_1:13; then
+      i1 < m by A2,XXREAL_0:2; then
+A13:  ex Si be SigmaField of CarProduct SubFin(X,i1) st
+       Si = (ProdSigmaFldFinSeq S).i1
+     & (ProdSigmaFldFinSeq S).(i1+1)
+         = sigma measurable_rectangles(Si,ElmFin(S,i1+1)) by Def11;
+
+A14:  ex Sj be SigmaField of CarProduct SubFin(SubFin(X,n),i1) st
+       Sj = (ProdSigmaFldFinSeq SubFin(S,n)).i1
+     & (ProdSigmaFldFinSeq SubFin(S,n)).(i1+1)
+         = sigma measurable_rectangles(Sj,ElmFin(SubFin(S,n),i1+1))
+           by A12,Def11;
+
+A15:  ElmFin(S,i1+1) = ElmFin(SubFin(S,n),i1+1) by A2,A8,Th12;
+      ElmFin(X,i1+1) = ElmFin(SubFin(X,n),i1+1) by A2,A8,Th8;
+      hence (ProdSigmaFldFinSeq S).(i+1)
+        = (ProdSigmaFldFinSeq SubFin(S,n)).(i+1)
+         by A7,A12,A13,A15,A14,A2,Th7,NAT_1:14;
+     end;
+    end;
+    for i be Nat holds P[i] from NAT_1:sch 2(A5,A6);
+    hence thesis by A1,A4;
+end;
+
+theorem Th21:
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X st n < m holds
+  Prod_Field SubFin(S,n+1)
+  = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X;
+    assume
+A1:  n < m; then
+A2: n+1 <= m by NAT_1:13; then
+A3: ElmFin(SubFin(X,n+1),n+1) = ElmFin(X,n+1) by Th8;
+A4: ElmFin(SubFin(S,n+1),n+1) = ElmFin(S,n+1) by A2,Th12;
+
+A5: n < n+1 by NAT_1:13; then
+A6: CarProduct SubFin(SubFin(X,n+1),n) = CarProduct SubFin(X,n)
+      by A2,Th7;
+    consider Sn be SigmaField of CarProduct SubFin(SubFin(X,n+1),n)
+     such that
+A7:  Sn = (ProdSigmaFldFinSeq SubFin(S,n+1)).n
+   & (ProdSigmaFldFinSeq SubFin(S,n+1)).(n+1)
+      = sigma measurable_rectangles(Sn,ElmFin(SubFin(S,n+1),n+1))
+        by A5,Def11;
+    Sn = (ProdSigmaFldFinSeq S).n by A5,A7,A2,Th20;
+    hence thesis by A7,A4,A3,A6,A1,Th20;
+end;
+
+definition
+let m be non zero Nat,X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+func ProdSigmaMesFinSeq M -> sigmaMeasureFamily of ProdSigmaFldFinSeq S
+ means :Def13:
+   it.1 = M.1
+ & for i be non zero Nat st i < m holds
+    ex Mi be sigma_Measure of Prod_Field SubFin(S,i) st Mi = it.i
+    & it.(i+1) = product_sigma_Measure(Mi,ElmFin(M,i+1));
+existence
+proof
+    defpred Q[Nat,set,set] means
+     ( ex i be non zero Nat
+        st i = $1 & $2 is sigma_Measure of Prod_Field SubFin(S,i) )
+    implies
+     ex i be non zero Nat, Mi be sigma_Measure of Prod_Field SubFin(S,i)
+     st i = $1 & $2 = Mi & $3 = product_sigma_Measure(Mi,ElmFin(M,i+1));
+
+A1: for n be Nat st 1 <= n & n < m
+     for x be set ex y be set st Q[n,x,y]
+    proof
+     let n be Nat;
+     assume 1 <= n & n < m;
+     let x be set;
+     now assume
+      ex k be non zero Nat
+        st k = n & x is sigma_Measure of Prod_Field SubFin(S,k); then
+      consider k be non zero Nat such that
+A2:    k = n & x is sigma_Measure of Prod_Field SubFin(S,k);
+
+      reconsider Mn = x as sigma_Measure of Prod_Field SubFin(S,k) by A2;
+      reconsider y= product_sigma_Measure(Mn,ElmFin(M,n+1)) as set;
+      take y;
+      thus Q[n,x,y] by A2;
+     end;
+     hence thesis;
+    end;
+
+    consider PM be FinSequence such that
+A3:  len PM = m & (PM.1 = M.1 or m = 0) &
+     for n be Nat st 1 <= n & n < m holds Q[n,PM.n,PM.(n+1)]
+       from RECDEF_1:sch 3(A1);
+
+    reconsider PM as m-element FinSequence by A3,CARD_1:def 7;
+
+    defpred L[Nat] means 1 <= $1 & $1 <= m implies
+     ex k be non zero Nat st k = $1
+      & PM.$1 is sigma_Measure of Prod_Field SubFin(S,k);
+
+A4: L[0];
+
+A5: for n be Nat st L[n] holds L[n+1]
+    proof
+     let n be Nat;
+     assume A6: L[n];
+     assume A7: 1 <= n+1 & n+1 <= m;
+
+     per cases;
+     suppose A8: n = 0;
+      reconsider k = 1 as non zero Nat;
+      take k;
+      thus k = n+1 by A8;
+
+      1 <= m by NAT_1:14; then
+      1 in Seg m; then
+A9:   ex Sk be SigmaField of X.k st
+       Sk = S.k & M.k is sigma_Measure of Sk by Def8;
+
+A10:   SubFin(X,k) = X|1 by Def5,NAT_1:14;
+A11:   1 in Seg 1; then
+      SubFin(X,k).1 = X.1 by A10,FUNCT_1:49; then
+A12:   CarProduct SubFin(X,k) = X.1 by Def3;
+
+      SubFin(S,k) = S|1 by Def6,NAT_1:14; then
+A13:   SubFin(S,k).1 = S.1 by A11,FUNCT_1:49;
+
+      Prod_Field SubFin(S,k) = SubFin(S,k).1 by Def11;
+      hence PM.(n+1) is sigma_Measure of Prod_Field SubFin(S,k)
+        by A9,A3,A8,A12,A13;
+     end;
+     suppose n <> 0; then
+A14:  1 <= n & n < m by A7,NAT_1:13,14; then
+      consider k0 be non zero Nat,
+       PMk0 be sigma_Measure of Prod_Field SubFin(S,k0) such that
+A15:   k0 = n & PM.n = PMk0
+     & PM.(n+1) = product_sigma_Measure(PMk0,ElmFin(M,k0+1)) by A3,A6;
+
+A16:   PM.(k0+1) is
+       sigma_Measure of sigma
+         measurable_rectangles(Prod_Field SubFin(S,k0),ElmFin(S,k0+1))
+           by A15,MEASUR11:8;
+
+A17:   [: CarProduct SubFin(X,k0),ElmFin(X,k0+1) :] = CarProduct SubFin(X,k0+1)
+         by A14,A15,Th9;
+      Prod_Field SubFin(S,k0+1)
+       = sigma measurable_rectangles(Prod_Field SubFin(S,k0),ElmFin(S,k0+1))
+         by A14,A15,Th21;
+      hence ex k be non zero Nat st k = n+1 &
+        PM.(n+1) is sigma_Measure of Prod_Field SubFin(S,k) by A15,A16,A17;
+     end;
+    end;
+
+A18:for n be Nat holds L[n] from NAT_1:sch 2(A4,A5);
+
+    for i be Nat st i in Seg m holds
+     ex Si be SigmaField of (ProdFinSeq X).i st
+      Si = (ProdSigmaFldFinSeq S).i
+     & PM.i is sigma_Measure of Si
+    proof
+     let i be Nat;
+     assume A19: i in Seg m; then
+A20:  1 <= i & i <= m by FINSEQ_1:1; then
+     consider k be non zero Nat such that
+A21:   k = i
+      & PM.i is sigma_Measure of Prod_Field SubFin(S,k) by A18;
+
+     reconsider Si = (ProdSigmaFldFinSeq S).i as
+      SigmaField of (ProdFinSeq X).i by A19,Def2;
+     take Si;
+     thus Si = (ProdSigmaFldFinSeq S).i;
+A22:  len X = m by CARD_1:def 7;
+     SubFin(X,m) = X|m by Def5; then
+     SubFin(X,m) = X by A22,FINSEQ_1:58; then
+A23:  CarProduct SubFin(X,k) = (ProdFinSeq X).k by A21,A20,Th3;
+
+     Prod_Field SubFin(S,k) = (ProdSigmaFldFinSeq S).k by A21,A20,Th20;
+     hence PM.i is sigma_Measure of Si by A21,A23;
+    end; then
+    reconsider PM as sigmaMeasureFamily of ProdSigmaFldFinSeq S by Def8;
+
+    take PM;
+
+    thus PM.1 = M.1 by A3;
+    thus for i be non zero Nat st i < m holds
+     ex Mi be sigma_Measure of Prod_Field SubFin(S,i) st Mi = PM.i &
+      PM.(i+1) = product_sigma_Measure(Mi,ElmFin(M,i+1))
+    proof
+     let i be non zero Nat;
+     assume
+A24:  i < m;
+A25: 1 <= i by NAT_1:14; then
+     Q[ i,PM.i,PM.(i+1) ] by A3,A24;
+     hence thesis by A18,A24,A25;
+    end;
+end;
+uniqueness
+proof
+    let P1,P2 be sigmaMeasureFamily of ProdSigmaFldFinSeq S;
+    assume that
+A26:  P1.1 = M.1
+   & for i be non zero Nat st i < m holds
+      ex Mi be sigma_Measure of Prod_Field SubFin(S,i) st Mi = P1.i
+      & P1.(i+1) = product_sigma_Measure(Mi,ElmFin(M,i+1))
+  and
+A27:  P2.1 = M.1
+   & for i be non zero Nat st i < m holds
+      ex Mi be sigma_Measure of Prod_Field SubFin(S,i) st Mi = P2.i
+      & P2.(i+1) = product_sigma_Measure(Mi,ElmFin(M,i+1));
+
+A28: len P1 = m & len P2 = m by CARD_1:def 7;
+
+    defpred Q[Nat] means 1 <= $1 & $1 <= len P1 implies P1.$1 = P2.$1;
+
+A29: Q[0];
+A30: for i be Nat st Q[i] holds Q[i+1]
+    proof
+     let i be Nat;
+     assume
+A31:   Q[i];
+     assume
+A32:   1 <= i+1 & i+1 <= len P1;
+     per cases;
+     suppose i = 0;
+      hence P1.(i+1) = P2.(i+1) by A26,A27;
+     end;
+     suppose i <> 0; then
+      reconsider i1=i as non zero Nat;
+A33:   ex Mi1 be sigma_Measure of Prod_Field SubFin(S,i1) st
+       Mi1 = P1.i1 & P1.(i1+1) = product_sigma_Measure(Mi1,ElmFin(M,i1+1))
+         by A26,A28,A32,NAT_1:13;
+      ex Mi2 be sigma_Measure of Prod_Field SubFin(S,i1) st
+       Mi2 = P2.i1 & P2.(i1+1) = product_sigma_Measure(Mi2,ElmFin(M,i1+1))
+         by A27,A28,A32,NAT_1:13;
+      hence P1.(i+1) = P2.(i+1) by A33,A31,A32,NAT_1:13,14;
+     end;
+    end;
+
+    for i be Nat holds Q[i] from NAT_1:sch 2(A29,A30);
+    hence P1 = P2 by A28;
+end;
+end;
+
+theorem Th22:
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st n <= m holds
+  (ProdSigmaMesFinSeq M).n is sigma_Measure of Prod_Field SubFin(S,n)
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume
+A1:  n <= m;
+
+A2: 1 <= m by NAT_1:14;
+A3: 1 <= n by NAT_1:14;
+    set PM = ProdSigmaMesFinSeq M;
+
+    defpred L[Nat] means 1 <= $1 & $1 <= m implies
+     ex k be non zero Nat st k = $1
+      & PM.$1 is sigma_Measure of Prod_Field SubFin(S,k);
+
+A4: L[0];
+
+A5: for i be Nat st L[i] holds L[i+1]
+    proof
+     let i be Nat;
+     assume L[i];
+     assume A6: 1 <= i+1 & i+1 <= m;
+
+     per cases;
+     suppose A7: i = 0;
+A8:   1 in Seg m by A2;
+A9:   1 in Seg 1;
+      reconsider k = 1 as non zero Nat;
+      take k;
+      thus k = i+1 by A7;
+
+      consider S1 be SigmaField of X.1 such that
+A10:    S1 = S.1 & M.1 is sigma_Measure of S1 by A8,Def8;
+
+A11:   ElmFin(X,k) = X.1 by Def1,NAT_1:14;
+A12:   SubFin(X,k) = X|1 by Def5,NAT_1:14;
+
+      CarProduct SubFin(X,k) = SubFin(X,k).1 by Def3; then
+A13:   CarProduct SubFin(X,k) = ElmFin(X,k) by A12,A11,A9,FUNCT_1:49;
+
+A14:   ElmFin(S,k) = S.1 by Def7,NAT_1:14;
+A15:   SubFin(S,k) = S|1 by Def6,NAT_1:14;
+
+      Prod_Field SubFin(S,k) = SubFin(S,k).1 by Def11; then
+      ElmFin(S,k) = Prod_Field SubFin(S,k) by A14,A15,A9,FUNCT_1:49;
+      hence PM.(i+1) is sigma_Measure of Prod_Field SubFin(S,k)
+       by A11,A14,A10,A13,Def13,A7;
+     end;
+     suppose i <> 0; then
+      reconsider k0 = i as non zero Nat;
+A16:  1 <= k0 & k0 < m by A6,NAT_1:13,14; then
+      consider PMk0 be sigma_Measure of Prod_Field SubFin(S,k0) such that
+A17:   PMk0 = PM.k0
+     & PM.(k0+1) = product_sigma_Measure(PMk0,ElmFin(M,k0+1))
+        by Def13;
+A18:   PM.(k0+1) is
+       sigma_Measure of sigma
+         measurable_rectangles(Prod_Field SubFin(S,k0),ElmFin(S,k0+1))
+           by A17,MEASUR11:8;
+A19:   [: CarProduct SubFin(X,k0),ElmFin(X,k0+1) :] = CarProduct SubFin(X,k0+1)
+         by A16,Th9;
+      Prod_Field SubFin(S,k0+1)
+       = sigma measurable_rectangles(Prod_Field SubFin(S,k0),ElmFin(S,k0+1))
+         by A16,Th21;
+      hence ex k be non zero Nat st k = i+1 &
+        PM.(i+1) is sigma_Measure of Prod_Field SubFin(S,k) by A18,A19;
+     end;
+    end;
+
+    for n be Nat holds L[n] from NAT_1:sch 2(A4,A5); then
+    ex n1 be non zero Nat st n1=n &
+     PM.n is sigma_Measure of Prod_Field SubFin(S,n1) by A1,A3;
+    hence (ProdSigmaMesFinSeq M).n is sigma_Measure of Prod_Field SubFin(S,n);
+end;
+
+definition
+let m be non zero Nat,X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+func Prod_Measure M -> sigma_Measure of Prod_Field S equals
+   (ProdSigmaMesFinSeq M).m;
+correctness
+proof
+A1: len X = m & len S = m by CARD_1:def 7;
+    SubFin(X,m) = X|m by Def5; then
+A2: SubFin(X,m) = X by A1,FINSEQ_1:58;
+A3: SubFin(S,m) = S|m by Def6;
+    S|m = S by A1,FINSEQ_1:58;
+    hence thesis by A2,A3,Th22;
+end;
+end;
+
+definition
+let m be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+attr M is sigma_finite means
+for i being Nat st i in Seg m
+ ex Xi be non empty set, Si being SigmaField of Xi, Mi be sigma_Measure of Si
+  st Xi = X.i & Si = S.i &  Mi = M.i & Mi is sigma_finite;
+end;
+
+theorem Th23:
+for m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st
+  k <= n & n <= m holds
+  (ProdSigmaMesFinSeq SubFin(M,n)).k
+   = (ProdSigmaMesFinSeq SubFin(M,k)).k
+proof
+    let m,n,k be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume that
+A1:  k <= n and
+A2:  n <= m;
+
+A3: k <= m by A1,A2,XXREAL_0:2;
+A4: 1 <= n & 1 <= k by NAT_1:14;
+    now assume k <> n;
+
+     defpred Q[Nat] means 1 <= $1 & $1 <= k implies
+      (ProdSigmaMesFinSeq SubFin(M,n)).$1
+        = (ProdSigmaMesFinSeq SubFin(M,k)).$1;
+
+A5:  Q[0];
+A6:  for i be Nat st Q[i] holds Q[i+1]
+     proof
+      let i be Nat;
+      assume
+A7:    Q[i];
+      assume
+A8:    1 <= i+1 & i+1 <= k;
+      per cases;
+      suppose i = 0; then
+A9:    (ProdSigmaMesFinSeq SubFin(M,n)).(i+1) = SubFin(M,n).1
+     & (ProdSigmaMesFinSeq SubFin(M,k)).(i+1) = SubFin(M,k).1 by Def13;
+
+       1 in Seg n & 1 in Seg k by A4; then
+       (M|n).1 = M.1 & (M|k).1 = M.1 by FUNCT_1:49; then
+       SubFin(M,n).1 = M.1 & SubFin(M,k).1 = M.1 by A1,A2,Def9,XXREAL_0:2;
+       hence (ProdSigmaMesFinSeq SubFin(M,n)).(i+1)
+        = (ProdSigmaMesFinSeq SubFin(M,k)).(i+1) by A9;
+      end;
+      suppose i <> 0; then
+       reconsider i0 = i as non zero Nat;
+A10:    i0 < k by A8,NAT_1:13; then
+A11:    i0 < n by A1,XXREAL_0:2; then
+A12:    ex M1 be sigma_Measure of Prod_Field SubFin(SubFin(S,n),i0) st
+        M1 = (ProdSigmaMesFinSeq SubFin(M,n)).i0
+      & (ProdSigmaMesFinSeq SubFin(M,n)).(i0+1)
+          = product_sigma_Measure(M1,ElmFin(SubFin(M,n),i0+1)) by Def13;
+
+A13:    ex M2 be sigma_Measure of Prod_Field SubFin(SubFin(S,k),i0) st
+        M2 = (ProdSigmaMesFinSeq SubFin(M,k)).i0
+      & (ProdSigmaMesFinSeq SubFin(M,k)).(i0+1)
+          = product_sigma_Measure(M2,ElmFin(SubFin(M,k),i0+1)) by A10,Def13;
+
+       CarProduct SubFin(SubFin(X,n),i0)
+        = CarProduct SubFin(X,i0) by A2,A11,Th7; then
+A14:   CarProduct SubFin(SubFin(X,n),i0)
+        = CarProduct SubFin(SubFin(X,k),i0) by A3,A10,Th7;
+
+       SubFin(SubFin(X,n),i0) = SubFin(X,i0) by A2,A11,Th7; then
+A15:   SubFin(SubFin(X,n),i0) = SubFin(SubFin(X,k),i0) by A3,A10,Th7;
+
+       SubFin(SubFin(S,n),i0) = SubFin(S,i0) by A2,A11,Th14; then
+A16:    Prod_Field SubFin(SubFin(S,n),i0)
+       = Prod_Field SubFin(SubFin(S,k),i0) by A15,A3,A10,Th14;
+
+A17:    i0+1 <= n by A8,A1,XXREAL_0:2; then
+       ElmFin(SubFin(X,n),i0+1) = ElmFin(X,i0+1) by A2,Th8; then
+A18:    ElmFin(SubFin(X,n),i0+1) = ElmFin(SubFin(X,k),i0+1) by A3,A8,Th8;
+
+       ElmFin(SubFin(S,n),i0+1) = ElmFin(S,i0+1) by A17,A2,Th12; then
+A19:    ElmFin(SubFin(S,n),i0+1) = ElmFin(SubFin(S,k),i0+1) by A3,A8,Th12;
+
+       ElmFin(SubFin(M,n),i0+1) = ElmFin(M,i0+1) by A17,A2,Th17;
+       hence (ProdSigmaMesFinSeq SubFin(M,n)).(i+1)
+        = (ProdSigmaMesFinSeq SubFin(M,k)).(i+1)
+           by A7,A12,A13,A19,A18,A16,A14,A3,A8,Th17,NAT_1:13,14;
+      end;
+     end;
+
+     for i be Nat holds Q[i] from NAT_1:sch 2(A5,A6);
+     hence (ProdSigmaMesFinSeq SubFin(M,n)).k
+      = (ProdSigmaMesFinSeq SubFin(M,k)).k by A4;
+    end;
+    hence thesis;
+end;
+
+theorem Th24:
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st n <= m holds
+  (ProdSigmaMesFinSeq M).n = Prod_Measure SubFin(M,n)
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume
+A1:  n <= m;
+    defpred P[Nat] means 1 <= $1 & $1 <= m implies
+     ex k be non zero Nat st
+      k = $1 & (ProdSigmaMesFinSeq M).$1 = Prod_Measure SubFin(M,k);
+
+A2: P[0];
+A3: for i be Nat st P[i] holds P[i+1]
+    proof
+     let i be Nat;
+     assume
+A4:   P[i];
+     assume
+A5:   1 <= i+1 & i+1 <= m;
+     per cases;
+     suppose
+A6:   i = 0; then
+      (ProdSigmaMesFinSeq M).(i+1) = M.1 by Def13; then
+A7:  (ProdSigmaMesFinSeq M).(i+1) = ElmFin(M,1) by A6,A5,Def10;
+
+      reconsider k = i+1 as non zero Nat;
+
+      Prod_Measure SubFin(M,k) = SubFin(M,k).1 by A6,Def13; then
+      Prod_Measure SubFin(M,k) = ElmFin(SubFin(M,k),1) by A6,Def10;
+      hence ex k be non zero Nat st
+       k = i+1 & (ProdSigmaMesFinSeq M).(i+1)
+         = Prod_Measure SubFin(M,k) by A7,A5,Th17;
+     end;
+     suppose i <> 0; then
+      reconsider k0 = i as non zero Nat;
+      k0 < m by A5,NAT_1:13; then
+A8:  ex Mk0 be sigma_Measure of Prod_Field SubFin(S,k0) st
+       Mk0 = (ProdSigmaMesFinSeq M).k0
+     & (ProdSigmaMesFinSeq M).(k0+1)
+        = product_sigma_Measure(Mk0,ElmFin(M,k0+1)) by Def13;
+
+      reconsider k = k0+1 as non zero Nat;
+A9:  k0 < k by NAT_1:13; then
+A10:  ex Mk02 be sigma_Measure of Prod_Field SubFin(SubFin(S,k),k0) st
+        Mk02 = (ProdSigmaMesFinSeq SubFin(M,k)).k0
+      & (ProdSigmaMesFinSeq SubFin(M,k)).(k0+1)
+        = product_sigma_Measure(Mk02,ElmFin(SubFin(M,k),k0+1)) by Def13;
+
+A11:   SubFin(X,k0) = SubFin(SubFin(X,k),k0) by A5,A9,Th7;
+A12:   SubFin(S,k0) = SubFin(SubFin(S,k),k0) by A5,A9,Th14;
+
+A13:  ElmFin(X,k0+1) = ElmFin(SubFin(X,k),k) by A5,Th8;
+A14:  ElmFin(S,k0+1) = ElmFin(SubFin(S,k),k) by A5,Th12;
+A15:  ElmFin(M,k0+1) = ElmFin(SubFin(M,k),k) by A5,Th17;
+
+      (ProdSigmaMesFinSeq M).(k0+1) = Prod_Measure SubFin(M,k)
+          by A8,A15,A14,A13,A10,A11,A12,A9,A4,A5,NAT_1:13,14,Th23;
+      hence ex k be non zero Nat st k = i+1
+       & (ProdSigmaMesFinSeq M).(i+1) = Prod_Measure SubFin(M,k);
+     end;
+    end;
+
+    for i be Nat holds P[i] from NAT_1:sch 2(A2,A3); then
+    P[n];
+    hence (ProdSigmaMesFinSeq M).n = Prod_Measure SubFin(M,n)
+      by A1,NAT_1:14;
+end;
+
+theorem Th25:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S holds
+ Prod_Measure M
+ = product_sigma_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+
+A1: n < n+1 by NAT_1:13; then
+    ex Mn be sigma_Measure of Prod_Field SubFin(S,n) st
+     Mn = (ProdSigmaMesFinSeq M).n
+   & Prod_Measure M = product_sigma_Measure(Mn,ElmFin(M,n+1))
+       by Def13;
+    hence thesis by A1,Th24;
+end;
+
+theorem Th26:
+for X be non empty set, S be Field_Subset of X, E being Set_Sequence of S
+ for i be Nat holds (Partial_Union E).i in S
+proof
+    let X be non empty set, S be Field_Subset of X, E being Set_Sequence of S;
+    defpred P[Nat] means (Partial_Union E).$1 in S;
+
+    (Partial_Union E).0 = E.0 by PROB_3:def 2; then
+A1: P[0];
+A2: for n be Nat st P[n] holds P[n+1]
+    proof
+     let n be Nat;
+     assume A3: P[n];
+     (Partial_Union E).(n+1) = (Partial_Union E).n \/ E.(n+1) by PROB_3:def 2;
+     hence thesis by A3,PROB_1:3;
+    end;
+    for n be Nat holds P[n] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+end;
+
+theorem Th27:
+for X,Y be non empty set, S1 be SigmaField of X, S2 be SigmaField of Y,
+    M1 be sigma_Measure of S1, M2 be sigma_Measure of S2
+ st M1 is sigma_finite & M2 is sigma_finite
+  holds Prod_Measure(M1,M2) is sigma_finite
+proof
+    let X,Y be non empty set, S1 be SigmaField of X,S2 be SigmaField of Y,
+    M1 be sigma_Measure of S1, M2 be sigma_Measure of S2;
+    assume
+A1:  M1 is sigma_finite & M2 is sigma_finite;
+    set M = Prod_Measure(M1,M2);
+
+    consider E1 being Set_Sequence of S1 such that
+A2:  (for n being Nat holds M1.(E1.n) < +infty )
+   & Union E1 = X by A1,MEASUR11:def 12;
+
+    consider E2 being Set_Sequence of S2 such that
+A3:  (for n being Nat holds M2.(E2.n) < +infty )
+   & Union E2 = Y by A1,MEASUR11:def 12;
+
+    set F1 = Partial_Union E1, F2 = Partial_Union E2;
+
+A4: F1 is non-descending & F2 is non-descending by PROB_3:11;
+
+    deffunc G(Nat)
+     = In( [:F1.$1,F2.$1:], sigma(measurable_rectangles(S1,S2)));
+
+    consider E be Function of NAT,sigma measurable_rectangles(S1,S2)
+      such that
+A5:  for i being Element of NAT holds E.i = G(i) from FUNCT_2:sch 4;
+
+
+A6: for i be Nat holds E.i = [:F1.i,F2.i:]
+    proof
+     let i be Nat;
+     F1.i in S1 & F2.i in S2 by Th26; then
+A7:  [:F1.i,F2.i:] in measurable_rectangles(S1,S2);
+
+     measurable_rectangles(S1,S2)
+      c= sigma measurable_rectangles(S1,S2) by PROB_1:def 9; then
+A8:  In( [:F1.i,F2.i:], sigma measurable_rectangles(S1,S2))
+      = [:F1.i,F2.i:] by A7,SUBSET_1:def 8;
+
+     i in NAT by ORDINAL1:def 12;
+     hence thesis by A5,A8;
+    end;
+
+    reconsider E as SetSequence of [:X,Y:] by FUNCT_2:7;
+
+A9: measurable_rectangles(S1,S2)
+     c= sigma measurable_rectangles(S1,S2) by PROB_1:def 9;
+
+A10: for i be Nat holds E.i in sigma measurable_rectangles(S1,S2)
+    proof
+     let i be Nat;
+     F1.i in S1 & F2.i in S2 by Th26; then
+A11: [:F1.i,F2.i:] in measurable_rectangles(S1,S2);
+
+     E.i = [:F1.i,F2.i:] by A6;
+     hence thesis by A9,A11;
+    end;
+    reconsider E as Set_Sequence of sigma measurable_rectangles(S1,S2)
+      by A10,MEASURE8:def 2;
+A12:Union F1 = Union E1 & Union F2 = Union E2 by PROB_3:15;
+
+    for z be object holds z in Union E iff z in [:X,Y:]
+    proof
+     let z be object;
+     thus z in Union E implies z in [:X,Y:];
+     assume z in [:X,Y:]; then
+      consider x,y be object such that
+A13:   x in X & y in Y & z =[x,y] by ZFMISC_1:def 2;
+A14:  x in union rng F1 & y in union rng F2 by A2,A3,A12,A13,CARD_3:def 4;
+
+      consider W1 being set such that
+A15:   x in W1 & W1 in rng F1 by A14,TARSKI:def 4;
+
+      consider W2 being set such that
+A16:   y in W2 & W2 in rng F2 by A14,TARSKI:def 4;
+
+      consider i be object such that
+A17:   i in dom F1 & W1=F1.i by A15,FUNCT_1:def 3;
+      reconsider i as Nat by A17;
+      consider j be object such that
+A18:   j in dom F2 & W2=F2.j by A16,FUNCT_1:def 3;
+      reconsider j as Nat by A18;
+      reconsider k = max(i,j) as Nat by XXREAL_0:16;
+      F1.i c= F1.k & F2.j c= F2.k by A4,XXREAL_0:25; then
+      z in [:F1.k,F2.k :] by A13,A17,A15,A18,A16,ZFMISC_1:87; then
+A19:  z in E.k by A6;
+      k in NAT by ORDINAL1:def 12; then
+      k in dom E by FUNCT_2:def 1; then
+      E.k in rng E by FUNCT_1:3; then
+      z in union rng E by A19,TARSKI:def 4;
+      hence z in Union E by CARD_3:def 4;
+     end; then
+A20: Union E = [:X,Y:];
+A21: M1 is nonnegative & M2 is nonnegative;
+
+     defpred Q1[Nat] means M1.(F1.$1) in REAL & M2.(F2.$1) in REAL;
+
+A22: M1.(E1.0) < +infty & M2.(E2.0) < +infty by A2,A3;
+     0 <= M1.(E1.0) & 0 <= M2.(E2.0) by A21; then
+     M1.(E1.0) in REAL & M2.(E2.0) in REAL by A22,XXREAL_0:14; then
+A23: Q1[0] by PROB_3:def 2;
+A24: for i be Nat st Q1[i] holds Q1[i+1]
+     proof
+      let i be Nat;
+      assume A25: Q1[i];
+A26:  F1.(i+1) = F1.i \/ E1.(i+1) & F2.(i+1) = F2.i \/ E2.(i+1)
+        by PROB_3:def 2;
+
+A27:  F1.i in S1 & F2.i in S2 by Th26;
+A28:  M1.(F1.(i+1)) <= M1.(F1.i) + M1.(E1.(i+1))
+    & M2.(F2.(i+1)) <= M2.(F2.i) + M2.(E2.(i+1)) by MEASURE1:10,A26,A27;
+      F1.(i+1) in S1 & F2.(i+1) in S2 by Th26; then
+A29:  0 <= M1.(F1.(i+1)) & 0 <= M2.(F2.(i+1)) by A21;
+A30:  0 <= M1.(E1.(i+1)) & 0 <= M2.(E2.(i+1)) by A21;
+      reconsider m1f1= M1.(F1.i), m2f2= M2.(F2.i) as Real by A25;
+
+      M1.(E1.(i+1)) < +infty & M2.(E2.(i+1)) < +infty by A2,A3; then
+      M1.(E1.(i+1)) in REAL & M2.(E2.(i+1)) in REAL by A30,XXREAL_0:14; then
+      reconsider m1e1 = M1.(E1.(i+1)), m2e2 = M2.(E2.(i+1)) as Real;
+
+      M1.(F1.i) + M1.(E1.(i+1)) = m1f1 + m1e1
+    & M2.(F2.i) + M2.(E2.(i+1)) = m2f2 + m2e2; then
+      M1.(F1.i) + M1.(E1.(i+1)) < +infty
+    & M2.(F2.i) + M2.(E2.(i+1)) < +infty by XREAL_0:def 1,XXREAL_0:9;
+      hence thesis by A28,A29,XXREAL_0:14;
+     end;
+A31: for i be Nat holds Q1[i] from NAT_1:sch 2(A23,A24);
+     for i being Nat holds M.(E.i) < +infty
+     proof
+      let i be Nat;
+A32:  E.i = [:F1.i,F2.i:] by A6;
+A33:  F1.i in S1 & F2.i in S2 by Th26;
+      Prod_Measure(M1,M2).(E.i) = (product_sigma_Measure(M1,M2)). [:F1.i,F2.i:]
+        by A32,MESFUN12:def 9; then
+A34:  Prod_Measure(M1,M2).(E.i) = M1.(F1.i) * M2.(F2.i)
+        by A32,A33,MEASUR11:16;
+      M1.(F1.i) in REAL & M2.(F2.i) in REAL by A31; then
+      reconsider m1 = M1.(F1.i), m2 = M2.(F2.i) as Real;
+      M1.(F1.i) * M2.(F2.i) = m1*m2;
+      hence M.(E.i) < +infty by A34,XREAL_0:def 1,XXREAL_0:9;
+     end;
+     hence Prod_Measure(M1,M2) is sigma_finite by A20,MEASUR11:def 12;
+end;
+
+theorem Th28:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S holds
+  Prod_Measure M = Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    Prod_Measure M
+     = product_sigma_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+      by Th25;
+    hence thesis by MESFUN12:def 9;
+end;
+
+theorem Th29:
+for m be non zero Nat, X be non-empty m-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S st M is sigma_finite
+ holds Prod_Measure M is sigma_finite
+proof
+    defpred P[Nat] means
+     for n be non zero Nat, X be non-empty n-element FinSequence,
+       S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S
+     st M is sigma_finite & $1=n holds Prod_Measure M is sigma_finite;
+
+A1: P[1]
+    proof
+     let n be non zero Nat, X be non-empty n-element FinSequence,
+       S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+     assume that
+A2:   M is sigma_finite and
+A3:   1 = n;
+
+     1 in Seg n by A3; then
+     consider Xi be non empty set, Fi being SigmaField of Xi,
+      mi be sigma_Measure of Fi such that
+A4:   Xi = X.1 & Fi = S.1 & mi = M.1 & mi is sigma_finite by A2;
+
+A5:  CarProduct X = Xi by A4,A3,Def3;
+
+     Prod_Field S = Fi by A4,A3,Def11;
+     hence Prod_Measure M is sigma_finite by A4,A5,A3,Def13;
+    end;
+
+A6: for i be non zero Nat st P[i] holds P[i+1]
+    proof
+     let i be non zero Nat;
+     assume A7:P[i];
+     let k be non zero Nat, X be non-empty k-element FinSequence,
+      S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+     assume that
+A8:   M is sigma_finite and
+A9:  i+1 = k;
+
+A10: ex Xi be non empty set, Fi being SigmaField of Xi,
+       Mi be sigma_Measure of Fi st
+      Xi = X.(i+1) & Fi = S.(i+1) &  Mi = M.(i+1)
+    & Mi is sigma_finite by A8,A9,FINSEQ_1:4;
+
+A11:  i < k by A9,NAT_1:13; then
+
+A12:  SubFin(X,i) = X|i by Def5;
+A13:  ElmFin(X,i+1) = X.(i+1) by A9,Def1;
+A14: CarProduct X = [: CarProduct SubFin(X,i),ElmFin(X,i+1) :]
+       by Th6,A9;
+
+A15:  SubFin(S,i) = S|i by A11,Def6;
+A16:  SubFin(M,i) = M|i by A11,Def9;
+A17:  ElmFin(S,i+1) = S.(i+1) by A9,Def7;
+A18:  ElmFin(M,i+1) = M.(i+1) by A9,Def10;
+
+A19:  len X = k by CARD_1:def 7;
+     SubFin(X,i+1) = X|k by A9,Def5; then
+A20:  X = SubFin(X,i+1) by A19,FINSEQ_1:58;
+
+A21: len S = k by CARD_1:def 7;
+     SubFin(S,i+1) = S|k by A9,Def6; then
+     S = SubFin(S,i+1) by A21,FINSEQ_1:58; then
+
+A22:  Prod_Field S
+      = sigma measurable_rectangles(Prod_Field SubFin(S,i),ElmFin(S,i+1))
+        by A20,A9,A11,Th21;
+
+     for j be Nat st j in Seg i holds
+      ex Xj be non empty set, Fj being SigmaField of Xj,
+        mj be sigma_Measure of Fj st
+       Xj = SubFin(X,i).j & Fj = SubFin(S,i).j
+     & mj = SubFin(M,i).j & mj is sigma_finite
+     proof
+      let j being Nat;
+      assume A23: j in Seg i;
+      Seg i c= Seg (i+1) by FINSEQ_1:5,NAT_1:12; then
+      consider Xj be non empty set, Fj being SigmaField of Xj,
+        mj be sigma_Measure of Fj such that
+A24:   Xj = X.j & Fj = S.j & mj = M.j & mj is sigma_finite by A8,A9,A23;
+
+      take Xj,Fj,mj;
+      thus Xj = SubFin(X,i).j by A12,A23,A24,FUNCT_1:49;
+      thus Fj = SubFin(S,i).j by A15,A23,A24,FUNCT_1:49;
+      thus mj = SubFin(M,i).j by A16,A23,A24,FUNCT_1:49;
+      thus thesis by A24;
+     end; then
+     SubFin(M,i) is sigma_finite; then
+     Prod_Measure SubFin(M,i) is sigma_finite by A7; then
+     Prod_Measure(Prod_Measure SubFin(M,i),ElmFin(M,i+1))
+       is sigma_finite by A13,A17,A18,Th27,A10;
+     hence Prod_Measure M is sigma_finite by A9,A14,Th28,A22;
+    end;
+
+    for k being non zero Nat holds P[k] from NAT_1:sch 10(A1,A6);
+    hence thesis;
+end;
+
+theorem Th30:
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+   S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S
+  st n <= m & M is sigma_finite holds SubFin(M,n) is sigma_finite
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume that
+A1:  n <= m and
+A2:  M is sigma_finite;
+
+    set Xn = SubFin(X,n), Sn = SubFin(S,n), Mn = SubFin(M,n);
+
+A3: Xn =X|n & Sn=S|n & Mn=M|n by A1,Def5,Def6,Def9;
+A4: Seg n c= Seg m by A1,FINSEQ_1:5;
+    for j be Nat st j in Seg n
+     ex Xj be non empty set, Sj being SigmaField of Xj,
+        Mj be sigma_Measure of Sj st Xj = Xn.j & Sj = Sn.j & Mj = Mn.j
+      & Mj is sigma_finite
+    proof
+     let j be Nat;
+     assume
+A5:   j in Seg n; then
+     consider Xj be non empty set, Sj being SigmaField of Xj,
+        Mj be sigma_Measure of Sj such that
+A6:   Xj = X.j & Sj = S.j & Mj = M.j & Mj is sigma_finite by A2,A4;
+     take Xj,Sj,Mj;
+     thus thesis by A3,A5,A6,FUNCT_1:49;
+    end;
+    hence Mn is sigma_finite;
+end;
+
+theorem Th31:
+for m,n be non zero Nat, X be non-empty m-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S
+  st n <= m & M is sigma_finite holds ElmFin(M,n) is sigma_finite
+proof
+    let m,n be non zero Nat, X be non-empty m-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+    assume that
+A1:  n <= m and
+A2:  M is sigma_finite;
+A3: Seg n c= Seg m by A1,FINSEQ_1:5;
+A4: n in Seg n by FINSEQ_1:3;
+A5: ElmFin(X,n) = X.n & ElmFin(S,n) = S.n & ElmFin(M,n) = M.n
+      by A1,Def1,Def7,Def10;
+
+    ex Xi be non empty set, Fi being SigmaField of Xi,
+     Mi be sigma_Measure of Fi st Xi = X.n & Fi = S.n & Mi=M.n
+   & Mi is sigma_finite by A2,A3,A4;
+    hence ElmFin(M,n) is sigma_finite by A5;
+end;
+
+begin :: Integrability of functions on (n+1)-dimensional space
+
+theorem Th32:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL st
+  f is_integrable_on Prod_Measure M holds
+ex g be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL st
+   f = g
+ & g is_integrable_on Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+ & Integral(Prod_Measure M,f)
+    = Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL;
+    assume
+A1:  f is_integrable_on Prod_Measure M;
+
+A2: Prod_Measure M = Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+     by Th28;
+
+    reconsider g = f as
+     PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL by Th6;
+    take g;
+    thus f = g;
+
+A3: n < n+1 by NAT_1:13;
+
+A4: len X = n+1 by CARD_1:def 7;
+    SubFin(X,n+1) = X|(n+1) by Def5; then
+A5: X = SubFin(X,n+1) by A4,FINSEQ_1:58;
+
+A6:len S = n+1 by CARD_1:def 7;
+    SubFin(S,n+1) = S|(n+1) by Def6; then
+    S = SubFin(S,n+1) by A6,FINSEQ_1:58; then
+A7: Prod_Field S
+     = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+        by A5,A3,Th21;
+    hence g is_integrable_on
+     Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)) by A1,A2,Th6;
+
+    thus
+    Integral(Prod_Measure M,f)
+     = Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+       by A7,A2,Th6;
+end;
+
+theorem
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL,
+ g be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL st
+  M is sigma_finite & f is_integrable_on Prod_Measure M & f = g
+ & ( for y be Element of ElmFin(X,n+1)
+       holds Integral1(Prod_Measure SubFin(M,n),|.g.|).y < +infty )
+  holds
+   ( for y being Element of ElmFin(X,n+1) holds
+          ProjPMap2(g,y) is_integrable_on Prod_Measure SubFin(M,n) )
+     & ( for V being Element of ElmFin(S,n+1) holds
+          Integral1(Prod_Measure SubFin(M,n),g) is V-measurable )
+     & Integral1(Prod_Measure SubFin(M,n),g) is_integrable_on ElmFin(M,n+1)
+     & Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+        = Integral(ElmFin(M,n+1),(Integral1(Prod_Measure SubFin(M,n),g)))
+     & Integral1(Prod_Measure SubFin(M,n),g) in L1_Functions ElmFin(M,n+1)
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL,
+    g be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL;
+
+    assume that
+A1:  M is sigma_finite and
+A2:  f is_integrable_on Prod_Measure M and
+A3:  f = g and
+A4:  for y be Element of ElmFin(X,n+1)
+       holds Integral1(Prod_Measure SubFin(M,n),|.g.|).y < +infty;
+
+A5: ex g0 be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL
+     st f = g0
+     & g0 is_integrable_on Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+     & Integral(Prod_Measure M,f)
+       = Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g0)
+         by A2,Th32;
+
+A6: n < n+1 by NAT_1:13; then
+A7: SubFin(X,n) = X|n by Def5;
+A8: ElmFin(X,n+1) = X.(n+1) by Def1;
+A9: SubFin(S,n) = S|n by A6,Def6;
+A10: ElmFin(S,n+1) = S.(n+1) by Def7;
+A11: SubFin(M,n) = M|n by A6,Def9;
+A12: ElmFin(M,n+1) = M.(n+1) by Def10;
+
+    for j be Nat st j in Seg n
+     ex Xj be non empty set, Sj being SigmaField of Xj,
+     mj be sigma_Measure of Sj st
+      Xj =SubFin(X,n).j & Sj =SubFin(S,n).j & mj = SubFin(M,n).j &
+      mj is sigma_finite
+    proof
+     let j being Nat;
+     assume
+A13:   j in Seg n;
+     Seg n c= Seg (n+1) by FINSEQ_3:18; then
+     consider Xj be non empty set, Sj being SigmaField of Xj,
+      mj be sigma_Measure of Sj such that
+A14:   Xj = X.j & Sj = S.j &  mj = M.j & mj is sigma_finite by A1,A13;
+
+     take Xj,Sj,mj;
+     thus Xj = SubFin(X,n).j by A7,A13,A14,FUNCT_1:49;
+     thus Sj = SubFin(S,n).j by A9,A13,A14,FUNCT_1:49;
+     thus mj = SubFin(M,n).j by A11,A13,A14,FUNCT_1:49;
+     thus thesis by A14;
+    end; then
+    SubFin(M,n) is sigma_finite; then
+A15: Prod_Measure SubFin(M,n) is sigma_finite by Th29;
+
+    ex Xi be non empty set, Fi being SigmaField of Xi,
+     mi be sigma_Measure of Fi st
+     Xi = X.(n+1) & Fi = S.(n+1) & mi = M.(n+1) & mi is sigma_finite
+       by A1,FINSEQ_1:4;
+    hence
+     ( for y being Element of ElmFin(X,n+1) holds
+         ProjPMap2(g,y) is_integrable_on Prod_Measure SubFin(M,n) )
+    & ( for V being Element of ElmFin(S,n+1) holds
+         Integral1(Prod_Measure SubFin(M,n),g) is V -measurable )
+    & Integral1(Prod_Measure SubFin(M,n),g) is_integrable_on ElmFin(M,n+1)
+    & Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+       = Integral(ElmFin(M,n+1),(Integral1(Prod_Measure SubFin(M,n),g)))
+    & Integral1(Prod_Measure SubFin(M,n),g) in L1_Functions ElmFin(M,n+1)
+       by A3,A4,A5,A15,A8,A10,A12,MESFUN13:33;
+end;
+
+definition
+let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    f be PartFunc of CarProduct X,ExtREAL,
+    x be Element of CarProduct(SubFin(X,n));
+func ProjPMap1(f,x) -> PartFunc of ElmFin(X,n+1),ExtREAL means
+  ex g be PartFunc of [: CarProduct(SubFin(X,n)),ElmFin(X,n+1) :],ExtREAL
+   st f = g & it = ProjPMap1(g,x);
+existence
+proof
+    reconsider g = f as PartFunc of
+      [:CarProduct(SubFin(X,n)),ElmFin(X,n+1):],ExtREAL by Th6;
+    reconsider H = ProjPMap1(g,x) as PartFunc of ElmFin(X,n+1),ExtREAL;
+    take H;
+    thus thesis;
+end;
+uniqueness;
+end;
+
+theorem Th34:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S holds
+   Prod_Field S
+    = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+     S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S;
+
+A1: n < n+1 by NAT_1:13;
+A2:  len X = n+1 by CARD_1:def 7;
+     SubFin(X,n+1) = X|(n+1) by Def5; then
+A3:  X = SubFin(X,n+1) by A2,FINSEQ_1:58;
+A4: len S = n+1 by CARD_1:def 7;
+     SubFin(S,n+1) = S|(n+1) by Def6; then
+     S = SubFin(S,n+1) by A4,FINSEQ_1:58;
+    hence Prod_Field S
+     = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+        by A3,A1,Th21;
+end;
+
+theorem Th35:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL,
+ fn1 be PartFunc of [: CarProduct SubFin(X,n), ElmFin(X,n+1) :],ExtREAL
+  st M is sigma_finite & f = fn1 & f is_integrable_on Prod_Measure M
+   & for x be Element of CarProduct(SubFin(X,n)) holds
+        (Integral2(ElmFin(M,n+1),|.fn1.|)).x < +infty
+  holds
+   Integral(Prod_Measure M,f)
+     = Integral(Prod_Measure(Prod_Measure(SubFin(M,n)),ElmFin(M,n+1)),fn1)
+ & ( for x being Element of CarProduct(SubFin(X,n)) holds
+       ProjPMap1(fn1,x) is_integrable_on ElmFin(M,n+1) )
+ & ( for U being Element of Prod_Field(SubFin(S,n)) holds
+       Integral2(ElmFin(M,n+1),fn1) is U-measurable )
+ & Integral2(ElmFin(M,n+1),fn1) is_integrable_on Prod_Measure(SubFin(M,n))
+ & Integral(Prod_Measure(Prod_Measure(SubFin(M,n)),ElmFin(M,n+1)),fn1)
+     = Integral(Prod_Measure(SubFin(M,n)),(Integral2(ElmFin(M,n+1),fn1)))
+ & Integral2(ElmFin(M,n+1),fn1) in L1_Functions Prod_Measure(SubFin(M,n))
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL,
+    fn1 be PartFunc of [: CarProduct SubFin(X,n), ElmFin(X,n+1) :],ExtREAL;
+    assume that
+A1:  M is sigma_finite and
+A2:  f = fn1 and
+A3:  f is_integrable_on Prod_Measure M and
+A4:  for x be Element of CarProduct(SubFin(X,n)) holds
+        (Integral2(ElmFin(M,n+1),|.fn1.|)).x < +infty;
+
+A5: CarProduct X =[:CarProduct SubFin(X,n),ElmFin(X,n+1):] by Th6;
+
+A6:Prod_Measure M = Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+      by Th28;
+
+A7: n < n+1 by NAT_1:13; then
+A8:Prod_Measure SubFin(M,n) is sigma_finite by A1,Th29,Th30;
+
+A9:ElmFin(M,n+1) is sigma_finite by Th31,A1;
+
+A10: len X = n+1 by CARD_1:def 7;
+    SubFin(X,n+1) = X|(n+1) by Def5; then
+A11: X = SubFin(X,n+1) by A10,FINSEQ_1:58;
+
+A12:len S = n+1 by CARD_1:def 7;
+    SubFin(S,n+1) = S|(n+1) by Def6; then
+    S = SubFin(S,n+1) by A12,FINSEQ_1:58; then
+    Prod_Field S
+     = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+        by A7,A11,Th21;
+    hence thesis by A4,A2,A3,A5,A6,A8,A9,MESFUN13:32;
+end;
+
+theorem Th36:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL,
+    f1 be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL,
+    f2 be PartFunc of CarProduct SubFin(X,n+1),ExtREAL
+ st M is sigma_finite & f = f1 & f = f2 & f is_integrable_on Prod_Measure M
+    & for x be Element of CarProduct SubFin(X,n) holds
+        (Integral2(ElmFin(M,n+1),|.f1.|)).x < +infty
+holds
+   Integral(Prod_Measure SubFin(M,n+1),f2)
+      = Integral(Prod_Measure SubFin(M,n),Integral2(ElmFin(M,n+1),f1))
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct(X),ExtREAL,
+    g be PartFunc of [: CarProduct SubFin(X,n),ElmFin(X,n+1) :],ExtREAL,
+    f2 be PartFunc of CarProduct SubFin(X,n+1),ExtREAL;
+    assume that
+A1:  M is sigma_finite and
+A2:  f = g and
+A3:  f = f2 and
+A4:  f is_integrable_on Prod_Measure M and
+A5:  for x be Element of CarProduct(SubFin(X,n)) holds
+      (Integral2(ElmFin(M,n+1),|.g.|)).x < +infty;
+
+A6: Integral(Prod_Measure M,f)
+      = Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+  & ( for x being Element of CarProduct SubFin(X,n) holds
+        ProjPMap1(g,x) is_integrable_on ElmFin(M,n+1) )
+  & ( for U being Element of Prod_Field SubFin(S,n) holds
+        Integral2(ElmFin(M,n+1),g) is U-measurable )
+  & Integral2(ElmFin(M,n+1),g) is_integrable_on Prod_Measure SubFin(M,n)
+  & Integral(Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1)),g)
+      = Integral(Prod_Measure SubFin(M,n),Integral2(ElmFin(M,n+1),g))
+  & Integral2(ElmFin(M,n+1),g) in L1_Functions Prod_Measure SubFin(M,n)
+        by A1,A2,A5,A4,Th35;
+
+    reconsider h = Integral2(ElmFin(M,n+1),g)
+     as Function of CarProduct(SubFin(X,n)),ExtREAL;
+
+    len X = n+1 & len S = n+1 & len M = n+1 by CARD_1:def 7; then
+A7: X = X|(n+1) & S = S|(n+1) & M = M|(n+1) by FINSEQ_1:58; then
+    X = SubFin(X,n+1) & S = SubFin(S,n+1) by Def5,Def6;
+    hence thesis by A3,A6,A7,Def9;
+end;
+
+theorem
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL, E be Element of Prod_Field S,
+ g be PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL
+ st M is sigma_finite & E = dom f & f is E-measurable & f = g
+holds
+   g is_integrable_on  Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+    iff
+   Integral(Prod_Measure SubFin(M,n),Integral2(ElmFin(M,n+1),|.g.|)) < +infty
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL, E be Element of Prod_Field S,
+    g be PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL;
+    assume that
+A1:  M is sigma_finite and
+A2:  E = dom f and
+A3:  f is E-measurable and
+A4:  f = g;
+
+A5: CarProduct X = [:CarProduct(SubFin(X,n)),ElmFin(X,n+1):]
+      by Th6;
+
+A6: Prod_Field S
+     = sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+      by Th34;
+    reconsider E1 = E as Element of
+      sigma measurable_rectangles(Prod_Field SubFin(S,n),ElmFin(S,n+1))
+        by Th34;
+
+    n <= n+1 by NAT_1:12; then
+A7: Prod_Measure SubFin(M,n) is sigma_finite by Th30,A1,Th29;
+
+    ElmFin(M,n+1) is sigma_finite by Th31,A1;
+    hence g is_integrable_on
+     Prod_Measure(Prod_Measure SubFin(M,n),ElmFin(M,n+1))
+        iff
+    Integral(Prod_Measure SubFin(M,n),Integral2(ElmFin(M,n+1),|.g.|))
+      < +infty by MESFUN13:11,A3,A5,A6,A4,A2,A7;
+end;
+
+definition
+let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL;
+func FSqIntg(M,f) -> (n+1)-element FinSequence means :Def17:
+  it.1 = f &
+  for i be Nat st 1 <= i & i < n+1 holds
+   ex k be non zero Nat,
+      g be PartFunc of [: CarProduct SubFin(X,k),ElmFin(X,k+1) :],ExtREAL
+    st k = n+1-i & g = it.i & it.(i+1) = Integral2(ElmFin(M,k+1),g);
+existence
+proof
+    reconsider m = n+1 as non zero Nat;
+    defpred Q[Nat,set,set] means
+     ( ex k be non zero Nat,
+          g be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL
+        st k = m-$1 & g = $2 )
+     implies
+      ex k be non zero Nat,
+         g be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL
+       st k = m-$1 & g = $2 & $3 = Integral2(ElmFin(M,k+1),g);
+A1: for i being  Nat st 1 <= i & i < m holds
+     for x being set ex y being set st Q[i,x,y]
+    proof
+     let i be Nat;
+     assume 1 <= i & i < m;
+     let x be set;
+     now assume
+      ex k be non zero Nat,
+         g be PartFunc of [: CarProduct SubFin(X,k),ElmFin(X,k+1) :],ExtREAL
+       st k = m-i & g = x; then
+      consider k be non zero Nat,
+       g be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL
+        such that
+A2:    k = m-i & g = x;
+
+      reconsider y = Integral2(ElmFin(M,k+1),g) as set;
+      take y;
+      thus Q[i,x,y] by A2;
+     end;
+     hence thesis;
+    end;
+
+    consider P being FinSequence such that
+A3:  len P = m & (P.1 = f or m = 0)
+   & for i be Nat st 1 <= i & i < m holds Q[ i,P.i,P.( i + 1 ) ]
+       from RECDEF_1:sch 3(A1);
+    reconsider P as (n+1)-element FinSequence by A3,CARD_1:def 7;
+
+    take P;
+    defpred L[Nat] means 1 <= $1 & $1 < m implies
+     ( ex k be non zero Nat,
+          g be PartFunc of [: CarProduct SubFin(X,k),ElmFin(X,k+1) :],ExtREAL
+        st k = m-$1 & g = P.$1 );
+
+A4: L[0];
+A5: for i be Nat st L[i] holds L[i+1]
+    proof
+     let i be Nat;
+     assume A6: L[i];
+     assume A7: 1<=i+1 & i+1 < m;
+A8: i + 0 < i+1 by XREAL_1:8;
+     per cases;
+     suppose A9: i = 0;
+      reconsider k = m-1 as non zero Nat;
+
+      reconsider g=f as PartFunc of
+        [: CarProduct SubFin(X,k),ElmFin(X,k+1) :],ExtREAL by Th6;
+
+      take k,g;
+      thus thesis by A3,A9;
+     end;
+     suppose A10: i <> 0; then
+      1 <= i & i < m by A8,A7,XXREAL_0:2,NAT_1:14; then
+      consider k be non zero Nat,
+        g be PartFunc of [: CarProduct SubFin(X,k),ElmFin(X,k+1) :],ExtREAL
+       such that
+A11:   k = m-i & g = P.i & P.(i+1) = Integral2(ElmFin(M,k+1),g) by A3,A6;
+
+      reconsider k1= m-(i+1) as non zero Nat by A7,NAT_1:21;
+
+A12:  k1+1 = k by A11; then
+A13:  k1 <= k by NAT_1:12;
+
+      m+1-i <= m+1-1 by A10,NAT_1:14,XREAL_1:10; then
+A14:   k < m by A11,NAT_1:13; then
+A15:   SubFin(X,k) = X|k & SubFin(X,k1) = X|k1 by A13,Def5,XXREAL_0:2;
+
+      SubFin(SubFin(X,k),k1) = SubFin(X,k)|k1 by A12,Def5,NAT_1:12; then
+A16:  SubFin(SubFin(X,k),k1) = SubFin(X,k1) by A15,A12,NAT_1:12,FINSEQ_1:82;
+
+      ElmFin(SubFin(X,k),k1+1) = SubFin(X,k).(k1+1) by A11,Def1; then
+A17:  ElmFin(SubFin(X,k),k1+1) = X.(k1+1) by A11,A15,FINSEQ_1:4,FUNCT_1:49;
+
+      CarProduct SubFin(X,k)
+       = [: CarProduct SubFin(SubFin(X,k),k1), ElmFin(SubFin(X,k),k1+1) :]
+        by Th6,A11; then
+      CarProduct SubFin(X,k) = [: CarProduct SubFin(X,k1),ElmFin(X,k1+1) :]
+        by A14,A11,A16,A17,Def1;
+      hence thesis by A11;
+     end;
+    end;
+
+A18:for i be Nat holds L[i] from NAT_1:sch 2(A4,A5);
+
+    now let i be non zero Nat;
+     assume A19: 1 <= i & i < m; then
+     ex k be non zero Nat,
+          g be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL
+        st k = m-i & g = P.i by A18;
+     hence
+     ex k be non zero Nat,
+        g be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL
+      st k = m-i & g = P.i & P.(i+1) = Integral2(ElmFin(M,k+1),g) by A3,A19;
+    end;
+    hence thesis by A3;
+end;
+uniqueness
+proof
+    let P1,P2 be (n+1)-element FinSequence;
+    reconsider m = n+1 as non zero Nat;
+    assume that
+A20: P1.1 = f &
+     for i be Nat st 1 <= i & i < n+1 holds
+      ex j be non zero Nat, g be PartFunc of
+          [:CarProduct(SubFin(X,j)),ElmFin(X,j+1):],ExtREAL
+       st j = n+1-i & g = P1.i & P1.(i+1) = Integral2(ElmFin(M,j+1),g)
+    and
+A21: P2.1 = f &
+     for i be Nat st 1 <= i & i < n+1 holds
+      ex j be non zero Nat, g be PartFunc of
+          [:CarProduct(SubFin(X,j)),ElmFin(X,j+1):],ExtREAL
+        st j = n+1-i & g = P2.i & P2.(i+1) = Integral2(ElmFin(M,j+1),g);
+
+    defpred Q[Nat] means 1 <= $1 & $1 <= m implies P1.$1 = P2.$1;
+A22:Q[0];
+A23:for k be Nat st Q[k] holds Q[k+1]
+    proof
+     let i be Nat;
+     assume A24: Q[i];
+     assume A25: 1 <= i+1 & i+1 <= m; then
+A26: i < n+1 by NAT_1:13;
+
+     per cases;
+     suppose i=0;
+      hence P1.(i+1) = P2.(i+1)  by A20,A21;
+     end;
+     suppose i <> 0; then
+      reconsider j = i as non zero Nat;
+A27:  ex k be non zero Nat, g be PartFunc of
+          [:CarProduct(SubFin(X,k)),ElmFin(X,k+1):],ExtREAL
+       st k = m-j & g = P1.j & P1.(j+1) = Integral2(ElmFin(M,k+1),g)
+        by A20,A26,NAT_1:14;
+
+      ex k be non zero Nat, g be PartFunc of
+          [:CarProduct(SubFin(X,k)),ElmFin(X,k+1):],ExtREAL
+       st k = m-j & g = P2.j & P2.(j+1) = Integral2(ElmFin(M,k+1),g)
+        by A21,A26,NAT_1:14;
+      hence P1.(i+1) = P2.(i+1) by A27,A24,A25,NAT_1:13,14;
+     end;
+    end;
+A28:for i be Nat holds Q[i] from NAT_1:sch 2(A22,A23);
+    len P1 = m & len P2 = m by CARD_1:def 7;
+    hence P1=P2 by A28;
+end;
+end;
+
+definition
+let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL;
+pred f is_Sequentially_integrable_on M means
+  for k be non zero Nat st k < n+1 holds
+   ex G be PartFunc of CarProduct SubFin(X,k+1),ExtREAL,
+      H be PartFunc of CarProduct SubFin(X,k),ExtREAL
+    st G = FSqIntg(M,f).(n+1-k) & H = (FSqIntg(SubFin(M,k+1),|.G.|)).2
+     & for x be Element of CarProduct SubFin(X,k) holds H.x < +infty;
+end;
+
+theorem Th38:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+  S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+  f be PartFunc of CarProduct X,ExtREAL
+ st M is sigma_finite & f is_Sequentially_integrable_on M
+  & f is_integrable_on Prod_Measure M holds
+ for k be non zero Nat st k < n+1 holds
+  ex g be PartFunc of CarProduct SubFin(X,k+1),ExtREAL
+   st g = FSqIntg(M,f).(n+1-k) & g is_integrable_on Prod_Measure SubFin(M,k+1)
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+     S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+     f be PartFunc of CarProduct X,ExtREAL;
+    assume that
+A1:  M is sigma_finite and
+A2:  f is_Sequentially_integrable_on M and
+A3:  f is_integrable_on Prod_Measure M;
+
+    defpred P[Nat] means 1 <= $1 & $1 < n+1 implies
+     ex j be non zero Nat, g be PartFunc of CarProduct SubFin(X,j+1),ExtREAL
+      st j = n+1-$1 & g = FSqIntg(M,f).$1
+       & g is_integrable_on Prod_Measure SubFin(M,j+1);
+
+A4: len X = n+1 & len S = n+1 & len M = n+1 by CARD_1:def 7;
+
+A5: P[1]
+    proof
+     assume 1 <= 1 & 1 < n+1;
+
+A6:  FSqIntg(M,f).1 = f by Def17;
+     SubFin(X,n+1) = X|(n+1) by Def5; then
+A7:  SubFin(X,n+1) = X by A4,FINSEQ_1:58;
+
+     SubFin(S,n+1) = S|(n+1) by Def6; then
+A8: SubFin(S,n+1) = S by A4,FINSEQ_1:58;
+     SubFin(M,n+1) = M|(n+1) by Def9; then
+     SubFin(M,n+1) = M by A4,FINSEQ_1:58;
+     hence thesis by A3,A6,A7,A8;
+    end;
+
+A9:for k being non zero Nat st P[k] holds P[k + 1]
+    proof
+     let k being non zero Nat;
+     assume A10:P[k];
+     assume A11: 1 <= k+1 & k+1 < n+1; then
+     consider j be non zero Nat,
+      h be PartFunc of CarProduct SubFin(X,j+1),ExtREAL such that
+A12:  j = n+1-k & h = FSqIntg(M,f).k
+    & h is_integrable_on Prod_Measure SubFin(M,j+1) by A10,NAT_1:12,14;
+
+     k < n+1 by A11,NAT_1:12; then
+     consider m be non zero Nat,
+      g be PartFunc of [:CarProduct SubFin(X,m),ElmFin(X,m+1):],ExtREAL
+     such that
+A13:  m = n+1-k & g = (FSqIntg(M,f)).k
+    & (FSqIntg(M,f)).(k+1) = Integral2(ElmFin(M,m+1),g) by Def17,NAT_1:14;
+
+     set I = Integral2(ElmFin(M,m+1),g);
+     set X1 = SubFin(X,m+1);
+     set S1 = SubFin(S,m+1);
+     set M1 = SubFin(M,m+1);
+
+A14: n+1-k < n+1 - 0 by XREAL_1:15; then
+A15: m+1 <= n+1 by A13,NAT_1:13; then
+     SubFin(X,m+1) = X|(m+1) & SubFin(S,m+1) = S|(m+1)
+   & SubFin(M,m+1) = M|(m+1) by Def5,Def6,Def9; then
+A16:  SubFin(X,m+1)|m = X|m & SubFin(S,m+1)|m = S|m
+   & SubFin(M,m+1)|m = M|m by NAT_1:12,FINSEQ_1:82;
+
+A17: 1 <= m & m < m+1 by NAT_1:13,14; then
+A18: SubFin(X1,m) = SubFin(X,m) by A15,Th7;
+A19: SubFin(S1,m) = SubFin(S,m) by A17,A15,Th14;
+A20: SubFin(M1,m) = SubFin(M,m) by A17,A15,Th18;
+
+A21: SubFin(X1,m) = (SubFin(X,m+1))|m  by Def5,NAT_1:12;
+A22: ElmFin(X1,m+1) = ElmFin(X,m+1) by A15,Th8; then
+     reconsider g0=g as PartFunc of
+          [:CarProduct(SubFin(X1,m)),ElmFin(X1,m+1):],ExtREAL
+            by A21,A16,Def5,A13,A14;
+A23: CarProduct X1 =[:CarProduct(SubFin(X1,m)),ElmFin(X1,m+1):]
+   & Prod_Measure M1
+      = Prod_Measure(Prod_Measure SubFin(M1,m),ElmFin(M1,m+1)) by
+      Th6,Th28;
+
+A24: Prod_Measure SubFin(M1,m) is sigma_finite
+       by A1,A13,A14,A18,A19,A20,Th30,Th29;
+
+A25: ElmFin(S1,m+1) = ElmFin(S,m+1) by A15,Th12;
+A26: ElmFin(M1,m+1) = ElmFin(M,m+1) by A15,Th17; then
+A27: ElmFin(M1,m+1) is sigma_finite by A1,A15,A22,A25,Th31;
+
+     reconsider j1= n+1-(k+1) as non zero Nat by A11,NAT_1:21;
+     reconsider H = Integral2(ElmFin(M,m+1),g) as
+       PartFunc of CarProduct(SubFin(X,j1+1)),ExtREAL by A13;
+
+     consider G0 be PartFunc of CarProduct(SubFin(X,m+1)),ExtREAL,
+      H0 be PartFunc of CarProduct(SubFin(X,m)),ExtREAL such that
+A28:  G0 = FSqIntg(M,f).(n+1-m) & H0 = (FSqIntg(SubFin(M,m+1),|.G0.|)).2
+    & for x be Element of CarProduct(SubFin(X,m)) holds H0.x < +infty
+       by A13,A14,A2;
+
+     set FG0 = FSqIntg(SubFin(M,m+1),|.G0.|);
+
+A29: FG0.1 = |.G0.| by Def17;
+     1 < m+1 by NAT_1:13,14; then
+A30: ex k1 be non zero Nat, g1 be PartFunc of
+       [:CarProduct(SubFin(X1,k1)),ElmFin(X1,k1+1):],ExtREAL st
+      k1 = m+1-1 & g1 = FG0.1
+    & FG0.(1+1) = Integral2(ElmFin(M1,k1+1),g1) by Def17;
+
+     Prod_Field SubFin(S,j+1)
+      = sigma measurable_rectangles(Prod_Field SubFin(S,m),ElmFin(S,m+1))
+      by A12,A13,A14,Th21; then
+A31: Integral2(ElmFin(M1,m+1),g0) is_integrable_on Prod_Measure(SubFin(M1,m))
+       by A12,A13,A19,A18,A25,A22,A23,A24,A27,A28,A29,A30,MESFUN13:32;
+
+     H = FSqIntg(M,f).(k+1) by A13;
+     hence thesis by A13,A22,A25,A26,A18,A19,A20,A31;
+    end;
+
+A32:for k be non zero Nat holds P[k] from NAT_1:sch 10(A5,A9);
+
+    let k be non zero Nat;
+    assume A33: k < n+1;
+A34: 1 <= k by NAT_1:14;
+    set i = n+1-k;
+    k+1 -1 <= n+1 -1 by A33,NAT_1:13; then
+A35:n+1 -n <= n+1 -k & n+1-k <= n+1 -1 by A34,XREAL_1:13; then
+    reconsider i as non zero Nat by INT_1:3,ORDINAL1:def 12;
+
+    1 <= i & i < n+1 by A35,NAT_1:13; then
+    ex j be non zero Nat, g be PartFunc of CarProduct(SubFin(X,j+1)),ExtREAL
+     st j = n+1-i & g = FSqIntg(M,f).i
+      & g is_integrable_on Prod_Measure(SubFin(M,j+1)) by A32;
+    hence thesis;
+end;
+
+theorem Th39:
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL,
+ g be PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL
+ st f = g holds FSqIntg(M,f).1 = f &
+       FSqIntg(M,f).2 = Integral2(ElmFin(M,n+1),g)
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL,
+    g be PartFunc of [:CarProduct SubFin(X,n),ElmFin(X,n+1):],ExtREAL;
+    assume
+A1:  f = g;
+    thus FSqIntg(M,f).1 = f by Def17;
+    1 < n+1 by NAT_1:13,14; then
+    ex k be non zero Nat,
+     g0 be PartFunc of [: CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL
+     st k = n+1-1 & g0 = FSqIntg(M,f).1
+     & FSqIntg(M,f).(1+1) = Integral2(ElmFin(M,k+1),g0) by Def17;
+    hence FSqIntg(M,f).2 = Integral2(ElmFin(M,n+1),g) by A1,Def17;
+end;
+
+theorem
+for n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+ S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+ f be PartFunc of CarProduct X,ExtREAL st M is sigma_finite
+  & f is_Sequentially_integrable_on M & f is_integrable_on Prod_Measure M
+holds
+  for k be non zero Nat st k < n holds
+   ex Fk1 be PartFunc of [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL,
+      Gk1 be PartFunc of CarProduct SubFin(X,k+1),ExtREAL,
+      Fk be Function of CarProduct SubFin(X,k),ExtREAL
+    st Gk1 = Fk1
+     & Gk1 = FSqIntg(M,f).(n+1-k)
+     & Fk = FSqIntg(M,f).(n+1-(k-1))
+     & Fk = Integral2(ElmFin(M,k+1),Fk1)
+     & Gk1 is_integrable_on Prod_Measure SubFin(M,k+1)
+     & Integral(Prod_Measure SubFin(M,k+1),Gk1)
+        = Integral(Prod_Measure(Prod_Measure SubFin(M,k),ElmFin(M,k+1)),Fk1)
+     & ( for x being Element of CarProduct SubFin(X,k) holds
+          ProjPMap1(Fk1,x) is_integrable_on ElmFin(M,k+1) )
+     & ( for U being Element of Prod_Field SubFin(S,k) holds
+          Fk is U-measurable )
+     & Fk is_integrable_on Prod_Measure SubFin(M,k)
+     & Integral(Prod_Measure(Prod_Measure SubFin(M,k),ElmFin(M,k+1)),Fk1)
+        = Integral(Prod_Measure SubFin(M,k),Fk)
+     & Fk in L1_Functions Prod_Measure SubFin(M,k)
+     & Integral(Prod_Measure SubFin(M,k+1),Gk1)
+        = Integral(Prod_Measure SubFin(M,k),Fk)
+proof
+    let n be non zero Nat, X be non-empty (n+1)-element FinSequence,
+    S be sigmaFieldFamily of X, M be sigmaMeasureFamily of S,
+    f be PartFunc of CarProduct X,ExtREAL;
+    assume that
+A1:  M is sigma_finite and
+A2:  f is_Sequentially_integrable_on M and
+A3:  f is_integrable_on Prod_Measure M;
+
+    let k be non zero Nat;
+    assume A4: k < n; then
+A5: 1 <= k & k < n+1 by NAT_1:13,14; then
+    k-k < n+1 -k by XREAL_1:14; then
+    n+1-k in NAT by INT_1:3; then
+    reconsider m=n+1-k as non zero Nat by A4,NAT_1:12;
+
+    set Mk1 =SubFin(M,k+1), Sk1 =SubFin(S,k+1), Xk1 =SubFin(X,k+1);
+    set Xk = SubFin(X,k);
+
+    1-k <= 0 by NAT_1:14,XREAL_1:47; then
+    n+(1-k) <= n + 0 by XREAL_1:7; then
+    1 <= m & m < n+1 by NAT_1:13,14; then
+    ex j be non zero Nat,
+     g be PartFunc of [:CarProduct SubFin(X,j),ElmFin(X,j+1):],ExtREAL st
+     j = n+1-m & g = FSqIntg(M,f).m
+   & FSqIntg(M,f).(m+1) = Integral2(ElmFin(M,j+1),g) by Def17; then
+    consider Fk1 be PartFunc of
+      [:CarProduct SubFin(X,k),ElmFin(X,k+1):],ExtREAL such that
+A6:  k = n+1-m & Fk1 = FSqIntg(M,f).(n+1-k)
+   & FSqIntg(M,f).(m+1) = Integral2(ElmFin(M,k+1),Fk1);
+
+A7:k <= k+1 by NAT_1:12;
+A8:k+1 <= n+1 by A4,XREAL_1:7; then
+A9: SubFin(X,k) = SubFin(Xk1,k) by A7,Th7;
+A10: ElmFin(X,k+1) = ElmFin(Xk1,k+1) by A8,Th8;
+A11: SubFin(S,k) = SubFin(Sk1,k) by A7,A8,Th14;
+A12: ElmFin(S,k+1) = ElmFin(Sk1,k+1) by A8,Th12;
+A13: SubFin(M,k) = SubFin(Mk1,k) by A7,A8,Th18;
+A14: ElmFin(M,k+1) = ElmFin(Mk1,k+1) by A8,Th17;
+A15: SubFin(X,k+1) = SubFin(Xk1,k+1) by A8,Th7;
+A16: SubFin(S,k+1) = SubFin(Sk1,k+1) by A8,Th14;
+A17: SubFin(M,k+1) = SubFin(Mk1,k+1) by A8,Th18;
+
+    reconsider F2k1 = Fk1 as PartFunc of
+     [:CarProduct SubFin(Xk1,k),ElmFin(Xk1,k+1):],ExtREAL by A9,A8,Th8;
+
+    reconsider Fk = Integral2(ElmFin(M,k+1),Fk1) as
+     Function of CarProduct SubFin(X,k),ExtREAL;
+
+A18:Mk1 is sigma_finite by A1,A4,Th30,XREAL_1:7;
+
+    consider Gk1 be PartFunc of CarProduct Xk1,ExtREAL,
+     Hk be PartFunc of CarProduct SubFin(X,k),ExtREAL such that
+A19: Gk1 = FSqIntg(M,f).(n+1-k) & Hk = (FSqIntg(SubFin(M,k+1),|.Gk1.|)).2
+   & for x be Element of CarProduct Xk holds Hk.x < +infty by A2,A5;
+
+A20: ex g be PartFunc of CarProduct SubFin(X,k+1),ExtREAL
+     st g = FSqIntg(M,f).(n+1-k)
+   & g is_integrable_on Prod_Measure SubFin(M,k+1)
+      by Th38,A5,A1,A2,A3;
+
+    reconsider Gk2 = Gk1 as PartFunc of CarProduct SubFin(Xk1,k+1),ExtREAL
+      by A8,Th7;
+
+    take Fk1,Gk1,Fk;
+    thus Gk1 = Fk1 by A6,A19;
+    thus Gk1 = FSqIntg(M,f).(n+1-k) by A19;
+    thus Fk = FSqIntg(M,f).(n+1-(k-1)) by A6;
+    thus Fk = Integral2(ElmFin(M,k+1),Fk1);
+    thus Gk1 is_integrable_on Prod_Measure SubFin(M,k+1) by A20,A19;
+
+    reconsider G2k1 = Gk1 as PartFunc of
+     [:CarProduct SubFin(Xk1,k),ElmFin(Xk1,k+1):],ExtREAL by A9,A10,A5,Th9;
+
+    |.Gk1.| = |.G2k1.| by Th6; then
+    Hk = Integral2(ElmFin(Mk1,k+1),|.G2k1.|) by A19,Th39;
+    hence thesis by A9,A11,A13,A19,A10,A12,A14,A15,A16,A17,A6,A18,A20,Th35,Th36
+;
+end;

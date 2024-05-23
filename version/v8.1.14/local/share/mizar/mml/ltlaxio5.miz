@@ -1,0 +1,1806 @@
+:: Propositional Linear Time Temporal Logic with Initial Semantics
+::  by Mariusz Giero
+:: 
+:: Received October 22, 2015
+:: Copyright (c) 2015-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies FINSEQ_1, CARD_1, ORDINAL4, SUBSET_1, NUMBERS, ARYTM_3, TARSKI,
+      RELAT_1, XBOOLE_0, FUNCT_1, XBOOLEAN, MODELC_2, CQC_THE1, NAT_1,
+      XXREAL_0, ARYTM_1, PARTFUN1, MARGREL1, HILBERT2, ZFMISC_1, ZF_MODEL,
+      FINSET_1, RFINSEQ, LTLAXIO1, LTLAXIO5;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, DOMAIN_1, SUBSET_1,
+      ORDINAL1, PARTFUN1, XCMPLX_0,
+      NUMBERS, NAT_1, XXREAL_0, NAT_D, FUNCT_1, RELSET_1, FUNCT_2, FINSET_1,
+      FINSEQ_1, RFINSEQ, HILBERT1, HILBERT2, XBOOLEAN, MARGREL1, LTLAXIO1;
+ constructors NAT_D, RELSET_1, HILBERT2, RFINSEQ, DOMAIN_1, LTLAXIO1;
+ registrations SUBSET_1, ORDINAL1, NAT_1, XBOOLEAN, RELSET_1, MARGREL1,
+      XBOOLE_0, XREAL_0, HILBERT1, FINSET_1, LTLAXIO1;
+ requirements NUMERALS, BOOLE, SUBSET, ARITHM, REAL;
+ definitions TARSKI, XBOOLE_0, LTLAXIO1;
+ equalities XBOOLEAN, FINSEQ_1;
+ expansions TARSKI, LTLAXIO1;
+ theorems TARSKI, NAT_1, XBOOLE_0, XXREAL_0, FINSEQ_1, NAT_D, XBOOLEAN,
+      PARTFUN1, XREAL_1, ZFMISC_1, ORDINAL1, XREAL_0, FINSEQ_4, RFINSEQ,
+      RELAT_1, FINSEQ_5, FUNCT_1, FINSEQ_3, XBOOLE_1, LTLAXIO1, LTLAXIO2,
+      LTLAXIO4;
+ schemes NAT_1, FUNCT_2, RECDEF_1, FRAENKEL, FINSEQ_1;
+
+begin
+
+theorem Lm1:
+  for X be set,f be FinSequence of X,i be Nat st 1 <= i & i <= len f holds
+    f.i=f/.i
+ proof
+  let X be set,f be FinSequence of X,i be Nat;
+  assume 1 <= i & i <= len f; then
+  i in dom f by FINSEQ_3:25;
+  hence thesis by PARTFUN1:def 6;
+ end;
+
+reserve A,B,C,D,p,q,r for Element of LTLB_WFF,
+        F,G,X for Subset of LTLB_WFF,
+        M for LTLModel,
+        i,j,n for Element of NAT,
+        f,f1,f2,g for FinSequence of LTLB_WFF;
+
+::#INSERT: LTLB with normal semantics is monotonic
+theorem mon2:
+  F c= G & F |- A implies G |- A
+proof
+  assume A0: F c= G & F |- A;then
+  consider f such that
+A1: f.len f = A & 1 <= len f and
+A2: for i be Nat st 1<=i & i<=len f holds prc f,F,i;
+    now
+      let i be Nat;
+      assume 1<=i & i<=len f;then
+      per cases by LTLAXIO1:def 29,A2;
+      suppose f.i in F;
+        hence prc f,G,i by A0;
+      end;
+      suppose f.i in LTL_axioms or
+        (ex j,k be Nat st 1<=j & j<i & 1<=k & k<i & (
+        f/.j,f/.k MP_rule f/.i or f/.j,f/.k IND_rule f/.i)) or
+        ex j be Nat st 1<=j & j<i & f/.j NEX_rule f/.i;
+        hence prc f,G,i;
+      end;
+    end;
+  hence G |- A by A1;
+end;
+
+theorem th16:
+  (A => B) => ((B => C) => (A => C)) is LTL_TAUT_OF_PL
+  proof
+    let g be Function of LTLB_WFF,BOOLEAN;
+    set v = VAL g;
+A1: v.A = 1 or v.A = 0 by XBOOLEAN:def 3;
+A2: v.B = 1 or v.B = 0 by XBOOLEAN:def 3;
+A3: v.C = 1 or v.C = 0 by XBOOLEAN:def 3;
+    thus v.((A => B) => ((B => C) => (A => C)))
+    = v.(A => B) => v.((B => C) => (A => C)) by LTLAXIO1:def 15
+    .= v.A => v.B => v.((B => C) => (A => C)) by LTLAXIO1:def 15
+    .= v.A => v.B => (v.(B => C) => v.(A => C)) by LTLAXIO1:def 15
+    .= v.A => v.B => ((v.B => v.C) => v.(A => C)) by LTLAXIO1:def 15
+    .= 1 by A1,A2,A3,LTLAXIO1:def 15;
+ end;
+
+theorem th17:
+  (A => (B => C)) => ((A => B) => (A => C)) is LTL_TAUT_OF_PL
+  proof
+    let g be Function of LTLB_WFF,BOOLEAN;
+    set v = VAL g;
+A1: v.A = 1 or v.A = 0 by XBOOLEAN:def 3;
+A2: v.B = 1 or v.B = 0 by XBOOLEAN:def 3;
+A3: v.C = 1 or v.C = 0 by XBOOLEAN:def 3;
+    thus v.((A => (B => C)) => ((A => B) => (A => C)))
+    = v.(A => (B => C)) => v.((A => B) => (A => C)) by LTLAXIO1:def 15
+    .= v.A => v.(B => C)  => v.((A => B) => (A => C)) by LTLAXIO1:def 15
+    .= v.A => (v.B => v.C)  => v.((A => B) => (A => C)) by LTLAXIO1:def 15
+    .= v.A => (v.B => v.C) => (v.(A => B) => v.(A => C)) by LTLAXIO1:def 15
+    .= v.A => (v.B => v.C) => ((v.A => v.B) => v.(A => C)) by LTLAXIO1:def 15
+    .= 1 by A1,A2,A3,LTLAXIO1:def 15;
+ end;
+
+theorem th18:
+  F |- ('G' A) => A
+  proof
+A1: {A} c= F \/ {A} by XBOOLE_1:7;
+    A in {A} by TARSKI:def 1;then
+    F \/ {A} |- A by A1,LTLAXIO1:42;
+    hence F |- ('G' A) => A by LTLAXIO1:57;
+  end;
+
+theorem th19a:
+  {A} |= 'G' 'X' A
+  proof
+    assume not {A} |= 'G' 'X' A;then
+    consider M such that
+A1: M |= {A} & not M |= 'G' 'X' A;
+    consider i such that
+A2: not (SAT M).[i,'G' 'X' A] = 1 by A1;
+    consider j such that
+A3: not (SAT M).[i+j,'X' A] = 1 by A2,LTLAXIO1:10;
+A4: not (SAT M).[i+j+1,A] = 1 by A3,LTLAXIO1:9;
+    A in {A} by TARSKI:def 1;then
+    M |= A by A1;
+    hence contradiction by A4;
+end;
+
+theorem th19:
+  F |- ('G' A) => 'G' 'X' A
+  proof
+    {A} |- 'G' 'X' A by LTLAXIO4:33,th19a;then
+    F \/ {A} |- 'G' 'X' A by mon2,XBOOLE_1:7;
+    hence thesis by LTLAXIO1:57;
+  end;
+
+theorem th20:
+  F |- ('G' (A => B)) => (('G' (A => 'X' A)) => ('G' (A => 'G' B)))
+  proof
+    A => B in {A =>B} by TARSKI:def 1;then
+    A => B in F \/ {A =>B} by XBOOLE_0:def 3;then
+    A => B in F \/ {A =>B} \/ {A => 'X' A} by XBOOLE_0:def 3;then
+A1: F \/ {A =>B} \/ {A => 'X' A} |- A => B by LTLAXIO1:42;
+    A => 'X' A in {A => 'X' A} by TARSKI:def 1;then
+    A => 'X' A in F \/ {A =>B} \/ {A => 'X' A} by XBOOLE_0:def 3;then
+    F \/ {A =>B} \/ {A => 'X' A} |- A => 'X' A by LTLAXIO1:42;then
+    F \/ {A =>B} \/ {A => 'X' A} |- 'G' (A => 'G' B) by LTLAXIO1:45,54,A1;then
+    F \/ {A =>B}  |- ('G' (A => 'X' A)) => 'G' (A => 'G' B) by LTLAXIO1:57;
+    hence thesis by LTLAXIO1:57;
+  end;
+
+begin
+
+::#INSERT: A formula A is initially valid in the temporal structure M
+definition let M,A;
+  pred M |=0 A means (SAT M).[0,A]=1;
+end;
+
+::#INSERT: A set F of formulas is initially valid in the temporal structure M
+definition let M,F;
+  pred M |=0 F means for A st A in F holds M |=0 A;
+end;
+
+::#INSERT: A formula A is an initial consequence of a set F of formulas
+definition let F,A;
+  pred F |=0 A means
+    for M st M |=0 F holds M |=0 A;
+end;
+
+begin
+
+::#INSERT: The numbers 2.6.1-2.6.8, put in comments in the article,
+::#INSERT: correspond to the ones in: Kroeger, Merz. Temporal Logic and State
+::#INSERT: Systems. 2008. Springer-Verlag.
+::#INSERT: 2.6.1a-trivial: M |= A implies M |=0 A
+
+theorem Th1:
+  M |= F implies M |=0 F
+proof
+  assume Z1: M |= F;
+  let A;
+  assume A in F;then
+  M |= A by Z1;
+  hence M |=0 A;
+end;
+
+::#INSERT: 2.6.1b
+theorem th261b:
+  M |= A iff M |=0 'G' A
+proof
+  hereby assume M |= A;then
+    for i holds (SAT M).[0+i,A]=1;
+    hence M |=0 'G' A by LTLAXIO1:10;
+  end;
+  assume Z2: M |=0 'G' A;
+  now
+    let i;
+    (SAT M).[0+i,A]=1 by LTLAXIO1:10,Z2;
+    hence (SAT M).[i,A]=1;
+  end;
+  hence M |= A;
+end;
+
+::#INSERT: 2.6.2a
+theorem th262a:
+  F |=0 A implies F |= A
+proof
+  assume Z1: F |=0 A;
+  let M;
+  assume
+A1: M |= F;
+  let i;
+  M^\i |=0 F by A1,LTLAXIO1:29,Th1;then
+  M^\i |=0 A by Z1;then
+  (SAT M).[i+0,A] =1 by LTLAXIO1:28;
+  hence (SAT M).[i,A]=1;
+end;
+
+definition let F;
+  func 'G' F -> Subset of LTLB_WFF equals
+  {'G' A where A is Element of LTLB_WFF: A in F};
+  correctness
+  proof
+    set s = {'G' A where A is Element of LTLB_WFF: A in F};
+    s c= LTLB_WFF
+    proof
+      let x be object;
+      assume x in s;
+      then ex A st x = 'G' A & A in F;
+      hence x in LTLB_WFF;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem th261bq:
+  M |= F iff M |=0 ('G' F)
+proof
+  hereby assume Z1: M |= F;
+    thus M |=0 ('G' F)
+    proof
+      let A;
+      assume A in 'G' F;then
+      consider B such that
+A1:   A = 'G' B & B in F;
+      thus M |=0 A by A1,th261b,Z1;
+    end;
+  end;
+  assume Z1: M |=0 ('G' F);
+  let A;
+  assume A in F;then
+  'G' A in 'G' F;
+  hence M |= A by th261b,Z1;
+end;
+
+::#INSERT: 2.6.2b
+theorem th262b:
+  F |= A iff 'G' F |=0 A
+proof
+  hereby assume Z1: F |= A;
+    thus 'G' F |=0 A
+    proof
+      let M;
+      assume M |=0 'G' F;then
+      M |= A by Z1,th261bq;
+      hence M |=0 A;
+    end;
+  end;
+  assume Z2: 'G' F |=0 A;
+  thus F |= A
+  proof
+    let M;
+    assume Z3: M |= F;
+    let i;
+    M^\i |= F by LTLAXIO1:29,Z3;then
+    M^\i |=0 A by Z2,th261bq;then
+    (SAT M).[i+0,A] =1 by LTLAXIO1:28;
+    hence (SAT M).[i,A]=1;
+  end;
+end;
+
+theorem th262ac1:
+  {prop n} |= 'X' prop n & not {prop n} |=0 'X' prop n
+proof
+  thus {prop n} |= 'X' prop n
+  proof
+    let M;
+    assume M |= {prop n};then
+A2: M |= prop n by LTLAXIO1:23;
+    let i;
+    (SAT M).[i+1,prop n] = 1 by A2;
+    hence (SAT M).[i,'X' prop n]=1 by LTLAXIO1:9;
+  end;
+  thus not {prop n} |=0 'X' prop n
+  proof
+    defpred P[Element of NAT,Element of bool props] means
+    ($1 = 0 implies $2 = {prop n}) &
+    (not $1 = 0 implies $2 = {}LTLB_WFF);
+A3: for x being Element of NAT ex y being Element of bool props st P[x,y]
+    proof
+      let x being Element of NAT;
+      per cases;
+      suppose S1: x = 0;
+        prop n in props by LTLAXIO1:def 10;then
+        reconsider p0 = {prop n} as Element of bool props by ZFMISC_1:31;
+        P[x,p0] by S1;
+        hence ex y being Element of bool props st P[x,y];
+      end;
+      suppose S2:not x = 0;
+        reconsider e = {}LTLB_WFF as Element of bool props by XBOOLE_1:2;
+        P[x,e] by S2;
+        hence ex y being Element of bool props st P[x,y];
+      end;
+    end;
+    consider M being Function of NAT,bool props such that
+A4: for x being Element of NAT holds P[x,M.x] from FUNCT_2:sch 3(A3);
+    reconsider M as LTLModel;
+A5: M |=0 {prop n}
+    proof
+      let A;
+      assume A in {prop n};then
+A6:   A = prop n by TARSKI:def 1;
+      M.0 = {prop n} by A4;then
+      prop n in M.0 by TARSKI:def 1;
+      hence M |=0 A by LTLAXIO1:def 11,A6;
+    end;
+    not M |=0 'X' prop n
+    proof
+      assume M |=0 'X' prop n;then
+      (SAT M).[0+1,prop n]=1 by LTLAXIO1:9;then
+      prop n in M.1 by LTLAXIO1:def 11;
+      hence contradiction by A4;
+    end;
+    hence thesis by A5;
+  end;
+end;
+
+::#INSERT: The converse of 2.6.2a does not hold in general
+theorem
+  ex F,A st F |= A & not F |=0 A
+proof
+  {prop 0} |= 'X' prop 0 & not {prop 0} |=0 'X' prop 0 by th262ac1;
+  hence thesis;
+end;
+
+theorem th21:
+  F |=0 'G' A implies F |= A
+proof
+  assume
+Z1: F |=0 'G' A;
+  assume not F |= A;then
+  consider M such that
+A1: M |= F & not M |= A;
+A3: M |=0 F
+    proof
+      let A;
+      assume A in F;then
+      M |= A by A1;
+      hence M |=0 A;
+    end;
+  consider i such that
+A2: not (SAT M).[i,A] = 1 by A1;
+  M |=0 'G' A by A3,Z1;then
+  (SAT M).[0+i,A] = 1 by LTLAXIO1:10;
+  hence contradiction by A2;
+end;
+
+theorem th21cp:
+  {prop i} |= prop i & not {prop i} |=0 'G' prop i
+proof
+  thus {prop i} |= prop i
+  proof
+    let M;
+A1: prop i in {prop i} by TARSKI:def 1;
+    assume M |= {prop i};
+    hence thesis by A1;
+  end;
+  not {prop i} |=0 'X' prop i by th262ac1;then
+  consider M such that
+A2: M |=0 {prop i} & not M |=0 'X' prop i;
+  not (SAT M).[0+1,prop i] = 1 by LTLAXIO1:9,A2;then
+  not M |=0 'G' prop i by LTLAXIO1:10;
+  hence not {prop i} |=0 'G' prop i by A2;
+end;
+
+theorem
+  ex F, A st (F |= A & not F |=0 'G' A)
+proof
+  {prop 0} |= prop 0 & not {prop 0} |=0 'G' prop 0 by th21cp;
+  hence thesis;
+end;
+
+theorem th263pa:
+  M |=0 F & M |=0 G iff M |=0 F\/G
+proof
+  hereby assume A1: M |=0 F & M |=0 G;
+    thus M  |=0  F\/G
+    proof
+      let A;
+      assume A in F\/G;
+      then A in F or A in G by XBOOLE_0:def 3;
+      hence M  |=0  A by A1;
+    end;
+  end;
+  assume A2: M |=0 F\/G;
+  thus M |=0 F
+  proof
+    let A;
+    assume A in F;
+    then A in F\/G by XBOOLE_0:def 3;
+    hence M |=0 A by A2;
+  end;
+  let A;
+  assume A in G;
+  then A in F\/G by XBOOLE_0:def 3;
+  hence M |=0 A by A2;
+end;
+
+theorem th263pb:
+  M |=0 A iff M |=0 {A}
+  proof
+    thus M |=0 A implies M |=0 {A} by TARSKI:def 1;
+    A in {A} by TARSKI:def 1;
+    hence thesis;
+  end;
+
+::#INSERT: 2.6.3
+::#INSERT: In compare to normal consequence (LTLAXIO1:30), the relationship
+::#INSERT: between implication and initial consequence holds in the classical
+::#INSERT: form
+theorem th263: :: 2.6.3
+  F\/{A} |=0 B iff F|=0 A=>B
+  proof
+    hereby assume A3:F\/{A} |=0 B;
+      thus F|=0 A=>B
+      proof
+        let M;
+        assume
+A4:     M |=0 F;
+A2:     (SAT M).[0,A=>B]= (SAT M).[0,A] => (SAT M).[0,B]
+        by LTLAXIO1:def 11;
+        thus M |=0 A=> B
+        proof
+          per cases by XBOOLEAN:def 3;
+          suppose (SAT M).[0,A] = 0;
+            hence (SAT M).[0,A=>B]= 1 by A2;
+          end;
+          suppose (SAT M).[0,A] = 1;then
+            M |=0 A;then
+            M |=0 {A} by th263pb;then
+            M |=0 B by A3,th263pa,A4;
+            hence (SAT M).[0,A=>B]= 1 by A2;
+          end;
+        end;
+      end;
+    end;
+    assume
+A6: F|=0 A=>B;
+    let M;
+    assume M |=0 F\/{A};then
+A5: M |=0 F & M |=0 {A} by th263pa;then
+A7: M |=0 A by th263pb;
+    M |=0 A=>B by A5,A6;then
+    (SAT M).[0,A] => (SAT M).[0,B] = 1 by LTLAXIO1:def 11;
+    hence M |=0 B by A7;
+end;
+
+theorem th264p:
+  'G' {}LTLB_WFF = {}LTLB_WFF
+ proof
+   thus 'G' {}LTLB_WFF c= {}LTLB_WFF
+   proof
+     let x be object;
+     assume x in 'G' {}LTLB_WFF;then
+     consider A such that
+A1:  x = 'G' A & A in {}LTLB_WFF;
+     thus x in {}LTLB_WFF by A1;
+   end;
+   thus {}LTLB_WFF c= 'G' {}LTLB_WFF;
+ end;
+
+::#INSERT: Universal validity concepts are equaivalent as far as
+::#INSERT: initial and normal semantics is concerned:
+::#INSERT: 2.6.4: one line proof:
+::#INSERT: {}LTLB_WFF |= A iff {}LTLB_WFF |=0 A by th262b,th264p
+
+::#INSERT: 2.1.8
+theorem th218:
+  F |= A & (for B st B in F holds {}LTLB_WFF |= B)
+    implies {}LTLB_WFF |= A
+proof
+  assume
+Z1: F |= A & (for B st B in F holds {}LTLB_WFF |= B);
+  let M;
+  assume
+Z2: M |= {}LTLB_WFF;
+  now
+    let B;
+    assume B in F;then
+    {}LTLB_WFF |= B by Z1;
+    hence M |= B by Z2;
+  end;then
+  M |= F;
+  hence M |= A by Z1;
+end;
+
+::#INSERT: 2.6.5
+theorem th265:
+  F |= A & (for B st B in F holds {}LTLB_WFF |=0 B)
+    implies {}LTLB_WFF |=0 A
+proof
+  assume
+Z1: F |= A & (for B st B in F holds {}LTLB_WFF |=0 B);then
+  for B st B in F holds {}LTLB_WFF |= B by th262b,th264p;
+  hence {}LTLB_WFF |=0 A by th262b,th264p,th218,Z1;
+end;
+
+theorem
+  {}LTLB_WFF |=0 A implies {}LTLB_WFF |=0 'X' A
+proof
+  assume Z1: {}LTLB_WFF |=0 A;
+A1: {A} |= A by LTLAXIO1:23;
+  B in {A} implies {}LTLB_WFF |=0 B by TARSKI:def 1,Z1;
+  hence {}LTLB_WFF |=0 'X' A by th265,A1,LTLAXIO1:25;
+end;
+
+begin
+
+::#INSERT: Axioms
+definition
+  func LTL0_axioms -> Subset of LTLB_WFF equals
+  'G' LTL_axioms;
+  correctness;
+end;
+
+::#INSERT: Derivation rules
+definition let p,q;
+  pred p REFL0_rule q means
+  p = 'G' q;
+  pred p NEX0_rule q means
+  ex A st p = 'G' A & q = 'G' 'X' A;
+  let r;
+  pred p,q MP0_rule r means
+  ex A,B st p='G' A & q= 'G' (A=>B) & r='G' B;
+  pred p,q IND0_rule r means
+  ex A,B st p='G' (A=>B) & q= 'G' (A=>('X' A)) & r='G' (A=>('G' B));
+end;
+
+::#INSERT: Definition of derivation step
+definition let i be Nat,f,X;
+  pred prc0 f,X,i means :Def29:
+  f.i in LTL0_axioms or f.i in X
+  or (ex j,k be Nat st 1<=j & j<i & 1<=k & k<i &
+  (
+  f/.j,f/.k MP_rule f/.i
+  or f/.j,f/.k MP0_rule f/.i
+  or f/.j,f/.k IND0_rule f/.i)
+  )
+  or ex j be Nat st 1<=j & j<i &
+  (f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i);
+end;
+
+::#INSERT: Properties of derivation step prc0 - analogue of "prc" from LTLAXIO1
+theorem Th38:
+  for i,n be Nat st
+  n+len f<=len f2 & (for k be Nat st 1<=k & k<=len f holds f.k=f2.(k+n)) &
+  1 <=i & i<=len f holds prc0 f,X,i implies prc0 f2,X,(i+n)
+ proof
+  let i,n be Nat;
+  assume that
+A1: n+len f<=len f2 and
+A2: for k be Nat st 1<=k & k<=len f holds f.k=f2.(k+n) and
+A3: 1<=i and
+A4: i<=len f;
+    i+n<=len f+n by A4,XREAL_1:6;
+  then A5: i+n<=len f2 by A1,XXREAL_0:2;
+A6: f/.i=f.i by A3,A4,Lm1
+    .=f2.(i+n) by A2,A3,A4
+    .=f2/.(i+n) by A3,A5,Lm1,NAT_1:12;
+    assume A7: prc0 f,X,i;
+    per cases by A7;
+    suppose f.i in LTL0_axioms;
+      hence prc0 f2,X,i+n by A2,A3,A4;
+    end;
+    suppose f.i in X;
+      hence prc0 f2,X,i+n by A2,A3,A4;
+    end;
+    suppose ex j,k be Nat st 1<=j & j<i & 1<=k & k<i
+      & (f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+      or f/.j,f/.k IND0_rule f/.i);
+      then consider j,k be Nat such that
+A8:   1<=j and
+A9:   j<i and
+A10:  1<=k and
+A11:  k<i and
+A12:  f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+      or f/.j,f/.k IND0_rule f/.i;
+A13:  1<=j+n & j+n<i+n by A8,A9,NAT_1:12,XREAL_1:8;
+A14:  k<=len f by A4,A11,XXREAL_0:2;
+      then k+n<=len f+n by XREAL_1:6;
+      then A15: k+n<=len f2 by A1,XXREAL_0:2;
+A16:  j<=len f by A4,A9,XXREAL_0:2;
+      then j+n<=len f+n by XREAL_1:6;
+      then A17: j+n<=len f2 by A1,XXREAL_0:2;
+A18:  f/.k=f.k by A10,A14,Lm1
+      .=f2.(k+n) by A2,A10,A14
+      .=f2/.(k+n) by A10,A15,Lm1,NAT_1:12;
+A19:  1<=k+n & k+n<i+n by A10,A11,NAT_1:12,XREAL_1:8;
+      f/.j=f.j by A8,A16,Lm1
+      .=f2.(j+n) by A2,A8,A16
+      .=f2/.(j+n) by A8,A17,Lm1,NAT_1:12;
+      hence prc0 f2,X,i+n by A6,A12,A13,A19,A18;
+    end;
+    suppose ex j be Nat st 1<=j & j<i &
+      (f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i);
+      then consider j be Nat such that
+A20:  1<=j and
+A21:  j<i and
+A22:  f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i;
+A23:  1<=j+n & j+n<i+n by A20,A21,NAT_1:12,XREAL_1:8;
+A24:  j<=len f by A4,A21,XXREAL_0:2;
+      then j+n<=len f+n by XREAL_1:6;
+      then A25: j+n<=len f2 by A1,XXREAL_0:2;
+      f/.j=f.j by A20,A24,Lm1
+      .=f2.(j+n) by A2,A20,A24
+      .=f2/.(j+n) by A20,A25,Lm1,NAT_1:12;
+      hence prc0 f2,X,i+n by A6,A22,A23;
+    end;
+  end;
+
+theorem Th39:
+  f2=f^f1 & 1<=len f & 1<=len f1 &
+  (for i be Nat st 1<=i & i<=len f holds prc0 f,X,i) &
+  (for i be Nat st 1<=i & i<=len f1 holds prc0 f1,X,i) implies
+  for i be Nat st 1<=i & i<=len f2 holds prc0 f2,X,i
+  proof
+    assume that
+A1: f2=f^f1 and
+    1<=len f and
+    1<=len f1 and
+A2: for i be Nat st 1<=i & i<=len f holds prc0 f,X,i and
+A3: for i be Nat st 1<=i & i<=len f1 holds prc0 f1,X,i;
+A4: len f2=len f+len f1 by A1,FINSEQ_1:22;
+A5: for k be Nat st 1<=k & k<=len f1 holds f1.k=f2.(k+len f)
+    by A1,FINSEQ_1: 65;
+    let i be Nat;
+    assume that
+A6: 1<=i and
+A7: i<=len f2;
+    per cases by NAT_1:13;
+    suppose A8: i<=len f;
+      then A9: f/.i=f.i by A6,Lm1
+      .=f2.i by A1,A6,A8,FINSEQ_1:64
+      .=f2/.i by A6,A7,Lm1;
+      per cases by A2,A6,A8,Def29;
+      suppose f.i in LTL0_axioms;
+        hence prc0 f2,X,i by A1,A6,A8,FINSEQ_1:64;
+      end;
+      suppose f.i in X;
+        hence prc0 f2,X,i by A1,A6,A8,FINSEQ_1:64;
+      end;
+      suppose ex j,k be Nat st 1<=j & j<i & 1<=k & k<i &
+        (f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+        or f/.j,f/.k IND0_rule f/.i);
+        then consider j,k be Nat such that
+A10:    1<=j and
+A11:    j<i and
+A12:    1<=k and
+A13:    k<i and
+A14:    f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+        or f/.j,f/.k IND0_rule f/.i;
+A15:    k<=len f by A8,A13,XXREAL_0:2;
+        then A16: k<=len f2 by A4,NAT_1:12;
+A17:    f/.k=f.k by A12,A15,Lm1
+        .=f2.k by A1,A12,A15,FINSEQ_1:64
+        .=f2/.k by A12,A16,Lm1;
+A18:    j<=len f by A8,A11,XXREAL_0:2;
+        then A19: j<=len f2 by A4,NAT_1:12;
+        f/.j=f.j by A10,A18,Lm1
+        .=f2.j by A1,A10,A18,FINSEQ_1:64
+        .=f2/.j by A10,A19,Lm1;
+        hence prc0 f2,X,i by A9,A10,A11,A12,A13,A14,A17;
+      end;
+   suppose ex j be Nat st 1<=j & j<i &
+     (f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i);
+     then consider j be Nat such that
+A20: 1<=j and
+A21: j<i and
+A22: f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i;
+A23: j<=len f by A8,A21,XXREAL_0:2;
+     then A24: j<=len f2 by A4,NAT_1:12;
+     f/.j=f.j by A20,A23,Lm1
+     .=f2.j by A1,A20,A23,FINSEQ_1:64
+     .=f2/.j by A20,A24,Lm1;
+     hence prc0 f2,X,i by A9,A20,A21,A22;
+   end;
+ end;
+ suppose A25: len f+1<=i;
+   set i1=i-' len f;
+   i<=len f+len f1 by A1,A7,FINSEQ_1:22;
+   then i-' len f<=len f+len f1-' len f by NAT_D:42;
+   then A26: i1<=len f1 by NAT_D:34;
+   1<=i1 by A25,NAT_D:55;
+   then prc0 f2,X,i1+len f by A3,A4,A5,A26,Th38;
+   hence prc0 f2,X,i by A25,NAT_D:43,55;
+ end;
+end;
+
+:: Derivability
+definition let X,p;
+  pred X |-0 p means
+  ex f st f.len f=p & 1<=len f &
+  for i be Nat st 1<=i & i<=len f holds prc0 f,X,i;
+end;
+
+:: Properties of derivation sequences
+theorem Th40:
+  (f=f1^<*p*> & 1<=len f1 &
+  for i be Nat st 1<=i & i<=len f1 holds prc0 f1,X,i) &
+  prc0 f,X,len f implies (for i be Nat st 1<=i & i<=len f holds prc0 f,X,i) &
+  X |-0 p
+ proof
+   assume that
+   A1: f=f1^<*p*> and
+   1<=len f1 and
+   A2: for i be Nat st 1<=i & i<=len f1 holds prc0 f1,X,i;
+  A3: len f=(len f1+len<*p*>) by A1,FINSEQ_1:22
+   .=len f1+1 by FINSEQ_1:39;
+  assume A4: prc0 f,X,len f;
+  A5: 0+len f1<=len f by A3,NAT_1:12;
+  A6: now let i be Nat;
+   assume that
+    A7: 1<=i and
+    A8: i<=len f;
+   A9: i<len f1+1 or i=len f1+1 by A3,A8,XXREAL_0:1;
+   A10: for k be Nat st 1<=k & k<=len f1 holds f1.k=f.(k+0) by A1,FINSEQ_1:64;
+   per cases by A3,A9,NAT_1:13;
+   suppose i<=len f1;
+    then prc0 f,X,(i+0) by A2,A5,A7,A10,Th38;
+    hence prc0 f,X,i;
+   end;
+   suppose i=len f;
+    hence prc0 f,X,i by A4;
+   end;
+  end;
+  hence for i be Nat st 1<=i & i<=len f holds prc0 f,X,i;
+  f.len f=f.(len f1+len<*p*>) by A1,FINSEQ_1:22
+   .=f.(len f1+1) by FINSEQ_1:39
+   .=p by A1,FINSEQ_1:42;
+  hence X |-0 p by A3,XREAL_1:31,A6;
+ end;
+
+begin
+
+::#INSERT: Axioms are sound
+theorem Th2:
+  A in LTL0_axioms implies F |=0 A
+proof
+  assume A in LTL0_axioms;then
+  consider B such that
+A8: A = 'G' B & B in LTL_axioms;
+  {}LTLB_WFF |- B by LTLAXIO1:42,A8;then
+  {}LTLB_WFF |= 'G' B by LTLAXIO1:41,54;then
+B1: {}LTLB_WFF |=0 'G' B by th262b,th264p;
+    let M;
+    assume M |=0 F;
+    M |=0 {}LTLB_WFF;
+    hence M |=0 A by B1,A8;
+end;
+
+::#INSERT: MP_rule is sound
+theorem Th3:
+  F |=0 A & F |=0 A=>B implies F |=0 B
+ proof
+  assume that
+   A1: F |=0 A and
+   A2: F |=0 A=>B;
+   let M;
+   assume
+B3: M |=0 F;then
+   M |=0 A=>B by A2;then
+B6: (SAT M).[0,A] => (SAT M).[0,B] = 1 by LTLAXIO1:def 11;
+   M |=0 A by A1,B3;
+   hence M |=0 B by B6;
+ end;
+
+::#INSERT: MP0_rule is sound
+theorem Th4:
+  F |=0 'G' A & F |=0 'G' (A=>B) implies F |=0 'G' B
+ proof
+  assume that
+   A1: F |=0 'G' A and
+   A2: F |=0 'G' (A=>B);
+   let M;
+   assume
+B10: M |=0 F;then
+B11: M |=0 'G' A by A1;
+B12: M |=0 'G' (A=>B) by B10,A2;
+     now
+       let i;
+B13:   (SAT M).[0+i,A]=1 by B11,LTLAXIO1:10;
+       (SAT M).[0+i,A=>B]=1 by B12,LTLAXIO1:10;then
+       (SAT M).[i,A] => (SAT M).[i,B] = 1 by LTLAXIO1:def 11;
+       hence (SAT M).[0+i,B]=1 by B13;
+     end;
+     hence M |=0 'G' B by LTLAXIO1:10;
+ end;
+
+::#INSERT: NEX0_rule is sound
+theorem Th5:
+  F |=0 'G' A implies F |=0 'G' 'X' A
+ proof
+  assume A1: F |=0 'G' A;
+  let M;
+  assume M |=0 F;then
+A3: M |=0 'G' A by A1;
+  now
+    let i be Element of NAT;
+    (SAT M).[0+(i+1),A] = 1 by LTLAXIO1:10,A3;
+    hence (SAT M).[0+i,'X' A] = 1 by LTLAXIO1:9;
+  end;
+  hence M |=0 'G' 'X' A by LTLAXIO1:10;
+ end;
+
+::#INSERT: REFL0_rule is sound
+theorem Th6:
+  F |=0 'G' A implies F |=0 A
+  proof
+    assume Z1: F |=0 'G' A;
+    let M;
+    assume M |=0 F;then
+    M |=0 'G' A by Z1;then
+    (SAT M).[0+0,A]=1 by LTLAXIO1:10;
+    hence (SAT M).[0,A]=1;
+  end;
+
+::#INSERT: IND0_rule is sound
+theorem Th7:
+  F |=0 'G' (A=>B) & F |=0 'G' (A=>('X' A)) implies F |=0 'G' (A=>('G' B))
+  proof
+    assume that
+A1: F |=0 'G' (A=>B) and
+A2: F |=0 'G' A=>('X' A);
+    let M;
+    assume A3: M |=0 F;
+    now
+      let n be Element of NAT;
+      defpred P1[Nat] means
+      (SAT M).[n+$1,A]=1;
+      per cases by XBOOLEAN:def 3;
+      suppose A4: (SAT M).[n,A]=1;
+A5:     for k being Nat st P1[k] holds P1[k+1]
+        proof
+          let k be Nat such that
+A6:       P1[k];
+          reconsider kk=k as Element of NAT by ORDINAL1:def 12;
+          M |=0 'G' (A=>('X' A)) by A2,A3;then
+          (SAT M).[0+(n+kk),A=>('X' A)]=1 by LTLAXIO1:10;
+          then (SAT M).[n+kk,A]=>(SAT M).[n+kk,'X' A]=1 by LTLAXIO1:def 11;
+          then (SAT M).[n+kk+1,A]=1 by A6,LTLAXIO1:9;
+          hence P1[k+1];
+        end;
+A7:     P1[0] by A4;
+A8:     for i be Nat holds P1[i] from NAT_1:sch 2(A7,A5);
+        now
+          let i be Element of NAT;
+          M |=0 'G' (A => B) by A1,A3;then
+          (SAT M).[0+(n+i),A=>B]=1 by LTLAXIO1:10;
+          then A9: (SAT M).[n+i,A]=>(SAT M).[n+i,B]=1 by LTLAXIO1:def 11;
+          (SAT M).[n+i,A]=1 by A8;
+          hence (SAT M).[n+i,B]=1 by A9;
+        end;
+        then (SAT M).[n,'G' B]=1 by LTLAXIO1:10;
+        then (SAT M).[n,A]=>(SAT M).[n,'G' B]=1;
+        hence (SAT M).[0+n,A=>('G' B)]=1 by LTLAXIO1:def 11;
+      end;
+      suppose(SAT M).[n,A]=0;
+        then (SAT M).[n,A]=>(SAT M).[n,'G' B]=1;
+        hence (SAT M).[0+n,A=>('G' B)]=1 by LTLAXIO1:def 11;
+      end;
+    end;
+    hence M |=0 'G' (A=>('G' B)) by LTLAXIO1:10;
+ end;
+
+::#INSERT: 2.6.6
+::$N Soundness Theorem for LTLB with initial semantics.
+theorem th266:
+  F |-0 A implies F |=0 A
+  proof
+    assume F |-0 A;
+    then consider f such that
+A1: f.len f=A and
+A2: 1<=len f and
+A3: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i;
+    defpred P[Nat] means
+   1<=$1 & $1<=len f implies F |=0 f/.$1;
+A4: for i being Nat st for j being Nat st j<i holds P[j] holds P[i]
+    proof
+      let i be Nat;
+      assume
+A5:   for j being Nat st j<i holds P[j];
+      per cases by NAT_1:14;
+      suppose i=0;
+        hence P[i];
+      end;
+      suppose not i<1;
+        assume that
+A6:     1<=i and
+A7:     i<=len f;
+        per cases by A3,A6,A7,Def29;
+        suppose f.i in LTL0_axioms;then
+          f/.i in LTL0_axioms by Lm1,A6,A7;
+          hence F |=0 f/.i by Th2;
+        end;
+        suppose f.i in F;
+          then A9: f/.i in F by A6,A7,Lm1;
+          thus F |=0 f/.i
+          proof
+            let M;
+            assume M |=0 F;
+            hence M |=0 f/.i by A9;
+          end;
+        end;
+        suppose ex j,k be Nat st 1<=j & j<i & 1<=k & k<i &
+          (f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+          or f/.j,f/.k IND0_rule f/.i);
+          then consider j,k be Nat such that
+A10:      1<=j and
+A11:      j<i and
+A12:      1<=k and
+A13:      k<i and
+A14:      f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+          or f/.j,f/.k IND0_rule f/.i;
+A15:      k<=len f by A7,A13,XXREAL_0:2;then
+A15a:     F |=0 f/.k by A5,A12,A13;
+A16:      j<=len f by A7,A11,XXREAL_0:2;
+B5:       F |=0 f/.j by A5,A10,A11,A16;
+          per cases by A14;
+          suppose f/.j,f/.k MP_rule f/.i;then
+            F |=0 f/.j=>f/.i by A15,A5,A12,A13;
+            hence F |=0 f/.i by A5,A10,A11,A16,Th3;
+          end;
+          suppose f/.j,f/.k MP0_rule f/.i;then
+            consider A,B such that
+B7:         f/.j = 'G' A and
+B8:         f/.k= 'G' (A=>B) and
+B9:         f/.i = 'G' B;
+            thus F |=0 f/.i by Th4,B7,B8,B9,A15a,B5;
+          end;
+          suppose f/.j,f/.k IND0_rule f/.i;
+            then consider A,B such that
+A17:        f/.j= 'G' (A=>B) and
+A18:        f/.k= 'G' (A=>('X' A)) & f/.i = 'G' (A=>('G' B));
+            F |=0 'G' (A=>B) by A5,A10,A11,A16,A17;
+            hence F |=0 f/.i by A15a,A18,Th7;
+          end;
+        end;
+        suppose ex j be Nat st 1<=j & j<i &
+          (f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i);
+          then consider j be Nat such that
+A19:      1<=j and
+A20:      j<i and
+A21:      f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i;
+B11:      j<=len f by A7,A20,XXREAL_0:2;
+          per cases by A21;
+          suppose f/.j NEX0_rule f/.i;then
+            consider A,B such that
+B7:         f/.j = 'G' A and
+B9:         f/.i = 'G' 'X' A;
+            thus F |=0 f/.i by Th5,B7,B9,B11,A5,A20,A19;
+          end;
+          suppose f/.j REFL0_rule f/.i;
+            hence F |=0 f/.i by Th6,B11,A5,A20,A19;
+          end;
+        end;
+      end;
+    end;
+A22: for i be Nat holds P[i] from NAT_1:sch 4(A4);
+     f/.len f=A by A1,A2,Lm1;
+     hence F |=0 A by A2,A22;
+   end;
+
+begin
+
+::#INSERT: Axioms and premises are derivable
+theorem th10:
+  A in LTL0_axioms or A in F implies F|-0 A
+ proof
+  defpred P1[set,set] means $2=A;
+  A1: for k being Nat st k in Seg 1 holds
+  ex x being Element of LTLB_WFF st P1[k,x];
+  consider g such that
+A2: dom g=Seg 1 & for k being Nat st k in Seg 1 holds P1[k,g.k]
+    from FINSEQ_1:sch 5(A1);
+A3: len g=1 by A2,FINSEQ_1:def 3;
+  1 in Seg 1;
+  then A4: g.1=A by A2;
+  assume A5: A in LTL0_axioms or A in F;
+  for j be Nat st 1<=j & j<=len g holds prc0 g,F,j
+  proof
+    let j be Nat;
+    assume A6: 1<=j & j<=len g;
+    per cases by A5;
+    suppose A in LTL0_axioms;
+      hence thesis by A3,A4,A6,XXREAL_0:1;
+    end;
+    suppose A in F;
+      hence thesis by A3,A4,A6,XXREAL_0:1;
+    end;
+  end;
+  hence F|-0A by A3,A4;
+end;
+
+::#INSERT: REFL0_rule is derivable
+theorem th9:
+  F |-0 'G' A implies F |-0 A
+  proof
+    assume F |-0 'G' A;
+    then consider f such that
+A1: f.len f= 'G' A and
+A2: 1<=len f and
+A3: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i;
+    set g=f^<*A*>;
+A4: len g=len f+len<*A*> by FINSEQ_1:22
+   .=len f+1 by FINSEQ_1:39;
+   then A5: len f<len g by NAT_1:16;
+   then A6: g/.len f=g.len f by A2,Lm1
+   .= 'G' A by A1,A2,FINSEQ_1:64;
+   1<=len g by A2,A4,NAT_1:16;then
+   g/.len g=g.len g by Lm1
+   .= A by A4,FINSEQ_1:42;
+   then g/.len f REFL0_rule g/.len g by A6;
+   then prc0 g,F,len g by A2,A5;
+   hence F |-0 A by A2,A3,Th40;
+ end;
+
+::#INSERT: NEX0_rule is derivable
+theorem th12:
+  F |-0 'G' A implies F |-0 'G' 'X' A
+  proof
+    assume F |-0 'G' A;
+    then consider f such that
+A1: f.len f= 'G' A and
+A2: 1<=len f and
+A3: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i;
+    set g=f^<*('G' 'X' A)*>;
+A4: len g=len f+len<*('G' 'X' A)*> by FINSEQ_1:22
+   .=len f+1 by FINSEQ_1:39;
+   then A5: len f<len g by NAT_1:16;
+   then A6: g/.len f=g.len f by A2,Lm1
+   .= 'G' A by A1,A2,FINSEQ_1:64;
+   1<=len g by A2,A4,NAT_1:16;then
+   g/.len g=g.len g by Lm1
+   .= 'G' 'X' A by A4,FINSEQ_1:42;
+   then g/.len f NEX0_rule g/.len g by A6;
+   then prc0 g,F,len g by A2,A5;
+   hence F |-0 'G' 'X' A by A2,A3,Th40;
+ end;
+
+::#INSERT: MP_rule is derivable
+theorem th11a:
+  F |-0 A & F |-0 A => B implies F |-0 B
+  proof
+    assume that
+A1: F |-0 A and
+A2: F|-0 A => B;
+    consider f such that
+A3: f.len f= A and
+A4: 1<=len f and
+A5: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i by A1;
+    consider g such that
+A6: g.len g= A => B and
+A7: 1<=len g and
+A8: for i be Nat st 1<=i & i<=len g holds prc0 g,F,i by A2;
+A9: for i be Nat st 1<=i & i<=len(f^g) holds prc0 f^g,F,i by A4,A5,A7,A8,Th39;
+    set h=f^g^<*B*>;
+A10: h=f^(g^<*B*>) by FINSEQ_1:32;
+A11: len(f^g)=len f+len g by FINSEQ_1:22;
+     then A12: 1<=len(f^g) by A4,NAT_1:12;
+A13: len h=len(f^g)+len<*B*> by FINSEQ_1:22
+     .=len(f^g)+1 by FINSEQ_1:39;
+     then 1<=len h by A4,A11,NAT_1:16;
+     then A14: h/.len h=h.len h by Lm1
+     .= B by A13,FINSEQ_1:42;
+     len h=len f+(len g+1) by A11,A13;
+     then A15: len f<len h by NAT_1:16;
+     then A16: h/.len f=h.len f by A4,Lm1
+     .=A by A3,A4,A10,FINSEQ_1:64;
+A17: len(f^g)<len h by A13,NAT_1:16;
+     then h/.len(f^g)=h.len(f^g) by A12,Lm1
+     .=(f^g).len(f^g) by A12,FINSEQ_1:64
+     .=(f^g).(len f+len g) by FINSEQ_1:22
+     .=A => B by A6,A7,FINSEQ_1:65;
+     then h/.len f,h/.len(f^g) MP_rule h/.len h by A16,A14;
+     then prc0 h,F,len h by A4,A12,A15,A17;
+     hence F |-0 B by A12,A9,Th40;
+ end;
+
+::#INSERT: MP0_rule is derivable
+theorem th11:
+  F |-0 'G' A & F |-0 'G' (A => B) implies F |-0 'G' B
+  proof
+    assume that
+A1: F |-0 'G' A and
+A2: F|-0 'G' (A => B);
+    consider f such that
+A3: f.len f= 'G' A and
+A4: 1<=len f and
+A5: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i by A1;
+    consider g such that
+A6: g.len g= 'G' (A => B) and
+A7: 1<=len g and
+A8: for i be Nat st 1<=i & i<=len g holds prc0 g,F,i by A2;
+A9: for i be Nat st 1<=i & i<=len(f^g) holds prc0 f^g,F,i by A4,A5,A7,A8,Th39;
+    set h=f^g^<*('G' B)*>;
+A10: h=f^(g^<*('G' B)*>) by FINSEQ_1:32;
+A11: len(f^g)=len f+len g by FINSEQ_1:22;
+     then A12: 1<=len(f^g) by A4,NAT_1:12;
+A13: len h=len(f^g)+len<*('G' B)*> by FINSEQ_1:22
+     .=len(f^g)+1 by FINSEQ_1:39;
+     then 1<=len h by A4,A11,NAT_1:16;
+     then A14: h/.len h=h.len h by Lm1
+     .= 'G' B by A13,FINSEQ_1:42;
+     len h=len f+(len g+1) by A11,A13;
+     then A15: len f<len h by NAT_1:16;
+     then A16: h/.len f=h.len f by A4,Lm1
+     .='G' A by A3,A4,A10,FINSEQ_1:64;
+A17: len(f^g)<len h by A13,NAT_1:16;
+     then h/.len(f^g)=h.len(f^g) by A12,Lm1
+     .=(f^g).len(f^g) by A12,FINSEQ_1:64
+     .=(f^g).(len f+len g) by FINSEQ_1:22
+     .='G' (A => B) by A6,A7,FINSEQ_1:65;
+     then h/.len f,h/.len(f^g)MP0_rule h/.len h by A16,A14;
+     then prc0 h,F,len h by A4,A12,A15,A17;
+     hence F |-0 'G' B by A12,A9,Th40;
+ end;
+
+::#INSERT: IND0_rule is derivable
+theorem th13:
+  F |-0 'G' (A=>B) & F |-0 'G' (A => 'X' A) implies F |-0 'G' (A => 'G' B)
+  proof
+    assume that
+A1: F |-0 'G' (A=>B) and
+A2: F|-0 'G' (A => 'X' A);
+    consider f such that
+A3: f.len f= 'G' (A=>B) and
+A4: 1<=len f and
+A5: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i by A1;
+    consider g such that
+A6: g.len g= 'G' (A => 'X' A) and
+A7: 1<=len g and
+A8: for i be Nat st 1<=i & i<=len g holds prc0 g,F,i by A2;
+A9: for i be Nat st 1<=i & i<=len(f^g) holds prc0 f^g,F,i by A4,A5,A7,A8,Th39;
+    set h=f^g^<*('G' (A => 'G' B))*>;
+A10: h=f^(g^<*('G' (A => 'G' B))*>) by FINSEQ_1:32;
+A11: len(f^g)=len f+len g by FINSEQ_1:22;
+     then A12: 1<=len(f^g) by A4,NAT_1:12;
+A13: len h=len(f^g)+len<*('G' (A => 'G' B))*> by FINSEQ_1:22
+     .=len(f^g)+1 by FINSEQ_1:39;
+     then 1<=len h by A4,A11,NAT_1:16;
+     then A14: h/.len h=h.len h by Lm1
+     .= 'G' (A => 'G' B) by A13,FINSEQ_1:42;
+     len h=len f+(len g+1) by A11,A13;
+     then A15: len f<len h by NAT_1:16;
+     then A16: h/.len f=h.len f by A4,Lm1
+     .='G' (A=>B) by A3,A4,A10,FINSEQ_1:64;
+A17: len(f^g)<len h by A13,NAT_1:16;
+     then h/.len(f^g)=h.len(f^g) by A12,Lm1
+     .=(f^g).len(f^g) by A12,FINSEQ_1:64
+     .=(f^g).(len f+len g) by FINSEQ_1:22
+     .='G' (A => 'X' A) by A6,A7,FINSEQ_1:65;
+     then h/.len f,h/.len(f^g) IND0_rule h/.len h by A16,A14;
+     then prc0 h,F,len h by A4,A12,A15,A17;
+     hence F |-0 'G' (A => 'G' B) by A12,A9,Th40;
+ end;
+
+theorem th15:
+  A in LTL_axioms implies F|-0 A
+  proof
+    assume A in LTL_axioms;then
+    'G' A in LTL0_axioms;then
+    F|-0 'G' A by th10;
+    hence F|-0 A by th9;
+  end;
+
+theorem
+  A in LTL0_axioms implies F |- A
+  proof
+    assume A in LTL0_axioms;then
+    consider B such that
+A1: A = 'G' B & B in LTL_axioms;
+    F |- B by A1,LTLAXIO1:42;
+    hence F|- A by A1,LTLAXIO1:54;
+  end;
+
+::#INSERT: 2.6.7
+::#INSERT: auxilliary theorem to prove completeness theorem
+theorem th267:
+  {}LTLB_WFF |- A implies {}LTLB_WFF |-0 A
+proof
+  assume {}LTLB_WFF |- A;then
+  consider f such that
+A1: f.len f = A and
+A2: 1<=len f and
+A3: for i be Nat st 1<=i & i<=len f holds prc f,{}LTLB_WFF,i;
+    defpred P[Nat] means 1<=$1 & $1<=len f implies {}LTLB_WFF |-0 'G' f/.$1;
+A4: for i being Nat st for j being Nat st j<i holds P[j] holds P[i]
+    proof
+      let i be Nat;
+      assume
+A5:   for j be Nat st j<i holds P[j];
+      per cases by NAT_1:14;
+      suppose i=0;
+        hence P[i];
+      end;
+      suppose not i<1;
+        assume that
+A6:     1<=i and
+A7:     i<=len f;
+        per cases by A3,A6,A7,LTLAXIO1:def 29;
+        suppose f.i in LTL_axioms;then
+          f/.i in LTL_axioms by Lm1,A6,A7;then
+          'G' f/.i in LTL0_axioms;
+          hence thesis by th10;
+        end;
+        suppose f.i in {}LTLB_WFF;
+          hence thesis;
+        end;
+        suppose ex j,k be Nat st 1<=j & j<i & 1<=k & k<i &
+          (f/.j,f/.k MP_rule f/.i or f/.j,f/.k IND_rule f/.i);
+          then consider j,k be Nat such that
+A15:      1<=j and
+A16:      j<i and
+A17:      1<=k and
+A18:      k<i and
+A19:      f/.j,f/.k MP_rule f/.i or f/.j,f/.k IND_rule f/.i;
+          j<=len f by A7,A16,XXREAL_0:2;then
+A20:      {}LTLB_WFF |-0 'G' f/.j by A5,A15,A16;
+          k<=len f by A7,A18,XXREAL_0:2;then
+A21:      {}LTLB_WFF |-0 'G' f/.k by A5,A17,A18;
+          per cases by A19;
+          suppose f/.j,f/.k MP_rule f/.i;
+            hence thesis by A20,A21,th11;
+          end;
+          suppose f/.j,f/.k IND_rule f/.i;
+            then consider B,C such that
+A24:        f/.j = B => C and
+A25:        f/.k= B => ('X' B) and
+A26:        f/.i= B => ('G' C);
+            thus thesis by A24,A25,A26,th13,A20,A21;
+          end;
+        end;
+        suppose ex j be Nat st 1<=j & j<i & f/.j NEX_rule f/.i;
+          then consider j be Nat such that
+A15:      1<=j and
+A16:      j<i and
+A19:      f/.j NEX_rule f/.i;
+          j<=len f by A7,A16,XXREAL_0:2;then
+          {}LTLB_WFF |-0 'G' f/.j by A5,A15,A16;
+          hence thesis by A19,th12;
+        end;
+      end;
+    end;
+A37:  for i be Nat holds P[i] from NAT_1:sch 4(A4);
+      A = f/.len f by A1,A2,Lm1;then
+      {}LTLB_WFF |-0 'G' A by A37,A2;
+      hence {}LTLB_WFF |-0 A by th9;
+    end;
+
+::#INSERT: Generalized theorem 2.6.7 does not hold, i.e.,
+::#INSERT: not for F,A holds (F |- A implies F |-0 A);
+theorem th14:
+  {prop i} |- 'X' prop i & not {prop i} |-0 'X' prop i
+proof
+  prop i in {prop i} by TARSKI:def 1;then
+  {prop i} |- prop i by LTLAXIO1:42;
+  hence {prop i} |- 'X' prop i by LTLAXIO1:44;
+  thus not {prop i} |-0 'X' prop i by th266,th262ac1;
+end;
+
+::#INSERT: LTLB with initial semantics is monotonic
+theorem mon:
+  F c= G & F |-0 A implies G |-0 A
+proof
+  assume A0: F c= G & F |-0 A;then
+  consider f such that
+A1: f.len f = A & 1 <= len f and
+A2: for i be Nat st 1<=i & i<=len f holds prc0 f,F,i;
+    now
+      let i be Nat;
+      assume 1<=i & i<=len f;then
+      per cases by Def29,A2;
+      suppose f.i in F;
+        hence prc0 f,G,i by A0;
+      end;
+      suppose f.i in LTL0_axioms or
+        (ex j,k be Nat st 1<=j & j<i & 1<=k & k<i & (
+        f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+        or f/.j,f/.k IND0_rule f/.i)) or
+        ex j be Nat st 1<=j & j<i &
+        (f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i);
+        hence prc0 f,G,i;
+      end;
+    end;
+  hence G |-0 A by A1;
+end;
+
+definition let f,A;
+  func implications(f,A) -> FinSequence of LTLB_WFF means :imps:
+    len it = len f & it.1 = f/.1 => A & for i st
+    1 <= i & i < len f holds it.(i+1) = f/.(i+1) => it/.i if len f > 0
+   otherwise it = <*> LTLB_WFF;
+   existence
+   proof
+     defpred P[Nat,set,set] means
+     ex A,B st A = $2 & B = $3 & B = f/.($1 + 1) => A;
+A1:  now
+       let n be Nat;
+       assume 1 <= n & n < len f;
+       let x being Element of LTLB_WFF;
+       P[n,x,f/.(n+1) => x];
+       hence ex y being Element of LTLB_WFF st P[n,x,y];
+     end;
+     consider p being FinSequence of LTLB_WFF such that
+A2:  len p = len f & (p.1 = f/.1 => A or len f = 0) & for n being Nat
+     st 1 <= n & n < len f holds P[n,p.n,p.(n+1)] from RECDEF_1:sch 4(A1);
+     thus len f > 0 implies ex p be FinSequence of LTLB_WFF st len p = len f &
+     p.1 = f/.1 => A &
+     for i st 1 <= i & i < len f holds p.(i+1) = f/.(i+1) => p/.i
+     proof
+       assume
+A3:    len f > 0;
+       take p;
+       now
+         let i;
+         assume
+A4:      1 <= i & i < len f;then
+         ex A,B st A = p.i & B = p.(i+1) & B = f/.(i + 1) => A by A2;
+         hence p.(i+1) = f/.(i+1) => p/.i by FINSEQ_4:15, A4,A2;
+       end;
+       hence thesis by A2,A3;
+     end;
+     thus thesis;
+   end;
+   uniqueness
+   proof
+     let f1,f2 be FinSequence of LTLB_WFF;
+     thus len f > 0 & len f1 = len f & f1.1 = f/.1 => A &
+     (for i st 1 <= i & i < len f holds f1.(i+1) = ( f/.(i+1)) => f1/.i) &
+     len f2 = len f & f2.1 = ( f/.1) => A & (for i st 1 <= i & i < len f
+     holds f2.(i+1) = (f/.(i+1)) => f2/.i) implies f1 = f2
+     proof
+       assume that
+A5:    len f > 0 and
+A6:    len f1 = len f and
+A7:    f1.1 = f/.1 => A and
+A8:    for i st 1 <= i & i < len f holds f1.(i+1) = ( f/.(i+1)) => f1/. i
+       and
+A9:    len f2 = len f and
+A10:   f2.1 = ( f/.1) => A and
+A11:   for i st 1 <= i & i < len f holds f2.(i+1) = ( f/.(i+1)) => f2/. i;
+A12:   1 <= len f2 by A9,NAT_1:25,A5;
+       1 <= len f1 by A6,NAT_1:25,A5;
+       then A13: f1/.1 = f1.1 by FINSEQ_4:15
+       .= f2/.1 by FINSEQ_4:15,A12,A10,A7;
+A14:   now
+         defpred P[Nat] means
+         $1 < len f implies f1.($1+1) = f2.($1+1);
+         let n;
+         set m = n -' 1;
+         assume
+         n in dom f1;
+         then A15: n in Seg len f1 by FINSEQ_1:def 3;
+         then 1 <= n by FINSEQ_1:1;
+         then 1 + (-1) <= n + (-1) by XREAL_1:6;
+         then A16: m = n - 1 by XREAL_0:def 2;
+         then A17: m + 1 <= len f by A6, A15,FINSEQ_1:1;
+A18:     for i being Nat st P[i] holds P[i + 1]
+         proof
+           let i be Nat;
+           assume
+A19:       P[i];
+           assume
+A20:       i + 1 < len f;
+A21:       1 <= i + 1 by NAT_1:25;
+           per cases by NAT_1:25;
+           suppose
+             i = 0;
+             hence f1.(i+1+1) = ( f/.(i+1+1)) => f2/.(i+1) by A13,A20,A8
+             .= f2.(i+1+1) by A20,A21,A11;
+           end;
+           suppose
+             i >= 1;
+A22:         f1/.(i+1) = f1.(i+1) by FINSEQ_4:15, A6,A20,A21
+             .= f2/.(i+1) by FINSEQ_4:15, A9,A20,A19,NAT_1:12;
+             thus f1.(i+1+1) = ( f/.(i+1+1)) => f1/.(i+1) by A20,A21 ,A8
+             .= f2.(i+1+1) by A20,A21,A11,A22;
+           end;
+         end;
+A23:     P[0] by A7,A10;
+A24:     for i being Nat holds P[i] from NAT_1:sch 2(A23,A18);
+         thus f1.n = f2.n by A16,A24, A17,XREAL_1:145;
+       end;
+       dom f1 = dom f2 by FINSEQ_3:29,A6,A9;
+       hence thesis by A14,PARTFUN1:5;
+     end;
+     thus thesis;
+   end;
+   consistency;
+end;
+
+::#INSERT: 2.6.8
+::$N Weak Completeness Theorem for LTLB with initial semantics
+theorem th268:
+  for F be finite Subset of LTLB_WFF holds F |=0 A implies F |-0 A
+proof
+  let F be finite Subset of LTLB_WFF;
+  assume
+Z1: F |=0 A;
+  per cases;
+  suppose
+S1: F is empty;then
+    F |= A by th262b,th264p,Z1;
+    hence F |-0 A by th267,S1,LTLAXIO4:33;
+  end;
+  suppose
+S2: not F is empty;
+    consider f be FinSequence such that
+A4: rng f = F & f is one-to-one by FINSEQ_4:58;
+    reconsider f as FinSequence of LTLB_WFF by A4,FINSEQ_1:def 4;
+A6: 1 <= len f by RELAT_1:38,A4,FINSEQ_1:20,S2;
+    then 1 <= len implications(f,A) by imps;
+    then A7: implications(f,A)/.1 = implications(f,A).1 by FINSEQ_4:15;
+AA: 1 in dom f by A6,FINSEQ_3:25;
+    defpred P[Nat] means
+    1 <= $1 & $1 <= len f implies rng (f /^ $1) |=0 implications(f,A)/.$1;
+    rng (f|1) = rng <*f.1*> by FINSEQ_5:20,RELAT_1:38,A4,S2
+      .= rng <*f/.1*> by PARTFUN1:def 6,AA;then
+A8: rng (f /^ 1) \/ {f/.1} = rng (f|1) \/ rng (f /^ 1) by FINSEQ_1:38
+    .= rng ((f|1) ^ (f /^ 1)) by FINSEQ_1:31
+    .= rng f by RFINSEQ:8;
+A9: len implications(f,A) = len f by A6,imps;
+A10: now
+       let i be Nat;
+A11:   i in NAT by ORDINAL1:def 12;
+       assume
+A12:   P[i];
+       thus P[i + 1]
+       proof
+         assume that
+A13:     1 <= i+1 and
+A14:     i+1 <= len f;
+         per cases by NAT_1:25;
+         suppose
+A15:       i = 0;
+           f/.1 => A = implications(f,A).1 by imps,A6
+           .= implications(f,A)/.1 by FINSEQ_4:15,A9,A6;
+           hence rng (f /^ (i+1)) |=0 implications(f,A)/.(i+1)
+           by A8,A4,Z1,th263,A15;
+         end;
+         suppose
+A16:       1 <= i;
+           i+1 in dom f by FINSEQ_3:25,A13,A14;then
+           rng (<*f/.(i+1)*>^(f /^ (i+1))) |=0 implications(f,A)/.i
+           by A12,A16,NAT_1:13,A14,FINSEQ_5:31;then
+           rng <*f/.(i+1)*> \/ rng (f /^ (i+1)) |=0 implications(f,A)/.i
+           by FINSEQ_1:31;then
+A17:       rng (f /^ (i+1)) \/ {f/.(i+1)} |=0 implications(f,A)/.i
+           by FINSEQ_1:38;
+A18:       i < len f by NAT_1:13,A14;
+           implications(f,A)/.(i+1) = implications(f,A).(i+1)
+           by FINSEQ_4:15,A13,A14,A9
+           .= f/.(i+1) => implications(f,A)/.i by imps,A16,A18,A11;
+           hence rng (f /^ (i+1)) |=0 implications(f,A)/.(i+1) by A17,th263;
+         end;
+       end;
+      end;
+A19:P[0];
+    for i be Nat holds P[i] from NAT_1:sch 2(A19,A10);then
+    rng (f /^ (len f)) |=0 implications(f,A)/.(len f) by A6;then
+    {} LTLB_WFF |=0 implications(f,A)/.(len f) by RFINSEQ:27,RELAT_1:38;then
+D2: {} LTLB_WFF |- implications(f,A)/.(len f) by LTLAXIO4:33,th262b,th264p;
+    defpred P[Nat] means $1 < len f implies
+    rng f |-0 implications(f,A)/.(len f -' $1);
+A21:now
+      let i be Nat;
+      assume
+A22:  P[i];
+      thus P[i+1]
+      proof
+        set j = len f -' (i+1);
+        assume
+A23:    i + 1 < len f;then
+A24:    i + 1 + (- (i +1)) < len f + (-(i + 1)) by XREAL_1:8;then
+A25:    j = len f - (i+1) by XREAL_0:def 2;then
+A26:    1 <= j by NAT_1:25, A24;
+        i < len f by A23,NAT_1:12;then
+        len f + (-i) > i + (-i) by XREAL_1:8;then
+A27:    len f - i > 0;
+A28:    j + 1 = len f - (i + 1) + 1 by XREAL_0:def 2, A24
+        .= len f -' i by XREAL_0:def 2,A27;
+A29:    len f + (-i) <= len f by XREAL_1:32;then
+        j + 1 <= len f by A25;then
+A30:    j < len f by NAT_1:16,XXREAL_0:2;
+        j + 1 <= len implications(f,A) by A29,A25,imps;then
+E5:     implications(f,A)/.(len f -' i) = implications(f,A).(j + 1)
+        by A28,FINSEQ_4:15, NAT_1:11
+        .= (f/.(j + 1)) => implications(f,A)/.j by imps,A26, A30;
+E9:     j + 1 in dom f by FINSEQ_3:25, NAT_1:11, A29,A25;then
+        f.(j+1) in rng f by FUNCT_1:3;then
+        f/.(j+1) in rng f by PARTFUN1:def 6,E9;then
+        rng f |-0 f/.(j+1) by th10;
+        hence rng f |-0 implications(f,A)/.j by th11a,E5,A22,A23,NAT_1:12;
+      end;
+    end;
+    {}LTLB_WFF c= rng f;then
+D3: rng f |-0 implications(f,A)/.len f by mon,D2,th267;
+    len f - 0 >= 1 by RELAT_1:38,A4,S2,FINSEQ_1:20;then
+A33: P[0] by D3,XREAL_0:def 2;
+A34: for i be Nat holds P[i] from NAT_1:sch 2(A33,A21);
+     1 + (-1) <= len f + (-1) by XREAL_1:6,FINSEQ_1:20,RELAT_1:38,A4,S2;
+     then len f -' 1 = len f - 1 by XREAL_0:def 2;
+     then reconsider i = len f -1 as Element of NAT;
+A32: len f + (- 1) < len f by XREAL_1:37;
+    len f -' i = len f - i by XREAL_0:def 2 .= 1;then
+    rng f |-0 implications(f,A)/.1 by A34,A32;then
+C2: F |-0 (f/.1) => A by A4,imps,A7,A6;
+C3: 1 in dom f by A6,FINSEQ_3:25;then
+    f.1 in rng f by FUNCT_1:3;then
+    f/.1 in rng f by PARTFUN1:def 6,C3;then
+    F |-0 f/.1 by A4,th10;
+    hence F |-0 A by C2,th11a;
+  end;
+end;
+
+begin
+
+::#INSERT: Deduction theorem holds in the classical form compared with
+::#INSERT: Deduction theorem for LTLB with normal semantics (see LTLAXIO1:57)
+theorem
+  F \/ {A} |-0 B implies F |-0 A => B
+proof
+  assume F \/ {A} |-0 B;then
+  consider f such that
+A1: f.len f = B and
+A2: 1<=len f and
+A3: for i be Nat st 1<=i & i<=len f holds prc0 f,F \/ {A},i;
+    defpred P[Nat] means
+    1<=$1 & $1<=len f implies F |-0 A => f/.$1;
+A4: for i being Nat st for j being Nat st j<i holds P[j] holds P[i]
+    proof
+      let i be Nat;
+      assume A5: for j be Nat st j<i holds P[j];
+      per cases by NAT_1:14;
+      suppose i=0;
+        hence P[i];
+      end;
+      suppose not i<1;
+        assume that
+A6:     1<=i and
+A7:     i<=len f;
+        per cases by A3,A6,A7,Def29;
+        suppose A8: f.i in LTL0_axioms;
+A9:       F |-0 f/.i => (A=>f/.i) by th15,LTLAXIO1:34;
+          f/.i in LTL0_axioms by A6,A7,A8,Lm1;
+          then F |-0 f/.i by th10;
+          hence thesis by A9,th11a;
+        end;
+        suppose A10: f.i in F \/ {A};
+          per cases by A10,XBOOLE_0:def 3;
+          suppose A11: f.i in F;
+            A12: F |-0 f/.i=>(A=>f/.i) by th15,LTLAXIO1:34;
+            f/.i in F by A6,A7,A11,Lm1;
+            then F |-0 f/.i by th10;
+            hence thesis by A12,th11a;
+          end;
+          suppose f.i in {A};then
+            f.i=A by TARSKI:def 1;then
+B1:         f/.i=A by A6,A7,Lm1;
+            A => A is LTL_TAUT_OF_PL by LTLAXIO2:24;then
+            A => A in LTL_axioms by LTLAXIO1:def 17;
+            hence thesis by B1,th15;
+          end;
+        end;
+        suppose ex j,k be Nat st 1<=j & j<i & 1<=k & k<i &
+          (f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+          or f/.j,f/.k IND0_rule f/.i);
+          then consider j,k be Nat such that
+A15:      1<=j and
+A16:      j<i and
+A17:      1<=k and
+A18:      k<i and
+A19:      f/.j,f/.k MP_rule f/.i or f/.j,f/.k MP0_rule f/.i
+          or f/.j,f/.k IND0_rule f/.i;
+          j<=len f by A7,A16,XXREAL_0:2;then
+A20:      F|-0 A => f/.j by A5,A15,A16;
+          k<=len f by A7,A18,XXREAL_0:2;then
+A21:      F|-0 A => f/.k by A5,A17,A18;
+          per cases by A19;
+          suppose A22: f/.j,f/.k MP_rule f/.i;
+A23:        F |-0 (A=>(f/.j=>f/.i))=>((A=>f/.j)=>(A=>f/.i))
+            by th15,LTLAXIO1:35;
+            F|-0 (A=>f/.j)=>(A=>f/.i) by A23,th11a,A21,A22;
+            hence F |-0 A => f/.i by A20,th11a;
+          end;
+          suppose f/.j,f/.k MP0_rule f/.i;
+            then consider C,D such that
+A24:        f/.j= 'G' C and
+A25:        f/.k= 'G' (C => D) and
+A26:        f/.i= 'G' D;
+B1:         {}LTLB_WFF c= F;
+            {}LTLB_WFF |-0 f/.k => (f/.j => f/.i)
+            by th267,LTLAXIO1:60,A24,A25,A26;then
+B2:         F |-0 f/.k => (f/.j => f/.i) by mon,B1;
+            (A => f/.k) => ((f/.k => (f/.j => f/.i))
+            => (A => (f/.j => f/.i))) is LTL_TAUT_OF_PL by th16;then
+            (A => f/.k) => ((f/.k => (f/.j => f/.i))
+            => (A => (f/.j => f/.i))) in LTL_axioms by LTLAXIO1:def 17;then
+            F |-0 (A => f/.k) => ((f/.k =>
+            (f/.j => f/.i)) => (A => (f/.j => f/.i))) by th15;then
+            F |-0 ((f/.k => (f/.j => f/.i))
+            => (A => (f/.j => f/.i))) by th11a,A21;then
+B3:         F |-0 A => (f/.j => f/.i) by B2,th11a;
+            (A => (f/.j => f/.i)) => ((A => f/.j) => (A => f/.i))
+            is LTL_TAUT_OF_PL by th17;then
+            (A => (f/.j => f/.i)) => ((A => f/.j) => (A => f/.i))
+            in LTL_axioms by LTLAXIO1:def 17;then
+            F |-0 (A => (f/.j => f/.i))
+            => ((A => f/.j) => (A => f/.i)) by th15;then
+            F |-0 (A => f/.j) => (A => f/.i) by th11a,B3;
+            hence F|-0 A => f/.i by th11a,A20;
+          end;
+          suppose f/.j,f/.k IND0_rule f/.i;
+            then consider C,D such that
+A24:        f/.j = 'G' (C=>D) and
+A25:        f/.k= 'G' (C => ('X' C)) and
+A26:        f/.i= 'G' (C => ('G' D));
+            A => f/.j => (A => f/.k => (A => (f/.j '&&' f/.k)))
+            is LTL_TAUT_OF_PL by LTLAXIO2:40;then
+            A => f/.j => (A => f/.k => (A => (f/.j '&&' f/.k)))
+            in LTL_axioms by LTLAXIO1:def 17;then
+            F |-0 A => f/.j => (A => f/.k => (A => (f/.j '&&' f/.k)))
+            by th15;then
+            F |-0 A => f/.k => (A => (f/.j '&&' f/.k))
+            by th11a,A20;then
+B10:        F |-0 A => (f/.j '&&' f/.k) by th11a,A21;
+B12:        {}LTLB_WFF c= F;
+            {}LTLB_WFF |- f/.j => (f/.k => f/.i) by th20,A24,A25,A26;then
+            {}LTLB_WFF |- (f/.j '&&' f/.k) => f/.i by LTLAXIO1:48;then
+B11:        F |-0 (f/.j '&&' f/.k) => f/.i by mon,B12,th267;
+            (A => (f/.j '&&' f/.k)) => (((f/.j '&&' f/.k) => f/.i)
+            => (A => f/.i)) is LTL_TAUT_OF_PL by th16;then
+            (A => (f/.j '&&' f/.k)) => (((f/.j '&&' f/.k) => f/.i)
+            => (A => f/.i)) in LTL_axioms by LTLAXIO1:def 17;then
+            F |-0 (A => (f/.j '&&' f/.k)) => (((f/.j '&&' f/.k) => f/.i)
+            => (A => f/.i)) by th15;then
+            F |-0 (((f/.j '&&' f/.k) => f/.i) => (A => f/.i)) by th11a,B10;
+            hence thesis by th11a,B11;
+          end;
+        end;
+        suppose ex j be Nat st 1<=j & j<i &
+          (f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i);then
+          consider j be Nat,q,r such that
+A32:      1<=j and
+A33:      j<i and
+A34:      f/.j NEX0_rule f/.i or f/.j REFL0_rule f/.i;
+B4:       j<=len f by A7,A33,XXREAL_0:2;then
+B4a:       F |-0 A => f/.j by A5,A32,A33;
+          per cases by A34;
+          suppose f/.j NEX0_rule f/.i;
+            then consider C such that
+A24:        f/.j= 'G' C and
+A26:        f/.i= 'G' 'X' C;
+B8:         {}LTLB_WFF c= F;
+            {}LTLB_WFF |-0 f/.j => f/.i by th19,th267,A24,A26;then
+B9:         F |-0 f/.j => f/.i by mon,B8;
+            (A => f/.j) => ((f/.j => f/.i) => (A => f/.i))
+            is LTL_TAUT_OF_PL by th16;then
+            (A => f/.j) => ((f/.j => f/.i) => (A => f/.i))
+            in LTL_axioms by LTLAXIO1:def 17;then
+            F |-0 (A => f/.j) => ((f/.j => f/.i) => (A => f/.i))
+            by th15;then
+            F |-0 ((f/.j => f/.i) => (A => f/.i)) by th11a,B4a;
+            hence thesis by B9,th11a;
+          end;
+          suppose f/.j REFL0_rule f/.i;then
+B6:         F |-0 A => 'G' f/.i by B4,A5,A32,A33;
+B5:         {}LTLB_WFF c= F;
+            {}LTLB_WFF |-0 ('G' f/.i) => f/.i by th267,th18;then
+B7:         F |-0 ('G' f/.i) => f/.i by mon,B5;
+            (A => ('G' f/.i)) => ((('G' f/.i) => f/.i) => (A => f/.i)) is
+            LTL_TAUT_OF_PL by th16;then
+            (A => ('G' f/.i)) => ((('G' f/.i) => f/.i) => (A => f/.i)) in
+            LTL_axioms by LTLAXIO1:def 17;then
+            F |-0 (A => ('G' f/.i)) => ((('G' f/.i) => f/.i) => (A => f/.i))
+            by th15;then
+            F |-0 ((('G' f/.i) => f/.i) => (A => f/.i)) by B6,th11a;
+            hence thesis by th11a,B7;
+          end;
+        end;
+      end;
+    end;
+A37: for i be Nat holds P[i] from NAT_1:sch 4(A4);
+     B = f/.len f by A1,A2,Lm1;
+     hence F |-0 A => B by A2,A37;
+   end;
+
+:: Converse of Deduction Theorem
+theorem
+  F |-0 A => B implies F \/ {A} |-0 B
+ proof
+  A in {A} by TARSKI:def 1;
+  then A in F\/{A} by XBOOLE_0:def 3;then
+A1: F\/{A} |-0 A by th10;
+  assume F |-0 A =>B;
+  then F\/{A} |-0 A =>B by mon,XBOOLE_1:7;
+  hence F\/{A} |-0 B by A1,th11a;
+ end;
+
+begin
+
+registration let F be finite Subset of LTLB_WFF;
+  cluster 'G' F -> finite;
+  coherence
+  proof
+    deffunc H(Element of LTLB_WFF) = 'G' $1;
+A1: F is finite;
+    {H(w) where w is Element of LTLB_WFF: w in F} is finite
+    from FRAENKEL:sch 21(A1);
+    hence 'G' F is finite;
+  end;
+end;
+
+theorem
+  for F be finite Subset of LTLB_WFF holds (F |- A iff 'G' F |-0 A)
+proof
+  let F be finite Subset of LTLB_WFF;
+  hereby assume F |- A;then
+    F |= A by LTLAXIO1:41;
+    hence 'G' F qua finite Subset of LTLB_WFF |-0 A by th268,th262b;
+  end;
+  assume 'G' F |-0 A;then
+  'G' F |=0 A by th266;
+  hence F |- A by LTLAXIO4:33,th262b;
+end;
+
+theorem
+  for F be finite Subset of LTLB_WFF holds (F |-0 A implies F |- A)
+proof
+  let F be finite Subset of LTLB_WFF;
+  assume F |-0 A;then
+  F |=0 A by th266;
+  hence F |- A by LTLAXIO4:33,th262a;
+end;
+
+::#INSERT: The counterexample that "for F,A holds (F |- A implies F |-0 A)"
+::#INSERT: is not true. Another counterexample see above for theorem "th14".
+theorem
+  {prop i} |- 'G' prop i & not {prop i} |-0 'G' prop i
+proof
+  thus {prop i} |- 'G' prop i
+  proof
+    prop i in {prop i} by TARSKI:def 1;then
+    {prop i} |- prop i by LTLAXIO1:42;
+    hence thesis by LTLAXIO1:54;
+  end;
+  thus not {prop i} |-0 'G' prop i
+  proof
+    assume {prop i} |-0 'G' prop i;then
+A2: {prop i} |=0 'G' prop i by th266;
+    not {prop i} |=0 'X' prop i by th268,th14;then
+    consider M such that
+A1: M |=0 {prop i} & not M |=0 'X' prop i;
+    M |=0 'G' prop i by A2,A1;then
+    (SAT M).[0+1,prop i] =1 by LTLAXIO1:10;
+    hence contradiction by LTLAXIO1:9,A1;
+  end;
+end;
+
+theorem
+  for F be finite Subset of LTLB_WFF holds (F |-0 'G' A implies F |- A)
+proof
+  let F be finite Subset of LTLB_WFF;
+  assume F |-0 'G' A; then
+  F |=0 'G' A by th266;
+  hence F |- A by LTLAXIO4:33,th21;
+end;
+
+::#INSERT: The converse of the above theorem does not hold
+theorem
+  {prop i} |- prop i & not {prop i} |-0 'G' prop i
+proof
+  prop i in {prop i} by TARSKI:def 1;
+  hence {prop i} |- prop i by LTLAXIO1:42;
+  thus not {prop i} |-0 'G' prop i by th266,th21cp;
+end;

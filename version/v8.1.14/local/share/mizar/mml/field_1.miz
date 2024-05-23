@@ -1,0 +1,1731 @@
+:: On Roots of Polynomials over K[X]/<p>
+::  by Christoph Schwarzweller
+:: 
+:: Received March 28, 2019
+:: Copyright (c) 2019-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies ARYTM_3, VECTSP_1, ALGSTR_0, TARSKI, GROUP_6, NAT_1, MESFUNC1,
+      VECTSP_2, STRUCT_0, SUBSET_1, SUPINF_2, GROUP_1, POLYNOM1, POLYNOM2,
+      POLYNOM3, FUNCSDOM, HURWITZ, FINSEQ_1, QUOFIELD, ALGSEQ_1, FUNCT_1,
+      RELAT_1, CARD_1, POLYNOM8, IDEAL_1, MOD_4, XBOOLE_0, NUMBERS, MSSUBFAM,
+      CARD_3, POLYNOM5, YELLOW_8, WAYBEL20, EQREL_1, RING_2, RLVECT_1, RING_3,
+      AFINSQ_1, FUNCT_2, PARTFUN1, XXREAL_0, XCMPLX_0, ORDINAL4, POLYNOM4,
+      RATFUNC1, CARD_FIL, NEWTON, ARYTM_1, CALCUL_2, FIELD_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, RELAT_1, FUNCT_1, RELSET_1, PARTFUN1,
+      FUNCT_2, BINOP_1, FINSEQ_1, EQREL_1, ORDINAL1, NUMBERS, XCMPLX_0,
+      XXREAL_0, NAT_1, NAT_D, GROUP_4, ALGSEQ_1, POLYDIFF, POLYNOM3, POLYNOM4,
+      POLYNOM5, VECTSP_1, VECTSP_2, QUOFIELD, STRUCT_0, ALGSTR_0, GROUP_1,
+      GROUP_6, RLVECT_1, GCD_1, BINOM, HURWITZ, RATFUNC1, IDEAL_1, MOD_4,
+      RING_1, RING_2, RING_3, RING_4;
+ constructors HURWITZ, POLYNOM4, RELSET_1, ABIAN, NAT_D, RATFUNC1, GCD_1,
+      BINOM, RINGCAT1, RING_3, ALGSEQ_1, RING_4, GROUP_4, POLYDIFF;
+ registrations XBOOLE_0, XXREAL_0, XREAL_0, CARD_1, ORDINAL1, RELSET_1, MOD_4,
+      FUNCT_1, FUNCT_2, NAT_1, INT_1, INT_2, POLYDIFF, FINSEQ_1, STRUCT_0,
+      RLVECT_1, VECTSP_1, ALGSTR_1, GROUP_6, RINGCAT1, GRCAT_1, RING_1, INT_3,
+      RING_2, RING_3, RING_4, RING_5, POLYNOM3, POLYNOM4, POLYNOM5, RATFUNC1;
+ requirements NUMERALS, SUBSET, BOOLE, REAL, ARITHM;
+ definitions TARSKI;
+ equalities FINSEQ_1, XCMPLX_0, POLYNOM3, RING_4, POLYDIFF, HURWITZ;
+ expansions STRUCT_0, GROUP_1, VECTSP_1, TARSKI, GROUP_6, FUNCT_2, RING_2,
+      ALGSEQ_1;
+ theorems GROUP_1, GROUP_6, VECTSP_1, RLVECT_1, IDEAL_1, POLYDIFF, GCD_1,
+      PARTFUN1, FUNCT_2, TARSKI, FUNCT_1, POLYNOM4, RING_3, RATFUNC1, RING_5,
+      ALGSEQ_1, RING_2, FUNCOP_1, POLYNOM3, NAT_1, INT_1, FINSEQ_1, NORMSP_1,
+      RING_1, RING_4, XREAL_0, XREAL_1, STRUCT_0, ORDINAL1, UPROOTS, XXREAL_0,
+      POLYNOM5, FINSEQ_2, GROUP_4, HURWITZ, BINOM, POLYNOM2, EC_PF_2, FINSEQ_3,
+      FINSEQ_5;
+ schemes ALGSEQ_1, NAT_1, INT_1, FUNCT_2;
+
+begin :: Preliminaries
+
+ reserve n for Nat;
+
+notation
+  let L be non empty ZeroStr;
+  let p be Polynomial of L;
+  synonym LM p for Leading-Monomial p;
+end;
+
+theorem Th2:
+  for L being non empty ZeroStr, p being Polynomial of L
+  holds deg p is Element of NAT iff p <> 0_.L
+proof
+  let L be non empty ZeroStr;let p be Polynomial of L;
+  now assume p <> 0_.L; then
+      len p <> 0 by POLYNOM4:5; then
+      len p + 1 > 0 + 1 by XREAL_1:6; then
+      len p >= 1 by NAT_1:13;
+      hence deg(p) is Element of NAT by INT_1:3;
+    end;
+  hence thesis by HURWITZ:20;
+end;
+
+definition
+  let R be non degenerated Ring;
+  let p be non zero Polynomial of R;
+  redefine func deg p -> Element of NAT;
+  coherence
+  proof
+    p <> 0_.R;
+    hence thesis by Th2;
+  end;
+end;
+
+registration ::: move to RING_2
+  let R be add-associative right_zeroed right_complementable
+         right-distributive non empty doubleLoopStr;
+  let f be additive Function of R,R;
+  reduce f.(0.R) to 0.R;
+  reducibility by RING_2:6;
+end;
+
+theorem Th3:
+  for R being Ring,
+      I being Ideal of R
+  for x being Element of R/I,
+      a being Element of R st x = Class(EqRel(R,I),a)
+  for n being Nat holds x|^n = Class(EqRel(R,I),a|^n)
+  proof
+    let R be Ring, I be Ideal of R;
+    let x be Element of R/I, a be Element of R;
+    assume
+A1: x = Class(EqRel(R,I),a);
+    let n be Nat;
+    defpred P[Nat] means x|^($1) = Class(EqRel(R,I),a|^($1));
+    x|^0 = 1_(R/I) by BINOM:8 .= Class(EqRel(R,I),1_R) by RING_1:def 6
+        .= Class(EqRel(R,I),a|^0) by BINOM:8; then
+A2: P[0];
+A3: now let i be Nat;
+    assume
+A4: P[i];
+    Class(EqRel(R,I),a|^(i+1)) = Class(EqRel(R,I),(a|^i)*(a|^1)) by BINOM:10
+      .= Class(EqRel(R,I),(a|^i)*a) by BINOM:8
+      .= (x|^i) * x by A1,A4,RING_1:14
+      .= (x|^i) * (x|^1) by BINOM:8
+      .= x|^(i+1) by BINOM:10;
+    hence P[i+1];
+    end;
+    for i being Nat holds P[i] from NAT_1:sch 2(A2,A3);
+    hence thesis;
+  end;
+
+definition
+  let R be Ring, a,b be Element of R;
+  pred b is_a_irreducible_factor_of a means
+  b divides a & b is irreducible;
+end;
+
+registration
+  cluster non almost_left_invertible factorial for domRing;
+  existence;
+end;
+
+theorem Th4:
+  for R being non almost_left_invertible factorial domRing,
+      a being non zero NonUnit of R
+   ex b being Element of R st b is_a_irreducible_factor_of a
+    proof
+      let R be non almost_left_invertible factorial domRing,
+      a be non zero NonUnit of R;
+      consider F being non empty FinSequence of R such that
+A1:    F is_a_factorization_of a by RING_2:def 12;
+      len F <> 0; then
+      consider G being FinSequence of R, d being Element of R such that
+A2:    F = G ^ <*d*> by FINSEQ_2:19;
+      take d;
+      Product(G) * Product(<*d*>) = a by A1,A2,GROUP_4:5;then
+A3:    Product(<*d*>) divides a by GCD_1:def 1;
+      reconsider lf = len F as Element of dom F by FINSEQ_5:6;
+      len F = len G + len<*d*> by A2,FINSEQ_1:22
+           .= len G + 1 by FINSEQ_1:39; then
+      F.lf = d by A2,FINSEQ_1:42;
+      hence thesis by A1,A3,GROUP_4:9;
+end;
+
+begin :: The polynomials a * x^n
+
+notation
+  let R be Ring;
+  let a be Element of R;
+  let n be Nat;
+  synonym anpoly(a,n) for seq(n,a);
+end;
+
+Lm1: for R being non degenerated Ring,
+          a being non zero Element of R holds deg anpoly(a,n) = n
+proof
+  let R be non degenerated Ring, a be non zero Element of R;
+  len anpoly(a,n) = n+1 by POLYDIFF:27;
+  hence thesis;
+end;
+
+registration
+  let R be non degenerated Ring,
+      a be non zero Element of R,
+      n be Nat;
+  cluster anpoly(a,n) -> non zero;
+  coherence
+  proof
+    deg anpoly(a,n) = n & n <> - 1 by Lm1;
+    hence thesis by HURWITZ:20,UPROOTS:def 5;
+  end;
+end;
+
+registration
+  let R be Ring,
+      a be zero Element of R,
+      n be Nat;
+  cluster anpoly(a,n) -> zero;
+  coherence
+proof
+set q = anpoly(a,n);
+A1: a = 0.R by STRUCT_0:def 12;
+now let i be Element of NAT;
+  per cases;
+  suppose A2: i = n;
+    q.n = 0.R by A1,POLYDIFF:24 .= (0_.R).n by FUNCOP_1:7,ORDINAL1:def 12;
+    hence q.i = (0_.R).i by A2;
+    end;
+  suppose i <> n;
+    then q.i = 0.R by POLYDIFF:25 .= (0_.R).i by FUNCOP_1:7;
+    hence q.i = (0_.R).i;
+    end;
+  end;
+then q = 0_.R;
+hence thesis;
+end;
+end;
+
+theorem
+  for R being non degenerated Ring,
+      a being non zero Element of R holds deg anpoly(a,n) = n by Lm1;
+
+theorem
+  for R being non degenerated Ring,
+    a being Element of R holds LC anpoly(a,n) = a
+  proof
+    let R be non degenerated Ring, a being Element of R;
+    set q = anpoly(a,n);
+    per cases;
+      suppose
+A1:     a = 0.R; then
+        q = 0_.R by UPROOTS:def 5; then
+        q.(len q -' 1) = 0.R by FUNCOP_1:7;
+        hence thesis by A1,RATFUNC1:def 6;
+      end;
+      suppose a <> 0.R; then
+        a is non zero; then
+A2:     n = deg q by Lm1 .= len q - 1; then
+        n + 1 = len q; then
+        len q -' 1 = n by A2,XREAL_1:233,NAT_1:11;
+        hence a = q.(len q -' 1) by POLYDIFF:24 .= LC q by RATFUNC1:def 6;
+      end;
+    end;
+
+theorem
+  for R being non degenerated Ring, n being non zero Nat,
+    a,x being Element of R holds eval(anpoly(a,n),x) = a * x|^n
+    proof
+      let R be non degenerated Ring, n be non zero Nat, a,x be Element of R;
+      set q = anpoly(a,n);
+      per cases;
+        suppose
+A1:     a = 0.R; then
+        q = 0_.R by UPROOTS:def 5;
+        hence eval(q,x) = a * x|^n by A1,POLYNOM4:17;
+        end;
+        suppose a <> 0.R; then
+A2:      a is non zero;
+        consider F be FinSequence of R such that
+A3:     eval(q,x) = Sum F and
+A4:     len F = len q and
+A5:     for j be Element of NAT st j in dom F holds
+        F.j = q.(j-'1) * (power R).(x,j-'1) by POLYNOM4:def 2;
+        n = deg q by A2,Lm1 .= len q - 1; then
+A7:      dom F = Seg(n+1) by A4,FINSEQ_1:def 3;
+A8:      1 <= n + 1 by NAT_1:11;
+A9:      n+1-'1 = n+1-1 by NAT_1:11,XREAL_1:233;
+A10:     F/.(n+1) = F.(n+1) by A7,FINSEQ_1:3,PARTFUN1:def 6
+                .= q.n * (power R).(x,n+1-'1) by A9,A5,A8,A7,FINSEQ_1:1
+                .= a * (power R).(x,(n+1)-'1) by POLYDIFF:24
+                .= a * x|^ n by A9,BINOM:def 2;
+        now let j be Element of NAT;
+        assume
+A11:    j in dom F & j <> n+1; then
+A12:    1 <= j <= n + 1 by A7,FINSEQ_1:1; then
+        j < n + 1 by A11,XXREAL_0:1; then
+A13:    1 <= j <= n by A11,NAT_1:13,A7,FINSEQ_1:1;
+A14:    j -' 1 = j - 1 by A12,XREAL_0:def 2;
+A15:    j - 1 < j - 0 by XREAL_1:15;
+        thus F/.j = F.j by A11,PARTFUN1:def 6
+           .= q.(j-'1) * (power R).(x,j-'1) by A5,A11
+           .= 0.R * (power R).(x,j-'1) by A15,A13,A14,POLYDIFF:25
+           .= 0.R;
+        end;
+        hence thesis by A3,A10,A7,FINSEQ_1:3,POLYNOM2:3;
+      end;
+    end;
+
+theorem
+  for R being non degenerated Ring,
+      a being Element of R holds anpoly(a,0) = a|R;
+
+theorem Th9:
+  for R being non degenerated Ring,
+      n being non zero Element of NAT holds anpoly(1.R,n) = rpoly(n,0.R)
+proof
+  let R be non degenerated Ring, n be non zero Element of NAT;
+  set p = anpoly(1.R,n), r = rpoly(n,0.R);
+  now let i be Element of NAT;
+A1: 1 <= n by NAT_1:53;
+  per cases;
+  suppose A2: i = 0;
+    then r.i = -power(R).(0.R,n) by HURWITZ:25
+            .= -((0.R)|^n) by BINOM:def 2
+            .= -0.R by A1,EC_PF_2:5
+            .= p.i by A2,POLYDIFF:25;
+    hence p.i = r.i;
+    end;
+  suppose A3: i = n;
+    then r.i = 1_R by HURWITZ:25
+            .= p.i by A3,POLYDIFF:24;
+    hence p.i = r.i;
+    end;
+  suppose A4: i <> 0 & i <> n;
+    then r.i = 0.R by HURWITZ:26
+            .= p.i by A4,POLYDIFF:25;
+    hence p.i = r.i;
+    end;
+  end;
+  hence thesis;
+end;
+
+theorem Th10:
+  for R being non degenerated comRing,
+    a,b being non zero Element of R holds b * anpoly(a,n) = anpoly(a*b,n)
+ proof
+   let R be non degenerated comRing, a,b be non zero Element of R;
+   now let i be Element of NAT;
+     set p = anpoly(a,n), q = anpoly(a*b,n);
+     per cases;
+       suppose
+A1:    i = n;
+       (b*p).i = b * (p.i) by POLYNOM5:def 4
+        .= b * a by A1,POLYDIFF:24
+        .= q.i by A1,POLYDIFF:24;
+       hence (b*p).i = q.i;
+       end;
+       suppose
+A2:    i <> n;
+       (b*p).i = b * (p.i) by POLYNOM5:def 4
+        .= b * 0.R by A2,POLYDIFF:25
+        .= q.i by A2,POLYDIFF:25;
+       hence (b*p).i = q.i;
+       end;
+    end;
+    hence thesis;
+   end;
+
+theorem Th11:
+  for R being non degenerated comRing,
+      a,b being non zero Element of R, n,m being Nat holds
+   anpoly(a,n) *' anpoly(b,m) = anpoly(a*b,n+m)
+   proof
+     let R be non degenerated comRing,
+         a,b be non zero Element of R, n,m be Nat;
+     set p = anpoly(a,n), q = anpoly(b,m), r = anpoly(a*b,n+m);
+     per cases;
+       suppose A1: n = 0;
+       hence p *' q = (a|R) *' q
+              .= (a * 1_.R) *' q by RING_4:16
+              .= a * ((1_.R) *' q) by RING_4:10
+              .= r by A1,Th10;
+       end;
+       suppose A2: m = 0;
+       hence p *' q = p *' (b|R)
+              .= p *' (b * 1_.R) by RING_4:16
+              .= b * (p *' 1_.R) by RING_4:10
+              .= r by A2,Th10;
+       end;
+       suppose
+A3:    n <> 0 & m <> 0; then
+A4:     n >= 0 + 1 & m >= 0 + 1 by NAT_1:13;
+       now let i be Element of NAT;
+         consider F being FinSequence of the carrier of R such that
+A5:       len F = i+1 & (p*'q).i = Sum F & for k being Element of NAT
+         st k in dom F holds F.k = p.(k-'1) * q.(i+1-'k) by POLYNOM3:def 9;
+A6:     for k being Element of NAT st k in dom F & k <> len p holds F/.k = 0.R
+         proof
+           let k be Element of NAT;
+           assume
+A7:        k in dom F & k <> len p;
+A8:        deg p = n by Lm1;
+           now assume
+A9:          k -' 1 = n; then
+             k - 1 = k -' 1 by A3,XREAL_0:def 2;
+             hence contradiction by A7,A9,A8;
+           end; then
+A10:       p.(k-'1) = 0.R by POLYDIFF:25;
+           thus F/.k = F.k by A7,PARTFUN1:def 6
+              .= 0.R * q.(i+1-'k) by A10,A7,A5 .= 0.R;
+        end;
+A11:    dom F = Seg(i+1) by FINSEQ_1:def 3,A5;
+        per cases;
+          suppose
+A12:        i = n + m;
+A13:       deg p = n by Lm1; then
+A14:       len p <= n + 1 + m by NAT_1:11;
+A15:       dom F = Seg(n+m+1) by A12,A5,FINSEQ_1:def 3;
+          len p - 1 + 1 >= 1 + 1 by A13,A4,XREAL_1:6; then
+A16:       1 <= len p by XXREAL_0:2;
+A17:       len p -' 1 = n by A13,XREAL_0:def 2;
+          m = i + 1 - len p by A13,A12; then
+A18:       i + 1 -' len p = m by XREAL_0:def 2;
+          Sum F = F/.(len p) by A16,A6,A14,A15,FINSEQ_1:1,POLYNOM2:3
+          .= F.(len p) by A16,A14,A15,FINSEQ_1:1,PARTFUN1:def 6
+          .= p.n * q.m by A16,A14,A15,FINSEQ_1:1,A17,A18,A5
+          .= a * q.m by POLYDIFF:24
+          .= a * b by POLYDIFF:24;
+          hence r.i = (p *' q).i by A5,A12,POLYDIFF:24;
+          end;
+          suppose
+A19:        i <> n + m;
+          Sum F = 0.R
+          proof
+            per cases;
+              suppose i < len p - 1; then
+A20:          i + 1 < (len p - 1) + 1 by XREAL_1:6;
+              now let k be Element of NAT;
+                assume
+A21:            k in dom F; then
+                1 <= k <= i + 1 by A11,FINSEQ_1:1;
+                hence 0.R = F/.k by A20,A21,A6 .= F.k by A21,PARTFUN1:def 6;
+              end;
+              hence thesis by POLYNOM3:1;
+            end;
+              suppose
+A22:            i >= len p - 1;
+              now let k be Element of NAT;
+                assume
+A23:             k in dom F;
+                per cases;
+                  suppose k <> len p;
+                  hence 0.R = F/.k by A23,A6 .= F.k by A23,PARTFUN1:def 6;
+                  end;
+                  suppose
+A24:               k = len p;
+A25:               deg p = n by Lm1;
+                  i + 1 >= (len p - 1) + 1 by A22,XREAL_1:6; then
+                  i + 1 - len p >= len p - len p by XREAL_1:6; then
+                  i + 1 -' len p = i - n by A25,XREAL_0:def 2; then
+A26:              i + 1 -' len p <> m by A19;
+                  thus F.k = p.(len p -'1) * q.(i+1-' len p) by A5,A23,A24
+                   .= p.(len p -'1) * 0.R by A26,POLYDIFF:25
+                   .= 0.R;
+                 end;
+               end;
+               hence thesis by POLYNOM3:1;
+             end;
+           end;
+           hence r.i = (p *' q).i by A5,A19,POLYDIFF:25;
+         end;
+       end;
+       hence thesis;
+     end;
+   end;
+
+theorem Th12:
+  for R being non degenerated Ring, p being non zero Polynomial of R holds
+   LM p = anpoly(p.(deg p),deg p)
+   proof
+     let R be non degenerated Ring, p be non zero Polynomial of R;
+     set q = anpoly(p.(deg p),deg p), r = LM p, n = deg p;
+     reconsider degp = deg p as Element of NAT;
+A1:   n = len p -' 1 by XREAL_0:def 2;
+     now let i be Element of NAT;
+     per cases;
+       suppose A3: i <> n; then
+         r.i = 0.R by A1,POLYNOM4:def 1
+            .= q.i by A3,POLYDIFF:25;
+         hence r.i = q.i;
+       end;
+       suppose A4: i = n; then
+         r.i = p.n by A1,POLYNOM4:def 1
+         .= q.i by A4,POLYDIFF:24;
+         hence r.i = q.i;
+       end;
+     end;
+     hence thesis;
+   end;
+
+theorem Th13:
+  for R being non degenerated comRing
+   holds (<%0.R,1.R%>)`^n = anpoly(1.R,n)
+   proof
+     let R be non degenerated comRing;
+     defpred P[Nat] means (<%0.R,1.R%>)`^$1= anpoly(1.R,$1);
+A1:  P[0]
+     proof
+       thus (<%0.R,1.R%>)`^0 = 1_.R by POLYNOM5:15
+                    .= anpoly(1.R,0);
+     end;
+A2:  now let n be Nat;
+      assume P[n]; then
+      (<%0.R,1.R%>)`^(n+1) = anpoly(1.R,n) *' <%-0.R,1.R%> by POLYNOM5:19
+                        .= anpoly(1.R,n) *' rpoly(1,0.R) by RING_5:10
+                        .= anpoly(1.R,n) *' anpoly(1.R,1) by Th9
+                        .= anpoly(1.R*1.R,n+1) by Th11
+                        .= anpoly(1.R,n+1);
+      hence P[n+1];
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A1,A2);
+    hence thesis;
+   end;
+
+begin :: More on Homomorphisms
+
+theorem Th14:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for a being Element of R, n being Nat holds h.(a|^n) = (h.a)|^n
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let a be Element of R, n be Nat;
+     defpred P[Nat] means h.(a|^($1)) = (h.a)|^($1);
+A1:  P[0]
+     proof
+       thus
+       h.(a|^0) = h.(1_R) by BINOM:8 .= 1_S by GROUP_1:def 13
+       .= (h.a)|^0 by BINOM:8;
+     end;
+A2:  now let k be Nat;
+       assume
+A3:    P[k];
+       h.(a|^(k+1)) = h.((a|^k) * (a|^1)) by BINOM:10
+                .= h.(a|^k) * h.(a|^1) by GROUP_6:def 6
+                .= (h.a)|^k * (h.a) by A3,BINOM:8
+                .= (h.a)|^k * ((h.a)|^1) by BINOM:8
+                .= (h.a)|^(k+1) by BINOM:10;
+       hence P[k+1];
+     end;
+     for n being Nat holds P[n] from NAT_1:sch 2(A1,A2);
+     hence thesis;
+    end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S holds h.(Sum <*>(the carrier of R)) = 0.S
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     thus
+     h.(Sum <*>(the carrier of R)) = h.(0.R) by RLVECT_1:43 .= 0.S by RING_2:6;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for F being FinSequence of R, a being Element of R holds
+   h.(Sum(<*a*>^F)) = h.a + h.(Sum F)
+   proof
+      let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+      let F be FinSequence of R, a be Element of R;
+      thus h.(Sum(<*a*>^F)) = h.(Sum(<*a*>) + Sum F) by RLVECT_1:41
+                     .= h.(Sum<*a*>) + h.(Sum F) by VECTSP_1:def 20
+                     .= h.a + h.(Sum F) by RLVECT_1:44;
+   end;
+
+theorem Th17:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for F being FinSequence of R, a being Element of R holds
+   h.(Sum(F^<*a*>)) = h.(Sum F) + h.a
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let F be FinSequence of R, a be Element of R;
+     thus h.(Sum(F^<*a*>)) = h.(Sum F + Sum(<*a*>)) by RLVECT_1:41
+                     .= h.(Sum F) + h.(Sum<*a*>) by VECTSP_1:def 20
+                     .= h.(Sum F) + h.a by RLVECT_1:44;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for F,G being FinSequence of R holds h.(Sum(F^G)) = h.(Sum F) + h.(Sum G)
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let F,G be FinSequence of R;
+     thus h.(Sum(F^G)) = h.(Sum F + Sum G) by RLVECT_1:41
+     .= h.(Sum F) + h.(Sum G) by VECTSP_1:def 20;
+  end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S holds
+   h.(Product <*>(the carrier of R)) = 1.S
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     thus h.(Product <*>(the carrier of R)) = h.(1_R) by GROUP_4:8
+     .= 1_S by GROUP_1:def 13 .= 1.S;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for F being FinSequence of R, a being Element of R holds
+   h.(Product(<*a*>^F)) = h.a * h.(Product F)
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let F be FinSequence of R, a be Element of R;
+     thus
+     h.(Product(<*a*>^F)) = h.(Product(<*a*>) * Product F) by GROUP_4:5
+                         .= h.(Product<*a*>) * h.(Product F) by GROUP_6:def 6
+                         .= h.a * h.(Product F) by GROUP_4:9;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for F being FinSequence of R, a being Element of R holds
+   h.(Product(F^<*a*>)) = h.(Product F) * h.a
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let F be FinSequence of R, a be Element of R;
+     thus
+     h.(Product(F^<*a*>)) = h.(Product F * Product(<*a*>)) by GROUP_4:5
+                         .= h.(Product F) * h.(Product<*a*>) by GROUP_6:def 6
+                         .= h.(Product F) * h.a by GROUP_4:9;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for F,G being FinSequence of R
+   holds h.(Product(F^G)) = h.(Product F) * h.(Product G)
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let F,G be FinSequence of R;
+     thus h.(Product(F^G)) = h.(Product F * Product G) by GROUP_4:5
+     .= h.(Product F) * h.(Product G) by GROUP_6:def 6;
+   end;
+
+begin :: Lifting Homomorphisms from R to R[X]
+
+definition
+  let R,S be Ring;
+  let f be Function of Polynom-Ring R, Polynom-Ring S;
+  let p be Element of the carrier of Polynom-Ring R;
+  redefine func f.p -> Element of the carrier of Polynom-Ring S;
+  coherence
+  proof
+    f.p is Element of Polynom-Ring S;
+    hence thesis;
+  end;
+end;
+
+definition
+  let R be Ring, S be R-homomorphic Ring;
+  let h be additive Function of R,S;
+   func PolyHom h -> Function of Polynom-Ring R, Polynom-Ring S means  :Def2:
+   for f being Element of the carrier of Polynom-Ring R
+   for i being Nat holds (it.f).i = h.(f.i);
+existence
+proof
+A1: for f being Polynomial of R ex g being Polynomial of S
+     st for i being Nat holds g.i = h.(f.i)
+     proof
+       let f be Polynomial of R;
+       deffunc F(Nat) = h.(f.$1);
+       consider q being AlgSequence of S such that
+A2:     len q <= len f & for k being Nat st k < len f holds q.k = F(k)
+       from ALGSEQ_1:sch 1;
+       take q;
+       now let i be Nat;
+         per cases;
+           suppose i < len f;
+           hence q.i = h.(f.i) by A2;
+           end;
+           suppose A3: i >= len f; then
+           f.i = 0.R by ALGSEQ_1:8;
+           hence h.(f.i) = 0.S by RING_2:6
+                 .= q.i by A3,A2,ALGSEQ_1:8,XXREAL_0:2;
+           end;
+         end;
+         hence thesis;
+       end;
+       defpred P[object,object] means
+       ex f being (Polynomial of R), g being Polynomial of S
+       st $1 = f & $2 = g & for i being Nat holds g.i = h.(f.i);
+A4:     for x being object st x in the carrier of Polynom-Ring R
+       ex y being object st y in the carrier of Polynom-Ring S & P[x,y]
+       proof
+         let x be object;
+         assume x in the carrier of Polynom-Ring R; then
+         reconsider y = x as Polynomial of R by POLYNOM3:def 10;
+         consider z being Polynomial of S such that
+A5:      for i being Nat holds z.i = h.(y.i) by A1;
+         take z;
+         thus thesis by A5,POLYNOM3:def 10;
+       end;
+       consider F being Function of
+       the carrier of Polynom-Ring R, the carrier of Polynom-Ring S such that
+A6:     for x being object st x in the carrier of Polynom-Ring R holds P[x,F.x]
+       from FUNCT_2:sch 1(A4);
+       take F;
+       now let f be (Polynomial of R), g be Polynomial of S;
+         assume
+A7:      g = F.f;
+         let i be Nat;
+         f in the carrier of Polynom-Ring R by POLYNOM3:def 10; then
+         P[f,F.f] by A6;
+         hence g.i = h.(f.i) by A7;
+       end;
+       hence thesis;
+     end;
+uniqueness
+proof
+let F,G be Function of Polynom-Ring R, Polynom-Ring S;
+assume that
+A8: for f being Element of the carrier of Polynom-Ring R
+    for i being Nat holds (F.f).i = h.(f.i) and
+A9: for f being Element of the carrier of Polynom-Ring R
+    for i being Nat holds (G.f).i = h.(f.i);
+  now let o be object;
+  assume o in the carrier of Polynom-Ring R;
+  then reconsider p = o as Element of the carrier of Polynom-Ring R;
+  now let u be object;
+    assume u in NAT;
+    then reconsider m = u as Nat;
+    (F.p).m = h.(p.m) by A8 .= (G.p).m by A9;
+    hence (F.p).u = (G.p).u;
+    end;
+  then F.p = G.p;
+  hence F.o = G.o;
+  end;
+hence F = G;
+end;
+end;
+
+registration
+  let R be Ring,
+      S be R-homomorphic Ring;
+  let h be Homomorphism of R,S;
+  cluster PolyHom h -> additive multiplicative unity-preserving;
+  coherence
+proof
+set g = PolyHom h;
+set RP = Polynom-Ring R, SP = Polynom-Ring S;
+reconsider 1RP = 1_RP as
+        Element of the carrier of Polynom-Ring R;
+reconsider 1SP = 1_SP as
+        Element of the carrier of Polynom-Ring S;
+now let a,b be Element of the carrier of Polynom-Ring R;
+  reconsider gab = g.a + g.b as Element of the carrier of Polynom-Ring S;
+  reconsider a1 = a, b1 = b as sequence of R;
+  set ab1 = a1 + b1;
+  set ga = g.a, gb = g.b;
+  reconsider ga1 = ga, gb1 = gb as sequence of S;
+  set gab1 = ga1 + gb1;
+  now let m be Element of NAT;
+    a1 + b1 = a + b by POLYNOM3:def 10; then
+    (g.(a + b)).m = h.(ab1.m) by Def2
+                .= h.(a1.m + b1.m) by NORMSP_1:def 2
+                 .= h.(a.m) + h.(b.m) by VECTSP_1:def 20
+                 .= (g.a).m + h.(b.m) by Def2
+                 .= (ga1).m + (gb1).m by Def2
+                 .= gab1.m by NORMSP_1:def 2;
+    hence (g.(a + b)).m = gab.m by POLYNOM3:def 10;
+    end;
+  hence g.(a + b) = g.a + g.b by FUNCT_2:63;
+  end;
+hence g is additive;
+now let a,b be Element of the carrier of Polynom-Ring R;
+  reconsider ab = a * b as Element of the carrier of Polynom-Ring R;
+  reconsider gab = g.a * g.b as Element of the carrier of Polynom-Ring S;
+  reconsider a1 = a, b1 = b as sequence of R;
+  reconsider ab1 = a1 *' b1 as sequence of R;
+  reconsider ga = g.a, gb = g.b as Element of the carrier of Polynom-Ring S;
+  reconsider ga1 = ga, gb1 = gb as sequence of S;
+  set gab1 = ga1 *' gb1;
+  now let m be Element of NAT;
+    consider r being FinSequence of the carrier of R such that
+A1: len r = m+1 & ab1.m = Sum r & for k being Element of NAT
+    st k in dom r holds r.k = a1.(k-'1) * b1.(m+1-'k) by POLYNOM3:def 9;
+    consider s being FinSequence of the carrier of S such that
+A2: len s = m+1 & gab1.m = Sum s & for k being Element of NAT
+    st k in dom s holds s.k = ga1.(k-'1) * gb1.(m+1-'k) by POLYNOM3:def 9;
+A5: dom r = Seg(m + 1) by A1,FINSEQ_1:def 3
+         .= dom s by A2,FINSEQ_1:def 3;
+A3: for k being Element of NAT st k in dom r holds h.(r.k) = s.k
+      proof
+        let k be Element of NAT;
+        assume
+A4:     k in dom r;
+        hence h.(r.k) = h.(a1.(k-'1) * b1.(m+1-'k)) by A1
+               .= h.(a1.(k-'1)) * h.(b1.(m+1-'k)) by GROUP_6:def 6
+               .= ga1.(k-'1) * h.(b1.(m+1-'k)) by Def2
+               .= ga1.(k-'1) * gb1.(m+1-'k) by Def2
+               .= s.k by A5,A4,A2;
+      end;
+      reconsider m1 = m+1 as Element of NAT;
+A6:   1 <= m + 1 by NAT_1:11;
+      defpred P[Nat] means h.(Sum(r|$1)) = Sum(s|$1);
+A7:   P[1]
+      proof
+A8:   len(r|1) = 1 by A1,NAT_1:11,FINSEQ_1:59;
+A9:   dom(r|1) = Seg 1 by A1,A6,FINSEQ_1:17; then
+      (r|1).1 in rng(r|1) by FINSEQ_1:3,FUNCT_1:3; then
+      reconsider a = (r|1).1 as Element of the carrier of R;
+      r|1 = <*a*> by A8,FINSEQ_1:40; then
+A11:  h.(Sum(r|1)) = h.a by RLVECT_1:44;
+A12:    len(s|1) = 1 by A2,NAT_1:11,FINSEQ_1:59;
+A13:    dom(s|1) = Seg 1 by A2,A6,FINSEQ_1:17; then
+        (s|1).1 in rng(s|1) by FINSEQ_1:3,FUNCT_1:3; then
+        reconsider b = (s|1).1 as Element of the carrier of S;
+A15:    s|1 = <*b*> by A12,FINSEQ_1:40;
+A16:    dom r = Seg(m + 1) by A1,FINSEQ_1:def 3;
+A17:    1 in dom(s|(Seg 1)) by A13;
+        1 in dom(r|(Seg 1)) by A9; then
+        h.a = h.(r.1) by FUNCT_1:47
+           .= s.1 by A16,A3,A6,FINSEQ_1:1
+           .= b by A17,FUNCT_1:47;
+        hence thesis by A11,A15,RLVECT_1:44;
+        end;
+A19:     now let j be Element of NAT;
+          assume
+A20:      1 <= j & j < m1;
+          assume
+A21:      P[j];
+A22:     j + 1 <= m + 1 by A20,NAT_1:13; then
+A23:    len(r|(j+1)) = j + 1 by A1,FINSEQ_1:59;
+A24:    r|(Seg j) = r|j; then
+        reconsider rj = r|(Seg j) as FinSequence of R;
+        (r|(j+1))|j = r|j by NAT_1:11,FINSEQ_1:82; then
+        consider q being FinSequence such that
+A25:     r|(j+1) = rj ^ q by FINSEQ_1:80;
+a26:     1 <= j + 1 by NAT_1:11; then
+A27:     r.(j+1) in rng r by FUNCT_1:3,A1,A22,FINSEQ_3:25;
+A28:     j + 1 = len(r|(j+1)) by A22,A1,FINSEQ_1:59
+            .= len rj + len q by A25,FINSEQ_1:22
+            .= j + len q by A20,A24,A1,FINSEQ_1:59; then
+        dom q = Seg 1 by FINSEQ_1:def 3; then
+A29:    1 in dom q;
+A30:    len(r|j) = j by A20,A1,FINSEQ_1:59; then
+A31:    (r|(j+1)).(j+1) = q.1 by A25,A29,FINSEQ_1:def 7;
+        dom(r|(j+1)) = Seg(j+1) by A23,FINSEQ_1:def 3; then
+A32:    r.(j+1) = (r|(j+1)).(j+1) by FUNCT_1:47,FINSEQ_1:3; then
+        reconsider a = q.1 as Element of R by A30,A27,A25,A29,FINSEQ_1:def 7;
+A33:    h.a = s.(j+1) by A31,A32,a26,A3,A1,A22,FINSEQ_3:25;
+        q = <*a*> by A28,FINSEQ_1:40; then
+        h.(Sum(r|(j+1))) = h.(Sum rj) + h.a by A25,Th17
+        .= Sum(s|j) + Sum<*h.a*> by RLVECT_1:44,A21
+        .= Sum((s|j) ^ <*h.a*>) by RLVECT_1:41
+        .= Sum(s|(j+1)) by A20,A2,A33,FINSEQ_5:83;
+        hence P[j+1];
+      end;
+A34:  for i being Element of NAT st 1 <= i & i <= m1 holds P[i]
+        from INT_1:sch 7(A7,A19);
+A35:  Sum s = Sum(s|(m+1)) by A2,FINSEQ_1:58
+           .= h.(Sum(r|(m+1))) by A34,A6
+           .= h.(Sum r) by A1,FINSEQ_1:58;
+      a1 *' b1 = a * b by POLYNOM3:def 10; then
+      (g.(a * b)).m = gab1.m by A35,A2,A1,Def2;
+      hence (g.(a * b)).m = gab.m by POLYNOM3:def 10;
+    end;
+    hence g.(a * b) = g.a * g.b by FUNCT_2:63;
+  end;
+  hence g is multiplicative;
+  now let m be Element of NAT;
+    per cases;
+      suppose
+A36:  m = 0; then
+      h.(1RP.m) = h.((1_.R).0) by POLYNOM3:def 10
+                  .= h.(1_R) by POLYNOM3:30
+                  .= 1_S by GROUP_1:def 13
+                  .= (1_.S).0 by POLYNOM3:30
+                  .= 1SP.m by A36,POLYNOM3:def 10;
+      hence (g.(1_RP)).m = 1SP.m by Def2;
+      end;
+      suppose
+A37:    m <> 0;
+      h.(1RP.m) = h.((1_.R).m) by POLYNOM3:def 10
+             .= h.(0.R) by A37,POLYNOM3:30
+             .= 0.S by RING_2:6
+             .= (1_.S).m by A37,POLYNOM3:30
+             .= 1SP.m by POLYNOM3:def 10;
+      hence (g.(1_RP)).m = 1SP.m by Def2;
+      end;
+    end;
+    hence thesis by FUNCT_2:63;
+   end;
+  end;
+
+theorem Th23:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S holds (PolyHom h).(0_.R) = 0_.S
+   proof
+     let R be Ring, S be R-homomorphic Ring;
+     let h be Homomorphism of R,S;
+A1:   0_.R = 0.(Polynom-Ring R) by POLYNOM3:def 10;
+      reconsider f = (PolyHom h).(0.(Polynom-Ring R)) as
+         Element of the carrier of Polynom-Ring S;
+     now let i be Element of NAT;
+       f.i = h.((0_.R).i) by Def2,A1
+       .= h.(0.R) by FUNCOP_1:7
+       .= 0.S by RING_2:6
+       .= (0_.S).i by FUNCOP_1:7;
+       hence f.i = (0_.S).i;
+     end;
+     hence thesis by A1,FUNCT_2:63;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S holds (PolyHom h).(1_.R) = 1_.S
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     thus
+     (PolyHom h).(1_.R) = (PolyHom h).(1_(Polynom-Ring R)) by POLYNOM3:def 10
+     .= 1_(Polynom-Ring S) by GROUP_1:def 13 .= 1_.S by POLYNOM3:def 10;
+   end;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p,q being Element of the carrier of Polynom-Ring R
+   holds (PolyHom h).(p+q) = (PolyHom h).p + (PolyHom h).q by VECTSP_1:def 20;
+
+theorem
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p,q being Element of the carrier of Polynom-Ring R
+   holds (PolyHom h).(p*q) = (PolyHom h).p * (PolyHom h).q by GROUP_6:def 6;
+
+theorem Th27:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R), b being Element of R
+   holds (PolyHom h).(b*p) = h.b * (PolyHom h).p
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R), b be Element of R;
+     reconsider q = b * p as Element of the carrier of Polynom-Ring R
+       by POLYNOM3:def 10;
+     reconsider f = (PolyHom h).q as Element of the carrier of Polynom-Ring S;
+     now let i be Element of NAT;
+       f.i = h.(q.i) by Def2
+       .= h.(b * (p.i)) by POLYNOM5:def 4
+       .= h.b * h.(p.i) by GROUP_6:def 6
+       .= h.b * ((PolyHom h).p).i by Def2
+       .= (h.b * (PolyHom h).p).i by POLYNOM5:def 4;
+       hence f.i = (h.b * (PolyHom h).p).i;
+     end;
+     hence thesis by FUNCT_2:63;
+   end;
+
+Lm2:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p being Element of the carrier of Polynom-Ring R
+   holds len((PolyHom h).p) <= len p
+   proof
+     let R be Ring, S be R-homomorphic Ring;
+     let h be Homomorphism of R,S;
+     let p be Element of the carrier of Polynom-Ring R;
+     reconsider f = (PolyHom h).p as Element of the carrier of Polynom-Ring S;
+    now let i be Nat;
+      assume i >= len p; then
+      p.i = 0.R by ALGSEQ_1:8;
+      hence f.i = h.(0.R) by Def2 .= 0.S by RING_2:6;
+    end; then
+    len p is_at_least_length_of f;
+    hence thesis by ALGSEQ_1:def 3;
+   end;
+
+Lm3:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R) st len p <> 0
+   holds len((PolyHom h).p) = len p iff h.(p.(len p-'1)) <> 0.S
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R);
+     set lp1 = len p -' 1;
+     assume len p <> 0; then
+A2:   len p - 1 = len p -' 1 by XREAL_0:def 2; then
+A3:   lp1 + 1 = len p;
+A4:   len((PolyHom h).p) <= len p by Lm2;
+A5:   now assume h.(p.(len p-'1)) <> 0.S; then
+A6:     ((PolyHom h).p).(len p-'1) <> 0.S by Def2;
+       now assume len((PolyHom h).p) < len p; then
+         len((PolyHom h).p) <= lp1 by A3,NAT_1:13;
+         hence contradiction by A6,ALGSEQ_1:8;
+       end;
+       hence len((PolyHom h).p) = len p by A4,XXREAL_0:1;
+     end;
+     now assume len((PolyHom h).p) = len p; then
+       len((PolyHom h).p) = lp1 + 1 by A2; then
+       ((PolyHom h).p).lp1 <> 0.S by ALGSEQ_1:10;
+       hence h.(p.(len p-'1)) <> 0.S by Def2;
+     end;
+   hence thesis by A5;
+  end;
+
+Lm4:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p,L being Element of the carrier of (Polynom-Ring R)
+   st L = LM p for a being Element of R holds
+   h.eval(LM p,a) = eval((PolyHom h).L, h.a)
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let p,L be Element of the carrier of (Polynom-Ring R);
+     assume
+A1:  L = LM p;
+     let a be Element of R;
+     per cases;
+       suppose A2: p = 0_.R; then
+A3:    L = 0_.R by A1,POLYNOM4:13;
+       thus h.eval(LM p,a) = h.eval(0_.R,a) by A2,POLYNOM4:13
+          .= h.(0.R) by POLYNOM4:17
+          .= 0.S by RING_2:6
+          .= eval(0_.S,h.a) by POLYNOM4:17
+          .= eval((PolyHom h).L,h.a) by A3,Th23;
+       end;
+       suppose A4: p <> 0_.R;
+       set f = PolyHom h;
+       reconsider q = (PolyHom h).L as Polynomial of S;
+       consider F being FinSequence of the carrier of R such that
+A5:     eval(LM p,a) = Sum F & len F = len LM p & for n be Element of NAT
+       st n in dom F holds F.n = (LM p).(n-'1) * (power R).(a,n-'1)
+         by POLYNOM4:def 2;
+A6:    Sum F = p.(len p-'1) * (power R).(a,len p-'1) by A5,POLYNOM4:22
+         .= (LM p).(len p-'1) * (power R).(a,len p-'1) by POLYNOM4:def 1;
+       consider G being FinSequence of the carrier of S such that
+A7:     eval(q,h.a) = Sum G & len G = len q & for n be Element of NAT
+       st n in dom G holds G.n = q.(n-'1) * (power S).(h.a,n-'1)
+       by POLYNOM4:def 2;
+A8:    len q <= len L by Lm2;
+A9:    len G <= len F by A1,A5,A7,Lm2;
+A10:   len F = len p by A5,POLYNOM4:15; then
+A11:   len F <> 0 by A4,POLYNOM4:5; then
+A12:   0 + 1 <= len F by NAT_1:13;
+A13:   len p -' 1 = len p - 1 by A11,A10,XREAL_0:def 2;
+A15:   for n being Element of NAT st n in dom G holds n in dom F
+       proof
+         let n be Element of NAT;
+         assume n in dom G; then
+         1 <= n <= len q by A7,FINSEQ_3:25; then
+         1 <= n <= len L by A8,XXREAL_0:2;
+         hence thesis by A1,A5,FINSEQ_3:25;
+       end;
+A16:   for n being Element of NAT st n in dom G holds h.(F.n) = G.n
+       proof
+         let n be Element of NAT;
+         assume
+A17:     n in dom G;
+         hence h.(F.n) = h.((LM p).(n-'1) * (power R).(a,n-'1)) by A15,A5
+          .= h.(L.(n-'1)) * h.((power R).(a,n-'1)) by A1,GROUP_6:def 6
+          .= q.(n-'1) * h.((power R).(a,n-'1)) by Def2
+          .= q.(n-'1) * h.(a|^(n-'1)) by BINOM:def 2
+          .= q.(n-'1) * (h.a)|^(n-'1) by Th14
+          .= q.(n-'1) * (power S).(h.a,(n-'1)) by BINOM:def 2
+          .= G.n by A17,A7;
+       end;
+A18:   for n being Element of NAT st n in dom G & n <> len p holds G/.n = 0.S
+       proof
+         let n be Element of NAT;
+         assume
+A19:     n in dom G & n <> len p; then
+         1 <= n by FINSEQ_3:25; then
+         n - 1 = n -' 1 by XREAL_0:def 2; then
+A20:     n-'1 <> len p -'1 by A19,A13;
+         thus G/.n = G.n by A19,PARTFUN1:def 6
+            .= h.(F.n) by A16,A19
+            .= h.((LM p).(n-'1) * (power R).(a,n-'1)) by A5,A19,A15
+            .= h.((0.R) * (power R).(a,n-'1)) by A20,POLYNOM4:def 1
+            .= 0.S by RING_2:6;
+       end;
+       per cases by A9,XXREAL_0:1;
+         suppose
+A21:     len G = len F; then
+A22:     len G in dom G by A12,FINSEQ_3:25;
+         Sum G = G/.(len G) by A18,A21,A10,POLYNOM2:3,A12,FINSEQ_3:25
+            .= G.(len G) by A22,PARTFUN1:def 6
+            .= h.(F.(len F)) by A12,FINSEQ_3:25,A16,A21
+            .= h.(Sum F) by A6,FINSEQ_3:25,A12,A5,A10;
+         hence thesis by A5,A7;
+         end;
+         suppose
+A23:     len G < len F; then
+         0.S = h.(L.(len L-'1)) by A7,A5,A1,Lm3
+          .= h.(L.(len p-'1)) by A1,POLYNOM4:15
+          .= h.(p.(len p-'1)) by A1,POLYNOM4:def 1; then
+A24:     0.S = h.(p.(len p-'1)) * h.((power R).(a,len p-'1))
+             .= h.(p.(len p-'1) * (power R).(a,len p-'1)) by GROUP_6:def 6
+             .= h.eval(LM p,a) by POLYNOM4:22;
+         now let n be Element of NAT;
+           assume
+A25:       n in dom G; then
+           n in Seg len G by FINSEQ_1:def 3; then
+           n <> len p by A23,A10,FINSEQ_1:1;
+           hence 0.S = G/.n by A25,A18 .= G.n by A25,PARTFUN1:def 6;
+         end;
+         hence thesis by A24,A7,POLYNOM3:1;
+       end;
+     end;
+   end;
+
+theorem Th28:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R), a being Element of R
+   holds h.eval(p,a) = eval((PolyHom h).p, h.a)
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R), a be Element of R;
+     defpred P[Nat] means
+     for p be Element of the carrier of (Polynom-Ring R), a be Element of R
+     st len p = $1 holds h.eval(p,a) = eval((PolyHom h).p, h.a);
+A1:  P[0]
+     proof
+       let p be Element of the carrier of (Polynom-Ring R), a be Element of R;
+       assume
+A2:    len p = 0; then
+A3:    p = 0_.R by POLYNOM4:5;
+       thus h.eval(p,a) = h.eval(0_.R,a) by A2,POLYNOM4:5
+       .= h.(0.R) by POLYNOM4:17 .= 0.S by RING_2:6
+       .= eval(0_.S,h.a) by POLYNOM4:17 .= eval((PolyHom h).p, h.a) by A3,Th23;
+    end;
+A4: now let k be Nat;
+    assume
+A5: for m being Nat st m < k holds P[m];
+    now let p be Element of the carrier of (Polynom-Ring R), a be Element of R;
+      assume
+A6:   len p = k;
+      per cases;
+        suppose k = 0;
+        hence h.eval(p,a) = eval((PolyHom h).p, h.a) by A6,A1;
+        end;
+        suppose k > 0; then
+        consider q being Polynomial of R such that
+A7:      len q < len p & p = q + LM p &
+        for n be Element of NAT st n < len p-1 holds q.n = p.n
+          by A6,POLYNOM4:16;
+        reconsider g = q as Element of the carrier of Polynom-Ring R
+          by POLYNOM3:def 10;
+        reconsider LMp = LM p as Element of the carrier of Polynom-Ring R
+          by POLYNOM3:def 10;
+        reconsider g1 = (PolyHom h).g, g2 = (PolyHom h).LMp as Polynomial of S;
+A8:      (PolyHom h).g + (PolyHom h).LMp = g1 + g2 by POLYNOM3:def 10;
+A9:      h.(eval(q,a)) = eval((PolyHom h).g, h.a) by A6,A7,A5;
+        thus h.eval(p,a) = h.(eval(q,a) + eval(LMp,a)) by A7,POLYNOM4:19
+        .= h.(eval(q,a)) + h.(eval(LMp,a)) by VECTSP_1:def 20
+        .= eval((PolyHom h).g, h.a) + eval((PolyHom h).LMp, h.a) by A9,Lm4
+        .= eval(g1+g2,h.a) by POLYNOM4:19
+        .= eval((PolyHom h).(g+LMp), h.a) by A8,VECTSP_1:def 20
+        .= eval((PolyHom h).p, h.a) by A7,POLYNOM3:def 10;
+        end;
+      end;
+      hence P[k];
+    end;
+A10:  for k being Nat holds P[k] from NAT_1:sch 4(A4);
+    ex n being Nat st n = len p;
+    hence thesis by A10;
+   end;
+
+:: RING_5:7 is required domRing
+theorem
+   for R being domRing, S being R-homomorphic domRing
+   for h being Homomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R),
+   b,x being Element of R holds
+   h.eval(b*p,x) = h.b * eval((PolyHom h).p,h.x)
+   proof
+     let R be domRing, S be R-homomorphic domRing;
+     let h be Homomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R), b,x be Element of R;
+     reconsider q = b * p as Element of the carrier of Polynom-Ring R
+     by POLYNOM3:def 10;
+     h.eval(b*p,x) = eval((PolyHom h).q, h.x) by Th28
+             .= eval(h.b * (PolyHom h).p,h.x) by Th27
+             .= h.b * eval((PolyHom h).p,h.x) by RING_5:7;
+     hence thesis;
+   end;
+
+registration
+  let R be Ring;
+  cluster R-homomorphic R-monomorphic for Ring;
+  existence
+proof
+take R;
+id R is RingHomomorphism;
+hence R is R-homomorphic;
+id R is RingMonomorphism;
+hence R is R-monomorphic by RING_3:def 3;
+end;
+cluster R-homomorphic R-isomorphic for Ring;
+existence
+proof
+take R;
+id R is RingHomomorphism;
+hence R is R-homomorphic;
+id R is RingIsomorphism;
+hence R is R-isomorphic by RING_3:def 4;
+end;
+end;
+
+registration
+  let R be Ring;
+  cluster R-monomorphic -> R-homomorphic for Ring;
+  coherence;
+end;
+
+registration
+  let R be Ring,
+      S be R-homomorphic R-monomorphic Ring;
+  let h be Monomorphism of R,S;
+  cluster PolyHom h -> monomorphism;
+coherence
+proof
+set f = PolyHom h;
+now let x1,x2 be object;
+  assume A1: x1 in the carrier of Polynom-Ring R &
+             x2 in the carrier of Polynom-Ring R & f.x1 = f.x2; then
+  reconsider p = x1, q = x2 as Element of the carrier of Polynom-Ring R;
+  now let i be Element of NAT;
+    h.(p.i) = (f.q).i by A1,Def2 .= h.(q.i) by Def2;
+    hence p.i = q.i by FUNCT_2:19;
+    end;
+  then p = q;
+  hence x1 = x2;
+  end;
+then f is one-to-one by FUNCT_2:19;
+hence thesis;
+end;
+end;
+
+registration
+  let R be Ring,
+      S be R-isomorphic R-homomorphic Ring;
+  let h be Isomorphism of R,S;
+  cluster PolyHom h -> isomorphism;
+  coherence
+proof
+set f = PolyHom h;
+A1: for o be object st o in rng f holds o in the carrier of Polynom-Ring S;
+now let o be object;
+  assume o in the carrier of Polynom-Ring S; then
+  reconsider p = o as Element of the carrier of Polynom-Ring S;
+  deffunc F(object) = (h").(p.($1));
+A2: for o be object st o in NAT holds F(o) in the carrier of R
+   proof
+     let o be object;
+     assume o in NAT;
+     then reconsider i = o as Element of NAT;
+     F(i) = (h").(p.i);
+     hence thesis;
+     end;
+   consider q being Function of NAT,the carrier of R such that
+A3: for x being object st x in NAT holds q.x = F(x) from FUNCT_2:sch 2(A2);
+   ex n being Nat st for i being Nat st i >= n holds q.i = 0.R
+   proof
+   take n = len p;
+   now let i be Nat;
+A4: h" is Isomorphism of S,R by RING_3:73;
+   assume i >= n; then
+   p.i = 0.S by ALGSEQ_1:8;
+   hence q.i = (h").(0.S) by A3,ORDINAL1:def 12 .= 0.R by A4,RING_2:6;
+   end;
+   hence thesis;
+   end; then
+   reconsider q as Polynomial of R by ALGSEQ_1:def 1;
+   reconsider q as Element of the carrier of Polynom-Ring R by POLYNOM3:def 10;
+A5: dom f = the carrier of Polynom-Ring R by FUNCT_2:def 1;
+   now let i be Element of NAT;
+A6:  dom(h") = the carrier of S by FUNCT_2:def 1;
+    (f.q).i = h.(q.i) by Def2
+           .= (h"").((h").(p.i)) by A3
+           .= p.i by A6,FUNCT_1:34;
+    hence (f.q).i = p.i;
+    end; then
+    f.q = p;
+    hence o in rng f by A5,FUNCT_1:def 3;
+  end; then
+  f is onto by A1,TARSKI:2;
+  hence thesis;
+end;
+end;
+
+theorem
+  for R being Ring,
+      S being R-homomorphic Ring
+  for h being Homomorphism of R,S
+  for p being Element of the carrier of (Polynom-Ring R)
+  holds deg((PolyHom h).p) <= deg p by Lm2,XREAL_1:6;
+
+theorem
+   for R being non degenerated Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p being non zero Element of the carrier of (Polynom-Ring R)
+   holds deg((PolyHom h).p) = deg p iff h.(LC p) <> 0.S
+   proof
+     let R be non degenerated Ring, S be R-homomorphic Ring;
+     let h be Homomorphism of R,S;
+     let p be non zero Element of the carrier of (Polynom-Ring R);
+     p <> 0_.R; then
+A1:   len p <> 0 by POLYNOM4:5;
+     hereby
+     assume deg((PolyHom h).p) = deg p; then
+     h.(p.(len p-'1)) <> 0.S by A1,Lm3;
+     hence h.(LC p) <> 0.S by RATFUNC1:def 6;
+     end;
+     assume h.(LC p) <> 0.S; then
+     h.(p.(len p-'1)) <> 0.S by RATFUNC1:def 6;
+     hence deg((PolyHom h).p) = deg p by A1,Lm3;
+   end;
+
+theorem Th32:
+   for R being Ring, S being R-monomorphic R-homomorphic Ring
+   for h being Monomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R)
+   holds deg((PolyHom h).p) = deg p
+   proof
+     let R be Ring, S be R-monomorphic R-homomorphic Ring;
+     let h be Monomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R);
+     reconsider f = (PolyHom h).p as
+       Element of the carrier of Polynom-Ring S;
+A1:   now let i be Nat;
+       assume i >= len p; then
+       p.i = 0.R by ALGSEQ_1:8;
+       hence f.i = h.(0.R) by Def2 .= 0.S by RING_2:6;
+     end;
+     now let m be Nat;
+       assume
+A2:     m is_at_least_length_of f;
+       now assume len p > m; then
+         len p - 1 > m - 1 by XREAL_1:6; then
+A3:      len p - 1 >= (m - 1) + 1 by INT_1:7; then
+         reconsider lp = len p - 1 as Element of NAT by INT_1:3;
+A4:      lp + 1 = len p;
+         h.(0.R) = 0.S by RING_2:6
+           .= f.lp by A3,A2
+           .= h.(p.lp) by Def2; then
+         p.lp = 0.R by FUNCT_2:19;
+         hence contradiction by A4,ALGSEQ_1:10;
+       end;
+       hence len p <= m;
+     end;
+     hence thesis by A1,ALGSEQ_1:def 2,def 3;
+   end;
+
+theorem Th33:
+   for R being Ring, S being R-monomorphic R-homomorphic Ring
+   for h being Monomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R)
+   holds LM((PolyHom h).p) = (PolyHom h).(LM p)
+   proof
+     let R be Ring, S be R-monomorphic R-homomorphic Ring;
+     let h be Monomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R);
+     reconsider f = (PolyHom h).p as
+     Element of the carrier of Polynom-Ring S;
+     reconsider LMp = LM p as
+     Element of the carrier of Polynom-Ring R by POLYNOM3:def 10;
+A1:   deg f = deg p by Th32 .= len p - 1;
+     now let i be Element of NAT;
+       per cases;
+         suppose A2: i = len p -'1; then
+           (LM f).i = f.(len p -'1) by A1,POLYNOM4:def 1
+                 .= h.(p.(len p -'1)) by Def2
+                 .= h.((LM p).i) by A2,POLYNOM4:def 1
+                 .= ((PolyHom h).(LMp)).i by Def2;
+           hence (LM f).i = ((PolyHom h).(LMp)).i;
+         end;
+         suppose A3: i <> len p -'1; then
+           (LM f).i = 0.S by A1,POLYNOM4:def 1
+                 .= h.(0.R) by RING_2:6
+                 .= h.((LM p).i) by A3,POLYNOM4:def 1
+                 .= ((PolyHom h).(LMp)).i by Def2;
+           hence (LM f).i = ((PolyHom h).(LMp)).i;
+         end;
+       end;
+       hence thesis by FUNCT_2:63;
+    end;
+
+theorem Th34:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p be Element of the carrier of (Polynom-Ring R), a be Element of R
+   holds a is_a_root_of p implies h.a is_a_root_of (PolyHom h).p
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R), a be Element of R;
+     assume a is_a_root_of p; then
+     eval(p,a) = 0.R by POLYNOM5:def 7; then
+     eval((PolyHom h).p, h.a) = h.(0.R) by Th28 .= 0.S by RING_2:6;
+     hence thesis by POLYNOM5:def 7;
+   end;
+
+theorem Th35:
+   for R being Ring, S being R-monomorphic R-homomorphic Ring
+   for h being Monomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R), a being Element of R
+   holds a is_a_root_of p iff h.a is_a_root_of (PolyHom h).p
+   proof
+     let R be Ring, S be R-monomorphic R-homomorphic Ring;
+     let h be Monomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R), a be Element of R;
+     now assume
+A1:    h.a is_a_root_of (PolyHom h).p;
+       h.(0.R) = 0.S by RING_2:6
+         .= eval((PolyHom h).p,h.a) by A1,POLYNOM5:def 7
+         .= h.eval(p,a) by Th28; then
+       eval(p,a) = 0.R by FUNCT_2:19;
+       hence a is_a_root_of p by POLYNOM5:def 7;
+     end;
+     hence thesis by Th34;
+   end;
+
+theorem Th36:
+   for R being Ring, S being R-isomorphic R-homomorphic Ring
+   for h being Isomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R),
+   b being Element of S holds b is_a_root_of (PolyHom h).p iff
+   ex a being Element of R st a is_a_root_of p & h.a = b
+   proof
+     let R be Ring, S be R-isomorphic R-homomorphic Ring;
+     let h be Isomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R), b be Element of S;
+A1:   now assume A2: b is_a_root_of (PolyHom h).p;
+       set a = (h").b;
+A3:    dom(h") = the carrier of S by FUNCT_2:def 1;
+A4:    h.a = (h"").((h").b) .= b by A3,FUNCT_1:34;
+       h.eval(p,a) = eval((PolyHom h).p,h.a) by Th28
+              .= 0.S by A4,A2,POLYNOM5:def 7
+              .= h.(0.R) by RING_2:6; then
+       eval(p,a) = 0.R by FUNCT_2:19;
+       hence ex a being Element of R st h.a = b & a is_a_root_of p
+         by A4,POLYNOM5:def 7;
+     end;
+     now assume ex a being Element of R st h.a = b & a is_a_root_of p; then
+       consider a being Element of R such that
+A5:     h.a = b & a is_a_root_of p;
+       eval((PolyHom h).p,b) = h.(eval(p,a)) by A5,Th28
+           .= h.(0.R) by A5,POLYNOM5:def 7
+           .= 0.S by RING_2:6;
+       hence b is_a_root_of (PolyHom h).p by POLYNOM5:def 7;
+     end;
+     hence thesis by A1;
+   end;
+
+theorem Th37:
+   for R being Ring, S being R-homomorphic Ring
+   for h being Homomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R) holds
+   Roots p c= {a where a is Element of R : h.a in Roots (PolyHom h).p}
+   proof
+     let R be Ring, S be R-homomorphic Ring; let h be Homomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R);
+     let o be object;
+     assume
+A1:  o in Roots p; then
+     reconsider a = o as Element of R;
+     a is_a_root_of p by A1,POLYNOM5:def 10; then
+     h.a is_a_root_of (PolyHom h).p by Th34; then
+     h.a in Roots (PolyHom h).p by POLYNOM5:def 10;
+     hence o in {a where a is Element of R : h.a in Roots (PolyHom h).p};
+   end;
+
+theorem
+   for R being Ring, S being R-monomorphic R-homomorphic Ring
+   for h being Monomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R)
+   holds Roots p = {a where a is Element of R : h.a in Roots (PolyHom h).p}
+   proof
+     let R be Ring, S be R-monomorphic R-homomorphic Ring;
+     let h be Monomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R);
+A1:   Roots p c={a where a is Element of R : h.a in Roots (PolyHom h).p} by
+Th37;
+     now let o be object;
+       assume o in {a where a is Element of R : h.a in Roots (PolyHom h).p};
+       then
+       consider a being Element of R such that
+A2:    o = a & h.a in Roots (PolyHom h).p;
+       h.a is_a_root_of (PolyHom h).p by A2,POLYNOM5:def 10; then
+       a is_a_root_of p by Th35;
+       hence o in Roots p by A2,POLYNOM5:def 10;
+     end;
+     hence thesis by TARSKI:2,A1;
+   end;
+
+theorem Th39:
+   for R being Ring, S being R-isomorphic R-homomorphic Ring
+   for h being Isomorphism of R,S
+   for p being Element of the carrier of (Polynom-Ring R)
+   holds Roots (PolyHom h).p = {h.a where a is Element of R : a in Roots p}
+   proof
+     let R be Ring, S be R-isomorphic R-homomorphic Ring;
+     let h be Isomorphism of R,S;
+     let p be Element of the carrier of (Polynom-Ring R);
+A1:   now let o be object;
+       assume
+A2:     o in Roots (PolyHom h).p; then
+       reconsider b = o as Element of S;
+       b is_a_root_of (PolyHom h).p by A2,POLYNOM5:def 10; then
+       consider a being Element of R such that
+A3:     a is_a_root_of p & h.a = b by Th36;
+       a in Roots p by A3,POLYNOM5:def 10;
+       hence o in {h.a where a is Element of R : a in Roots p} by A3;
+     end;
+     now let o be object;
+       assume o in {h.a where a is Element of R : a in Roots p}; then
+       consider a being Element of R such that
+A4:     o = h.a & a in Roots p;
+       a is_a_root_of p by A4,POLYNOM5:def 10; then
+       h.a is_a_root_of (PolyHom h).p by Th36;
+       hence o in Roots (PolyHom h).p by A4,POLYNOM5:def 10;
+     end;
+     hence thesis by A1,TARSKI:2;
+   end;
+
+begin :: Kronecker's Theorem
+
+ reserve F for Field,
+         p for irreducible Element of the carrier of Polynom-Ring F,
+         f for Element of the carrier of Polynom-Ring F,
+         a for Element of F;
+
+definition
+  let F,p;
+  func KroneckerField(F,p) -> Field equals
+  (Polynom-Ring F)/({p}-Ideal);
+  coherence;
+end;
+
+definition
+  let F, p;
+  func emb p -> Function of F, KroneckerField(F,p) equals
+  canHom({p}-Ideal) * canHom(F);
+  coherence;
+end;
+
+registration
+  let F, p;
+  cluster emb p -> additive multiplicative unity-preserving;
+  coherence;
+end;
+
+registration
+  let F, p;
+  cluster emb p -> monomorphism;
+  coherence;
+end;
+
+registration
+  let F, p;
+  cluster KroneckerField(F,p) -> F-homomorphic F-monomorphic;
+  coherence
+  proof
+    emb p is monomorphism;
+    hence thesis by RING_3:def 3;
+  end;
+end;
+
+definition
+  let F, p, f;
+  func emb(f,p) -> Element of the carrier of Polynom-Ring KroneckerField(F,p)
+  equals
+  (PolyHom (emb p)).f;
+  coherence;
+end;
+
+definition
+  let F, p;
+  func KrRoot p -> Element of KroneckerField(F,p) equals
+  Class(EqRel(Polynom-Ring F,{p}-Ideal),<%0.F,1.F%>);
+  coherence
+  proof
+    set E = KroneckerField(F,p);
+    reconsider q = <%0.F,1.F%> as Element of the carrier of Polynom-Ring F
+      by POLYNOM3:def 10;
+    Class(EqRel(Polynom-Ring F,{p}-Ideal),q) is Element of E by RING_1:12;
+    hence thesis;
+  end;
+end;
+
+theorem Th40:
+  for F, p, a holds (emb p).a = Class(EqRel(Polynom-Ring F,{p}-Ideal),a|F)
+   proof
+     let F,p, a;
+     reconsider pa = a|F as Element of Polynom-Ring F by POLYNOM3:def 10;
+     dom(canHom F) = the carrier of F by FUNCT_2:def 1;
+     hence (emb p).a = (canHom({p}-Ideal)).((canHom(F)).a) by FUNCT_1:13
+           .= (canHom({p}-Ideal)).pa by RING_4:def 6
+           .= Class(EqRel(Polynom-Ring F,{p}-Ideal),a|F) by RING_2:def 5;
+   end;
+
+theorem Th41:
+   (emb(f,p)).n = Class(EqRel(Polynom-Ring F,{p}-Ideal),(f.n)|F)
+   proof
+      thus (emb(f,p)).n = (emb p).(f.n) by Def2
+      .= Class(EqRel(Polynom-Ring F,{p}-Ideal),(f.n)|F) by Th40;
+   end;
+
+Lm5:
+   eval(LM emb(f,p),KrRoot p) = Class(EqRel(Polynom-Ring F,{p}-Ideal),LM f)
+   proof
+     set LMf = Leading-Monomial(f), LMfe = Leading-Monomial(emb(f,p));
+     set z = KrRoot p, E = KroneckerField(F,p);
+     set efp = emb(f,p); set n = len efp -' 1;
+     per cases;
+       suppose A1: f = 0_.F; then
+         emb(f,p) = 0_.E by Th23; then
+         LMfe = 0_.E by POLYNOM4:13; then
+A2:       eval(LMfe,KrRoot p) = 0.E by POLYNOM4:17
+         .= Class(EqRel(Polynom-Ring F,{p}-Ideal),0.(Polynom-Ring F))
+           by RING_1:def 6;
+         0.(Polynom-Ring F) = 0_.F by POLYNOM3:def 10;
+         hence thesis by A1,A2,POLYNOM4:13;
+       end;
+       suppose f <> 0_.F; then
+         reconsider f1 = f as non zero Polynomial of F by UPROOTS:def 5;
+         reconsider fnF = (f.n)|F as Element of the carrier of Polynom-Ring F
+         by POLYNOM3:def 10;
+         reconsider x = <%0.F,1.F%> as Element of the carrier of Polynom-Ring F
+         by POLYNOM3:def 10;
+A3:       efp.n = Class(EqRel(Polynom-Ring F,{p}-Ideal),(f.n)|F) by Th41;
+A4:       (power E).(z,n) = z|^n by BINOM:def 2
+         .= Class(EqRel(Polynom-Ring F,{p}-Ideal),x|^n) by Th3;
+         set a = f.n;
+A5:      deg f = deg efp by Th32 .= len efp - 1; then
+A6:      n = deg f1 by XREAL_0:def 2;
+         LC f1 is non zero; then
+A7:      a is non zero by A5,RATFUNC1:def 6;
+         x|^n = (power Polynom-Ring F).(<%0.F,1.F%>,n) by BINOM:def 2
+         .= <%0.F,1.F%>`^n by POLYNOM5:def 3
+         .= anpoly(1.F,n) by Th13; then
+A8:       fnF * (x|^n) = anpoly(a,0) *' anpoly(1.F,n) by POLYNOM3:def 10
+         .= anpoly(a * 1.F, 0 + n) by A7,Th11 .= LM f by A6,Th12;
+        thus eval(LMfe,KrRoot p) = efp.n * (power E).(z,n) by POLYNOM4:22
+        .= Class(EqRel(Polynom-Ring F,{p}-Ideal),LMf) by A8,A3,A4,RING_1:14;
+      end;
+    end;
+
+theorem Th42:
+   eval(emb(f,p),KrRoot p) = Class(EqRel(Polynom-Ring F,{p}-Ideal),f)
+   proof
+     set z = KrRoot p, E = KroneckerField(F,p), h = canHom (emb p);
+     defpred P[Nat] means
+     for f st len f = $1 holds eval(emb(f,p),z)
+     = Class(EqRel(Polynom-Ring F,{p}-Ideal),f);
+A1:  now let f be Element of the carrier of Polynom-Ring F;
+       assume len f = 0; then
+       f = 0_.F by POLYNOM4:5; then
+A2:    f = 0.(Polynom-Ring F) by POLYNOM3:def 10;
+       0_.E = 0.(Polynom-Ring E) by POLYNOM3:def 10
+          .= emb(f,p) by A2,RING_2:6;
+       hence eval(emb(f,p),z) = 0.E by POLYNOM4:17
+       .= Class(EqRel(Polynom-Ring F,{p}-Ideal),f) by A2,RING_1:def 6;
+     end;
+A3:  now let k be Nat;
+       assume A4: for m being Nat st m < k holds P[m];
+       now let f be Element of the carrier of Polynom-Ring F;
+         assume
+A5:      len f = k;
+         per cases;
+            suppose k = 0;
+            hence eval(emb(f,p),z) = Class(EqRel(Polynom-Ring F,{p}-Ideal),f)
+            by A5,A1;
+         end;
+         suppose k > 0; then
+         consider q being Polynomial of F such that
+A6:       len q < len f & f = q + Leading-Monomial(f) &
+         for n be Element of NAT st n < len f-1 holds q.n = f.n
+         by A5,POLYNOM4:16;
+         reconsider g = q as Element of the carrier of Polynom-Ring F
+         by POLYNOM3:def 10;
+         reconsider LMf = LM f as Element of the carrier of Polynom-Ring F
+         by POLYNOM3:def 10;
+         reconsider r1 = emb(LMf,p), r2 = emb(g,p) as Polynomial of E;
+A7:       emb(LMf+g,p) = emb(LMf,p) + emb(g,p) by VECTSP_1:def 20
+                     .= r1 + r2 by POLYNOM3:def 10;
+         Leading-Monomial(emb(f,p)) = emb(LMf,p) by Th33; then
+A8:       eval(emb(LMf,p),z)=Class(EqRel(Polynom-Ring F,{p}-Ideal),LMf)
+         by Lm5;
+A9:       eval(emb(g,p),z)=Class(EqRel(Polynom-Ring F,{p}-Ideal),g)
+          by A6,A5,A4;
+A10:       eval(emb(LMf,p),z) + eval(emb(g,p),z)
+         = Class(EqRel(Polynom-Ring F,{p}-Ideal),LMf+g) by A9,A8,RING_1:13
+         .= Class(EqRel(Polynom-Ring F,{p}-Ideal),f) by A6,POLYNOM3:def 10;
+         thus eval(emb(f,p),z) = eval(r1+r2,z) by A7,A6,POLYNOM3:def 10
+         .= Class(EqRel(Polynom-Ring F,{p}-Ideal),f) by A10,POLYNOM4:19;
+       end;
+     end;
+     hence P[k];
+   end;
+A11: for k being Nat holds P[k] from NAT_1:sch 4(A3);
+   ex n being Nat st len f = n;
+   hence thesis by A11;
+end;
+
+theorem Th43:
+   KrRoot p is_a_root_of emb(p,p)
+   proof
+A1:   p - 0.(Polynom-Ring F) in {p}-Ideal by IDEAL_1:66;
+     eval(emb(p,p),KrRoot p)
+     = Class(EqRel(Polynom-Ring F,{p}-Ideal),p) by Th42
+     .= Class(EqRel(Polynom-Ring F,{p}-Ideal),0.(Polynom-Ring F))
+       by A1,RING_1:6
+     .= 0.KroneckerField(F,p) by RING_1:def 6;
+     hence thesis by POLYNOM5:def 7;
+   end;
+
+theorem
+   f is non constant implies ex p being irreducible Element of
+   the carrier of Polynom-Ring F st emb(f,p) is with_roots
+   proof
+     assume f is non constant; then
+     consider p being Element of the carrier of Polynom-Ring F such that
+A2:   p is_a_irreducible_factor_of f by Th4;
+     reconsider p as irreducible Element of the carrier of Polynom-Ring F
+       by A2;
+     take p;
+     consider q being Element of the carrier of Polynom-Ring F such that
+A3:   p * q = f by A2,GCD_1:def 1;
+A4:   emb(f,p) = (PolyHom (emb p)).p * (PolyHom (emb p)).q by A3,GROUP_6:def 6
+     .= emb(p,p) *' emb(q,p) by POLYNOM3:def 10;
+     (KrRoot p) is_a_root_of emb(p,p) by Th43; then
+     emb(p,p) is with_roots by POLYNOM5:def 8;
+     hence thesis by A4;
+   end;
+
+theorem Th45:
+   emb p is isomorphism implies p is with_roots
+   proof
+     set h = emb p;
+     assume A1: emb p is isomorphism; then
+     reconsider K = KroneckerField(F,p) as F-isomorphic F-homomorphic Ring
+       by RING_3:def 4;
+     reconsider h as Isomorphism of F,K by A1;
+A2:   Roots (PolyHom h).p = {h.a where a is Element of F : a in Roots p}
+       by Th39;
+     KrRoot p is_a_root_of emb(p,p) by Th43; then
+     KrRoot p in Roots (PolyHom h).p by POLYNOM5:def 10; then
+     ex a being Element of F st (KrRoot p) = h.a & a in Roots p by A2;
+     hence thesis;
+   end;
+
+theorem
+   p is non with_roots implies emb p is non isomorphism by Th45;

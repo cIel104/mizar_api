@@ -1,0 +1,1483 @@
+:: Fundamental Properties of Fuzzy Implications
+::  by Adam Grabowski
+:: 
+:: Received September 29, 2018
+:: Copyright (c) 2018-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, XXREAL_1, REAL_1, XXREAL_0, FUZIMPL1, SUBSET_1, CARD_1,
+      TARSKI, ARYTM_1, ARYTM_3, POWER, FUNCT_1, XBOOLE_0, RELAT_1, BINOP_1,
+      FUZIMPL2, PREPOWER, LIMFUNC1, FDIFF_1, ORDINAL2, JGRAPH_2, RCOMP_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, XCMPLX_0, XXREAL_0, NUMBERS, BINOP_1,
+      VALUED_0, VALUED_1, XREAL_0, RELAT_1, FUNCT_1, RCOMP_1, PARTFUN1,
+      FUZNORM1, FCONT_1, PREPOWER, POWER, FDIFF_1, FUZIMPL1, LIMFUNC1,
+      TAYLOR_1;
+ constructors REAL_1, SEQ_4, TOPMETR, PREPOWER, POWER, FUZNORM1, FUZIMPL1,
+      TAYLOR_1, LIMFUNC1, FDIFF_1, FCONT_1;
+ registrations XBOOLE_0, RELSET_1, XXREAL_0, XREAL_0, MEMBERED, ORDINAL1,
+      FUZNORM1, VALUED_0, RCOMP_1, NUMBERS, FCONT_3, TAYLOR_1;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ definitions FUZIMPL1;
+ equalities SUBSET_1, XCMPLX_0, LIMFUNC1;
+ expansions TARSKI, FUZIMPL1;
+ theorems FUNCT_1, FUNCT_2, RELAT_1, XREAL_0, POWER, XCMPLX_1, XREAL_1,
+      XXREAL_0, XXREAL_1, FUZNORM1, FUZIMPL1, TAYLOR_1, PREPOWER, ROLLE,
+      FDIFF_1, INTEGRA7, VALUED_1, XBOOLE_1, FCONT_1, RCOMP_1;
+
+begin :: Preliminaries
+
+notation
+  synonym I_LK for Lukasiewicz_implication;
+  synonym I_GD for Goedel_implication;
+  synonym I_RC for Reichenbach_implication;
+  synonym I_KD for Kleene-Dienes_implication;
+  synonym I_GG for Goguen_implication;
+  synonym I_RS for Rescher_implication;
+  synonym I_YG for Yager_implication;
+  synonym I_WB for Weber_implication;
+  synonym I_FD for Fodor_implication;
+end;
+
+ reserve x,y for Element of [.0,1.];
+
+Lemma00:
+  x * y + (1 - x) * 1 in [.y,1.]
+  proof
+    0 <= x & x <= 1 & y <= 1 by XXREAL_1:1; then
+A1: y <= (1-x)*1+x*y by XREAL_1:173;
+    0 <= x & x <= 1 & y <= 1 by XXREAL_1:1; then
+    (1 - x) * 1 + x * y <= 1 by XREAL_1:174;
+    hence thesis by A1,XXREAL_1:1;
+  end;
+
+LemmaHalf:
+  (1 / 2) to_power (1 / 2) <> 1
+  proof
+    (1 / 2) to_power (1 / 2) < 1 to_power (1 / 2) by POWER:37;
+    hence thesis by POWER:26;
+  end;
+
+theorem
+  #R 1 = AffineMap (1,0) | right_open_halfline 0
+  proof
+    set f = #R 1;
+    set g = AffineMap (1,0) | right_open_halfline 0;
+A1: dom f = right_open_halfline 0 by TAYLOR_1:def 4;
+    dom AffineMap (1,0) = REAL by FUNCT_2:def 1; then
+BA: dom f = dom g by A1,RELAT_1:62;
+    reconsider p = 1 as Real;
+    for x being object st x in dom f holds f.x = g.x
+    proof
+      let x be object;
+      assume x in dom f; then
+      reconsider xx = x as Element of right_open_halfline 0 by TAYLOR_1:def 4;
+A2:   xx > 0 by XXREAL_1:4;
+      f.x = xx #R p by TAYLOR_1:def 4 .= 1 * xx + 0 by PREPOWER:72,A2
+         .= (AffineMap (1,0)).xx by FCONT_1:def 4
+         .= g.x by FUNCT_1:49;
+      hence thesis;
+    end;
+    hence thesis by BA,FUNCT_1:2;
+  end;
+
+theorem LemmaAffine:
+  for a,b being Real holds
+    AffineMap (a,b) is_differentiable_on REAL &
+   for x being Real holds diff (AffineMap (a,b), x) = a
+  proof
+    let a,b be Real;
+    reconsider Z = [#]REAL as open Subset of REAL;
+A1: dom AffineMap (a,b) = REAL by FUNCT_2:def 1;
+A2: for x being Real st x in Z holds
+      AffineMap (a,b).x = a * x + b by FCONT_1:def 4;
+    hence
+Ka: AffineMap (a,b) is_differentiable_on REAL by A1,FDIFF_1:23;
+    let x be Real;
+AC: x in Z by XREAL_0:def 1;
+    ((AffineMap(a,b))`|Z).x = a by A1,A2,FDIFF_1:23,XREAL_0:def 1;
+    hence thesis by AC,FDIFF_1:def 7,Ka;
+  end;
+
+theorem
+  0 < x < 1 & 0 < y < 1 implies
+    ( #R x + AffineMap (-x, x-1)) | ].0,1.[ is increasing
+  proof
+      assume ZZ: 0 < x < 1 & 0 < y < 1;
+      set f1 = #R x;
+      set f2 = AffineMap (-x, x-1);
+      reconsider Y = ].0,1.[ as open Subset of REAL;
+      set f = f1 + f2;
+      set A = right_open_halfline 0;
+G0:   A c= dom f1 by TAYLOR_1:def 4;
+      dom f1 = ].0,+infty.[ by TAYLOR_1:def 4; then
+G1:   dom (f1 | A) = A by RELAT_1:62;
+K2:   f2 is_differentiable_on A by FDIFF_1:26,LemmaAffine;
+TR:   (f1 | A) | A = f1 | A by RELAT_1:72;
+      f1 | A is_differentiable_on A
+      proof
+        for z being Real st z in A holds
+          (f1 | A) | A is_differentiable_in z
+        proof
+          let z be Real;
+          assume
+W0:       z in A; then
+          z > 0 by XXREAL_1:235; then
+          consider N being Neighbourhood of z such that ::: lemma!
+R1:       N c= dom f1 & ex L being LinearFunc, R being RestFunc st
+          for x being Real st x in N holds f1.x - f1.z = L.(x-z) + R.(x-z)
+            by FDIFF_1:def 4,TAYLOR_1:21;
+          consider L being LinearFunc, R being RestFunc such that
+R2:       for x being Real st x in N holds
+             f1.x - f1.z = L.(x-z) + R.(x-z) by R1;
+          set V = A;
+          consider V1 being Neighbourhood of z such that
+Wa:       V1 c= V by RCOMP_1:18,W0;
+          consider N1 being Neighbourhood of z such that
+FX:       N1 c= N & N1 c= V1 by RCOMP_1:17;
+R4:       N1 c= dom (f1 | V) by FX,Wa,G1;
+          for x being Real st x in N1 holds
+            (f1 | V).x - (f1 | V).z = L.(x-z) + R.(x-z)
+          proof
+            let x be Real;
+            assume
+F1:         x in N1; then
+            f1.x = (f1 | V).x & f1.z = (f1 | V).z by FUNCT_1:49,Wa,FX,W0;
+            hence thesis by F1,R2,FX;
+          end;
+          hence thesis by TR,FDIFF_1:def 4,R4;
+        end;
+        hence thesis by G1,FDIFF_1:def 6;
+      end; then
+G2:   f1 is_differentiable_on A by INTEGRA7:5; then
+g2:   f1 is_differentiable_on Y by FDIFF_1:26,XXREAL_1:247;
+k2:   f2 is_differentiable_on Y by FDIFF_1:26,LemmaAffine;
+      dom f2 = REAL by FUNCT_2:def 1; then
+      A c= dom f1 /\ dom f2 by G0,XBOOLE_1:19; then
+      A c= dom (f1 + f2) by VALUED_1:def 1; then
+      f is_differentiable_on A by K2,FDIFF_1:18,G2; then
+ga:   f is_differentiable_on Y by FDIFF_1:26,XXREAL_1:247;
+az:   dom f = dom f1 /\ dom f2 by VALUED_1:def 1
+           .= right_open_halfline 0 /\ dom f2 by TAYLOR_1:def 4
+           .= right_open_halfline 0 /\ REAL by FUNCT_2:def 1
+           .= right_open_halfline 0 by XBOOLE_1:28;
+      for y being Real st y in Y holds 0 < diff(f,y)
+      proof
+        let y be Real;
+        assume
+Sa:     y in Y; then
+Sb:     0 < y < 1 by XXREAL_1:4;
+        f1 is_differentiable_in y & f2 is_differentiable_in y
+          by k2,g2,Sa,FDIFF_1:9; then
+H1:     diff (f,y) = diff(f1,y) + diff(f2,y) by FDIFF_1:13;
+        f1 is_differentiable_in y & diff(f1,y) = x
+            * (y #R (x-1)) by TAYLOR_1:21,Sb; then
+        diff (f1,y) = x * y to_power (x - 1) by POWER:def 2,Sb; then
+H3:     diff (f,y) = x * y to_power (x - 1) - x by H1,LemmaAffine
+                  .= x * (y to_power (x - 1) - 1);
+        x - 1 < 1 - 1 by ZZ,XREAL_1:9; then
+        y to_power (x - 1) > y to_power 0 by POWER:40,Sb; then
+        y to_power (x - 1) > 1 by POWER:24; then
+        y to_power (x - 1) - 1 > 1 - 1 by XREAL_1:9;
+        hence thesis by XREAL_1:129,H3,ZZ;
+      end;
+      hence thesis by ROLLE:9,ga,az,XXREAL_1:247;
+  end;
+
+theorem
+  for u being Real st u in ].0,1.] holds
+    ( #R x + AffineMap (-x, x-1)).u = u to_power x - 1 + x - x * u
+  proof
+      set f1 = #R x;
+      set f2 = AffineMap (-x, x-1);
+      reconsider Y = ].0,1.[ as open Subset of REAL;
+      set f = f1 + f2;
+      set A = right_open_halfline 0;
+BX:   dom f = dom f1 /\ dom f2 by VALUED_1:def 1
+           .= right_open_halfline 0 /\ dom f2 by TAYLOR_1:def 4
+           .= right_open_halfline 0 /\ REAL by FUNCT_2:def 1
+           .= right_open_halfline 0 by XBOOLE_1:28;
+        let u be Real;
+        assume
+S1:     u in ].0,1.]; then
+ZE:     u > 0 by XXREAL_1:2;
+        1 < +infty by XXREAL_0:9,XREAL_0:def 1; then
+h0:     ].0,1.] c= ].0,+infty.[ by XXREAL_1:49; then
+        f.u = f1.u + f2.u by S1,BX,VALUED_1:def 1
+           .= (u #R x) + f2.u by TAYLOR_1:def 4,h0,S1
+           .= (u to_power x) + f2.u by ZE,POWER:def 2
+           .= (u to_power x) + ((-x)*u + (x-1)) by FCONT_1:def 4
+           .= (u to_power x) + (-x*u + x-1);
+        hence thesis;
+  end;
+
+begin :: On the Ordering of Fuzzy Implications
+
+theorem Lemma01:
+  (x <= y implies I_LK.(x,y) = 1) &
+  (x > y implies I_LK.(x,y) = 1 - x + y)
+  proof
+    thus x <= y implies I_LK.(x,y) = 1
+    proof
+      assume x <= y; then
+      1 - x >= 1 - y by XREAL_1:10; then
+a1:   1 - x + y >= 1 - y + y by XREAL_1:6;
+      I_LK.(x,y) = min (1, 1 - x + y) by FUZIMPL1:def 14
+                .= 1 by a1,XXREAL_0:def 9;
+      hence thesis;
+    end;
+    assume x > y; then
+    1 - x <= 1 - y by XREAL_1:10; then
+a1: 1 - x + y <= 1 - y + y by XREAL_1:6;
+    I_LK.(x,y) = min (1, 1 - x + y) by FUZIMPL1:def 14
+              .= 1 - x + y by a1,XXREAL_0:def 9;
+    hence thesis;
+  end;
+
+theorem
+  (x = 0 implies I_GG.(x,y) = 1) &
+  (x > 0 implies I_GG.(x,y) = min (1, y / x))
+  proof
+    thus x = 0 implies I_GG.(x,y) = 1
+    proof
+      assume x = 0; then
+      x <= y by XXREAL_1:1;
+      hence thesis by FUZIMPL1:def 19;
+    end;
+    assume
+S0: x > 0;
+A1: y >= 0 by XXREAL_1:1;
+    per cases;
+    suppose
+A2:   x <= y; then
+S1:   I_GG.(x,y) = 1 by FUZIMPL1:def 19;
+      y / x >= 1 by A2,S0,XREAL_1:181;
+      hence thesis by S1,XXREAL_0:def 9;
+    end;
+    suppose
+S2:   x > y; then
+      I_GG.(x,y) = y / x by FUZIMPL1:def 19;
+      hence thesis by S2,A1,XREAL_1:183,XXREAL_0:def 9;
+    end;
+  end;
+
+Lemma03:
+  max (1 - x, y) in [.0,1.]
+  proof
+    1 - x in [.0,1.] by FUZNORM1:7;
+    hence thesis by FUZNORM1:2;
+  end;
+
+Lemma11:
+  x <> 0 implies y <= y / x
+  proof
+    assume x <> 0; then
+    x <= 1 & y >= 0 & x > 0 by XXREAL_1:1; then
+    y / 1 <= y / x by XREAL_1:118;
+    hence thesis;
+  end;
+
+Lemacik1:
+  x > y implies 1 - x + y >= y / x
+  proof
+    assume
+S0: x > y;
+    1 - x in [.0,1.] by FUZNORM1:7; then
+    1 - x >= 0 by XXREAL_1:1; then
+    (1 - x) * x >= (1 - x) * y by S0,XREAL_1:64; then
+a1: (1 - x) * x + x * y >= (1 - x) * y + x * y by XREAL_1:6;
+S2: x > 0 by S0,XXREAL_1:1; then
+    x * (1 - x + y) / x >= y / x by a1,XREAL_1:72;
+    hence thesis by XCMPLX_1:89,S2;
+  end;
+
+Lemma111:
+  I_KD <= I_RC
+  proof
+    set f = I_KD;
+    set g = I_RC;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      x * y in [.0,1.] by FUZNORM1:3; then
+      x * y >= 0 by XXREAL_1:1; then
+A1:   1 - x + 0 <= 1 - x + x * y by XREAL_1:6;
+      x * y + (1 - x) * 1 in [.y,1.] by Lemma00; then
+      y <= 1 - x + x * y by XXREAL_1:1; then
+      max (1 - x, y) <= 1 - x + x * y by A1,XXREAL_0:28; then
+      f.(x,y) <= 1 - x + x * y by FUZIMPL1:def 18;
+      hence thesis by FUZIMPL1:def 17;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma112:
+  I_RC <= I_LK
+  proof
+    set f = I_RC;
+    set g = I_LK;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      1 - x + x * y in [.0,1.] by FUZIMPL1:3; then
+A1:   1 - x + x * y <= 1 by XXREAL_1:1;
+A2:   x >= 0 & y >= 0 by XXREAL_1:1;
+      x <= 1 by XXREAL_1:1; then
+      x * y <= 1 * y by A2,XREAL_1:64; then
+      1 - x + x * y <= 1 - x + y by XREAL_1:6; then
+      1 - x + x * y <= min (1,1 - x + y) by A1,XXREAL_0:20; then
+      f.(x,y) <= min (1,1 - x + y) by FUZIMPL1:def 17;
+      hence thesis by FUZIMPL1:def 14;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma113:
+  I_LK <= I_WB
+  proof
+    set f = I_LK;
+    set g = I_WB;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+A1:   x <= 1 & y <= 1 by XXREAL_1:1;
+      per cases;
+      suppose
+A2:     x = 1; then
+B1:     g.(x,y) = y by FUZIMPL1:def 22;
+        min (1, 1 - x + y) = y by A1,A2,XXREAL_0:def 9;
+        hence thesis by B1,FUZIMPL1:def 14;
+      end;
+      suppose x <> 1; then
+        x < 1 by A1,XXREAL_0:1; then
+        g.(x,y) = 1 by FUZIMPL1:def 22;
+        hence thesis by XXREAL_1:1;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+theorem :: Example 1.1.6 (1.1) p. 3
+  I_KD <= I_RC <= I_LK <= I_WB by Lemma111,Lemma112,Lemma113;
+
+Lemma121:
+  I_RS <= I_GD
+  proof
+    set f = I_RS;
+    set g = I_GD;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose
+G0:     x <= y; then
+        f.(x,y) = 1 by FUZIMPL1:def 20;
+        hence thesis by G0,FUZIMPL1:def 16;
+      end;
+      suppose x > y; then
+        f.(x,y) = 0 by FUZIMPL1:def 20;
+        hence thesis by XXREAL_1:1;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma122:
+  I_GD <= I_GG
+  proof
+    set f = I_GD;
+    set g = I_GG;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose
+B0:     x <= y; then
+        f.(x,y) = 1 by FUZIMPL1:def 16;
+        hence thesis by B0,FUZIMPL1:def 19;
+      end;
+      suppose
+C1:     x > y; then
+C2:     f.(x,y) = y by FUZIMPL1:def 16;
+C3:     g.(x,y) = y / x by FUZIMPL1:def 19,C1;
+        y >= 0 by XXREAL_1:1;
+        hence thesis by C2,C3,Lemma11,C1;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma123:
+  I_GG <= I_LK
+  proof
+    set f = I_GG;
+    set g = I_LK;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose
+C1:     x <= y; then
+        g.(x,y) = 1 by Lemma01;
+        hence thesis by C1,FUZIMPL1:def 19;
+      end;
+      suppose
+C1:     x > y; then
+C2:     f.(x,y) = y / x by FUZIMPL1:def 19;
+        g.(x,y) = 1 - x + y by C1,Lemma01;
+        hence thesis by C2,C1,Lemacik1;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+theorem :: Example 1.1.6 (1.2) p. 3
+  I_RS <= I_GD <= I_GG <= I_LK <= I_WB
+    by Lemma121,Lemma122,Lemma123,Lemma113;
+
+Lemma132:
+  I_RC <= I_LK
+  proof
+    set f = I_RC;
+    set g = I_LK;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose x <= y; then
+        g.(x,y) = 1 by Lemma01;
+        hence thesis by XXREAL_1:1;
+      end;
+      suppose x > y; then
+C2:     g.(x,y) = 1 - x + y by Lemma01;
+C3:     f.(x,y) = 1 - x + x * y by FUZIMPL1:def 17;
+        y >= 0 & x <= 1 by XXREAL_1:1; then
+        x * y <= 1 * y by XREAL_1:64;
+        hence thesis by C2,C3,XREAL_1:6;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+theorem :: Example 1.1.6 (1.3) p. 3
+  :::I_YG <=
+  I_RC <= I_LK <= I_WB by Lemma132,Lemma113;
+
+Lemma141:
+  I_KD <= I_FD
+  proof
+    set f = I_KD;
+    set g = I_FD;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose x <= y; then
+        g.(x,y) = 1 by FUZIMPL1:def 23;
+        hence thesis by XXREAL_1:1;
+      end;
+      suppose x > y; then
+        g.(x,y) = max (1 - x, y) by FUZIMPL1:def 23;
+        hence thesis by FUZIMPL1:def 18;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma142:
+  I_FD <= I_LK
+  proof
+    set f = I_FD;
+    set g = I_LK;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose
+B1:     x <= y; then
+        f.(x,y) = 1 by FUZIMPL1:def 23;
+        hence thesis by B1,Lemma01;
+      end;
+      suppose x > y; then
+C3:     f.(x,y) = max (1 - x, y) by FUZIMPL1:def 23;
+C2:     g.(x,y) = min (1, 1 - x + y) by FUZIMPL1:def 14;
+        max (1 - x, y) in [.0,1.] by Lemma03; then
+C1:     max (1 - x, y) <= 1 by XXREAL_1:1;
+        y >= 0 & x >= 0 by XXREAL_1:1; then
+D1:     1 - x + 0 <= 1 - x + y by XREAL_1:6;
+        1 - x in [.0,1.] by FUZNORM1:7; then
+        1 - x >= 0 by XXREAL_1:1; then
+        0 + y <= 1 - x + y by XREAL_1:6; then
+        max (1 - x, y) <= 1 - x + y by D1,XXREAL_0:28;
+        hence thesis by C1,C2,C3,XXREAL_0:20;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+theorem :: Example 1.1.6 (1.4) p. 3
+  I_KD <= I_FD <= I_LK <= I_WB by Lemma141,Lemma142,Lemma113;
+
+Lemma151:
+  I_RS <= I_GD
+  proof
+    set f = I_RS;
+    set g = I_GD;
+    for x,y being Element of [.0,1.] holds f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose x <= y; then
+        g.(x,y) = 1 by FUZIMPL1:def 16;
+        hence thesis by XXREAL_1:1;
+      end;
+      suppose x > y; then
+        f.(x,y) = 0 by FUZIMPL1:def 20;
+        hence thesis by XXREAL_1:1;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma152:
+  I_GD <= I_FD
+  proof
+    set f = I_GD;
+    set g = I_FD;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose
+A0:     x <= y; then
+        f.(x,y) = 1 by FUZIMPL1:def 16;
+        hence thesis by A0,FUZIMPL1:def 23;
+      end;
+      suppose
+A2:     x > y; then
+A3:     g.(x,y) = max(1 - x, y) by FUZIMPL1:def 23;
+        f.(x,y) = y by A2,FUZIMPL1:def 16;
+        hence thesis by A3,XXREAL_0:25;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+Lemma153:
+  I_FD <= I_LK
+  proof
+    set f = I_FD;
+    set g = I_LK;
+    for x,y being Element of [.0,1.] holds
+      f.(x,y) <= g.(x,y)
+    proof
+      let x,y be Element of [.0,1.];
+      per cases;
+      suppose
+A0:     x <= y; then
+        g.(x,y) = 1 by Lemma01;
+        hence thesis by A0,FUZIMPL1:def 23;
+      end;
+      suppose
+A2:     x > y; then
+A3:     f.(x,y) = max(1 - x, y) by FUZIMPL1:def 23;
+A4:     g.(x,y) = 1 - x + y by A2,Lemma01;
+        0 <= y by XXREAL_1:1; then
+A5:     1 - x + 0 <= 1 - x + y by XREAL_1:6;
+        1 - x in [.0,1.] by FUZNORM1:7; then
+        0 <= 1 - x by XXREAL_1:1; then
+        0 + y <= 1 - x + y by XREAL_1:6;
+        hence thesis by A3,XXREAL_0:28,A4,A5;
+      end;
+    end;
+    hence thesis by FUZNORM1:def 16;
+  end;
+
+theorem :: Example 1.1.6 (1.5) p. 3
+  I_RS <= I_GD <= I_FD <= I_LK <= I_WB by Lemma151,Lemma152,Lemma153,Lemma113;
+
+begin :: Additional Properties of Fuzzy Implications
+
+definition
+  let I be BinOp of [.0,1.];
+  attr I is satisfying_(NP) means
+    for y being Element of [.0,1.] holds I.(1,y) = y;
+  attr I is satisfying_(EP) means
+    for x,y,z being Element of [.0,1.] holds I.(x,I.(y,z)) = I.(y,I.(x,z));
+  attr I is satisfying_(IP) means
+    for x being Element of [.0,1.] holds I.(x,x) = 1;
+  attr I is satisfying_(OP) means
+    for x,y being Element of [.0,1.] holds
+      I.(x,y) = 1 iff x <= y;
+end;
+
+ reserve I for BinOp of [.0,1.];
+
+notation
+  let I be BinOp of [.0,1.];
+  synonym I is satisfying_(NC) for I is 01-dominant;
+  synonym I is satisfying_(I1) for I is decreasing_on_1st;
+  synonym I is satisfying_(I2) for I is increasing_on_2nd;
+  synonym I is satisfying_(I3) for I is 00-dominant;
+  synonym I is satisfying_(I4) for I is 11-dominant;
+  synonym I is satisfying_(I5) for I is 10-weak;
+end;
+
+theorem LemmaXA:
+  I is satisfying_(LB) implies I is satisfying_(I3) satisfying_(NC)
+  proof
+    assume
+a1: I is satisfying_(LB);
+    0 in [.0,1.] by XXREAL_1:1;
+    hence I is satisfying_(I3) by a1;
+    1 in [.0,1.] by XXREAL_1:1;
+    hence thesis by a1;
+  end;
+
+registration
+  cluster satisfying_(LB) -> satisfying_(I3) satisfying_(NC)
+      for BinOp of [.0,1.];
+  coherence by LemmaXA;
+end;
+
+theorem LemmaVA:
+  I is satisfying_(RB) implies I is satisfying_(I4) satisfying_(NC)
+  proof
+    assume
+a1: I is satisfying_(RB);
+    1 in [.0,1.] by XXREAL_1:1;
+    hence I is satisfying_(I4) by a1;
+    0 in [.0,1.] by XXREAL_1:1;
+    hence thesis by a1;
+  end;
+
+registration
+  cluster satisfying_(RB) -> satisfying_(I4) satisfying_(NC)
+      for BinOp of [.0,1.];
+  coherence by LemmaVA;
+end;
+
+theorem LemmaWA:
+  I is satisfying_(NP) implies I is satisfying_(I4) satisfying_(I5)
+  proof
+    assume
+a1: I is satisfying_(NP);
+    1 in [.0,1.] by XXREAL_1:1;
+    hence I is satisfying_(I4) by a1;
+    0 in [.0,1.] by XXREAL_1:1;
+    hence thesis by a1;
+  end;
+
+registration
+  cluster satisfying_(NP) -> satisfying_(I4) satisfying_(I5)
+      for BinOp of [.0,1.];
+  coherence by LemmaWA;
+end;
+
+theorem LemmaZA:
+  I is satisfying_(IP) implies I is satisfying_(I3) satisfying_(I4)
+  proof
+    assume
+a1: I is satisfying_(IP);
+A2: 0 in [.0,1.] by XXREAL_1:1;
+    1 in [.0,1.] by XXREAL_1:1;
+    hence thesis by a1,A2;
+  end;
+
+registration
+  cluster satisfying_(IP) -> satisfying_(I3) satisfying_(I4)
+      for BinOp of [.0,1.];
+  coherence by LemmaZA;
+end;
+
+theorem LemmaAA:
+  I is satisfying_(OP) implies I is satisfying_(I3) satisfying_(I4)
+    satisfying_(NC) satisfying_(LB) satisfying_(RB) satisfying_(IP)
+  proof
+    assume
+a1: I is satisfying_(OP);
+A2: 0 in [.0,1.] by XXREAL_1:1;
+A3: 1 in [.0,1.] by XXREAL_1:1;
+T3: I is satisfying_(LB)
+    proof
+      let y be Element of [.0,1.];
+      0 <= y by XXREAL_1:1;
+      hence thesis by a1,A2;
+    end;
+    I is satisfying_(RB)
+    proof
+      let x be Element of [.0,1.];
+      x <= 1 by XXREAL_1:1;
+      hence thesis by a1,A3;
+    end;
+    hence thesis by T3,a1;
+  end;
+
+registration
+  cluster satisfying_(OP) -> satisfying_(I3) satisfying_(I4)
+    satisfying_(NC) satisfying_(LB) satisfying_(RB) satisfying_(IP)
+      for BinOp of [.0,1.];
+  coherence by LemmaAA;
+end;
+
+theorem LemmaAB:
+  I is satisfying_(EP) satisfying_(OP) implies
+     I is satisfying_(I1) satisfying_(I3) satisfying_(I4) satisfying_(I5)
+      satisfying_(LB) satisfying_(RB) satisfying_(NC) satisfying_(NP)
+        satisfying_(IP)
+  proof
+    assume
+AA: I is satisfying_(EP) satisfying_(OP);
+tt: for x1,x2,y being Element of [.0,1.] st
+      x1 <= x2 holds I.(x1,y) >= I.(x2,y)
+    proof
+      let x1,x2,y be Element of [.0,1.];
+      assume
+Z1:   x1 <= x2;
+      I.(x2,I.(I.(x2,y),y)) = I.(I.(x2,y), I.(x2,y)) by AA
+         .= 1 by AA; then
+      x2 <= I.(I.(x2,y),y) by AA; then
+      1 = I.(x1,I.(I.(x2,y),y)) by AA,Z1,XXREAL_0:2
+       .= I.(I.(x2,y),I.(x1,y)) by AA;
+      hence thesis by AA;
+    end;
+    for y being Element of [.0,1.] holds I.(1,y) = y
+    proof
+      let y be Element of [.0,1.];
+S1:   1 in [.0,1.] by XXREAL_1:1;
+      reconsider i = 1 as Element of [.0,1.] by XXREAL_1:1;
+S2:   I.(i,y) in [.0,1.];
+      I.(y,I.(1,y)) = I.(1,I.(y,y)) by S1,AA
+                   .= I.(1,1) by AA
+                   .= 1 by S1,AA; then
+Z1:   y <= I.(1,y) by AA,S2;
+      I.(i,I.(I.(i,y),y)) = I.(I.(i,y),I.(i,y)) by AA
+                         .= 1 by AA; then
+Z2:   1 <= I.(I.(i,y),y) by AA;
+      1 >= I.(I.(i,y),y) by XXREAL_1:1; then
+      I.(I.(i,y),y) = 1 by Z2,XXREAL_0:1; then
+      I.(1,y) <= y by AA;
+      hence thesis by Z1,XXREAL_0:1;
+    end; then
+    I is satisfying_(NP);
+    hence thesis by AA,tt;
+  end;
+
+registration
+  cluster satisfying_(EP) satisfying_(OP) -> satisfying_(I1)
+     satisfying_(I5) satisfying_(NP) for BinOp of [.0,1.];
+  coherence by LemmaAB;
+end;
+
+registration
+  cluster I_LK -> satisfying_(NP) satisfying_(EP) satisfying_(IP)
+     satisfying_(OP);
+  coherence
+  proof
+    set I = I_LK;
+A1: I_LK is satisfying_(OP)
+    proof
+      let x,y be Element of [.0,1.];
+      I.(x,y) = 1 implies x <= y
+      proof
+        assume I.(x,y) = 1; then
+        min (1, 1 - x + y) = 1 by FUZIMPL1:def 14; then
+        1 - x + y - 1 >= 1 - 1 by XREAL_1:9,XXREAL_0:def 9; then
+        y - x + x >= 0 + x by XREAL_1:6;
+        hence thesis;
+      end;
+      hence thesis by Lemma01;
+    end;
+    for x,y,z being Element of [.0,1.] holds I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+U3:   1 in [.0,1.] by XXREAL_1:1;
+U2:   x <= 1 & y <= 1 by XXREAL_1:1;
+      per cases;
+      suppose
+U1:     y <= z & x <= z; then
+O1:     I.(x,I.(y,z)) = I.(x,1) by A1
+                     .= 1 by U2,U3,A1;
+        I.(y,I.(x,z)) = I.(y,1) by A1,U1
+                     .= 1 by U2,A1,U3;
+        hence thesis by O1;
+      end;
+      suppose
+        y > z & x > z; then
+PO:     I.(x,z) = 1 - x + z & I.(y,z) = 1 - y + z by Lemma01;
+        per cases;
+        suppose
+P1:       x > 1 - y + z; then
+          x + y > 1 + z - y + y by XREAL_1:6; then
+o9:       x + y - x > 1 + z - x by XREAL_1:9;
+O1:       I.(x,I.(y,z)) = 1 - x + (1 - y + z) by Lemma01,P1,PO;
+          I.(y,I.(x,z)) = 1 - y + (1 - x + z) by Lemma01,o9,PO;
+          hence thesis by O1;
+        end;
+        suppose
+S1:       x <= 1 - y + z; then
+          x + y <= 1 - y + z + y by XREAL_1:6; then
+O9:       x + y - x <= 1 + z - x by XREAL_1:9;
+          I.(x,I.(y,z)) = 1 by Lemma01,PO,S1;
+          hence thesis by PO,O9,Lemma01;
+        end;
+      end;
+      suppose
+VV:     y <= z & x > z; then
+O3:     I.(x,z) = 1 - x + z by Lemma01;
+        1 - x in [.0,1.] by FUZNORM1:7; then
+        1 - x >= 0 by XXREAL_1:1; then
+o2:     1 - x + z >= 0 + z by XREAL_1:6;
+        I.(x,I.(y,z)) = I.(x,1) by VV,Lemma01
+                     .= 1 by Lemma01,U2,U3;
+        hence thesis by o2,Lemma01,O3,VV,XXREAL_0:2;
+      end;
+      suppose
+VV:     y > z & x <= z; then
+O8:     I.(y,z) = 1 - y + z by Lemma01;
+        1 - y in [.0,1.] by FUZNORM1:7; then
+        0 <= 1 - y by XXREAL_1:1; then
+o2:     0 + z <= 1 - y + z by XREAL_1:6;
+        I.(y,I.(x,z)) = I.(y,1) by VV,Lemma01
+                     .= 1 by Lemma01,U2,U3;
+        hence thesis by o2,Lemma01,O8,VV,XXREAL_0:2;
+      end;
+    end; then
+    I_LK is satisfying_(EP);
+    hence thesis by A1;
+  end;
+  cluster I_GD -> satisfying_(NP) satisfying_(EP) satisfying_(IP)
+     satisfying_(OP);
+  coherence
+  proof
+    set I = I_GD;
+A1: I is satisfying_(OP)
+    proof
+      let x,y be Element of [.0,1.];
+      I.(x,y) = 1 implies x <= y
+      proof
+        assume
+T2:     I.(x,y) = 1;
+        assume
+T3:     x > y; then
+        I.(x,y) = y by FUZIMPL1:def 16;
+        hence thesis by T3,XXREAL_1:1,T2;
+      end;
+      hence thesis by FUZIMPL1:def 16;
+    end;
+    for x,y,z being Element of [.0,1.] holds I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x, y, z be Element of [.0,1.];
+AA:   1 in [.0,1.] by XXREAL_1:1;
+      per cases;
+      suppose
+YY:     y <= z & x <= z; then
+Y1:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 16
+                     .= 1 by FUZIMPL1:def 16,AA;
+        I.(y,I.(x,z)) = I.(y,1) by YY,FUZIMPL1:def 16
+                     .= 1 by AA,FUZIMPL1:def 16;
+        hence thesis by Y1;
+      end;
+      suppose
+YY:     y > z & x <= z; then
+Y1:     I.(x,I.(y,z)) = I.(x,z) by FUZIMPL1:def 16
+                     .= 1 by FUZIMPL1:def 16,YY;
+        I.(y,I.(x,z)) = I.(y,1) by YY,FUZIMPL1:def 16
+                     .= 1 by AA,FUZIMPL1:def 16;
+        hence thesis by Y1;
+      end;
+      suppose
+YY:     y > z & x > z; then
+Y1:     I.(x,I.(y,z)) = I.(x,z) by FUZIMPL1:def 16
+                     .= z by FUZIMPL1:def 16,YY;
+        I.(y,I.(x,z)) = I.(y,z) by YY,FUZIMPL1:def 16
+                     .= z by YY,FUZIMPL1:def 16;
+        hence thesis by Y1;
+      end;
+      suppose
+YY:     y <= z & x > z; then
+Y1:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 16
+                     .= 1 by FUZIMPL1:def 16,AA;
+        I.(y,I.(x,z)) = I.(y,z) by YY,FUZIMPL1:def 16
+                     .= 1 by YY,FUZIMPL1:def 16;
+        hence thesis by Y1;
+      end;
+    end; then
+    I is satisfying_(EP);
+    hence thesis by A1;
+  end;
+  cluster I_RC -> satisfying_(NP) satisfying_(EP) non satisfying_(IP)
+     non satisfying_(OP);
+  coherence
+  proof
+    set I = I_RC;
+I0: 1 / 2 in [.0,1.] by XXREAL_1:1; then
+p1: I.(1/2, 1/2) = 1 - 1 / 2 + (1 / 2) * (1 / 2) by FUZIMPL1:def 17
+      .= 3 / 4;
+at: for y being Element of [.0,1.] holds I.(1,y) = y
+    proof
+      let y be Element of [.0,1.];
+      1 in [.0,1.] by XXREAL_1:1; then
+      I.(1,y) = 1 - 1 + 1 * y by FUZIMPL1:def 17
+             .= y;
+      hence thesis;
+    end;
+    for x,y,z being Element of [.0,1.] holds I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+i0:   I.(y,z) = 1 - y + y * z by FUZIMPL1:def 17;
+i2:   I.(x,z) = 1 - x + x * z by FUZIMPL1:def 17;
+I1:   I.(x,I.(y,z)) = 1 - x + x * (1 - y + y * z) by i0,FUZIMPL1:def 17;
+      I.(y,I.(x,z)) = 1 - y + y * (1 - x + x * z) by i2,FUZIMPL1:def 17;
+      hence thesis by I1;
+    end;
+    hence thesis by at,p1,I0;
+  end;
+  cluster I_KD -> satisfying_(NP) satisfying_(EP) non satisfying_(IP)
+     non satisfying_(OP);
+  coherence
+  proof
+    set I = I_KD;
+K1: 1 in [.0,1.] & 1/2 in [.0,1.] by XXREAL_1:1;
+ka: for y being Element of [.0,1.] holds I.(1,y) = y
+    proof
+      let y be Element of [.0,1.];
+T1:   0 <= y by XXREAL_1:1;
+      I.(1,y) = max (1 - 1,y) by K1,FUZIMPL1:def 18
+             .= y by T1,XXREAL_0:def 10;
+      hence thesis;
+    end;
+n1: I.(1/2,1/2) = max (1 - 1 / 2, 1 / 2) by FUZIMPL1:def 18,K1
+               .= max (1 / 2, 1 / 2);
+    for x,y,z being Element of [.0,1.] holds
+      I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+y2:   I.(y,z) = max (1-y,z) by FUZIMPL1:def 18;
+y3:   I.(x,z) = max (1-x,z) by FUZIMPL1:def 18;
+Y1:   I.(x,I.(y,z)) = max (1-x, max (1-y,z)) by y2,FUZIMPL1:def 18
+        .= max (max(1-x, 1-y),z) by XXREAL_0:34;
+      I.(y,I.(x,z)) = max (1-y, max (1-x,z)) by y3,FUZIMPL1:def 18
+                   .= max (max (1-y, 1-x),z) by XXREAL_0:34;
+      hence thesis by Y1;
+    end;
+    hence thesis by ka,n1,K1;
+  end;
+  cluster I_GG -> satisfying_(NP) satisfying_(EP) satisfying_(IP)
+     satisfying_(OP);
+  coherence
+  proof
+    set I = I_GG;
+    for x,y being Element of [.0,1.] holds
+      I.(x,y) = 1 iff x <= y
+    proof
+      let x,y be Element of [.0,1.];
+      thus I.(x,y) = 1 implies x <= y
+      proof
+        assume
+T2:     I.(x,y) = 1;
+        assume
+T3:     x > y; then
+T4:     x > 0 by XXREAL_1:1;
+        I.(x,y) = y / x by T3,FUZIMPL1:def 19; then
+        y = 1 * x by XCMPLX_1:87,T4,T2;
+        hence thesis by T3;
+      end;
+      thus thesis by FUZIMPL1:def 19;
+    end; then
+A1: I is satisfying_(OP);
+    for x,y,z being Element of [.0,1.] holds I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x, y, z be Element of [.0,1.];
+AB:   0 <= x <= 1 by XXREAL_1:1;
+AC:   0 <= y <= 1 by XXREAL_1:1;
+AA:   1 in [.0,1.] by XXREAL_1:1;
+      per cases;
+      suppose
+YY:     y <= z & x <= z; then
+Y1:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 19
+                     .= 1 by FUZIMPL1:def 19,AA,AB;
+        I.(y,I.(x,z)) = I.(y,1) by YY,FUZIMPL1:def 19
+                     .= 1 by AC,FUZIMPL1:def 19,AA;
+        hence thesis by Y1;
+      end;
+      suppose
+YY:     y > z & x <= z;
+        x * y <= x by XREAL_1:153,AC,AB; then
+        x * y <= z & y > 0 by YY,XXREAL_0:2; then
+F1:     x <= z / y by XREAL_1:77;
+F2:     z / y in [.0,1.] by YY,FUZIMPL1:6;
+Y1:     I.(x,I.(y,z)) = I.(x, z / y) by FUZIMPL1:def 19,YY
+                     .= 1 by FUZIMPL1:def 19,F1,F2;
+        I.(y,I.(x,z)) = I.(y,1) by YY,FUZIMPL1:def 19
+                     .= 1 by AC,AA,FUZIMPL1:def 19;
+        hence thesis by Y1;
+      end;
+      suppose
+YY:     y > z & x > z; then
+JJ:     x > 0 & y > 0 by XXREAL_1:1;
+        per cases;
+        suppose
+IK:       x <= z / y;
+J1:       y > 0 by XXREAL_1:1,YY; then
+          x * y <= z / y * y by IK,XREAL_1:64; then
+          x * y <= z by J1,XCMPLX_1:87; then
+          (x * y) / x <= z / x by JJ,XREAL_1:72; then
+FF:       y <= z / x by JJ,XCMPLX_1:89;
+F2:       z / x in [.0,1.] by YY,FUZIMPL1:6;
+F4:       z / y in [.0,1.] by YY,FUZIMPL1:6;
+Y1:       I.(x,I.(y,z)) = I.(x,z/y) by FUZIMPL1:def 19,YY
+                       .= 1 by FUZIMPL1:def 19,F4,IK;
+          I.(y,I.(x,z)) = I.(y,z / x) by YY,FUZIMPL1:def 19
+                      .= 1 by FUZIMPL1:def 19,F2,FF;
+          hence thesis by Y1;
+        end;
+        suppose
+F5:       x > z / y; then
+          x * y > z / y * y by JJ,XREAL_1:68; then
+          x * y > z by JJ,XCMPLX_1:87; then
+          x * y / x > z / x by XREAL_1:74,JJ; then
+F1:       y > z / x by XCMPLX_1:89,JJ;
+F2:       z / x in [.0,1.] by YY,FUZIMPL1:6;
+F4:       z / y in [.0,1.] by YY,FUZIMPL1:6;
+Y1:       I.(x,I.(y,z)) = I.(x,z/y) by FUZIMPL1:def 19,YY
+                       .= (z / y) / x by FUZIMPL1:def 19,F5,F4;
+          I.(y,I.(x,z)) = I.(y,z / x) by YY,FUZIMPL1:def 19
+                       .= (z / x) / y by FUZIMPL1:def 19,F2,F1;
+          hence thesis by Y1;
+        end;
+      end;
+      suppose
+YY:     y <= z & x > z; then
+F2:     z / x in [.0,1.] by FUZIMPL1:6;
+        x * y <= y by XREAL_1:153,AC,AB; then
+        x * y <= z & x > 0 by YY,XXREAL_0:2; then
+F1:     y <= z/x by XREAL_1:77;
+Y1:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 19,YY
+                     .= 1 by FUZIMPL1:def 19,AA,AB;
+        I.(y,I.(x,z)) = I.(y,z/x) by YY,FUZIMPL1:def 19
+                     .= 1 by FUZIMPL1:def 19,F2,F1;
+        hence thesis by Y1;
+      end;
+    end; then
+    I is satisfying_(EP);
+    hence thesis by A1;
+  end;
+  cluster I_RS -> non satisfying_(NP) non satisfying_(EP) satisfying_(IP)
+     satisfying_(OP);
+  coherence
+  proof
+    set I = I_RS;
+A1: I is satisfying_(OP) by FUZIMPL1:def 20;
+K1: 1 in [.0,1.] & 1/2 in [.0,1.] & 0 in [.0,1.] by XXREAL_1:1; then
+    I.(1,1/2) <> 1/2 by FUZIMPL1:def 20; then
+    I is non satisfying_(NP) by K1;
+    hence thesis by A1;
+  end;
+  cluster I_YG -> satisfying_(NP) satisfying_(EP) non satisfying_(IP)
+     non satisfying_(OP);
+  coherence
+  proof
+    set I = I_YG;
+A1: 1 / 2 in [.0,1.] & 1 in [.0,1.] by XXREAL_1:1;
+BA: for x,y,z being Element of [.0,1.] holds
+      I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+      per cases by XXREAL_1:1;
+      suppose
+Y0:     x = 0 & y = 0 & z = 0; then
+Y1:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 21
+          .= 1 to_power x by A1,FUZIMPL1:def 21
+          .= 1 by POWER:26;
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 21,Y0
+          .= 1 to_power y by A1,FUZIMPL1:def 21
+          .= 1 by POWER:26;
+        hence thesis by Y1;
+      end;
+      suppose
+R1:     z > 0; then
+r4:     I.(y,z) = z to_power y by FUZIMPL1:def 21;
+r6:     I.(x,z) = z to_power x by R1,FUZIMPL1:def 21;
+R2:     z to_power y > 0 by R1,POWER:34;
+R3:     z to_power x > 0 by R1,POWER:34;
+R5:     I.(x,I.(y,z)) = (z to_power y) to_power x by R2,r4,FUZIMPL1:def 21
+                     .= z to_power (y * x) by R1,POWER:33;
+        I.(y,I.(x,z)) = (z to_power x) to_power y by R3,r6,FUZIMPL1:def 21
+                     .= z to_power (x * y) by R1,POWER:33;
+        hence thesis by R5;
+      end;
+      suppose
+R1:     y > 0 & x > 0 & z = 0; then
+r4:     I.(y,z) = z to_power y by FUZIMPL1:def 21;
+r6:     I.(x,z) = z to_power x by R1,FUZIMPL1:def 21;
+R2:     z to_power y = 0 by R1,POWER:def 2;
+R3:     z to_power x = 0 by R1,POWER:def 2;
+R5:     I.(x,I.(y,z)) = (z to_power y) to_power x by R1,r4,FUZIMPL1:def 21
+                     .= 0 by R1,POWER:def 2,R2;
+        I.(y,I.(x,z)) = (z to_power x) to_power y by R1,r6,FUZIMPL1:def 21
+                     .= 0 by R1,POWER:def 2,R3;
+        hence thesis by R5;
+      end;
+      suppose
+R1:     y = 0 & x > 0 & z = 0;
+R3:     z to_power x = 0 by R1,POWER:def 2;
+R5:     I.(x,I.(y,z)) = I.(x,1) by R1,FUZIMPL1:def 21
+                     .= 1 to_power x by FUZIMPL1:def 21,A1
+                     .= 1 by POWER:26;
+        I.(y,I.(x,z)) = I.(y,z to_power x) by R1,FUZIMPL1:def 21
+                     .= 1 by R1,R3,FUZIMPL1:def 21;
+        hence thesis by R5;
+      end;
+      suppose
+R1:     y > 0 & x = 0 & z = 0; then
+R2:     z to_power y = 0 by POWER:def 2;
+R5:     I.(x,I.(y,z)) = I.(x,z to_power y) by R1,FUZIMPL1:def 21
+                     .= 1 by R1,R2,FUZIMPL1:def 21;
+        I.(y,I.(x,z)) = I.(y,1) by R1,FUZIMPL1:def 21
+                     .= 1 to_power y by FUZIMPL1:def 21,A1
+                     .= 1 by POWER:26;
+        hence thesis by R5;
+      end;
+      suppose
+R1:     y > 0 & x > 0 & z = 0; then
+r6:     I.(x,z) = z to_power x by FUZIMPL1:def 21;
+R2:     z to_power y = 0 by R1,POWER:def 2;
+R3:     z to_power x = 0 by R1,POWER:def 2;
+R5:     I.(x,I.(y,z)) = I.(x,z to_power y) by R1,FUZIMPL1:def 21
+                     .= (z to_power y) to_power x by R1,R2,FUZIMPL1:def 21
+                     .= 0 by R1,POWER:def 2,R2;
+        I.(y,I.(x,z)) = (z to_power x) to_power y by R1,r6,FUZIMPL1:def 21
+                     .= 0 by R1,POWER:def 2,R3;
+        hence thesis by R5;
+      end;
+    end;
+B2: for y being Element of [.0,1.] holds I.(1,y) = y
+    proof
+      let y be Element of [.0,1.];
+      I.(1,y) = y to_power 1 by FUZIMPL1:def 21,A1;
+      hence thesis by POWER:25;
+    end;
+    I.(1/2,1/2) = (1 / 2) to_power (1 / 2) by A1,FUZIMPL1:def 21;
+    hence thesis by BA,B2,A1,LemmaHalf;
+  end;
+  cluster I_WB -> satisfying_(NP) satisfying_(EP) satisfying_(IP)
+     non satisfying_(OP);
+  coherence
+  proof
+    set I = I_WB;
+a0: for x being Element of [.0,1.] holds I.(x,x) = 1
+    proof
+      let x be Element of [.0,1.];
+      x <= 1 by XXREAL_1:1; then
+      per cases by XXREAL_0:1;
+      suppose x < 1;
+        hence thesis by FUZIMPL1:def 22;
+      end;
+      suppose x = 1;
+        hence thesis by FUZIMPL1:def 22;
+      end;
+    end;
+BB: 1 in [.0,1.] by XXREAL_1:1;
+CA: for x,y,z being Element of [.0,1.] holds
+      I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+      x <= 1 & y <= 1 & z <= 1 by XXREAL_1:1; then
+      per cases by XXREAL_0:1;
+      suppose
+Y0:     x = 1 & y = 1; then
+Y1:     I.(x,I.(y,z)) = I.(x,z) by FUZIMPL1:def 22
+          .= z by FUZIMPL1:def 22,Y0;
+        I.(y,I.(x,z)) = I.(y,z) by Y0,FUZIMPL1:def 22
+          .= z by Y0,FUZIMPL1:def 22;
+        hence thesis by Y1;
+      end;
+      suppose
+Y0:     x < 1 & y = 1; then
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 22
+          .= 1 by Y0,FUZIMPL1:def 22;
+        hence thesis by Y0,FUZIMPL1:def 22;
+      end;
+      suppose
+Y0:     x = 1 & y < 1; then
+        I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 22
+          .= 1 by FUZIMPL1:def 22,Y0;
+        hence thesis by Y0,FUZIMPL1:def 22;
+      end;
+      suppose
+Y0:     x < 1 & y < 1; then
+        I.(x,I.(y,z)) = 1 by FUZIMPL1:def 22;
+        hence thesis by Y0,FUZIMPL1:def 22;
+      end;
+    end;
+    ex x,y being Element of [.0,1.] st not (I.(x,y) = 1 iff x <= y)
+    proof
+      set x = 1 / 2, y = 0;
+      reconsider x,y as Element of [.0,1.] by XXREAL_1:1;
+      take x,y;
+      thus thesis by FUZIMPL1:def 22;
+    end;
+    hence thesis by CA,a0,BB,FUZIMPL1:def 22;
+  end;
+  cluster I_FD -> satisfying_(NP) satisfying_(EP) satisfying_(IP)
+     satisfying_(OP);
+  coherence
+  proof
+    set I = I_FD;
+A1: I is satisfying_(OP)
+    proof
+      let x,y be Element of [.0,1.];
+      thus I.(x,y) = 1 implies x <= y
+      proof
+        assume
+T2:     I.(x,y) = 1;
+        assume
+T3:     x > y; then
+        I.(x,y) = max(1 - x, y) by FUZIMPL1:def 23; then
+        1 - x = 1 or y = 1 by XXREAL_0:16,T2;
+        hence thesis by T3,XXREAL_1:1;
+      end;
+      thus thesis by FUZIMPL1:def 23;
+    end;
+    for x,y,z being Element of [.0,1.] holds
+      I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+Ff:   1 in [.0,1.] by XXREAL_1:1;
+F0:   x <= 1 & y <= 1 & z >= 0 by XXREAL_1:1;
+      per cases;
+      suppose
+F1:     y <= z & x <= z; then
+F2:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 23
+                     .= 1 by A1,F0,Ff;
+        I.(y,I.(x,z)) = I.(y,1) by F1,FUZIMPL1:def 23
+                     .= 1 by A1,F0,Ff;
+        hence thesis by F2;
+      end;
+      suppose
+F1:     y <= z & x > z;
+ff:     z <= max (1-x,z) by XXREAL_0:25;
+f4:     I.(x,z) = max (1-x,z) by FUZIMPL1:def 23,F1;
+        I.(x,I.(y,z)) = I.(x,1) by F1,FUZIMPL1:def 23
+                     .= 1 by A1,F0,Ff;
+        hence thesis by A1,ff,F1,XXREAL_0:2,f4;
+      end;
+      suppose
+F1:     y > z & x > z;
+x2:     I.(y,z) = max (1-y,z) by F1,FUZIMPL1:def 23;
+x4:     I.(x,z) = max (1-x,z) by F1,FUZIMPL1:def 23;
+        per cases;
+        suppose
+X1:       x <= max (1-y,z); then
+          x <= 1 - y or x <= z by XXREAL_0:def 10; then
+          x + y <= 1 - y + y by XREAL_1:6,F1; then
+y1:       x + y - x <= 1 - x by XREAL_1:9;
+          1 - x <= max (1-x,z) by XXREAL_0:25; then
+X3:       y <= max (1-x,z) by y1,XXREAL_0:2;
+          I.(x,I.(y,z)) = 1 by X1,x2,FUZIMPL1:def 23;
+          hence thesis by X3,x4,FUZIMPL1:def 23;
+        end;
+        suppose
+we:       1 - x < y; then
+X3:       y > max (1-x,z) by XXREAL_0:29,F1;
+          1 - x - y < y - y by we,XREAL_1:9; then
+          1 - x - y + x < 0 + x by XREAL_1:6; then
+X1:       x > max (1-y,z) by XXREAL_0:def 10,F1;
+F2:       I.(x,I.(y,z)) = max (1-x,max(1-y,z))
+             by x2,FUZIMPL1:def 23,X1;
+          I.(y,I.(x,z)) = max (1-y,max(1-x,z))
+             by FUZIMPL1:def 23,X3,x4;
+          hence thesis by F2,XXREAL_0:34;
+        end;
+        suppose
+SE:       1 - x >= y; then
+          1 - x + x >= y + x by XREAL_1:6; then
+ww:       1 - y >= y + x - y by XREAL_1:9; then
+SA:       max (1-y,z) = 1 - y by XXREAL_0:def 10,XXREAL_0:2,F1;
+P0:       1 - x in [.0,1.] & 1 - y in [.0,1.] by FUZNORM1:7;
+F2:       I.(x,I.(y,z)) = I.(x,max (1-y,z)) by F1,FUZIMPL1:def 23
+                       .= 1 by P0,FUZIMPL1:def 23,ww,SA;
+          I.(y,I.(x,z)) = I.(y,max (1-x,z)) by F1,FUZIMPL1:def 23
+                .= I.(y,1-x) by SE,F1,XXREAL_0:2,XXREAL_0:def 10
+                .= 1 by A1,P0,SE;
+          hence thesis by F2;
+        end;
+      end;
+      suppose
+F1:     y > z & x <= z;
+f3:     z <= max (1-y,z) by XXREAL_0:25;
+f4:     I.(y,z) = max (1-y,z) by FUZIMPL1:def 23,F1;
+        I.(y,I.(x,z)) = I.(y,1) by F1,FUZIMPL1:def 23
+                     .= 1 by A1,F0,Ff;
+        hence thesis by f4,A1,F1,f3,XXREAL_0:2;
+      end;
+    end; then
+    I is satisfying_(EP);
+    hence thesis by A1;
+  end;
+end;
+
+registration
+  cluster I_{0} -> non satisfying_(NP) satisfying_(EP) non satisfying_(IP)
+     non satisfying_(OP);
+  coherence
+  proof
+    set I = I_{0};
+a2: ex x being Element of [.0,1.] st I.(x,x) <> 1
+    proof
+      reconsider x = 1/2 as Element of [.0,1.] by XXREAL_1:1;
+      I.(x,x) = 0 by FUZIMPL1:def 24;
+      hence thesis;
+    end;
+SS: 1 in [.0,1.] by XXREAL_1:1;
+SA: 0 in [.0,1.] by XXREAL_1:1;
+a3: not for y being Element of [.0,1.] holds I.(1,y) = y
+    proof
+      reconsider y = 1/2 as Element of [.0,1.] by XXREAL_1:1;
+      I.(1,y) = 0 by FUZIMPL1:def 24,SS;
+      hence thesis;
+    end;
+    for x,y,z being Element of [.0,1.] holds
+      I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+      x >= 0 & y >= 0 & z <= 1 by XXREAL_1:1; then
+      per cases by XXREAL_0:1;
+      suppose
+B1:     z = 1; then
+B2:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 24 .= 1 by FUZIMPL1:def 24,SS;
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 24,B1
+                     .= 1 by FUZIMPL1:def 24,SS;
+        hence thesis by B2;
+      end;
+      suppose
+B1:     x = 0; then
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 24
+                     .= 1 by FUZIMPL1:def 24,SS;
+        hence thesis by B1,FUZIMPL1:def 24;
+      end;
+      suppose
+B1:     y = 0; then
+        I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 24
+                     .= 1 by FUZIMPL1:def 24,SS;
+        hence thesis by B1,FUZIMPL1:def 24;
+      end;
+      suppose
+F1:     x > 0 & z < 1 & y > 0; then
+F2:     I.(y,I.(x,z)) = I.(y,0) by FUZIMPL1:def 24
+                     .= 0 by SA,F1,FUZIMPL1:def 24;
+        I.(x,I.(y,z)) = I.(x,0) by F1,FUZIMPL1:def 24
+                     .= 0 by SA,FUZIMPL1:def 24,F1;
+        hence thesis by F2;
+      end;
+    end;
+    hence thesis by a2,a3;
+  end;
+  cluster I_{1} -> non satisfying_(NP) satisfying_(EP) satisfying_(IP)
+     non satisfying_(OP);
+  coherence
+  proof
+    set I = I_{1};
+a2: for x being Element of [.0,1.] holds I.(x,x) = 1
+    proof
+      let x be Element of [.0,1.];
+      0 <= x <= 1 by XXREAL_1:1; then
+      per cases by XXREAL_0:1;
+      suppose x = 0;
+        hence thesis by FUZIMPL1:def 25;
+      end;
+      suppose 0 < x < 1;
+        hence thesis by FUZIMPL1:def 25;
+      end;
+      suppose x = 1;
+        hence thesis by FUZIMPL1:def 25;
+      end;
+    end;
+SS: 1 in [.0,1.] by XXREAL_1:1;
+    not for y being Element of [.0,1.] holds I.(1,y) = y
+    proof
+      reconsider y = 1/2 as Element of [.0,1.] by XXREAL_1:1;
+      I.(1,y) = 1 by SS,FUZIMPL1:def 25;
+      hence thesis;
+    end; then
+A3: I is non satisfying_(NP);
+    for x,y,z being Element of [.0,1.] holds
+      I.(x,I.(y,z)) = I.(y,I.(x,z))
+    proof
+      let x,y,z be Element of [.0,1.];
+      y <= 1 & x <= 1 & z >= 0 by XXREAL_1:1; then
+      per cases by XXREAL_0:1;
+      suppose
+B1:     z = 0 & x = 1 & y = 1; then
+B2:     I.(x,I.(y,z)) = I.(x,0) by FUZIMPL1:def 25
+                     .= 0 by B1,FUZIMPL1:def 25;
+        I.(y,I.(x,z)) = I.(y,0) by FUZIMPL1:def 25,B1
+                     .= 0 by B1,FUZIMPL1:def 25;
+        hence thesis by B2;
+      end;
+      suppose
+B1:     z > 0 & x = 1 & y = 1; then
+B2:     I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 25
+                     .= 1 by FUZIMPL1:def 25,SS;
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 25,B1
+                     .= 1 by FUZIMPL1:def 25,SS;
+        hence thesis by B2;
+      end;
+      suppose
+B1:     z = 0 & x = 1 & y < 1; then
+        I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 25
+                     .= 1 by FUZIMPL1:def 25,SS;
+        hence thesis by B1,FUZIMPL1:def 25;
+      end;
+      suppose
+B1:     z = 0 & x < 1 & y = 1; then
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 25
+                     .= 1 by FUZIMPL1:def 25,SS;
+        hence thesis by B1,FUZIMPL1:def 25;
+      end;
+      suppose
+B1:     z = 0 & x < 1 & y < 1; then
+        I.(y,I.(x,z)) = 1 by FUZIMPL1:def 25;
+        hence thesis by B1,FUZIMPL1:def 25;
+      end;
+      suppose
+B1:     z > 0 & x < 1 & y = 1; then
+        I.(y,I.(x,z)) = I.(y,1) by FUZIMPL1:def 25
+                     .= 1 by FUZIMPL1:def 25,SS;
+        hence thesis by B1,FUZIMPL1:def 25;
+      end;
+      suppose
+B1:     z > 0 & x = 1 & y < 1; then
+        I.(x,I.(y,z)) = I.(x,1) by FUZIMPL1:def 25
+                     .= 1 by FUZIMPL1:def 25,SS;
+        hence thesis by FUZIMPL1:def 25,B1;
+      end;
+      suppose
+F1:     z > 0 & x < 1 & y < 1; then
+        I.(y,I.(x,z)) = 1 by FUZIMPL1:def 25;
+        hence thesis by FUZIMPL1:def 25,F1;
+      end;
+    end; then
+    I is satisfying_(EP);
+    hence thesis by a2,A3;
+  end;
+end;

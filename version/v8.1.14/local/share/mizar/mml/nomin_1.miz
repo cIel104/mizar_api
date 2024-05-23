@@ -1,0 +1,1978 @@
+:: Simple-named complex-valued nominative data -- definition and basic
+:: operations
+::  by Ievgen Ivanov , Mykola Nikitchenko , Andrii Kryvolap and Artur Korni{\l}owicz
+::
+:: Received August 30, 2017
+:: Copyright (c) 2017-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NOMIN_1, NUMBERS, SUBSET_1, XBOOLE_0, RELAT_1, FUNCT_1, FINSEQ_1,
+      XXREAL_0, NAT_1, ARYTM_3, CARD_1, PARTFUN1, TARSKI, CARD_3, FUNCOP_1,
+      ORDINAL4, ZFMISC_1, FINSET_1, ARYTM_1, FUNCT_4, ORDERS_5;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ORDINAL1, NUMBERS, ENUMSET1,
+      RELAT_1, RELSET_1, FUNCT_1, PARTFUN1, FUNCT_2, FINSEQ_1, FUNCOP_1,
+      TURING_1, XXREAL_0, XCMPLX_0, FUNCT_4, CARD_3, FINSEQ_4, FINSET_1;
+ constructors PROB_1, FINSEQ_4, RELSET_1, FUNCT_6, TURING_1;
+ registrations XBOOLE_0, SUBSET_1, RELAT_1, FUNCT_1, ORDINAL1, FUNCOP_1,
+      FINSET_1, XXREAL_0, XREAL_0, NAT_1, FINSEQ_1, CARD_1, RELSET_1, INT_1;
+ requirements NUMERALS, REAL, BOOLE, SUBSET, ARITHM;
+ definitions TARSKI, XBOOLE_0, PARTFUN1, FUNCT_1, FUNCT_2, FINSEQ_1;
+ equalities FUNCOP_1, CARD_3, FINSEQ_1, FUNCT_4;
+ expansions FUNCT_1, RELAT_1, TARSKI;
+ theorems TARSKI, NAT_1, ZFMISC_1, RELAT_1, RELSET_1, FINSEQ_1, FUNCOP_1,
+      PARTFUN1, FUNCT_1, GRFUNC_1, FUNCT_4, FINSEQ_3, XBOOLE_0, XBOOLE_1,
+      XXREAL_0, XREAL_1, XTUPLE_0, INT_1, CARD_5, ENUMSET1, CARD_3, CGAMES_1;
+ schemes NAT_1, FUNCT_1, FUNCT_2, RECDEF_1, FINSEQ_1;
+
+begin :: Preliminaries
+
+reserve a,a1,a2,v,v1,v2,x for object;
+reserve V,A for set;
+reserve m,n for Nat;
+reserve S,S1,S2 for FinSequence;
+
+theorem Th1:
+  for f being FinSequence st n in dom f holds (<*x*>^f).(n+1) = f.n
+  proof
+    let f be FinSequence;
+    len <*x*> = 1 by FINSEQ_1:39;
+    hence thesis by FINSEQ_1:def 7;
+  end;
+
+theorem Th2:
+  for f being Function st dom f = NAT holds f|Seg(n) is FinSequence
+  proof
+    let f be Function;
+    assume dom f = NAT;
+    then dom(f|Seg(n)) = Seg n by RELAT_1:62;
+    hence thesis by FINSEQ_1:def 2;
+  end;
+
+theorem Th3:
+  for f,g being FinSequence holds dom f c= dom g or dom g c= dom f
+  proof
+    let f,g be FinSequence;
+    consider n being Nat such that
+A1: dom f = Seg n by FINSEQ_1:def 2;
+    consider m being Nat such that
+A2: dom g = Seg m by FINSEQ_1:def 2;
+    m <= n or n <= m;
+    hence thesis by A1,A2,FINSEQ_1:5;
+  end;
+
+registration
+  let f,g be FinSequence;
+  cluster f+*g -> FinSequence-like;
+  coherence
+  proof
+    consider n being Nat such that
+A1: dom f = Seg n by FINSEQ_1:def 2;
+    consider m being Nat such that
+A2: dom g = Seg m by FINSEQ_1:def 2;
+A3: dom(f+*g) = dom f \/ dom g by FUNCT_4:def 1;
+    per cases;
+    suppose
+A4:   m <= n;
+      take n;
+      thus dom(f+*g) = Seg n by A1,A2,A3,A4,XBOOLE_1:12,FINSEQ_1:5;
+    end;
+    suppose
+A5:   m > n;
+      take m;
+      thus thesis by A1,A2,A3,A5,XBOOLE_1:12,FINSEQ_1:5;
+    end;
+  end;
+end;
+
+registration let f1, f2 be Function;
+  cluster f2 \/ (f1|(dom(f1)\dom(f2))) -> Function-like;
+  coherence
+  proof
+    dom(f1|(dom(f1)\dom(f2))) = dom(f1)\dom(f2) by RELAT_1:62;
+    hence thesis by GRFUNC_1:13,XBOOLE_1:79;
+  end;
+end;
+
+definition
+  let f,g be Function, x,y be object;
+  pred f,x =~ g,y means
+  (x in dom f iff y in dom g) & (x in dom f implies f.x = g.y);
+end;
+
+begin :: Definition of simple-named complex-valued nominative data
+
+definition
+  let V,A;
+  mode NominativeSet of V,A is PartFunc of V,A;
+end;
+
+registration
+  let V,A;
+  cluster finite for NominativeSet of V,A;
+  existence
+  proof
+    take (the PartFunc of V,A) | {};
+    thus thesis;
+  end;
+end;
+
+definition
+  let V,A;
+  mode TypeSSNominativeData of V,A is finite NominativeSet of V,A;
+end;
+
+definition
+  let V,A;
+  func NDSS(V,A) -> set equals
+  the set of all d where d is TypeSSNominativeData of V,A;
+  coherence;
+end;
+
+registration
+  let V,A;
+  cluster NDSS(V,A) -> non empty;
+  coherence
+  proof
+    the TypeSSNominativeData of V,A in NDSS(V,A);
+    hence thesis;
+  end;
+end;
+
+theorem Th4:
+  x in NDSS(V,A) implies x is TypeSSNominativeData of V,A
+  proof
+    assume x in NDSS(V,A);
+    then ex w being TypeSSNominativeData of V,A st x = w;
+    hence thesis;
+  end;
+
+theorem
+  NDSS(V,A) c= PFuncs(V,A)
+  proof
+    let x;
+    assume x in NDSS(V,A);
+    then ex w being TypeSSNominativeData of V,A st w = x;
+    hence thesis by PARTFUN1:45;
+  end;
+
+theorem Th6:
+  {} in NDSS(V,A)
+  proof
+    {} is TypeSSNominativeData of V,A by RELSET_1:12;
+    hence thesis;
+  end;
+
+theorem Th7:
+  for A, B being set st A c= B holds NDSS(V,A) c= NDSS(V,B)
+  proof
+    let A,B be set such that
+A1: A c= B;
+    let d be object;
+    assume d in NDSS(V,A);
+    then ex w being TypeSSNominativeData of V,A st w = d;
+    then d is TypeSSNominativeData of V,B by A1,RELSET_1:7;
+    hence thesis;
+  end;
+
+theorem Th8:
+  for f,g being finite Function holds
+  f tolerates g & f in NDSS(V,A) & g in NDSS(V,A) implies
+  f \/ g in NDSS(V,A)
+  proof
+    let f,g be finite Function;
+    assume
+A1: f tolerates g;
+    assume f in NDSS(V,A) & g in NDSS(V,A);
+    then f is NominativeSet of V,A & g is NominativeSet of V,A by Th4;
+    then f \/ g is V-defined A-valued;
+    then f \/ g is PartFunc of V,A by A1,RELSET_1:4,PARTFUN1:51;
+    hence f \/ g in NDSS(V,A);
+  end;
+
+definition
+  let V,A;
+  func FNDSC(V,A) -> Function means :Def3:
+  dom it = NAT & it.0 = A &
+  for n being Nat holds it.(n+1) = NDSS(V,A\/it.n);
+  existence
+  proof
+    deffunc G(set,set) = NDSS(V,A\/$2);
+    ex F being Function st dom F = NAT & F.0 = A &
+    for n being Nat holds F.(n+1) = G(n,F.n) from NAT_1:sch 11;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f,g being Function such that
+A1: dom f = NAT and
+A2: f.0 = A and
+A3: for n being Nat holds f.(n+1) = NDSS(V,A\/f.n) and
+A4: dom g = NAT and
+A5: g.0 = A and
+A6: for n being Nat holds g.(n+1) = NDSS(V,A\/g.n);
+    thus dom f = dom g by A1,A4;
+    let x be object;
+    assume x in dom f;
+    then reconsider n = x as Element of NAT by A1;
+    defpred P[Nat] means f.$1 = g.$1;
+A7: P[0] by A2,A5;
+A8: for n st P[n] holds P[n+1]
+    proof
+      let n;
+      assume P[n];
+      hence g.(n+1) = NDSS(V,A\/f.n) by A6
+      .= f.(n+1) by A3;
+    end;
+    for n holds P[n] from NAT_1:sch 2(A7,A8);
+    then f.n = g.n;
+    hence thesis;
+  end;
+end;
+
+theorem Th9:
+  FNDSC(V,A).1 = NDSS(V,A)
+  proof
+    FNDSC(V,A).(0+1) = NDSS(V,A \/ FNDSC(V,A).0) & FNDSC(V,A).0 = A by Def3;
+    hence thesis;
+  end;
+
+theorem Th10:
+  FNDSC(V,A).2 = NDSS(V,A\/NDSS(V,A))
+  proof
+    FNDSC(V,A).(1+1) = NDSS(V,A\/FNDSC(V,A).1) by Def3;
+    hence thesis by Th9;
+  end;
+
+theorem Th11:
+  A c= Union FNDSC(V,A)
+  proof
+    set F = FNDSC(V,A);
+A1: A = F.0 by Def3;
+    dom F = NAT by Def3;
+    then F.0 in rng F by FUNCT_1:def 3;
+    hence thesis by A1,ZFMISC_1:74;
+  end;
+
+theorem
+  1 <= n implies {} in FNDSC(V,A).n
+  proof
+    set F = FNDSC(V,A);
+    assume 1 <= n;
+    then reconsider m = n-1 as Element of NAT by INT_1:5;
+    F.(m+1) = NDSS(V,A\/F.m) by Def3;
+    hence thesis by Th6;
+  end;
+
+registration
+  let V,A,n;
+  cluster FNDSC(V,A) | Seg(n) -> FinSequence-like;
+  coherence
+  proof
+    dom FNDSC(V,A) = NAT by Def3;
+    hence thesis by Th2;
+  end;
+end;
+
+theorem Th13:
+  m <> 0 & m <= n implies FNDSC(V,A).m c= FNDSC(V,A).n
+  proof
+    assume
+A1: m <> 0;
+    set S = FNDSC(V,A);
+    defpred P[Nat] means m <= $1 implies S.m c= S.$1;
+A2: P[0];
+A3: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat;
+      assume
+A4:   P[k];
+      assume that
+A5:   m <= k+1;
+      per cases by A5,NAT_1:8;
+      suppose m = k+1;
+        hence thesis;
+      end;
+      suppose
+A6:     m <= k;
+        per cases;
+        suppose k = 0;
+          hence S.m c= S.(k+1) by A1,A6;
+        end;
+        suppose
+A7:       k <> 0;
+          defpred R[Nat] means $1 <> 0 implies S.$1 c= S.($1+1);
+A8:       R[0];
+A9:       for z being Nat st R[z] holds R[z+1]
+          proof
+            let z be Nat such that
+A10:        R[z];
+            per cases;
+            suppose
+A11:          z = 0;
+A12:          S.1 = NDSS(V,A) by Th9;
+              S.(1+1) = NDSS(V,A\/NDSS(V,A)) by Th10;
+              hence thesis by A11,A12,Th7,XBOOLE_1:7;
+            end;
+            suppose z <> 0;
+              then
+A13:          A\/S.z c= A\/S.(z+1) by A10,XBOOLE_1:9;
+A14:          S.(z+1) = NDSS(V,A\/S.z) by Def3;
+              S.(z+1+1) = NDSS(V,A\/S.(z+1)) by Def3;
+              hence thesis by A13,A14,Th7;
+            end;
+          end;
+          for z being Nat holds R[z] from NAT_1:sch 2(A8,A9);
+          then S.k c= S.(k+1) by A7;
+          hence thesis by A4,A6;
+        end;
+      end;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A2,A3);
+    hence thesis;
+  end;
+
+definition
+  let V,A;
+  let S be FinSequence;
+  pred S IsNDRankSeq V,A means
+  S.1 = NDSS(V,A) &
+  for n being Nat st n in dom S & n+1 in dom S holds S.(n+1) = NDSS(V,A\/S.n);
+end;
+
+theorem
+  S IsNDRankSeq V,A implies S <> {};
+
+theorem Th15:
+  S IsNDRankSeq V,A & S1 c= S & S1 <> {} implies S1 IsNDRankSeq V,A
+  proof
+    assume that
+A1: S IsNDRankSeq V,A and
+A2: S1 c= S and
+A3: S1 <> {};
+A4: dom S1 c= dom S by A2,XTUPLE_0:8;
+    rng S1 <> {} by A3;
+    then 1 in dom S1 by FINSEQ_3:32;
+    hence S1.1 = NDSS(V,A) by A1,A2,GRFUNC_1:2;
+    let n be Nat such that
+A5: n in dom S1 and
+A6: n+1 in dom S1;
+    S1.n = S.n by A2,A5,GRFUNC_1:2;
+    hence NDSS(V,A\/S1.n) = S.(n+1) by A1,A4,A5,A6
+    .= S1.(n+1) by A2,A6,GRFUNC_1:2;
+  end;
+
+theorem Th16:
+  S IsNDRankSeq V,A & n in dom S implies S|n IsNDRankSeq V,A
+  proof
+    assume
+A1: S IsNDRankSeq V,A;
+    assume
+A2: n in dom S;
+    then n <= len S by FINSEQ_3:25;
+    then len(S|n) = n by FINSEQ_1:17;
+    then S|n <> {} by A2,FINSEQ_3:24;
+    hence thesis by A1,RELAT_1:59,Th15;
+  end;
+
+theorem Th17:
+  S IsNDRankSeq V,A implies S ^ <* NDSS(V,A\/S.len S) *> IsNDRankSeq V,A
+  proof
+    assume
+A1: S IsNDRankSeq V,A;
+    set S1 = S^<*NDSS(V,A\/S.len S)*>;
+    S <> {} by A1;
+    then rng S <> {};
+    then 1 in dom S by FINSEQ_3:32;
+    hence S1.1 = NDSS(V,A) by A1,FINSEQ_1:def 7;
+    let n be Nat such that
+A2: n in dom S1 and
+A3: n+1 in dom S1;
+    len <*NDSS(V,A\/S.len S)*> = 1 by FINSEQ_1:39;
+    then
+A4: len S1 = 1 + len S by FINSEQ_1:22;
+A5: 1 <= n by A2,FINSEQ_3:25;
+A6: 1 <= n+1 by NAT_1:14;
+A7: n+1 <= len S1 by A3,FINSEQ_3:25;
+    then n+1-1 <= 1 + len S - 1 by A4,XREAL_1:9;
+    then
+A8: n in dom S by A5,FINSEQ_3:25;
+    then
+A9: S1.n = S.n by FINSEQ_1:def 7;
+    per cases by A7,XXREAL_0:1;
+    suppose n+1 < len S1;
+      then n+1 <= len S by A4,NAT_1:13;
+      then
+A10:  n+1 in dom S by A6,FINSEQ_3:25;
+      then S1.(n+1) = S.(n+1) by FINSEQ_1:def 7;
+      hence thesis by A1,A8,A9,A10;
+    end;
+    suppose n+1 = len S1;
+      hence thesis by A4,A9,FINSEQ_1:42;
+    end;
+  end;
+
+theorem Th18:
+  1 <= n implies FNDSC(V,A) | Seg(n) IsNDRankSeq V,A
+  proof
+    set F = FNDSC(V,A);
+    set S = F|Seg(n);
+    dom F = NAT by Def3;
+    then
+A1: dom S = Seg(n) by RELAT_1:62;
+    assume 1 <= n;
+    then 1 in Seg(n);
+    hence S.1 = F.1 by FUNCT_1:49
+    .= NDSS(V,A) by Th9;
+    let n be Nat such that
+A2: n in dom S;
+    assume n+1 in dom S;
+    hence S.(n+1) = F.(n+1) by A1,FUNCT_1:49
+    .= NDSS(V,A\/F.n) by Def3
+    .= NDSS(V,A\/S.n) by A1,A2,FUNCT_1:49;
+  end;
+
+theorem Th19:
+  S IsNDRankSeq V,A & n in dom S implies S.n = FNDSC(V,A).n
+  proof
+    assume
+A1: S IsNDRankSeq V,A;
+    set F = FNDSC(V,A);
+    defpred P[Nat] means $1 in dom S implies S.$1 = F.$1;
+A2: P[0] by FINSEQ_3:24;
+A3: for n st P[n] holds P[n+1]
+    proof
+      let n such that
+A4:   P[n] and
+A5:   n+1 in dom S;
+      per cases;
+      suppose n = 0;
+        hence thesis by A1,Th9;
+      end;
+      suppose n <> 0;
+        then
+A6:     1 <= n by NAT_1:14;
+A7:     n+1 <= len S by A5,FINSEQ_3:25;
+        n <= n+1 by NAT_1:11;
+        then
+A8:     n <= len S by A7,XXREAL_0:2;
+        then n in dom S by A6,FINSEQ_3:25;
+        hence S.(n+1) = NDSS(V,A\/S.n) by A1,A5
+        .= F.(n+1) by A4,A6,A8,Def3,FINSEQ_3:25;
+      end;
+    end;
+    for n holds P[n] from NAT_1:sch 2(A2,A3);
+    hence thesis;
+  end;
+
+theorem Th20:
+  S IsNDRankSeq V,A implies S = FNDSC(V,A) | dom S
+  proof
+    assume
+A1: S IsNDRankSeq V,A;
+    set F = FNDSC(V,A);
+    set G = F|dom S;
+    dom F = NAT by Def3;
+    hence dom S = dom G by RELAT_1:62;
+    let x such that
+A2: x in dom S;
+    thus S.x = F.x by A1,A2,Th19
+    .= G.x by A2,FUNCT_1:49;
+  end;
+
+theorem Th21:
+  S1 IsNDRankSeq V,A & S2 IsNDRankSeq V,A implies S1 tolerates S2
+  proof
+    assume that
+A1: S1 IsNDRankSeq V,A and
+A2: S2 IsNDRankSeq V,A;
+    let x such that
+A3: x in dom S1 /\ dom S2;
+    defpred P[Nat] means $1 in dom S1 /\ dom S2 implies S1.$1 = S2.$1;
+A4: P[0]
+    proof
+      assume 0 in dom S1 /\ dom S2;
+      then 0 in dom S1 by XBOOLE_0:def 4;
+      hence thesis by FINSEQ_3:24;
+    end;
+A5: for n st P[n] holds P[n+1]
+    proof
+      let n such that
+A6:   P[n] and
+A7:   n+1 in dom S1 /\ dom S2;
+A8:   n+1 in dom S1 by A7,XBOOLE_0:def 4;
+A9:   n+1 in dom S2 by A7,XBOOLE_0:def 4;
+      per cases;
+      suppose n = 0;
+        hence S1.(n+1) = S2.(n+1) by A1,A2;
+      end;
+      suppose n <> 0;
+        then
+A10:    1 <= n by NAT_1:14;
+A11:    n <= n+1 by NAT_1:11;
+        n+1 <= len S1 by A8,FINSEQ_3:25;
+        then n <= len S1 by A11,XXREAL_0:2;
+        then
+A12:    n in dom S1 by A10,FINSEQ_3:25;
+        n+1 <= len S2 by A9,FINSEQ_3:25;
+        then n <= len S2 by A11,XXREAL_0:2;
+        then n in dom S2 by A10,FINSEQ_3:25;
+        hence S2.(n+1) = NDSS(V,A\/S1.n) by A2,A6,A9,A12,XBOOLE_0:def 4
+        .= S1.(n+1) by A1,A8,A12;
+      end;
+    end;
+    for n holds P[n] from NAT_1:sch 2(A4,A5);
+    hence thesis by A3;
+  end;
+
+theorem Th22:
+  S1 IsNDRankSeq V,A & S2 IsNDRankSeq V,A implies S1 c= S2 or S2 c= S1
+  proof
+    assume S1 IsNDRankSeq V,A & S2 IsNDRankSeq V,A;
+    then
+A1: S1 = FNDSC(V,A) | dom S1 & S2 = FNDSC(V,A) | dom S2 by Th20;
+    dom S1 c= dom S2 or dom S2 c= dom S1 by Th3;
+    hence thesis by A1,RELAT_1:75;
+  end;
+
+theorem Th23:
+  S1 IsNDRankSeq V,A & S2 IsNDRankSeq V,A implies S1+*S2 = S1 or S1+*S2 = S2
+  proof
+    assume S1 IsNDRankSeq V,A & S2 IsNDRankSeq V,A;
+    then
+A1: S1+*S2 = S2+*S1 by Th21,FUNCT_4:34;
+    dom S1 c= dom S2 or dom S2 c= dom S1 by Th3;
+    hence thesis by A1,FUNCT_4:19;
+  end;
+
+theorem
+  S1 IsNDRankSeq V,A & S2 IsNDRankSeq V,A implies S1+*S2 IsNDRankSeq V,A
+  by Th23;
+
+theorem Th25:
+  S IsNDRankSeq V,A & m <= n & n in dom S implies S.m c= S.n
+  proof
+    assume that
+A1: S IsNDRankSeq V,A and
+A2: m <= n and
+A3: n in dom S;
+    per cases;
+    suppose
+A4:   m <> 0;
+      then
+A5:   0+1 <= m by NAT_1:13;
+      n <= len S by A3,FINSEQ_3:25;
+      then m <= len S by A2,XXREAL_0:2;
+      then S.m = FNDSC(V,A).m & S.n = FNDSC(V,A).n
+      by A1,A3,A5,Th19,FINSEQ_3:25;
+      hence thesis by A2,A4,Th13;
+    end;
+    suppose
+A6:   m = 0;
+      not 0 in dom S by FINSEQ_3:24;
+      hence thesis by A6,FUNCT_1:def 2;
+    end;
+  end;
+
+theorem Th26:
+  for F being FinSequence st F IsNDRankSeq V,A
+   ex S being FinSequence st len S = 1 + len F & S IsNDRankSeq V,A &
+    for n being Nat st n in dom S holds S.n = NDSS(V,A\/(<*A*>^F).n)
+  proof
+    let F be FinSequence such that
+A1: F IsNDRankSeq V,A;
+    set G = <*A*>^F;
+    deffunc F(object) = NDSS(V,A\/G.$1);
+    consider S being FinSequence such that
+A2: len S = len G and
+A3: for n being Nat st n in dom S holds S.n = F(n) from FINSEQ_1:sch 2;
+    take S;
+    len <*A*> = 1 by FINSEQ_1:39;
+    hence
+A4: len S = 1 + len F by A2,FINSEQ_1:22;
+A5: G.1 = A by FINSEQ_1:41;
+A6: for n being Nat st n in dom F holds G.(n+1) = F.n by Th1;
+A7: 1 <= len S by A4,NAT_1:11;
+    thus S IsNDRankSeq V,A
+    proof
+      thus
+A8:   S.1 = NDSS(V,A\/G.1) by A3,A7,FINSEQ_3:25
+      .= NDSS(V,A) by A5;
+      let n be Nat such that
+A9:   n in dom S and
+A10:  n+1 in dom S;
+A11:  1 <= n by A9,FINSEQ_3:25;
+A12:  n <= len F by A4,A10,FINSEQ_3:25,XREAL_1:6;
+      then
+A13:  n in dom F by A11,FINSEQ_3:25;
+      per cases by A11,XXREAL_0:1;
+      suppose n = 1;
+        then G.(n+1) = S.n by A8,A12,A1,Th1,FINSEQ_3:25;
+        hence NDSS(V,A\/S.n) = S.(n+1) by A3,A10;
+      end;
+      suppose
+A14:    n > 1;
+        then reconsider m = n-1 as Element of NAT by INT_1:5;
+        S.n = NDSS(V,A\/G.(m+1)) by A3,A9
+        .= NDSS(V,A\/F.m) by A13,A14,Th1,CGAMES_1:20
+        .= F.(m+1) by A1,A13,A14,CGAMES_1:20;
+        then G.(n+1) = S.n by A6,A12,A11,FINSEQ_3:25;
+        hence NDSS(V,A\/S.n) = S.(n+1) by A3,A10;
+      end;
+    end;
+    thus thesis by A3;
+  end;
+
+Lm1:
+  for f being Function st
+   ex S being FinSequence st S IsNDRankSeq V,A & f in Union S
+    holds f in Union FNDSC(V,A)
+  proof
+    set F = FNDSC(V,A);
+A1: dom F = NAT by Def3;
+A2: F.0 = A\/A by Def3;
+    let f be Function;
+    given S being FinSequence such that
+A3: S IsNDRankSeq V,A and
+A4: f in Union S;
+    consider z being object such that
+A5: z in dom S and
+A6: f in S.z by A4,CARD_5:2;
+    reconsider z as Element of NAT by A5;
+    defpred P[Nat] means $1+1 in dom S implies S.($1+1) = F.($1+1);
+A7: P[0] by A2,A3,Def3;
+A8: for n st P[n] holds P[n+1]
+    proof
+      let n such that
+A9:   P[n] and
+A10:  n+1+1 in dom S;
+A11:  n+1+1 <= len S by A10,FINSEQ_3:25;
+      n+1 <= n+1+1 by NAT_1:11;
+      then
+A12:  n+1 <= len S by A11,XXREAL_0:2;
+      then n+1 in dom S by NAT_1:11,FINSEQ_3:25;
+      hence S.(n+1+1) = NDSS(V,A\/S.(n+1)) by A3,A10
+      .= F.(n+1+1) by A9,A12,Def3,NAT_1:11,FINSEQ_3:25;
+    end;
+A13: for n holds P[n] from NAT_1:sch 2(A7,A8);
+    1 <= z by A5,FINSEQ_3:25;
+    then per cases by XXREAL_0:1;
+    suppose
+A14:  z = 1;
+A15:  F.(0+1) = NDSS(V,A\/F.0) by Def3;
+      F.1 in rng F by A1,FUNCT_1:def 3;
+      hence thesis by A2,A3,A6,A14,A15,TARSKI:def 4;
+    end;
+    suppose
+A16:  1 < z;
+      then reconsider lZ = z-1 as Element of NAT by INT_1:5;
+      1-1 < lZ by A16,XREAL_1:14;
+      then 0+1 <= lZ by NAT_1:13;
+      then reconsider r = lZ-1 as Element of NAT by INT_1:5;
+A17:  S.(lZ+1) = NDSS(V,A\/S.lZ) by A3,A5,A16,CGAMES_1:20;
+A18:  F.(r+1) = S.(r+1) by A5,A13,A16,CGAMES_1:20;
+      F.(lZ+1) = NDSS(V,A\/F.lZ) by Def3;
+      then NDSS(V,A\/S.lZ) in rng F by A1,A18,FUNCT_1:def 3;
+      hence thesis by A6,A17,TARSKI:def 4;
+    end;
+  end;
+
+theorem Th27:
+  <*NDSS(V,A)*> IsNDRankSeq V,A
+  proof
+    set S = <*NDSS(V,A)*>;
+    thus S.1 = NDSS(V,A) by FINSEQ_1:def 8;
+    let n be Nat such that
+A1: n in dom S & n+1 in dom S;
+    dom S = {1} by FINSEQ_1:2,def 8;
+    then n = 1 & n+1 = 1 by A1,TARSKI:def 1;
+    hence thesis;
+  end;
+
+theorem Th28:
+  <*NDSS(V,A),NDSS(V,A\/NDSS(V,A))*> IsNDRankSeq V,A
+  proof
+A1: <*NDSS(V,A)*> IsNDRankSeq V,A by Th27;
+    len <*NDSS(V,A)*> = 1 by FINSEQ_1:40;
+    hence thesis by A1,Th17;
+  end;
+
+theorem
+  <*NDSS(V,A),NDSS(V,A\/NDSS(V,A)),NDSS(V,A\/NDSS(V,A\/NDSS(V,A)))*>
+   IsNDRankSeq V,A
+  proof
+    set S = <*NDSS(V,A),NDSS(V,A\/NDSS(V,A))*>;
+    len S = 2 & S.2 = NDSS(V,A\/NDSS(V,A)) by FINSEQ_1:44;
+    hence thesis by Th17,Th28;
+  end;
+
+definition
+  let V,A;
+  mode NonatomicND of V,A -> Function means :Def5:
+  ex S being FinSequence st S IsNDRankSeq V,A & it in Union S;
+  existence
+  proof
+    Union <*NDSS(V,A)*> = NDSS(V,A) by FINSEQ_3:135;
+    then (the PartFunc of V,A) | {} in Union <*NDSS(V,A)*>;
+    hence thesis by Th27;
+  end;
+  sethood
+  proof
+    take Union FNDSC(V,A);
+    thus thesis by Lm1;
+  end;
+end;
+
+reserve D,D1,D2 for NonatomicND of V,A;
+
+theorem Th30:
+  {} is NonatomicND of V,A
+  proof
+    take S = <*NDSS(V,A)*>;
+    Union S = NDSS(V,A) by FINSEQ_3:135;
+    then (the PartFunc of V,A) | {} in Union S;
+    hence thesis by Th27;
+  end;
+
+theorem Th31:
+  D in Union FNDSC(V,A)
+  proof
+    ex S being FinSequence st S IsNDRankSeq V,A & D in Union S by Def5;
+    hence thesis by Lm1;
+  end;
+
+theorem Th32:
+  for d being set st d c= D holds d is NonatomicND of V,A
+  proof
+    let d be set;
+    assume
+A1: d c= D;
+    then reconsider d as Function;
+    consider S being FinSequence such that
+A2: S IsNDRankSeq V,A and
+A3: D in Union S by Def5;
+    consider x such that
+A4: x in dom S and
+A5: D in S.x by A3,CARD_5:2;
+    reconsider x as Element of NAT by A4;
+    now
+      1 <= x by A4,FINSEQ_3:25;
+      then per cases by XXREAL_0:1;
+      suppose
+A6:     x = 1;
+        then D is TypeSSNominativeData of V,A by A2,A5,Th4;
+        then d is TypeSSNominativeData of V,A by A1,RELSET_1:1;
+        then d in NDSS(V,A);
+        hence d in Union S by A2,A4,A6,CARD_5:2;
+      end;
+      suppose
+A7:     x > 1;
+        then reconsider n = x-1 as Element of NAT by INT_1:5;
+A8:     S.(n+1) = NDSS(V,A\/S.n) by A2,A4,A7,CGAMES_1:20;
+        then D is TypeSSNominativeData of V,A\/S.n by A5,Th4;
+        then d is TypeSSNominativeData of V,A\/S.n by A1,RELSET_1:1;
+        then d in NDSS(V,A\/S.n);
+        hence d in Union S by A4,A8,CARD_5:2;
+      end;
+    end;
+    hence thesis by A2,Def5;
+  end;
+
+theorem Th33:
+  ex n being Nat st D is TypeSSNominativeData of V,A\/FNDSC(V,A).n
+  proof
+    set F = FNDSC(V,A);
+    consider S being FinSequence such that
+A1: S IsNDRankSeq V,A and
+A2: D in Union S by Def5;
+    consider x being object such that
+A3: x in dom S and
+A4: D in S.x by A2,CARD_5:2;
+    reconsider x as Element of NAT by A3;
+    reconsider n = x-1 as Element of NAT by A3,FINSEQ_3:25,INT_1:5;
+    take n;
+A5: F.(n+1) = S.(n+1) by A1,A3,Th19;
+    F.(n+1) = NDSS(V,A\/F.n) by Def3;
+    hence thesis by A4,A5,Th4;
+  end;
+
+registration
+  let V,A;
+  cluster -> finite for NonatomicND of V,A;
+  coherence
+  proof
+    let D;
+    ex n being Nat st D is TypeSSNominativeData of V,A\/FNDSC(V,A).n by Th33;
+    hence thesis;
+  end;
+end;
+
+theorem Th34:
+  D1 tolerates D2 & S IsNDRankSeq V,A & D1 in S.m & D2 in S.m
+  implies D1 \/ D2 in S.m
+  proof
+    set D = D1\/D2;
+    assume that
+A1: D1 tolerates D2 and
+A2: S IsNDRankSeq V,A and
+A3: D1 in S.m & D2 in S.m;
+A4: m in dom S by A3,FUNCT_1:def 2;
+    not 0 in dom S by FINSEQ_3:24;
+    then m <> 0 by A3,FUNCT_1:def 2;
+    then
+A5: 0+1 <= m by NAT_1:13;
+    then reconsider z = m-1 as Element of NAT by INT_1:5;
+    per cases by A5,XXREAL_0:1;
+    suppose 1 < m;
+      then
+A6:   S.(z+1) = NDSS(V,A\/S.z) by A2,A4,CGAMES_1:20;
+      then D1 is PartFunc of V,A\/S.z & D2 is PartFunc of V,A\/S.z by A3,Th4;
+      then D is V-defined (A\/S.z)-valued;
+      then D is PartFunc of V,A\/S.z by A1,RELSET_1:4,PARTFUN1:51;
+      hence thesis by A6;
+    end;
+    suppose m = 1;
+      hence thesis by A1,A2,A3,Th8;
+    end;
+  end;
+
+theorem Th35:
+  D1 tolerates D2 & S2 IsNDRankSeq V,A & S1 c= S2 &
+   D1 in Union S1 & D2 in Union S2
+  implies D1 \/ D2 in Union S2
+  proof
+    set D = D1 \/ D2;
+    set S = S1+*S2;
+A1: dom S = dom S1 \/ dom S2 by FUNCT_4:def 1;
+    assume that
+A2: D1 tolerates D2 and
+A3: S2 IsNDRankSeq V,A and
+A4: S1 c= S2 and
+A5: D1 in Union S1 and
+A6: D2 in Union S2;
+    Union S1 c= Union S2 by A4,CARD_3:24;
+    then consider i being object such that
+A7: i in dom S2 and
+A8: D1 in S2.i by A5,CARD_5:2;
+    consider j being object such that
+A9: j in dom S2 and
+A10: D2 in S2.j by A6,CARD_5:2;
+    reconsider i as Element of NAT by A7;
+    reconsider j as Element of NAT by A9;
+    set k = max(i,j);
+    dom S1 c= dom S2 by A4,XTUPLE_0:8;
+    then
+A11: S = S2 by FUNCT_4:19;
+    k in dom S1 or k in dom S2 by A7,A9,XXREAL_0:16;
+    then
+A12: k in dom S by A1,XBOOLE_0:def 3;
+    then
+A13: S2.i c= S2.k by A3,A11,Th25,XXREAL_0:25;
+    S2.j c= S2.k by A3,A11,A12,Th25,XXREAL_0:25;
+    hence thesis by A11,A12,A2,A3,A10,A8,A13,Th34,CARD_5:2;
+  end;
+
+theorem Th36:
+  D1 tolerates D2 implies D1 \/ D2 is NonatomicND of V,A
+  proof
+    set D = D1 \/ D2;
+    assume
+A1: D1 tolerates D2;
+    then
+A2: D is Function by PARTFUN1:51;
+    consider S1 being FinSequence such that
+A3: S1 IsNDRankSeq V,A and
+A4: D1 in Union S1 by Def5;
+    consider S2 being FinSequence such that
+A5: S2 IsNDRankSeq V,A and
+A6: D2 in Union S2 by Def5;
+    S1 c= S2 or S2 c= S1 by A3,A5,Th22;
+    hence thesis by A1,A2,A3,A4,A5,A6,Th35,Def5;
+  end;
+
+theorem
+  D1 tolerates D2 implies D1 +* D2 is NonatomicND of V,A
+  proof
+    assume
+A1: D1 tolerates D2;
+    then D1 \/ D2 = D1 +* D2 by FUNCT_4:30;
+    hence thesis by A1,Th36;
+  end;
+
+definition
+  let V,A;
+  mode TypeSCNominativeData of V,A -> set means :Def6:
+  it in A or it is NonatomicND of V,A;
+  existence
+  proof
+    take the NonatomicND of V,A;
+    thus thesis;
+  end;
+  sethood
+  proof
+    set X = Union FNDSC(V,A);
+    take A \/ X;
+    let x be set;
+    assume x in A or x is NonatomicND of V,A;
+    then x in A or
+    x is Function & ex S being FinSequence st S IsNDRankSeq V,A & x in Union S
+    by Def5;
+    then x in A or x in X by Lm1;
+    hence thesis by XBOOLE_0:def 3;
+  end;
+end;
+
+registration
+  let V,A;
+  cluster Function-like Relation-like for TypeSCNominativeData of V,A;
+  existence
+  proof
+    {} is NonatomicND of V,A by Th30;
+    then reconsider e = {} as TypeSCNominativeData of V,A by Def6;
+    take e;
+    thus thesis;
+  end;
+end;
+
+definition
+  let V,A;
+  redefine mode NonatomicND of V,A
+    -> Function-like Relation-like TypeSCNominativeData of V,A;
+  coherence by Def6;
+end;
+
+definition
+  let V,A;
+  func ND(V,A) -> set equals
+  the set of all D where D is TypeSCNominativeData of V,A;
+  coherence;
+end;
+
+registration
+  let V,A;
+  cluster ND(V,A) -> non empty;
+  coherence
+  proof
+    the TypeSCNominativeData of V,A in ND(V,A);
+    hence thesis;
+  end;
+end;
+
+theorem
+  {} in ND(V,A)
+  proof
+    {} is NonatomicND of V,A by Th30;
+    hence thesis;
+  end;
+
+theorem Th39:
+  x in ND(V,A) implies x is TypeSCNominativeData of V,A
+  proof
+    assume x in ND(V,A);
+    then ex D being TypeSCNominativeData of V,A st x = D;
+    hence thesis;
+  end;
+
+theorem
+  ND(V,A) = Union FNDSC(V,A)
+  proof
+    set F = FNDSC(V,A);
+    thus ND(V,A) c= Union F
+    proof
+      let x;
+      assume x in ND(V,A);
+      then x is TypeSCNominativeData of V,A by Th39;
+      then
+A1:   x in A or x is NonatomicND of V,A by Def6;
+      A c= Union F by Th11;
+      hence thesis by A1,Th31;
+    end;
+    let x;
+    assume x in Union F;
+    then consider z being object such that
+A2: z in dom F and
+A3: x in F.z by CARD_5:2;
+    reconsider z as Element of NAT by A2,Def3;
+    per cases;
+    suppose z = 0;
+      then x in A by A3,Def3;
+      then x is TypeSCNominativeData of V,A by Def6;
+      hence thesis;
+    end;
+    suppose
+A4:   z <> 0;
+      then
+A5:   1 <= z by NAT_1:14;
+      reconsider n = z-1 as Element of NAT by A4,INT_1:5,NAT_1:14;
+A6:   dom F = NAT by Def3;
+      set S = F|Seg(z);
+      F.(n+1) = NDSS(V,A\/F.n) by Def3;
+      then
+A7:   x is TypeSSNominativeData of V,A\/F.n by A3,Th4;
+A8:   dom S = Seg(z) by A6,RELAT_1:62;
+A9:   z in Seg(z) by A5;
+      then S.z = F.z by FUNCT_1:49;
+      then F.z in rng S by A8,A9,FUNCT_1:def 3;
+      then x in Union S by A3,TARSKI:def 4;
+      then x is NonatomicND of V,A by A7,A5,Th18,Def5;
+      hence thesis;
+    end;
+  end;
+
+theorem Th41:
+  D in ND(V,A)
+  proof
+    D is TypeSCNominativeData of V,A by Def6;
+    hence thesis;
+  end;
+
+theorem Th42:
+  not D in A implies D in ND(V,A) \ A
+  proof
+    D in ND(V,A) by Th41;
+    hence thesis by XBOOLE_0:def 5;
+  end;
+
+theorem Th43:
+  x in ND(V,A) \ A implies x is NonatomicND of V,A
+  proof
+    assume
+A1: x in ND(V,A) \ A;
+    then x in ND(V,A);
+    then
+A2: ex w being TypeSCNominativeData of V,A st x = w;
+    not x in A by A1,XBOOLE_0:def 5;
+    hence thesis by A2,Def6;
+  end;
+
+theorem
+  for D being TypeSCNominativeData of V,A holds D in Union FNDSC(V,A)
+  proof
+    let D be TypeSCNominativeData of V,A;
+A1: D in A or D is NonatomicND of V,A by Def6;
+    A c= Union FNDSC(V,A) by Th11;
+    hence thesis by A1,Th31;
+  end;
+
+begin :: Examples of simple-named complex-valued nominative data
+
+::$N [v->a]
+definition
+  let v,a;
+  func ND_ex_1(v,a) -> set equals
+  v.-->a;
+  coherence;
+end;
+
+registration
+  let v,a;
+  cluster ND_ex_1(v,a) -> Function-like Relation-like;
+  coherence;
+end;
+
+theorem Th45:
+  v in V & a in A implies ND_ex_1(v,a) in NDSS(V,A)
+  proof
+    assume that
+A1: v in V and
+A2: a in A;
+    reconsider V1 = V, A1 = A as non empty set by A1,A2;
+    reconsider v as Element of V1 by A1;
+    reconsider a as Element of A1 by A2;
+    v.-->a in NDSS(V,A);
+    hence thesis;
+  end;
+
+theorem Th46:
+  v in V & a in A implies ND_ex_1(v,a) is NonatomicND of V,A
+  proof
+    assume
+A1: v in V & a in A;
+    take S = <*NDSS(V,A)*>;
+    thus S IsNDRankSeq V,A by Th27;
+    ND_ex_1(v,a) in NDSS(V,A) by A1,Th45;
+    hence thesis by FINSEQ_3:135;
+  end;
+
+definition
+  let V,A be non empty set;
+  let v be Element of V;
+  let a be Element of A;
+  redefine func ND_ex_1(v,a) -> NonatomicND of V,A;
+  coherence by Th46;
+end;
+
+theorem
+  v in V & a in A implies ND_ex_1(v,a) is TypeSCNominativeData of V,A by Th46;
+
+::$N [v->[v1->a]]
+definition
+  let v,v1,a1;
+  func ND_ex_2(v,v1,a1) -> set equals
+  v.-->(v1.-->a1);
+  coherence;
+end;
+
+registration
+  let v,v1,a1;
+  cluster ND_ex_2(v,v1,a1) -> Function-like Relation-like;
+  coherence;
+end;
+
+theorem Th48:
+  {v,v1} c= V & a1 in A implies ND_ex_2(v,v1,a1) in NDSS(V,A\/NDSS(V,A))
+  proof
+    assume that
+A1: {v,v1} c= V and
+A2: a1 in A;
+    reconsider V1 = V, A1 = A as non empty set by A1,A2;
+    reconsider v,v1 as Element of V1 by A1,ZFMISC_1:32;
+    reconsider a1 as Element of A1 by A2;
+    set d = ND_ex_2(v,v1,a1);
+A3: dom(v.-->(v1.-->a1)) c= V;
+A4: rng d = {v1.-->a1} by FUNCOP_1:88;
+    v1.-->a1 in NDSS(V,A);
+    then v1.-->a1 in A\/NDSS(V,A) by XBOOLE_0:def 3;
+    then rng d c= A\/NDSS(V,A) by A4,ZFMISC_1:31;
+    then d is PartFunc of V,A\/NDSS(V,A) by A3,RELSET_1:4;
+    hence thesis;
+  end;
+
+theorem Th49:
+  {v,v1} c= V & a1 in A implies ND_ex_2(v,v1,a1) is NonatomicND of V,A
+  proof
+    assume
+A1: {v,v1} c= V & a1 in A;
+    take S = <*NDSS(V,A),NDSS(V,A\/NDSS(V,A))*>;
+    thus S IsNDRankSeq V,A by Th28;
+A2: Union S = NDSS(V,A) \/ NDSS(V,A\/NDSS(V,A)) by FINSEQ_3:136;
+    ND_ex_2(v,v1,a1) in NDSS(V,A\/NDSS(V,A)) by A1,Th48;
+    hence thesis by A2,XBOOLE_0:def 3;
+  end;
+
+definition
+  let V,A be non empty set;
+  let v,v1 be Element of V;
+  let a be Element of A;
+  redefine func ND_ex_2(v,v1,a) -> NonatomicND of V,A;
+  coherence
+  proof
+    {v,v1} c= V by ZFMISC_1:32;
+    hence thesis by Th49;
+  end;
+end;
+
+theorem
+  {v,v1} c= V & a1 in A implies
+  ND_ex_2(v,v1,a1) is TypeSCNominativeData of V,A by Th49;
+
+::$N [v->a,v1->a1]
+definition
+  let v,v1,a,a1;
+  func ND_ex_3(v,v1,a,a1) -> set equals
+  (v,v1)-->(a,a1);
+  coherence;
+end;
+
+registration
+  let v,v1,a,a1;
+  cluster ND_ex_3(v,v1,a,a1) -> Function-like Relation-like;
+  coherence;
+end;
+
+theorem Th51:
+  {v,v1} c= V & {a,a1} c= A implies ND_ex_3(v,v1,a,a1) in NDSS(V,A)
+  proof
+    assume that
+A1: {v,v1} c= V and
+A2: {a,a1} c= A;
+    per cases;
+    suppose v = v1;
+      then
+A3:   ND_ex_3(v,v1,a,a1) = ND_ex_1(v1,a1) by FUNCT_4:81;
+      v1 in V & a1 in A by A1,A2,ZFMISC_1:32;
+      hence thesis by A3,Th45;
+    end;
+    suppose v <> v1;
+      then {v} misses {v1} by ZFMISC_1:11;
+      then
+A4:   ND_ex_1(v,a) tolerates ND_ex_1(v1,a1) by FUNCOP_1:87;
+      v in V & v1 in V & a in A & a1 in A by A1,A2,ZFMISC_1:32;
+      then
+A5:   ND_ex_1(v,a) in NDSS(V,A) & ND_ex_1(v1,a1) in NDSS(V,A) by Th45;
+      ND_ex_3(v,v1,a,a1) = ND_ex_1(v,a) \/ ND_ex_1(v1,a1) by A4,FUNCT_4:30;
+      hence thesis by A4,A5,Th8;
+    end;
+  end;
+
+theorem Th52:
+  {v,v1} c= V & {a,a1} c= A implies
+  ND_ex_3(v,v1,a,a1) is NonatomicND of V,A
+  proof
+    assume
+A1: {v,v1} c= V & {a,a1} c= A;
+    take <*NDSS(V,A)*>;
+    thus <*NDSS(V,A)*> IsNDRankSeq V,A by Th27;
+    ND_ex_3(v,v1,a,a1) in NDSS(V,A) by A1,Th51;
+    hence thesis by FINSEQ_3:135;
+  end;
+
+definition
+  let V,A be non empty set;
+  let v,v1 be Element of V;
+  let a,a1 be Element of A;
+  redefine func ND_ex_3(v,v1,a,a1) -> NonatomicND of V,A;
+  coherence
+  proof
+    {v,v1} c= V & {a,a1} c= A by ZFMISC_1:32;
+    hence thesis by Th52;
+  end;
+end;
+
+theorem
+  {v,v1} c= V & {a,a1} c= A implies
+  ND_ex_3(v,v1,a,a1) is TypeSCNominativeData of V,A by Th52;
+
+::$N [v->a,v1->[v2->a1]]
+definition
+  let v,v1,v2,a,a1;
+  func ND_ex_4(v,v1,v2,a,a1) -> set equals
+  (v,v1)-->(a,v2.-->a1);
+  coherence;
+end;
+
+registration
+  let v,v1,v2,a,a1;
+  cluster ND_ex_4(v,v1,v2,a,a1) -> Function-like Relation-like;
+  coherence;
+end;
+
+theorem Th54:
+  {v,v1,v2} c= V & {a,a1} c= A implies
+  ND_ex_4(v,v1,v2,a,a1) in NDSS(V,A\/NDSS(V,A))
+  proof
+    assume that
+A1: {v,v1,v2} c= V and
+A2: {a,a1} c= A;
+    v in {v,v1,v2} by ENUMSET1:def 1;
+    then
+A3: v in V by A1;
+    v1 in {v,v1,v2} by ENUMSET1:def 1;
+    then
+A4: v1 in V by A1;
+A5: v2 in {v,v1,v2} by ENUMSET1:def 1;
+A6: a in A by A2,ZFMISC_1:32;
+A7: a1 in A by A2,ZFMISC_1:32;
+    set f = v2.-->a1;
+    set g = ND_ex_4(v,v1,v2,a,a1);
+    dom g = {v,v1} by FUNCT_4:62;
+    then
+A8: dom g c= V by A3,A4,TARSKI:def 2;
+A9: rng g c= {a,f} by FUNCT_4:62;
+    rng g c= A\/NDSS(V,A)
+    proof
+      let x;
+      assume x in rng g;
+      then per cases by A9,TARSKI:def 2;
+      suppose x = a;
+        hence thesis by A6,XBOOLE_0:def 3;
+      end;
+      suppose
+A10:    x = f;
+A11:    dom f c= V by A1,A5,ZFMISC_1:31;
+        rng f = {a1} by FUNCOP_1:8;
+        then rng f c= A by A7,ZFMISC_1:31;
+        then f is PartFunc of V,A by A11,RELSET_1:4;
+        then f in NDSS(V,A);
+        hence thesis by A10,XBOOLE_0:def 3;
+      end;
+    end;
+    then g is PartFunc of V,A\/NDSS(V,A) by A8,RELSET_1:4;
+    hence g in NDSS(V,A\/NDSS(V,A));
+  end;
+
+theorem Th55:
+  {v,v1,v2} c= V & {a,a1} c= A implies
+  ND_ex_4(v,v1,v2,a,a1) is NonatomicND of V,A
+  proof
+    assume
+A1: {v,v1,v2} c= V & {a,a1} c= A;
+    set R = ND_ex_4(v,v1,v2,a,a1);
+    set S1 = NDSS(V,A);
+    set S2 = NDSS(V,A\/NDSS(V,A));
+    R in S2 by A1,Th54;
+    then
+A2: R in S1\/S2 by XBOOLE_0:def 3;
+    Union <*S1,S2*> = S1\/S2 by FINSEQ_3:136;
+    hence thesis by A2,Def5,Th28;
+  end;
+
+definition
+  let V,A be non empty set;
+  let v,v1,v2 be Element of V;
+  let a,a1 be Element of A;
+  redefine func ND_ex_4(v,v1,v2,a,a1) -> NonatomicND of V,A;
+  coherence
+  proof
+A1: {v,v1,v2} c= V
+    proof
+      let x;
+      assume x in {v,v1,v2};
+      then x = v or x = v1 or x = v2 by ENUMSET1:def 1;
+      hence thesis;
+    end;
+    {a,a1} c= A by ZFMISC_1:32;
+    hence thesis by A1,Th55;
+  end;
+end;
+
+theorem
+  {v,v1,v2} c= V & {a,a1} c= A implies
+  ND_ex_4(v,v1,v2,a,a1) is TypeSCNominativeData of V,A by Th55;
+
+theorem
+  <*x*> is NonatomicND of {1},{x}
+  proof
+    take <*NDSS({1},{x})*>;
+    thus <*NDSS({1},{x})*> IsNDRankSeq {1},{x} by Th27;
+    <*x*> in NDSS({1},{x})
+    proof
+      1 in {1} & x in {x} by TARSKI:def 1;
+      then <*x*> is Relation of {1},{x} by RELSET_1:3;
+      hence thesis;
+    end;
+    hence thesis by FINSEQ_3:135;
+  end;
+
+begin :: Operations on simple-named complex-valued nominative data
+
+definition
+  let V,A,v,D such that
+A1: v in dom D;
+  func denaming(v,D) -> TypeSCNominativeData of V,A equals :Def12:
+  D.v;
+  coherence
+  proof
+    assume
+A2: not D.v in A;
+    consider S being FinSequence such that
+A3: S IsNDRankSeq V,A and
+A4: D in Union S by Def5;
+    consider Z being set such that
+A5: D in Z and
+A6: Z in rng S by A4,TARSKI:def 4;
+    consider z being object such that
+A7: z in dom S and
+A8: S.z = Z by A6,FUNCT_1:def 3;
+    reconsider z as Element of NAT by A7;
+    1 <= z by A7,FINSEQ_3:25;
+    then per cases by XXREAL_0:1;
+    suppose z = 1;
+      then ex w being TypeSSNominativeData of V,A st w = D by A3,A5,A8;
+      hence thesis by A1,A2,PARTFUN1:4;
+    end;
+    suppose
+A9:  z > 1;
+      reconsider lS = z - 1 as Element of NAT by A7,FINSEQ_3:25,INT_1:5;
+      set S1 = S|lS;
+A10:  dom S1 c= dom S by RELAT_1:60;
+A11:  z <= len S by A7,FINSEQ_3:25;
+      1-1 < lS by A9,XREAL_1:14;
+      then
+A12:  0+1 <= lS by NAT_1:13;
+      lS <= z-0 by XREAL_1:10;
+      then len S1 = lS by A11,XXREAL_0:2,FINSEQ_1:59;
+      then
+A13:  lS in dom S1 by A12,FINSEQ_3:25;
+      then S.(lS+1) = NDSS(V,A\/S.lS) by A7,A3,A10;
+      then consider d being TypeSSNominativeData of V,A\/S.lS such that
+A14:  D = d by A5,A8;
+A15:  D.v in A \/ S.lS by A1,A14,PARTFUN1:4;
+A16:  not D.v in A implies D.v is Function
+      proof
+        assume
+A17:    not D.v in A;
+        per cases by A12,XXREAL_0:1;
+        suppose lS = 1;
+          then D.v in S.1 by A15,A17,XBOOLE_0:def 3;
+          then ex w being TypeSSNominativeData of V,A st w = D.v by A3;
+          hence D.v is Function;
+        end;
+        suppose
+A18:      lS > 1;
+          then reconsider c = lS - 1 as Element of NAT by INT_1:5;
+          c > 1-1 by A18,XREAL_1:14;
+          then
+A19:      1 <= c by NAT_1:14;
+A20:      lS <= len S by A10,A13,FINSEQ_3:25;
+          c <= lS-0 by XREAL_1:10;
+          then c <= len S by A20,XXREAL_0:2;
+          then c in dom S by A19,FINSEQ_3:25;
+          then S.(c+1) = NDSS(V,A\/S.c) & D.v in S.lS
+          by A3,A10,A13,A15,A17,XBOOLE_0:def 3;
+          then ex w being TypeSSNominativeData of V,A\/S.c st w = D.v;
+          hence D.v is Function;
+        end;
+      end;
+      S1.lS = S.lS by FINSEQ_3:112;
+      then S.lS in rng S1 & D.v in S.lS
+      by A2,A13,A15,FUNCT_1:def 3,XBOOLE_0:def 3;
+      then D.v in Union S1 by TARSKI:def 4;
+      hence thesis by A2,A3,A10,A13,A16,Th16,Def5;
+    end;
+  end;
+end;
+
+definition
+  let V,A;
+  let v,D be object;
+  assume
+A1: D is TypeSCNominativeData of V,A;
+  assume
+A2: v in V;
+  func naming(V,A,v,D) -> NonatomicND of V,A equals :Def13:
+  v .--> D;
+  coherence
+  proof
+A3: ND_ex_1(v,D) = v .--> D;
+    per cases by A1,Def6;
+    suppose D in A;
+      hence thesis by A2,A3,Th46;
+    end;
+    suppose D is NonatomicND of V,A;
+      then consider F being FinSequence such that
+A4:   F IsNDRankSeq V,A and
+A5:   D in Union F by Def5;
+      consider Z being set such that
+A6:   D in Z and
+A7:   Z in rng F by A5,TARSKI:def 4;
+      reconsider Z as non empty set by A6;
+      reconsider D1 = D as Element of Z by A6;
+      reconsider V as non empty set by A2;
+      reconsider v as Element of V by A2;
+      set d = v .--> D;
+      v.-->D1 is NominativeSet of V,Z;
+      then
+A8:   d in NDSS(V,Z);
+A9:   NDSS(V,Z) c= NDSS(V,A\/Z) by Th7,XBOOLE_1:7;
+      consider x being object such that
+A10:   x in dom F and
+A11:  F.x = Z by A7,FUNCT_1:def 3;
+      reconsider x as Nat by A10;
+A12:  x <= len F by A10,FINSEQ_3:25;
+      consider S being FinSequence such that
+A13:  len S = 1 + len F and
+A14:  S IsNDRankSeq V,A and
+A15:  for n being Nat st n in dom S holds S.n = NDSS(V,A\/(<*A*>^F).n)
+      by A4,Th26;
+      1 <= x+1 by NAT_1:11;
+      then
+A16:  x+1 in dom S by A13,A12,XREAL_1:6,FINSEQ_3:25;
+      then S.(x+1) = NDSS(V,A\/(<*A*>^F).(x+1)) by A15
+      .= NDSS(V,A\/Z) by A10,A11,Th1;
+      then NDSS(V,A\/Z) in rng S by A16,FUNCT_1:def 3;
+      then d in Union S by A8,A9,TARSKI:def 4;
+      hence thesis by A14,Def5;
+    end;
+  end;
+end;
+
+definition
+  let V,A;
+  let a be object;
+  let f be V-valued FinSequence;
+  assume
+A1: len f > 0;
+  func namingSeq(V,A,f,a) -> FinSequence means :Def14:
+  len it = len f & it.1 = naming(V,A,f.len f,a) &
+   for n being Nat st 1 <= n < len it holds
+    it.(n+1) = naming(V,A,f.(len f-n),it.n);
+  existence
+  proof
+    defpred P[Nat,object,object] means
+    $3 = naming(V,A,f.(len f-$1),$2);
+A2: for n being Nat st 1 <= n & n < len f
+    for x being set ex y being set st P[n,x,y];
+    ex g being FinSequence st len g = len f &
+    (g.1 = naming(V,A,f.len f,a) or len f = 0) &
+    for n being Nat st 1 <= n < len f holds P[n,g.n,g.(n+1)]
+    from RECDEF_1:sch 3(A2);
+    hence thesis by A1;
+  end;
+  uniqueness
+  proof
+    let g1,g2 be FinSequence such that
+A3: len g1 = len f and
+A4: g1.1 = naming(V,A,f.len f,a) and
+A5: for n being Nat st 1 <= n < len g1 holds
+    g1.(n+1) = naming(V,A,f.(len f-n),g1.n) and
+A6: len g2 = len f and
+A7: g2.1 = naming(V,A,f.len f,a) and
+A8: for n being Nat st 1 <= n < len g2 holds
+    g2.(n+1) = naming(V,A,f.(len f-n),g2.n);
+    thus len g1 = len g2 by A3,A6;
+    defpred P[Nat] means 1 <= $1 <= len g1 implies g1.$1 = g2.$1;
+A9: P[0];
+A10: for k being Nat st P[k] holds P[k+1]
+    proof
+      let k be Nat such that
+A11:  P[k] and
+      1 <= k+1 and
+A12:  k+1 <= len g1;
+      per cases;
+      suppose k <> 0;
+        then
+A13:    1 <= k by NAT_1:14;
+        hence g1.(k+1) = naming(V,A,f.(len f-k),g2.k)
+        by A5,A11,A12,NAT_1:13
+        .= g2.(k+1) by A3,A6,A8,A13,A12,NAT_1:13;
+      end;
+      suppose k = 0;
+        hence thesis by A4,A7;
+      end;
+    end;
+    for k being Nat holds P[k] from NAT_1:sch 2(A9,A10);
+    hence thesis;
+  end;
+end;
+
+theorem Th58:
+  for f being V-valued FinSequence holds
+  1 <= n <= len f implies
+  namingSeq(V,A,f,a).n is NonatomicND of V,A
+  proof
+    let f be V-valued FinSequence;
+    assume that
+A1: 1 <= n and
+A2: n <= len f;
+    set g = namingSeq(V,A,f,a);
+    per cases by A1,XXREAL_0:1;
+    suppose n = 1;
+      then g.n = naming(V,A,f.len f,a) by A2,Def14;
+      hence thesis;
+    end;
+    suppose
+A3:   n > 1;
+      then reconsider k = n-1 as Element of NAT by INT_1:5;
+      1-1 < k by A3,XREAL_1:9;
+      then
+A4:   0+1 <= k by INT_1:7;
+A5:   len f = len g by A1,A2,Def14;
+      k+0 < k+1 by XREAL_1:8;
+      then k < len g by A2,A5,XXREAL_0:2;
+      then g.(k+1) = naming(V,A,f.(len f-k),g.k) by A2,A4,Def14;
+      hence thesis;
+    end;
+  end;
+
+definition
+  let V,A;
+  let f be V-valued FinSequence;
+  let a be object;
+  func naming(V,A,f,a) -> set equals
+  namingSeq(V,A,f,a).len(namingSeq(V,A,f,a));
+  coherence;
+end;
+
+theorem
+  for f being V-valued FinSequence st len f > 0
+  holds naming(V,A,f,a) is NonatomicND of V,A
+  proof
+    let f be V-valued FinSequence such that
+A1: len f > 0;
+A2: len(namingSeq(V,A,f,a)) = len f by A1,Def14;
+    then 0+1 <= len(namingSeq(V,A,f,a)) by A1,NAT_1:13;
+    hence thesis by A2,Th58;
+  end;
+
+theorem
+  for V being non empty set
+  for v being Element of V holds
+  naming(V,A,<*v*>,a) = naming(V,A,v,a)
+  proof
+    let V be non empty set;
+    let v be Element of V;
+    set f = <*v*>;
+A1: len f = 1 & f.1 = v by FINSEQ_1:40;
+    len(namingSeq(V,A,f,a)) = len f by Def14;
+    hence thesis by A1,Def14;
+  end;
+
+theorem
+  for V being non empty set
+  for v1,v2 being Element of V st a is TypeSCNominativeData of V,A holds
+  naming(V,A,<*v1,v2*>,a) = v1.-->(v2.-->a)
+  proof
+    let V be non empty set;
+    let v1,v2 be Element of V such that
+A1: a is TypeSCNominativeData of V,A;
+    set f = <*v1,v2*>;
+    set g = namingSeq(V,A,f,a);
+A2: len f = 2 by FINSEQ_1:44;
+A3: f.1 = v1 by FINSEQ_1:44;
+A4: f.2 = v2 by FINSEQ_1:44;
+A5: len g = len f by Def14;
+A6: g.1 is NonatomicND of V,A by A2,Th58;
+A7: g.1 = naming(V,A,f.len f,a) by Def14
+    .= v2.-->a by A2,A4,A1,Def13;
+    thus naming(V,A,<*v1,v2*>,a) = naming(V,A,f.(len f-1),g.1) by A2,A5,Def14
+    .= v1.-->(v2.-->a) by A2,A3,A6,A7,Def13;
+  end;
+
+theorem
+  for D being TypeSCNominativeData of V,A holds
+  v in V implies denaming(v,naming(V,A,v,D)) = D
+  proof
+    let D be TypeSCNominativeData of V,A;
+    assume
+A1: v in V;
+    naming(V,A,v,D) = v.-->D by A1,Def13;
+    then v in dom naming(V,A,v,D) by TARSKI:def 1;
+    hence denaming(v,naming(V,A,v,D)) = (naming(V,A,v,D)).v by Def12
+    .= (v.-->D).v by A1,Def13
+    .= D by FUNCOP_1:72;
+  end;
+
+theorem
+  v in dom D implies naming(V,A,v,denaming(v,D)) = v .--> D.v
+  proof
+    assume
+A1: v in dom D;
+    ex n being Nat st D is TypeSSNominativeData of V,A\/FNDSC(V,A).n by Th33;
+    then dom D c= V by RELAT_1:def 18;
+    hence naming(V,A,v,denaming(v,D)) = v.-->denaming(v,D) by A1,Def13
+    .= v.-->D.v by A1,Def12;
+  end;
+
+definition
+  let V,A;
+  let d1,d2 be object such that
+A1: d1 is TypeSCNominativeData of V,A and
+A2: d2 is TypeSCNominativeData of V,A;
+  func global_overlapping(V,A,d1,d2) -> TypeSCNominativeData of V,A means
+  :Def16:
+  ex f1,f2 being Function st f1 = d1 & f2 = d2 &
+  it = f2 \/ (f1|(dom(f1)\dom(f2))) if not d1 in A & not d2 in A
+  otherwise it = d2;
+  existence
+  proof
+    per cases;
+    suppose that
+A3:   not d1 in A and
+A4:   not d2 in A;
+      reconsider f1 = d1 as Function by A1,A3,Def6;
+      reconsider f2 = d2 as Function by A2,A4,Def6;
+      set X = dom(f1)\dom(f2);
+      set D = f2 \/ (f1|X);
+      D is NonatomicND of V,A
+      proof
+        d1 is NonatomicND of V,A by A1,A3,Def6;
+        then
+A5:     f1|X is NonatomicND of V,A by Th32,RELAT_1:59;
+A6:     d2 is NonatomicND of V,A by A2,A4,Def6;
+A7:     dom(f1|X) = dom(f1)\dom(f2) by RELAT_1:62;
+        dom(f1)\dom(f2) misses dom f2 by XBOOLE_1:79;
+        hence thesis by A5,A6,A7,Th36,PARTFUN1:56;
+      end;
+      hence thesis by A2;
+    end;
+    suppose d1 in A or d2 in A;
+      hence thesis by A2;
+    end;
+  end;
+  uniqueness;
+  consistency;
+end;
+
+definition
+  let V,A;
+  let d1,d2,v be object;
+  func local_overlapping(V,A,d1,d2,v) -> TypeSCNominativeData of V,A equals
+  global_overlapping(V,A,d1,naming(V,A,v,d2));
+  coherence;
+end;
+
+theorem Th64:
+  not D1 in A & not D2 in A implies
+  global_overlapping(V,A,D1,D2) = D2 \/ (D1|(dom(D1)\dom(D2)))
+  proof
+A1: D1 is TypeSCNominativeData of V,A by Def6;
+A2: D2 is TypeSCNominativeData of V,A by Def6;
+    assume not D1 in A & not D2 in A;
+    then ex f1,f2 being Function st f1 = D1 & f2 = D2 &
+    global_overlapping(V,A,D1,D2) = f2 \/ (f1|(dom(f1)\dom(f2)))
+    by A1,A2,Def16;
+    hence thesis;
+  end;
+
+theorem Th65:
+  not D1 in A & not D2 in A & dom D1 c= dom D2 implies
+  global_overlapping(V,A,D1,D2) = D2
+  proof
+    assume
+A1: not D1 in A & not D2 in A;
+    assume
+A2: dom D1 c= dom D2;
+    thus global_overlapping(V,A,D1,D2) = D2 \/ (D1|(dom(D1)\dom(D2)))
+    by A1,Th64
+    .= D2 \/ (D1|{}) by A2,XBOOLE_1:37
+    .= D2;
+  end;
+
+theorem
+  global_overlapping(V,A,D,D) = D
+  proof
+    per cases;
+    suppose
+A1:   not D in A;
+      dom D c= dom D;
+      hence thesis by A1,Th65;
+    end;
+    suppose
+A2:   D in A;
+      D is TypeSCNominativeData of V,A by Def6;
+      hence thesis by A2,Def16;
+    end;
+  end;
+
+theorem
+  v in V & not v.-->a1 in A & not v.-->a2 in A &
+  a1 is TypeSCNominativeData of V,A & a2 is TypeSCNominativeData of V,A
+  implies
+  global_overlapping(V,A,v.-->a1,v.-->a2) = v.-->a2
+  proof
+    assume that
+A1: v in V and
+A2: not v.-->a1 in A & not v.-->a2 in A and
+A3: a1 is TypeSCNominativeData of V,A &
+    a2 is TypeSCNominativeData of V,A;
+    naming(V,A,v,a1) = v.-->a1 & naming(V,A,v,a2) = v.-->a2 by A1,A3,Def13;
+    hence thesis by A2,Th65;
+  end;
+
+theorem Th68:
+  {v1,v2} c= V & v1 <> v2 & not v1.-->a1 in A & not v2.-->a2 in A &
+  a1 is TypeSCNominativeData of V,A & a2 is TypeSCNominativeData of V,A
+  implies
+  global_overlapping(V,A,v1.-->a1,v2.-->a2) = (v2,v1)-->(a2,a1)
+  proof
+    set D1 = v1.-->a1;
+    set D2 = v2.-->a2;
+    assume that
+A1: {v1,v2} c= V and
+A2: v1 <> v2 and
+A3: not D1 in A & not D2 in A and
+A4: a1 is TypeSCNominativeData of V,A &
+    a2 is TypeSCNominativeData of V,A;
+    v1 in V & v2 in V by A1,ZFMISC_1:32;
+    then
+A5: naming(V,A,v1,a1) = v1.-->a1 & naming(V,A,v2,a2) = v2.-->a2 by A4,Def13;
+A6: {v1}\{v2} = {v1} by A2,ZFMISC_1:14;
+    {v1} misses {v2} by A2,ZFMISC_1:11;
+    hence (v2,v1)-->(a2,a1) = D2 \/ (D1|(dom(D1)\dom(D2)))
+    by A6,FUNCT_4:30,PARTFUN1:56
+    .= global_overlapping(V,A,D1,D2) by A3,A5,Th64;
+  end;
+
+theorem
+  {v,v1,v2} c= V & v <> v1 & a2 in A &
+  not v1.-->a1 in A & not v.-->(v2.-->a2) in A &
+  a1 is TypeSCNominativeData of V,A implies
+  local_overlapping(V,A,v1.-->a1,v2.-->a2,v) = (v,v1)-->(v2.-->a2,a1)
+  proof
+    set d1 = v1.-->a1;
+    set d2 = v2.-->a2;
+    assume that
+A1: {v,v1,v2} c= V and
+A2: v <> v1 and
+A3: a2 in A and
+A4: not d1 in A and
+A5: not v.-->d2 in A and
+A6: a1 is TypeSCNominativeData of V,A;
+A7: v in {v,v1,v2} by ENUMSET1:def 1;
+    v2 in {v,v1,v2} by ENUMSET1:def 1;
+    then
+A8: ND_ex_1(v2,a2) is TypeSCNominativeData of V,A by A1,A3,Th46;
+    then
+A9: naming(V,A,v,d2) = v.-->d2 by A1,A7,Def13;
+    {v1,v} c= V
+    proof
+      let x;
+      assume x in {v1,v};
+      then x = v1 or x = v by TARSKI:def 2;
+      then x in {v,v1,v2} by ENUMSET1:def 1;
+      hence thesis by A1;
+    end;
+    hence thesis by A4,A5,A6,A2,A8,A9,Th68;
+  end;
+
+definition
+  let V,A,v;
+  set Dom = {d where d is NonatomicND of V,A: v in dom d};
+  func denaming(V,A,v) -> PartFunc of ND(V,A),ND(V,A) means
+  dom it = {d where d is NonatomicND of V,A: v in dom d} &
+  for D being NonatomicND of V,A st D in dom it holds it.D = denaming(v,D);
+  existence
+  proof
+    defpred P[object,object] means
+    ex D being NonatomicND of V,A st D = $1 & $2 = denaming(v,D);
+A1: for x being object st x in Dom
+    ex y being object st y in ND(V,A) & P[x,y]
+    proof
+      let x;
+      assume x in Dom;
+      then consider d being NonatomicND of V,A such that
+A2:   x = d and v in dom d;
+      take denaming(v,d);
+      thus thesis by A2;
+    end;
+    consider f being Function such that
+A3: dom f = Dom and
+A4: rng f c= ND(V,A) and
+A5: for x being object st x in Dom holds P[x,f.x]
+    from FUNCT_1:sch 6(A1);
+    Dom c= ND(V,A)
+    proof
+      let x;
+      assume x in Dom;
+      then ex d being NonatomicND of V,A st x = d & v in dom d;
+      hence thesis;
+    end;
+    then reconsider f as PartFunc of ND(V,A),ND(V,A) by A3,A4,RELSET_1:4;
+    take f;
+    thus dom f = Dom by A3;
+    let D be NonatomicND of V,A;
+    assume D in dom f;
+    then P[D,f.D] by A3,A5;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f,g be PartFunc of ND(V,A),ND(V,A) such that
+A6: dom f = Dom and
+A7: for D being NonatomicND of V,A st D in dom f holds f.D = denaming(v,D) and
+A8: dom g = Dom and
+A9: for D being NonatomicND of V,A st D in dom g holds g.D = denaming(v,D);
+    thus dom f = dom g by A6,A8;
+    let D be object;
+    assume
+A10: D in dom f;
+    then consider D1 being NonatomicND of V,A such that
+A11: D = D1 & v in dom D1 by A6;
+    thus f.D = denaming(v,D1) by A7,A10,A11
+    .= g.D by A6,A8,A9,A10,A11;
+  end;
+end;
+
+definition
+  let V,A,v;
+  func naming(V,A,v) -> Function of ND(V,A),ND(V,A) means
+  for D being TypeSCNominativeData of V,A holds it.D = naming(V,A,v,D);
+  existence
+  proof
+    defpred P[object,object] means $2 = naming(V,A,v,$1);
+A1: for x being Element of ND(V,A) ex y being Element of ND(V,A) st P[x,y]
+    proof
+      let x be Element of ND(V,A);
+      set y = naming(V,A,v,x);
+      y in ND(V,A);
+      then reconsider y as Element of ND(V,A);
+      take y;
+      thus thesis;
+    end;
+    consider f being Function of ND(V,A),ND(V,A) such that
+A2: for x being Element of ND(V,A) holds P[x,f.x] from FUNCT_2:sch 3(A1);
+    take f;
+    let D be TypeSCNominativeData of V,A;
+    D in ND(V,A);
+    hence thesis by A2;
+  end;
+  uniqueness
+  proof
+    let f,g be Function of ND(V,A),ND(V,A) such that
+A3: for D being TypeSCNominativeData of V,A holds f.D = naming(V,A,v,D) and
+A4: for D being TypeSCNominativeData of V,A holds g.D = naming(V,A,v,D);
+    let D be Element of ND(V,A);
+A5: D is TypeSCNominativeData of V,A by Th39;
+    hence f.D = naming(V,A,v,D) by A3
+    .= g.D by A4,A5;
+  end;
+end;
+
+definition
+  let V,A,v;
+  func local_overlapping(V,A,v) -> PartFunc of [:ND(V,A),ND(V,A):],ND(V,A)
+   means
+  dom it = [: ND(V,A) \ A , ND(V,A) :] &
+  for d1 being NonatomicND of V,A
+   for d2 being object st not d1 in A & d2 in ND(V,A) holds
+    it. [d1,d2] = local_overlapping(V,A,d1,d2,v);
+  existence
+  proof
+    defpred P[object,object] means
+    ex d1 being NonatomicND of V,A, d2 being object st $1 = [d1,d2] &
+    $2 = local_overlapping(V,A,d1,d2,v);
+A1: for x being object st x in [: ND(V,A) \ A , ND(V,A) :]
+    ex y being object st y in ND(V,A) & P[x,y]
+    proof
+      let x;
+      assume x in [: ND(V,A) \ A , ND(V,A) :];
+      then consider d1,d2 being object such that
+A2:   d1 in ND(V,A) \ A & d2 in ND(V,A) and
+A3:   x = [d1,d2] by ZFMISC_1:def 2;
+      reconsider d1 as NonatomicND of V,A by A2,Th43;
+      take local_overlapping(V,A,d1,d2,v);
+      thus thesis by A3;
+    end;
+    consider f being Function such that
+A4: dom f = [: ND(V,A) \ A , ND(V,A) :] and
+A5: rng f c= ND(V,A) and
+A6: for x being object st x in [: ND(V,A) \ A , ND(V,A) :] holds P[x,f.x]
+    from FUNCT_1:sch 6(A1);
+    reconsider f as PartFunc of [:ND(V,A),ND(V,A):],ND(V,A)
+    by A4,A5,RELSET_1:4,ZFMISC_1:96;
+    take f;
+    thus dom f = [: ND(V,A) \ A , ND(V,A) :] by A4;
+    let D1 be NonatomicND of V,A;
+    let D2 be object;
+    set D = [D1,D2];
+    assume not D1 in A & D2 in ND(V,A);
+    then D1 in ND(V,A) \ A & D2 in ND(V,A) by Th42;
+    then D in dom f by A4,ZFMISC_1:def 2;
+    then consider d1 being NonatomicND of V,A, d2 being object such that
+A7: D = [d1,d2] and
+A8: f.D = local_overlapping(V,A,d1,d2,v) by A4,A6;
+    d1 = D1 & d2 = D2 by A7,XTUPLE_0:1;
+    hence thesis by A8;
+  end;
+  uniqueness
+  proof
+    let f,g be PartFunc of [:ND(V,A),ND(V,A):],ND(V,A) such that
+A9: dom f = [: ND(V,A) \ A , ND(V,A) :] and
+A10: for d1 being NonatomicND of V,A, d2 being object
+      st not d1 in A & d2 in ND(V,A) holds
+    f. [d1,d2] = local_overlapping(V,A,d1,d2,v) and
+A11: dom g = [: ND(V,A) \ A , ND(V,A) :] and
+A12: for d1 being NonatomicND of V,A, d2 being object
+      st not d1 in A & d2 in ND(V,A) holds
+    g. [d1,d2] = local_overlapping(V,A,d1,d2,v);
+    thus dom f = dom g by A9,A11;
+    let D be object such that
+A13: D in dom f;
+    consider D1,D2 being object such that
+A14: D1 in ND(V,A) \ A & D2 in ND(V,A) and
+A15: D = [D1,D2] by A9,A13,ZFMISC_1:def 2;
+    reconsider D1 as NonatomicND of V,A by A14,Th43;
+A16: not D1 in A by A14,XBOOLE_0:def 5;
+    hence f.D = local_overlapping(V,A,D1,D2,v) by A10,A14,A15
+    .= g.D by A12,A14,A15,A16;
+  end;
+end;

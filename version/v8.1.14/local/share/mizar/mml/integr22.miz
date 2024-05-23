@@ -1,0 +1,2135 @@
+:: Riemann-Stieltjes Integral
+::  by Keiko Narita , Kazuhisa Nakasho and Yasunari Shidama
+:: 
+:: Received June 30, 2016
+:: Copyright (c) 2016-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, INTEGRA1, SUBSET_1, FUNCT_1, FINSEQ_1, NAT_1, RELAT_1,
+      MEASURE7, XBOOLE_0, XXREAL_2, XXREAL_0, SEQ_4, CARD_1, REAL_1, ARYTM_3,
+      ARYTM_1, CARD_3, FINSEQ_2, INTEGRA2, SEQ_1, SEQ_2, ORDINAL2, COMPLEX1,
+      XXREAL_1, FUNCT_3, PARTFUN1, VALUED_1, TARSKI, INTEGR15, MEASURE5,
+      FUNCT_7, INTEGR22, VALUED_0, ZFMISC_1, ORDINAL4, FUNCOP_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, ZFMISC_1, RELAT_1, FUNCT_1, ORDINAL1,
+      RELSET_1,
+      PARTFUN1, FUNCT_2, FUNCOP_1, BINOP_1, NUMBERS, XCMPLX_0, XXREAL_0,
+      XREAL_0, NAT_1, VALUED_0, COMPLEX1, XXREAL_2, FINSEQ_1, FINSEQ_2,
+      VALUED_1, SEQ_1, SEQ_2, RVSUM_1, SEQ_4, RCOMP_1, MEASURE5, INTEGRA1,
+      INTEGRA2, INTEGRA3;
+ constructors REAL_1, FINSEQOP, MONOID_0, SEQ_4, NAT_D, SUPINF_2, INTEGRA2,
+      RELSET_1, SEQ_2, INTEGRA3, COMSEQ_2;
+ registrations NUMBERS, XREAL_0, SEQ_2, INTEGRA1, FUNCT_2, NAT_1, MEMBERED,
+      ORDINAL1, VALUED_0, VALUED_1, RELSET_1, CARD_1, MEASURE5, FINSEQ_1,
+      SEQM_3, INT_1, XXREAL_2;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ equalities XBOOLE_0, RCOMP_1, BINOP_1, FINSEQ_1;
+ expansions XBOOLE_0, FUNCT_2;
+ theorems XBOOLE_0, XBOOLE_1, XREAL_0, INTEGRA1, INTEGRA4, XXREAL_2, XXREAL_0,
+      RELAT_1, ORDINAL1, XREAL_1, RCOMP_1, SEQ_4, SEQ_2, FINSEQ_1, FINSEQ_2,
+      RVSUM_1, FUNCT_1, FUNCT_2, VALUED_1, TARSKI, MEASURE5, COMPLEX1,
+      FINSEQ_3, SEQ_1, XXREAL_1, VALUED_0, NAT_1, MESFUNC3, FINSEQ_4, FINSEQ_5,
+      ABSVALUE, INT_1, FUNCOP_1;
+ schemes SEQ_1, FUNCT_2, FINSEQ_1, NAT_1;
+
+begin :: Properties of Real Finite Sequences
+
+definition
+  let A be Subset of REAL;
+  let rho be real-valued Function;
+  func vol(A,rho) -> Real equals  :Defvol:
+  0 if A is empty otherwise
+    rho.(upper_bound A) - rho.(lower_bound A);
+  correctness;
+end;
+
+LmINTEGR208:
+for rho be real-valued Function,
+    A being non empty closed_interval Subset of REAL,
+    D being Division of A,
+    B be non empty closed_interval Subset of REAL,
+    v be FinSequence of REAL
+      st A c= dom rho & B c= A & len D = len v &
+        for i be Nat st i in dom v
+          holds v.i = vol (B /\ divset(D,i),rho)
+ holds Sum v = vol (B,rho)
+proof
+  let rho be real-valued Function;
+  defpred P[Nat] means
+  for A being non empty closed_interval Subset of REAL,
+      D being Division of A,
+      B be non empty closed_interval Subset of REAL,
+      v be FinSequence of REAL
+     st A c= dom rho & $1 = len D & B c= A & len D = len v &
+      for k be Nat st k in dom v
+          holds v.k = vol (B /\ divset(D,k),rho) holds Sum v = vol (B,rho);
+A1:P[0];
+A2:for i be Nat st P[i] holds P[i+1]
+   proof let i be Nat;
+    assume A3: P[i];
+    let A be non empty closed_interval Subset of REAL,
+        D be Division of A,
+        B be non empty closed_interval Subset of REAL,
+        v be FinSequence of REAL;
+    set D1=D|i, v1=v|i;
+    assume A4: A c= dom rho & i+1 = len D & B c= A & len D = len v &
+         for k be Nat st k in dom v holds v.k = vol (B /\ divset(D,k),rho);
+A5: dom D = Seg(i+1) & dom D = dom v by A4,FINSEQ_1:def 3,FINSEQ_3:29;
+A7: 1 <= i + 1 & i + 1 <= len v by A4,NAT_1:11;
+    v = (v|i)^<*v/.(i+1)*> by A4,FINSEQ_5:21; then
+A8: v = v1^<*v.(i+1)*> by A7,FINSEQ_4:15;
+A9: lower_bound A <= lower_bound B & upper_bound B <= upper_bound A
+      by A4,SEQ_4:47,48;
+A11: rng D1 c= rng D by RELAT_1:70;
+A12: Seg i c= dom D by A5,FINSEQ_1:5,NAT_1:11;
+A13: i = len D1 & i = len v1 by FINSEQ_1:59,A4,NAT_1:11; then
+A14: dom v1 = Seg i by FINSEQ_1:def 3;
+    per cases;
+    suppose A15: i <> 0; then
+A16:  i in dom D by A12,FINSEQ_1:3,TARSKI:def 3; then
+     consider A1,A2 be non empty closed_interval Subset of REAL such that
+A17:   A1=[.lower_bound A, D.i .] & A2=[. D.i, upper_bound A.]
+    & A = A1 \/ A2 by INTEGRA1:32;
+     A1 c= A by A17,XBOOLE_1:7; then
+B17: A1 c= dom rho by A4,XBOOLE_1:1;
+B23: for y be object st y in rng D1 holds y in A1
+     proof
+      let y be object;
+      assume A18: y in rng D1; then
+      y in A by A11,TARSKI:def 3,INTEGRA1:def 2; then
+      y in [.lower_bound A, upper_bound A.] by INTEGRA1:4; then
+      consider y1 be Real such that
+A19:   y=y1 & lower_bound A <= y1 & y1 <= upper_bound A;
+      consider x be object such that
+A20:   x in dom D1 & y1=D1.x by A18,A19,FUNCT_1:def 3;
+      reconsider x as Nat by A20;
+A21:  x in Seg i by A13,FINSEQ_1:def 3,A20; then
+A22:  x <= i by FINSEQ_1:1;
+      now assume x <> i; then
+       x < i by A22,XXREAL_0:1;
+       hence D.x <= D.i by A16,A12,A21,VALUED_0:def 13;
+      end; then
+      y1 <= D.i by A20,A21,FUNCT_1:49;
+      hence y in A1 by A19,A17;
+     end;
+A24:  D1.i = D.i by A15,FINSEQ_1:3,FUNCT_1:49;
+     for e1,e2 being ExtReal st
+       e1 in dom D1 & e2 in dom D1 & e1 < e2 holds D1.e1 < D1.e2
+     proof
+      let e1, e2 be ExtReal;
+      assume A25: e1 in dom D1 & e2 in dom D1 & e1 < e2; then
+A26:  e1 in Seg i & e2 in Seg i by A13,FINSEQ_1:def 3; then
+      D1.e1=D.e1 & D1.e2=D.e2 by FUNCT_1:49;
+      hence thesis by A25,VALUED_0:def 13,A26,A12;
+     end; then
+     reconsider D1 as non empty increasing FinSequence of REAL
+        by A15,VALUED_0:def 13;
+A27: A1 = [. lower_bound A1, upper_bound A1 .] by INTEGRA1:4; then
+     D1.(len D1) = upper_bound A1 by A13,A24,A17,INTEGRA1:5; then
+     reconsider D1 as Division of A1 by INTEGRA1:def 2,TARSKI:def 3,B23;
+A28:  1 < i+1 by A15,NAT_1:16;
+     i+1 in dom D by A5,FINSEQ_1:4; then
+A29: lower_bound divset(D,i+1) = D.(i+1-1)
+   & upper_bound divset(D,i+1) = D.(i+1) by A28,INTEGRA1:def 4; then
+A30:  B = [. lower_bound B, upper_bound B .]
+   & divset(D,i+1) = [. D.i, D.(i+1) .] by INTEGRA1:4;
+A31: D.i <= D.(i+1) by A29,SEQ_4:11;
+     per cases;
+     suppose A32: upper_bound B < D.i; then
+      [. lower_bound B, upper_bound B .]
+              c= [. lower_bound A, D.i .] by A9,XXREAL_1:34; then
+A33:  B c= A1 by A17,INTEGRA1:4;
+      for k be Nat st k in dom v1 holds v1.k = vol (B /\ divset(D1,k),rho)
+      proof
+       let k be Nat;
+       assume A34: k in dom v1; then
+A35:   k in Seg i & k in dom v by RELAT_1:57; then
+A36:   v.k = v1.k by FUNCT_1:49;
+A37:   k in dom D & k in dom D1 by A34,A35,A4,FINSEQ_3:29,A13;
+A38:    divset(D,k) = [. lower_bound divset(D,k), upper_bound divset(D,k) .]
+     & divset(D1,k) = [. lower_bound divset(D1,k), upper_bound divset(D1,k) .]
+           by INTEGRA1:4;
+       divset(D,k) = divset(D1,k)
+       proof
+        per cases;
+        suppose k=1; then
+A39:     lower_bound(divset(D,k)) = lower_bound A
+       & upper_bound(divset(D,k)) = D.k
+       & lower_bound(divset(D1,k)) = lower_bound A1
+       & upper_bound(divset(D1,k)) = D1.k by A37,INTEGRA1:def 4;
+         lower_bound A = lower_bound A1 by A17,A27,INTEGRA1:5;
+         hence divset(D,k) = divset(D1,k) by A39,A35,A38,FUNCT_1:49;
+        end;
+        suppose A40: k<>1; then
+A41:     lower_bound(divset(D,k)) = D.(k-1) & upper_bound(divset(D,k)) = D.k
+       & lower_bound(divset(D1,k)) = D1.(k-1)
+       & upper_bound(divset(D1,k)) = D1.k by A37,INTEGRA1:def 4;
+A42:     1 <= k by A35,FINSEQ_1:1; then
+         k-1 in NAT by INT_1:5; then
+         reconsider k1=k-1 as Nat;
+         1 < k by A40,A42,XXREAL_0:1; then
+         D.k1 = D1.k1 by A35,FINSEQ_3:12,FUNCT_1:49;
+         hence divset(D,k) = divset(D1,k) by A41,A35,A38,FUNCT_1:49;
+        end;
+       end;
+       hence thesis by A4,A35,A36;
+      end; then
+A43:  Sum v1 = vol (B,rho) by A3,A33,A13,B17;
+      lower_bound B <= upper_bound B by SEQ_4:11; then
+      lower_bound B <= D.i & upper_bound B <= D.(i+1)
+        by A32,A31,XXREAL_0:2; then
+      B /\ divset(D,i+1) = [. D.i, upper_bound B .] by A30,XXREAL_1:143
+                        .= {} by A32,XXREAL_1:29; then
+      vol (B /\ divset(D,i+1),rho) = 0 by Defvol; then
+      v.(i+1) = 0 by A5,A4,FINSEQ_1:4; then
+      Sum v = vol (B,rho) + 0 by A43,A8,RVSUM_1:74;
+      hence Sum v = vol (B,rho);
+     end;
+     suppose A49: D.i <= upper_bound B;
+      per cases;
+      suppose A50: lower_bound B <= D.i; then
+       reconsider B1=[. lower_bound B, D.i .], B2=[. D.i, upper_bound B .]
+         as non empty closed_interval Subset of REAL
+           by XXREAL_1:30,A49,MEASURE5:def 3;
+       B1 \/ B2 = [. lower_bound B, upper_bound B .] by A50,A49,XXREAL_1:165;
+       then
+A51:   B1 \/ B2 = B by INTEGRA1:4;
+       B1 = [. lower_bound B1, upper_bound B1 .]
+     & B2 = [. lower_bound B2, upper_bound B2 .] by INTEGRA1:4; then
+A52:   lower_bound B = lower_bound B1 & D.i = upper_bound B1
+     & D.i = lower_bound B2 & upper_bound B = upper_bound B2 by INTEGRA1:5;
+       for k be Nat st k in dom v1 holds v1.k = vol (B1 /\ divset(D1,k),rho)
+       proof
+        let k be Nat;
+        assume A53: k in dom v1; then
+A54:     k in Seg i & k in dom v by RELAT_1:57; then
+A55:     v.k = vol (B /\ divset(D,k),rho) by A4;
+A56:     v.k = v1.k by A54,FUNCT_1:49;
+A57:    k in dom D & k in dom D1 by A53,A54,A4,A13,FINSEQ_3:29;
+A58:     divset(D,k) = [. lower_bound divset(D,k), upper_bound divset(D,k) .]
+      & divset(D1,k) = [. lower_bound divset(D1,k), upper_bound divset(D1,k) .]
+             by INTEGRA1:4;
+A59:     divset(D,k) = divset(D1,k)
+        proof
+         per cases;
+         suppose k=1; then
+A60:      lower_bound(divset(D,k)) = lower_bound A
+        & upper_bound(divset(D,k)) = D.k
+        & lower_bound(divset(D1,k)) = lower_bound A1
+        & upper_bound(divset(D1,k)) = D1.k by A57,INTEGRA1:def 4;
+          lower_bound A = lower_bound A1 by A27,A17,INTEGRA1:5;
+          hence divset(D,k) = divset(D1,k) by A60,A54,A58,FUNCT_1:49;
+         end;
+         suppose A61: k<>1; then
+A62:      lower_bound(divset(D,k)) = D.(k-1)
+        & upper_bound(divset(D,k)) = D.k
+        & lower_bound(divset(D1,k)) = D1.(k-1)
+        & upper_bound(divset(D1,k)) = D1.k by A57,INTEGRA1:def 4;
+A63:     1 <= k by A54,FINSEQ_1:1; then
+         k-1 in NAT by INT_1:5; then
+         reconsider k1=k-1 as Nat;
+         1 < k by A61,A63,XXREAL_0:1; then
+         D.k1 = D1.k1 by A54,FINSEQ_3:12,FUNCT_1:49;
+         hence divset(D,k) = divset(D1,k) by A62,A54,A58,FUNCT_1:49;
+         end;
+        end; then
+A64:     B1 /\ divset(D1,k) c= B /\ divset(D,k) by A51,XBOOLE_1:7,26;
+        for x be object st x in B /\ divset(D,k)
+                  holds x in B1 /\ divset(D1,k)
+        proof
+         let x be object;
+         assume A65: x in B /\ divset(D,k); then
+         reconsider r=x as Real;
+A66:     x in B & x in divset(D,k) by A65,XBOOLE_0:def 4; then
+A67:    ex r0 be Real
+            st r=r0 & lower_bound B <=r0 & r0 <= upper_bound B by A30;
+A68:    ex r1 be Real
+            st r=r1 & lower_bound divset(D,k) <=r1
+              & r1 <= upper_bound divset(D,k) by A58,A66;
+A69:    k <= i by A54,FINSEQ_1:1;
+A70:     now assume k <> i; then
+           k < i by A69,XXREAL_0:1;
+           hence D.k <= D.i by A16,A57,VALUED_0:def 13;
+         end;
+         k = 1 or k <> 1; then
+         upper_bound divset(D,k) <= D.i by A70,A57,INTEGRA1:def 4;
+         then r <= D.i by A68,XXREAL_0:2;
+         then r in B1 by A67;
+         hence x in B1 /\ divset(D1,k) by XBOOLE_0:def 4,A59,A66;
+        end;
+        then B /\ divset(D,k) c= B1 /\ divset(D1,k) by TARSKI:def 3;
+        hence thesis by A55,A56,A64,XBOOLE_0:def 10;
+       end; then
+A71:   Sum v1 = vol (B1,rho) by A3,A17,A9,XXREAL_1:34,A13,B17;
+       B /\ divset(D,i+1) = B1 /\ divset(D,i+1) \/ B2 /\ divset(D,i+1)
+          by A51,XBOOLE_1:23; then
+       B /\ divset(D,i+1)
+                = [. D.i, D.i .] \/ B2 /\ [. D.i, D.(i+1) .]
+                                      by A30,A50,A31,XXREAL_1:143; then
+A72:    B /\ divset(D,i+1)
+               = ( [. D.i, D.i .] \/ [. D.i, upper_bound B .] )
+                  /\ ([. D.i, D.i .] \/ [. D.i, D.(i+1) .]) by XBOOLE_1:24;
+       D.i <= upper_bound B by A52,SEQ_4:11; then
+A73:   [. D.i, D.i .] \/ [. D.i, upper_bound B .] = B2 by XXREAL_1:165;
+       [. D.i, D.i .] \/ [. D.i, D.(i+1) .]
+                          = [. D.i, D.(i+1) .] by A31,XXREAL_1:165; then
+A74:   [. D.i, D.i .] \/ [. D.i, D.(i+1) .]
+                         = divset(D,i+1) by A29,INTEGRA1:4;
+A75:   upper_bound B <= D.(i+1) by A4,A9,INTEGRA1:def 2;
+C78:   for x be object st x in B2 holds x in divset(D,i+1)
+       proof
+        let x be object;
+        assume A76: x in B2; then
+        reconsider r=x as Real;
+A77:    ex r0 be Real st r=r0 & D.i <= r0 & r0 <= upper_bound B by A76;
+        r <= D.(i+1) by A75,XXREAL_0:2,A77;
+        hence x in divset(D,i+1) by A30,A77;
+       end;
+       v.(i+1) = vol ( B /\ divset(D,i+1),rho) by A4,A5,FINSEQ_1:4; then
+D78:   v.(i+1) = vol (B2,rho) by TARSKI:def 3,C78,A74,A72,A73,XBOOLE_1:28;
+B79:   vol (B1,rho) = rho.(D.i) - rho.(lower_bound B) by A52,Defvol;
+       vol (B2,rho) = rho.(upper_bound B) - rho.(D.i) by A52,Defvol; then
+       vol (B1,rho) + vol (B2,rho)
+         = rho.(upper_bound B) - rho.(lower_bound B) by B79
+        .= vol (B,rho) by Defvol;
+       hence Sum v = vol (B,rho) by D78,A8,RVSUM_1:74,A71;
+      end;
+      suppose A79: D.i < lower_bound B; then
+A80:    [. lower_bound B, D.i .] = {} by XXREAL_1:29;
+       reconsider B1=[. lower_bound B, D.i .] as Subset of REAL;
+       reconsider B2=B as non empty closed_interval Subset of REAL;
+       now let k0 be object;
+        assume A81: k0 in dom v1; then
+A82:     k0 in Seg i & k0 in dom v by RELAT_1:57;
+        reconsider k=k0 as Nat by A81;
+A83:    k in dom D & k in dom D1 by A81,A82,A4,A13,FINSEQ_3:29;
+A84:     divset(D,k) = [. lower_bound divset(D,k), upper_bound divset(D,k) .]
+      & divset(D1,k)= [. lower_bound divset(D1,k), upper_bound divset(D1,k) .]
+                by INTEGRA1:4;
+A85:     divset(D,k) = divset(D1,k)
+        proof
+         per cases;
+         suppose k=1; then
+A86:      lower_bound(divset(D,k)) = lower_bound A
+        & upper_bound(divset(D,k)) = D.k
+        & lower_bound(divset(D1,k)) = lower_bound A1
+        & upper_bound(divset(D1,k)) = D1.k by A83,INTEGRA1:def 4;
+          lower_bound A = lower_bound A1 by A27,A17,INTEGRA1:5;
+          hence divset(D,k) = divset(D1,k) by A84,A86,A82,FUNCT_1:49;
+         end;
+         suppose A87: k<>1; then
+A88:      lower_bound(divset(D,k)) = D.(k-1)
+        & upper_bound(divset(D,k)) = D.k
+        & lower_bound(divset(D1,k)) = D1.(k-1)
+        & upper_bound(divset(D1,k)) = D1.k by A83,INTEGRA1:def 4;
+A89:      1 <= k by A82,FINSEQ_1:1; then
+          k-1 in NAT by INT_1:5; then
+          reconsider k1=k-1 as Nat;
+          1 < k by A87,A89,XXREAL_0:1; then
+          D.k1 = D1.k1 by A82,FINSEQ_3:12,FUNCT_1:49;
+          hence divset(D,k) = divset(D1,k) by A88,A82,A84,FUNCT_1:49;
+         end;
+        end;
+B95:    for x be object st x in B /\ divset(D,k)
+                  holds x in B1 /\ divset(D1,k)
+        proof
+         let x be object;
+         assume A90: x in B /\ divset(D,k); then
+         reconsider r=x as Real;
+A91:     x in B & x in divset(D,k) by A90,XBOOLE_0:def 4; then
+A92:    (ex r0 be Real
+            st r=r0 & lower_bound B <=r0 & r0 <= upper_bound B)
+       & (ex r1 be Real
+            st r=r1 & lower_bound divset(D,k) <=r1
+                    & r1 <= upper_bound divset(D,k)) by A30,A84;
+         k in Seg i by A81,RELAT_1:57; then
+A93:    k <= i by FINSEQ_1:1;
+A94:     now assume k <> i; then
+          k < i by A93,XXREAL_0:1;
+          hence D.k <= D.i by A16,A83,VALUED_0:def 13;
+         end;
+         k = 1 or k <> 1; then
+         upper_bound divset(D,k) <= D.i by A94,A83,INTEGRA1:def 4;
+         then r <= D.i by A92,XXREAL_0:2;
+         then r in B1 by A92;
+         hence x in B1 /\ divset(D1,k) by XBOOLE_0:def 4,A85,A91;
+        end;
+C95:    B /\ divset(D,k) = {} by TARSKI:def 3,B95,XBOOLE_1:3,A80;
+        v.k = vol (B /\ divset(D,k),rho) by A82,A4; then
+        v.k0 = 0 by C95,Defvol;
+        hence v1.k0 = 0 by A82,FUNCT_1:49;
+       end;
+       then v1 = dom v1 --> 0 by FUNCOP_1:11;
+       then v1 = i |-> 0 by A14,FINSEQ_2:def 2; then
+A96:    Sum v1 = 0 by RVSUM_1:81;
+A97:   upper_bound B <= D.(i+1) by A4,A9,INTEGRA1:def 2;
+B99:   for x be object st x in B2 holds x in divset(D,i+1)
+       proof
+        let x be object;
+        assume A98: x in B2; then
+        reconsider r=x as Real;
+        B= [. lower_bound B, upper_bound B .] by INTEGRA1:4; then
+        ex r0 be Real
+          st r=r0 & lower_bound B <= r0 & r0 <= upper_bound B by A98; then
+        D.i <= r & r <= D.(i+1) by A97,XXREAL_0:2,A79;
+        hence x in divset(D,i+1) by A30;
+       end;
+       v.(i+1) = vol (B /\ divset(D,i+1),rho) by A4,A5,FINSEQ_1:4; then
+       v.(i+1) = vol (B,rho) by TARSKI:def 3,B99,XBOOLE_1:28; then
+       Sum v = 0 + vol (B,rho) by A8,RVSUM_1:74,A96;
+       hence Sum v = vol (B,rho);
+      end;
+     end;
+    end;
+    suppose A100: i = 0; then
+A101: D.1 = upper_bound A by A4,INTEGRA1:def 2;
+     dom D = Seg 1 by A100,A4,FINSEQ_1:def 3; then
+     1 in dom D; then
+     lower_bound divset(D,1) = lower_bound A
+   & upper_bound divset(D,1) = D.1 by INTEGRA1:def 4; then
+     divset(D,1) = [. lower_bound A, upper_bound A .] by A101,INTEGRA1:4; then
+A102: divset(D,1) = A by INTEGRA1:4;
+     v.1 = vol (B /\ divset(D,1),rho) by A100,A4,A5,FINSEQ_1:4; then
+A103: v.1 = vol (B,rho) by A102,A4,XBOOLE_1:28;
+     Sum v = Sum v1 + v.1 by A100,A8,RVSUM_1:74; then
+     Sum v = 0 + vol (B,rho) by A100,RVSUM_1:72,A103;
+     hence Sum v = vol (B,rho);
+    end;
+   end;
+   for i being Nat holds P[i] from NAT_1:sch 2(A1,A2);
+   hence thesis;
+end;
+
+theorem
+for A being non empty closed_interval Subset of REAL,
+    D being Division of A,
+    rho be Function of A,REAL,
+    B be non empty closed_interval Subset of REAL,
+    v be FinSequence of REAL
+      st B c= A & len D = len v &
+         for i be Nat st i in dom v
+           holds v.i = vol (B /\ divset(D,i),rho)
+ holds Sum v = vol (B,rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      D be Division of A,
+      rho be Function of A,REAL,
+      B be non empty closed_interval Subset of REAL,
+      v be FinSequence of REAL;
+  assume
+AS: B c= A & len D = len v &
+    for i be Nat st i in dom v
+      holds v.i = vol (B /\ divset(D,i),rho);
+  dom rho = A by FUNCT_2:def 1;
+  hence Sum v = vol (B,rho) by AS,LmINTEGR208;
+end;
+
+theorem
+  for n,m be Nat, a be Function of [:Seg n,Seg m:],REAL
+  for p,q be FinSequence of REAL st
+    ( dom p = Seg n
+    & for i be Nat st i in dom p holds
+        ex r be FinSequence of REAL st
+          (dom r = Seg m & p.i = Sum r
+         & for j be Nat st j in dom r holds r.j=a.(i,j) ) )
+  & ( dom q = Seg m
+    & for j be Nat st j in dom q holds
+        ex s be FinSequence of REAL st
+          (dom s = Seg n & q.j = Sum s
+         & for i be Nat st i in dom s holds s.i=a.(i,j) ) )
+  holds Sum p = Sum q
+proof
+  let n,m be Nat, a be Function of [:Seg n,Seg m:],REAL;
+  let p,q be FinSequence of REAL;
+  assume that
+A1: dom p = Seg n and
+A2: for i be Nat st i in dom p holds
+      ex r be FinSequence of REAL st
+        ( dom r = Seg m & p.i = Sum r
+        & for j be Nat st j in dom r holds r.j=a.(i,j) ) and
+A3: dom q = Seg m and
+A4: for j be Nat st j in dom q holds
+      ex s be FinSequence of REAL st
+        ( dom s = Seg n & q.j = Sum s
+        & for i be Nat st i in dom s holds s.i=a.(i,j));
+A5: for i be Nat st i in dom p holds
+      ex r be FinSequence of REAL st
+        dom r = Seg m & p.i = Sum r
+      & for j be Nat st j in dom r holds r.j=a.([i,j])
+  proof
+    let i be Nat;
+    assume B0: i in dom p;
+    consider r be FinSequence of REAL such that
+B2:   dom r = Seg m & p.i = Sum r
+    & for j be Nat st j in dom r holds r.j=a.(i,j) by B0,A2;
+B3: for j be Nat st j in dom r holds r.j=a.([i,j])
+    proof
+      let j be Nat;
+      assume j in dom r; then
+      r.j=a.(i,j) by B2;
+      hence r.j=a.([i,j]);
+    end;
+    take r;
+    thus thesis by B2,B3;
+  end;
+  for j be Nat st j in dom q holds
+    ex s be FinSequence of REAL st
+      dom s = Seg n & q.j = Sum s
+    & for i be Nat st i in dom s holds s.i=a.([i,j])
+  proof
+    let j be Nat;
+    assume C0: j in dom q;
+    consider s be FinSequence of REAL such that
+C2:   dom s = Seg n & q.j = Sum s
+    & for i be Nat st i in dom s holds s.i=a.(i,j) by C0,A4;
+C3: for i be Nat st i in dom s holds s.i=a.([i,j])
+    proof
+      let i be Nat;
+      assume i in dom s; then
+      s.i=a.(i,j) by C2;
+      hence s.i=a.([i,j]);
+    end;
+    take s;
+    thus thesis by C2,C3;
+  end;
+  hence Sum p = Sum q by MESFUNC3:1,A1,A5,A3;
+end;
+
+begin :: The Definitions of Bounded Variation
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be real-valued Function;
+  let t be Division of A;
+  mode var_volume of rho,t -> FinSequence of REAL means   :defvm:
+    len it = len t
+    & for k be Nat st k in dom t holds it.k = |. vol (divset(t,k),rho) .|;
+  correctness
+  proof
+    defpred P1[ Nat, Real] means $2 = |. vol (divset(t,$1),rho) .|;
+A1: Seg len t = dom t by FINSEQ_1:def 3;
+A2: for k being Nat st k in Seg len t holds ex x being Element of REAL st
+    P1[k,x]
+    proof
+      let k be Nat;
+      assume k in Seg len t;
+      |. vol (divset(t,k),rho) .| is Element of REAL by XREAL_0:def 1;
+      hence thesis;
+    end;
+    consider p being FinSequence of REAL such that
+A5: dom p = Seg len t & for k being Nat st k in Seg len t holds P1[k,p.k]
+    from FINSEQ_1:sch 5(A2);
+    len p = len t by A5,FINSEQ_1:def 3;
+    hence thesis by A5,A1;
+  end;
+end;
+
+theorem LM1:
+for A be non empty closed_interval Subset of REAL,
+    rho be Function of A,REAL,
+    t be Division of A,
+    F be var_volume of rho,t
+ holds for k be Nat st k in dom F holds 0 <= F.k
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      t be Division of A,
+      F be var_volume of rho,t;
+  let k be Nat;
+  assume k in dom F; then
+  k in Seg len F by FINSEQ_1:def 3; then
+  k in Seg len t by defvm; then
+  k in dom t by FINSEQ_1:def 3; then
+  F.k = |. vol (divset(t,k),rho) .| by defvm;
+  hence thesis by COMPLEX1:46;
+end;
+
+theorem LM2:
+for A be non empty closed_interval Subset of REAL,
+    rho be Function of A,REAL,
+    t be Division of A,
+    F be var_volume of rho,t
+ holds 0 <= Sum(F)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      t be Division of A,
+      F be var_volume of rho,t;
+  for k be Nat st k in dom F holds 0 <= F.k by LM1;
+  hence 0 <= Sum(F) by RVSUM_1:84;
+end;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  attr rho is bounded_variation means
+  ex d be Real st
+    0 < d
+   &
+    for t be Division of A, F be var_volume of rho,t
+      holds Sum(F) <= d;
+end;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  assume
+AS: rho is bounded_variation;
+  func total_vd(rho) -> Real means   :DeftotalVD:
+  ex VD be non empty Subset of REAL st
+    VD is bounded_above
+   &
+    VD = { r where r is Real:
+           ex t be Division of A, F be var_volume of rho,t st
+             r = Sum(F) }
+   & it = upper_bound VD;
+  existence
+  proof
+    set VD = { r where r is Real:
+               ex t be Division of A, F be var_volume of rho,t st
+                 r = Sum(F) };
+    set t0 = the Division of A;
+    set F0 = the var_volume of rho,t0;
+A11:  Sum(F0) in VD;
+    for z be object st z in VD holds z in REAL
+    proof
+      let z be object;
+      assume z in VD; then
+      consider r be Real such that
+A2:     z = r &
+        ex t be Division of A, F be var_volume of rho,t st r = Sum(F);
+      thus z in REAL by A2,XREAL_0:def 1;
+    end; then
+    reconsider VD as non empty Subset of REAL by A11,TARSKI:def 3;
+    consider d be Real such that
+A3:   0 <= d &
+      for t be Division of A, F be var_volume of rho,t
+        holds Sum(F) <= d by AS;
+    for p be ExtReal st p in VD holds p <= d
+    proof
+      let p be ExtReal;
+      assume p in VD; then
+      consider r be Real such that
+A4:     p = r &
+        ex t be Division of A, F be var_volume of rho,t st r = Sum(F);
+       consider t be Division of A, F be var_volume of rho,t such that
+A5:      r = Sum(F) by A4;
+       Sum(F) <= d by A3;
+       hence p <= d by A4,A5;
+    end; then
+    d is UpperBound of VD by XXREAL_2:def 1; then
+B1: VD is bounded_above by XXREAL_2:def 10;
+    set z = upper_bound VD;
+    take z;
+    thus thesis by B1;
+  end;
+  uniqueness;
+end;
+
+theorem
+ for A be non empty closed_interval Subset of REAL,
+     rho be Function of A,REAL,
+     T be Division of A
+   st rho is bounded_variation holds
+   for F be var_volume of rho,T
+     holds Sum(F) <= total_vd(rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      T be Division of A;
+  assume rho is bounded_variation; then
+  consider VD be non empty Subset of REAL such that
+A1: VD is bounded_above and
+A2: VD = { r where r is Real:
+             ex t be Division of A, F be var_volume of rho,t st
+               r = Sum(F) } and
+A3: total_vd(rho) = upper_bound VD by DeftotalVD;
+  let F be var_volume of rho,T;
+  Sum(F) in VD by A2;
+  hence thesis by A1,SEQ_4:def 1,A3;
+end;
+
+theorem
+  for A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL
+   st rho is bounded_variation holds
+   0 <= total_vd(rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL;
+  assume rho is bounded_variation; then
+  consider VD be non empty Subset of REAL such that
+A1: VD is bounded_above and
+A2: VD = { r where r is Real:
+             ex t be Division of A, F be var_volume of rho,t st
+               r = Sum(F) } and
+A3: total_vd(rho) = upper_bound VD by DeftotalVD;
+  reconsider p0=0 as Real;
+  for p be ExtReal st p in VD holds p0 <= p
+  proof
+    let p be ExtReal;
+    assume p in VD; then
+    consider r be Real such that
+B1:   p=r and
+B2:   ex t be Division of A, F be var_volume of rho,t st
+        r = Sum(F) by A2;
+    ex t be Division of A, F be var_volume of rho,t st
+    r = Sum(F) by B2;
+    hence p0 <= p by B1,LM2;
+  end; then
+  p0 is LowerBound of VD by XXREAL_2:def 2; then
+B4: VD is bounded_below by XXREAL_2:def 9;
+B5: for s be Real st s in VD holds 0 <= s
+   proof
+     let s be Real;
+     assume s in VD; then
+     consider r be Real such that
+B1:    s=r and
+B2:    ex t be Division of A, F be var_volume of rho,t st
+         r = Sum(F) by A2;
+     ex t be Division of A, F be var_volume of rho,t st
+     r = Sum(F) by B2;
+     hence 0 <= s by B1,LM2;
+  end;
+  lower_bound VD <= upper_bound VD by A1,B4,SEQ_4:11;
+  hence 0 <= total_vd(rho) by A3,SEQ_4:43,B5;
+end;
+
+begin :: The definitions of Riemann-Stieltjes Integral
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  let u be PartFunc of REAL,REAL;
+  assume
+AS: rho is bounded_variation & dom u = A;
+  let t be Division of A;
+  mode middle_volume of rho,u,t -> FinSequence of REAL means  :Def1:
+  len it = len t
+  & for k be Nat st k in dom t holds ex r be Real st
+  r in rng (u|divset(t,k))
+  & it.k = r*(vol (divset(t,k),rho));
+  correctness
+  proof
+    defpred P1[ Nat, Real] means ex r be Real st
+    r in rng (u|divset(t,$1)) &
+    $2 = r*(vol (divset(t,$1),rho));
+A1: Seg len t = dom t by FINSEQ_1:def 3;
+A2: for k being Nat st k in Seg len t holds ex x being Element of REAL st
+    P1[k,x]
+    proof
+      let k be Nat;
+      assume k in Seg len t; then
+A3:   k in dom t by FINSEQ_1:def 3;
+      dom (u|divset(t,k)) = divset(t,k) by A3,INTEGRA1:8,RELAT_1:62,AS;
+      then rng (u|divset(t,k)) is non empty by RELAT_1:42;
+      then consider r be object such that
+A4:   r in rng (u|divset(t,k));
+      reconsider r as Element of REAL by A4;
+      r*(vol (divset(t,k),rho)) is Element of REAL by XREAL_0:def 1;
+      hence thesis by A4;
+    end;
+    consider p being FinSequence of REAL such that
+A5: dom p = Seg len t & for k being Nat st k in Seg len t holds
+    P1[k,p.k] from FINSEQ_1:sch 5(A2);
+    len p = len t by A5,FINSEQ_1:def 3;
+    hence thesis by A5,A1;
+  end;
+end;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  let u be PartFunc of REAL,REAL;
+:::  assume rho is bounded_variation & dom u = A;
+  let T be DivSequence of A;
+  mode middle_volume_Sequence of rho,u,T -> sequence of (REAL)* means :Def3:
+    for k be Element of NAT holds it.k is middle_volume of rho,u,T.k;
+  correctness
+  proof
+    defpred P[Element of NAT,set] means $2 is middle_volume of rho,u,T.$1;
+A1: for x being Element of NAT ex y being Element of (REAL)* st P[x, y]
+    proof
+      let x be Element of NAT;
+      set y = the middle_volume of rho,u,T.x;
+      reconsider y as Element of (REAL)* by FINSEQ_1:def 11;
+      y is middle_volume of rho,u,T.x;
+      hence thesis;
+    end;
+    ex f being sequence of REAL* st for x being Element of NAT holds
+    P[x, f.x] from FUNCT_2:sch 3(A1);
+    hence thesis;
+  end;
+end;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  let u be PartFunc of REAL,REAL;
+:::  assume rho is bounded_variation & dom u = A;
+  let T be DivSequence of A;
+  let S be middle_volume_Sequence of rho,u,T;
+  let k be Nat;
+  redefine func S.k -> middle_volume of rho,u,T.k;
+  coherence
+  proof
+    k in NAT by ORDINAL1:def 12;
+    hence thesis by Def3;
+  end;
+end;
+
+reserve A for non empty closed_interval Subset of REAL;
+reserve rho for Function of A,REAL;
+reserve u for PartFunc of REAL,REAL;
+reserve T for DivSequence of A;
+reserve S for middle_volume_Sequence of rho,u,T;
+reserve k for Nat;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  let u be PartFunc of REAL,REAL;
+:::  assume rho is bounded_variation & dom u = A;
+  let T be DivSequence of A;
+  let S be middle_volume_Sequence of rho,u,T;
+  func middle_sum(S) -> Real_Sequence means :Def4:
+  for i be Nat holds it.i = Sum(S.i);
+  existence
+  proof
+    deffunc H1(Nat) = Sum(S.In($1,NAT));
+    consider IT being Real_Sequence such that
+A1:   for i being Nat holds IT.i = H1(i) from SEQ_1:sch 1;
+    take IT;
+    let i be Nat;
+    IT.i = H1(i) by A1;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let F1, F2 be Real_Sequence;
+    assume that
+A2: for i being Nat holds F1.i = Sum(S.i) and
+A3: for i being Nat holds F2.i = Sum(S.i);
+    for i being Element of NAT holds F1.i = F2.i
+    proof
+      let i be Element of NAT;
+      F1.i = Sum(S.i) by A2
+          .= F2.i by A3;
+      hence F1.i = F2.i;
+    end;
+    hence F1 = F2;
+  end;
+end;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  let u be PartFunc of REAL,REAL;
+:::  assume rho is bounded_variation & dom u = A;
+  pred u is_RiemannStieltjes_integrable_with rho means
+  ex I be Real st for T being DivSequence of A,
+     S be middle_volume_Sequence of rho,u,T st
+     delta(T) is convergent & lim delta(T) = 0 holds
+     middle_sum(S) is convergent & lim (middle_sum(S)) = I;
+end;
+
+definition
+  let A be non empty closed_interval Subset of REAL;
+  let rho be Function of A,REAL;
+  let u be PartFunc of REAL,REAL;
+  assume A1:rho is bounded_variation & dom u = A &
+            u is_RiemannStieltjes_integrable_with rho;
+  func integral(u,rho) -> Real means  :Def6:
+  for T being DivSequence of A,
+      S be middle_volume_Sequence of rho,u,T st
+        delta(T) is convergent & lim delta(T) = 0 holds
+        middle_sum(S) is convergent & lim (middle_sum(S)) = it;
+  existence by A1;
+  uniqueness
+  proof
+    let I1,I2 be Real;
+    assume
+A2: for T being DivSequence of A,
+        S be middle_volume_Sequence of rho,u,T st
+          delta(T) is convergent & lim (delta(T)) = 0 holds
+          middle_sum(S) is convergent & lim (middle_sum(S)) = I1;
+    assume
+A3: for T being DivSequence of A,
+        S be middle_volume_Sequence of rho,u,T st
+          delta(T) is convergent & lim delta(T) = 0 holds
+          middle_sum(S) is convergent & lim (middle_sum(S)) = I2;
+    consider T being DivSequence of A such that
+A4: delta(T) is convergent & lim delta(T) = 0 by INTEGRA4:11;
+    set S = the middle_volume_Sequence of rho,u,T;
+    thus I1 = lim (middle_sum(S)) by A2,A4
+           .= I2 by A3,A4;
+  end;
+end;
+
+begin :: Linearity of Riemann-Stieltjes Integral
+
+theorem Th4:
+  for A be non empty closed_interval Subset of REAL,
+      r be Real,
+      rho be Function of A,REAL,
+      u,w be PartFunc of REAL,REAL st
+      rho is bounded_variation & dom u = A & dom w = A &
+      w = r(#)u & u is_RiemannStieltjes_integrable_with rho holds
+        w is_RiemannStieltjes_integrable_with rho &
+        integral(w,rho) = r * integral(u,rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      r be Real,
+      rho be Function of A,REAL,
+      u,w be PartFunc of REAL,REAL;
+  assume
+A1: rho is bounded_variation & dom u = A & dom w = A &
+    w = r(#)u & u is_RiemannStieltjes_integrable_with rho;
+A3: now let T be DivSequence of A, S be middle_volume_Sequence of rho,w,T;
+    assume A4: delta(T) is convergent & lim delta(T) = 0;
+    defpred P[Element of NAT, set] means ex p being FinSequence of REAL st
+      p = $2 & len p = len (T.$1) & for i be Nat st i in dom (T.$1) holds
+      (p.i) in dom (w|divset((T.$1),i)) & ex z be Real st
+      z = (w|divset((T.$1),i)).(p.i) &
+      (S.$1).i = z * (vol( divset((T.$1),i),rho));
+A5: for k being Element of NAT ex p being Element of (REAL)* st P[k, p]
+    proof
+      let k be Element of NAT;
+      defpred P1[ Nat, set] means $2 in dom (w|divset((T.k),$1)) &
+        ex c be Real st c = (w|divset((T.k),$1)).($2) &
+        (S.k).$1 = c * (vol( divset((T.k),$1),rho));
+A6:   Seg len ((T.k)) = dom (T.k) by FINSEQ_1:def 3;
+A7:   for i being Nat st i in Seg len (T.k) holds
+        ex x being Element of REAL st P1[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+        i in dom (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A8:       c in rng (w|divset((T.k),i)) &
+          (S.k).i = c * (vol( divset((T.k),i),rho)) by Def1,A1;
+        consider x be object such that
+A9:       x in dom (w|divset((T.k),i)) &
+          c = (w|divset((T.k),i)).x by A8,FUNCT_1:def 3;
+        reconsider x as Element of REAL by A9;
+        take x;
+        thus thesis by A8,A9;
+      end;
+      consider p being FinSequence of REAL such that
+A10:    dom p = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P1[i,p.i] from FINSEQ_1:sch 5(A7);
+      take p;
+      len p = len (T.k) by A10,FINSEQ_1:def 3;
+      hence thesis by A10,A6,FINSEQ_1:def 11;
+    end;
+    consider F being sequence of (REAL)* such that
+A11:  for x being Element of NAT holds P[x, F.x] from FUNCT_2:sch 3(A5);
+    defpred P1[Element of NAT,set] means ex q be middle_volume of rho,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * (vol (divset((T.$1),i),rho));
+A12: for k being Element of NAT
+      ex y being Element of (REAL)* st P1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred P11[Nat, set] means ex c be Real st
+        (F.k).$1 in dom (u|divset((T.k),$1)) &
+        c = (u|divset((T.k),$1)).((F.k).$1) &
+        $2 = c * (vol(divset((T.k),$1),rho));
+A13:  Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A14:  for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st P11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A15:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A16:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (w|divset((T.k),i)) & ex z be Real st
+          z = (w|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom (w|divset((T.k),i)) by A15,A16; then
+A17:    p.i in dom w & p.i in (divset((T.k),i)) by RELAT_1:57; then
+        p.i in dom (u|divset((T.k),i)) by A1,RELAT_1:57; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho)) is Element of REAL by XREAL_0:def 1;
+        hence thesis by A16,A17,A1,RELAT_1:57;
+      end;
+      consider q being FinSequence of REAL such that
+A19:    dom q = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P11[i,q.i] from FINSEQ_1:sch 5(A14);
+A20:  len q = len (T.k) by A19,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A21:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho)) by A19;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho)) by A21,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho,u,T.k by A20,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A13,A19;
+    end;
+    consider Sf being sequence of (REAL)* such that
+A22:   for x being Element of NAT holds P1[x, Sf.x] from FUNCT_2:sch 3(A12);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho,u,T.k st q = Sf.k &
+        for i be Nat st i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho)) by A22;
+      hence Sf.k is middle_volume of rho,u,T.k;
+    end;
+    then reconsider Sf as middle_volume_Sequence of rho,u,T by Def3;
+A23: middle_sum(Sf) is convergent &
+      lim (middle_sum(Sf)) = integral(u,rho) by A1,A4,Def6;
+A24: r (#) middle_sum(Sf) = middle_sum(S)
+    proof
+      now let n be Nat;
+A25:    n in NAT by ORDINAL1:def 12;
+        consider p being FinSequence of REAL such that
+A26:      p = F.n & len p = len (T.n) & for i be Nat st i in dom (T.n) holds
+          (p.i) in dom (w|divset((T.n),i)) & ex z be Real st
+          z = (w|divset((T.n),i)).(p.i) &
+          (S.n).i = z * (vol(divset((T.n),i),rho)) by A11,A25;
+        consider q be middle_volume of rho,u,T.n such that
+A27:      q = Sf.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          q.i = z * (vol(divset((T.n),i),rho)) by A22,A25;
+        len (Sf.n) = len (T.n) & len (S.n) = len (T.n) by A1,Def1; then
+A28:    dom (Sf.n) = dom (T.n) & dom (S.n) = dom (T.n) by FINSEQ_3:29;
+        now let x be object;
+         assume A29: x in dom(S.n); then
+         reconsider i = x as Nat;
+         consider t be Real such that
+A30:       t = (w|divset((T.n),i)).((F.n).i) &
+           (S.n).i = t * (vol(divset((T.n),i),rho)) by A29,A28,A26;
+         consider z be Real such that
+A31:       (F.n).i in dom (u|divset((T.n),i)) &
+           z = (u|divset((T.n),i)).((F.n).i) &
+           q.i = z * (vol(divset((T.n),i),rho)) by A27,A29,A28;
+A32:     (F.n).i in divset((T.n),i) by A31,RELAT_1:57;
+A33:     (F.n).i in dom w by A1,A31,RELAT_1:57;
+A36:     t = w.((F.n).i) by A32,FUNCT_1:49,A30
+          .= r * (u.((F.n).i) ) by A1,A33,VALUED_1:def 5
+          .= r * z by A31,A32,FUNCT_1:49;
+         thus (S.n).x = r * ((Sf.n).x) by A31,A27,A36,A30;
+        end; then
+A38:    r(#)(Sf.n) = S.n by A28,VALUED_1:def 5;
+        thus r * (middle_sum(Sf)).n
+                    = r * (Sum(Sf.n)) by Def4
+                   .= Sum(S.n) by A38,RVSUM_1:87
+                   .= (middle_sum(S)).n by Def4;
+      end;
+      hence thesis by SEQ_1:9;
+    end;
+    thus middle_sum(S) is convergent by A23,A24;
+    thus lim (middle_sum(S)) = r * integral(u,rho) by A24,A23,SEQ_2:8;
+  end;
+  hence w is_RiemannStieltjes_integrable_with rho;
+  hence thesis by Def6,A3,A1;
+end;
+
+reconsider jj=1 as Real;
+
+theorem Th5:
+  for A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      u,w be PartFunc of REAL,REAL st
+      rho is bounded_variation & dom u = A & dom w = A &
+      w = -u & u is_RiemannStieltjes_integrable_with rho holds
+        w is_RiemannStieltjes_integrable_with rho &
+        integral(w,rho) = -integral(u,rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      u,w be PartFunc of REAL,REAL;
+  assume A1: rho is bounded_variation & dom u = A & dom w = A &
+             w = -u & u is_RiemannStieltjes_integrable_with rho; then
+A2: w = (-jj)(#)u by VALUED_1:def 6;
+  hence w is_RiemannStieltjes_integrable_with rho by A1,Th4;
+  integral(w,rho) = (-jj)*integral(u,rho) by A1,A2,Th4;
+  hence integral(w,rho) = -integral(u,rho);
+end;
+
+theorem Th6:
+  for A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      u,v,w be PartFunc of REAL,REAL st
+      rho is bounded_variation & dom u = A & dom v = A & dom w = A &
+      w = u + v & u is_RiemannStieltjes_integrable_with rho &
+      v is_RiemannStieltjes_integrable_with rho holds
+        w is_RiemannStieltjes_integrable_with rho &
+        integral(w,rho) = integral(u,rho) + integral(v,rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      u,v,w be PartFunc of REAL,REAL;
+  assume A1: rho is bounded_variation &
+             dom u = A & dom v = A & dom w = A &
+             w = u + v & u is_RiemannStieltjes_integrable_with rho &
+             v is_RiemannStieltjes_integrable_with rho;
+A3: now let T be DivSequence of A, S be middle_volume_Sequence of rho,w,T;
+    assume A4: delta(T) is convergent & lim delta(T)=0;
+    defpred P[Element of NAT, set] means ex p being FinSequence of REAL st
+      p = $2 & len p = len (T.$1) & for i be Nat st i in dom (T.$1) holds
+      (p.i) in dom (w|divset((T.$1),i)) & ex z be Real st
+      z = (w|divset((T.$1),i)).(p.i) &
+     (S.$1).i = z * (vol(divset((T.$1),i),rho));
+A5: for k being Element of NAT ex p being Element of (REAL)* st P[k, p]
+    proof
+      let k be Element of NAT;
+      defpred P1[ Nat, set] means $2 in dom (w|divset((T.k),$1)) &
+      ex c be Real st
+      c = (w|divset((T.k),$1)).($2) &
+      (S.k).$1 = c * vol(divset((T.k),$1),rho);
+A6:   Seg len ((T.k)) = dom (T.k) by FINSEQ_1:def 3;
+A7:   for i being Nat st i in Seg len (T.k) holds
+        ex x being Element of REAL st P1[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+        i in dom (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A8:       c in rng (w|divset((T.k),i)) &
+          (S.k).i = c * (vol(divset((T.k),i),rho)) by Def1,A1;
+        consider x be object such that
+A9:       x in dom (w|divset((T.k),i)) &
+          c = (w|divset((T.k),i)).x by A8,FUNCT_1:def 3;
+        reconsider x as Element of REAL by A9;
+        take x;
+        thus thesis by A8,A9;
+      end;
+      consider p being FinSequence of REAL such that
+A10:    dom p = Seg len (T.k) & for i being Nat st
+        i in Seg len (T.k) holds P1[i,p.i] from FINSEQ_1:sch 5(A7);
+      take p;
+      len p = len (T.k) by A10,FINSEQ_1:def 3;
+      hence thesis by A10,A6,FINSEQ_1:def 11;
+    end;
+    consider F being sequence of (REAL)* such that
+A11:  for x being Element of NAT holds P[x, F.x] from FUNCT_2:sch 3(A5);
+    defpred P1[Element of NAT,set] means ex q be middle_volume of rho,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * vol(divset((T.$1),i),rho);
+A12: for k being Element of NAT ex
+      y being Element of (REAL)* st P1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred P11[ Nat, set] means ex c be Real st
+      (F.k).$1 in dom (u|divset((T.k),$1)) &
+      c = (u|divset((T.k),$1)).((F.k).$1) &
+      $2 = c * vol(divset((T.k),$1),rho);
+A13:   Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A14:   for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st P11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A15:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A16:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (w|divset((T.k),i)) & ex z be Real st
+          z = (w|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom (w|divset((T.k),i)) by A15,A16; then
+A17:    p.i in dom w & p.i in (divset((T.k),i)) by RELAT_1:57; then
+        p.i in dom(u|divset((T.k),i)) by A1,RELAT_1:57; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho)) is Element of REAL by XREAL_0:def 1;
+        hence thesis by A16,A17,A1,RELAT_1:57;
+      end;
+      consider q being FinSequence of REAL such that
+A19:    dom q = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P11[i,q.i] from FINSEQ_1:sch 5(A14);
+A20:   len q = len (T.k) by A19,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A21:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho)) by A19;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho)) by A21,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho,u,T.k by A20,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A13,A19;
+    end;
+    consider Sf being sequence of (REAL)* such that
+A22:   for x being Element of NAT holds P1[x, Sf.x] from FUNCT_2:sch 3(A12);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho,u,T.k st q = Sf.k &
+        for i be Nat st i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho)) by A22;
+      hence Sf.k is middle_volume of rho,u,T.k;
+    end;
+    then reconsider Sf as middle_volume_Sequence of rho,u,T by Def3;
+    defpred Q1[Element of NAT,set] means ex q be middle_volume of rho,v,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (v|divset((T.$1),i)) &
+      z = (v|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * (vol (divset((T.$1),i),rho) );
+A23: for k being Element of NAT ex y being Element of (REAL)* st Q1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred Q11[Nat, set] means ex c be Real st
+        (F.k).$1 in dom (v|divset((T.k),$1)) &
+        c = (v|divset((T.k),$1)).((F.k).$1) &
+        $2 = c * (vol(divset((T.k),$1),rho));
+A24:   Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A25:   for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st Q11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A26:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A27:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (w|divset((T.k),i)) & ex z be Real st
+          z = (w|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom (w|divset((T.k),i)) by A26,A27; then
+A28:    p.i in dom w & p.i in (divset((T.k),i)) by RELAT_1:57; then
+        p.i in dom(v|divset((T.k),i)) by A1,RELAT_1:57; then
+        (v|divset((T.k),i)).(p.i) in rng (v|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (v|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho)) is Element of REAL
+          by XREAL_0:def 1;
+        hence thesis by A27,A28,A1,RELAT_1:57;
+      end;
+      consider q being FinSequence of REAL such that
+A30:     dom q = Seg len (T.k) & for i being Nat
+        st i in Seg len (T.k) holds Q11[i,q.i] from FINSEQ_1:sch 5(A25);
+A31:   len q = len (T.k) by A30,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A32:      (F.k).i in dom (v|divset((T.k),i)) &
+          c = (v|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho)) by A30;
+        thus ex c be Real st c in rng (v|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho)) by A32,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho,v,T.k by A31,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A24,A30;
+    end;
+    consider Sg being sequence of (REAL)* such that
+A33:   for x being Element of NAT holds Q1[x, Sg.x] from FUNCT_2:sch 3(A23);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho,v,T.k st q = Sg.k & for i be Nat st
+        i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (v|divset((T.k),i)) &
+        z = (v|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho)) by A33;
+      hence Sg.k is middle_volume of rho,v,T.k;
+    end;
+    then reconsider Sg as middle_volume_Sequence of rho,v,T by Def3;
+A34: middle_sum(Sf) is convergent &
+      lim (middle_sum(Sf)) = integral(u,rho) by A1,A4,Def6;
+A35: middle_sum(Sg) is convergent &
+      lim (middle_sum(Sg)) = integral(v,rho) by A1,A4,Def6;
+A36: middle_sum(Sf) + middle_sum(Sg) = middle_sum(S)
+    proof
+      now let n be Nat;
+A37:    n in NAT by ORDINAL1:def 12;
+        consider p being FinSequence of REAL such that
+A38:      p = F.n & len p = len (T.n) & for i be Nat st i in dom (T.n) holds
+          (p.i) in dom (w|divset((T.n),i)) & ex z be Real st
+          z = (w|divset((T.n),i)).(p.i) &
+          (S.n).i = z * (vol(divset((T.n),i),rho)) by A11,A37;
+        consider q be middle_volume of rho,u,T.n such that
+A39:      q = Sf.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          q.i = z * (vol(divset((T.n),i),rho)) by A22,A37;
+        consider r be middle_volume of rho,v,T.n such that
+A40:      r = Sg.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (v|divset((T.n),i)) &
+          z = (v|divset((T.n),i)).((F.n).i) &
+          r.i = z * (vol(divset((T.n),i),rho)) by A33,A37;
+A41:    len (Sf.n) = len (T.n) & len (Sg.n) = len (T.n) &
+        len (S.n) = len (T.n) by A1,Def1;
+A42:    dom (Sf.n) = dom (T.n) & dom (Sg.n) = dom (T.n) &
+        dom (S.n) = dom (T.n) by A41,FINSEQ_3:29;
+B42:    dom (S.n) = dom (Sf.n) /\ dom (Sg.n) by A42;
+        now let j be object;
+          assume A43: j in dom (S.n); then
+          reconsider i=j as Nat;
+          consider t be Real such that
+A44:        t = (w|divset((T.n),i)).((F.n).i) &
+            (S.n).i = t * (vol(divset((T.n),i),rho)) by A43,A42,A38;
+          consider z be Real such that
+A45:        (F.n).i in dom (u|divset((T.n),i)) &
+            z = (u|divset((T.n),i)).((F.n).i) &
+            q.i = z * (vol(divset((T.n),i),rho)) by A39,A43,A42;
+          consider w1 be Real such that
+A46:        (F.n).i in dom (v|divset((T.n),i)) &
+            w1 = (v|divset((T.n),i)).((F.n).i) &
+            r.i = w1 * (vol(divset((T.n),i),rho)) by A40,A43,A42;
+A47:      (F.n).i in divset((T.n),i) by A46,RELAT_1:57;
+A50:      (F.n).i in dom w by A1,A46,RELAT_1:57;
+A53:      v.((F.n).i) = w1 by A46,A47,FUNCT_1:49;
+A54:      t = w.((F.n).i) by A47,FUNCT_1:49,A44
+           .= u.((F.n).i) + v.((F.n).i) by A50,A1,VALUED_1:def 1
+           .= z + w1 by A45,A47,FUNCT_1:49,A53;
+          thus (S.n).j = (Sf.n).j + (Sg.n).j by A45,A39,A46,A40,A54,A44;
+        end; then
+A57:    Sf.n + Sg.n = S.n by B42,VALUED_1:def 1;
+        set k = len (T.n);
+X1:     Sf.n is Element of k-tuples_on REAL by FINSEQ_2:92,A41;
+X2:     Sg.n is Element of k-tuples_on REAL by FINSEQ_2:92,A41;
+        thus (middle_sum(Sf)).n + (middle_sum(Sg)).n
+           = Sum(Sf.n) + (middle_sum(Sg)).n by Def4
+          .= Sum(Sf.n) + Sum(Sg.n) by Def4
+          .= Sum(S.n) by A57,X1,X2,RVSUM_1:89
+          .= (middle_sum(S)).n by Def4;
+      end;
+      hence thesis by SEQ_1:7;
+    end;
+    hence middle_sum(S) is convergent by A34,A35;
+    thus lim (middle_sum(S)) = integral(u,rho) + integral(v,rho)
+      by A34,A35,A36,SEQ_2:6;
+  end;
+  hence w is_RiemannStieltjes_integrable_with rho;
+  hence thesis by Def6,A3,A1;
+end;
+
+theorem
+  for A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      u,v,w be PartFunc of REAL,REAL st
+      rho is bounded_variation & dom u = A & dom v = A & dom w = A &
+      w = u - v & u is_RiemannStieltjes_integrable_with rho &
+      v is_RiemannStieltjes_integrable_with rho holds
+        w is_RiemannStieltjes_integrable_with rho &
+        integral(w,rho) = integral(u,rho) - integral(v,rho)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho be Function of A,REAL,
+      u,v,w be PartFunc of REAL,REAL;
+  assume A1: rho is bounded_variation &
+             dom u = A & dom v = A & dom w = A &
+             w = u - v & u is_RiemannStieltjes_integrable_with rho &
+             v is_RiemannStieltjes_integrable_with rho; then
+A2: w = u + (-v) by VALUED_1:def 9;
+A3: dom (-v) = A by A1,VALUED_1:8;
+  reconsider gg = -v as PartFunc of REAL,REAL;
+A5: gg is_RiemannStieltjes_integrable_with rho by A1,Th5,A3;
+  hence w is_RiemannStieltjes_integrable_with rho by A1,A2,Th6,A3;
+  integral(w,rho) = integral(u,rho) + integral(gg,rho) by A1,A2,A5,Th6,A3; then
+  integral(w,rho) = integral(u,rho) + -integral(v,rho) by A1,Th5,A3;
+  hence integral(w,rho) = integral(u,rho) - integral(v,rho);
+end;
+
+theorem Lm4A:
+  for A,B be non empty closed_interval Subset of REAL,
+      r be Real, rho,rho1 be Function of A,REAL
+    st B c= A & rho = r(#)rho1
+   holds vol(B,rho) = r * vol(B,rho1)
+proof
+  let A,B be non empty closed_interval Subset of REAL,
+      r be Real, rho,rho1 be Function of A,REAL;
+  assume AS: B c= A & rho = r(#)rho1;
+A2: dom(r(#)rho1) = A by FUNCT_2:def 1;
+  set x1=upper_bound B;
+  set x2=lower_bound B;
+A3: B = [. x2, x1 .] by INTEGRA1:4;
+A5: x1 - x2 >= 0 by XREAL_1:48,SEQ_4:11;
+  |. x2 - x1 .| = x1 - x2
+  proof
+    per cases by SEQ_4:11,XREAL_1:47;
+    suppose x2 - x1 < 0;
+      hence |. x2 - x1 .| = -(x2 - x1) by ABSVALUE:def 1
+                   .= x1 - x2;
+    end;
+    suppose x2 - x1 = 0;
+     hence |. x2 - x1 .| = x1 - x2 by COMPLEX1:44;
+    end;
+  end; then
+  |. x1 + x2 - 2*x1 .| = x1 - x2; then
+A8: x1 in B by A3,RCOMP_1:2;
+  |. x1 + x2 - 2*x2 .| = x1 - x2 by A5,ABSVALUE:def 1; then
+C9: x2 in B by A3,RCOMP_1:2;
+  thus vol(B,rho) = (r(#)rho1).x1 - (r(#)rho1).x2 by AS,Defvol
+            .= (r * rho1.x1) - (r(#)rho1).x2 by A2,AS,A8,VALUED_1:def 5
+            .= (r * rho1.x1) - (r * rho1.x2) by A2,AS,C9,VALUED_1:def 5
+            .= r * (rho1.x1 - rho1.x2)
+            .= r * vol(B,rho1) by Defvol;
+end;
+
+theorem Th4A:
+  for A be non empty closed_interval Subset of REAL,
+      r be Real, rho,rho1 be Function of A,REAL,
+      u be PartFunc of REAL,REAL st
+      rho is bounded_variation & rho1 is bounded_variation & dom u = A &
+      rho = r(#)rho1 & u is_RiemannStieltjes_integrable_with rho1 holds
+        u is_RiemannStieltjes_integrable_with rho &
+        integral(u,rho) = r * integral(u,rho1)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      r be Real, rho,rho1 be Function of A,REAL,
+      u be PartFunc of REAL,REAL;
+  assume
+A1: rho is bounded_variation & rho1 is bounded_variation & dom u = A &
+    rho = r(#)rho1 & u is_RiemannStieltjes_integrable_with rho1;
+A3: now let T be DivSequence of A, S be middle_volume_Sequence of rho,u,T;
+    assume A4: delta(T) is convergent & lim delta(T) = 0;
+    defpred P[Element of NAT, set] means ex p being FinSequence of REAL st
+      p = $2 & len p = len (T.$1) & for i be Nat st i in dom (T.$1) holds
+      (p.i) in dom (u|divset((T.$1),i)) & ex z be Real st
+      z = (u|divset((T.$1),i)).(p.i) &
+      (S.$1).i = z * (vol( divset((T.$1),i),rho));
+A5: for k being Element of NAT ex p being Element of (REAL)* st P[k, p]
+    proof
+      let k be Element of NAT;
+      defpred P1[ Nat, set] means $2 in dom (u|divset((T.k),$1)) &
+        ex c be Real st c = (u|divset((T.k),$1)).($2) &
+        (S.k).$1 = c * (vol( divset((T.k),$1),rho));
+A6:   Seg len ((T.k)) = dom (T.k) by FINSEQ_1:def 3;
+A7:   for i being Nat st i in Seg len (T.k) holds
+        ex x being Element of REAL st P1[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+        i in dom (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A8:       c in rng (u|divset((T.k),i)) &
+          (S.k).i = c * (vol( divset((T.k),i),rho)) by Def1,A1;
+        consider x be object such that
+A9:       x in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).x by A8,FUNCT_1:def 3;
+        reconsider x as Element of REAL by A9;
+        take x;
+        thus thesis by A8,A9;
+      end;
+      consider p being FinSequence of REAL such that
+A10:    dom p = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P1[i,p.i] from FINSEQ_1:sch 5(A7);
+      take p;
+      len p = len (T.k) by A10,FINSEQ_1:def 3;
+      hence thesis by A10,A6,FINSEQ_1:def 11;
+    end;
+    consider F being sequence of (REAL)* such that
+A11:  for x being Element of NAT holds P[x, F.x] from FUNCT_2:sch 3(A5);
+    defpred P1[Element of NAT,set] means ex q be middle_volume of rho1,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * (vol (divset((T.$1),i),rho1));
+A12: for k being Element of NAT
+      ex y being Element of (REAL)* st P1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred P11[ Nat, set] means ex c be Real st
+        (F.k).$1 in dom (u|divset((T.k),$1)) &
+        c = (u|divset((T.k),$1)).((F.k).$1) &
+        $2 = c *(vol(divset((T.k),$1),rho1));
+A13:  Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A14:  for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st P11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A15:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A16:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (u|divset((T.k),i)) & ex z be Real st
+          z = (u|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom (u|divset((T.k),i)) by A15,A16; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho1)) is Element of REAL by XREAL_0:def 1;
+        hence thesis by A16,A15;
+      end;
+      consider q being FinSequence of REAL such that
+A19:    dom q = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P11[i,q.i] from FINSEQ_1:sch 5(A14);
+A20:  len q = len (T.k) by A19,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A21:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho1)) by A19;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho1)) by A21,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho1,u,T.k by A20,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A13,A19;
+    end;
+    consider Sf being sequence of (REAL)* such that
+A22:  for x being Element of NAT holds P1[x, Sf.x] from FUNCT_2:sch 3(A12);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho1,u,T.k st q = Sf.k &
+        for i be Nat st i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho1)) by A22;
+      hence Sf.k is middle_volume of rho1,u,T.k;
+    end;
+    then reconsider Sf as middle_volume_Sequence of rho1,u,T by Def3;
+A23: middle_sum(Sf) is convergent &
+      lim (middle_sum(Sf)) = integral(u,rho1) by A1,A4,Def6;
+A24: r (#) middle_sum(Sf) = middle_sum(S)
+    proof
+      now let n be Nat;
+A25:    n in NAT by ORDINAL1:def 12;
+        consider p being FinSequence of REAL such that
+A26:      p = F.n & len p = len (T.n) & for i be Nat st i in dom (T.n) holds
+          (p.i) in dom (u|divset((T.n),i)) & ex z be Real st
+          z = (u|divset((T.n),i)).(p.i) &
+          (S.n).i = z * (vol(divset((T.n),i),rho)) by A11,A25;
+        consider q be middle_volume of rho1,u,T.n such that
+A27:      q = Sf.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          q.i = z * (vol(divset((T.n),i),rho1)) by A22,A25;
+B28:    len (Sf.n) = len (T.n) & len (S.n) = len (T.n) by A1,Def1; then
+A28:    dom (Sf.n) = dom (T.n) & dom (S.n) = dom (T.n) by FINSEQ_3:29;
+        now let x be object;
+         assume A29: x in dom(S.n); then
+         reconsider i = x as Nat;
+         consider t be Real such that
+A30:       t = (u|divset((T.n),i)).((F.n).i) &
+           (S.n).i = t * (vol(divset((T.n),i),rho)) by A29,A28,A26;
+         consider z be Real such that
+A31:       (F.n).i in dom (u|divset((T.n),i)) &
+           z = (u|divset((T.n),i)).((F.n).i) &
+           q.i = z * (vol(divset((T.n),i),rho1)) by A27,A29,A28;
+         i in dom(T.n) by A29,FINSEQ_3:29,B28; then
+         vol(divset((T.n),i),rho) = r * vol(divset((T.n),i),rho1)
+           by A1,Lm4A,INTEGRA1:8;
+         hence (S.n).x = r * ((Sf.n).x) by A31,A27,A30;
+        end; then
+A38:    r(#)(Sf.n) = S.n by A28,VALUED_1:def 5;
+        thus r * (middle_sum(Sf)).n
+                    = r * (Sum(Sf.n)) by Def4
+                   .= Sum(S.n) by A38,RVSUM_1:87
+                   .= (middle_sum(S)).n by Def4;
+      end;
+      hence thesis by SEQ_1:9;
+    end;
+    thus middle_sum(S) is convergent by A23,A24;
+    thus lim (middle_sum(S)) = r * integral(u,rho1) by A24,A23,SEQ_2:8;
+  end;
+  hence u is_RiemannStieltjes_integrable_with rho;
+  hence integral(u,rho) = r * integral(u,rho1) by Def6,A3,A1;
+end;
+
+theorem
+  for A be non empty closed_interval Subset of REAL,
+      rho,rho1 be Function of A,REAL,
+      u be PartFunc of REAL,REAL st
+      rho is bounded_variation & rho1 is bounded_variation & dom u = A &
+      rho = -rho1 & u is_RiemannStieltjes_integrable_with rho1 holds
+        u is_RiemannStieltjes_integrable_with rho &
+        integral(u,rho) = -integral(u,rho1)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho,rho1 be Function of A,REAL,
+      u be PartFunc of REAL,REAL;
+  assume A1: rho is bounded_variation & rho1 is bounded_variation & dom u = A &
+             rho = -rho1 & u is_RiemannStieltjes_integrable_with rho1; then
+A2: rho = (-jj)(#)rho1 by VALUED_1:def 6;
+  hence u is_RiemannStieltjes_integrable_with rho by A1,Th4A;
+  integral(u,rho) = (-jj)*integral(u,rho1) by A1,A2,Th4A;
+  hence integral(u,rho) = -integral(u,rho1);
+end;
+
+theorem Lm6A:
+  for A,B be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL
+    st B c= A & rho = rho1 + rho2
+   holds vol(B,rho) = vol(B,rho1) + vol(B,rho2)
+proof
+  let A,B be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL;
+  assume AS: B c= A & rho = rho1 + rho2;
+A1: dom rho1 = A & dom rho2 = A by FUNCT_2:def 1;
+A2: dom(rho1+rho2) = dom rho1 /\ dom rho2 by VALUED_1:def 1
+                  .= A by A1;
+  set x1=upper_bound B;
+  set x2=lower_bound B;
+A3: B = [. x2, x1 .] by INTEGRA1:4;
+A5: x1 - x2 >= 0 by XREAL_1:48,SEQ_4:11;
+  |. x2 - x1 .| = x1 - x2
+  proof
+    per cases by SEQ_4:11,XREAL_1:47;
+    suppose x2 - x1 < 0;
+      hence |. x2 - x1 .| = -(x2 - x1) by ABSVALUE:def 1
+                   .= x1 - x2;
+    end;
+    suppose x2 - x1 = 0;
+     hence |. x2 - x1 .| = x1 - x2 by COMPLEX1:44;
+    end;
+  end; then
+  |. x1 + x2 - 2*x1 .| = x1 - x2; then
+A8: x1 in B by A3,RCOMP_1:2;
+  |. x1 + x2 - 2*x2 .| = x1 - x2 by A5,ABSVALUE:def 1; then
+B9: x2 in B by A3,RCOMP_1:2;
+  thus vol(B,rho) = (rho1+rho2).x1 - (rho1+rho2).x2 by AS,Defvol
+   .= (rho1.x1 + rho2.x1) - (rho1+rho2).x2 by A2,AS,A8,VALUED_1:def 1
+   .= (rho1.x1 + rho2.x1) - (rho1.x2 + rho2.x2) by B9,A2,AS,VALUED_1:def 1
+   .= (rho1.x1 - rho1.x2) + (rho2.x1 - rho2.x2)
+   .= vol(B,rho1) + (rho2.x1 - rho2.x2) by Defvol
+   .= vol(B,rho1) + vol(B,rho2) by Defvol;
+end;
+
+theorem
+  for A be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL,
+      u be PartFunc of REAL,REAL st
+      rho is bounded_variation & rho1 is bounded_variation &
+      rho2 is bounded_variation & dom u = A &
+      rho = rho1 + rho2 & u is_RiemannStieltjes_integrable_with rho1 &
+      u is_RiemannStieltjes_integrable_with rho2
+      holds
+        u is_RiemannStieltjes_integrable_with rho &
+        integral(u,rho) = integral(u,rho1) + integral(u,rho2)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL,
+      u be PartFunc of REAL,REAL;
+    assume A1: rho is bounded_variation & rho1 is bounded_variation &
+               rho2 is bounded_variation & dom u = A &
+               rho = rho1 + rho2 &
+               u is_RiemannStieltjes_integrable_with rho1 &
+               u is_RiemannStieltjes_integrable_with rho2;
+A3: now let T be DivSequence of A, S be middle_volume_Sequence of rho,u,T;
+    assume A4: delta(T) is convergent & lim delta(T)=0;
+    defpred P[Element of NAT, set] means ex p being FinSequence of REAL st
+      p = $2 & len p = len (T.$1) & for i be Nat st i in dom (T.$1) holds
+      (p.i) in dom (u|divset((T.$1),i)) & ex z be Real st
+      z = (u|divset((T.$1),i)).(p.i) &
+     (S.$1).i = z * (vol(divset((T.$1),i),rho));
+A5: for k being Element of NAT ex p being Element of (REAL)* st P[k, p]
+    proof
+      let k be Element of NAT;
+      defpred P1[ Nat, set] means $2 in dom (u|divset((T.k),$1)) &
+      ex c be Real st
+      c = (u|divset((T.k),$1)).($2) &
+      (S.k).$1 = c * vol(divset((T.k),$1),rho);
+A6:   Seg len ((T.k)) = dom (T.k) by FINSEQ_1:def 3;
+A7:   for i being Nat st i in Seg len (T.k) holds
+        ex x being Element of REAL st P1[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+        i in dom (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A8:       c in rng (u|divset((T.k),i)) &
+          (S.k).i = c * (vol(divset((T.k),i),rho)) by Def1,A1;
+        consider x be object such that
+A9:       x in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).x by A8,FUNCT_1:def 3;
+        reconsider x as Element of REAL by A9;
+        take x;
+        thus thesis by A8,A9;
+      end;
+      consider p being FinSequence of REAL such that
+A10:    dom p = Seg len (T.k) & for i being Nat st
+        i in Seg len (T.k) holds P1[i,p.i] from FINSEQ_1:sch 5(A7);
+      take p;
+      len p = len (T.k) by A10,FINSEQ_1:def 3;
+      hence thesis by A10,A6,FINSEQ_1:def 11;
+    end;
+    consider F being sequence of (REAL)* such that
+A11:  for x being Element of NAT holds P[x, F.x] from FUNCT_2:sch 3(A5);
+    defpred P1[Element of NAT,set] means ex q be middle_volume of rho1,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * vol(divset((T.$1),i),rho1);
+A12: for k being Element of NAT ex
+      y being Element of (REAL)* st P1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred P11[ Nat, set] means ex c be Real st
+      (F.k).$1 in dom (u|divset((T.k),$1)) &
+      c = (u|divset((T.k),$1)).((F.k).$1) &
+      $2 = c * vol(divset((T.k),$1),rho1);
+A13:   Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A14:   for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st P11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A15:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A16:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (u|divset((T.k),i)) & ex z be Real st
+          z = (u|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom(u|divset((T.k),i)) by A15,A16; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho1)) is Element of REAL
+          by XREAL_0:def 1;
+        hence thesis by A16,A15;
+      end;
+      consider q being FinSequence of REAL such that
+A19:    dom q = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P11[i,q.i] from FINSEQ_1:sch 5(A14);
+A20:   len q = len (T.k) by A19,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A21:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho1)) by A19;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho1)) by A21,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho1,u,T.k by A20,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A13,A19;
+    end;
+    consider Sf being sequence of (REAL)* such that
+A22:   for x being Element of NAT holds P1[x, Sf.x] from FUNCT_2:sch 3(A12);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho1,u,T.k st q = Sf.k &
+        for i be Nat st i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho1)) by A22;
+      hence Sf.k is middle_volume of rho1,u,T.k;
+    end;
+    then reconsider Sf as middle_volume_Sequence of rho1,u,T by Def3;
+    defpred Q1[Element of NAT,set] means ex q be middle_volume of rho2,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * (vol (divset((T.$1),i),rho2) );
+A23: for k being Element of NAT
+      ex y being Element of (REAL)* st Q1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred Q11[Nat, set] means ex c be Real st
+        (F.k).$1 in dom (u|divset((T.k),$1)) &
+        c = (u|divset((T.k),$1)).((F.k).$1) &
+        $2 = c * (vol(divset((T.k),$1),rho2));
+A24:   Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A25:   for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st Q11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A26:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A27:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (u|divset((T.k),i)) & ex z be Real st
+          z = (u|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom(u|divset((T.k),i)) by A26,A27; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho2)) is Element of REAL
+          by XREAL_0:def 1;
+        hence thesis by A27,A26;
+      end;
+      consider q being FinSequence of REAL such that
+A30:     dom q = Seg len (T.k) & for i being Nat
+        st i in Seg len (T.k) holds Q11[i,q.i] from FINSEQ_1:sch 5(A25);
+A31:   len q = len (T.k) by A30,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A32:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho2)) by A30;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho2)) by A32,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho2,u,T.k by A31,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A24,A30;
+    end;
+    consider Sg being sequence of (REAL)* such that
+A33:   for x being Element of NAT holds Q1[x, Sg.x] from FUNCT_2:sch 3(A23);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho2,u,T.k st q = Sg.k & for i be Nat st
+        i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho2)) by A33;
+      hence Sg.k is middle_volume of rho2,u,T.k;
+    end;
+    then reconsider Sg as middle_volume_Sequence of rho2,u,T by Def3;
+A34: middle_sum(Sf) is convergent &
+      lim (middle_sum(Sf)) = integral(u,rho1) by A1,A4,Def6;
+A35: middle_sum(Sg) is convergent &
+      lim (middle_sum(Sg)) = integral(u,rho2) by A1,A4,Def6;
+A36: middle_sum(Sf) + middle_sum(Sg) = middle_sum(S)
+    proof
+      now let n be Nat;
+A37:    n in NAT by ORDINAL1:def 12;
+        consider p being FinSequence of REAL such that
+A38:      p = F.n & len p = len (T.n) & for i be Nat st i in dom (T.n) holds
+          (p.i) in dom (u|divset((T.n),i)) & ex z be Real st
+          z = (u|divset((T.n),i)).(p.i) &
+          (S.n).i = z * (vol(divset((T.n),i),rho)) by A11,A37;
+        consider q be middle_volume of rho1,u,T.n such that
+A39:      q = Sf.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          q.i = z * (vol(divset((T.n),i),rho1)) by A22,A37;
+        consider r be middle_volume of rho2,u,T.n such that
+A40:      r = Sg.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          r.i = z * (vol(divset((T.n),i),rho2)) by A33,A37;
+A41:    len (Sf.n) = len (T.n) & len (Sg.n) = len (T.n) &
+        len (S.n) = len (T.n) by A1,Def1; then
+A42:    dom (Sf.n) = dom (T.n) & dom (Sg.n) = dom (T.n) &
+        dom (S.n) = dom (T.n) by FINSEQ_3:29;
+B42:    dom (S.n) = dom (Sf.n) /\ dom (Sg.n) by A42;
+        now let j be object;
+          assume A43: j in dom (S.n); then
+          reconsider i=j as Nat;
+          consider t be Real such that
+A44:        t = (u|divset((T.n),i)).((F.n).i) &
+            (S.n).i = t * (vol(divset((T.n),i),rho)) by A43,A42,A38;
+          consider z be Real such that
+A45:        (F.n).i in dom (u|divset((T.n),i)) &
+            z = (u|divset((T.n),i)).((F.n).i) &
+            q.i = z * (vol(divset((T.n),i),rho1)) by A39,A43,A42;
+          consider w1 be Real such that
+A46:        (F.n).i in dom (u|divset((T.n),i)) &
+            w1 = (u|divset((T.n),i)).((F.n).i) &
+            r.i = w1 * (vol(divset((T.n),i),rho2)) by A40,A43,A42;
+          i in dom(T.n) by A41,FINSEQ_3:29,A43; then
+          vol(divset((T.n),i),rho)
+            = vol(divset((T.n),i),rho1) + vol(divset((T.n),i),rho2)
+                by A1,Lm6A,INTEGRA1:8;
+          hence (S.n).j = (Sf.n).j + (Sg.n).j by A45,A39,A46,A40,A44;
+        end; then
+A57:    Sf.n + Sg.n = S.n by B42,VALUED_1:def 1;
+        set k = len (T.n);
+X1:     Sf.n is Element of k-tuples_on REAL by FINSEQ_2:92,A41;
+X2:     Sg.n is Element of k-tuples_on REAL by FINSEQ_2:92,A41;
+        thus (middle_sum(Sf)).n + (middle_sum(Sg)).n
+           = Sum(Sf.n) + (middle_sum(Sg)).n by Def4
+          .= Sum(Sf.n) + Sum(Sg.n) by Def4
+          .= Sum(S.n) by A57,X1,X2,RVSUM_1:89
+          .= (middle_sum(S)).n by Def4;
+      end;
+      hence thesis by SEQ_1:7;
+    end;
+    hence middle_sum(S) is convergent by A34,A35;
+    thus lim (middle_sum(S)) = integral(u,rho1) + integral(u,rho2)
+      by A34,A35,A36,SEQ_2:6;
+  end;
+  hence u is_RiemannStieltjes_integrable_with rho;
+  hence thesis by Def6,A3,A1;
+end;
+
+theorem Lm7A:
+  for A,B be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL
+    st B c= A & rho = rho1 - rho2
+   holds vol(B,rho) = vol(B,rho1) - vol(B,rho2)
+proof
+  let A,B be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL;
+  assume AS: B c= A & rho = rho1 - rho2; then
+A1: rho = rho1 + (-rho2) by VALUED_1:def 9;
+  set x1=upper_bound B;
+  set x2=lower_bound B;
+  thus vol(B,rho) = vol(B,rho1) + vol(B,-rho2) by AS,A1,Lm6A
+   .= vol(B,rho1) + ((-rho2).x1 - (-rho2).x2) by Defvol
+   .= vol(B,rho1) + (-rho2.x1 - (-rho2).x2) by VALUED_1:8
+   .= vol(B,rho1) + (-rho2.x1 - -rho2.x2) by VALUED_1:8
+   .= vol(B,rho1) - (rho2.x1 - rho2.x2)
+   .= vol(B,rho1) - vol(B,rho2) by Defvol;
+end;
+
+theorem
+  for A be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL,
+      u be PartFunc of REAL,REAL st
+      rho is bounded_variation & rho1 is bounded_variation &
+      rho2 is bounded_variation & dom u = A &
+      rho = rho1 - rho2 & u is_RiemannStieltjes_integrable_with rho1 &
+      u is_RiemannStieltjes_integrable_with rho2
+    holds
+        u is_RiemannStieltjes_integrable_with rho &
+        integral(u,rho) = integral(u,rho1) - integral(u,rho2)
+proof
+  let A be non empty closed_interval Subset of REAL,
+      rho,rho1,rho2 be Function of A,REAL,
+      u be PartFunc of REAL,REAL;
+  assume A1: rho is bounded_variation & rho1 is bounded_variation &
+             rho2 is bounded_variation & dom u = A &
+             rho = rho1 - rho2 &
+             u is_RiemannStieltjes_integrable_with rho1 &
+             u is_RiemannStieltjes_integrable_with rho2;
+A3: now let T be DivSequence of A, S be middle_volume_Sequence of rho,u,T;
+    assume A4: delta(T) is convergent & lim delta(T)=0;
+    defpred P[Element of NAT, set] means ex p being FinSequence of REAL st
+      p = $2 & len p = len (T.$1) & for i be Nat st i in dom (T.$1) holds
+      (p.i) in dom (u|divset((T.$1),i)) & ex z be Real st
+      z = (u|divset((T.$1),i)).(p.i) &
+     (S.$1).i = z * (vol(divset((T.$1),i),rho));
+A5: for k being Element of NAT ex p being Element of (REAL)* st P[k, p]
+    proof
+      let k be Element of NAT;
+      defpred P1[ Nat, set] means $2 in dom (u|divset((T.k),$1)) &
+      ex c be Real st
+      c = (u|divset((T.k),$1)).($2) &
+      (S.k).$1 = c * vol(divset((T.k),$1),rho);
+A6:   Seg len ((T.k)) = dom (T.k) by FINSEQ_1:def 3;
+A7:   for i being Nat st i in Seg len (T.k) holds
+        ex x being Element of REAL st P1[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+        i in dom (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A8:       c in rng (u|divset((T.k),i)) &
+          (S.k).i = c * (vol(divset((T.k),i),rho)) by Def1,A1;
+        consider x be object such that
+A9:       x in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).x by A8,FUNCT_1:def 3;
+        reconsider x as Element of REAL by A9;
+        take x;
+        thus thesis by A8,A9;
+      end;
+      consider p being FinSequence of REAL such that
+A10:    dom p = Seg len (T.k) & for i being Nat st
+        i in Seg len (T.k) holds P1[i,p.i] from FINSEQ_1:sch 5(A7);
+      take p;
+      len p = len (T.k) by A10,FINSEQ_1:def 3;
+      hence thesis by A10,A6,FINSEQ_1:def 11;
+    end;
+    consider F being sequence of (REAL)* such that
+A11:  for x being Element of NAT holds P[x, F.x] from FUNCT_2:sch 3(A5);
+    defpred P1[Element of NAT,set] means ex q be middle_volume of rho1,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * vol(divset((T.$1),i),rho1);
+A12: for k being Element of NAT ex
+      y being Element of (REAL)* st P1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred P11[ Nat, set] means ex c be Real st
+      (F.k).$1 in dom (u|divset((T.k),$1)) &
+      c = (u|divset((T.k),$1)).((F.k).$1) &
+      $2 = c * vol(divset((T.k),$1),rho1);
+A13:   Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A14:   for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st P11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A15:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A16:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (u|divset((T.k),i)) & ex z be Real st
+          z = (u|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom(u|divset((T.k),i)) by A15,A16; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i))
+          by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho1)) is Element of REAL by XREAL_0:def 1;
+        hence thesis by A16,A15;
+      end;
+      consider q being FinSequence of REAL such that
+A19:    dom q = Seg len (T.k) & for i being Nat st i in Seg len (T.k) holds
+        P11[i,q.i] from FINSEQ_1:sch 5(A14);
+A20:   len q = len (T.k) by A19,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A21:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho1)) by A19;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho1)) by A21,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho1,u,T.k by A20,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A13,A19;
+    end;
+    consider Sf being sequence of (REAL)* such that
+A22:   for x being Element of NAT holds P1[x, Sf.x] from FUNCT_2:sch 3(A12);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho1,u,T.k st q = Sf.k &
+        for i be Nat st i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho1)) by A22;
+      hence Sf.k is middle_volume of rho1,u,T.k;
+    end;
+    then reconsider Sf as middle_volume_Sequence of rho1,u,T by Def3;
+    defpred Q1[Element of NAT,set] means ex q be middle_volume of rho2,u,T.$1
+      st q = $2 & for i be Nat st i in dom (T.$1) holds ex z be Real st
+      (F.$1).i in dom (u|divset((T.$1),i)) &
+      z = (u|divset((T.$1),i)).((F.$1).i) &
+      q.i = z * (vol (divset((T.$1),i),rho2));
+A23: for k being Element of NAT
+      ex y being Element of (REAL)* st Q1[k, y]
+    proof
+      let k be Element of NAT;
+      defpred Q11[Nat, set] means ex c be Real st
+        (F.k).$1 in dom (u|divset((T.k),$1)) &
+        c = (u|divset((T.k),$1)).((F.k).$1) &
+        $2 = c * (vol(divset((T.k),$1),rho2));
+A24:   Seg len (T.k) = dom (T.k) by FINSEQ_1:def 3;
+A25:   for i being Nat st i in Seg len (T.k) holds ex
+        x being Element of REAL st Q11[i,x]
+      proof
+        let i be Nat;
+        assume i in Seg len (T.k); then
+A26:    i in dom (T.k) by FINSEQ_1:def 3;
+        consider p being FinSequence of REAL such that
+A27:      p = F.k & len p = len (T.k) & for i be Nat st i in dom (T.k) holds
+          p.i in dom (u|divset((T.k),i)) & ex z be Real st
+          z = (u|divset((T.k),i)).(p.i) &
+          (S.k).i = z * (vol(divset((T.k),i),rho)) by A11;
+        p.i in dom(u|divset((T.k),i)) by A26,A27; then
+        (u|divset((T.k),i)).(p.i) in rng (u|divset((T.k),i)) by FUNCT_1:3; then
+        reconsider x = (u|divset((T.k),i)).(p.i) as Element of REAL;
+        x * (vol(divset((T.k),i),rho2)) is Element of REAL
+          by XREAL_0:def 1;
+        hence thesis by A27,A26;
+      end;
+      consider q being FinSequence of REAL such that
+A30:     dom q = Seg len (T.k) & for i being Nat
+        st i in Seg len (T.k) holds Q11[i,q.i] from FINSEQ_1:sch 5(A25);
+A31:   len q = len (T.k) by A30,FINSEQ_1:def 3;
+      now let i be Nat;
+        assume i in dom (T.k); then
+        i in Seg len (T.k) by FINSEQ_1:def 3; then
+        consider c be Real such that
+A32:      (F.k).i in dom (u|divset((T.k),i)) &
+          c = (u|divset((T.k),i)).((F.k).i) &
+          q.i = c * (vol(divset((T.k),i),rho2)) by A30;
+        thus ex c be Real st c in rng (u|divset((T.k),i)) &
+          q.i = c * (vol(divset((T.k),i),rho2)) by A32,FUNCT_1:3;
+      end;
+      then reconsider q as middle_volume of rho2,u,T.k by A31,Def1,A1;
+      q is Element of (REAL)* by FINSEQ_1:def 11;
+      hence thesis by A24,A30;
+    end;
+    consider Sg being sequence of (REAL)* such that
+A33:   for x being Element of NAT holds Q1[x, Sg.x] from FUNCT_2:sch 3(A23);
+    now let k be Element of NAT;
+      ex q be middle_volume of rho2,u,T.k st q = Sg.k & for i be Nat st
+        i in dom (T.k) holds ex z be Real st
+        (F.k).i in dom (u|divset((T.k),i)) &
+        z = (u|divset((T.k),i)).((F.k).i) &
+        q.i = z * (vol(divset((T.k),i),rho2)) by A33;
+      hence Sg.k is middle_volume of rho2,u,T.k;
+    end;
+    then reconsider Sg as middle_volume_Sequence of rho2,u,T by Def3;
+A34: middle_sum(Sf) is convergent &
+      lim (middle_sum(Sf)) = integral(u,rho1) by A1,A4,Def6;
+A35: middle_sum(Sg) is convergent &
+      lim (middle_sum(Sg)) = integral(u,rho2) by A1,A4,Def6;
+A36: middle_sum(Sf) - middle_sum(Sg) = middle_sum(S)
+    proof
+      now let n be Nat;
+A37:    n in NAT by ORDINAL1:def 12;
+        consider p being FinSequence of REAL such that
+A38:      p = F.n & len p = len (T.n) & for i be Nat st i in dom (T.n) holds
+          (p.i) in dom (u|divset((T.n),i)) & ex z be Real st
+          z = (u|divset((T.n),i)).(p.i) &
+          (S.n).i = z * (vol(divset((T.n),i),rho)) by A11,A37;
+        consider q be middle_volume of rho1,u,T.n such that
+A39:      q = Sf.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          q.i = z * (vol(divset((T.n),i),rho1)) by A22,A37;
+        consider r be middle_volume of rho2,u,T.n such that
+A40:      r = Sg.n & for i be Nat st i in dom (T.n) holds ex z be Real st
+          (F.n).i in dom (u|divset((T.n),i)) &
+          z = (u|divset((T.n),i)).((F.n).i) &
+          r.i = z * (vol(divset((T.n),i),rho2)) by A33,A37;
+A41:    len (Sf.n) = len (T.n) & len (Sg.n) = len (T.n) &
+        len (S.n) = len (T.n) by A1,Def1; then
+A42:    dom (Sf.n) = dom (T.n) & dom (Sg.n) = dom (T.n) &
+        dom (S.n) = dom (T.n) by FINSEQ_3:29;
+B42:    dom (S.n) = dom (Sf.n) /\ dom (Sg.n) by A42
+                 .= dom (Sf.n-Sg.n) by VALUED_1:12;
+        now let j be object;
+          assume A43: j in dom (S.n); then
+          reconsider i=j as Nat;
+          consider t be Real such that
+A44:        t = (u|divset((T.n),i)).((F.n).i) &
+            (S.n).i = t * (vol(divset((T.n),i),rho)) by A43,A42,A38;
+          consider z be Real such that
+A45:        (F.n).i in dom (u|divset((T.n),i)) &
+            z = (u|divset((T.n),i)).((F.n).i) &
+            q.i = z * (vol(divset((T.n),i),rho1)) by A39,A43,A42;
+          consider w1 be Real such that
+A46:        (F.n).i in dom (u|divset((T.n),i)) &
+            w1 = (u|divset((T.n),i)).((F.n).i) &
+            r.i = w1 * (vol(divset((T.n),i),rho2)) by A40,A43,A42;
+          i in dom(T.n) by A41,FINSEQ_3:29,A43; then
+          vol(divset((T.n),i),rho)
+            = vol(divset((T.n),i),rho1) - vol(divset((T.n),i),rho2)
+                by A1,Lm7A,INTEGRA1:8;
+          hence (S.n).j = (Sf.n).j - (Sg.n).j by A45,A39,A46,A40,A44;
+        end; then
+A57:    Sf.n - Sg.n = S.n by B42,VALUED_1:14;
+        set k = len (T.n);
+X1:     Sf.n is Element of k-tuples_on REAL by FINSEQ_2:92,A41;
+X2:     Sg.n is Element of k-tuples_on REAL by FINSEQ_2:92,A41;
+B57:    (middle_sum(Sf)).n - (middle_sum(Sg)).n
+          = Sum(Sf.n) - (middle_sum(Sg)).n by Def4
+         .= Sum(Sf.n) - Sum(Sg.n) by Def4
+         .= Sum(S.n) by A57,X1,X2,RVSUM_1:90
+         .= (middle_sum(S)).n by Def4;
+        thus (middle_sum(Sf)).n + (-middle_sum(Sg)).n
+          = (middle_sum(Sf)).n + -(middle_sum(Sg)).n by VALUED_1:8
+         .= (middle_sum(S)).n by B57;
+      end; then
+      middle_sum(Sf) + -middle_sum(Sg)
+        = middle_sum(S) by SEQ_1:7;
+      hence thesis by SEQ_1:11;
+    end;
+    hence middle_sum(S) is convergent by A34,A35;
+    thus lim (middle_sum(S)) = integral(u,rho1) - integral(u,rho2)
+      by A34,A35,A36,SEQ_2:12;
+  end;
+  hence u is_RiemannStieltjes_integrable_with rho;
+  hence thesis by Def6,A3,A1;
+end;
+

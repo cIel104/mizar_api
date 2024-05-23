@@ -1,0 +1,1327 @@
+:: Internal Direct Products and the Universal Property of Direct Product 
+:: Groups
+::  by Alexander M. Nelson
+:: 
+:: Received June 30, 2023
+:: Copyright (c) 2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies PRE_POLY, SEMI_AF1, FINSET_1, WELLORD1, NEWTON, MSSUBFAM, TARSKI,
+      NAT_1, QC_LANG1, RLSUB_1, XXREAL_0, ORDINAL4, XXREAL_1, BINOP_1, BINOP_2,
+      RLVECT_2, ZFMISC_1, RELAT_1, STRUCT_0, UPROOTS, FINSEQ_1, FUNCT_1,
+      FUNCT_2, FUNCT_3, FUNCT_4, FUNCOP_1, NUMBERS, PRALG_1, ALGSTR_0,
+      PARTFUN1, CARD_1, CARD_3, GROUP_1, GROUP_2, GROUP_3, PRE_TOPC, GROUP_4,
+      GROUP_6, GROUP_7, GROUP_12, SUBSET_1, XBOOLE_0, PBOOLE, VECTMETR,
+      GROUP_19, GROUP_20, GROUP_23, SETFAM_1, REALSET1, GROUP_5, ARYTM_3,
+      GRNILP_1;
+ notations FINSET_1, CARD_1, ZFMISC_1, TARSKI, XBOOLE_0, RELAT_1, SUBSET_1,
+      RELSET_1, FUNCT_1, BINOP_1, BINOP_2, REALSET1, FUNCT_2, FUNCT_7,
+      FUNCOP_1, PBOOLE, NAT_1, CARD_3, ORDINAL1, NUMBERS, XXREAL_0, STRUCT_0,
+      PARTFUN1, ALGSTR_0, SETFAM_1, PRALG_1, GROUP_19, GROUP_12, GROUP_7,
+      FINSEQ_1, FINSEQOP, GRSOLV_1, GROUP_3, GROUP_5, GROUP_1, GROUP_2,
+      GROUP_6, FUNCT_4, GROUP_4, GROUP_20, GRNILP_1;
+ constructors BINOP_2, PBOOLE, REALSET1, MONOID_0, PRALG_1, FUNCT_7, RELSET_1,
+      GRSOLV_1, GROUP_19, FINSOP_1, FINSEQOP, GROUP_4, GROUP_20, FUNCT_6,
+      GRNILP_1;
+ registrations XBOOLE_0, STRUCT_0, GROUP_2, MONOID_0, RELAT_1, FUNCT_1,
+      REALSET1, RELSET_1, XXREAL_0, FUNCT_2, FUNCOP_1, CARD_3, FINSET_1,
+      CARD_1, ORDINAL1, INT_1, FUNCT_4, GROUP_3, GROUP_6, GROUP_7, GROUP_19;
+ requirements BOOLE, SUBSET, NUMERALS;
+
+
+begin :: Preliminaries
+
+theorem :: GROUP_23:1
+  for X,Y,Z,W being set st Z <> {} & W <> {}
+  for f being Function of [:X,Y:],Z
+  for g being Function of [:X,Y:],W
+  st (for a being Element of X, b being Element of Y holds f.(a,b) = g.(a,b))
+  holds f = g;
+
+theorem :: GROUP_23:2
+  for A being finite set
+  holds canFS A is ManySortedSet of Seg (card A);
+
+theorem :: GROUP_23:3
+  for X,Y being non empty set
+  for f being Function of X,Y
+  st f is onto
+  ex g being Function of Y,X
+  st f * g = id Y;
+
+:: This probably belongs in PBOOLE
+definition
+  let I be non empty set;
+  let A, B be ManySortedSet of I;
+  let f be ManySortedFunction of A,B;
+  let i be Element of I;
+  redefine func f.i -> Function of A.i, B.i;
+end;
+
+:: This probably belongs in PRALG_1
+definition
+  let I be non empty set;
+  let F1,F2 be 1-sorted-yielding ManySortedSet of I;
+  mode ManySortedFunction of F1,F2
+    is ManySortedFunction of Carrier F1, Carrier F2;
+end;
+
+:: This probably belongs in PRALG_1
+definition
+  let I be non empty set;
+  let F1,F2 be 1-sorted-yielding ManySortedSet of I;
+  let phi be ManySortedFunction of F1,F2;
+  let i be Element of I;
+  redefine func phi.i -> Function of F1.i, F2.i;
+end;
+
+theorem :: GROUP_23:4
+  for I being non empty set
+  for A, B being ManySortedSet of I
+  for f being ManySortedSet of I
+  holds f is ManySortedFunction of A,B
+  iff (for i being Element of I holds f.i is Function of A.i, B.i);
+
+registration
+  let I,X be set;
+  cluster (bool X)-valued for ManySortedSet of I;
+end;
+
+definition
+  let I,X be set;
+  let M be (bool X)-valued ManySortedSet of I;
+  redefine func Union M -> Subset of X;
+end;
+
+registration
+  let I be set;
+  let J be Subset of I;
+  let F be ManySortedSet of I;
+  cluster F|J -> J-defined total;
+end;
+
+registration
+  let I be set;
+  let J be Subset of I;
+  let F be 1-sorted-yielding ManySortedSet of I;
+  cluster F|J -> 1-sorted-yielding J-defined total;
+end;
+
+theorem :: GROUP_23:5
+  for I being non empty set
+  for M being ManySortedSet of I
+  for y being object
+  holds y in rng M iff (ex i being Element of I st y = M.i);
+
+begin :: Sequences of group elements under homomorphisms
+
+theorem :: GROUP_23:6
+  for G1, G2 being Group
+  for phi being Homomorphism of G1, G2
+  for F1 being FinSequence of the carrier of G1
+  for F2 being FinSequence of the carrier of G2
+  st F2 = phi * F1
+  holds Product F2 = phi.(Product F1);
+
+theorem :: GROUP_23:7
+  for G1, G2 being Group
+  for phi being Homomorphism of G1, G2
+  for F1 being FinSequence of the carrier of G1
+  ex F2 being FinSequence of the carrier of G2
+  st len F1 = len F2
+   & F2 = phi * F1
+   & Product F2 = phi.(Product F1);
+
+theorem :: GROUP_23:8
+  for G1, G2 being Group
+  for phi being Homomorphism of G1, G2
+  for F1 being FinSequence of the carrier of G1
+  for ks being FinSequence of INT
+  ex F2 being FinSequence of the carrier of G2
+  st len F1 = len F2
+   & F2 = phi * F1
+   & Product (F2 |^ ks) = phi.(Product (F1 |^ ks));
+
+begin :: Preliminary Work about Group-Families and Group-Yielding Many Sorted Sets
+
+definition
+  let IT be Relation;
+  attr IT is Group-yielding means
+:: GROUP_23:def 1
+  for G being object st G in rng IT holds G is Group;
+end;
+
+registration
+  cluster Group-yielding -> 1-sorted-yielding for Function;
+  cluster Group-yielding -> multMagma-yielding for Function;
+end;
+
+theorem :: GROUP_23:9
+  for I being set
+  for F being associative Group-like multMagma-Family of I
+  holds F is Group-yielding;
+
+registration
+  let I be set;
+  cluster Group-yielding for ManySortedSet of I;
+end;
+
+registration
+  let I be set;
+  cluster associative Group-like -> Group-yielding for multMagma-Family of I;
+end;
+
+registration
+  cluster Group-yielding for Function;
+end;
+
+theorem :: GROUP_23:10
+  for I being non empty set
+  for F being Group-yielding ManySortedSet of I
+  for i being Element of I
+  holds F.i is Group;
+
+registration
+  let I be non empty set;
+  let i be Element of I;
+  let F be Group-yielding ManySortedSet of I;
+  cluster (F . i) -> Group-like associative unital non empty for multMagma;
+end;
+
+theorem :: GROUP_23:11
+  for I being set
+  for F being ManySortedSet of I
+  holds F is Group-yielding
+  iff (for i being object st i in I holds F.i is Group);
+
+registration
+  let I be set;
+  cluster Group-yielding -> Group-like associative for multMagma-Family of I;
+end;
+
+registration
+  let I be set;
+  cluster -> Group-yielding for Group-like associative multMagma-Family of I;
+end;
+
+registration
+  let I be set;
+  cluster -> Group-like associative multMagma-yielding for
+    Group-yielding ManySortedSet of I;
+end;
+
+ reserve I for non empty set;
+ reserve i for Element of I;
+ reserve F for Group-Family of I;
+ reserve G for Group;
+
+theorem :: GROUP_23:12
+  {} --> G is Group-Family of {};
+
+theorem :: GROUP_23:13
+  for n being Nat
+  holds Seg n --> G is Group-Family of Seg n;
+
+registration
+  let G be Group;
+  let n be Nat;
+  cluster (Seg n --> G) -> Group-yielding;
+end;
+
+theorem :: GROUP_23:14
+  (Carrier F).i = the carrier of F.i;
+
+scheme :: GROUP_23:sch 1
+ GrFamSch { I1() -> non empty set,
+           Fun(Element of I1()) -> Group } :
+  ex Fam being Group-Family of I1()
+  st for i being Element of I1() holds Fam.i = Fun(i);
+
+begin :: Subgroup-Family of a Family of Groups
+
+definition
+  let I be set;
+  let F, IT be Group-Family of I;
+  attr IT is F-Subgroup-yielding means
+:: GROUP_23:def 2
+  for i being Element of I
+  for G being Group st G = F.i
+  holds IT.i is Subgroup of G;
+end;
+
+theorem :: GROUP_23:15
+  for S being Group-Family of I
+  holds S is F-Subgroup-yielding
+  iff (for i being Element of I holds S.i is Subgroup of F.i);
+
+theorem :: GROUP_23:16
+  for I being set
+  for F being Group-Family of I
+  holds F is F-Subgroup-yielding;
+
+registration
+  let I be set;
+  let F be Group-Family of I;
+  cluster F-Subgroup-yielding for Group-Family of I;
+end;
+
+definition
+  let I be set;
+  let F be Group-Family of I;
+  mode Subgroup-Family of F is F-Subgroup-yielding Group-Family of I;
+end;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  let S be Subgroup-Family of F;
+  let i be Element of I;
+  redefine func S.i -> Subgroup of F.i;
+end;
+
+reserve S for Subgroup-Family of F;
+
+theorem :: GROUP_23:17
+  for S being Group-Family of I
+  holds S is Subgroup-Family of F
+  iff (for i being Element of I holds S.i is Subgroup of F.i);
+
+scheme :: GROUP_23:sch 2
+ SubFamSch { I1() -> non empty set,
+            Fam() -> Group-Family of I1(),
+            Sub(Group) -> Group } :
+  ex S being Subgroup-Family of Fam()
+  st for i being Element of I1() holds S.i = Sub(Fam().i)
+provided
+ for G being Group holds Sub(G) is Subgroup of G;
+
+:: Re-defining "strict" for Subgroup-Family seemed like a risky move,
+:: so I opted to introduce an adjective which captured what was needed.
+definition
+  let I be non empty set;
+  let IT be Group-Family of I;
+  attr IT is componentwise_strict means
+:: GROUP_23:def 3
+  for i being Element of I holds IT.i is strict;
+end;
+
+registration
+  let I be non empty set;
+  cluster componentwise_strict for Group-Family of I;
+end;
+
+theorem :: GROUP_23:18
+  for I be non empty set
+  for F be Group-Family of I
+  for IT be Subgroup-Family of F holds
+    IT is componentwise_strict iff
+    for i being Element of I holds IT.i is strict Subgroup of F.i;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  cluster componentwise_strict for Subgroup-Family of F;
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let S be componentwise_strict Subgroup-Family of F;
+  let i be Element of I;
+  cluster (S . i) -> strict for Subgroup of F.i;
+end;
+
+scheme :: GROUP_23:sch 3
+ StrSubFamSch { I1() -> non empty set,
+               Fam() -> Group-Family of I1(),
+               Sub(Group) -> Group } :
+  ex S being componentwise_strict Subgroup-Family of Fam()
+  st for i being Element of I1() holds S.i = Sub(Fam().i)
+provided
+ for G being Group holds Sub(G) is strict Subgroup of G;
+
+theorem :: GROUP_23:19
+  for A,B being Subgroup-Family of F
+  st (for i being Element of I holds A.i = B.i)
+  holds A = B;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  func (1).F -> componentwise_strict Subgroup-Family of F means
+:: GROUP_23:def 4
+
+  for i being Element of I holds it.i = (1).(F.i);
+end;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  func (Omega).F -> componentwise_strict Subgroup-Family of F means
+:: GROUP_23:def 5
+
+  for i being Element of I holds it.i = (Omega).(F.i);
+end;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  let IT be Subgroup-Family of F;
+  attr IT is normal means
+:: GROUP_23:def 6
+  for i being Element of I holds IT.i is normal Subgroup of F.i;
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  cluster componentwise_strict normal for Subgroup-Family of F;
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let S be normal Subgroup-Family of F;
+  let i be Element of I;
+  cluster (S . i) -> normal for Subgroup of F.i;
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let S be componentwise_strict Subgroup-Family of F;
+  let i be Element of I;
+  cluster (S . i) -> strict for Subgroup of F.i;
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  cluster (1).F -> normal;
+  cluster (Omega).F -> normal;
+end;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  let N be normal Subgroup-Family of F;
+  func F ./. N -> Group-Family of I means
+:: GROUP_23:def 7
+  for i being Element of I
+  holds it.i = (F.i) ./. (N.i);
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let N be normal Subgroup-Family of F;
+  cluster F ./. N -> componentwise_strict;
+end;
+
+theorem :: GROUP_23:20
+  ex S being componentwise_strict normal Subgroup-Family of F
+  st for i being Element of I holds S.i = (F.i)`;
+
+theorem :: GROUP_23:21
+  for M being strict multMagma
+  st (ex x being object st the carrier of M = {x})
+  ex G being strict trivial Group st M = G;
+
+theorem :: GROUP_23:22
+  for I being empty set
+  for F being multMagma-Family of I
+  holds product F is trivial Group;
+
+begin :: Inclusion Morphism
+
+definition
+  let G, H be Group;
+  assume  H is Subgroup of G;
+  func incl (H, G) -> Homomorphism of H, G equals
+:: GROUP_23:def 8
+    id (the carrier of H);
+end;
+
+definition
+  let G be Group, H be Subgroup of G;
+  func incl H -> Homomorphism of H,G equals
+:: GROUP_23:def 9
+  incl (H, G);
+end;
+
+theorem :: GROUP_23:23
+  for H being Group
+  for h being Element of H
+  st H is Subgroup of G
+  holds (incl (H, G)).h = h;
+
+theorem :: GROUP_23:24
+  for H being Subgroup of G
+  holds incl (H, G) is one-to-one
+  & Image (incl (H, G)) = the multMagma of H;
+
+registration
+  let G be Group, H be Subgroup of G;
+  cluster incl (H, G) -> one-to-one;
+end;
+
+theorem :: GROUP_23:25
+  for H,K being Group st H is Subgroup of G
+  for phi being Homomorphism of G,K
+  holds phi|(the carrier of H) = phi * (incl (H, G));
+
+theorem :: GROUP_23:26
+  for K being Group
+  for H being Subgroup of G
+  for phi being Homomorphism of G,K
+  holds phi|H = phi * (incl H);
+
+theorem :: GROUP_23:27
+  for G being Group
+  for H being strict Subgroup of G
+  holds Image (incl H) = H;
+
+begin :: Families of Homomorphisms
+
+definition
+  let G be Group;
+  let I be non empty set;
+  let F be Group-Family of I;
+  mode Homomorphism-Family of G, F -> ManySortedFunction of I means
+:: GROUP_23:def 10
+
+  for i being Element of I holds
+  it.i is Homomorphism of G, F.i;
+end;
+
+:: I hate this, but have no better alternative
+definition
+  let G be Group;
+  let I be non empty set;
+  let F be Group-Family of I;
+  let f be Homomorphism-Family of G, F;
+  let i be Element of I;
+  redefine func f.i -> Homomorphism of G, F.i;
+end;
+
+reserve f for Homomorphism-Family of G, F;
+
+theorem :: GROUP_23:28
+  [i, f.i] in f;
+
+definition
+  let I be non empty set;
+  let F1,F2 be Group-Family of I;
+  mode Homomorphism-Family of F1,F2 -> ManySortedFunction of F1,F2 means
+:: GROUP_23:def 11
+
+  for i being Element of I
+  holds it.i is Homomorphism of F1.i,F2.i;
+end;
+
+registration
+  let I be non empty set;
+  let F1,F2 be Group-Family of I;
+  let i be Element of I;
+  let phi be Homomorphism-Family of F1,F2;
+  cluster (phi . i) -> multiplicative for Function of F1.i, F2.i;
+end;
+
+theorem :: GROUP_23:29
+  for I being non empty set
+  for A, B being Group-Family of I
+  for f being ManySortedSet of I
+  holds f is Homomorphism-Family of A,B
+  iff (for i being Element of I holds f.i is Homomorphism of A.i, B.i);
+
+scheme :: GROUP_23:sch 4
+ HomFamSch { I1() -> non empty set,
+            Dom() -> Group-Family of I1(),
+            Cod() -> Group-Family of I1(),
+            Fun(Element of I1()) -> Function } :
+  ex H being Homomorphism-Family of Dom(), Cod()
+  st for i being Element of I1() holds H.i = Fun(i)
+provided
+ for i being Element of I1()
+    holds Fun(i) is Homomorphism of Dom().i, Cod().i;
+
+theorem :: GROUP_23:30
+  for G being Group
+  for I being non empty set
+  for F being Group-Family of I
+  for f being ManySortedSet of I
+  holds f is Homomorphism-Family of G,F
+  iff (for i being Element of I holds f.i is Homomorphism of G, F.i);
+
+scheme :: GROUP_23:sch 5
+ RHomFamSch { I1() -> non empty set,
+             Dom() -> Group,
+             Cod() -> Group-Family of I1(),
+             Fun(Element of I1()) -> Function } :
+  ex H being Homomorphism-Family of Dom(), Cod()
+  st for i being Element of I1() holds H.i = Fun(i)
+provided
+ for i being Element of I1()
+    holds Fun(i) is Homomorphism of Dom(), Cod().i;
+
+theorem :: GROUP_23:31
+  for I being non empty set
+  for A, B being Group-Family of I
+  for f being ManySortedSet of I
+  holds f is Homomorphism-Family of A,B
+  iff (for i being Element of I holds f.i is Homomorphism of A.i, B.i);
+
+begin :: Projection Morphisms from Product Group to Direct Factors
+
+theorem :: GROUP_23:32
+  for g being Element of product F
+  holds g.i is Element of F.i;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  let g be Element of product F;
+  let i be Element of I;
+  func g/.i -> Element of F.i equals
+:: GROUP_23:def 12
+    g.i;
+end;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let g be Element of product F;
+  let i be Element of I;
+  identify g/.i with g.i;
+end;
+
+definition
+  let I be non empty set;
+  let i be Element of I;
+  let F be Group-Family of I;
+  func proj (F, i) -> Homomorphism of (product F), F.i means
+:: GROUP_23:def 13
+
+  for h being Element of product F holds it.h = h.i;
+end;
+
+theorem :: GROUP_23:33
+  proj (F, i) is onto;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let i be Element of I;
+  cluster proj (F, i) -> onto;
+end;
+
+theorem :: GROUP_23:34
+  proj (Carrier F, i) is Function of product (Carrier F), the carrier of F.i;
+
+theorem :: GROUP_23:35
+  for g being Element of product F
+  holds proj (F, i) . g = proj (Carrier F, i) . g;
+
+theorem :: GROUP_23:36
+  proj (F, i) = proj (Carrier F, i);
+
+theorem :: GROUP_23:37
+  for g being Element of product F
+  for h being Element of F.i
+  holds g +* (i, h) in product F;
+
+theorem :: GROUP_23:38
+  for i being Element of I
+  for g being Element of product F
+  holds (g +* (i, 1_(F.i))) in Ker (proj (F, i));
+
+theorem :: GROUP_23:39
+  for G1,G2 being Group
+  for f being Homomorphism of G1, G2
+  st (for g being Element of G1 holds f.g = g)
+  holds G1 is Subgroup of G2;
+
+theorem :: GROUP_23:40
+  for i,j being Element of I st i <> j
+  holds (proj (F,j)) * (1ProdHom (F,i)) = 1:(F.i, F.j);
+
+theorem :: GROUP_23:41
+  (proj (F,i)) * (1ProdHom (F, i)) = id (the carrier of F.i);
+
+begin :: Universal Property of Direct Products of Groups
+
+:: Universal property of group product, explicit version.
+theorem :: GROUP_23:42
+  for f being Homomorphism-Family of G, F
+  ex phi being Homomorphism of G, product F
+  st for g being Element of G
+     holds (for j being Element of I holds (f.j).g = (proj (F,j)) . (phi.g));
+
+:: Universal property of group product, as most people would recognize it.
+theorem :: GROUP_23:43
+  for f being Homomorphism-Family of G, F
+  ex phi being Homomorphism of G, product F
+  st (for i being Element of I holds f.i = (proj (F,i)) * phi);
+
+theorem :: GROUP_23:44
+  for f being Homomorphism-Family of G, F
+  for phi1, phi2 being Homomorphism of G, product F
+  st (for i being Element of I holds f.i = (proj (F,i)) * phi1)
+     & (for i being Element of I holds f.i = (proj (F,i)) * phi2)
+  holds phi1 = phi2;
+
+definition
+  let G be Group;
+  let I be non empty set;
+  let F be Group-Family of I;
+  let f be Homomorphism-Family of G, F;
+  func product f -> Homomorphism of G, product F means
+:: GROUP_23:def 14
+
+  for g being Element of G
+  for i being Element of I
+  holds (f.i).g = (it.g).i;
+end;
+
+theorem :: GROUP_23:45
+  for g being Element of G
+  holds (for i being Element of I holds ((product f).g).i = 1_(F.i))
+  iff (product f).g = 1_(product F);
+
+theorem :: GROUP_23:46
+  for g being Element of G
+  holds g in Ker (product f)
+        iff (for i being Element of I holds g in Ker (f.i));
+
+theorem :: GROUP_23:47
+  for G1, G2, G3 being Group
+  for f1 being Homomorphism of G1, G2
+  for f2 being Homomorphism of G2, G3
+  for g being Element of G1
+  holds g in Ker (f2 * f1) iff f1.g in Ker(f2);
+
+theorem :: GROUP_23:48
+  for G1, G2, G3 being Group
+  for f1 being Homomorphism of G1, G2
+  for f2 being Homomorphism of G2, G3
+  holds the carrier of Ker (f2 * f1) = f1" (the carrier of Ker f2);
+
+theorem :: GROUP_23:49
+  the carrier of Ker (product f) =
+    meet the set of all the carrier of Ker (f.i) where
+      i is Element of I;
+
+theorem :: GROUP_23:50
+  for f being Function,
+      I being non empty set,
+      F being Group-Family of I
+  st dom f = I & (for i being Element of I holds f.i in F.i)
+  holds f in product F;
+
+theorem :: GROUP_23:51
+  for S being Group-Family of I
+  for g being Element of product F
+  holds g in product S iff (for i being Element of I
+                            holds (proj (F,i)).g in S.i);
+
+theorem :: GROUP_23:52
+  for F1,F2 being Group-Family of I
+  st (for i being Element of I holds F1.i is Subgroup of F2.i)
+  holds product F1 is Subgroup of product F2;
+
+definition
+  let I be non empty set;
+  let F be Group-Family of I;
+  let S be Subgroup-Family of F;
+  func product S -> strict Subgroup of product F equals
+:: GROUP_23:def 15
+    product S;
+end;
+
+theorem :: GROUP_23:53
+  Image (proj (F, i)) = the multMagma of F.i;
+
+theorem :: GROUP_23:54
+  for F1,F2 being componentwise_strict Subgroup-Family of F
+  st (for i being Element of I
+      holds Image (proj (F1, i)) is Subgroup of Image (proj (F2, i)))
+  holds (product F1) is strict Subgroup of (product F2);
+
+theorem :: GROUP_23:55
+  for G being strict Subgroup of product F
+  for S st (for i being Element of I
+            holds S.i = Image ((proj (F,i)) * (incl G)))
+  for f being Homomorphism-Family of G, S
+  st (for i being Element of I holds f.i = ((proj (F,i)) * (incl G)))
+  holds product f = id the carrier of G;
+
+theorem :: GROUP_23:56
+  for G1,G2 being Group
+  for phi being Homomorphism of G1, G2
+  for x being Element of G1 st x in commutators G1
+  holds phi.x in commutators G2;
+
+theorem :: GROUP_23:57 :: missing
+  for G1,G2,G3 being Group
+  for f1 being Homomorphism of G1,G2
+  for f2 being Homomorphism of G2,G3
+  for g being Element of G1
+  holds (f2 * f1).g = f2.(f1.g);
+
+theorem :: GROUP_23:58
+  for G1,G2 being Group
+  for H being Subgroup of G2
+  for f1 being Homomorphism of G1,G2
+  for f2 being Homomorphism of G1,H
+  st f1 = f2
+  holds Image f1 = Image f2;
+
+theorem :: GROUP_23:59
+  for a,b being Element of product F
+  for i
+  holds ([. a, b .]).i = [. a/.i, b/.i .];
+
+scheme :: GROUP_23:sch 6
+ SubFamEx { I1() -> non empty set,
+           Fam() -> Group-Family of I1(),
+           P[object, object] } :
+  ex S being Subgroup-Family of Fam()
+  st for i being Element of I1() holds P[i, S.i]
+provided
+ for i being Element of I1() ex j being Subgroup of Fam().i st P[i, j];
+
+theorem :: GROUP_23:60 :: missing
+  for A being ManySortedSet of I
+  st (for i being Element of I holds A.i is Subset of F.i)
+  holds product A is Subset of product F;
+
+theorem :: GROUP_23:61
+  for S being normal Subgroup-Family of F
+  holds product S is normal Subgroup of product F;
+
+registration
+  let I be non empty set;
+  let F be Group-Family of I;
+  let S be normal Subgroup-Family of F;
+  cluster product S -> normal for Subgroup of product F;
+end;
+
+begin :: Commutator Subgroup and Center of Product Groups
+
+:: Kurosh, Theory of Groups, volume I, result VI about Direct Products
+theorem :: GROUP_23:62
+  for Z being Group-Family of I
+  st (for i being Element of I holds Z.i = center (F.i))
+  holds center (product F) = product Z;
+
+theorem :: GROUP_23:63
+  for D being Subgroup-Family of F
+  st (for i being Element of I holds D.i = (F.i)`)
+  holds (product F)` is strict Subgroup of product D;
+
+theorem :: GROUP_23:64
+  for D being Subgroup-Family of F
+  st (for i being Element of I holds D.i = (F.i)`)
+  holds sum D is strict Subgroup of (product F)`;
+
+theorem :: GROUP_23:65
+  for I being finite non empty set
+  for F being Group-Family of I
+  for D being Subgroup-Family of F
+  st (for i being Element of I holds D.i = (F.i)`)
+  holds (product F)` = product D;
+
+begin :: Quotients of Product Groups
+
+definition
+  let I be non empty set;
+  let F1, F2 be Group-Family of I;
+  let f be Homomorphism-Family of F1, F2;
+  func product f -> Homomorphism of product F1, product F2 means
+:: GROUP_23:def 16
+  for i being Element of I
+  holds (proj (F2, i)) * it = (f.i) * (proj (F1, i));
+end;
+
+definition
+  let I be non empty set;
+  let F1, F2 be Group-Family of I;
+  let f be Homomorphism-Family of F1, F2;
+  func Ker f -> componentwise_strict normal Subgroup-Family of F1 means
+:: GROUP_23:def 17
+
+  for i being Element of I
+  holds it.i = Ker (f.i qua Homomorphism of F1.i,F2.i);
+end;
+
+definition
+  let I be non empty set;
+  let F1, F2 be Group-Family of I;
+  let f be Homomorphism-Family of F1, F2;
+  func Image f -> componentwise_strict Subgroup-Family of F2 means
+:: GROUP_23:def 18
+
+  for i being Element of I
+  holds it.i = Image (f.i qua Homomorphism of F1.i,F2.i);
+end;
+
+:: Hungerford, Algebra, Chapter I, Section 8, Theorem 8.10
+theorem :: GROUP_23:66
+  for F1,F2 being Group-Family of I
+  for f being Homomorphism-Family of F1,F2
+  holds Ker (product f) = product (Ker f);
+
+:: Hungerford, Algebra, Chapter I, Section 8, Theorem 8.10
+theorem :: GROUP_23:67
+  for F1,F2 being Group-Family of I
+  for f being Homomorphism-Family of F1,F2
+  holds Image (product f) = product (Image f);
+
+theorem :: GROUP_23:68
+  for S being componentwise_strict normal Subgroup-Family of F
+  holds (product F)./.(product S), product (F./.S) are_isomorphic;
+
+begin :: Internal direct products
+
+definition
+  let I be set;
+  let G be Group;
+  let IT be Subgroup-Family of I,G;
+  attr IT is normal means
+:: GROUP_23:def 19
+  for i being object st i in I holds IT.i is normal Subgroup of G;
+  attr IT is componentwise_strict means
+:: GROUP_23:def 20
+  for i being object st i in I holds IT.i is strict Subgroup of G;
+end;
+
+theorem :: GROUP_23:69
+  for I being non empty set
+  for G being Group
+  for F being Subgroup-Family of I,G
+  holds F is normal
+  iff (for i being Element of I holds F.i is normal Subgroup of G);
+
+theorem :: GROUP_23:70
+  for I being non empty set
+  for G being Group
+  for F being Subgroup-Family of I,G
+  holds F is componentwise_strict
+  iff (for i being Element of I holds F.i is strict Subgroup of G);
+
+registration
+  let I be set;
+  let G be Group;
+  cluster componentwise_strict normal for Subgroup-Family of I,G;
+end;
+
+definition
+  let I be non empty set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  let i be Element of I;
+  redefine func F.i -> Subgroup of G;
+end;
+
+registration
+  let I be non empty set;
+  let G be Group;
+  let F be normal Subgroup-Family of I,G;
+  let i be Element of I;
+  cluster F.i -> normal for Subgroup of G;
+end;
+
+theorem :: GROUP_23:71
+  for H1,H2 being Subgroup of G st [. H1, H2 .] = (1).G
+  for a,b being Element of G st a in H1 & b in H2
+  holds a*b = b*a;
+
+:: Weaker form of GROUP_5:3, we don't really need N to be "strict"
+::: Generalize GROUP_5:3
+theorem :: GROUP_23:72
+  for N being normal Subgroup of G
+  for a,b being Element of G
+  st a in N holds a |^ b in N;
+
+theorem :: GROUP_23:73
+  for H,K being normal Subgroup of G
+  st H /\ K = (1).G
+  for h,k being Element of G st h in H & k in K
+  holds h*k = k*h;
+
+theorem :: GROUP_23:74
+  for F being normal Subgroup-Family of I,G
+  for A being Subset of G
+  st A = union {the carrier of F.i where i is Element of I :
+    not contradiction }
+  ex N being strict normal Subgroup of G
+  st N = gr A;
+
+registration
+  let I be set;
+  let J be Subset of I;
+  let F be Group-yielding ManySortedSet of I;
+  cluster F|J -> Group-yielding J-defined total;
+end;
+
+theorem :: GROUP_23:75
+  for I being set
+  for F being Subgroup-Family of I,G
+  for J being set st J c= I
+  holds F|J is Subgroup-Family of J,G;
+
+definition
+  let I be set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  let J be Subset of I;
+  redefine func F|J -> Subgroup-Family of J,G;
+end;
+
+registration
+  let I be set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  let J be Subset of I;
+  cluster F|J -> Group-yielding;
+end;
+
+theorem :: GROUP_23:76
+  for F being normal Subgroup-Family of I,G
+  for A being Subset of G
+  for i being Element of I
+  st A = union { the carrier of F.j where j is Element of I : i <> j }
+  ex N being strict normal Subgroup of G
+  st N = gr A;
+
+theorem :: GROUP_23:77
+  for J being non empty Subset of I
+  for F being normal Subgroup-Family of I,G
+  holds F|J is normal Subgroup-Family of J,G;
+
+theorem :: GROUP_23:78
+  for I being set
+  for J being Subset of I
+  for F being normal Subgroup-Family of I,G
+  holds F|J is normal Subgroup-Family of J,G;
+
+registration
+  let I be set;
+  let J be Subset of I;
+  let G be Group;
+  let F be normal Subgroup-Family of I,G;
+  cluster F|J -> normal for Subgroup-Family of J,G;
+end;
+
+theorem :: GROUP_23:79
+  for I being set
+  for J being Subset of I
+  for F being componentwise_strict Subgroup-Family of I,G
+  holds F|J is componentwise_strict Subgroup-Family of J,G;
+
+registration
+  let I be set;
+  let J be Subset of I;
+  let G be Group;
+  let F be componentwise_strict Subgroup-Family of I,G;
+  cluster F|J -> componentwise_strict for Subgroup-Family of J,G;
+end;
+
+theorem :: GROUP_23:80
+  for I being set
+  for J being Subset of I st J is empty
+  for F being normal Subgroup-Family of I,G
+  holds Carrier (F|J) = {} --> (bool the carrier of G);
+
+theorem :: GROUP_23:81
+  for I being set
+  for J being Subset of I
+  for F being normal Subgroup-Family of I,G
+  for A being Subset of G
+  st A = Union (Carrier (F|J))
+  ex N being strict normal Subgroup of G
+  st N = gr A;
+
+theorem :: GROUP_23:82
+  for I being set
+  for F being normal Subgroup-Family of I,G
+  for A being Subset of G
+  st A = Union (Carrier F)
+  ex N being strict normal Subgroup of G
+  st N = gr A;
+
+theorem :: GROUP_23:83
+  for F being componentwise_strict Subgroup-Family of I, G
+  holds F is (Subgroups G)-valued;
+
+registration
+  let I be non empty set;
+  let G be Group;
+  cluster -> (Subgroups G)-valued for componentwise_strict
+    Subgroup-Family of I,G;
+end;
+
+definition
+  let I be set;
+  let F be 1-sorted-yielding ManySortedSet of I;
+  mode Element of F is Element of Carrier F;
+end;
+
+theorem :: GROUP_23:84
+  for F being Group-Family of I
+  for g being Element of F
+  for i being Element of I
+  holds g.i is Element of F.i;
+
+registration
+  let I be non empty set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  cluster -> (the carrier of G)-valued for Element of F;
+end;
+
+registration
+  let I be non empty set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  cluster -> I-defined Relation-like Function-like for Element of product F;
+end;
+
+registration
+  let I be non empty set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  cluster -> I-defined (the carrier of G)-valued total
+    for Element of product F;
+end;
+
+theorem :: GROUP_23:85
+  for I being set
+  for G being Group
+  for F being Subgroup-Family of I,G
+  holds Carrier F is (bool the carrier of G)-valued;
+
+registration
+  let I be set;
+  let G be Group;
+  let F be Subgroup-Family of I,G;
+  cluster Carrier F -> (bool the carrier of G)-valued;
+end;
+
+theorem :: GROUP_23:86
+  for G being Group
+  for S being finite Subset of Subgroups G
+  for n being Nat st n = card S
+  holds canFS S is Subgroup-Family of Seg n, G;
+
+theorem :: GROUP_23:87
+  for G being Group
+  for N being finite Subset of the_normal_subgroups_of G
+  for n being Nat st n = card N
+  holds canFS N is normal Subgroup-Family of Seg n, G;
+
+theorem :: GROUP_23:88
+  for G being Group
+  for I being empty set
+  for F being Subgroup-Family of I,G
+  holds gr Union (Carrier F) = (1).G;
+
+definition
+  let G be Group;
+  let I be set;
+  let F be Subgroup-Family of I,G;
+  let i be object;
+  assume  i in I;
+  func F/.i -> Subgroup of G equals
+:: GROUP_23:def 21
+F.i;
+end;
+
+definition
+  let G be Group;
+  let I be set;
+  let F be Subgroup-Family of I,G;
+  pred G is_internal_product_of F means
+:: GROUP_23:def 22
+  (for i being object st i in I holds F.i is normal Subgroup of G)
+   & (the multMagma of G = gr Union (Carrier F))
+   & (for i being object st i in I
+      for N being strict normal Subgroup of G
+      st N = gr (Union (Carrier (F|(I \ {j where j is Element of I :
+        F.i = F.j}))))
+      holds F/.i /\ N = (1).G);
+end;
+
+theorem :: GROUP_23:89
+  for G being Group
+  for I being empty set
+  for F being Subgroup-Family of I,G
+  holds G is_internal_product_of F iff G is trivial;
+
+theorem :: GROUP_23:90
+  for G being Group
+  for I being non empty set
+  for F being Subgroup-Family of I,G
+  holds G is_internal_product_of F
+  iff ((for i being Element of I holds F.i is normal Subgroup of G)
+   & (the multMagma of G = gr Union (Carrier F))
+   & (for i being Element of I
+      for J being Subset of I st
+        J = I \ {j where j is Element of I : F.i = F.j}
+      for N being strict normal Subgroup of G
+      st N = gr (Union (Carrier (F|J)))
+      holds F.i /\ N = (1).G));
+
+definition
+  let G be Group;
+  let I be set;
+  let F be normal Subgroup-Family of I,G;
+  redefine pred G is_internal_product_of F means
+:: GROUP_23:def 23
+  the multMagma of G = gr Union (Carrier F)
+   & (for i being object st i in I
+      for N being strict normal Subgroup of G
+      st N = gr (Union (Carrier (F|(I \ {j where
+        j is Element of I : F.i = F.j}))))
+      holds F/.i /\ N = (1).G);
+end;
+
+theorem :: GROUP_23:91
+  for G being Group
+  for I being non empty set
+  for F being normal Subgroup-Family of I,G
+  holds G is_internal_product_of F
+  iff ((the multMagma of G = gr Union (Carrier F))
+   & (for i being Element of I
+      for J being Subset of I st
+        J = I \ {j where j is Element of I : F.i = F.j}
+      for N being strict normal Subgroup of G
+      st N = gr (Union (Carrier (F|J)))
+      holds F.i /\ N = (1).G));
+
+theorem :: GROUP_23:92
+  for G being Group
+  for I being non empty set
+  for F being normal Subgroup-Family of I,G
+  st F is one-to-one
+  holds G is_internal_product_of F
+  iff ((the multMagma of G = gr Union (Carrier F))
+   & (for i being Element of I
+      for J being Subset of I st J = I \ {i}
+      for N being strict normal Subgroup of G
+      st N = gr (Union (Carrier (F|J)))
+      holds F.i /\ N = (1).G));
+
+:: Aschbacher, Finite Group Theory, Theorem (1.9)
+:: Hungerford, Algebra, Ch. 1, section 8, Theorem 8.6
+:: Robinson, Theory of Groups, Ch 1, section 4, Theorem 1.4.7 (ii)
+theorem :: GROUP_23:93 :: ThRecognition:
+  for G being strict Group
+  for I being non empty set
+  for F being normal Subgroup-Family of I,G
+  st F is one-to-one
+  holds G is_internal_product_of F iff F is internal DirectSumComponents of G,I
+;
+
+definition
+  let G be Group;
+  let Fam be Subset of Subgroups G;
+  pred G is_internal_product_of Fam means
+:: GROUP_23:def 24
+  (for H being strict Subgroup of G st H in Fam
+   holds H is normal Subgroup of G)
+  & (ex A being Subset of G
+     st A = union { UH where UH is Subset of G :
+                    ex H being strict Subgroup of G
+                    st H in Fam & UH = the carrier of H }
+      & the multMagma of G = gr A)
+  & (for H being strict Subgroup of G st H in Fam
+     for A being Subset of G
+     st A = union { UK where UK is Subset of G :
+                    ex K being strict Subgroup of G
+                    st K in Fam & UK = the carrier of K
+                     & K <> H }
+     holds H /\ gr A = (1).G);
+end;
+
+:: We eventually want to prove a proposition along the lines of
+:: "FittingSubgroup G is_internal_product_of Sylow_subgroups G"
+:: *without* having to construct a family of subgroups.
+definition
+  let G be Group;
+  let H be strict Subgroup of G;
+  let Fam be Subset of Subgroups G;
+  pred H is_internal_product_of Fam means
+:: GROUP_23:def 25
+  (for H1 being strict Subgroup of G st H1 in Fam
+   holds H1 is normal Subgroup of H)
+  & (ex A being Subset of G
+     st A = union { UH where UH is Subset of G :
+                    ex H being strict Subgroup of G
+                    st H in Fam & UH = the carrier of H }
+      & H = gr A)
+  & (for H1 being strict Subgroup of G st H1 in Fam
+     for A being Subset of G
+     st A = union { UK where UK is Subset of G :
+                    ex K being strict Subgroup of G
+                    st K in Fam & UK = the carrier of K
+                     & K <> H1 }
+     holds H1 /\ gr A = (1).G);
+end;
+
+theorem :: GROUP_23:94
+  G is Subgroup of (Omega).G;
+
+theorem :: GROUP_23:95
+  for G being Group
+  for H being Subgroup of G
+  st H is normal Subgroup of (Omega).G
+  holds H is normal Subgroup of G;
+
+theorem :: GROUP_23:96
+  for G being Group
+  for Fam being Subset of Subgroups G
+  holds G is_internal_product_of Fam
+  iff (Omega).G is_internal_product_of Fam;
+
+theorem :: GROUP_23:97
+  for G being Group
+  for I being non empty set
+  for F being componentwise_strict Subgroup-Family of I,G
+  for Fam being Subset of Subgroups G st Fam = rng F
+  holds union { A where A is Subset of G : ex H being strict Subgroup of G
+  st H in Fam & A = the carrier of H } = Union (Carrier F);
+
+theorem :: GROUP_23:98
+  for G being Group
+  for I being non empty set
+  for F being componentwise_strict Subgroup-Family of I,G
+  for Fam being Subset of Subgroups G st Fam = rng F
+  for H being strict Subgroup of G
+  for i being Element of I st H = F.i
+  for J being Subset of I st J = I \ {j where j is Element of I : F.i = F.j}
+  holds
+  union { A where A is Subset of G :
+          ex K being strict Subgroup of G
+          st K in Fam & A = the carrier of K & K <> H }
+  = Union (Carrier (F|J));
+
+theorem :: GROUP_23:99 :::ThEquivDefs:
+  for G being Group
+  for I being non empty set
+  for F being componentwise_strict Subgroup-Family of I,G
+  for Fam being Subset of Subgroups G st Fam = rng F
+  holds G is_internal_product_of F
+  iff G is_internal_product_of Fam;
+
+:: It turns out, the real universal property of product groups are the
+:: friends we made along the way.

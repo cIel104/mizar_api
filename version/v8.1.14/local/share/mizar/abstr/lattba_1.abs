@@ -1,0 +1,373 @@
+:: Automatization of {T}ernary {B}oolean {A}lgebras
+::  by Wojciech Ku\'smierowski and Adam Grabowski
+:: 
+:: Received September 30, 2021
+:: Copyright (c) 2021-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies LATTBA_1, VECTSP_1, LATTICE2, XBOOLE_0, LATTICES, SUBSET_1,
+      EQREL_1, ROBBINS1, FUNCT_1, STRUCT_0, BINOP_1, FUNCT_5, ZFMISC_1, CARD_1,
+      ALGSTR_3, MULTOP_1, FUNCT_7, XXREAL_2;
+ notations TARSKI, ZFMISC_1, BINOP_1, SUBSET_1, FUNCT_2, FUNCT_5, ORDINAL1,
+      MULTOP_1, STRUCT_0, LATTICES, LATTICE2, ROBBINS1, LATTICE4;
+ constructors BINOP_1, LATTICE2, OPOSET_1, FUNCT_5, RELSET_1, MULTOP_1,
+      LATTICE4;
+ registrations RELAT_1, STRUCT_0, LATTICES, CARD_1, LATTICE2;
+ requirements SUBSET, BOOLE;
+
+
+begin
+
+definition
+  struct (ComplStr) TBAStruct (#carrier -> set,
+     Compl -> (UnOp of the carrier),
+     TernOp -> TriOp of the carrier #);
+end;
+
+definition
+  struct (TBAStruct, LattStr) TBALattStr (#carrier -> set,
+     L_join, L_meet -> (BinOp of the carrier),
+     Compl -> (UnOp of the carrier),
+     TernOp -> TriOp of the carrier #);
+end;
+
+definition
+  func op3 -> TriOp of {0} means
+:: LATTBA_1:def 1
+    it.(0,0,0) = 0;
+end;
+
+registration
+  cluster trivial non empty for TBAStruct;
+end;
+
+definition let T be non empty TBAStruct;
+  let a,b,c be Element of T;
+  func Tern(a,b,c) -> Element of T equals
+:: LATTBA_1:def 2
+    (the TernOp of T).(a,b,c);
+end;
+
+definition let T be non empty TBAStruct; :: split into 5 attributes
+  attr T is ternary-distributive means
+:: LATTBA_1:def 3       :: (2.1)
+     for a,b,c,d,e being Element of T holds
+       Tern(Tern(a,b,c),d,Tern(a,b,e)) = Tern(a,b,Tern(c,d,e));
+  attr T is ternary-left-idempotent means
+:: LATTBA_1:def 4   :: (2.2)
+     for a,b being Element of T holds Tern(b,b,a) = b;
+  attr T is ternary-right-idempotent means
+:: LATTBA_1:def 5  :: (2.2)
+    for a,b being Element of T holds Tern(a,b,b) = b;
+  attr T is ternary-left-absorbing means
+:: LATTBA_1:def 6    :: (2.3)
+     for a,b being Element of T holds Tern(b`,b,a) = a;
+  attr T is ternary-right-absorbing means
+:: LATTBA_1:def 7    :: (2.3)
+    for a,b being Element of T holds Tern(a,b,b`) = a;
+end;
+
+:: It seems that only three are enough
+
+registration
+  cluster trivial -> ternary-distributive ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing
+    ternary-right-absorbing for non empty TBAStruct;
+end;
+
+definition
+  mode Ternary_Boolean_Algebra is
+    ternary-distributive ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing
+    ternary-right-absorbing non empty TBAStruct;
+end;
+
+begin :: Converting TBAs into ordinary binary Boolean algebras
+:: Section 4 of Grau: Associated Boolean Algebra
+
+definition let T be Ternary_Boolean_Algebra;
+           let x be Element of T;
+  func JoinTBA (T,x) -> BinOp of the carrier of T means
+:: LATTBA_1:def 8
+  for a,b being Element of T holds
+    it.(a,b) = Tern (a,x,b);
+  func MeetTBA (T,x) -> BinOp of the carrier of T means
+:: LATTBA_1:def 9
+  for a,b being Element of T holds
+    it.(a,b) = Tern (a,x`,b);
+end;
+
+definition let T be Ternary_Boolean_Algebra;
+           let x be Element of T;
+  func TBA2BA (T,x) -> non empty LattStr equals
+:: LATTBA_1:def 10
+   LattStr (# the carrier of T,
+                    JoinTBA (T,x),
+                    MeetTBA (T,x)
+:::                    the Compl of T
+#);
+end;
+
+:: Then we should prove theorems that, starting with arbitrary
+:: TBA, we end up with a Boolean algebra.
+
+begin :: Basic Properties of Ternary Operation
+
+ reserve T for Ternary_Boolean_Algebra;
+ reserve a,b,c,d,e for Element of T;
+ reserve x,y,z for Element of T;
+
+theorem :: LATTBA_1:1  :: Theorem 3.2
+  Tern (a,b,a) = a;
+
+theorem :: LATTBA_1:2  :: Lemma to Theorem 3.3 :: formula 3.31
+  Tern (Tern (a,b,c), b, a) = Tern (a,b,c);
+
+theorem :: LATTBA_1:3  :: Theorem 3.3
+  Tern (a,b,Tern (c,b,d)) = Tern(Tern(a,b,c),b,d);
+
+theorem :: LATTBA_1:4
+  Tern (b`,b,a) = Tern (a,b,b`);
+
+theorem :: LATTBA_1:5  :: Lemma to Theorem 3.4
+  Tern (a,b`,b) = a;
+
+theorem :: LATTBA_1:6  :: Theorem 3.4
+  a`` = a;
+
+theorem :: LATTBA_1:7  :: Theorem 3.5
+  Tern (a,b,a`) = b;
+
+theorem :: LATTBA_1:8  :: Theorem 3.6 a)
+  Tern (a,b,c) = Tern (a,c,b);
+
+theorem :: LATTBA_1:9  :: Theorem 3.6 b)
+  Tern (a,b,c) = Tern (b,c,a);
+
+theorem :: LATTBA_1:10  :: Theorem 3.6 c)
+  Tern (a,b,c) = Tern (c,b,a);
+
+theorem :: LATTBA_1:11 :: Theorem 3.7
+  for x being Element of T holds
+    Tern (a,b,c) =
+      Tern (Tern (Tern (a,x,b), x`, Tern (b,x,c)), x`, Tern (c,x,a));
+
+begin :: The Rosetta Operation
+
+definition let L be B_Lattice;
+  let a,b,c be Element of L;
+  func Ros (a,b,c) -> Element of L equals
+:: LATTBA_1:def 11
+    (a "/\" b) "\/" (b "/\" c) "\/" (c "/\" a);
+end;
+
+definition let B be B_Lattice;
+  func RosTrn B -> TriOp of the carrier of B means
+:: LATTBA_1:def 12
+  for a,b,c being Element of B holds
+    it.(a,b,c) = Ros (a,b,c);
+end;
+
+definition let B be Boolean Lattice;
+  func BA2TBA B -> TBAStruct equals
+:: LATTBA_1:def 13
+    TBAStruct (# the carrier of B, comp B, RosTrn B #);
+end;
+
+definition let B be Boolean Lattice;
+  func BA2TBAA B -> TBALattStr equals
+:: LATTBA_1:def 14
+    TBALattStr (# the carrier of B, the L_join of B,
+      the L_meet of B, comp B, RosTrn B #);
+end;
+
+registration
+  let B be Boolean Lattice;
+  cluster BA2TBA B -> non empty;
+end;
+
+registration
+  let B be Boolean Lattice;
+  cluster BA2TBAA B -> non empty;
+end;
+
+begin :: Proof that TBA2BAA T is Boolean, similarly as Sect. 4 of Gray
+
+reserve T for Ternary_Boolean_Algebra;
+
+registration let T;
+             let x be Element of T;
+  cluster JoinTBA (T,x) -> commutative;
+end;
+
+registration let T;
+             let x be Element of T;
+  cluster JoinTBA (T,x) -> associative;
+end;
+
+registration let T;
+             let x be Element of T;
+  cluster MeetTBA (T,x) -> commutative;
+end;
+
+reserve x for Element of T;
+
+registration let T;
+             let x be Element of T;
+  cluster MeetTBA (T,x) -> associative;
+end;
+
+registration let T be Ternary_Boolean_Algebra;
+             let p be Element of T;
+  cluster the LattStr of TBA2BA (T,p) -> Lattice-like;
+end;
+
+begin :: Proof that BA2BAA B returns standard example of Ternary Boolean Algebra
+
+registration
+  let B be Boolean Lattice;
+  cluster BA2TBAA B -> Lattice-like;
+end;
+
+theorem :: LATTBA_1:12
+  for B being Boolean Lattice,
+      x being Element of B,
+      xx being Element of BA2TBA B st xx = x holds
+   x` = xx`;
+
+theorem :: LATTBA_1:13
+  for B being Boolean Lattice,
+      x being Element of B,
+      xx being Element of BA2TBAA B st xx = x holds
+   x` = xx`;
+
+registration
+  let B be Boolean Lattice;
+  cluster BA2TBA B -> ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing
+    ternary-right-absorbing;
+end;
+
+registration
+  let B be Boolean Lattice;
+  cluster BA2TBAA B -> ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing ternary-right-absorbing;
+end;
+
+reserve B for Boolean Lattice;
+reserve v0,v1,v2,v3,v4,v5,v6,v103,v100,v102,v104,v105,v101 for
+  Element of BA2TBAA B;
+
+theorem :: LATTBA_1:14
+(for v1,v0 holds Tern(v0,v0,v1) = v0) &
+(for v2,v1,v0 holds Tern(v0,v1,v2) = Tern(v2,v0,v1)) &
+(for v2,v1,v0 holds Tern(v0,v1,v2) = Tern(v0,v2,v1)) &
+(for v3,v2,v1,v0 holds
+  Tern(Tern(v0,v1,v2),v1,v3) = Tern(v0,v1,Tern(v2,v1,v3))) implies
+  for v1,v2,v3,v4,v5 holds
+    Tern(Tern(v1,v2,v3),v4,Tern(v1,v2,v5)) = Tern(v1,v2,Tern(v3,v4,v5));
+
+theorem :: LATTBA_1:15
+(for v2,v1,v0 holds Tern(v0,v1,v2)=(((v0"\/"v1)"/\"(v1"\/"v2))"/\"(v0"\/"v2)))
+&
+(for v0,v2,v1 holds v0"\/"(v1"/\"v2) = (v0"\/"v1)"/\"(v0"\/"v2)) &
+(for v0,v2,v1 holds v0"/\"(v1"\/"v2) = (v0"/\"v1)"\/"(v0"/\"v2)) &
+(for v2,v1,v0 holds (v0"\/"v1)"\/"v2 = v0"\/"(v1"\/"v2)) &
+(for v2,v1,v0 holds (v0"/\"v1)"/\"v2 = v0"/\"(v1"/\"v2)) implies
+  for v1,v2,v3,v4 holds
+    Tern(Tern(v1,v2,v3),v2,v4)=Tern(v1,v2,Tern(v3,v2,v4));
+
+theorem :: LATTBA_1:16
+for B being Boolean Lattice
+  for v0,v1 being Element of BA2TBAA B,
+      a,b being Element of B st a = v0 & b = v1 holds
+    v0 "\/" v1  = a "\/" b;
+
+
+registration
+  let B be Boolean Lattice;
+  cluster BA2TBAA B -> ternary-distributive;
+end;
+
+registration let T be Ternary_Boolean_Algebra;
+             let p be Element of T;
+  cluster the LattStr of TBA2BA (T,p) -> distributive;
+end;
+
+registration let T be Ternary_Boolean_Algebra;
+             let p be Element of T;
+  cluster the LattStr of TBA2BA (T,p) -> bounded;
+end;
+
+theorem :: LATTBA_1:17
+  for T being Ternary_Boolean_Algebra,
+      p being Element of T holds
+    Top the LattStr of TBA2BA (T,p) = p;
+
+theorem :: LATTBA_1:18
+  for T being Ternary_Boolean_Algebra,
+      p being Element of T holds
+    Bottom the LattStr of TBA2BA (T,p) = p`;
+
+registration let T be Ternary_Boolean_Algebra;
+             let p be Element of T;
+  cluster the LattStr of TBA2BA (T,p) -> complemented;
+end;
+
+registration let T;
+  let p be Element of T;
+  cluster the LattStr of TBA2BA (T,p) -> Boolean;
+end;
+
+begin :: Single Axioms for TBA
+
+reserve T for non empty TBAStruct;
+reserve v0,v1,v2,v3,v4,v5,v6,u,w,v,v100,v101,v102,v103,v104 for Element of T;
+
+definition let T be non empty TBAStruct;
+  attr T is satisfying_TBA1 means
+:: LATTBA_1:def 15
+    for x,y,z,u,v,v6,w being Element of T holds
+      Tern(Tern(x, x`, y), (Tern(Tern(z, u, v), w, Tern(z, u, v6)))`,
+        Tern(u, Tern(v6, w, v), z)) = y;
+end;
+
+theorem :: LATTBA_1:19  :: TBA-1
+(for v4,v3,v2,v1,v0 holds
+ Tern(Tern(v0,v1,v2),v3,Tern(v0,v1,v4)) = Tern(v0,v1,Tern(v2,v3,v4))) &
+(for v1,v0 holds Tern(v0,v1,v1) = v1) &
+(for v1,v0 holds Tern(v0,v1,v1`) = v0) &
+(for v1,v0 holds Tern(v0,v0,v1) = v0) implies
+ for x,y,z,u,v,v6,w being Element of T holds
+  Tern(Tern(x, x`, y), (Tern(Tern(z, u, v), w, Tern(z, u, v6)))`,
+  Tern(u, Tern(v6, w, v), z)) = y;
+
+definition let T be non empty TBAStruct;
+  attr T is TBA-like means
+:: LATTBA_1:def 16
+    T is ternary-distributive ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing ternary-right-absorbing;
+end;
+
+registration
+  cluster ternary-distributive ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing
+    ternary-right-absorbing -> TBA-like for non empty TBAStruct;
+  cluster TBA-like -> ternary-distributive ternary-left-idempotent
+    ternary-right-idempotent ternary-left-absorbing
+    ternary-right-absorbing for non empty TBAStruct;
+end;
+
+registration
+  cluster TBA-like -> satisfying_TBA1 for non empty TBAStruct;
+end;
+

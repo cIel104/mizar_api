@@ -1,0 +1,1719 @@
+:: Formalization of Orthogonal Decomposition for Hilbert Spaces
+::  by Hiroyuki Okazaki
+:: 
+:: Received December 27, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, BHSP_1, PRE_TOPC, REAL_1, COMPLEX1, ARYTM_1, ARYTM_3,
+      XXREAL_0, CARD_1, SUBSET_1, RELAT_1, XBOOLE_0, TARSKI, STRUCT_0, FUNCT_1,
+      NAT_1, SEQ_2, PROB_2, SQUARE_1, NORMSP_1, SUPINF_2, RSSPACE2, RLVECT_3,
+      RLVECT_1, RLSUB_1, VALUED_1, RLSUB_2, RVSUM_1, ORDINAL2, XXREAL_1, SEQ_1,
+      RCOMP_1, METRIC_1, XXREAL_2, SEQ_4, MEMBERED, PCOMPS_1, DUALSP04,
+      RUSUB_7, RUSUB_5, NORMSP_2, METRIC_6;
+ notations TARSKI, XBOOLE_0, SUBSET_1, FUNCT_1, ORDINAL1, RELSET_1, FUNCT_2,
+      NUMBERS, XCMPLX_0, XXREAL_0, XREAL_0, SQUARE_1, MEMBERED, COMPLEX1,
+      XXREAL_1, XXREAL_2, VALUED_1, SEQ_1, SEQ_2, SEQ_4, STRUCT_0, PRE_TOPC,
+      RLVECT_1, RLSUB_1, NORMSP_0, NORMSP_1, NFCONT_1, NORMSP_2, TBSP_1,
+      METRIC_1, METRIC_6, PCOMPS_1, BHSP_1, BHSP_2, RUSUB_1, RUSUB_2, RUSUB_3,
+      RUSUB_5, RSSPACE2, DUALSP04;
+ constructors REAL_1, SQUARE_1, COMPLEX1, BHSP_3, RELSET_1, COMSEQ_2, SEQ_4,
+      REALSET1, BHSP_2, RUSUB_2, RUSUB_3, RUSUB_5, TBSP_1, METRIC_6, PCOMPS_1,
+      SEQ_2, NORMSP_2, NFCONT_1, RCOMP_1, DUALSP04;
+ registrations XBOOLE_0, ORDINAL1, RELSET_1, FUNCT_2, RLVECT_1, NUMBERS,
+      XREAL_0, STRUCT_0, XCMPLX_0, VALUED_1, SQUARE_1, NAT_1, VALUED_0,
+      RUSUB_1, XXREAL_2, SEQ_4, MEMBERED, SEQ_2, TOPS_1, XXREAL_0;
+ requirements SUBSET, REAL, BOOLE, NUMERALS, ARITHM;
+ definitions TARSKI, XXREAL_2;
+ equalities BHSP_1, ALGSTR_0, RUSUB_5, METRIC_1, PCOMPS_1, NORMSP_2, BHSP_2,
+      XCMPLX_0, DUALSP04, SQUARE_1;
+ expansions BHSP_1, XBOOLE_0, FUNCT_1, TARSKI, RUSUB_2, COMSEQ_2, TBSP_1,
+      METRIC_6, PRE_TOPC, DUALSP04;
+ theorems SQUARE_1, ABSVALUE, FUNCT_1, FUNCT_2, RLVECT_1, SEQ_2, SEQ_4, BHSP_1,
+      BHSP_5, XCMPLX_1, XREAL_1, XXREAL_0, ORDINAL1, TARSKI, RLSUB_1, XBOOLE_0,
+      STRUCT_0, XREAL_0, RUSUB_1, RUSUB_2, RUSUB_3, XXREAL_2, METRIC_1,
+      METRIC_6, NORMSP_1, NORMSP_2, BHSP_2, RUSUB_5, PCOMPS_1, DUALSP04,
+      BHSP_3, RCOMP_1, SEQ_1, RLVECT_4, TOPS_1, PRE_TOPC, TOPMETR4, TOPREAL6;
+ schemes FUNCT_2;
+
+begin :: Preliminaries
+
+ reserve X for RealUnitarySpace;
+ reserve x, y, y1, y2 for Point of X;
+
+theorem Th1:
+  for X be RealUnitarySpace,
+      x,y be Point of X,
+      z,t be Point of MetricSpaceNorm RUSp2RNSp X
+    st x=z & y = t holds
+   ||.x-y.|| = dist(z,t)
+proof
+  let X be RealUnitarySpace,
+      x,y be Point of X,
+      z,t be Point of MetricSpaceNorm RUSp2RNSp X;
+  assume A1: x=z & y = t;
+  reconsider x1=x,y1=y as Point of RUSp2RNSp X;
+  thus ||.x-y.|| = ||.x1-y1.|| by DUALSP04:3,DUALSP04:2
+                .= dist(z,t) by A1,NORMSP_2:def 1;
+end;
+
+theorem Th2:
+  for X be RealUnitarySpace, z be Element of
+    MetricSpaceNorm RUSp2RNSp X,
+      r be Real holds ex x be Point of X st x = z
+    & Ball(z,r) = {y where y is Point of X:||.x-y.|| < r}
+proof
+  let X be RealUnitarySpace,
+      z be Element of MetricSpaceNorm RUSp2RNSp X, r be Real;
+  set M = MetricSpaceNorm RUSp2RNSp X;
+  reconsider x=z as Point of X;
+A1: Ball(z,r) = {q where q is Element of M:dist(z,q) < r}
+    by METRIC_1:def 14;
+A3: {y where y is Point of X: ||.x-y.|| < r} c= {q where q is Element of M
+  : dist(z,q) < r}
+  proof
+    let a be object;
+    assume a in {y where y is Point of X: ||.x-y.|| < r};
+    then consider y be Point of X such that
+A2: a=y & ||.x-y.|| < r;
+    reconsider t=y as Element of M;
+    ||.x-y.|| = dist(z,t) by Th1;
+    hence a in {q where q is Element of M : dist(z,q) < r} by A2;
+  end;
+  {q where q is Element of M : dist(z,q) < r} c= {y where y is Point of
+X: ||.x-y.|| < r}
+  proof
+    let a be object;
+    assume a in {q where q is Element of M:dist(z,q) < r};
+    then consider q be Element of M such that
+A4: a=q & dist(z,q) < r;
+    reconsider t=q as Point of X;
+    ||.x-t.|| = dist(z,q) by Th1;
+    hence a in {y where y is Point of X: ||.x-y.|| < r} by A4;
+  end;
+  then {q where q is Element of M:dist(z,q) < r} = {y where y is Point of X
+  :||.x -y.|| < r} by A3;
+  hence thesis by A1;
+end;
+
+theorem Th3:
+  for X be RealUnitarySpace, z be Element of MetricSpaceNorm RUSp2RNSp X,
+      r be Real holds ex x be Point of X st x = z &
+  cl_Ball(z,r) = {y where y is Point of X: ||.x-y.|| <= r}
+proof
+  let X be RealUnitarySpace,
+      z be Element of MetricSpaceNorm RUSp2RNSp X, r be Real;
+  reconsider x=z as Point of X;
+  set M = MetricSpaceNorm RUSp2RNSp X;
+A1: cl_Ball(z,r) = {q where q is Element of M : dist(z,q) <= r}
+    by METRIC_1:def 15;
+A3: {y where y is Point of X: ||.x-y.|| <= r}
+     c= {q where q is Element of M: dist(z,q) <= r}
+  proof
+    let a be object;
+    assume a in {y where y is Point of X: ||.x-y.|| <= r};
+    then consider y be Point of X such that
+A2: a=y & ||.x-y.|| <= r;
+    reconsider t=y as Element of M;
+    ||.x-y.|| = dist(z,t) by Th1;
+    hence a in {q where q is Element of M : dist(z,q) <= r} by A2;
+  end;
+  {q where q is Element of M : dist(z,q) <= r} c=
+    {y where y is Point of X: ||.x-y.|| <= r}
+  proof
+    let a be object;
+    assume a in {q where q is Element of M : dist(z,q) <= r};
+    then consider q be Element of M such that
+A4: a=q & dist(z,q) <= r;
+    reconsider t=q as Point of X;
+    ||.x-t.|| = dist(z,q) by Th1;
+    hence a in {y where y is Point of X: ||.x-y.|| <= r} by A4;
+  end; then
+  {q where q is Element of M : dist(z,q) <= r} =
+    {y where y is Point of X: ||.x-y.|| <= r} by A3;
+  hence thesis by A1;
+end;
+
+theorem Th4:
+  for X be RealUnitarySpace, S be sequence of X,
+      St be sequence of MetricSpaceNorm RUSp2RNSp X,
+      x be Point of X,
+      xt be Point of MetricSpaceNorm RUSp2RNSp X st S = St
+  & x = xt holds St is_convergent_in_metrspace_to xt iff
+  for r be Real st 0 < r
+  ex m be Nat st for n be Nat st m <= n holds ||. S.n - x
+  .|| < r
+proof
+  let X be RealUnitarySpace, S be sequence of X,
+  St be sequence of MetricSpaceNorm RUSp2RNSp X,
+  x be Point of X, xt be Point of MetricSpaceNorm RUSp2RNSp X;
+  assume
+A1: S=St & x=xt;
+  hereby
+    assume
+A5: St is_convergent_in_metrspace_to xt;
+    let r be Real;
+    assume 0 < r;
+    then consider m be Nat such that
+A6: for n being Nat st m <= n holds dist(St.n,xt) < r by A5;
+    take m;
+    let n be Nat;
+    assume m <= n;
+    then dist(St.n,xt) < r by A6;
+    hence ||. S.n - x.|| < r by A1,Th1;
+  end;
+    assume
+A3: for r be Real st 0 < r ex m be Nat st
+    for n be Nat st m <= n holds ||. S.n - x.|| < r;
+    now
+      let r be Real;
+      assume r>0;
+      then consider m be Nat such that
+A4:   for n be Nat st m <= n holds ||. S.n - x.|| < r by A3;
+      take m;
+      let n be Nat;
+      assume m <= n;
+      then ||. S.n - x.|| < r by A4;
+      hence dist(St.n,xt) < r by A1,Th1;
+    end;
+    hence St is_convergent_in_metrspace_to xt;
+end;
+
+theorem Th5:
+  for X be RealUnitarySpace, S be sequence of X,
+      St be sequence of MetricSpaceNorm RUSp2RNSp X st S = St
+    holds St is convergent iff S is convergent
+proof
+  let X be RealUnitarySpace, S be sequence of X,
+      St be sequence of MetricSpaceNorm RUSp2RNSp X;
+  assume
+A1: S=St;
+  hereby
+    assume St is convergent;
+    then consider xt be Point of MetricSpaceNorm RUSp2RNSp X such that
+A4: St is_convergent_in_metrspace_to xt by METRIC_6:10;
+    reconsider x=xt as Point of X;
+    for r be Real st 0 < r ex m be Nat st
+      for n be Nat st m <= n holds ||. S.n - x.|| < r by A1,A4,Th4;
+    hence S is convergent by BHSP_2:9;
+  end;
+    assume S is convergent;
+    then consider x be Point of X such that
+A3: for r be Real st 0 < r ex m be Nat st
+     for n be Nat st m <= n holds ||. S.n - x.|| < r by BHSP_2:9;
+    reconsider xt=x as Point of MetricSpaceNorm RUSp2RNSp X;
+    St is_convergent_in_metrspace_to xt by A1,A3,Th4;
+    hence St is convergent;
+end;
+
+theorem Th6:
+  for X be RealUnitarySpace, S be sequence of X,
+      St be sequence of MetricSpaceNorm RUSp2RNSp X st S = St
+ & St is convergent holds lim St = lim S
+proof
+  let X be RealUnitarySpace, S be sequence of X, St be sequence of
+  MetricSpaceNorm RUSp2RNSp X;
+  assume that
+A1: S=St and
+A2: St is convergent;
+  reconsider xt=lim S as Point of MetricSpaceNorm RUSp2RNSp X;
+  S is convergent by A1,A2,Th5;
+  then
+  for r be Real st 0 < r
+   ex m be Nat st for n be Nat
+  st m <= n holds ||. S.n - lim S.|| < r by BHSP_2:19;
+  then St is_convergent_in_metrspace_to xt by A1,Th4;
+  hence thesis by METRIC_6:11;
+end;
+
+begin :: Topological Space generated from Real Unitary Space
+
+theorem
+  for X be RealUnitarySpace, V be Subset of TopSpaceNorm RUSp2RNSp X
+      holds V is open iff for x be Point of X st x in V
+  ex r be Real st r>0 &
+  {y where y is Point of X: ||.x-y.|| < r} c= V
+proof
+  let X be RealUnitarySpace, V be Subset of TopSpaceNorm RUSp2RNSp X;
+A1: now
+    assume
+A2: for x be Point of X st x in V holds
+   ex r be Real st r>0 & {y where
+    y is Point of X: ||.x-y.|| < r} c= V;
+    now
+      let z be Element of MetricSpaceNorm RUSp2RNSp X;
+      reconsider x = z as Point of X;
+      assume z in V;
+      then consider r be Real such that
+A3:   r > 0 & {y where y is Point of X: ||.x-y.|| < r} c= V by A2;
+      take r;
+      ex t be Point of X st t = z & Ball(z,r) = {y where y is Point of X:
+      ||.t-y.|| < r} by Th2;
+      hence r > 0 & Ball(z,r) c= V by A3;
+    end;
+    hence V is open by PCOMPS_1:def 4;
+  end;
+  now
+    assume
+A4: V is open;
+    hereby
+      let x be Point of X such that
+A5:   x in V;
+      reconsider z=x as Element of MetricSpaceNorm RUSp2RNSp X;
+      consider r be Real such that
+A6:   r > 0 & Ball(z,r) c= V by A5,A4,PCOMPS_1:def 4;
+      take r;
+      ex t be Point of X st t = z & Ball(z,r) = {y where y is Point of X:
+      ||.t-y.|| < r} by Th2;
+      hence r > 0 & {y where y is Point of X: ||.x-y.|| < r} c= V by A6;
+    end;
+  end;
+  hence thesis by A1;
+end;
+
+theorem
+  for X be RealUnitarySpace, x be Point of X,
+      r be Real holds {y where
+  y is Point of X:||.x-y.|| < r} is open Subset of TopSpaceNorm RUSp2RNSp X
+proof
+  let X be RealUnitarySpace, x be Point of X, r be Real;
+  reconsider z=x as Element of MetricSpaceNorm RUSp2RNSp X;
+  ( ex t be Point of X st t=x
+  & Ball(z,r) = {y where y is Point of X: ||.t-y.|| < r})
+  & Ball(z,r)
+    in Family_open_set(MetricSpaceNorm RUSp2RNSp X) by Th2,PCOMPS_1:29;
+  hence thesis by PRE_TOPC:def 2;
+end;
+
+theorem
+  for X be RealUnitarySpace, x be Point of X, r be Real
+  holds {y where y is
+  Point of X: ||.x-y.|| <= r} is closed Subset of TopSpaceNorm RUSp2RNSp X
+proof
+  let X be RealUnitarySpace, x be Point of X, r be Real;
+  reconsider z=x as Element of MetricSpaceNorm RUSp2RNSp X;
+  ex t be Point of X st t = x & cl_Ball(z,r) = {y where y is Point of X:
+  ||.t-y.|| <= r} by Th3;
+  hence thesis by TOPREAL6:57;
+end;
+
+theorem Th10:
+for M being RealUnitarySpace
+for X being Subset of TopSpaceNorm RUSp2RNSp M holds
+for x being object holds
+( x in Cl X iff ex S being sequence of M st
+( ( for n being Nat holds S . n in X ) & S is convergent & lim S = x ) )
+proof
+let M be RealUnitarySpace;
+let X be Subset of TopSpaceNorm RUSp2RNSp M;
+let x be object;
+hereby assume x in Cl X; then
+consider St being sequence of MetricSpaceNorm RUSp2RNSp M
+such that
+ A1: for n being Nat holds St . n in X and
+ A2: St is convergent & lim St = x by TOPMETR4:5;
+reconsider S = St as sequence of M;
+take S;
+ thus for n being Nat holds S . n in X by A1;
+ thus S is convergent by A2,Th5;
+ thus lim S = x by Th6,A2;
+end;
+assume
+ex S being sequence of M st
+( ( for n being Nat holds S . n in X )
+& S is convergent & lim S = x ); then
+consider S being sequence of M such that
+A3:( for n being Nat holds S . n in X )
+    & S is convergent & lim S = x;
+reconsider St = S as sequence of MetricSpaceNorm RUSp2RNSp M;
+A5: St is convergent by A3,Th5;
+ then lim St = x by A3,Th6;
+  hence x in Cl X by TOPMETR4:5,A3,A5;
+end;
+
+theorem Th11:
+for M being RealUnitarySpace
+for X being Subset of TopSpaceNorm RUSp2RNSp M holds
+( X is closed iff
+for S being sequence of M
+st ( for n being Nat holds S . n in X ) & S is convergent holds
+lim S in X )
+proof
+let M be RealUnitarySpace;
+let X be Subset of TopSpaceNorm RUSp2RNSp M;
+hereby assume A1p: X is closed;
+thus for S being sequence of M
+st ( for n being Nat holds S . n in X )
+& S is convergent holds lim S in X
+proof
+let S be sequence of M;
+ assume that A2: for n being Nat holds S . n in X and
+   A3: S is convergent;
+reconsider St = S as sequence of MetricSpaceNorm RUSp2RNSp M;
+ A5: St is convergent by A3,Th5; then
+ lim St = lim S by Th6;
+ hence lim S in X by A2,A5,A1p,TOPMETR4:6;
+end;
+end;
+assume A6:for S being sequence of M
+st ( for n being Nat holds S . n in X ) & S is convergent holds lim S in X;
+for St being sequence of MetricSpaceNorm RUSp2RNSp M
+st ( for n being Nat holds St . n in X )
+& St is convergent holds lim St in X
+proof
+  let St be sequence of MetricSpaceNorm RUSp2RNSp M;
+  assume that
+  A7: for n being Nat holds St . n in X and
+  A8: St is convergent;
+  reconsider S = St as sequence of M;
+  A9: for n being Nat holds S . n in X by A7;
+  A10: S is convergent by A8,Th5;
+  lim St = lim S by A8,Th6;
+  hence lim St in X by A6,A9,A10;
+end;
+hence X is closed by TOPMETR4:6;
+end;
+
+theorem Th12:
+  for S be RealUnitarySpace,
+      X be Subset of S holds
+  X is closed Subset of TopSpaceNorm RUSp2RNSp S
+   iff
+for s1 being sequence of S st rng s1 c= X & s1 is convergent holds
+lim s1 in X
+proof
+  let S be RealUnitarySpace,
+      X be Subset of S;
+  reconsider Y = X as Subset of TopSpaceNorm RUSp2RNSp S;
+  hereby assume X is closed Subset of TopSpaceNorm RUSp2RNSp S;
+ then
+ reconsider Y = X as closed Subset of TopSpaceNorm RUSp2RNSp S;
+A1: for s being sequence of S
+st ( for n being Nat holds s . n in Y ) & s is convergent holds
+lim s in Y by Th11;
+thus
+for s1 being sequence of S st rng s1 c= X & s1 is convergent holds
+lim s1 in X
+proof
+  let s1 be sequence of S;
+  assume that A2: rng s1 c= X and
+   A3: s1 is convergent;
+now let n be Nat;
+   s1.n in rng s1 by FUNCT_2:4,ORDINAL1:def 12;
+  hence s1.n in X by A2;
+end;
+hence lim s1 in X by A1,A3;
+end;
+end;
+assume
+A4: for s1 being sequence of S st rng s1 c= X & s1 is convergent holds
+lim s1 in X;
+ for s being sequence of S
+st ( for n being Nat holds s . n in Y ) & s is convergent holds
+lim s in Y
+proof
+let s be sequence of S;
+assume that
+ A5: for n being Nat holds s . n in Y
+   and
+ A6: s is convergent;
+ rng s c= X
+ proof let y be object;
+  assume y in rng s; then
+  consider n be object such that
+    A7: n in dom s & y=s.n by FUNCT_1:def 3;
+    reconsider n as Nat by A7;
+    thus y in X by A7,A5;
+ end;
+hence lim s in Y by A4,A6;
+end;
+hence thesis by Th11;
+end;
+
+theorem Th13:
+  for S be RealUnitarySpace,
+      x be Point of S,
+      y be Point of MetricSpaceNorm RUSp2RNSp S,
+      r be Real
+st x=y
+holds Ball(x,r) = Ball(y,r)
+proof
+let S be RealUnitarySpace,
+     x be Point of S,
+     y be Point of MetricSpaceNorm RUSp2RNSp S,
+     r be Real;
+assume A1:x=y;
+set PM = MetricSpaceNorm RUSp2RNSp S;
+A2:Ball (y,r) = { z where z is Element of PM : dist (y,z) < r }
+by METRIC_1:def 14;
+for p be object holds
+   p in Ball (x,r) iff p in Ball (y,r)
+proof
+let p be object;
+ hereby assume p in Ball (x,r); then
+ consider z be Point of S such that
+   A3: p=z & ||.x - z.|| < r;
+   reconsider w=z as Element of PM;
+      dist (y,w) < r by A3,Th1,A1;
+ hence p in Ball (y,r) by A3,A2;
+end;
+assume p in Ball (y,r); then
+ consider w be Point of PM such that
+   A4: p=w & dist(y,w) < r by A2;
+   reconsider z=w as Element of S;
+      ||.x-z.|| < r by A4,Th1,A1;
+ hence p in Ball (x,r) by A4;
+end;
+hence thesis by TARSKI:2;
+end;
+
+theorem
+for S be RealUnitarySpace
+holds
+  TopSpaceNorm RUSp2RNSp S = TopUnitSpace S
+proof
+  let S be RealUnitarySpace;
+  set PM = MetricSpaceNorm RUSp2RNSp S;
+  set FPM = Family_open_set PM;
+for M being Subset of S holds
+ M in FPM iff for x being Point of S st x in M holds
+ex r being Real st r > 0 & Ball (x,r) c= M
+proof
+let M be Subset of S;
+reconsider N = M as Subset of PM;
+hereby assume A1:M in FPM;
+ thus for x being Point of S st x in M holds
+ex r being Real st r > 0 & Ball (x,r) c= M
+proof
+  let x be Point of S;
+  assume A2: x in M;
+  reconsider y=x as Element of PM;
+consider r being Real such that
+A3: r > 0 & Ball (y,r) c= N by A2,A1,PCOMPS_1:def 4;
+take r;
+thus 0 < r by A3;
+thus Ball (x,r) c= M by A3,Th13;
+end;
+end;
+assume A4:for x being Point of S st x in M holds
+ex r being Real st r > 0 & Ball (x,r) c= M;
+for y being Element of PM st y in N holds
+ex r being Real st
+ r > 0 & Ball (y,r) c= N
+proof
+  let y be Element of PM;
+  assume A5: y in N;
+  reconsider x=y as Point of S;
+  consider r being Real such that
+ A6: r > 0 & Ball (x,r) c= M by A4,A5;
+take r;
+thus 0 < r by A6;
+thus thesis by A6,Th13;
+end;
+hence M in FPM by PCOMPS_1:def 4;
+end;
+hence thesis by RUSUB_5:def 5;
+end;
+
+theorem
+  for S being RealUnitarySpace,
+      U be Subset of S,
+      V be Subset of TopSpaceNorm RUSp2RNSp S
+st U = V
+holds
+   U is closed iff V is closed
+proof
+  let S being RealUnitarySpace,
+      U be Subset of S,
+      V be Subset of TopSpaceNorm RUSp2RNSp S;
+ assume A1: U = V;
+ reconsider U1 = U as Subset of RUSp2RNSp S;
+U1 is closed iff V is closed by A1,NORMSP_2:15;
+hence thesis;
+end;
+
+theorem
+  for S being RealUnitarySpace,
+      U be Subset of S,
+      V be Subset of TopSpaceNorm RUSp2RNSp S
+st U = V
+holds
+   U is open iff V is open
+proof
+  let S be RealUnitarySpace,
+      U be Subset of S,
+      V be Subset of TopSpaceNorm RUSp2RNSp S;
+  assume A1: U = V;
+  reconsider U1 = U as Subset of RUSp2RNSp S;
+  U1 is open iff V is open by A1,NORMSP_2:16;
+  hence thesis;
+end;
+
+Lm1: ||.x.|| ^2 = x .|. x
+proof
+  0 <= x .|. x by BHSP_1:def 2;
+  hence ||.x.|| ^2 = x .|. x by SQUARE_1:def 2;
+end;
+
+Lm2:
+for X being RealUnitarySpace,
+    M be Subspace of X,
+    x,m0 be Point of X st
+m0 in M
+&
+( for m be Point of X
+       st m in M holds ||.x-m0.|| <= ||.x-m.|| )
+holds for m be Point of X
+         st m in M holds ( x-m0 ) .|. m = 0
+proof
+let X be RealUnitarySpace,
+    M be Subspace of X,
+    x,m0 be Point of X;
+assume that
+A1:m0 in M and
+A2:for m be Point of X
+       st m in M holds ||.x-m0.|| <= ||.x-m.||;
+given m1 be Point of X such that
+A3: m1 in M & (x-m0) .|. m1 <> 0;
+A4p:m1 <> 0.X by A3, BHSP_1:15; then
+A4: ||.m1.|| <> 0 by BHSP_1:26;
+set m2 = 1/||.m1.|| * m1;
+set a =||.m1.||;
+set delta = (x-m0) .|. m2;
+ delta = (1/a)* ((x-m0) .|. m1) by BHSP_1:3; then
+A7: 0 < delta ^2 by SQUARE_1:12,A3,A4;
+A8:
+  m2 .|. m2 = (1/a)*( m1 .|. ((1/a)*m1)) by BHSP_1:def 2
+   .= (1/a)*((1/a)*( m1 .|.m1) ) by BHSP_1:3
+   .= (1/a)*((1/a)* ||.m1.||^2) by Lm1
+    .= (1/a)*((1/a)* a*a)
+    .= (1/a)*(1*a) by A4p,XCMPLX_1:87,BHSP_1:26
+    .= 1 by A4p,XCMPLX_1:87,BHSP_1:26;
+A9: m2 in M by A3,RUSUB_1:15;
+set m3=m0+ delta*m2;
+A10p:delta*m2 in M by RUSUB_1:15,A9;
+A11: x-m3 =x-m0 -delta*m2 by RLVECT_1:27;
+A12: ||.x-m3.|| ^2 = ((x-m0) -delta*m2) .|. ((x-m0) -delta*m2)
+       by A11,Lm1
+ .= ((x-m0) -delta*m2) .|. (x-m0)
+                   - ((x-m0) -delta*m2) .|. (delta*m2)
+                 by BHSP_1:12
+ .= (x-m0).|. (x-m0) -( delta*m2) .|. (x-m0)
+                   - ((x-m0) -delta*m2) .|. (delta*m2)
+                  by BHSP_1:11
+ .= (x-m0).|. (x-m0) -( delta*m2) .|. (x-m0)
+                   - ((x-m0) .|. (delta*m2)-( delta*m2) .|. (delta*m2) )
+                  by BHSP_1:11
+.= (x-m0).|. (x-m0) -( delta*m2) .|. (x-m0)
+                   -( delta*((x-m0) .|. m2)-( delta*m2) .|. (delta*m2) )
+ by BHSP_1:3
+.= (x-m0).|. (x-m0) - delta*(m2.|. (x-m0))
+                  -( delta*((x-m0) .|. m2)-( delta*m2) .|. (delta*m2) )
+ by BHSP_1:3
+.= (x-m0).|. (x-m0) - delta*(m2.|. (x-m0))
+                  -delta*( m2 .|. (x-m0))+ ( delta*m2) .|. (delta*m2)
+.= (x-m0).|. (x-m0) - 2*delta*(m2.|. (x-m0))
+                    + delta*(( delta*m2) .|. m2) by BHSP_1:3
+.= (x-m0).|. (x-m0) - 2*delta*delta
+                    + delta*(delta*( m2 .|. m2)) by BHSP_1:3
+.= (x-m0).|. (x-m0) - delta*delta by A8;
+(x-m0).|. (x-m0) - delta*delta < (x-m0).|. (x-m0) - 0
+  by A7,XREAL_1:15; then
+A13: ||.x-m3.|| ^2 < ||.x-m0.|| ^2 by Lm1,A12;
+A14: ||.x-m0.|| <= ||.x-m3.|| by A2,A10p,A1,RUSUB_1:14;
+0 <= ||.x-m0.|| by BHSP_1:28;
+hence contradiction by A13,A14,SQUARE_1:15;
+end;
+
+theorem Th17:
+for X being RealUnitarySpace,
+    M be Subspace of X,
+    x,m0 be Point of X st m0 in M
+holds
+( for m be Point of X
+       st m in M holds ||.x-m0.|| <= ||.x-m.|| )
+iff
+ for m be Point of X
+         st m in M holds ( x-m0 ) .|. m = 0
+proof
+let X being RealUnitarySpace,
+    M be Subspace of X,
+    x,m0 be Point of X;
+assume A1:m0 in M;
+hence
+( for m be Point of X
+       st m in M holds ||.x-m0.|| <= ||.x-m.|| )
+implies
+for m be Point of X
+         st m in M holds ( x-m0 ) .|. m = 0 by Lm2;
+assume
+A2: for m be Point of X
+         st m in M holds ( x-m0 ) .|. m = 0;
+  let m2 be Point of X;
+  assume m2 in M; then
+A4:(x-m0) .|. (m0-m2) = 0 by A2,A1,RUSUB_1:17;
+A5:(x-m0) + (m0-m2) =x-m0 + m0-m2 by RLVECT_1:28
+                 .=x-m2 by RLVECT_4:1;
+  0 <= ||.m0-m2.|| ^2 by XREAL_1:63; then
+  ||.x-m0.|| ^2 + 0 <= ||.x-m0.|| ^2 + ||.m0-m2.|| ^2
+    by XREAL_1:7; then
+  ||.x-m0.|| ^2 <= ||.x-m2.|| ^2 by A5,BHSP_5:6,BHSP_1:def 3,A4;
+  hence ||.x-m0.|| <= ||.x-m2.|| by SQUARE_1:16,BHSP_1:28;
+end;
+
+theorem
+for X being RealUnitarySpace,
+    M be Subspace of X,
+    x,m1,m2 be Point of X
+st
+m1 in M & m2 in M
+&
+( for m be Point of X
+       st m in M holds ||.x-m1.|| <= ||.x-m.|| )
+ &
+( for m be Point of X
+       st m in M holds ||.x-m2.|| <= ||.x-m.|| )
+holds m1=m2
+proof
+let X be RealUnitarySpace,
+    M be Subspace of X,
+    x,m1,m2 be Point of X;
+assume that
+A1: m1 in M and
+A2: m2 in M and
+A3:( for m be Point of X
+       st m in M holds ||.x-m1.|| <= ||.x-m.|| )
+ and
+A4:( for m be Point of X
+       st m in M holds ||.x-m2.|| <= ||.x-m.|| );
+  m1-m2 in M by A1,A2,RUSUB_1:17; then
+A5:(x-m1) .|. (m1-m2) = 0 by Lm2,A3,A1;
+A6:(x-m1) + (m1-m2) =x-m1 + m1-m2 by RLVECT_1:28
+                 .=x-m2 by RLVECT_4:1;
+  assume m1 <> m2; then
+  m1-m2 <> 0.X by RLVECT_1:21; then
+  ||.m1-m2.|| <> 0 by BHSP_1:26; then
+  ||.x-m1.|| ^2 + 0 < ||.x-m1.|| ^2 + ||.m1-m2.|| ^2
+    by XREAL_1:8,SQUARE_1:12; then
+A7: ||.x-m1.|| ^2 < ||.x-m2.|| ^2 by A6,BHSP_5:6,BHSP_1:def 3,A5;
+  0 <= ||.x-m2.|| by BHSP_1:28;
+  hence contradiction by A7,SQUARE_1:15,A1,A4;
+end;
+
+theorem Th19:
+for X being RealHilbertSpace,
+    M be Subspace of X,
+    x be Point of X
+st
+the carrier of M is closed Subset of
+TopSpaceNorm RUSp2RNSp X
+holds
+ex m0 be Point of X st m0 in M
+&
+ for m be Point of X
+       st m in M holds ||.x-m0.|| <= ||.x-m.||
+proof
+let X be RealHilbertSpace,
+    M be Subspace of X,
+    x be Point of X;
+assume A1:
+the carrier of M is closed Subset of TopSpaceNorm RUSp2RNSp X;
+per cases;
+  suppose A3: x in M;
+  take m0=x;
+  thus m0 in M by A3;
+    let m be Point of X;
+    assume m in M;
+    x-m0 = 0.X by RLVECT_1:15; then
+    ||.x-m0.|| = 0 by BHSP_1:26;
+    hence ||.x-m0.|| <= ||.x-m.|| by BHSP_1:28;
+   end;
+  suppose not x in M;
+  set B = {||.x-m.|| where m is Point of X : m in M};
+  0.X in M by RUSUB_1:11;
+  then A4:
+  ||.x-0.X.|| in B;
+  B c= REAL
+  proof let r be object;
+     assume r in B; then
+     ex m be Point of X st r= ||.x-m.|| & m in M;
+     hence r in REAL by XREAL_0:def 1;
+  end; then
+  reconsider B as real-membered set;
+ reconsider r0 = 0 as Real;
+A5: now let r be ExtReal;
+    assume r in B; then
+ ex m be Point of X st r= ||.x-m.|| & m in M;
+    hence r0 <= r by BHSP_1:28;
+end;
+A6: B is bounded_below
+   proof
+   reconsider r0 = 0 as Real;
+   take r0;
+   let r be ExtReal;
+    assume r in B;
+    then ex m be Point of X st r= ||.x-m.|| & m in M;
+    hence r0 <= r by BHSP_1:28;
+  end;
+  set delta = lower_bound B;
+reconsider
+B as non empty bounded_below real-membered set by A6,A4;
+A7:lower_bound B = inf B;
+r0 is LowerBound of B by A5,XXREAL_2:def 2;
+then
+A8: r0 <= delta by A7,XXREAL_2:def 4;
+defpred P1[Nat,Real] means
+   $2 in B & |.$2 - delta.| < 1/($1+1);
+A9: for n being Element of NAT ex y being Element of REAL
+    st P1[n,y]
+proof
+let n be Element of NAT;
+consider r being Real such that
+A10:  r in B & r < delta + 1/ ( n+1 ) by SEQ_4:def 2;
+delta <= r by A10,SEQ_4:def 2; then
+delta-1/ ( n+1 ) < r - 0 by XREAL_1:15;
+then
+r in { r where r is Real :
+  delta-1/ ( n+1 ) < r & r < delta+1/ ( n+1 ) } by A10;
+then A11:
+ r in ]. delta-1/ ( n+1 ),delta+1/ ( n+1 ) .[ by RCOMP_1:def 2;
+reconsider r as Element of REAL by XREAL_0:def 1;
+take r;
+thus r in B & |.r - delta.| < 1/(n+1) by A10,A11,RCOMP_1:1;
+end;
+consider seq be Function of NAT,REAL such that
+ A12:for n being Element of NAT holds P1[n,seq . n]
+    from FUNCT_2:sch 3(A9);
+reconsider seq as Real_Sequence;
+A13: for p being Real st 0 < p holds
+       ex n being Nat st
+     for m being Nat st n <= m holds
+      |.seq . m - delta .| < p
+proof
+  let p be Real;
+  assume A14: 0 < p;
+  consider n be Nat such that
+    A15: p" < n by SEQ_4:3;
+  p" + 0 < n +1 by XREAL_1:8,A15; then
+A16: (n+1)" < (p")" by XREAL_1:88,A14;
+take n;
+ let m be Nat;
+    assume n <= m; then
+    n+1 <= m+1 by XREAL_1:7; then
+    A17: 1/(m+1) <= 1/(n+1) by XREAL_1:118;
+    m is Element of NAT by ORDINAL1:def 12; then
+    |.seq . m -delta .| < 1/(n+1) by XXREAL_0:2,A17,A12;
+    hence thesis by A16,XXREAL_0:2;
+end; then
+A18:seq is convergent;
+then
+lim seq = delta by SEQ_2:def 7,A13;
+then
+A20: seq(#)seq is convergent &
+     lim (seq(#)seq)= delta*delta by SEQ_2:15,A18;
+defpred P2[Nat,Point of X] means
+   $2 in M & seq.$1 = ||.$2-x.||;
+A21: for n being Element of NAT ex y being Element of the carrier of X
+    st P2[n,y]
+proof
+let n be Element of NAT;
+seq.n in B by A12;
+then
+consider y be Point of X such that
+ A22:  seq.n = ||.x-y.|| & y in M;
+ take y;
+ thus y in M by A22;
+ thus seq.n = ||.-(y-x).|| by A22,RLVECT_1:33
+             .= ||.y -x.|| by BHSP_1:31;
+end;
+consider xseq be Function of NAT,the carrier of X
+such that
+ A23: for n be Element of NAT holds P2[n,xseq.n]
+       from FUNCT_2:sch 3(A21);
+reconsider xseq as sequence of X;
+for n be Element of NAT holds seq.n = ||.xseq-x.||.n
+proof
+ let n be Element of NAT;
+  thus seq.n = ||.xseq.n-x.|| by A23
+             .=||.(xseq-x).n.|| by NORMSP_1:def 4
+             .= ||.xseq-x.||.n by BHSP_2:def 3;
+end; then
+A24:seq = ||.xseq-x.|| by FUNCT_2:63;
+A26: rng xseq c= the carrier of M
+proof let z be object;
+  assume z in rng xseq; then
+  consider i be Element of NAT such that
+     A25: z= xseq.i by FUNCT_2:113;
+  thus z in the carrier of M by A25,STRUCT_0:def 5,A23;
+end;
+A27:
+now let i,j be Nat;
+set u = xseq.i-x;
+set v = xseq.j-x;
+A28:u - v = xseq.i - x -xseq.j + x by RLVECT_1:29
+        .= xseq.i -( x + xseq.j) + x by RLVECT_1:27
+        .= xseq.i -xseq.j - x + x by RLVECT_1:27
+        .= xseq.i -xseq.j by RLVECT_4:1;
+u + v = xseq.i +( -x + xseq.j) - x by RLVECT_1:def 3
+        .= xseq.i + xseq.j - x - x by RLVECT_1:def 3
+      .= xseq.i +xseq.j -1*x -x by RLVECT_1:def 8
+      .= xseq.i +xseq.j -1*x -1*x by RLVECT_1:def 8
+        .= xseq.i +xseq.j -(1*x+1*x) by RLVECT_1:27
+        .= xseq.i +xseq.j -(1+1)*x by RLVECT_1:def 6
+        .=1*xseq.i+xseq.j -2*x by RLVECT_1:def 8
+        .=1*xseq.i+1*xseq.j -2*x by RLVECT_1:def 8
+        .=2*(1/2)*(xseq.i +xseq.j)-2*x by RLVECT_1:def 5
+     .=2*((1/2)*(xseq.i +xseq.j))-2*x by RLVECT_1:def 7
+   .=2* ((1/2)*(xseq.i +xseq.j)-x) by RLVECT_1:34; then
+A29: ||.u + v.|| ^2
+  =(  |.2.|* ||.(1/2)*(xseq.i +xseq.j)-x.|| ) ^2 by BHSP_1:27
+  .= |.2.| ^2 * ||.(1/2)*(xseq.i +xseq.j)-x.||^2
+  .= 2 ^2 *||.(1/2)*(xseq.i +xseq.j)-x.||^2
+              by ABSVALUE:def 1
+  .= 2*2 *||.(1/2)*(xseq.i +xseq.j)-x.||^2;
+A30: i is Element of NAT & j is Element of NAT
+ by ORDINAL1:def 12; then
+xseq.i in M & xseq.j in M by A23; then
+xseq.i +xseq.j in M by RUSUB_1:14; then
+(1/2)*(xseq.i +xseq.j) in M by RUSUB_1:15; then
+ ||.x-(1/2)*(xseq.i +xseq.j).|| in B; then
+ ||.-(x-(1/2)*(xseq.i +xseq.j)).|| in B by BHSP_1:31;
+then
+ ||.(1/2)*(xseq.i +xseq.j)-x.|| in B by RLVECT_1:33;
+then
+ delta <= ||.(1/2)*(xseq.i +xseq.j)-x.|| by SEQ_4:def 2;
+then
+delta ^2 <= ||.(1/2)*(xseq.i +xseq.j)-x.||^2
+   by A8,SQUARE_1:15; then
+A31: 4*delta ^2 <= ||.u + v.|| ^2 by A29,XREAL_1:64;
+ ||.u + v.|| ^2 + ||.u - v.|| ^2
+    = 2 * (||.u.|| ^2) + 2 * (||.v.|| ^2) by BHSP_5:5;
+then
+A32: ||.u + v.|| ^2 + ||.u - v.|| ^2- ||.u + v.|| ^2
+    <= 2 * (||.u.|| ^2) + 2 * (||.v.|| ^2)
+    - 4*delta ^2 by XREAL_1:13,A31;
+A33: ||.u.|| = seq.i & ||.v.|| = seq.j by A23,A30;
+then
+ ||.u.||^2 = (seq(#)seq).i by SEQ_1:8;
+hence ||.xseq.i -xseq.j.||^2 <=
+ 2 * (seq(#)seq).i + 2 * (seq(#)seq).j - 4*delta ^2
+by A28,A32,SEQ_1:8,A33;
+end;
+ for r being Real st r > 0 holds
+ex k being Nat st
+for n, m being Nat st n >= k & m >= k holds
+ ||.((xseq . n) - (xseq . m)).|| < r
+proof
+  let r be Real;
+  assume A35: r > 0;
+   set r1= r/2;
+A36: 0 < r1 & r1 < r by A35,XREAL_1:216;
+set r2= r1/2;
+consider k be Nat such that
+A38: for i be Nat
+      st k <=i holds |.(seq(#)seq).i -delta^2 .|
+       < r2^2 by SEQ_2:def 7,A20,A35;
+take k;
+  let i,j be Nat;
+  assume A39: i >= k & j >= k;
+  A40: ||.xseq.i -xseq.j.||^2 <=
+    2 * (seq(#)seq).i + 2 * (seq(#)seq).j - 4*delta ^2
+   by A27;
+   |.(seq(#)seq).i -delta^2 .| < r2^2 by A38,A39; then
+   (seq(#)seq).i in ]. delta^2-r2^2,
+                        delta^2+r2^2 .[ by RCOMP_1:1; then
+   (seq(#)seq).i in
+     {r where r is Real: delta^2-r2^2 < r & r < delta^2+r2^2}
+    by RCOMP_1:def 2; then
+   ex r be Real st r =(seq(#)seq).i
+        & delta^2-r2^2 < r & r < delta^2+r2^2;
+  then
+  A41: 2*(seq(#)seq).i < 2*( delta^2+r2^2 ) by XREAL_1:68;
+   |.(seq(#)seq).j -delta^2 .| < r2^2 by A38,A39;
+   then
+   (seq(#)seq).j in ]. delta^2-r2^2,
+                        delta^2+r2^2 .[ by RCOMP_1:1;
+   then
+   (seq(#)seq).j in
+     {r where r is Real: delta^2-r2^2 < r & r < delta^2+r2^2}
+    by RCOMP_1:def 2; then
+   ex r be Real st r = (seq(#)seq).j
+        & delta^2-r2^2 < r & r < delta^2+r2^2; then
+ 2*(seq(#)seq).j < 2*( delta^2+r2^2 ) by XREAL_1:68; then
+ 2*(seq(#)seq).i + 2*(seq(#)seq).j < 2*delta^2+2*r2^2
+                  + ( 2*delta^2+2*r2^2 ) by A41,XREAL_1:8;
+then
+ 2*(seq(#)seq).i + 2*(seq(#)seq).j - 4*delta ^2
+   < 2*delta^2+2*r2^2
+     + 2*delta^2+2*r2^2 - 4*delta ^2 by XREAL_1:14; then
+ A42: ||.xseq.i -xseq.j.||^2 < (2*r2) ^2 by A40,XXREAL_0:2;
+ ||.xseq.i -xseq.j.|| <= 2*r2 by A42,SQUARE_1:16,A35;
+hence ||.xseq.i -xseq.j.|| < r by A36,XXREAL_0:2;
+end; then
+A43: xseq is convergent by BHSP_3:def 4,BHSP_3:2;
+A46: ||.x-lim xseq .||
+     = ||.-((lim xseq) -x) .|| by RLVECT_1:33
+      .= ||.(lim xseq) -x.|| by BHSP_1:31
+      .= lim seq by A24,A43,BHSP_2:34
+      .= delta by A18,SEQ_2:def 7,A13;
+take lim xseq;
+thus lim xseq in M by A43,A26,STRUCT_0:def 5,A1,Th12;
+  let m be Point of X;
+  assume m in M; then
+  ||.x-m.|| in B;
+  hence ||.x-lim xseq .|| <= ||.x-m.|| by A46,SEQ_4:def 2;
+end;
+end;
+
+definition
+  let X be RealUnitarySpace,
+      M be Subset of X;
+  func Ort_CompSet(M) -> non empty Subset of X
+  means
+:Def1:
+for x being Point of X
+ holds
+x in it iff ( for y be Point of X st y in M holds y.|.x = 0  );
+existence
+proof
+set Z = {x where x is Point of X :
+       for y be Point of X st y in M holds y.|.x = 0  };
+now let x0 be object;
+ assume x0 in Z; then
+ ex x be Point of X st x0=x &
+       for y be Point of X st y in M holds y.|.x = 0;
+ hence x0 in the carrier of X;
+ end; then
+reconsider Z as Subset of the carrier of X by TARSKI:def 3;
+for y be Point of X st y in M holds y.|. (0.X) = 0
+by BHSP_1:15; then
+0.X in Z; then
+reconsider Z as non empty Subset of the carrier of X;
+take Z;
+thus for x being Point of X
+ holds
+x in Z iff ( for y be Point of X st y in M holds y.|.x = 0  )
+proof
+  let x be Point of X;
+  hereby assume x in Z; then
+  ex s be Point of X st x=s &
+       for y be Point of X st y in M holds y.|.s = 0;
+  hence
+  for y be Point of X st y in M holds y.|.x = 0;
+ end;
+  assume for y be Point of X st y in M holds y.|.x = 0;
+  hence x in Z;
+end;
+end;
+uniqueness
+proof
+let A1, A2 be non empty Subset of X;
+assume that
+A1: for x being Point of X holds
+( x in A1 iff ( for y be Point of X st y in M holds y.|.x = 0) ) and
+A2: for x being Point of X holds
+( x in A2 iff ( for y be Point of X st y in M holds y.|.x = 0) );
+for x0 be object holds x0 in A1 iff x0 in A2
+proof
+let x0 be object;
+hereby assume A3: x0 in A1; then
+  reconsider x =x0 as Point of X;
+  for y be Point of X st y in M holds y.|.x = 0
+  by A3,A1;
+hence x0 in A2 by A2;
+end;
+assume A4: x0 in A2; then
+  reconsider x =x0 as Point of X;
+  for y be Point of X st y in M holds y.|.x = 0 by A4,A2;
+hence x0 in A1 by A1;
+end;
+hence A1 = A2 by TARSKI:2;
+end;
+end;
+
+theorem
+for X being RealUnitarySpace,
+    M be Subset of X
+holds Ort_CompSet(M) is linearly-closed
+proof
+let X be RealUnitarySpace,
+    M be Subset of X;
+A1:for v, u being VECTOR of X st
+   v in Ort_CompSet(M)
+ & u in Ort_CompSet(M) holds
+          v + u in Ort_CompSet(M)
+proof
+  let v, u be VECTOR of X;
+  assume A2: v in Ort_CompSet(M)
+ & u in Ort_CompSet(M);
+now let x be Point of X;
+ assume x in M; then
+ A3: x.|. v = 0 & x.|. u = 0 by A2,Def1;
+ thus x.|. (u+v) = x.|. u + x.|. v by BHSP_1:2
+            .=0 by A3;
+end;
+hence v + u in Ort_CompSet(M) by Def1;
+end;
+
+for a being Real
+         for v being VECTOR of X st v in Ort_CompSet(M)
+       holds a * v in Ort_CompSet(M)
+proof
+let a be Real, u be VECTOR of X;
+  assume A4: u in Ort_CompSet(M);
+now let x be Point of X;
+ assume A5:x in M;
+ thus x.|. (a*u) = a*x.|. u by BHSP_1:3
+            .= a*0 by A5,A4,Def1
+            .=0;
+end;
+hence a*u in Ort_CompSet(M) by Def1;
+end;
+hence thesis by A1,RLSUB_1:def 1;
+end;
+
+Lm3:
+for X being RealUnitarySpace,
+    M be Subset of X
+holds
+  Ort_CompSet(M)
+= { v where v is VECTOR of X
+: for w being VECTOR of X st w in M holds w,v are_orthogonal }
+proof
+let X being RealUnitarySpace,
+    M be Subset of X;
+for z be object
+ holds z in Ort_CompSet(M)
+   iff z in { v where v is VECTOR of X
+: for w being VECTOR of X st w in M holds
+w,v are_orthogonal }
+proof
+  let z be object;
+  hereby assume A1:z in Ort_CompSet(M); then
+   reconsider x=z as Point of X;
+    for w being VECTOR of X st w in M holds
+          w,x are_orthogonal by Def1,A1;
+   hence
+     z in { v where v is VECTOR of X
+        : for w being VECTOR of X st w in M holds
+w,v are_orthogonal };
+  end;
+assume z in { v where v is VECTOR of X :
+ for w being VECTOR of X st w in M holds
+w,v are_orthogonal };
+  then
+  consider v be VECTOR of X such that
+  A2: z=v & for w being VECTOR of X st w in M holds
+w,v are_orthogonal;
+   for w being VECTOR of X st w in M holds
+     w.|.v =0
+   proof
+     let w be VECTOR of X;
+     assume w in M; then
+     w,v are_orthogonal by A2;
+     hence thesis;
+  end;
+   hence z in Ort_CompSet(M) by A2,Def1;
+end;
+hence thesis by TARSKI:2;
+end;
+
+Lm4:
+for X being RealUnitarySpace,
+    M be Subspace of X,
+    N be non empty Subset of X
+st N = the carrier of M
+holds
+  Ort_CompSet(N)
+= { v where v is VECTOR of X
+: for w being VECTOR of X st w in M holds w,v are_orthogonal }
+proof
+let X being RealUnitarySpace,
+    M be Subspace of X,
+    N be non empty Subset of X;
+assume A1: N = the carrier of M;
+for z be object
+ holds z in Ort_CompSet(N)
+   iff z in { v where v is VECTOR of X
+: for w being VECTOR of X st w in M holds
+w,v are_orthogonal }
+proof
+  let z be object;
+  hereby assume A2:z in Ort_CompSet(N); then
+   reconsider x=z as Point of X;
+    for w being VECTOR of X st w in M holds
+          w,x are_orthogonal
+    proof
+     let w be VECTOR of X;
+     assume w in M; then
+     w in N by A1,STRUCT_0:def 5;
+     hence thesis by Def1,A2;
+   end;
+   hence
+     z in { v where v is VECTOR of X
+        : for w being VECTOR of X st w in M holds
+w,v are_orthogonal };
+  end;
+assume z in { v where v is VECTOR of X :
+ for w being VECTOR of X st w in M holds
+w,v are_orthogonal }; then
+  consider v be VECTOR of X such that
+  A3: z=v & for w being VECTOR of X st w in M holds
+    w,v are_orthogonal;
+   for w being VECTOR of X st w in N holds
+     w.|.v =0
+   proof
+    let w be VECTOR of X;
+     assume w in N; then
+      w,v are_orthogonal by A3,A1,STRUCT_0:def 5;
+     hence thesis;
+  end;
+   hence z in Ort_CompSet(N) by A3,Def1;
+end;
+hence thesis by TARSKI:2;
+end;
+
+Lm5:
+for   X being RealUnitarySpace,
+      M be non empty Subset of X,
+      H be strict Subspace of X
+holds
+ H = Ort_Comp(M) iff the carrier of H = Ort_CompSet(M)
+proof
+let   X being RealUnitarySpace,
+      M be non empty Subset of X,
+      H be strict Subspace of X;
+hereby assume H = Ort_Comp(M);
+  hence the carrier of H
+   = { v where v is VECTOR of X
+   : for w being VECTOR of X st w in M holds w,v are_orthogonal }
+    by RUSUB_5:def 4
+  .= Ort_CompSet(M) by Lm3;
+end;
+assume
+   the carrier of H = Ort_CompSet(M); then
+the carrier of H = { v where v is VECTOR of X
+   : for w being VECTOR of X st w in M holds w,v are_orthogonal }
+by Lm3;
+ hence thesis by RUSUB_5:def 4;
+end;
+
+theorem Th21:
+for X being RealUnitarySpace,
+    M be non empty Subset of X,
+    seq be sequence of X
+st rng seq c= the carrier of Ort_Comp(M)
+   &
+  seq is convergent
+holds lim seq in the carrier of Ort_Comp(M)
+proof
+let X be RealUnitarySpace,
+    M be non empty Subset of X,
+    seq be sequence of X;
+  assume that
+A1: rng seq c= the carrier of Ort_Comp(M)
+   and
+A2: seq is convergent;
+now let x be Point of X;
+  assume A3:x in M;
+defpred P1[Element of NAT,object] means
+   $2 =x.|. (seq.$1);
+A4: for n being Element of NAT ex y being Element of REAL
+    st P1[n,y];
+consider xseq be Function of NAT,REAL such that
+ A5:for n being Element of NAT holds P1[n,xseq . n]
+    from FUNCT_2:sch 3(A4);
+reconsider xseq as Real_Sequence;
+A6:  for i be Nat holds xseq.i = 0
+ proof
+  let i be Nat;
+   seq.i in rng seq by FUNCT_2:4,ORDINAL1:def 12;
+   then
+   seq.i in the carrier of Ort_Comp(M) by A1; then
+   seq.i in Ort_CompSet(M) by Lm5; then
+A7:x .|. (seq.i) = 0 by A3,Def1;
+   i in NAT by ORDINAL1:def 12;
+   hence thesis by A5,A7;
+ end;
+for x, y being object st x in dom xseq & y in dom xseq holds
+xseq . x = xseq . y
+proof
+  let x, y be object;
+  assume x in dom xseq & y in dom xseq;
+  then reconsider i=x,j=y as Nat;
+  thus xseq . x = xseq . i
+           .= 0 by A6
+           .= xseq.j by A6
+           .= xseq . y;
+end; then
+A8:xseq is constant; then
+A10: lim xseq = xseq.1 by SEQ_4:26
+             .=0 by A6;
+for p be Real st 0 < p
+ex n be Nat st
+      for m be Nat st n<=m holds |. xseq.m - x.|. (lim seq) .| < p
+proof
+let p be Real;
+  assume A11: 0 < p;
+   0 + 0 < ||.x.|| + 1 by XREAL_1:8, BHSP_1:28; then
+  consider n be Nat such that
+     A12: for m be Nat st n<=m holds ||. (seq.m) - lim seq .||
+     < p / (||.x.|| + 1) by A2, BHSP_2:19,A11;
+  take n;
+  let i be Nat;
+  assume n<=i; then
+   A13: ||. seq.i - lim seq .|| < p / (||.x.|| + 1) by A12;
+  |.x .|. (seq.i) - x .|. (lim seq) .|
+  = |. x.|. ((seq.i) - lim seq) .| by BHSP_1:12; then
+ A14: |.x .|. (seq.i) - x .|. (lim seq) .|
+  <= ||.x.|| * ||.(seq.i) - lim seq .|| by BHSP_1:29;
+ A15: ||.x.|| + 0 < ||.x.|| + 1 by XREAL_1:8;
+ 0 <= ||.(seq.i) - lim seq .|| by BHSP_1:28; then
+   ||.x.|| * ||.(seq.i) - lim seq .||
+    <= ( ||.x.|| + 1) * ||.(seq.i) - lim seq .|| by XREAL_1:64,A15;
+ then
+ A16: |.x .|. (seq.i) - x .|. (lim seq) .|
+     <= ( ||.x.|| + 1) * ||.(seq.i) - lim seq .|| by A14,XXREAL_0:2;
+A17: 0 + 0 < ||.x.|| + 1 by XREAL_1:8,BHSP_1:28; then
+ ||. seq.i - lim seq .||* ( ||.x.|| + 1)
+     < ( p/ (||.x.|| + 1) ) * ( ||.x.|| + 1) by A13,XREAL_1:68;
+then
+ ||. seq.i - lim seq .||* ( ||.x.|| + 1) < p by A17,XCMPLX_1:87;
+then
+A18: |.x .|. (seq.i) - x .|. (lim seq) .| < p by A16,XXREAL_0:2;
+ i in NAT by ORDINAL1:def 12;
+hence thesis by A18,A5;
+end;
+hence x.|. (lim seq) = 0 by A10,A8,SEQ_2:def 7;
+end; then
+(lim seq) in Ort_CompSet(M) by Def1;
+hence lim seq in the carrier of Ort_Comp(M) by Lm5;
+end;
+
+theorem Th22:
+  for S be RealUnitarySpace,
+      M be non empty Subset of S,
+      L be Subset of S
+  st L = the carrier of Ort_Comp(M) holds
+    L is closed Subset of TopSpaceNorm RUSp2RNSp S
+proof
+  let S be RealUnitarySpace,
+      M be non empty Subset of S,
+      L be Subset of S;
+  assume L = the carrier of Ort_Comp(M); then
+  for seq be sequence of S
+    st rng seq c= L & seq is convergent
+         holds lim seq in L by Th21;
+  hence thesis by Th12;
+end;
+
+Lm6:
+  for X being RealUnitarySpace,
+      M be Subspace of X,
+      H be strict Subspace of X
+holds
+ H = Ort_Comp(M)
+  iff ex N be non empty Subset of X
+  st N = the carrier of M & H = Ort_Comp(N)
+proof
+  let X be RealUnitarySpace,
+      M be Subspace of X,
+      H be strict Subspace of X;
+hereby assume A1:H = Ort_Comp(M);
+ reconsider N = the carrier of M
+      as non empty Subset of X by RUSUB_1:def 1;
+take N;
+ the carrier of H
+   = { v where v is VECTOR of X
+   : for w being VECTOR of X st w in M holds w,v are_orthogonal }
+    by RUSUB_5:def 3,A1
+.= Ort_CompSet(N) by Lm4
+.= { v where v is VECTOR of X
+   : for w being VECTOR of X st w in N holds w,v are_orthogonal }
+by Lm3;
+hence N = the carrier of M & H = Ort_Comp(N) by RUSUB_5:def 4;
+end;
+given N be non empty Subset of X such that
+ A2: N = the carrier of M & H = Ort_Comp(N);
+the carrier of H = { v where v is VECTOR of X
+   : for w being VECTOR of X st w in N holds w,v are_orthogonal }
+by A2,RUSUB_5:def 4
+.= Ort_CompSet(N) by Lm3
+.= { v where v is VECTOR of X
+   : for w being VECTOR of X st w in M holds w,v are_orthogonal }
+by Lm4,A2;
+ hence thesis by RUSUB_5:def 3;
+end;
+
+theorem Th23:
+  for X being RealUnitarySpace,
+      M be non empty Subset of X holds
+    M is Subset of Ort_Comp Ort_Comp M
+proof
+  let X be RealUnitarySpace,
+      M be non empty Subset of X;
+  reconsider N = the carrier of Ort_Comp(M)
+    as non empty Subset of X by RUSUB_1:def 1;
+A2: the carrier of Ort_Comp(Ort_Comp(M))
+    = the carrier of Ort_Comp(N) by Lm6
+   .= Ort_CompSet(N) by Lm5;
+  M c= Ort_CompSet(Ort_CompSet(M))
+  proof let x0 be object;
+    assume A3:x0 in M; then
+    reconsider x=x0 as Point of X;
+    for y be Point of X st y in Ort_CompSet(M)
+      holds y .|. x = 0 by A3,Def1;
+    hence x0 in Ort_CompSet(Ort_CompSet(M)) by Def1;
+  end;
+  hence thesis by A2,Lm5;
+end;
+
+theorem Th24:
+for X being RealUnitarySpace,
+    S,T be non empty Subset of X
+ st S c= T
+holds
+Ort_Comp (T) is Subspace of Ort_Comp(S)
+proof
+let X be RealUnitarySpace,
+    S,T be non empty Subset of X;
+assume A1:S c= T;
+A2:the carrier of Ort_Comp(S) = Ort_CompSet(S)
+ & the carrier of Ort_Comp(T) = Ort_CompSet(T) by Lm5;
+Ort_CompSet(T) c= Ort_CompSet(S)
+proof let x0 be object;
+  assume A3:x0 in Ort_CompSet(T); then
+   reconsider x=x0 as Point of X;
+  for y be Point of X st y in S
+  holds y .|. x = 0 by A1,A3,Def1;
+  hence x0 in Ort_CompSet(S) by Def1;
+end;
+hence thesis by RUSUB_1:22,A2;
+end;
+
+theorem Th25:
+for X being RealHilbertSpace,
+    M be Subspace of X
+st
+X is strict &
+the carrier of M is closed Subset of TopSpaceNorm RUSp2RNSp X
+holds X is_the_direct_sum_of M,Ort_Comp(M)
+proof
+let X be RealHilbertSpace,
+    M be Subspace of X;
+assume A1: X is strict &
+   the carrier of M is closed Subset of TopSpaceNorm RUSp2RNSp X;
+AAT6:
+for z be object
+  holds z in the carrier of ( M + Ort_Comp(M) )
+      iff z in the carrier of X
+proof let z be object;
+  hereby assume z in the carrier of ( M + Ort_Comp(M) );
+    then
+    z in { (v + u) where v, u is VECTOR of X
+        : ( v in M & u in Ort_Comp(M) ) }
+      by RUSUB_2:def 1; then
+    ex v, u be VECTOR of X st z = v+u &
+                 v in M & u in Ort_Comp(M);
+    hence z in the carrier of X;
+  end;
+  assume z in the carrier of X; then
+  reconsider x=z as Point of X;
+  consider m0 be Point of X such that
+A2: m0 in M and
+A3: for m be Point of X
+       st m in M holds ||.x-m0.|| <= ||.x-m.|| by Th19,A1;
+  reconsider CM = the carrier of M
+    as non empty Subset of X by RUSUB_1:def 1;
+  for m be Point of X
+         st m in M holds ( x-m0 ) .|. m = 0
+    by Th17,A2,A3; then
+  for m be Point of X
+         st m in the carrier of M
+            holds m .|. ( x-m0 ) = 0 by STRUCT_0:def 5;
+then
+( x-m0 ) in Ort_CompSet(CM) by Def1; then
+( x-m0 ) in the carrier of Ort_Comp(CM) by Lm5; then
+( x-m0 ) in Ort_Comp(CM) by STRUCT_0:def 5; then
+A4:( x-m0 ) in Ort_Comp(M) by Lm6;
+z = m0+(x-m0) by RLVECT_4:1;
+then z in { (u + v) where u, v is VECTOR of X :
+( u in M & v in Ort_Comp(M) ) } by A2,A4;
+hence z in the carrier of ( M + Ort_Comp(M)) by RUSUB_2:def 1;
+end;
+for z be object holds
+z in the carrier of (M /\ Ort_Comp(M))
+ iff
+z in {0.X}
+proof
+let z be object;
+ hereby assume z in the carrier of (M /\ Ort_Comp(M)); then
+  z in ( the carrier of M ) /\ (the carrier of Ort_Comp(M) )
+  by RUSUB_2:def 2; then
+ A7: z in the carrier of M & z in the carrier of Ort_Comp(M)
+   by XBOOLE_0:def 4;
+  the carrier of M c= the carrier of X by RUSUB_1:def 1;
+  then
+ reconsider x = z as Point of X by A7;
+ reconsider N = the carrier of M
+  as non empty Subset of X by RUSUB_1:def 1;
+ x in the carrier of Ort_Comp(N) by A7,Lm6; then
+ x in Ort_CompSet(N) by Lm5; then
+ x.|.x = 0 by Def1,A7; then
+  ||.x.|| = 0; then
+  x = 0.X by BHSP_1:26;
+ hence z in {0.X} by TARSKI:def 1;
+end;
+assume z in {0.X}; then
+  z = 0.X by TARSKI:def 1; then
+  z in the carrier of M & z in the carrier of Ort_Comp(M)
+    by RUSUB_1:11,STRUCT_0:def 5; then
+  z in ( the carrier of M ) /\ (the carrier of Ort_Comp(M) )
+    by XBOOLE_0:def 4;
+  hence z in the carrier of (M /\ Ort_Comp(M))
+   by RUSUB_2:def 2;
+end;
+hence thesis by AAT6,RUSUB_1:26,A1,TARSKI:2,RUSUB_1:def 2;
+end;
+
+theorem Th26:
+for X being RealHilbertSpace,
+    M be strict Subspace of X
+st
+X is strict
+&
+the carrier of M is closed Subset of TopSpaceNorm RUSp2RNSp X
+holds M = Ort_Comp Ort_Comp M
+proof
+  let X be RealHilbertSpace,
+      M be strict Subspace of X;
+  assume A1: X is strict &
+  the carrier of M is closed Subset of TopSpaceNorm RUSp2RNSp X;
+  reconsider N = the carrier of M as Subset of X by RUSUB_1:def 1;
+  reconsider N as non empty Subset of X;
+  N is Subset of Ort_Comp Ort_Comp N by Th23; then
+N c= the carrier of Ort_Comp Ort_Comp N; then
+N c= the carrier of Ort_Comp Ort_Comp M by Lm6; then
+A2: M is Subspace of Ort_Comp Ort_Comp M by RUSUB_1:22;
+the carrier of Ort_Comp(Ort_Comp(M)) c= N
+proof
+let z be object;
+assume A3: z in the carrier of Ort_Comp Ort_Comp M;
+the carrier of Ort_Comp Ort_Comp M
+  c= the carrier of X by RUSUB_1:def 1; then
+reconsider x = z as Point of X by A3;
+X is_the_direct_sum_of M,Ort_Comp(M) by Th25,A1; then
+A4:the carrier of X
+= { (v + u) where v, u is VECTOR of X :
+( v in M & u in Ort_Comp(M) ) } by RUSUB_2:def 1;
+x in the carrier of X; then
+consider m,n be Point of X such that
+A5: x=m+n & m in M & n in Ort_Comp(M) by A4;
+A6: x-m =n by RLVECT_4:1,A5;
+A7: x in Ort_Comp(Ort_Comp(M)) by A3,STRUCT_0:def 5;
+m in Ort_Comp(Ort_Comp(M)) by A5,A2,RUSUB_1:2; then
+A8: n in Ort_Comp(Ort_Comp(M)) by A6,RUSUB_1:17,A7;
+ reconsider K = the carrier of Ort_Comp(M)
+     as non empty Subset of X by RUSUB_1:def 1;
+A9: n in K by A5,STRUCT_0:def 5;
+ n in Ort_Comp(K) by A8,Lm6;
+ then n in the carrier of Ort_Comp(K) by STRUCT_0:def 5;
+ then n in Ort_CompSet(K) by Lm5;
+ then n.|.n = 0 by Def1,A9;
+ then ||.n.|| = 0;
+ then n=0.X by BHSP_1:26;
+ hence thesis by A5,STRUCT_0:def 5;
+end; then
+Ort_Comp Ort_Comp M is Subspace of M by RUSUB_1:22;
+hence thesis by RUSUB_1:20,A2;
+end;
+
+theorem Th27:
+for X being RealUnitarySpace,
+    M be Subspace of X,
+    K be Subset of X,
+    L be Subset of TopSpaceNorm RUSp2RNSp X
+st the carrier of M = L & K = Cl(L) holds
+      K is linearly-closed
+proof
+let X being RealUnitarySpace,
+    M be Subspace of X,
+    K be Subset of X,
+    L be Subset of TopSpaceNorm RUSp2RNSp X;
+assume A1: the carrier of M = L & K = Cl(L);
+reconsider CM = the carrier of M as
+  Subset of X by RUSUB_1:def 1;
+A3: L c= Cl(L) by PRE_TOPC:18;
+A4:for v, u being VECTOR of X st
+   v in K & u in K holds v + u in K
+proof
+  let v, u be VECTOR of X;
+  assume A5p:v in K & u in K; then
+consider S being sequence of X such that
+ A6: ( for n being Nat holds S . n in L )
+    & S is convergent
+    & lim S = v by Th10,A1;
+consider T being sequence of X such that
+ A7: ( for n being Nat holds T . n in L )
+    & T is convergent
+    & lim T = u by Th10,A5p,A1;
+A8: for n be Nat holds (S+T).n in Cl(L)
+proof
+  let n be Nat;
+  A9: (S+T).n = S.n + T.n by NORMSP_1:def 2;
+   S.n in M & T.n in M by A1,STRUCT_0:def 5,A6,A7;
+   then
+   S.n + T.n in L by A1,STRUCT_0:def 5,RUSUB_1:14;
+   hence (S+T).n in Cl(L) by A9,A3;
+end;
+lim (S+T) = v+u by BHSP_2:13,A6,A7;
+hence thesis by A8,A1,BHSP_2:3,A6,A7,Th11;
+end;
+for a being Real
+         for v being VECTOR of X st v in K
+       holds a * v in K
+proof
+let a be Real;
+let v be VECTOR of X;
+ assume v in K; then
+consider S being sequence of X such that
+ A11: ( for n being Nat holds S . n in L)
+    & S is convergent
+    & lim S = v by Th10,A1;
+A12: for n be Nat holds (a*S).n in Cl(L)
+proof
+  let n be Nat;
+  A13: (a*S).n = a*S.n by NORMSP_1:def 5;
+   S.n in M by A1,STRUCT_0:def 5,A11; then
+   a*S.n in L by A1,STRUCT_0:def 5,RUSUB_1:15;
+   hence (a*S).n in Cl(L) by A13,A3;
+end;
+lim (a*S) = a*v by BHSP_2:15,A11;
+hence thesis by A12,A1,BHSP_2:5,A11,Th11;
+end;
+hence thesis by A4,RLSUB_1:def 1;
+end;
+
+Lm7:
+for X being RealHilbertSpace,
+    M,L be non empty Subset of X,
+    TL be Subset of TopSpaceNorm RUSp2RNSp X
+st X is strict & L = the carrier of Lin M & TL = L
+holds
+the carrier of Ort_Comp Ort_Comp M = Cl(TL)
+proof
+let X be RealHilbertSpace,
+    M,L be non empty Subset of X,
+    TL be Subset of TopSpaceNorm RUSp2RNSp X;
+assume
+A1: X is strict & L = the carrier of Lin M & TL = L;
+TL c= Cl(TL) by PRE_TOPC:18; then
+reconsider CTL = Cl(TL) as non empty Subset of X by A1;
+A3: L c= CTL by A1,PRE_TOPC:18;
+consider CLM be strict Subspace of X such that
+ A4:  CTL = the carrier of CLM by RUSUB_1:29,Th27,A1;
+  M c= CTL
+  proof let z be object;
+    assume A5: z in M;
+    reconsider x = z as set by TARSKI:1;
+    x in Lin M by RUSUB_3:2,A5;
+    hence z in CTL by A3,A1,STRUCT_0:def 5;
+  end; then
+  Ort_Comp CTL is Subspace of Ort_Comp(M) by Th24; then
+A6: the carrier of Ort_Comp(CTL)
+ c= the carrier of Ort_Comp(M) by RUSUB_1:def 1;
+reconsider CL = the carrier of Ort_Comp(CTL),
+CM = the carrier of Ort_Comp(M)
+  as non empty Subset of X by RUSUB_1:def 1;
+reconsider CCM = the carrier of Ort_Comp Ort_Comp M
+  as non empty Subset of X by RUSUB_1:def 1;
+reconsider TCCM = CCM
+  as non empty Subset of TopSpaceNorm RUSp2RNSp X;
+A7:Ort_Comp (CM) is Subspace of Ort_Comp(CL) by Th24,A6;
+A8: Ort_Comp(Ort_Comp(M)) = Ort_Comp(CM) by Lm6;
+ Ort_Comp(Ort_Comp(M))
+       is Subspace of Ort_Comp(Ort_Comp(CTL))
+by A7,A8,Lm6; then
+ Ort_Comp(Ort_Comp(M))
+       is Subspace of Ort_Comp(Ort_Comp(CLM)) by A4,Lm6; then
+A11:Ort_Comp(Ort_Comp(M))
+         is Subspace of CLM by Th26,A1,A4;
+M is Subset of Ort_Comp(Ort_Comp(M)) by Th23;
+then Lin M is Subspace of Lin CCM by RUSUB_3:7;
+then Lin M is Subspace of Ort_Comp(Ort_Comp(M)) by RUSUB_3:5;
+then TL c= CCM by A1,RUSUB_1:def 1;
+hence thesis by TOPS_1:5,Th22,A8,A11,A4,RUSUB_1:def 1;
+end;
+
+theorem
+for X being RealHilbertSpace,
+    M be non empty Subset of X
+st X is strict
+holds
+  the carrier of Ort_Comp Ort_Comp M
+                 is closed Subset of TopSpaceNorm RUSp2RNSp X
+    &
+   ( ex L be Subset of TopSpaceNorm RUSp2RNSp X
+       st L = the carrier of Lin M
+         &
+         the carrier of Ort_Comp(Ort_Comp(M)) = Cl(L) )
+    &
+    Lin M is Subspace of Ort_Comp(Ort_Comp(M))
+proof
+  let X be RealHilbertSpace,
+      M be non empty Subset of X;
+  assume A1:X is strict;
+  reconsider L = the carrier of Lin M
+    as non empty Subset of X by RUSUB_1:def 1;
+  reconsider TL = L
+    as Subset of TopSpaceNorm RUSp2RNSp X;
+A2:the carrier of Ort_Comp(Ort_Comp(M))
+= Cl(TL) by A1,Lm7;
+hence the carrier of Ort_Comp(Ort_Comp(M))
+                 is closed Subset of TopSpaceNorm RUSp2RNSp X;
+thus ex TL be Subset of TopSpaceNorm RUSp2RNSp X st
+TL = the carrier of Lin M &
+         the carrier of Ort_Comp(Ort_Comp(M)) = Cl(TL) by A2;
+thus Lin M is Subspace of Ort_Comp(Ort_Comp(M))
+  by RUSUB_1:22, PRE_TOPC:18,A2;
+end;
+
+theorem
+for X being RealHilbertSpace,
+    K be strict Subspace of X,
+    M be non empty Subset of X
+st X is strict
+    &
+    the carrier of K is closed Subset of TopSpaceNorm RUSp2RNSp X
+    &
+    Lin M is Subspace of K holds
+  Ort_Comp Ort_Comp M is Subspace of K
+proof
+  let X be RealHilbertSpace,
+      K be strict Subspace of X,
+      M be non empty Subset of X;
+  assume that
+A1:  X is strict and
+A2: the carrier of K is closed Subset of TopSpaceNorm RUSp2RNSp X
+    and
+A3: Lin M is Subspace of K;
+  reconsider L = the carrier of Lin M
+    as non empty Subset of X by RUSUB_1:def 1;
+  reconsider N = the carrier of K as non empty Subset of X
+    by RUSUB_1:def 1;
+  reconsider TL = L as Subset of TopSpaceNorm RUSp2RNSp X;
+A4: the carrier of Ort_Comp(Ort_Comp(M)) = Cl(TL) by A1,Lm7;
+  the carrier of Lin M c= the carrier of K
+    by RUSUB_1:def 1,A3;
+  hence Ort_Comp(Ort_Comp(M)) is Subspace of K
+    by RUSUB_1:22,A2,TOPS_1:5,A4;
+end;

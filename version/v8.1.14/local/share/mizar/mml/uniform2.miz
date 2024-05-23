@@ -1,0 +1,2858 @@
+:: Quasi-uniform Space
+::  by Roland Coghetto
+:: 
+:: Received June 30, 2016
+:: Copyright (c) 2016-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies EQREL_1, YELLOW_6, FINTOPO7, SIMPLEX0, FINTOPO2, RELAT_2,
+      PRE_TOPC, FUNCT_1, STRUCT_0, CARD_1, XBOOLE_0, SUBSET_1, SETFAM_1,
+      TARSKI, ZFMISC_1, RELAT_1, CARD_FIL, WAYBEL_0, ARYTM_3, CANTOR_1,
+      FILTER_0, XXREAL_1, PCOMPS_1, RCOMP_1, FINSUB_1, PARTFUN1, TEX_1,
+      FINSET_1, TOLER_1, NAT_1, XCMPLX_0, UNIFORM2, FINSEQ_1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, SETFAM_1, RELAT_1, FUNCT_1,
+      RELAT_2, ORDINAL1, RELSET_1, PARTFUN1, MCART_1, FUNCT_2, DOMAIN_1,
+      CANTOR_1, FINSET_1, NAT_1, SIMPLEX0, CARD_FIL, EQREL_1, TEX_1, STRUCT_0,
+      CARDFIL2, FINSUB_1, FINTOPO2, FINTOPO7, TOLER_1, PRE_TOPC, CARD_1;
+ constructors NAT_1, CARDFIL2, TOPMETR, FINSUB_1, FINTOPO7, CANTOR_1, TEX_1;
+ registrations CARD_1, PARTFUN1, RELAT_1, ZFMISC_1, XBOOLE_0, SUBSET_1,
+      ORDINAL1, RELSET_1, STRUCT_0, FINTOPO7, PRE_TOPC, CANTOR_1, FINSET_1;
+ requirements NUMERALS, SUBSET, BOOLE;
+ definitions TARSKI, XBOOLE_0, ROUGHS_4;
+ equalities FINTOPO7, RELAT_1, TEX_1;
+ expansions CARDFIL2, TARSKI, XBOOLE_0, FINTOPO7;
+ theorems SYSREL, ROUGHS_4, TARSKI, RELAT_1, FUNCT_2, FUNCT_1, XBOOLE_1,
+      CARDFIL2, ZFMISC_1, XBOOLE_0, SETFAM_1, XTUPLE_0, CARD_FIL, FINSUB_1,
+      SUBSET_1, FINTOPO2, FINTOPO7, PRE_TOPC, CANTOR_1, RELAT_2, PARTIT_2,
+      PREFER_1, ORDERS_1, PARTFUN1, TAXONOM1, MSSUBFAM, ARMSTRNG, TOPS_1,
+      CARD_2, STIRL2_1, ENUMSET1;
+ schemes NAT_1, FUNCT_2, FRAENKEL;
+
+begin :: Preliminaries
+
+reserve X for set,
+        A for Subset of X,
+        R,S for Relation of X;
+
+theorem Th2:
+  [:X \ A,X:] \/ [:X,A:] c= [:X,X:]
+  proof
+    [:X,A:] c= [:X,X:] & [:X \ A,X:] c= [:X,X:] by ZFMISC_1:95;
+    hence thesis by XBOOLE_1:8;
+  end;
+
+theorem
+  [:X \ A,X:] \/ [:X,A:] = [:A,A:] \/ [:X \ A,X:]
+  proof
+A1: [:X \ A,X:] \/ [:X,A:] c= [:A,A:] \/ [:X\A,X:]
+    proof
+      let x be object;
+      assume
+A2:   x in [:X \ A,X:] \/ [:X,A:];
+      [:X \ A,X:] \/ [:X,A:] c= [:X,X:] by Th2;
+      then consider a,b be object such that
+A3:   a in X and
+A4:   b in X and
+A5:   x = [a,b] by A2,ZFMISC_1:def 2;
+      per cases;
+      suppose
+A6:     a in A;
+        x in [:X,A:]
+        proof
+          assume not x in [:X,A:];
+          then x in [:X \ A,X:] by A2,XBOOLE_0:def 3;
+          then a in X \ A & b in X by A5,ZFMISC_1:87;
+          hence contradiction by A6,XBOOLE_0:def 5;
+        end;
+        then b in A by A5,ZFMISC_1:87; then
+A7:     x in [:A,A:] by A6,A5,ZFMISC_1:87;
+        [:A,A:] c= [:A,A:] \/ [:X\A,X:] by XBOOLE_1:7;
+        hence thesis by A7;
+      end;
+      suppose not a in A;
+        then a in X \ A by A3,XBOOLE_0:def 5; then
+A8:     x in [:X\A,X:] by A4,A5,ZFMISC_1:87;
+        [:X\A,X:] c= [:X\A,X:] \/ [:A,A:] by XBOOLE_1:7;
+        hence thesis by A8;
+      end;
+    end;
+    [:A,A:] c= [:X,A:] by ZFMISC_1:95;
+    hence thesis by A1,XBOOLE_1:13;
+  end;
+
+theorem Th3:
+  R * S = {[x,y] where x,y is Element of X : ex z being Element of X st
+  [x,z] in R & [z,y] in S}
+  proof
+    reconsider RS = R * S as Relation of X;
+    A1: R * S c= {[x,y] where x,y is Element of X : ex z being Element of X
+    st [x,z] in R & [z,y] in S}
+    proof
+      let t be object;
+      assume
+A1:   t in R * S;
+      consider x1,x2 be object such that
+      x1 in X and
+A2:   x2 in X and
+A3:   t = [x1,x2] by A1,ZFMISC_1:def 2;
+      consider z be object such that
+A4:   [x1,z] in R and
+A5:   [z,x2] in S by A1,A3,RELAT_1:def 8;
+      reconsider x1,x2,z1 = z as Element of X by A2,A4,ZFMISC_1:87;
+      [x1,z1] in R & [z1,x2] in S by A4,A5;
+      hence thesis by A3;
+    end;
+    {[x,y] where x,y is Element of X : ex z being Element of X st [x,z] in R &
+    [z,y] in S} c= R * S
+    proof
+      let t be object;
+      assume t in {[x,y] where x,y is Element of X : ex z being Element of X
+      st [x,z] in R & [z,y] in S};
+      then ex x,y be Element of X st t = [x,y] & ex z being Element of X st
+      [x,z] in R & [z,y] in S;
+      hence thesis by RELAT_1:def 8;
+    end;
+    hence thesis by A1;
+  end;
+
+registration
+  let X be set, cB be Subset-Family of X;
+  cluster <.cB.] -> non empty;
+  coherence
+  proof
+    per cases;
+    suppose
+      cB is empty;
+      hence thesis by CARDFIL2:15;
+    end;
+    suppose
+A1:   cB is non empty;
+      cB c= <.cB.] by CARDFIL2:18;
+      hence thesis by A1;
+    end;
+  end;
+end;
+
+registration
+  let X be set, cB be Subset-Family of [:X,X:];
+  cluster -> Relation-like for Element of cB;
+  coherence
+  proof
+    let e be Element of cB;
+    per cases;
+    suppose cB is non empty;
+      then e in cB;
+      hence thesis;
+    end;
+    suppose cB is empty;
+      hence thesis by SUBSET_1:def 1;
+    end;
+   end;
+end;
+
+notation
+  let X be set, cB be Subset-Family of [:X,X:],
+      B be Element of cB;
+  synonym B[~] for B~;
+end;
+
+definition
+  let X be set, cB be Subset-Family of [:X,X:],
+      B be Element of cB;
+  redefine func B[~] -> Subset of [:X,X:];
+  coherence
+  proof
+    per cases;
+    suppose
+A3:   cB is non empty;
+      B~ c= [:X,X:]
+      proof
+        let x be object;
+        assume
+A0:     x in B~;
+        then consider a,b being object such that
+A1:     x = [a,b] by RELAT_1:def 1;
+A2:     [b,a] in B by A0,A1,RELAT_1:def 7;
+        B in cB by A3;
+        then b in X & a in X by A2,ZFMISC_1:87;
+        hence thesis by A1,ZFMISC_1:87;
+      end;
+      hence thesis;
+    end;
+    suppose cB is empty;
+      then B = {} by SUBSET_1:def 1;
+      then B~ = {};
+      hence thesis by XBOOLE_1:2;
+    end;
+   end;
+end;
+
+notation
+  let X be set, cB be Subset-Family of [:X,X:];
+  let B1,B2 be Element of cB;
+  synonym B1 [*] B2 for B1 * B2;
+end;
+
+definition
+  let X be set, cB be Subset-Family of [:X,X:];
+  let B1,B2 be Element of cB;
+  redefine func B1 [*] B2 -> Subset of [:X,X:];
+  coherence
+  proof
+    per cases;
+    suppose
+A3:   cB is non empty;
+      B1*B2 c= [:X,X:]
+      proof
+        let x be object;
+        assume
+A0:     x in B1*B2;
+        then consider a,b being object such that
+A1:     x = [a,b] by RELAT_1:def 1;
+        consider c being object such that
+A2:     [a,c] in B1 & [c,b] in B2 by A0,A1,RELAT_1:def 8;
+        B1 in cB & B2 in cB by A3;
+        then b in X & a in X by A2,ZFMISC_1:87;
+        hence thesis by A1,ZFMISC_1:87;
+      end;
+      hence thesis;
+    end;
+    suppose cB is empty;
+      then B1 = {} & B2 = {} by SUBSET_1:def 1;
+      then B1*B2 = {};
+      hence thesis by XBOOLE_1:2;
+    end;
+   end;
+end;
+
+theorem
+  for X being set,G being Subset-Family of X st G is upper holds
+    FinMeetCl G is upper
+  proof
+    let X be set, G be Subset-Family of X;
+    assume
+A1: G is upper;
+    now
+      let Y1,Y2 be Subset of X;
+      assume that
+A2: Y1 in FinMeetCl G and
+A3: Y1 c= Y2;
+      consider Z being Subset-Family of X such that
+A4: Z c= G and
+A5: Z is finite and
+A6: Y1 = Intersect Z by A2,CANTOR_1:def 3;
+      per cases;
+      suppose
+A7:     Z is empty;
+        then Y2 = X by A6,A3,SETFAM_1:def 9;
+        hence Y2 in FinMeetCl G by A7,A6,SETFAM_1:def 9,A2;
+      end;
+      suppose
+A8:     Z is non empty;
+        set Z2 = the set of all z \/ Y2 where z is Element of Z;
+        set a = the Element of Z;
+A9:     a \/ Y2 in Z2;
+        Z2 c= bool X
+        proof
+          let t be object;
+          assume t in Z2;
+          then consider u be Element of Z such that
+A10:      t = u \/ Y2;
+A11:      u in Z by A8;
+          u \/ Y2 c= X by XBOOLE_1:8,A11;
+          hence thesis by A10;
+        end;
+        then reconsider Z2 as Subset-Family of X;
+        now
+          now
+            let x be object;
+            assume
+A12:        x in Z2;
+            then reconsider y = x as Subset of X;
+            consider u be Element of Z such that
+A13:        y = u \/ Y2 by A12;
+            u in G by A8,A4;
+            hence x in G by A13,XBOOLE_1:7,A1;
+          end;
+          hence Z2 c= G;
+A14:      Z is finite by A5;
+          deffunc F(Element of Z) = $1 \/ Y2;
+A15:      {F(z) where z is Element of Z:z in Z} is finite
+            from FRAENKEL:sch 21(A14);
+          now
+            thus {F(z) where z is Element of Z:z in Z} c= Z2
+            proof
+              let x be object;
+              assume x in {F(z) where z is Element of Z:z in Z};
+              then ex z be Element of Z st x = F(z) & z in Z;
+              hence thesis;
+            end;
+            thus Z2 c= {F(z) where z is Element of Z:z in Z}
+            proof
+              let x be object;
+              assume x in Z2;
+              then ex z be Element of Z st x = z \/ Y2;
+              hence thesis by A8;
+            end;
+          end;
+          hence Z2 is finite by A15;
+          now
+            thus Y2 c= meet Z2
+            proof
+              let x be object;
+              assume
+A16:          x in Y2;
+              now
+                let YY be set;
+                assume
+A17:            YY in Z2;
+                then reconsider ZZ = YY as Subset of X;
+                consider u be Element of Z such that
+A18:            ZZ = u \/ Y2 by A17;
+                Y2 c= u \/ Y2 by XBOOLE_1:7;
+                hence x in YY by A16,A18;
+              end;
+              hence thesis by A9,SETFAM_1:def 1;
+            end;
+            thus meet Z2 c= Y2
+            proof
+              let x be object;
+              assume
+A19:          x in meet Z2;
+A20:          for z be Element of Z holds x in z \/ Y2
+              proof
+                let z be Element of Z;
+                z \/ Y2 in Z2;
+                hence thesis by A19,SETFAM_1:def 1;
+              end;
+              for z be Element of Z holds (x in z or x in Y2)
+              proof
+                let z be Element of Z;
+                x in z \/ Y2 by A20;
+                hence thesis by XBOOLE_0:def 3;
+              end;
+              then (for z be set st z in Z holds x in z) or x in Y2;
+              then (x in meet Z) or x in Y2 by A8,SETFAM_1:def 1;
+              then x in (meet Z) \/ Y2 by XBOOLE_0:def 3; then
+A21:          x in Y1 \/ Y2 by A8,A6,SETFAM_1:def 9;
+              Y1 \/ Y2 c= Y2 by A3,XBOOLE_1:8;
+              hence thesis by A21;
+            end;
+          end;
+          hence Y2 = Intersect Z2 by A9,SETFAM_1:def 9;
+        end;
+        hence Y2 in FinMeetCl G by CANTOR_1:def 3;
+      end;
+    end;
+    hence thesis;
+  end;
+
+theorem Th4:
+  R is_symmetric_in X implies R~ is_symmetric_in X
+  proof
+    assume
+A1: R is_symmetric_in X;
+    now
+      let x,y be object;
+      assume that
+A2:   x in X and
+A3:   y in X and
+A4:   [x,y] in R~;
+      [y,x] in R by A4,RELAT_1:def 7;
+      then [x,y] in R by A2,A3,A1,RELAT_2:def 3;
+      hence [y,x] in R~ by RELAT_1:def 7;
+    end;
+    hence thesis by RELAT_2:def 3;
+  end;
+
+begin :: Uniform Space Structure
+
+definition
+  struct (1-sorted)
+     UniformSpaceStr
+         (# carrier -> set,
+         entourages -> Subset-Family of [:the carrier,the carrier:] #);
+end;
+
+definition
+  let U be UniformSpaceStr;
+  attr U is void means
+  the entourages of U is empty;
+end;
+
+definition
+  let X be set;
+  func Uniform_Space(X) -> strict UniformSpaceStr equals
+  UniformSpaceStr (# X , {} bool[:X,X:] #);
+  coherence;
+end;
+
+definition
+  func TrivialUniformSpace -> strict UniformSpaceStr equals
+  UniformSpaceStr (# {} , cobool[:{},{}:] #);
+  coherence;
+  func NonEmptyTrivialUniformSpace -> strict UniformSpaceStr means :D1:
+  ex SF being Subset-Family of [:{{}},{{}}:] st SF = {[:{{}},{{}}:]} &
+  it = UniformSpaceStr (#{{}},SF#);
+  existence
+  proof
+    set X = {{}};
+    reconsider SF = {[:X,X:]} as Subset-Family of [:X,X:] by ZFMISC_1:68;
+    take UniformSpaceStr(# X,SF #);
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+registration
+  let X be empty set;
+  cluster Uniform_Space(X) -> empty;
+  coherence;
+end;
+
+registration
+  let X be non empty set;
+  cluster Uniform_Space(X) -> non empty;
+  coherence;
+end;
+
+registration
+  let X be set;
+  cluster Uniform_Space(X) -> void;
+  coherence;
+end;
+
+registration
+  cluster TrivialUniformSpace -> empty non void;
+  coherence;
+  cluster NonEmptyTrivialUniformSpace -> non empty non void;
+  coherence
+  proof
+    ex SF being Subset-Family of [:{{}},{{}}:] st SF = {[:{{}},{{}}:]} &
+    NonEmptyTrivialUniformSpace = UniformSpaceStr (#{{}},SF#) by D1;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster empty strict void for UniformSpaceStr;
+  existence
+  proof
+    take Uniform_Space{};
+    thus thesis;
+  end;
+  cluster empty strict non void for UniformSpaceStr;
+  existence
+  proof
+    take TrivialUniformSpace;
+    thus thesis;
+  end;
+  cluster non empty strict void for UniformSpaceStr;
+  existence
+  proof
+    take Uniform_Space{{}};
+    thus thesis;
+  end;
+  cluster non empty strict non void for UniformSpaceStr;
+  existence
+  proof
+    take NonEmptyTrivialUniformSpace;
+    thus thesis;
+  end;
+end;
+
+definition
+  let X be set, SF be Subset-Family of [:X,X:];
+  func SF[~] -> Subset-Family of [:X,X:] equals
+  the set of all S[~] where S is Element of SF;
+  coherence
+  proof
+    the set of all S[~] where S is Element of SF c= bool [:X,X:]
+    proof
+      let x be object;
+      assume x in the set of all S[~] where S is Element of SF;
+      then ex S be Element of SF st x = S[~];
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let US be UniformSpaceStr;
+  func US[~] -> UniformSpaceStr equals
+  UniformSpaceStr(# the carrier of US, (the entourages of US)[~] #);
+  coherence;
+end;
+
+registration
+  let USS be non empty UniformSpaceStr;
+  cluster USS[~] -> non empty;
+  coherence;
+end;
+
+begin :: Axioms
+
+definition
+  let US be UniformSpaceStr;
+  attr US is upper means
+  the entourages of US is upper;
+  attr US is cap-closed means
+  the entourages of US is cap-closed;
+  attr US is axiom_U1 means
+  for S being Element of the entourages of US holds
+    id the carrier of US c= S;
+  attr US is axiom_U2 means
+  for S being Element of the entourages of US holds
+    S[~] in the entourages of US;
+  attr US is axiom_U3 means
+  for S being Element of the entourages of US holds
+    ex W being Element of the entourages of US st W [*] W c= S;
+end;
+
+theorem Th7:
+  for US being non void UniformSpaceStr holds
+  US is axiom_U1 iff for S being Element of the entourages of US holds
+  ex R being Relation of the carrier of US st R = S &
+  R is_reflexive_in the carrier of US
+  proof
+    let US be non void UniformSpaceStr;
+    US is non void;
+    then reconsider SFX = the entourages of US as non empty
+      Subset-Family of [:the carrier of US,the carrier of US:];
+    hereby
+      assume
+A1:   US is axiom_U1;
+      now
+        let S be Element of the entourages of US;
+        S is Element of SFX;
+        then consider R be Relation of the carrier of US such that
+A2:     R = S;
+        take R;
+        thus R = S by A2;
+        now
+          let x be object;
+          assume x in the carrier of US; then
+A3:       [x,x] in id the carrier of US by RELAT_1:def 10;
+          id the carrier of US c= S by A1;
+          hence [x,x] in R by A3,A2;
+        end;
+        hence R is_reflexive_in the carrier of US by RELAT_2:def 1;
+      end;
+      hence for S being Element of the entourages of US holds
+        ex R being Relation of the carrier of US st (R = S &
+        R is_reflexive_in the carrier of US);
+    end;
+    assume
+A4: for S being Element of the entourages of US ex R being Relation of
+      the carrier of US st (R = S & R is_reflexive_in the carrier of US);
+    now
+      let S be Element of the entourages of US;
+      consider R be Relation of the carrier of US such that
+A5:   R = S and
+A6:   R is_reflexive_in the carrier of US by A4;
+      for x be object st x in the carrier of US holds [x,x] in R
+        by A6,RELAT_2:def 1;
+      hence id the carrier of US c= S by A5,RELAT_1:47;
+    end;
+    hence US is axiom_U1;
+  end;
+
+theorem Th8:
+  for US being non void UniformSpaceStr holds
+  US is axiom_U1 iff for S being Element of the entourages of US
+  ex R being total reflexive Relation of the carrier of US st R = S
+  proof
+    let US be non void UniformSpaceStr;
+    US is non void;
+    then reconsider SFX = the entourages of US as non empty
+      Subset-Family of [:the carrier of US,the carrier of US:];
+    hereby
+      assume
+A2:   US is axiom_U1;
+      hereby
+        let S being Element of the entourages of US;
+        consider R being Relation of the carrier of US such that
+A3:     R = S and
+A4:     R is_reflexive_in the carrier of US by A2,Th7;
+A5:     field R = the carrier of US by A4,PARTIT_2:9;
+        reconsider R as total reflexive Relation of the carrier of US
+          by A5,A4,TAXONOM1:3,PARTFUN1:def 2,RELAT_2:def 9;
+        take R;
+        thus R = S by A3;
+      end;
+    end;
+    assume
+A6: for S being Element of the entourages of US holds
+    ex R being total reflexive Relation of the carrier of US st R = S;
+    now
+      let S being Element of the entourages of US;
+      consider R being total reflexive Relation of the carrier of US such that
+A7:   R = S by A6;
+      reconsider R as Relation of the carrier of US;
+      take R;
+      thus R = S by A7;
+      now
+        let x be object;
+        assume
+A8:     x in the carrier of US;
+        field R = the carrier of US by ORDERS_1:12;
+        hence [x,x] in R by A8,RELAT_2:def 9,RELAT_2:def 1;
+      end;
+      hence R is_reflexive_in the carrier of US by RELAT_2:def 1;
+    end;
+    hence US is axiom_U1 by Th7;
+end;
+
+registration
+  cluster void -> non axiom_U2 for UniformSpaceStr;
+  coherence;
+end;
+
+theorem
+  for US being UniformSpaceStr st US is axiom_U2 holds
+  for S being Element of the entourages of US holds
+  (for x,y being Element of US st [x,y] in S holds
+  [y,x] in union the entourages of US)
+  proof
+    let US be UniformSpaceStr;
+    assume
+A1: US is axiom_U2;
+    let S be Element of the entourages of US;
+    let x,y be Element of US;
+    assume
+A3: [x,y] in S;
+    reconsider SFX = the entourages of US as non empty
+    Subset-Family of [:the carrier of US,the carrier of US:] by A1;
+A6: [y,x] in S~ by A3,RELAT_1:def 7;
+    S~ in the entourages of US by A1;
+    hence thesis by A6,TARSKI:def 4;
+  end;
+
+theorem Th9:
+  for US being non void UniformSpaceStr st
+  for S being Element of the entourages of US holds
+  ex R being Relation of the carrier of US st S = R &
+  R is_symmetric_in the carrier of US holds US is axiom_U2
+  proof
+    let US be non void UniformSpaceStr;
+    assume
+A2: for S being Element of the entourages of US holds
+    ex R being Relation of the carrier of US st S = R &
+    R is_symmetric_in the carrier of US;
+A1: US is non void;
+    US is axiom_U2
+    proof
+      let S be Element of the entourages of US;
+      consider R being Relation of the carrier of US such that
+A3:   S = R and
+A4:   R is_symmetric_in the carrier of US by A2;
+      thus S~ in the entourages of US
+      proof
+        R~ = R
+        proof
+          thus R~ c= R
+          proof
+            let x be object;
+            assume
+A7:         x in R~;
+            then consider a,b be object such that
+A8:         a in the carrier of US and
+A9:         b in the carrier of US and
+A10:        x = [a,b] by ZFMISC_1:def 2;
+            [b,a] in R by A7,A10,RELAT_1:def 7;
+            hence thesis by A10,A4,A8,A9,RELAT_2:def 3;
+          end;
+          let x be object;
+          assume
+A11:      x in R;
+          then consider a,b be object such that
+A12:      a in the carrier of US and
+A13:      b in the carrier of US and
+A14:      x = [a,b] by ZFMISC_1:def 2;
+          [b,a] in R~ by A11,A14,RELAT_1:def 7;
+          hence thesis by Th4,A4,A12,A13,A14,RELAT_2:def 3;
+        end;
+        hence thesis by A1,A3;
+      end;
+    end;
+    hence thesis;
+  end;
+
+theorem Th10:
+  for US being non void UniformSpaceStr st
+  for S being Element of the entourages of US holds
+  ex R being Relation of the carrier of US st S = R &
+  R is symmetric holds US is axiom_U2
+  proof
+    let US be non void UniformSpaceStr;
+    assume
+A2: for S being Element of the entourages of US ex
+    R being Relation of the carrier of US st S = R & R is symmetric;
+    now
+      let S be Element of the entourages of US;
+      consider R being Relation of the carrier of US such that
+B1:   S = R and
+B2:   R is symmetric by A2;
+      take R;
+      thus S = R by B1;
+      for x,y be object st x in the carrier of US & y in the carrier of US &
+      [x,y] in R holds [y,x] in R by B2,PREFER_1:20;
+      hence R is_symmetric_in the carrier of US by RELAT_2:def 3;
+    end;
+    hence thesis by Th9;
+  end;
+
+theorem
+  for US being non void UniformSpaceStr st
+  for S being Element of the entourages of US holds
+  ex R being Tolerance of the carrier of US st S = R holds US is axiom_U1 &
+  US is axiom_U2
+  proof
+    let US be non void UniformSpaceStr;
+    assume
+A2: for S being Element of the entourages of US holds
+    ex R being Tolerance of the carrier of US st S = R;
+    for S being Element of the entourages of US holds
+    ex R being total reflexive Relation of the carrier of US st R = S
+    proof
+      let S be Element of the entourages of US;
+      ex R being Tolerance of the carrier of US st R = S by A2;
+      hence thesis;
+    end;
+    hence US is axiom_U1 by Th8;
+    for S being Element of the entourages of US holds
+    ex R being Relation of the carrier of US st S = R & R is symmetric
+    proof
+      let S be Element of the entourages of US;
+      ex R being Tolerance of the carrier of US st S = R by A2;
+      hence thesis;
+    end;
+    hence US is axiom_U2 by Th10;
+  end;
+
+registration
+  let X be empty set;
+  cluster Uniform_Space(X) ->
+          upper cap-closed axiom_U1 non axiom_U2 axiom_U3;
+  coherence
+  proof
+    set US = Uniform_Space(X);
+    set E = the entourages of US;
+    thus E is upper;
+    thus E is cap-closed
+    proof
+      let Y1,Y2 be Subset of [:the carrier of US,the carrier of US:];
+      thus thesis;
+    end;
+    thus for S being Element of E holds id the carrier of US c= S;
+    thus US is non axiom_U2;
+    let S be Element of E;
+    S [*] S c= S;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster Uniform_Space{{}} -> upper cap-closed non axiom_U2;
+  coherence
+  proof
+    set US = Uniform_Space{{}};
+    set E = the entourages of US;
+    thus E is upper;
+    thus E is cap-closed
+    proof
+      let Y1,Y2 be Subset of [:the carrier of US,the carrier of US:];
+      thus thesis;
+    end;
+    thus US is non axiom_U2;
+  end;
+  cluster TrivialUniformSpace -> upper cap-closed axiom_U1 axiom_U2 axiom_U3;
+  coherence
+  proof
+    set US = TrivialUniformSpace;
+    set E = the entourages of US;
+A1: E = {{}} by ENUMSET1:29;
+    E is upper;
+    hence US is upper;
+    for X,Y be set st X in E & Y in E holds X /\ Y in E;
+    hence US is cap-closed by FINSUB_1:def 2;
+    for S being Element of E holds id the carrier of US c= S;
+    hence US is axiom_U1;
+    now
+      let S be Element of E;
+      S in {{}} by A1;
+      hence S~ in E by A1;
+    end;
+    hence US is axiom_U2;
+    let S be Element of the entourages of US;
+    S [*] S c= S;
+    hence thesis;
+  end;
+  cluster NonEmptyTrivialUniformSpace ->
+          upper cap-closed axiom_U1 axiom_U2 axiom_U3;
+  coherence
+  proof
+    set X = {{}};
+    set US = NonEmptyTrivialUniformSpace;
+    set E = the entourages of US;
+    consider SF being Subset-Family of [:X,X:] such that
+B1: SF = {[:X,X:]} and
+B2: US = UniformSpaceStr (#X,SF#) by D1;
+    for Y1,Y2 be Subset of [:the carrier of US,the carrier of US:] st
+    Y1 in E & Y1 c= Y2 holds Y2 in E
+    proof
+      let Y1,Y2 be Subset of [:the carrier of US,the carrier of US:];
+      assume that
+A2:   Y1 in E and
+A3:   Y1 c= Y2;
+A4:   Y1 = [:X,X:] by B1,B2,A2,TARSKI:def 1;
+      Y1 = Y2 by B2,A3,A4;
+      hence thesis by A2;
+    end;
+    hence E is upper;
+    for a,b be Subset of [:the carrier of US,the carrier of US:] st
+    a in E & b in E holds a /\ b in E
+    proof
+      let a,b be Subset of [:the carrier of US,the carrier of US:];
+      assume that
+A5:   a in E and
+A6:   b in E;
+      a = [:X,X:] & b = [:X,X:] by B1,B2,A5,A6,TARSKI:def 1;
+      hence a /\ b in E by B1,B2,TARSKI:def 1;
+    end;
+    hence US is cap-closed by ROUGHS_4:def 2;
+    for S being Element of E holds id X c= S
+    proof
+      let S be Element of E;
+      S = [:X,X:] by B1,B2,TARSKI:def 1;
+      hence thesis;
+    end;
+    hence US is axiom_U1 by B2;
+    thus for S being Element of E holds S~ in E
+    proof
+      let S be Element of E;
+      S = [:X,X:] by B1,B2,TARSKI:def 1;
+      then S~ = [:X,X:] by SYSREL:5;
+      hence thesis by B1,B2,TARSKI:def 1;
+    end;
+    let S be Element of E;
+    take S;
+    S = [:X,X:] by B1,B2,TARSKI:def 1;
+    hence thesis by B2;
+  end;
+end;
+
+registration
+  cluster strict empty non void upper cap-closed axiom_U1 axiom_U2 axiom_U3
+          for UniformSpaceStr;
+  existence
+  proof
+    take TrivialUniformSpace;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster empty -> axiom_U1 for strict UniformSpaceStr;
+  coherence
+  proof
+    let US be strict UniformSpaceStr;
+    assume US is empty;
+    hence for S being Element of the entourages of US holds
+    id the carrier of US c= S;
+  end;
+end;
+
+registration
+  cluster strict non empty non void upper cap-closed axiom_U1 axiom_U2 axiom_U3
+          for UniformSpaceStr;
+  existence
+  proof
+    take NonEmptyTrivialUniformSpace;
+    thus thesis;
+  end;
+end;
+
+definition
+  let SUS be non empty axiom_U1 UniformSpaceStr,
+      x be Element of SUS,
+      V be Element of the entourages of SUS;
+  func Neighborhood(V,x) -> non empty Subset of SUS equals
+   {y where y is Element of SUS: [x,y] in V};
+  coherence
+  proof
+A1: {y where y is Element of SUS: [x,y] in V} c=
+    the carrier of SUS
+    proof
+      let z be object;
+      assume z in {y where y is Element of SUS: [x,y] in V};
+      then ex y be Element of SUS st z = y & [x,y] in V;
+      hence thesis;
+    end;
+    SUS is axiom_U1; then
+A2: id the carrier of SUS c= V;
+    [x,x] in id the carrier of SUS by RELAT_1:def 10;
+    then x in {y where y is Element of SUS: [x,y] in V} by A2;
+    hence thesis by A1;
+  end;
+end;
+
+theorem
+  for USS being non empty axiom_U1 UniformSpaceStr, x being Element of
+  the carrier of USS, V being Element of the entourages of USS holds
+  x in Neighborhood(V,x)
+  proof
+    let USS be non empty axiom_U1 UniformSpaceStr,
+        x be Element of USS,
+        V be Element of the entourages of USS;
+    USS is axiom_U1; then
+A1: id the carrier of USS c= V;
+    [x,x] in id the carrier of USS by RELAT_1:def 10;
+    hence thesis by A1;
+  end;
+
+definition
+  let USS be cap-closed UniformSpaceStr,
+      V1,V2 be Element of the entourages of USS;
+  redefine func V1 /\ V2 -> Element of the entourages of USS;
+  coherence
+  proof
+    per cases;
+    suppose the entourages of USS is empty;
+      then V1 = {} & V2 = {} by SUBSET_1:def 1;
+      hence thesis;
+    end;
+    suppose
+A1:   the entourages of USS is non empty;
+      USS is cap-closed;
+      hence thesis by A1,FINSUB_1:def 2;
+    end;
+  end;
+end;
+
+theorem Th11:
+  for USS being non empty cap-closed axiom_U1 UniformSpaceStr,
+  x being Element of USS,
+  V,W being Element of the entourages of USS holds
+  Neighborhood(V,x) /\ Neighborhood(W,x) = Neighborhood(V /\ W,x)
+  proof
+    let USS be non empty cap-closed axiom_U1 UniformSpaceStr,
+    x be Element of USS,
+    V,W be Element of the entourages of USS;
+    set NV = Neighborhood(V,x), NW = Neighborhood(W,x),
+       NVW = Neighborhood(V /\ W,x);
+A1: NV /\ NW c= NVW
+    proof
+      let t be object;
+      assume
+A2:   t in NV /\ NW;
+      then t in {y where y is Element of USS: [x,y] in V} by XBOOLE_0:def 4;
+      then consider y1 be Element of USS such that
+A3:   t = y1 and
+A4:   [x,y1] in V;
+      t in {y where y is Element of USS: [x,y] in W} by A2,XBOOLE_0:def 4;
+      then consider y2 be Element of USS such that
+A5:   t = y2 and
+A6:   [x,y2] in W;
+      [x,y1] in V /\ W & [x,y2] in V /\ W by A3,A4,A5,A6,XBOOLE_0:def 4;
+      hence thesis by A3;
+    end;
+    NVW c= NV /\ NW
+    proof
+      let t be object;
+      assume t in NVW;
+      then consider y be Element of USS such that
+A7:   t = y and
+A8:   [x,y] in V /\ W;
+A9:   [x,y] in V & [x,y] in W by A8,XBOOLE_0:def 4; then
+A10:  t in NV by A7;
+      t in {y where y is Element of USS: [x,y] in W} by A7,A9;
+      hence t in NV /\ NW by A10,XBOOLE_0:def 4;
+    end;
+    hence thesis by A1;
+  end;
+
+registration
+  let USS be non empty axiom_U1 UniformSpaceStr;
+  cluster the entourages of USS -> with_non-empty_elements;
+  coherence
+  proof
+    assume not the entourages of USS is with_non-empty_elements; then
+A1: {} in the entourages of USS by SETFAM_1:def 8;
+    USS is axiom_U1;
+    then id the carrier of USS c= {} by A1;
+    hence thesis;
+  end;
+end;
+
+registration
+  let USS be non empty axiom_U1 UniformSpaceStr;
+  cluster the entourages of USS -> non empty;
+  coherence
+  proof
+    assume the entourages of USS is empty;
+    then reconsider S = {} as Element of the entourages of USS
+    by SUBSET_1:def 1;
+    USS is axiom_U1;
+    then id the carrier of USS c= S;
+    hence thesis;
+  end;
+end;
+
+definition
+  let USS be non empty axiom_U1 UniformSpaceStr,x being Point of USS;
+  func Neighborhood(x) -> Subset-Family of USS equals
+  the set of all Neighborhood(V,x) where V is Element of the entourages of USS;
+  coherence
+  proof
+    set SN = the set of all Neighborhood(V,x) where V is Element of
+      the entourages of USS;
+    SN c= bool the carrier of USS
+    proof
+      let t be object;
+      assume t in SN;
+      then ex V be Element of the entourages of USS st t = Neighborhood(V,x);
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let USS be non empty axiom_U1 UniformSpaceStr,x being Point of USS;
+  cluster Neighborhood(x) -> non empty;
+  coherence
+  proof
+    set SN = Neighborhood(x);
+    the entourages of USS is non empty;
+    then consider V0 be object such that
+A2: V0 in the entourages of USS;
+    reconsider V1 = V0 as Element of the entourages of USS by A2;
+    Neighborhood(V1,x) in SN;
+    hence thesis;
+  end;
+end;
+
+theorem
+  for SUS being non empty axiom_U1 UniformSpaceStr, x being Element of
+  the carrier of SUS, V being Element of the entourages of SUS holds
+  Neighborhood(V,x) = V.:{x} & Neighborhood(V,x) = rng(V|{x}) &
+  Neighborhood(V,x) = Im(V,x) & Neighborhood(V,x) = Class(V,x) &
+  Neighborhood(V,x) = neighbourhood(x,V)
+  proof
+    let SUS be non empty axiom_U1 UniformSpaceStr, x be Element of
+      the carrier of SUS, V be Element of the entourages of SUS;
+    thus Neighborhood(V,x) = V.:{x}
+    proof
+      thus Neighborhood(V,x) c= V.:{x}
+      proof
+        let t be object;
+        assume t in Neighborhood(V,x);
+        then consider y be Element of SUS such that
+A3:     t = y and
+A4:     [x,y] in V;
+        x in {x} by TARSKI:def 1;
+        hence thesis by A3,A4,RELAT_1:def 13;
+      end;
+      let t be object;
+      assume t in V.:{x};
+      then consider v be object such that
+A5:   [v,t] in V and
+A6:   v in {x} by RELAT_1:def 13;
+A7:   t in the carrier of SUS by A5,ZFMISC_1:87;
+      [x,t] in V by A5,A6,TARSKI:def 1;
+      hence thesis by A7;
+    end;
+    hence thesis by RELAT_1:115;
+  end;
+
+definition
+  let USS be non empty axiom_U1 UniformSpaceStr;
+  func Neighborhood(USS) -> Function of the carrier of USS,bool bool
+    the carrier of USS means :Def5:
+  for x being Element of USS holds it.x = Neighborhood(x);
+  existence
+  proof
+    defpred P[object,object] means ex x be Element of USS st
+      x = $1 & $2 = Neighborhood(x);
+A1: for x be object st x in the carrier of USS ex y be object st
+      y in bool bool the carrier of USS & P[x,y]
+    proof
+      let x be object;
+      assume x in the carrier of USS;
+      then reconsider y = x as Element of USS;
+      take z = Neighborhood(y);
+      thus z in bool bool the carrier of USS;
+      thus P[x,z];
+    end;
+    consider f be Function of the carrier of USS, bool bool the carrier of USS
+    such that
+A2: for x be object st x in the carrier of USS holds P[x,f.x]
+      from FUNCT_2:sch 1(A1);
+    take f;
+    hereby
+      let x be Element of USS;
+      P[x,f.x] by A2;
+      hence f.x = Neighborhood(x);
+    end;
+  end;
+  uniqueness
+  proof
+    let F1,F2 be Function of the carrier of USS,bool bool the carrier of USS
+    such that
+A3: for x be Element of USS holds
+    F1.x = Neighborhood(x) and
+A4: for x be Element of USS holds
+    F2.x = Neighborhood(x);
+    now
+      thus dom F1 = the carrier of USS by FUNCT_2:def 1
+                 .= dom F2 by FUNCT_2:def 1;
+      hereby
+        let x be object;
+        assume x in dom F1;
+        then reconsider y = x as Element of USS;
+        F1.y = Neighborhood(y) by A3;
+        hence F1.x = F2.x by A4;
+      end;
+    end;
+    hence thesis by FUNCT_1:def 11;
+  end;
+end;
+
+definition
+  let USS be non empty axiom_U1 UniformSpaceStr;
+  attr USS is topological means
+  FMT_Space_Str(# the carrier of USS,Neighborhood(USS) #) is FMT_TopSpace;
+end;
+
+begin :: Quasi-Uniform Space
+
+definition
+  mode Quasi-UniformSpace is upper cap-closed axiom_U1 axiom_U3
+       UniformSpaceStr;
+end;
+
+reserve QUS for Quasi-UniformSpace;
+
+theorem
+  the entourages of QUS is empty implies the entourages of QUS[~] = {{}}
+  proof
+    assume
+A1: the entourages of QUS is empty;
+    reconsider EQUS = the entourages of QUS as Subset-Family of
+    [:the carrier of QUS,the carrier of QUS:];
+    set X = the set of all U~ where U is Element of the entourages of QUS;
+    X = {{}}
+    proof
+      thus X c= {{}}
+      proof
+        let x be object;
+        assume x in X;
+        then consider U be Element of the entourages of QUS such that
+A11:    x = U~;
+        U = {} by A1,SUBSET_1:def 1;
+        then x = {} by A11;
+        hence thesis by TARSKI:def 1;
+      end;
+      let x be object;
+      assume x in {{}}; then
+A14:  x = {} by TARSKI:def 1;
+      then reconsider y = x as Element of the entourages of QUS
+        by A1,SUBSET_1:def 1;
+      y~ = {} by A14;
+      hence thesis by A14;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  the entourages of QUS[~] = {{}} & the entourages of QUS[~] is upper
+  implies the carrier of QUS is empty
+  proof
+    assume that
+A1: the entourages of QUS[~] = {{}} and
+A2: the entourages of QUS[~] is upper;
+    reconsider X = the carrier of QUS as set;
+    [:X,X:] c= [:the carrier of QUS[~],the carrier of QUS[~]:];
+    then reconsider XX =
+      [:X,X:] as Subset of [:the carrier of QUS[~],the carrier of QUS[~]:];
+    {} c= [:the carrier of QUS[~],the carrier of QUS[~]:];
+    then reconsider Y =
+      {} as Subset of [:the carrier of QUS[~],the carrier of QUS[~]:];
+    Y in the entourages of QUS[~] & Y c= XX by A1,TARSKI:def 1;
+    then XX in the entourages of QUS[~] by A2;
+    hence thesis by A1,TARSKI:def 1;
+  end;
+
+registration
+  let QUS be non void Quasi-UniformSpace;
+  cluster QUS[~] -> upper cap-closed axiom_U1 axiom_U3;
+  coherence
+  proof
+A1: QUS is non void;
+    reconsider EQUS = the entourages of QUS as Subset-Family of
+    [:the carrier of QUS,the carrier of QUS:];
+A10: the entourages of QUS[~] is non empty
+    proof
+      assume
+A11:  the entourages of QUS[~] is empty;
+      set S = the Element of the entourages of QUS;
+      reconsider S as Element of the entourages of QUS;
+      S~ in (the entourages of QUS)[~];
+      hence contradiction by A11;
+    end;
+    for Y1,Y2 being Subset of [:the carrier of QUS[~],the carrier of QUS[~]:]
+    st Y1 in the entourages of QUS[~] & Y1 c= Y2 holds Y2 in
+    the entourages of QUS[~]
+    proof
+      let Y1,Y2 be Subset of [:the carrier of QUS[~],the carrier of QUS[~]:];
+      assume that
+A12:  Y1 in the entourages of QUS[~] and
+A13:  Y1 c= Y2;
+      consider U1 be Element of the entourages of QUS such that
+A14:  Y1 = U1~ by A12;
+A15:  Y1~ = U1 by A14;
+      QUS is upper;
+      then reconsider U2 = Y2~ as Element of the entourages of QUS
+      by A13,SYSREL:11,A15,CARDFIL2:def 1,A1;
+      consider R2 be Relation of the carrier of QUS such that
+A16:  Y2 = R2 and
+      Y2~ = R2~;
+      U2~ = (R2~)~ by A16;
+      hence thesis;
+    end;
+    then the entourages of QUS[~] is upper;
+    hence QUS[~] is upper;
+    for Y1,Y2 be set st
+    Y1 in the entourages of QUS[~] & Y2 in the entourages of QUS[~]
+    holds Y1 /\ Y2 in the entourages of QUS[~]
+    proof
+      let Y1,Y2 be set;
+      assume that
+A17:  Y1 in the entourages of QUS[~] and
+A18:  Y2 in the entourages of QUS[~];
+      consider U1 be Element of the entourages of QUS such that
+A19:  Y1 = U1~ by A17;
+      consider U2 be Element of the entourages of QUS such that
+A20:  Y2 = U2~ by A18;
+      reconsider U12 = U1 /\ U2 as Element of the entourages of QUS;
+      Y1 /\ Y2 = U12~ by A19,A20,RELAT_1:22;
+      hence thesis;
+    end;
+    hence QUS[~] is cap-closed by FINSUB_1:def 2;
+    thus for S being Element of the entourages of QUS[~] holds
+    id the carrier of QUS[~] c= S
+    proof
+      let S be Element of the entourages of QUS[~];
+      S in the set of all U~ where U is Element of the entourages of QUS
+      by A10;
+      then consider U be Element of the entourages of QUS such that
+A21:  S = U~;
+      QUS is axiom_U1;
+      then (id the carrier of QUS)~ c= U~ by SYSREL:11;
+      hence thesis by A21;
+    end;
+    thus for S being Element of the entourages of QUS[~] holds
+    ex W being Element of the entourages of QUS[~] st W * W c= S
+    proof
+      let S be Element of the entourages of QUS[~];
+      S in the entourages of QUS[~] by A10;
+      then consider U be Element of the entourages of QUS such that
+A24:  S = U~;
+      QUS is axiom_U3;
+      then consider W be Element of the entourages of QUS such that
+A27:  W * W c= U;
+      W~ in (the entourages of QUS)[~];
+      then reconsider W2 = W[~] as Element of the entourages of QUS[~];
+      take W2;
+      let t be object;
+      assume
+A30:  t in W2 * W2;
+      t in {[x,y] where x,y is Element of QUS :
+      ex z being Element of QUS st [x,z] in W2 & [z,y] in W2} by A30,Th3;
+      then consider x,y be Element of QUS such that
+A34:  t = [x,y] and
+A35:  ex z being Element of QUS st [x,z] in W2 &
+      [z,y] in W2;
+      consider z be Element of QUS such that
+A36:  [x,z] in W2 and
+A37:  [z,y] in W2 by A35;
+A38:  [z,x] in W~ ~ by A36,RELAT_1:def 7;
+      [y,z] in W~ ~ by A37,RELAT_1:def 7;
+      then [y,x] in W * W by A38,RELAT_1:def 8;
+      hence thesis by A24,A34,A27,RELAT_1:def 7;
+    end;
+  end;
+end;
+
+definition
+  let X be set, cB be Subset-Family of [:X,X:];
+  attr cB is axiom_UP1 means
+    for B being Element of cB holds id X c= B;
+  attr cB is axiom_UP3 means
+    for B1 being Element of cB ex B2 being Element of cB st B2 [*] B2 c= B1;
+end;
+
+theorem
+  for X being non empty set,cB being empty Subset-Family of [:X,X:] holds
+  not cB is axiom_UP1
+  proof
+    let X be non empty set,
+    cB be empty Subset-Family of [:X,X:];
+    assume
+A1: cB is axiom_UP1;
+    {} is Element of cB by SUBSET_1:def 1;
+    then id X c= {} by A1;
+    hence thesis;
+  end;
+
+theorem Th11bis:
+  for X being set,cB being Subset-Family of [:X,X:] st cB is quasi_basis &
+  cB is axiom_UP1 & cB is axiom_UP3 holds
+  UniformSpaceStr(# X,<.cB.] #) is Quasi-UniformSpace
+  proof
+    let X be set, cB be Subset-Family of [:X,X:];
+    assume that
+A1: cB is quasi_basis and
+A2: cB is axiom_UP1 and
+A4: cB is axiom_UP3;
+    set US = UniformSpaceStr(# X,<.cB.] #);
+A5: <.cB.] = {x where x is Subset of [:X,X:]: ex b be Element of cB st
+    b c= x} by CARDFIL2:14;
+    now
+      for Y1,Y2 being Subset of [:X,X:] st Y1 in <.cB.] & Y1 c= Y2 holds
+      Y2 in <.cB.]
+      proof
+        let Y1,Y2 be Subset of [:X,X:];
+        assume that
+A6:     Y1 in <.cB.] and
+A7:     Y1 c= Y2;
+        consider x be Subset of [:X,X:] such that
+A8:     Y1 = x and
+A9:     ex b be Element of cB st b c= x by A5,A6;
+        consider B be Element of cB such that
+A10:    B c= x by A9;
+        B c= Y2 by A10,A8,A7;
+        hence thesis by A5;
+      end;
+      then <.cB.] is upper;
+      hence US is upper;
+      for Y1,Y2 be set st Y1 in <.cB.] & Y2 in <.cB.] holds Y1 /\ Y2 in <.cB.]
+      proof
+        let Y1,Y2 be set;
+        assume that
+A11:    Y1 in <.cB.] and
+A12:    Y2 in <.cB.];
+        consider x be Subset of [:X,X:] such that
+A13:    Y1 = x and
+A14:    ex b be Element of cB st b c= x by A5,A11;
+        consider B1 be Element of cB such that
+A15:    B1 c= x by A14;
+        Y2 in {x where x is Subset of [:X,X:]: ex b be Element of cB st
+        b c= x} by CARDFIL2:14,A12;
+        then consider y be Subset of [:X,X:] such that
+A16:    Y2 = y and
+A17:    ex b be Element of cB st b c= y;
+        consider B2 be Element of cB such that
+A18:    B2 c= y by A17;
+A19:    B1 /\ B2 c= Y1 /\ Y2 by A13,A15,A18,A16,XBOOLE_1:27;
+        consider B3 be Element of cB such that
+A20:    B3 c= B1 /\ B2 by A1;
+A21:    Y1 /\ Y2 c= [:X,X:] /\ [:X,X:] by A11,A12,XBOOLE_1:27;
+        B3 c= Y1 /\ Y2 by A20,A19;
+        hence thesis by A5,A21;
+      end;
+      hence US is cap-closed by FINSUB_1:def 2;
+      for S being Element of <.cB.] holds id X c= S
+      proof
+        let S be Element of <.cB.];
+        S in {x where x is Subset of [:X,X:]: ex b be Element of cB st
+        b c= x} by A5;
+        then consider x be Subset of [:X,X:] such that
+A22:    S = x and
+A23:    ex b be Element of cB st b c= x;
+        consider B be Element of cB such that
+A24:    B c= x by A23;
+        id X c= B by A2;
+        hence thesis by A24,A22;
+      end;
+      hence US is axiom_U1;
+      for S being Element of the entourages of US ex W being
+        Element of the entourages of US st W * W c= S
+      proof
+        let S be Element of the entourages of US;
+        S in <.cB.];
+        then consider B1 be Element of cB such that
+A31:    B1 c= S by CARDFIL2:def 8;
+        consider B2 be Element of cB such that
+A32:    B2 * B2 c= B1 by A4;
+        per cases;
+        suppose
+A34:      cB is empty; then
+A35:      B2 = {} by SUBSET_1:def 1;
+          {} c= [:X,X:];
+          then reconsider B2 as Element of the entourages of US
+            by A35,A34,CARDFIL2:15;
+          B2 * B2 c= S by A35;
+          hence thesis;
+        end;
+        suppose
+A36:      cB is non empty;
+          cB c= <.cB.] by CARDFIL2:18;
+          then reconsider W = B2 as Element of the entourages of US by A36;
+          W * W c= S by A31,A32;
+          hence thesis;
+        end;
+      end;
+      hence US is axiom_U3;
+    end;
+    hence thesis;
+  end;
+
+begin :: Semi-Uniform space
+
+definition
+  mode Semi-UniformSpace is upper cap-closed axiom_U1 axiom_U2 UniformSpaceStr;
+end;
+
+reserve SUS for Semi-UniformSpace;
+
+registration
+  cluster -> non void for Semi-UniformSpace;
+  coherence;
+end;
+
+theorem Th12:
+  SUS is empty implies {} in the entourages of SUS
+  proof
+    assume
+A1: SUS is empty;
+    assume
+A2: not {} in the entourages of SUS;
+    SUS is non void;
+    then the entourages of SUS is non empty;
+    hence thesis by A1,A2;
+  end;
+
+registration
+  let SUS be empty Semi-UniformSpace;
+  cluster the entourages of SUS -> with_empty_element;
+  coherence by Th12,SETFAM_1:def 8;
+end;
+
+begin :: Locally Uniform Space
+
+definition
+  let SUS be non empty Semi-UniformSpace;
+  attr SUS is axiom_UL means
+  for S being Element of the entourages of SUS,
+    x being Element of SUS holds
+    ex W being Element of the entourages of SUS st
+   {y where y is Element of SUS: [x,y] in W [*] W} c= Neighborhood(S,x);
+end;
+
+registration
+  cluster axiom_U3 -> axiom_UL for non empty Semi-UniformSpace;
+  coherence
+  proof
+    let US be non empty Semi-UniformSpace;
+    assume
+A1: US is axiom_U3;
+    let S be Element of the entourages of US,
+    x be Element of US;
+    consider W be Element of the entourages of US such that
+A2: W * W c= S by A1;
+    {y where y is Element of US: [x,y] in W * W} c=
+    Neighborhood(S,x)
+    proof
+      let t be object;
+      assume t in {y where y is Element of US: [x,y] in W * W};
+      then ex y0 be Element of US st t = y0 & [x,y0] in W * W;
+      hence thesis by A2;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster axiom_UL for non empty Semi-UniformSpace;
+  existence
+  proof
+    take the axiom_U3 non empty Semi-UniformSpace;
+    thus thesis;
+  end;
+end;
+
+definition
+  mode Locally-UniformSpace is axiom_UL non empty Semi-UniformSpace;
+end;
+
+theorem Th15:
+  for USS being non empty upper axiom_U1 UniformSpaceStr, x being Element of
+    the carrier of USS holds Neighborhood(x) is upper
+  proof
+    let US be non empty upper axiom_U1 UniformSpaceStr,
+        x be Element of US;
+    set N = Neighborhood(x);
+    now
+      let S1,S2 be Subset of US;
+      assume that
+A1:   S1 in N and
+A2:   S1 c= S2;
+      consider V1 be Element of the entourages of US such that
+A3:   S1 = Neighborhood(V1,x) by A1;
+A4:   V1 c= [:{x},S1:] \/ ([:the carrier of US,the carrier of US:] \
+        [:{x},the carrier of US:])
+      proof
+        let t be object;
+        assume
+A5:     t in V1;
+        consider a,b be object such that
+        a in the carrier of US and
+A7:     b in the carrier of US and
+A8:     t = [a,b] by A5,ZFMISC_1:def 2;
+        reconsider b as Element of US by A7;
+        per cases;
+        suppose
+A9:       x = a;
+          then x in {x} & b in S1 by A3,A5,A8,TARSKI:def 1; then
+A10:      t in [:{x},S1:] by A9,A8,ZFMISC_1:def 2;
+          [:{x},S1:] c= [:{x},S1:] \/
+          ([:the carrier of US,the carrier of US:] \ [:{x},the carrier of US:])
+            by XBOOLE_1:7;
+          hence thesis by A10;
+        end;
+        suppose
+A11:      not x = a;
+A12:      not [a,b] in [:{x},the carrier of US:]
+          proof
+            assume [a,b] in [:{x},the carrier of US:];
+            then ex c,d be object st c in {x} & d in the carrier of US &
+             [a,b] = [c,d] by ZFMISC_1:def 2;
+            then a in {x} & b in the carrier of US by XTUPLE_0:1;
+            hence thesis by A11,TARSKI:def 1;
+          end;
+A13:      t in ([:the carrier of US,the carrier of US:] \
+            [:{x},the carrier of US:]) by A5,A12,A8,XBOOLE_0:def 5;
+          [:the carrier of US,the carrier of US:] \ [:{x},the carrier of US:]
+            c= [:{x},S1:] \/ ([:the carrier of US,the carrier of US:] \
+               [:{x},the carrier of US:]) by XBOOLE_1:7;
+          hence thesis by A13;
+        end;
+      end;
+      reconsider V2 = [:{x},S2:] \/ ([:the carrier of US,the carrier of US:]
+        \ [:{x},the carrier of US:]) as Subset of
+        [:the carrier of US,the carrier of US:];
+A15:  V1 c= V2
+      proof
+        [:{x},S1:] c= [:{x},S2:] by A2,ZFMISC_1:95;
+        then [:{x},S1:] \/ ([:the carrier of US,the carrier of US:] \
+          [:{x},the carrier of US:]) c= [:{x},S2:] \/
+          ([:the carrier of US,the carrier of US:] \
+          [:{x},the carrier of US:]) by XBOOLE_1:9;
+        hence thesis by A4;
+      end;
+      US is upper;
+      then the entourages of US is upper;
+      then reconsider V2 as Element of the entourages of US by A15;
+      S2 = Neighborhood(V2,x)
+      proof
+A16:   S2 c= Neighborhood(V2,x)
+       proof
+         let t be object;
+         assume
+A17:     t in S2;
+         then reconsider t1 = t as Element of US;
+A18:     x in {x} by TARSKI:def 1;
+         [x,t1] in [:{x},S2:] by A17,A18,ZFMISC_1:def 2;
+         then [x,t1] in V2 by XBOOLE_0:def 3;
+         hence thesis;
+       end;
+       Neighborhood(V2,x) c= S2
+       proof
+         let t be object;
+         assume t in Neighborhood(V2,x);
+         then ex y0 be Element of US st t = y0 & [x,y0] in V2;
+         then per cases by XBOOLE_0:def 3;
+         suppose [x,t] in [:{x},S2:];
+           then ex a,b be object st a in {x} & b in S2 & [x,t] = [a,b]
+              by ZFMISC_1:def 2;
+           hence thesis by XTUPLE_0:1;
+         end;
+         suppose
+A19:       [x,t] in [:the carrier of US,the carrier of US:] \
+             [:{x},the carrier of US:];
+           then ex a,b be object st a in the carrier of US &
+             b in the carrier of US & [x,t] = [a,b] by ZFMISC_1:def 2; then
+A20:       t in the carrier of US by XTUPLE_0:1;
+           x in {x} by TARSKI:def 1;
+           then [x,t] in [:{x},the carrier of US:] by A20,ZFMISC_1:def 2;
+           hence thesis by A19,XBOOLE_0:def 5;
+         end;
+       end;
+       hence thesis by A16;
+     end;
+     hence S2 in N;
+   end;
+   hence thesis;
+  end;
+
+theorem Th16:
+  for US being non empty axiom_U1 UniformSpaceStr,
+  x being Element of US,
+  V being Element of the entourages of US holds x in Neighborhood(V,x)
+  proof
+    let US be non empty axiom_U1 UniformSpaceStr,
+    x be Element of US,
+    V be Element of the entourages of US;
+    US is axiom_U1; then
+A1: id the carrier of US c= V;
+    [x,x] in id the carrier of US by RELAT_1:def 10;
+    hence thesis by A1;
+  end;
+
+theorem Th17:
+  for US being non empty cap-closed axiom_U1 UniformSpaceStr,
+  x being Element of US holds Neighborhood(x) is cap-closed
+  proof
+    let US be non empty cap-closed axiom_U1 UniformSpaceStr,
+    x be Element of US;
+    set N = Neighborhood(x);
+    now
+      let Y1,Y2 be set;
+      assume that
+A1:   Y1 in N and
+A2:   Y2 in N;
+      consider V1 be Element of the entourages of US such that
+A3:   Y1 = Neighborhood(V1,x) by A1;
+      consider V2 be Element of the entourages of US such that
+A4:   Y2 = Neighborhood(V2,x) by A2;
+      Y1 /\ Y2 = Neighborhood(V1 /\ V2,x) by A3,A4,Th11;
+      hence Y1 /\ Y2 in N;
+    end;
+    hence thesis by FINSUB_1:def 2;
+  end;
+
+theorem Th18:
+  for US being non empty upper cap-closed axiom_U1 UniformSpaceStr,
+  x being Element of US holds
+  Neighborhood(x) is Filter of the carrier of US
+  proof
+    let US be non empty upper cap-closed axiom_U1 UniformSpaceStr,
+    x be Element of US;
+    set N = Neighborhood(x);
+    now
+      thus not {} in N
+      proof
+        assume {} in N;
+        then ex V be Element of the entourages of US st {} = Neighborhood(V,x);
+        hence thesis;
+      end;
+      hereby
+        let Y1,Y2 be Subset of US;
+        hereby
+          assume that
+A1:       Y1 in N and
+A2:       Y2 in N;
+          N is cap-closed by Th17;
+          hence Y1 /\ Y2 in N by A1,A2,FINSUB_1:def 2;
+        end;
+        hereby
+          assume that
+A3:       Y1 in N and
+A4:       Y1 c= Y2;
+          N is upper by Th15;
+          hence Y2 in N by A3,A4;
+        end;
+      end;
+    end;
+    hence thesis by CARD_FIL:def 1;
+  end;
+
+registration
+  cluster -> topological for Locally-UniformSpace;
+  coherence
+  proof
+    let LUS be Locally-UniformSpace;
+    set UT = FMT_Space_Str(# the carrier of LUS,Neighborhood(LUS) #);
+    reconsider UT as non empty strict FMT_Space_Str;
+A1: for x be Element of UT ex y be Element of LUS st
+    x = y & U_FMT x = Neighborhood(y)
+    proof
+      let x be Element of UT;
+      U_FMT x = (the BNbd of UT).x by FINTOPO2:def 6;
+      then consider y be Element of LUS such that
+A2:   x = y and
+A3:   U_FMT x = (Neighborhood(LUS)).y;
+      (Neighborhood(LUS)).y = Neighborhood(y) by Def5;
+      hence thesis by A2,A3;
+    end;
+    now
+      for x being Element of UT,V being Element of U_FMT x
+      ex W being Element of U_FMT x st for y being Element of UT st
+      y is Element of W holds V is Element of U_FMT y
+      proof
+        let x be Element of UT,V be Element of U_FMT x;
+        consider y be Element of LUS such that
+        x = y and
+A4:     U_FMT x = Neighborhood y by A1;
+A5:     V in Neighborhood y by A4;
+        then consider V0 be Element of the entourages of LUS such that
+A6:     V = Neighborhood(V0,y);
+        LUS is axiom_UL;
+        then consider W being Element of the entourages of LUS such that
+A7:     {z where z is Element of LUS: [y,z] in W * W} c=
+           Neighborhood(V0,y);
+        Neighborhood(W,y) in the set of all Neighborhood(V,y) where
+          V is Element of the entourages of LUS;
+        then reconsider WN = Neighborhood(W,y) as Element of Neighborhood y;
+A8:     for t,z be object st [y,t] in W & [t,z] in W holds [y,z] in V0
+        proof
+          let t,z be object;
+          assume that
+A9:       [y,t] in W and
+A10:      [t,z] in W;
+          consider R1,R2 being Relation of the carrier of LUS such that
+A11:      W = R1 and
+A12:      W = R2 and
+          W * W = R1 * R2;
+AAA:      [y,z] in R1 * R2 by A9,A10,A11,A12,RELAT_1:def 8;
+          consider a,b be object such that
+          a in the carrier of LUS and
+A12B:     b in the carrier of LUS and
+A12C:     [t,z] = [a,b] by A10,ZFMISC_1:def 2;
+          reconsider z as Element of LUS by A12C,A12B,XTUPLE_0:1;
+          z in {z where z is Element of LUS: [y,z] in W * W} by AAA,A11,A12;
+          then z in Neighborhood(V0,y) by A7;
+          then ex z0 be Element of LUS st z = z0 & [y,z0] in V0;
+          hence thesis;
+        end;
+        reconsider WN as Element of U_FMT x by A4;
+        take WN;
+        hereby
+          let z be Element of UT;
+          assume z is Element of WN;
+          then z in {z where z is Element of LUS: [y,z] in W};
+          then consider z0 be Element of LUS such that
+A13:      z = z0 and
+A14:      [y,z0] in W;
+          consider z1 be Element of LUS such that
+A15:      z = z1 and
+A16:      U_FMT z = Neighborhood z1 by A1;
+A17:      Neighborhood(W,z1) c= Neighborhood(V0,y)
+          proof
+            let t be object;
+            assume t in Neighborhood(W,z1);
+            then consider y0 be Element of LUS such that
+A18:        t = y0 and
+A19:        [z1,y0] in W;
+            [y,t] in V0 by A18,A19,A15,A13,A14,A8;
+            hence thesis by A18;
+          end;
+          Neighborhood(W,z1) in Neighborhood(z1);
+          then reconsider WW = Neighborhood(W,z1) as
+            Element of Neighborhood z1;
+          reconsider WW2 = WW,V2 = V as Subset of LUS by A5;
+A20:      WW2 c= V2 by A6,A17;
+          Neighborhood z1 is upper by Th15;
+          hence V is Element of U_FMT z by A16,A20;
+        end;
+      end;
+      hence UT is U_FMT_local;
+      for x being Element of UT, V being Element of U_FMT x holds x in V
+      proof
+        let x be Element of UT,V be Element of U_FMT x;
+        consider y be Element of LUS such that
+A21:    x = y and
+A22:    U_FMT x = Neighborhood y by A1;
+        V in the set of all Neighborhood(V,y) where
+        V is Element of the entourages of LUS by A22;
+        then ex W be Element of the entourages of LUS st V = Neighborhood(W,y);
+        hence thesis by A21,Th16;
+      end;
+      hence UT is U_FMT_with_point;
+      for x being Element of UT holds U_FMT x is Filter of the carrier of UT
+      proof
+        let x be Element of UT;
+        ex y be Element of LUS st x = y &
+          U_FMT x =Neighborhood y by A1;
+        hence thesis by Th18;
+      end;
+      hence UT is U_FMT_filter;
+    end;
+    hence thesis;
+  end;
+end;
+
+begin :: Topological Space induced by a Uniform Space Structure
+
+definition
+  let USS be topological non empty axiom_U1 UniformSpaceStr;
+  func FMT_induced_by(USS) -> non empty strict FMT_TopSpace equals
+    FMT_Space_Str(# the carrier of USS,Neighborhood(USS) #);
+  coherence
+  proof
+    USS is topological;
+    hence thesis;
+  end;
+end;
+
+definition
+  let USS be topological non empty axiom_U1 UniformSpaceStr;
+  func TopSpace_induced_by(USS) -> TopSpace equals
+  FMT2TopSpace FMT_induced_by(USS);
+  coherence;
+end;
+
+begin :: The quasi-uniform Pervin Space induced by a topological space
+
+definition
+  let X be set, A be Subset of X;
+  func block_Pervin_quasi_uniformity(A) -> Subset of [:X,X:] equals
+  [:X \ A,X:] \/ [:X,A:];
+  coherence
+  proof
+A1: [:X \ A,X:] c= [:X,X:] by ZFMISC_1:95;
+    [:X,A:] c= [:X,X:] by ZFMISC_1:95;
+    hence thesis by A1,XBOOLE_1:8;
+  end;
+end;
+
+theorem Th20:
+  id X c= block_Pervin_quasi_uniformity(A) &
+  (block_Pervin_quasi_uniformity(A)) * (block_Pervin_quasi_uniformity(A))
+  c= block_Pervin_quasi_uniformity(A)
+  proof
+    thus id X c= block_Pervin_quasi_uniformity(A)
+    proof
+      let t be object;
+      assume
+A1:   t in id X;
+      then consider a,b be object such that
+A2:   t = [a,b] by RELAT_1:def 1;
+A3:   a in X & a = b by A1,A2,RELAT_1:def 10;
+      per cases;
+      suppose a in A;
+        then a in A & b in A by A1,A2,RELAT_1:def 10; then
+A4:     [a,b] in [:A,A:] by ZFMISC_1:def 2;
+A5:     [:A,A:] c= [:X,A:] by ZFMISC_1:96;
+        [:X,A:] c= block_Pervin_quasi_uniformity(A) by XBOOLE_1:7;
+        hence thesis by A4,A2,A5;
+      end;
+      suppose not a in A;
+        then a in X \ A by A3,XBOOLE_0:def 5; then
+A6:     t in [:X \ A,X:] by A2,A3,ZFMISC_1:def 2;
+        [:X \ A,X:] c= block_Pervin_quasi_uniformity(A) by XBOOLE_1:7;
+        hence thesis by A6;
+      end;
+    end;
+    now
+      let t be object;
+      assume
+A7:   t in (block_Pervin_quasi_uniformity(A)) *
+        (block_Pervin_quasi_uniformity(A));
+      then consider a,b be object such that
+A8:   t = [a,b] by RELAT_1:def 1;
+      [a,b] in {[x,y] where x,y is Element of X : ex z being Element of X st
+      [x,z] in block_Pervin_quasi_uniformity(A) &
+      [z,y] in block_Pervin_quasi_uniformity(A)} by A8,A7,Th3;
+      then consider x,y be Element of X such that
+A9:   [a,b] = [x,y] and
+A10:  ex z being Element of X st [x,z] in block_Pervin_quasi_uniformity(A)
+        & [z,y] in block_Pervin_quasi_uniformity(A);
+      consider z being Element of X such that
+A11:  [x,z] in block_Pervin_quasi_uniformity(A)  and
+A12:  [z,y] in block_Pervin_quasi_uniformity(A) by A10;
+      per cases;
+      suppose
+A13:    x in A;
+        [x,z] in [:A,A:]
+        proof
+          per cases by A11,XBOOLE_0:def 3;
+          suppose [x,z] in [:X \ A,X:];
+            then x in X \ A by ZFMISC_1:87;
+            hence thesis by A13,XBOOLE_0:def 5;
+          end;
+          suppose [x,z] in [:X,A:];
+            then x in X & z in A by ZFMISC_1:87;
+            hence thesis by A13,ZFMISC_1:87;
+          end;
+        end;
+        then
+A14:    z in A by ZFMISC_1:87;
+        [z,y] in [:A,A:]
+        proof
+          per cases by A12,XBOOLE_0:def 3;
+          suppose [z,y] in [:X \ A,X:];
+            then z in X \ A & y in X by ZFMISC_1:87;
+            hence thesis by A14,XBOOLE_0:def 5;
+          end;
+          suppose [z,y] in [:X,A:];
+            then y in A by ZFMISC_1:87;
+            hence thesis by A14,ZFMISC_1:87;
+          end;
+        end;
+        then y in A by ZFMISC_1:87; then
+A15:    [x,y] in [:X,A:] by ZFMISC_1:def 2;
+        [:X,A:] c= block_Pervin_quasi_uniformity(A) by XBOOLE_1:7;
+        hence t in block_Pervin_quasi_uniformity(A) by A8,A9,A15;
+      end;
+      suppose
+A16:    not x in A;
+        per cases;
+        suppose
+          X is empty;
+          hence t in block_Pervin_quasi_uniformity(A) by A12;
+        end;
+        suppose
+          X is non empty;
+          then x in X \ A by A16,XBOOLE_0:def 5; then
+A17:      t in [:X \ A,X:] by A8,A9,ZFMISC_1:87;
+          [:X \ A,X:] c= block_Pervin_quasi_uniformity(A) by XBOOLE_1:7;
+          hence t in block_Pervin_quasi_uniformity(A) by A17;
+        end;
+      end;
+    end;
+    hence thesis;
+  end;
+
+definition
+  let T be TopSpace;
+  func subbasis_Pervin_quasi_uniformity(T) ->
+    Subset-Family of [:the carrier of T,the carrier of T:] equals
+  the set of all block_Pervin_quasi_uniformity(O) where
+    O is Element of the topology of T;
+  coherence
+  proof
+    the set of all block_Pervin_quasi_uniformity(O) where
+      O is Element of the topology of T
+      c= bool [:the carrier of T,the carrier of T:]
+    proof
+      let x be object;
+      assume x in the set of all block_Pervin_quasi_uniformity(O) where
+        O is Element of the topology of T;
+      then ex O be Element of the topology of T st
+        x = block_Pervin_quasi_uniformity(O);
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let T be non empty TopSpace;
+  cluster subbasis_Pervin_quasi_uniformity(T) -> non empty;
+  coherence
+  proof
+    block_Pervin_quasi_uniformity(the Element of the topology of T)
+    in subbasis_Pervin_quasi_uniformity(T);
+    hence thesis;
+  end;
+end;
+
+definition
+  let T be TopSpace;
+  func basis_Pervin_quasi_uniformity(T) -> Subset-Family of
+  [:the carrier of T,the carrier of T:] equals
+  FinMeetCl(subbasis_Pervin_quasi_uniformity(T));
+  coherence;
+end;
+
+registration
+  let X be set;
+  cluster cap-closed -> quasi_basis for non empty Subset-Family of [:X,X:];
+  coherence
+  proof
+    let SF be non empty Subset-Family of [:X,X:];
+    assume
+A1: SF is cap-closed;
+    now
+      let b1,b2 be Element of SF;
+      b1 /\ b2 in SF by A1,FINSUB_1:def 2;
+      hence ex b be Element of SF st b c= b1/\b2;
+    end;
+    hence thesis;
+  end;
+end;
+
+reserve T for TopSpace;
+
+registration
+  let T;
+  cluster basis_Pervin_quasi_uniformity(T) -> cap-closed;
+  coherence
+  proof
+    now
+      let x,y be set;
+      assume that
+A1:   x in basis_Pervin_quasi_uniformity(T) and
+A2:   y in basis_Pervin_quasi_uniformity(T);
+      consider Y being Subset-Family of
+        [:the carrier of T,the carrier of T:] such that
+A3:   Y c= subbasis_Pervin_quasi_uniformity(T) and
+A4:   Y is finite and
+A5:   x = Intersect Y by A1,CANTOR_1:def 3;
+      consider Z being Subset-Family of
+        [:the carrier of T,the carrier of T:] such that
+A6:   Z c= subbasis_Pervin_quasi_uniformity(T) and
+A7:   Z is finite and
+A8:   y = Intersect Z by A2,CANTOR_1:def 3;
+A9:   x /\ y = Intersect (Y \/ Z) by A5,A8,MSSUBFAM:8;
+      Y \/ Z c= subbasis_Pervin_quasi_uniformity(T) by A3,A6,XBOOLE_1:8;
+      hence x /\ y in basis_Pervin_quasi_uniformity(T)
+        by A9,A4,A7,CANTOR_1:def 3;
+    end;
+    hence thesis by FINSUB_1:def 2;
+  end;
+end;
+
+registration
+  let T;
+  cluster basis_Pervin_quasi_uniformity(T) -> quasi_basis;
+  coherence;
+end;
+
+registration
+  let T;
+  cluster basis_Pervin_quasi_uniformity(T) -> axiom_UP1;
+  coherence
+  proof
+    let B be Element of basis_Pervin_quasi_uniformity(T);
+    B in FinMeetCl(subbasis_Pervin_quasi_uniformity(T));
+    then consider Y being Subset-Family of
+    [:the carrier of T,the carrier of T:] such that
+A1: Y c= subbasis_Pervin_quasi_uniformity(T) and
+    Y is finite and
+A2: B = Intersect Y by CANTOR_1:def 3;
+    let t be object;
+    assume
+A3: t in id the carrier of T;
+    then consider a,b be object such that
+A4: t = [a,b] by RELAT_1:def 1;
+A5: a in the carrier of T & a = b by A3,A4,RELAT_1:def 10;
+    per cases;
+    suppose Y is empty;
+      then B = [:the carrier of T,the carrier of T:] by A2,SETFAM_1:def 9;
+      hence thesis by A3;
+    end;
+    suppose
+A7:   Y is non empty; then
+A8:   Intersect Y = meet Y by SETFAM_1:def 9;
+      now
+        let y be set;
+        assume y in Y;
+        then y in the set of all block_Pervin_quasi_uniformity(O) where
+        O is Element of the topology of T by A1;
+        then consider O be Element of the topology of T such that
+A9:     y = block_Pervin_quasi_uniformity(O);
+A10:    [:(the carrier of T) \ O,the carrier of T:] c= y &
+        [:the carrier of T,O:] c= y by A9,XBOOLE_1:10;
+        per cases by A5,XBOOLE_0:def 5;
+        suppose a in (the carrier of T) \ O;
+          then [a,b] in [:(the carrier of T) \ O,the carrier of T:]
+          by A5,ZFMISC_1:def 2;
+          hence t in y by A4,A10;
+        end;
+        suppose a in O;
+          then [a,b] in [:the carrier of T,O:] by A5,ZFMISC_1:def 2;
+          hence t in y by A4,A10;
+        end;
+      end;
+      hence thesis by A2,A8,A7,SETFAM_1:def 1;
+    end;
+  end;
+end;
+
+registration
+  let T;
+  cluster basis_Pervin_quasi_uniformity(T) -> axiom_UP3;
+  coherence
+  proof
+    let B1 be Element of basis_Pervin_quasi_uniformity(T);
+    B1 in FinMeetCl(subbasis_Pervin_quasi_uniformity(T));
+    then consider Y being Subset-Family of
+    [:the carrier of T,the carrier of T:] such that
+A1: Y c= subbasis_Pervin_quasi_uniformity(T) and
+    Y is finite and
+A2: B1 = Intersect Y by CANTOR_1:def 3;
+    per cases;
+    suppose Y is empty; then
+A3:   B1 = [:the carrier of T,the carrier of T:] by A2,SETFAM_1:def 9;
+      take B1;
+      thus thesis by A3;
+    end;
+    suppose
+A4:   Y is non empty; then
+A5:   B1 = meet Y by A2,SETFAM_1:def 9;
+      reconsider B2 = B1 as Element of basis_Pervin_quasi_uniformity(T);
+      take B2;
+      let t be object;
+      assume
+A6:   t in B2 * B2;
+      consider a,b be object such that
+A10:  t = [a,b] by A6,RELAT_1:def 1;
+      consider c be object such that
+A11:  [a,c] in B2 and
+A12:  [c,b] in B2 by A6,A10,RELAT_1:def 8;
+      thus t in B1
+      proof
+        for Z be set st Z in Y holds t in Z
+        proof
+          let Z be set;
+          assume
+A13:      Z in Y;
+          then Z in the set of all block_Pervin_quasi_uniformity(O)
+          where O is Element of the topology of T by A1;
+          then consider O be Element of the topology of T such that
+A14:      Z = block_Pervin_quasi_uniformity(O);
+          [a,c] in meet Y by A4,A2,SETFAM_1:def 9,A11; then
+A15:      [a,c] in block_Pervin_quasi_uniformity(O)
+          by A14,A13,SETFAM_1:def 1;
+          [c,b] in block_Pervin_quasi_uniformity(O)
+          by A12,A5,A14,A13,SETFAM_1:def 1; then
+A16:      [a,b] in (block_Pervin_quasi_uniformity(O)) *
+          (block_Pervin_quasi_uniformity(O)) by A15,RELAT_1:def 8;
+          (block_Pervin_quasi_uniformity(O)) *
+          (block_Pervin_quasi_uniformity(O)) c=
+          block_Pervin_quasi_uniformity(O) by Th20;
+          hence thesis by A14,A10,A16;
+        end;
+        hence thesis by A5,A4,SETFAM_1:def 1;
+      end;
+    end;
+  end;
+end;
+
+definition
+  let T be TopSpace;
+  func Pervin_quasi_uniformity T -> strict Quasi-UniformSpace equals
+  UniformSpaceStr(# the carrier of T,<.basis_Pervin_quasi_uniformity(T).] #);
+  coherence by Th11bis;
+end;
+
+theorem
+  for T being non empty TopSpace, V being Element of the entourages of
+  Pervin_quasi_uniformity T ex b being Element of
+  FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) st b c= V
+  proof
+    let T be non empty TopSpace, V be Element of the entourages of
+    Pervin_quasi_uniformity T;
+A1: <.basis_Pervin_quasi_uniformity(T).] = {x where x is Subset of
+      [:the carrier of T,the carrier of T:]: ex b be Element of
+      basis_Pervin_quasi_uniformity(T) st b c= x} by CARDFIL2:14;
+    V in <.basis_Pervin_quasi_uniformity(T).];
+    then ex S be Subset of [:the carrier of T,the carrier of T:] st V = S &
+      ex b be Element of basis_Pervin_quasi_uniformity(T) st b c= S by A1;
+    hence thesis;
+  end;
+
+theorem
+  for T being non empty TopSpace, V being Subset of
+  [:the carrier of T,the carrier of T:] st ex b being Element of
+  FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) st b c= V
+  holds V is Element of the entourages of Pervin_quasi_uniformity T
+  proof
+    let T be non empty TopSpace, V be Subset of
+    [:the carrier of T,the carrier of T:];
+    given b being Element of FinMeetCl(subbasis_Pervin_quasi_uniformity(T))
+    such that
+A1: b c= V;
+A2: <.basis_Pervin_quasi_uniformity(T).] = {x where x is Subset of
+    [:the carrier of T,the carrier of T:]:
+    ex b be Element of basis_Pervin_quasi_uniformity(T) st b c= x}
+      by CARDFIL2:14;
+    V in <.basis_Pervin_quasi_uniformity(T).] by A1,A2;
+    hence thesis;
+  end;
+
+theorem
+  subbasis_Pervin_quasi_uniformity(T) c=
+    the entourages of Pervin_quasi_uniformity T
+  proof
+    now
+      let x be object;
+      assume
+A1:   x in subbasis_Pervin_quasi_uniformity(T);
+A2:   subbasis_Pervin_quasi_uniformity(T) c=
+        basis_Pervin_quasi_uniformity(T) by CANTOR_1:4;
+      basis_Pervin_quasi_uniformity(T) c= <.basis_Pervin_quasi_uniformity(T).]
+        by CARDFIL2:18;
+      hence x in the entourages of Pervin_quasi_uniformity T by A1,A2;
+    end;
+    hence thesis;
+  end;
+
+theorem Th27:
+  for QU being non void Quasi-UniformSpace holds
+  [:the carrier of QU,the carrier of QU:] in the entourages of QU
+  proof
+    let QU be non void Quasi-UniformSpace;
+A1: QU is non void;
+    set U = the Element of the entourages of QU;
+    U in the entourages of QU by A1;
+    then reconsider U as Subset of [:the carrier of QU,the carrier of QU:];
+    QU is upper; then
+A2: the entourages of QU is upper;
+    [:the carrier of QU,the carrier of QU:] c=
+      [:the carrier of QU,the carrier of QU:];
+    then reconsider Y = [:the carrier of QU,the carrier of QU:] as
+      Subset of [:the carrier of QU,the carrier of QU:];
+    the entourages of QU is non empty by A1;
+    then Y in the entourages of QU by A2;
+    hence thesis;
+  end;
+
+theorem
+  for QU being non void Quasi-UniformSpace st
+  the carrier of T = the carrier of QU &
+  subbasis_Pervin_quasi_uniformity(T) c= the entourages of QU
+  holds the entourages of Pervin_quasi_uniformity T c= the entourages of QU
+  proof
+    let QU be non void Quasi-UniformSpace;
+    assume that
+A2: the carrier of T = the carrier of QU and
+A3: subbasis_Pervin_quasi_uniformity(T) c= the entourages of QU;
+    the entourages of Pervin_quasi_uniformity T c= the entourages of QU
+    proof
+      let x be object;
+      assume
+A4:   x in the entourages of Pervin_quasi_uniformity T;
+      then reconsider y = x as Subset of [:the carrier of T,the carrier of T:];
+      consider b be Element of basis_Pervin_quasi_uniformity(T) such that
+A5:   b c= y by A4,CARDFIL2:def 8;
+      b in FinMeetCl(subbasis_Pervin_quasi_uniformity(T));
+      then consider Y be Subset-Family of
+        [:the carrier of T,the carrier of T:] such that
+A6:   Y c= subbasis_Pervin_quasi_uniformity(T) and
+A7:   Y is finite and
+A8:   b = Intersect Y by CANTOR_1:def 3;
+      reconsider Z = Y as finite Subset-Family of
+        [:the carrier of QU,the carrier of QU:] by A2,A7;
+      reconsider B = the entourages of QU as set;
+A9:   now
+        thus B is Subset-Family of [:the carrier of QU,the carrier of QU:];
+        QU is cap-closed;
+        hence B is cap-closed;
+        thus [:the carrier of QU,the carrier of QU:] in B by Th27;
+        thus Z c= B by A3,A6;
+      end;
+      QU is upper; then
+A10:  the entourages of QU is upper;
+      b is Subset of [:the carrier of QU,the carrier of QU:] &
+      y is Subset of [:the carrier of QU,the carrier of QU:] & b c= y &
+      b in the entourages of QU by A5,A9,A2,A8,ARMSTRNG:1;
+      hence thesis by A10;
+    end;
+    hence thesis;
+  end;
+
+registration
+  let T be non empty TopSpace;
+  cluster Pervin_quasi_uniformity T -> non empty;
+  coherence;
+end;
+
+registration
+  let T be non empty TopSpace;
+  cluster Pervin_quasi_uniformity T -> topological;
+  coherence
+  proof
+    set US = Pervin_quasi_uniformity T,
+    FMT = FMT_Space_Str(# the carrier of Pervin_quasi_uniformity T,
+      Neighborhood(Pervin_quasi_uniformity T) #);
+    reconsider UT = FMT as non empty strict FMT_Space_Str;
+A1: for x be Element of UT ex y be Element of US st
+    x = y & U_FMT x = Neighborhood(y)
+    proof
+      let x be Element of UT;
+      U_FMT x = (the BNbd of UT).x by FINTOPO2:def 6;
+      then consider y be Element of US such that
+A2:   x = y and
+A3:   U_FMT x = (Neighborhood(US)).y;
+      (Neighborhood(US)).y = Neighborhood(y) by Def5;
+      hence thesis by A2,A3;
+    end;
+    now
+      for x being Element of UT,V being Element of U_FMT x
+      ex W being Element of U_FMT x st for y being Element of UT st
+      y is Element of W holds V is Element of U_FMT y
+      proof
+        let x be Element of UT,V be Element of U_FMT x;
+        consider y be Element of US such that
+        x = y and
+A4:     U_FMT x = Neighborhood y by A1;
+A5:     V in Neighborhood y by A4;
+        then consider V0 be Element of the entourages of US such that
+A6:     V = Neighborhood(V0,y);
+        US is axiom_U3;
+        then consider W be Element of the entourages of US such that
+A7:     W * W c= V0;
+        Neighborhood(W,y) in the set of all Neighborhood(V,y) where
+          V is Element of the entourages of US;
+        then reconsider WN = Neighborhood(W,y) as Element of Neighborhood y;
+A8:     for x,y,z be object st [x,y] in W & [y,z] in W holds [x,z] in V0
+        proof
+          let x,y,z be object;
+          assume that
+A9:       [x,y] in W and
+A10:      [y,z] in W;
+          [x,z] in W * W by A9,A10,RELAT_1:def 8;
+          hence thesis by A7;
+        end;
+        reconsider WN as Element of U_FMT x by A4;
+        take WN;
+        hereby
+          let z be Element of UT;
+          assume z is Element of WN;
+          then z in {z where z is Element of US: [y,z] in W};
+          then consider z0 be Element of US such that
+A13:      z = z0 and
+A14:      [y,z0] in W;
+          consider z1 be Element of US such that
+A15:      z = z1 and
+A16:      U_FMT z = Neighborhood z1 by A1;
+A17:      Neighborhood(W,z1) c= Neighborhood(V0,y)
+          proof
+            let t be object;
+            assume t in Neighborhood(W,z1);
+            then consider y0 be Element of US such that
+A18:        t = y0 and
+A19:        [z1,y0] in W;
+            [y,t] in V0 by A18,A19,A15,A13,A14,A8;
+            hence thesis by A18;
+          end;
+          Neighborhood(W,z1) in Neighborhood(z1);
+          then reconsider WW = Neighborhood(W,z1) as
+            Element of Neighborhood z1;
+          reconsider WW2 = WW,V2 = V as Subset of US by A5;
+A20:      WW2 c= V2 by A6,A17;
+          Neighborhood z1 is upper by Th15;
+          hence V is Element of U_FMT z by A16,A20;
+        end;
+      end;
+      hence UT is U_FMT_local;
+      for x being Element of UT, V being Element of U_FMT x holds x in V
+      proof
+        let x be Element of UT,V be Element of U_FMT x;
+        consider y be Element of US such that
+A21:    x = y and
+A22:    U_FMT x = Neighborhood y by A1;
+        V in the set of all Neighborhood(V,y) where
+        V is Element of the entourages of US by A22;
+        then ex W be Element of the entourages of US st V = Neighborhood(W,y);
+        hence thesis by A21,Th16;
+      end;
+      hence UT is U_FMT_with_point;
+      for x being Element of UT holds U_FMT x is Filter of the carrier of UT
+      proof
+        let x be Element of UT;
+        ex y be Element of US st x = y & U_FMT x =Neighborhood y by A1;
+        hence thesis by Th18;
+      end;
+      hence UT is U_FMT_filter;
+    end;
+    hence thesis;
+  end;
+end;
+
+theorem Th29:
+  for T being non empty TopSpace, x being Element of
+  subbasis_Pervin_quasi_uniformity(T),
+  y being Element of Pervin_quasi_uniformity T holds
+  {z where z is Element of Pervin_quasi_uniformity T:
+  [y,z] in x} in the topology of T
+  proof
+    let T be non empty TopSpace, x be Element of
+    subbasis_Pervin_quasi_uniformity(T),
+    y be Element of Pervin_quasi_uniformity T;
+    x in subbasis_Pervin_quasi_uniformity(T);
+    then consider O be Element of the topology of T such that
+A1: x = block_Pervin_quasi_uniformity(O);
+    set M = {z where z is Element of Pervin_quasi_uniformity T:
+              [y,z] in x};
+    per cases;
+    suppose
+A2:   y in O;
+      M = O
+      proof
+        thus M c= O
+        proof
+          let a be object;
+          assume a in M;
+          then consider b be Element of
+            Pervin_quasi_uniformity T such that
+A4:       b = a and
+A5:       [y,b] in x;
+          [y,b] in [:(the carrier of T) \ O,the carrier of T:] or
+            [y,b] in [:the carrier of T,O:] by A1,A5,XBOOLE_0:def 3;
+          then (y in (the carrier of T) \ O & b in the carrier of T) or
+            (y in the carrier of T & b in O) by ZFMISC_1:87;
+          hence thesis by A4,A2,XBOOLE_0:def 5;
+        end;
+        let a be object;
+        assume
+A6:     a in O;
+        then reconsider b = a as Element of
+        Pervin_quasi_uniformity T;
+        [y,b] in [:the carrier of T,O:] by A6,ZFMISC_1:87;
+        then [y,b] in [:(the carrier of T) \ O,the carrier of T:] \/
+        [:the carrier of T,O:] by XBOOLE_0:def 3;
+        hence thesis by A1;
+      end;
+      hence thesis;
+    end;
+    suppose
+A7:   not y in O;
+      M = the carrier of Pervin_quasi_uniformity T
+      proof
+        thus M c= the carrier of Pervin_quasi_uniformity T
+        proof
+          let a be object;
+          assume a in M;
+          then ex b be Element of Pervin_quasi_uniformity T st
+            a = b & [y,b] in x;
+          hence thesis;
+        end;
+        let a be object;
+        assume a in the carrier of Pervin_quasi_uniformity T;
+        then reconsider b = a as Element of the carrier of
+        Pervin_quasi_uniformity T;
+        y in (the carrier of T) \ O & b in the carrier of T
+          by A7,XBOOLE_0:def 5; then
+A10:    [y,b] in [:(the carrier of T) \ O, the carrier of T:] by ZFMISC_1:87;
+        [:(the carrier of T) \ O, the carrier of T:] c=
+        [:(the carrier of T) \ O, the carrier of T:] \/
+          [:the carrier of T,O:] by XBOOLE_1:7;
+        hence thesis by A1,A10;
+      end;
+      hence thesis by PRE_TOPC:def 1;
+    end;
+  end;
+
+theorem Th30:
+  for T being non empty TopSpace,x being Element of the carrier of
+  Pervin_quasi_uniformity T, b being Element of
+  FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) holds
+  {y where y is Element of T:[x,y] in b} in the topology of T
+  proof
+    let T be non empty TopSpace, x be Element of the carrier of
+    Pervin_quasi_uniformity T, b be Element of
+    FinMeetCl(subbasis_Pervin_quasi_uniformity(T));
+    consider Y being Subset-Family of
+      [:the carrier of Pervin_quasi_uniformity T,
+        the carrier of Pervin_quasi_uniformity T:] such that
+A1: Y c= subbasis_Pervin_quasi_uniformity(T) and
+A2: Y is finite and
+A3: b = Intersect Y by CANTOR_1:def 3;
+    per cases;
+    suppose Y is empty;
+      then
+A4:   b = [:the carrier of T,the carrier of T:] by A3,SETFAM_1:def 9;
+      {y where y is Element of T:[x,y] in b} = the carrier of T
+      proof
+        thus {y where y is Element of T:[x,y] in b} c=
+          the carrier of T
+        proof
+          let a be object;
+          assume a in {y where y is Element of T:[x,y] in b};
+          then ex y be Element of T st a = y & [x,y] in b;
+          hence thesis;
+        end;
+        let a be object;
+        assume a in the carrier of T;
+        then reconsider y = a as Element of T;
+        [x,y] in [:the carrier of T,the carrier of T:];
+        hence thesis by A4;
+      end;
+      hence thesis by PRE_TOPC:def 1;
+    end;
+    suppose
+A7:   Y is non empty; then
+A8:   b = meet Y by A3,SETFAM_1:def 9;
+      for Y be non empty Subset-Family of
+        [:the carrier of Pervin_quasi_uniformity T,
+        the carrier of Pervin_quasi_uniformity T:] st Y c=
+        subbasis_Pervin_quasi_uniformity(T) & Y is finite
+        holds {y where y is Element of T:[x,y] in meet Y}
+        in the topology of T
+      proof
+        let Y be non empty Subset-Family of
+          [:the carrier of Pervin_quasi_uniformity T,
+            the carrier of Pervin_quasi_uniformity T:];
+        assume that
+A9:     Y c= subbasis_Pervin_quasi_uniformity(T) and
+A10:    Y is finite;
+        defpred P[Nat] means for Z be non empty Subset-Family of
+          [:the carrier of Pervin_quasi_uniformity T,
+            the carrier of Pervin_quasi_uniformity T:] st
+          Z c= subbasis_Pervin_quasi_uniformity(T) &
+          card Z = $1 holds {y where y is Element of T:[x,y]
+          in meet Z} in the topology of T;
+        for Z be non empty Subset-Family of
+          [:the carrier of Pervin_quasi_uniformity T,
+            the carrier of Pervin_quasi_uniformity T:] st
+          Z c= subbasis_Pervin_quasi_uniformity(T) &
+          card Z = 1 holds {y where y is Element of T:[x,y]
+          in meet Z} in the topology of T
+        proof
+          let Z be non empty Subset-Family of
+            [:the carrier of Pervin_quasi_uniformity T,
+              the carrier of Pervin_quasi_uniformity T:];
+          assume that
+A11:      Z c= subbasis_Pervin_quasi_uniformity(T) and
+A12:      card Z = 1;
+          consider t be object such that
+A13:      Z = {t} by A12,CARD_2:42;
+          reconsider y = t as set by TARSKI:1;
+A14:      meet Z = y by A13,SETFAM_1:10;
+          t in subbasis_Pervin_quasi_uniformity(T) by A11,A13,ZFMISC_1:31;
+          then consider O be Element of the topology of T such that
+A15:      t = block_Pervin_quasi_uniformity(O);
+          per cases;
+          suppose
+A16:        x in O;
+            {y where y is Element of T:[x,y] in meet Z}
+            in the topology of T
+            proof
+A17:          {z where z is Element of T:[x,z] in
+              block_Pervin_quasi_uniformity(O)} = O
+              proof
+A18:            {z where z is Element of T:[x,z] in
+                block_Pervin_quasi_uniformity(O)} c= O
+                proof
+                  let a be object;
+                  assume a in {z where z is Element of T:
+                  [x,z] in block_Pervin_quasi_uniformity(O)};
+                  then ex z be Element of T st a = z &
+                    [x,z] in block_Pervin_quasi_uniformity(O);
+                  then [x,a] in [:(the carrier of T) \ O,the carrier of T:] or
+                    [x,a] in [:the carrier of T,O:] by XBOOLE_0:def 3;
+                  then (x in (the carrier of T) \ O & a in the carrier of T)
+                    or (x in the carrier of T & a in O) by ZFMISC_1:87;
+                  hence thesis by A16,XBOOLE_0:def 5;
+                end;
+                O c= {z where z is Element of T:[x,z]
+                  in block_Pervin_quasi_uniformity(O)}
+                proof
+                  let a be object;
+                  assume
+A19:              a in O;
+                  then reconsider b = a as Element of T;
+                  [x,a] in [:the carrier of T,O:] by A19,ZFMISC_1:87;
+                  then [x,b] in block_Pervin_quasi_uniformity(O)
+                    by XBOOLE_0:def 3;
+                  hence thesis;
+                end;
+                hence thesis by A18;
+              end;
+              thus thesis by A15,A14,A17;
+            end;
+            hence thesis;
+          end;
+          suppose
+A20:        not x in O;
+            {z where z is Element of T:[x,z] in
+              block_Pervin_quasi_uniformity(O)} = the carrier of T
+            proof
+              thus {z where z is Element of T:[x,z] in
+                block_Pervin_quasi_uniformity(O)} c= the carrier of T
+              proof
+                let a be object;
+                assume a in {z where z is Element of T:
+                  [x,z] in block_Pervin_quasi_uniformity(O)};
+                then ex z be Element of T st a = z & [x,z]
+                  in block_Pervin_quasi_uniformity(O);
+                hence thesis;
+              end;
+              let a be object;
+              assume a in the carrier of T;
+              then reconsider b = a as Element of T;
+              x in (the carrier of T)\O by A20,XBOOLE_0:def 5;
+              then [x,b] in [:(the carrier of T) \ O,the carrier of T:] or
+              [x,b] in [:the carrier of T,O:] by ZFMISC_1:87;
+              then [x,b] in block_Pervin_quasi_uniformity(O)
+              by XBOOLE_0:def 3;
+              hence thesis;
+            end;
+            hence thesis by A15,A14,PRE_TOPC:def 1;
+          end;
+        end;
+        then
+A22:    P[1];
+A23:    for k being non zero Nat st P[k] holds P[k+1]
+        proof
+          let k be non zero Nat;
+          assume
+A24:      P[k];
+          now
+            let Z be non empty Subset-Family of
+              [:the carrier of Pervin_quasi_uniformity T,
+                the carrier of Pervin_quasi_uniformity T:];
+            assume that
+A25:        Z c= subbasis_Pervin_quasi_uniformity(T) and
+A26:        card Z = k + 1;
+            set z = the Element of Z;
+A27:        card (Z \ {z}) = k by A26,STIRL2_1:55; then
+A28:        Z \ {z} is non empty;
+            Z \ {z} c= Z by XBOOLE_1:36; then
+A29:        Z \ {z} c= subbasis_Pervin_quasi_uniformity(T) by A25;
+            Z \ {z} is non empty Subset-Family of
+              [:the carrier of Pervin_quasi_uniformity T,
+                the carrier of Pervin_quasi_uniformity T:] by A27; then
+A30:        {y where y is Element of T:[x,y] in
+               meet (Z \ {z})} in the topology of T by A24,A27,A29;
+A31:        {y where y is Element of T:[x,y] in
+              meet (Z \ {z})} /\ {y where y is Element of T:
+                [x,y] in z}
+                = {y where y is Element of T:[x,y] in meet Z}
+            proof
+              set M1 = {y where y is Element of T:[x,y] in
+                meet (Z \ {z})},
+                  M2 = {y where y is Element of T:[x,y] in z},
+                  M3 = {y where y is Element of T:[x,y] in
+                meet Z};
+A32:          M1 /\ M2 c= M3
+              proof
+                let a be object;
+                assume a in M1 /\ M2;then
+A33:            a in M1 & a in M2 by XBOOLE_0:def 4;
+                then consider b be Element of T such that
+A34:            a = b and
+A35:            [x,b] in meet(Z \ {z});
+                consider c be Element of T such that
+A36:            a = c and
+A37:            [x,c] in z by A33;
+                now
+                  let Y be set;
+                  assume Y in Z;
+                  then per cases;
+                  suppose Y in Z & not Y in {z};
+                    then Y in Z \{z} by XBOOLE_0:def 5;
+                    hence [x,b] in Y by A35,SETFAM_1:def 1;
+                  end;
+                  suppose Y in {z};
+                    hence [x,b] in Y by A34,A36,A37,TARSKI:def 1;
+                  end;
+                end;
+                then [x,b] in meet Z by SETFAM_1:def 1;
+                hence thesis by A34;
+              end;
+              M3 c= M1 /\ M2
+              proof
+                let a be object;
+                assume a in M3;
+                then consider b be Element of T such that
+A38:            a = b and
+A39:            [x,b] in meet Z;
+                now
+                  let Y be set;
+                  assume
+A40:              Y in Z \ {z};
+                  Z \ {z} c= Z by XBOOLE_1:36;
+                  hence [x,b] in Y by A40,A39,SETFAM_1:def 1;
+                end;
+                then [x,b] in meet (Z \ {z}) by A28,SETFAM_1:def 1; then
+A41:            b in M1;
+                [x,b] in z by A39,SETFAM_1:def 1;
+                then a in M2 by A38;
+                hence thesis by A41,A38,XBOOLE_0:def 4;
+              end;
+              hence thesis by A32;
+            end;
+            z in subbasis_Pervin_quasi_uniformity(T) by A25;
+            then {y where y is Element of T:[x,y] in z} in
+              the topology of T by Th29;
+            hence {y where y is Element of T:[x,y] in meet Z}
+              in the topology of T by A31,A30,PRE_TOPC:def 1;
+          end;
+          hence thesis;
+        end;
+A42:    for k being non zero Nat holds P[k] from NAT_1:sch 10(A22,A23);
+        ex n be Nat st card Y = n by A10;
+        hence thesis by A9,A42;
+      end;
+      hence thesis by A8,A1,A2,A7;
+    end;
+  end;
+
+theorem Th31:
+  for UT being non empty strict Quasi-UniformSpace,
+  FMT being non empty strict FMT_Space_Str, x being Element of  FMT st
+  FMT = FMT_Space_Str(#the carrier of UT,Neighborhood(UT) #) holds
+  ex y being Element of UT st x = y &
+  U_FMT x = Neighborhood y
+  proof
+    let UT be non empty strict Quasi-UniformSpace,
+        FMT be non empty strict FMT_Space_Str,
+        x be Element of FMT;
+    assume
+A1: FMT = FMT_Space_Str(#the carrier of UT,Neighborhood(UT) #);
+    U_FMT x = (the BNbd of FMT).x by FINTOPO2:def 6;
+    then consider y be Element of UT such that
+A2: x = y and
+A3: U_FMT x = (Neighborhood(UT)).y by A1;
+    (Neighborhood(UT)).y = Neighborhood(y) by Def5;
+    hence thesis by A2,A3;
+  end;
+
+theorem Th32:
+  for T being non empty TopSpace holds
+  Family_open_set(FMT_induced_by(Pervin_quasi_uniformity T)) =
+  the topology of T
+  proof
+    let T be non empty TopSpace;
+A1: Family_open_set(FMT_induced_by(Pervin_quasi_uniformity T)) c=
+      the topology of T
+    proof
+      let x be object;
+      assume x in Family_open_set(FMT_induced_by(Pervin_quasi_uniformity T));
+      then consider O be open Subset of
+        FMT_induced_by(Pervin_quasi_uniformity T) such that
+A2:     x = O;
+      reconsider O1 = O as Subset of T;
+      for x be set holds x in O1 iff ex B be Subset of T st
+        B is open & B c= O1 & x in B
+      proof
+        let x be set;
+        hereby
+          assume
+A3:       x in O1;
+          then reconsider t = x as Element of
+            FMT_induced_by(Pervin_quasi_uniformity T);
+          consider y being Element of the carrier of
+            Pervin_quasi_uniformity T such that
+A4:       t = y and
+A5:       U_FMT t = Neighborhood y by Th31;
+          O in Neighborhood y by A5,FINTOPO7:def 1,A3;
+          then consider V be Element of the entourages of
+            Pervin_quasi_uniformity T such that
+A6:       O = Neighborhood(V,y);
+          consider b be Element of
+            FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) such that
+A7:         b c= V by CARDFIL2:def 8;
+          FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) c=
+            <.FinMeetCl(subbasis_Pervin_quasi_uniformity(T)).]
+            by CARDFIL2:18; then
+A16:      b in the entourages of Pervin_quasi_uniformity T;
+A17:      [y,y] in id the carrier of Pervin_quasi_uniformity T
+            by RELAT_1:def 10;
+          Pervin_quasi_uniformity T is axiom_U1; then
+A18:      id the carrier of Pervin_quasi_uniformity T c= b by A16;
+          reconsider B = {z where z is Element of the carrier of
+                           Pervin_quasi_uniformity T:
+          [y,z] in b} as set;
+          B c= the carrier of Pervin_quasi_uniformity T
+          proof
+            let t be object;
+            assume t in B;
+            then ex z be Element of T st t = z & [y,z] in b;
+            hence thesis;
+          end;
+          then reconsider B as Subset of T;
+          now
+            take B;
+            thus B is open by Th30,PRE_TOPC:def 2;
+            B c= O
+            proof
+              let t be object;
+              assume t in B;
+              then ex z be Element of T st t = z & [y,z] in b;
+              hence thesis by A7,A6;
+            end;
+            hence B c= O1;
+            thus x in B by A4,A18,A17;
+          end;
+          hence ex B be Subset of T st B is open & B c= O1 &
+            x in B;
+        end;
+        assume ex B be Subset of T st B is open & B c= O1 &
+          x in B;
+        hence x in O1;
+      end;
+      hence thesis by A2,PRE_TOPC:def 2,TOPS_1:25;
+    end;
+    the topology of T c=
+      Family_open_set(FMT_induced_by(Pervin_quasi_uniformity T))
+    proof
+      let x be object;
+      assume
+A20:  x in the topology of T;
+      then reconsider y = x as Subset of T;
+      reconsider z = y as Subset of Pervin_quasi_uniformity T;
+      for u be Element of FMT_induced_by(Pervin_quasi_uniformity T) st
+        u in z holds z in U_FMT u
+      proof
+        let u be Element of FMT_induced_by(Pervin_quasi_uniformity T);
+        assume
+A21:    u in z;
+        consider w being Element of the carrier of
+          Pervin_quasi_uniformity T such that
+A22:    u = w and
+A23:    U_FMT u = Neighborhood w by Th31;
+        reconsider W = block_Pervin_quasi_uniformity(y) as Subset of
+          [:the carrier of Pervin_quasi_uniformity T,
+            the carrier of Pervin_quasi_uniformity T:];
+A24:    W in subbasis_Pervin_quasi_uniformity(T) by A20;
+A25:    subbasis_Pervin_quasi_uniformity(T) c=
+          FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) by CANTOR_1:4;
+        FinMeetCl(subbasis_Pervin_quasi_uniformity(T)) c=
+          <.FinMeetCl(subbasis_Pervin_quasi_uniformity(T)).] by CARDFIL2:18;
+        then reconsider W as Element of the entourages of
+          Pervin_quasi_uniformity T by A25,A24;
+        {ww where ww is Element of T: [w,ww] in
+          block_Pervin_quasi_uniformity(y)} = y
+        proof
+          thus {ww where ww is Element of T: [w,ww] in
+            block_Pervin_quasi_uniformity(y)} c= y
+          proof
+            let a be object;
+            assume a in {ww where ww is Element of T:
+              [w,ww] in block_Pervin_quasi_uniformity(y)};
+            then consider ww be Element of T such that
+A27:        a = ww and
+A28:        [w,ww] in [:(the carrier of T) \ y,the carrier of T:] \/
+              [:the carrier of T,y:];
+            [w,ww] in [:(the carrier of T) \ y,the carrier of T:] or
+              [w,ww] in [:the carrier of T,y:] by A28,XBOOLE_0:def 3;
+            then (w in (the carrier of T) \ y & ww in the carrier of T) or
+              (w in the carrier of T & ww in y) by ZFMISC_1:87;
+            hence thesis by A27,A21,A22,XBOOLE_0:def 5;
+          end;
+          let a be object;
+          assume
+A29:      a in y;
+          then reconsider b = a as Element of T;
+          [w,b] in [:the carrier of T,y:] by A29,ZFMISC_1:87;
+          then [w,b] in block_Pervin_quasi_uniformity(y) by XBOOLE_0:def 3;
+          hence thesis;
+        end;
+        then z = Neighborhood(W,w);
+        hence thesis by A23;
+      end;
+      then z is open Subset of FMT_induced_by(Pervin_quasi_uniformity T)
+        by FINTOPO7:def 1;
+      hence thesis;
+    end;
+    hence thesis by A1;
+  end;
+
+theorem
+  for T being non empty strict TopSpace holds
+    TopSpace_induced_by(Pervin_quasi_uniformity T) = T
+  proof
+    let T be non empty strict TopSpace;
+    the topology of TopSpace_induced_by(Pervin_quasi_uniformity T)
+      = Family_open_set(FMT_induced_by(Pervin_quasi_uniformity T))
+      by FINTOPO7:def 16;
+    hence thesis by FINTOPO7:def 16,Th32;
+  end;

@@ -1,0 +1,3334 @@
+:: Abstract Reduction Systems and Idea of {K}nuth {B}endix Completion
+:: Algorithm
+::  by Grzegorz Bancerek
+::
+:: Received March 31, 2014
+:: Copyright (c) 2014-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies RELAT_1, XBOOLE_0, FUNCT_1, REWRITE1, TDGROUP, ABSRED_0,
+      ZFMISC_1, FINSEQ_1, ARYTM_1, SUBSET_1, NUMBERS, STRUCT_0, NAT_1, ARYTM_3,
+      CARD_1, XXREAL_0, ZFREFLE1, TARSKI, UNIALG_1, GROUP_1, MSUALG_6, FUNCT_2,
+      INCPROJ, EQREL_1, MSUALG_1, PARTFUN1, UNIALG_2, FUNCT_4, PBOOLE, FUNCT_7,
+      FINSEQ_2, FUNCOP_1, ORDINAL1, MESFUNC1;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, ENUMSET1, NUMBERS, XCMPLX_0, XXREAL_0,
+      RELAT_1, RELSET_1, FUNCT_1, SUBSET_1, PARTFUN1, FUNCT_2, FUNCOP_1,
+      EQREL_1, ORDINAL1, BINOP_1, FINSEQ_1, FINSEQ_2, NAT_1, FINSEQ_4, FUNCT_7,
+      MARGREL1, STRUCT_0, PBOOLE, UNIALG_1, PUA2MSS1, REWRITE1;
+ constructors RELAT_1, RELSET_1, FUNCT_2, STRUCT_0, REWRITE1, XCMPLX_0,
+      XXREAL_0, NAT_1, FINSEQ_5, ENUMSET1, BINOP_1, FINSEQ_1, FINSEQ_4,
+      FUNCT_7, CARD_1, XXREAL_1, UNIALG_1, PUA2MSS1, REALSET1, MARGREL1,
+      EQREL_1, NUMBERS, XBOOLE_0, ZFMISC_1, SUBSET_1, FUNCT_1, PARTFUN1;
+ registrations SUBSET_1, XBOOLE_0, RELSET_1, ORDINAL1, NAT_1, REWRITE1,
+      XXREAL_0, XCMPLX_0, STRUCT_0, AOFA_A00, FUNCT_2, FINSEQ_1, PARTFUN1,
+      FUNCOP_1, FINSEQ_2, CARD_1, MARGREL1, UNIALG_1, PUA2MSS1, RELAT_1;
+ requirements BOOLE, SUBSET, NUMERALS, ARITHM, REAL;
+ definitions MARGREL1, STRUCT_0, UNIALG_1, REWRITE1;
+ equalities EQREL_1;
+ theorems ZFMISC_1, NAT_1, FINSEQ_3, FINSEQ_5, REWRITE1, IDEA_1, XBOOLE_0,
+      RELAT_1, FUNCT_1, FUNCT_2, TARSKI, SUBSET_1, ENUMSET1, SETWISEO,
+      ORDINAL1, SEQ_4, MARGREL1, RELSET_1, FINSEQ_1, PARTFUN1, FINSEQ_2,
+      GRFUNC_1, FUNCOP_1, FUNCT_7, PUA2MSS1, COMPUT_1;
+ schemes NAT_1, RECDEF_1, RELSET_1;
+
+begin :: Reduction and Convertibility
+
+definition
+  struct(1-sorted) ARS(#
+    carrier -> set,
+    reduction -> Relation of the carrier
+  #);
+end;
+
+registration
+  let A be non empty set, r be Relation of A;
+  cluster ARS(#A, r#) -> non empty;
+  coherence;
+end;
+
+registration
+  cluster non empty strict for ARS;
+  existence
+  proof
+    set A = the non empty set, r = the Relation of A;
+    take X = ARS(#A,r#);
+    thus X is non empty;
+    thus X is strict;
+  end;
+end;
+
+definition
+  let X be ARS;
+  let x,y be Element of X;
+  pred x ==> y means [x,y] in the reduction of X;
+end;
+
+notation
+  let X be ARS;
+  let x,y be Element of X;
+  synonym y <== x for x ==> y;
+end;
+
+definition
+  let X be ARS;
+  let x,y be Element of X;
+  pred x =01=> y means x = y or x ==> y;
+  reflexivity;
+  pred x =*=> y means the reduction of X reduces x,y;
+  reflexivity by REWRITE1:12;
+end;
+
+reserve X for ARS, a,b,c,u,v,w,x,y,z for Element of X;
+
+theorem
+  a ==> b implies X is non empty;
+
+theorem Th2:
+  x ==> y implies x =*=> y by REWRITE1:15;
+
+theorem Th3:
+  x =*=> y & y =*=> z implies x =*=> z by REWRITE1:16;
+
+scheme Star{X() -> ARS, P[object]}:
+  for x,y being Element of X() st x =*=> y & P[x]
+  holds P[y]
+provided
+A1: for x,y being Element of X() st x ==> y & P[x] holds P[y]
+  proof
+    let x,y be Element of X();
+    given p being RedSequence of the reduction of X() such that
+A2: p.1 = x & p.len p = y;
+    assume
+A0: P[x];
+    defpred Q[Nat] means $1+1 in dom p implies P[p.($1+1)];
+A3: Q[0] by A0,A2;
+A4: for i being Nat st Q[i] holds Q[i+1]
+    proof
+      let i be Nat; reconsider j = i as Element of NAT by ORDINAL1:def 12;
+      assume
+B1:   Q[i] & i+1+1 in dom p; then
+      i+1+1 <= len p & i+1 >= 1 by NAT_1:11,FINSEQ_3:25; then
+B2:   j+1 in dom p by SEQ_4:134; then
+      [p.(i+1), p.(i+1+1)] in the reduction of X() by B1,REWRITE1:def 2; then
+      reconsider a = p.(i+1), b = p.(i+1+1) as Element of X() by ZFMISC_1:87;
+      P[a] & a ==> b by B1,B2,REWRITE1:def 2;
+      hence P[p.(i+1+1)] by A1;
+    end;
+A5: for i being Nat holds Q[i] from NAT_1:sch 2(A3,A4);
+    len p >= 0+1 by NAT_1:13; then
+    (ex i being Nat st len p = 1+i) &
+    len p in dom p by NAT_1:10,FINSEQ_5:6;
+    hence thesis by A2,A5;
+end;
+
+scheme Star1{X() -> ARS, P[object], a, b() -> Element of X()}:
+  P[b()]
+provided
+A1: a() =*=> b() and
+A2: P[a()] and
+A3: for x,y being Element of X() st x ==> y & P[x] holds P[y]
+  proof
+    for x,y being Element of X() st x =*=> y & P[x] holds P[y] from Star(A3);
+    hence thesis by A1,A2;
+  end;
+
+scheme StarBack{X() -> ARS, P[object]}:
+  for x,y being Element of X() st x =*=> y & P[y]
+  holds P[x]
+provided
+A1: for x,y being Element of X() st x ==> y & P[y] holds P[x]
+  proof
+    let x,y be Element of X();
+    given p being RedSequence of the reduction of X() such that
+A2: p.1 = x & p.len p = y;
+    assume
+A0: P[y];
+    defpred Q[Nat] means (len p)-$1 in dom p implies P[p.((len p)-$1)];
+A3: Q[0] by A0,A2;
+A4: for i being Nat st Q[i] holds Q[i+1]
+    proof
+      let i be Nat; assume
+B1:   Q[i] & (len p)-(i+1) in dom p; then
+      reconsider k = (len p)-(i+1) as Element of NAT;
+B4:   k >= 0+1 by B1,FINSEQ_3:25;
+      i is Element of NAT &
+      k+1 = (len p)-i by ORDINAL1:def 12; then
+      k+1 <= len p by IDEA_1:3; then
+B2:   k in dom p & k+1 in dom p by B4,SEQ_4:134; then
+      [p.k, p.(k+1)] in the reduction of X() by REWRITE1:def 2; then
+      reconsider a = p.k, b = p.(k+1) as Element of X() by ZFMISC_1:87;
+      P[b] & a ==> b by B1,B2,REWRITE1:def 2;
+      hence thesis by A1;
+    end;
+A5: for i being Nat holds Q[i] from NAT_1:sch 2(A3,A4);
+    len p >= 0+1 by NAT_1:13; then
+    len p-1 is Nat & (len p)-((len p)-1) = 1 & 1 in dom p
+    by NAT_1:21,FINSEQ_5:6;
+    hence thesis by A2,A5;
+end;
+
+scheme StarBack1{X() -> ARS, P[object], a, b() -> Element of X()}:
+  P[a()]
+provided
+A1: a() =*=> b() and
+A2: P[b()] and
+A3: for x,y being Element of X() st x ==> y & P[y] holds P[x]
+  proof
+    for x,y being Element of X() st x =*=> y & P[y] holds P[x]
+    from StarBack(A3);
+    hence thesis by A1,A2;
+  end;
+
+definition
+  let X be ARS;
+  let x,y be Element of X;
+  pred x =+=> y means ex z being Element of X st x ==> z & z =*=> y;
+end;
+
+theorem Th4:
+  x =+=> y iff ex z st x =*=> z & z ==> y
+  proof
+    thus x =+=> y implies ex z st x =*=> z & z ==> y
+    proof given z such that
+A1:   x ==> z & z =*=> y;
+      defpred P[Element of X] means ex u st x =*=> u & u ==> $1;
+A2:   for y,z st y ==> z & P[y] holds P[z]
+      proof
+        let y,z; assume
+A3:     y ==> z;
+        given u such that
+A4:     x =*=> u & u ==> y;
+        take y;
+        u =*=> y by A4,Th2;
+        hence thesis by A3,A4,Th3;
+      end;
+A5:   for y,z st y =*=> z & P[y] holds P[z] from Star(A2);
+      thus thesis by A1,A5;
+    end;
+    given z such that
+A6: x =*=> z & z ==> y;
+    defpred P[Element of X] means ex u st $1 ==> u & u =*=> y;
+A2: for y,z st y ==> z & P[z] holds P[y]
+    proof
+      let x,z; assume
+A3:   x ==> z;
+      given u such that
+A4:   z ==> u & u =*=> y;
+      take z;
+      z =*=> u by A4,Th2;
+      hence thesis by A3,A4,Th3;
+    end;
+A5: for y,z st y =*=> z & P[z] holds P[y] from StarBack(A2);
+    thus ex z st x ==> z & z =*=> y by A5,A6;
+  end;
+
+notation
+  let X,x,y;
+  synonym y <=01= x for x =01=> y;
+  synonym y <=*= x for x =*=> y;
+  synonym y <=+= x for x =+=> y;
+end;
+
+::  x ==> y implies x =+=> y;
+::  x =+=> y implies x =*=> y;
+::  x =+=> y & y =*=> z implies x =+=> z;
+::  x =*=> y & y =+=> z implies x =+=> z;
+
+definition
+  let X,x,y;
+  pred x <==> y means x ==> y or x <== y;
+  symmetry;
+end;
+
+theorem
+  x <==> y iff [x,y] in (the reduction of X)\/(the reduction of X)~
+  proof
+A1: x ==> y iff [x,y] in the reduction of X;
+A2: x <== y iff [y,x] in the reduction of X;
+    [y,x] in the reduction of X iff [x,y] in (the reduction of X)~
+    by RELAT_1:def 7;
+    hence thesis by A1,A2,XBOOLE_0:def 3;
+  end;
+
+definition
+  let X,x,y;
+  pred x <=01=> y means x = y or x <==> y;
+  reflexivity;
+  symmetry;
+  pred x <=*=> y means x,y are_convertible_wrt the reduction of X;
+  reflexivity by REWRITE1:26;
+  symmetry by REWRITE1:31;
+end;
+
+theorem Th6:
+  x <==> y implies x <=*=> y
+  proof
+    assume x ==> y or x <== y;
+    hence x,y are_convertible_wrt the reduction of X by REWRITE1:29,31;
+  end;
+
+theorem Th7:
+  x <=*=> y & y <=*=> z implies x <=*=> z by REWRITE1:30;
+
+scheme Star2{X() -> ARS, P[object]}:
+  for x,y being Element of X() st x <=*=> y & P[x]
+  holds P[y]
+provided
+A1:  for x,y being Element of X() st x <==> y & P[x]
+  holds P[y]
+proof
+    let x,y be Element of X();
+    set R = the reduction of X();
+    assume R\/R~ reduces x,y; then :: Only 2 expansions?
+::    given p being RedSequence of R\/R~ such that
+    consider p being RedSequence of R\/R~ such that
+A2: p.1 = x & p.len p = y by REWRITE1:def 3;
+    assume
+A0: P[x];
+    defpred Q[Nat] means $1+1 in dom p implies P[p.($1+1)];
+A3: Q[0] by A0,A2;
+A4: for i being Nat st Q[i] holds Q[i+1]
+    proof
+      let i be Nat; reconsider j = i as Element of NAT by ORDINAL1:def 12;
+      assume
+B1:   Q[i] & i+1+1 in dom p; then
+B4:   i+1+1 <= len p & i+1 >= 1 by NAT_1:11,FINSEQ_3:25; then
+      j+1 in dom p by SEQ_4:134; then
+B3:   [p.(i+1), p.(i+1+1)] in R\/R~ by B1,REWRITE1:def 2; then
+      reconsider a = p.(i+1), b = p.(i+1+1) as Element of X() by ZFMISC_1:87;
+      [a,b] in R or [a,b] in R~ by B3,XBOOLE_0:def 3; then
+      a ==> b or b ==> a by RELAT_1:def 7; then
+      P[a] & a <==> b by B1,B4,SEQ_4:134;
+      hence P[p.(i+1+1)] by A1;
+    end;
+A5: for i being Nat holds Q[i] from NAT_1:sch 2(A3,A4);
+    len p >= 0+1 by NAT_1:13; then
+    (ex i being Nat st len p = 1+i) &
+    len p in dom p by NAT_1:10,FINSEQ_5:6;
+    hence thesis by A2,A5;
+end;
+
+scheme Star2A{X() -> ARS, P[object], a, b() -> Element of X()}:
+  P[b()]
+provided
+A1: a() <=*=> b() and
+A2: P[a()] and
+A3: for x,y being Element of X() st x <==> y & P[x] holds P[y]
+  proof
+    for x,y being Element of X() st x <=*=> y & P[x] holds P[y] from Star2(A3);
+    hence thesis by A1,A2;
+  end;
+
+definition
+  let X,x,y;
+  pred x <=+=> y means: Def8: ex z st x <==> z & z <=*=> y;
+  symmetry
+  proof let x,y;
+    given z such that
+A1: x <==> z & z <=*=> y;
+    defpred P[Element of X] means ex u st x <=*=> u & u <==> $1;
+A2: for y,z st y <==> z & P[y] holds P[z]
+    proof
+      let y,z; assume
+A3:   y <==> z;
+      given u such that
+A4:   x <=*=> u & u <==> y;
+      take y;
+      u <=*=> y by A4,Th6;
+      hence thesis by A3,A4,Th7;
+    end;
+A5: for y,z st y <=*=> z & P[y] holds P[z] from Star2(A2);
+    ex u st x <=*=> u & u <==> y by A1,A5;
+    hence thesis;
+  end;
+end;
+
+theorem Th8:
+  x <=+=> y iff ex z st x <=*=> z & z <==> y
+  proof
+    x <=+=> y iff ex z st y <==> z & z <=*=> x by Def8;
+    hence thesis;
+  end;
+
+theorem Lem1:
+  x =01=> y implies x =*=> y by Th2;
+
+theorem Lem2:
+  x =+=> y implies x =*=> y
+  proof
+    assume
+A1: x =+=> y;
+    consider z such that
+A2: x ==> z & z =*=> y by A1;
+A3: x =*=> z by A2,Th2;
+    thus x =*=> y by A2,A3,Th3;
+  end;
+
+theorem
+  x ==> y implies x =+=> y;
+
+theorem Lem3:
+  x ==> y & y ==> z implies x =*=> z
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: y ==> z;
+A3: x =*=> y by A1,Th2;
+A4: y =*=> z by A2,Th2;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem Lem4:
+  x ==> y & y =01=> z implies x =*=> z
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: y =01=> z;
+A3: x =*=> y by A1,Th2;
+A4: y =*=> z by A2,Lem1;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem Lem5:
+  x ==> y & y =*=> z implies x =*=> z
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: y =*=> z;
+A3: x =*=> y by A1,Th2;
+    thus x =*=> z by A3,A2,Th3;
+  end;
+
+theorem Lem5A:
+  x ==> y & y =+=> z implies x =*=> z
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: y =+=> z;
+A3: x =*=> y by A1,Th2;
+A4: y =*=> z by A2,Lem2;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem
+  x =01=> y & y ==> z implies x =*=> z
+  proof
+    assume
+A1: x =01=> y;
+    assume
+A2: y ==> z;
+A3: x =*=> y by A1,Lem1;
+A4: y =*=> z by A2,Th2;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem
+  x =01=> y & y =01=> z implies x =*=> z
+  proof
+    assume
+A1: x =01=> y;
+    assume
+A2: y =01=> z;
+A3: x =*=> y by A1,Lem1;
+A4: y =*=> z by A2,Lem1;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem Lem8:
+  x =01=> y & y =*=> z implies x =*=> z
+  proof
+    assume
+A1: x =01=> y;
+    assume
+A2: y =*=> z;
+A3: x =*=> y by A1,Lem1;
+    thus x =*=> z by A3,A2,Th3;
+  end;
+
+theorem
+  x =01=> y & y =+=> z implies x =*=> z
+  proof
+    assume
+A1: x =01=> y;
+    assume
+A2: y =+=> z;
+A3: x =*=> y by A1,Lem1;
+A4: y =*=> z by A2,Lem2;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem Lem10:
+  x =*=> y & y ==> z implies x =*=> z
+  proof
+    assume
+A1: x =*=> y;
+    assume
+A2: y ==> z;
+A4: y =*=> z by A2,Th2;
+    thus x =*=> z by A1,A4,Th3;
+  end;
+
+theorem Lem11:
+  x =*=> y & y =01=> z implies x =*=> z
+  proof
+    assume
+A1: x =*=> y;
+    assume
+A2: y =01=> z;
+A4: y =*=> z by A2,Lem1;
+    thus x =*=> z by A1,A4,Th3;
+  end;
+
+theorem Lem11A:
+  x =*=> y & y =+=> z implies x =*=> z
+  proof
+    assume
+A1: x =*=> y;
+    assume
+A2: y =+=> z;
+A4: y =*=> z by A2,Lem2;
+    thus x =*=> z by A1,A4,Th3;
+  end;
+
+theorem
+  x =+=> y & y ==> z implies x =*=> z
+  proof
+    assume
+A1: x =+=> y;
+    assume
+A2: y ==> z;
+A3: x =*=> y by A1,Lem2;
+A4: y =*=> z by A2,Th2;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem
+  x =+=> y & y =01=> z implies x =*=> z
+  proof
+    assume
+A1: x =+=> y;
+    assume
+A2: y =01=> z;
+A3: x =*=> y by A1,Lem2;
+A4: y =*=> z by A2,Lem1;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem
+  x =+=> y & y =+=> z implies x =*=> z
+  proof
+    assume
+A1: x =+=> y;
+    assume
+A2: y =+=> z;
+A3: x =*=> y by A1,Lem2;
+A4: y =*=> z by A2,Lem2;
+    thus x =*=> z by A3,A4,Th3;
+  end;
+
+theorem
+  x ==> y & y ==> z implies x =+=> z by Th2;
+
+
+theorem
+  x ==> y & y =01=> z implies x =+=> z by Lem1;
+
+theorem
+  x ==> y & y =+=> z implies x =+=> z by Lem2;
+
+theorem
+  x =01=> y & y ==> z implies x =+=> z by Lem1,Th4;
+
+theorem
+  x =01=> y & y =+=> z implies x =+=> z
+  proof
+    assume
+A1: x =01=> y;
+    assume
+A2: y =+=> z;
+    consider u such that
+A3: y =*=> u & u ==> z by A2,Th4;
+    thus x =+=> z by A3,A1,Lem8,Th4;
+  end;
+
+theorem
+  x =*=> y & y =+=> z implies x =+=> z
+  proof
+    assume
+A1: x =*=> y;
+    assume
+A2: y =+=> z;
+    consider u such that
+A3: y =*=> u & u ==> z by A2,Th4;
+    thus x =+=> z by A3,A1,Th3,Th4;
+  end;
+
+theorem
+  x =+=> y & y ==> z implies x =+=> z by Lem10;
+
+theorem
+  x =+=> y & y =01=> z implies x =+=> z by Lem11;
+
+theorem
+  x =+=> y & y =*=> z implies x =+=> z by Th3;
+
+theorem
+  x =+=> y & y =+=> z implies x =+=> z by Lem11A;
+
+theorem Lem1A:
+  x <=01=> y implies x <=*=> y by Th6;
+
+theorem Lem2A:
+  x <=+=> y implies x <=*=> y
+  proof
+    assume
+A1: x <=+=> y;
+    consider z such that
+A2: x <==> z & z <=*=> y by A1;
+A3: x <=*=> z by A2,Th6;
+    thus x <=*=> y by A2,A3,Th7;
+  end;
+
+theorem LemB:
+  x <==> y implies x <=+=> y;
+
+theorem
+  x <==> y & y <==> z implies x <=*=> z
+  proof
+    assume
+A1: x <==> y;
+    assume
+A2: y <==> z;
+A3: x <=*=> y by A1,Th6;
+A4: y <=*=> z by A2,Th6;
+    thus x <=*=> z by A3,A4,Th7;
+  end;
+
+theorem Lem4A:
+  x <==> y & y <=01=> z implies x <=*=> z
+  proof
+    assume
+A1: x <==> y;
+    assume
+A2: y <=01=> z;
+A3: x <=*=> y by A1,Th6;
+A4: y <=*=> z by A2,Lem1A;
+    thus x <=*=> z by A3,A4,Th7;
+  end;
+
+theorem
+  x <=01=> y & y <==> z implies x <=*=> z by Lem4A;
+
+theorem Lem5a:
+  x <==> y & y <=*=> z implies x <=*=> z
+  proof
+    assume
+A1: x <==> y;
+    assume
+A2: y <=*=> z;
+A3: x <=*=> y by A1,Th6;
+    thus x <=*=> z by A3,A2,Th7;
+  end;
+
+theorem
+  x <=*=> y & y <==> z implies x <=*=> z by Lem5a;
+
+theorem Lem5B:
+  x <==> y & y <=+=> z implies x <=*=> z
+  proof
+    assume
+A1: x <==> y;
+    assume
+A2: y <=+=> z;
+A3: x <=*=> y by A1,Th6;
+A4: y <=*=> z by A2,Lem2A;
+    thus x <=*=> z by A3,A4,Th7;
+  end;
+
+theorem
+  x <=+=> y & y <==> z implies x <=*=> z by Lem5B;
+
+theorem
+  x <=01=> y & y <=01=> z implies x <=*=> z
+  proof
+    assume
+A1: x <=01=> y;
+    assume
+A2: y <=01=> z;
+A3: x <=*=> y by A1,Lem1A;
+A4: y <=*=> z by A2,Lem1A;
+    thus x <=*=> z by A3,A4,Th7;
+  end;
+
+theorem Lm8:
+  x <=01=> y & y <=*=> z implies x <=*=> z
+  proof
+    assume
+A1: x <=01=> y;
+    assume
+A2: y <=*=> z;
+A3: x <=*=> y by A1,Lem1A;
+    thus x <=*=> z by A3,A2,Th7;
+  end;
+
+theorem
+  x <=*=> y & y <=01=> z implies x <=*=> z by Lm8;
+
+theorem Lem9:
+  x <=01=> y & y <=+=> z implies x <=*=> z
+  proof
+    assume
+A1: x <=01=> y;
+    assume
+A2: y <=+=> z;
+A3: x <=*=> y by A1,Lem1A;
+A4: y <=*=> z by A2,Lem2A;
+    thus x <=*=> z by A3,A4,Th7;
+  end;
+
+theorem
+  x <=+=> y & y <=01=> z implies x <=*=> z by Lem9;
+
+theorem Lem11A:
+  x <=*=> y & y <=+=> z implies x <=*=> z
+  proof
+    assume
+A1: x <=*=> y;
+    assume
+A2: y <=+=> z;
+A4: y <=*=> z by A2,Lem2A;
+    thus x <=*=> z by A1,A4,Th7;
+  end;
+
+theorem
+  x <=+=> y & y <=+=> z implies x <=*=> z
+  proof
+    assume
+A1: x <=+=> y;
+    assume
+A2: y <=+=> z;
+A3: x <=*=> y by A1,Lem2A;
+A4: y <=*=> z by A2,Lem2A;
+    thus x <=*=> z by A3,A4,Th7;
+  end;
+
+theorem
+  x <==> y & y <==> z implies x <=+=> z by Th6;
+
+theorem
+  x <==> y & y <=01=> z implies x <=+=> z by Lem1A;
+
+theorem
+  x <==> y & y <=+=> z implies x <=+=> z by Lem2A;
+
+theorem Lem18:
+  x <=01=> y & y <=+=> z implies x <=+=> z
+  proof
+    assume
+A1: x <=01=> y;
+    assume
+A2: y <=+=> z;
+    consider u such that
+A3: y <=*=> u & u <==> z by A2,Th8;
+    thus x <=+=> z by A3,A1,Lm8,Th8;
+  end;
+
+theorem
+  x <=*=> y & y <=+=> z implies x <=+=> z
+  proof
+    assume
+A1: x <=*=> y;
+    assume
+A2: y <=+=> z;
+    consider u such that
+A3: y <=*=> u & u <==> z by A2,Th8;
+    thus x <=+=> z by A3,A1,Th7,Th8;
+  end;
+
+theorem
+  x <=+=> y & y <=+=> z implies x <=+=> z by Lem11A;
+
+theorem Lem31:
+  x <=01=> y implies x <== y or x = y or x ==> y
+  proof
+    assume
+A1: x <=01=> y;
+A2: x <==> y or x = y by A1;
+    thus x <== y or x = y or x ==> y by A2;
+  end;
+
+theorem
+  x <== y or x = y or x ==> y implies x <=01=> y
+  proof
+    assume
+A1: x <== y or x = y or x ==> y;
+A2: x <==> y or x = y by A1;
+    thus x <=01=> y by A2;
+  end;
+
+theorem
+  x <=01=> y implies x <=01= y or x ==> y
+  proof
+    assume
+A1: x <=01=> y;
+A2: x <==> y or x = y by A1;
+    thus x <=01= y or x ==> y by A2;
+  end;
+
+theorem
+  x <=01= y or x ==> y implies x <=01=> y
+  proof
+    assume
+A1: x <=01= y or x ==> y;
+A3: x <==> y or x = y by A1;
+    thus x <=01=> y by A3;
+  end;
+
+theorem
+  x <=01=> y implies x <=01= y or x =+=> y
+  proof
+    assume
+A1: x <=01=> y;
+A2: x <==> y or x = y by A1;
+    thus x <=01= y or x =+=> y by A2;
+  end;
+
+theorem
+  x <=01=> y implies x <=01= y or x <==> y;
+
+theorem
+  x <=01= y or x <==> y implies x <=01=> y
+  proof
+    assume
+A1: x <=01= y or x <==> y;
+A3: x = y or x <==> y by A1;
+    thus x <=01=> y by A3;
+  end;
+
+theorem
+  x <=*=> y & y ==> z implies x <=+=> z
+  proof
+    assume
+A1: x <=*=> y;
+    assume
+A2: y ==> z;
+A4: y <==> z by A2;
+    thus x <=+=> z by A1,A4,Def8;
+  end;
+
+theorem
+  x <=+=> y & y ==> z implies x <=+=> z
+  proof
+    assume
+A1: x <=+=> y;
+    assume
+A2: y ==> z;
+A3: x <=*=> y by A1,Lem2A;
+A4: y <==> z by A2;
+    thus x <=+=> z by A3,A4,Def8;
+  end;
+
+theorem
+  x <=01=> y implies x <=01= y or x ==> y
+  proof
+    assume
+A1: x <=01=> y;
+A2: x = y or x <==> y by A1;
+    thus x <=01= y or x ==> y by A2;
+  end;
+
+theorem
+x <=01=> y implies x <=01= y or x =+=> y
+  proof
+    assume
+A1: x <=01=> y;
+A2: x = y or x <==> y by A1;
+    thus x <=01= y or x =+=> y by A2;
+  end;
+
+theorem Lem43:
+  x <=01= y or x ==> y implies x <=01=> y
+  proof
+    assume
+A1: x <=01= y or x ==> y;
+A3: x <==> y or x = y by A1;
+    thus x <=01=> y by A3;
+  end;
+
+theorem
+  x <=01= y or x <==> y implies x <=01=> y
+  proof
+    assume
+A1: x <=01= y or x <==> y;
+A3: x <==> y or x = y by A1;
+    thus x <=01=> y by A3;
+  end;
+
+theorem
+  x <=01=> y implies x <=01= y or x <==> y;
+
+theorem
+  x <=+=> y & y ==> z implies x <=+=> z
+  proof
+    assume
+A1: x <=+=> y;
+    assume
+A2: y ==> z;
+A3: x <=*=> y by A1,Lem2A;
+A4: y <==> z by A2;
+    thus x <=+=> z by A3,A4,Def8;
+  end;
+
+theorem
+  x <=*=> y & y ==> z implies x <=+=> z
+  proof
+    assume
+A1: x <=*=> y;
+    assume
+A2: y ==> z;
+A4: y <==> z by A2;
+    thus x <=+=> z by A1,A4,Def8;
+  end;
+
+theorem
+  x <=01=> y & y ==> z implies x <=+=> z
+  proof
+    assume
+A1: x <=01=> y;
+    assume
+A2: y ==> z;
+A4: y <==> z by A2;
+    thus x <=+=> z by A1,A4,Lem1A,Def8;
+  end;
+
+theorem
+  x <=+=> y & y =01=> z implies x <=+=> z
+  proof
+    assume
+A1: x <=+=> y;
+    assume
+A2: y =01=> z;
+A3: y <=01=> z by A2,Lem43;
+    thus x <=+=> z by A1,A3,Lem18;
+  end;
+
+theorem
+  x <==> y & y =01=> z implies x <=+=> z
+  proof
+    assume
+A1: x <==> y;
+    assume
+A2: y =01=> z;
+A3: y <=01=> z by A2,Lem43;
+    thus x <=+=> z by A3,A1,LemB,Lem18;
+  end;
+
+theorem
+  x ==> y & y ==> z & z ==> u implies x =+=> u by Lem3;
+
+theorem
+  x ==> y & y =01=> z & z ==> u implies x =+=> u by Lem4,Th4;
+
+theorem
+  x ==> y & y =*=> z & z ==> u implies x =+=> u by Lem5,Th4;
+
+theorem
+  x ==> y & y =+=> z & z ==> u implies x =+=> u
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: y =+=> z;
+    assume
+A3: z ==> u;
+A4: x =*=> z by A1,A2,Lem5A;
+    thus x =+=> u by A3,A4,Th4;
+  end;
+
+theorem LemZ:
+  x =*=> y implies x <=*=> y
+  proof
+    assume
+A1: x =*=> y;
+    defpred P[Element of X] means x <=*=> $1;
+A2: P[x];
+A3: for y,z st y ==> z & P[y] holds P[z]
+    proof
+      let y,z;
+      assume
+A4:   y ==> z;
+      assume
+A5:   P[y];
+A6:   y <==> z by A4;
+A7:   y <=*=> z by A6,Th6;
+      thus P[z] by A5,A7,Th7;
+    end;
+    thus P[y] from Star1(A1,A2,A3);
+  end;
+
+theorem
+  for z st
+    for x,y st x ==> z & x ==> y holds y ==> z
+  for x,y st x ==> z & x =*=> y
+  holds y ==> z
+  proof
+    let z;
+    assume
+A:  for x,y st x ==> z & x ==> y holds y ==> z;
+    let x,y;
+    assume
+B:  x ==> z & x =*=> y;
+    defpred P[Element of X] means $1 ==> z;
+C:  for u,v st u ==> v & P[u] holds P[v] by A;
+D:  for u,v st u =*=> v & P[u] holds P[v] from Star(C);
+    thus y ==> z by B,D;
+end;
+
+theorem
+  (for x,y st x ==> y holds y ==> x)
+  implies
+  for x,y st x <=*=> y holds x =*=> y
+  proof
+    assume
+A:  for x,y st x ==> y holds y ==> x;
+    let x,y;
+    assume
+B:  x <=*=> y;
+    defpred P[Element of X] means x =*=> $1;
+C:  for u,v st u <==> v & P[u] holds P[v] by A,Lem10;
+D:  for u,v st u <=*=> v & P[u] holds P[v] from Star2(C);
+    thus x =*=> y by B,D;
+end;
+
+theorem LemN:
+  x =*=> y implies x = y or x =+=> y
+  proof
+    assume
+A1: x =*=> y;
+    defpred P[Element of X] means x = $1 or x =+=> $1;
+A2: P[x];
+A3: for y,z st y ==> z & P[y] holds P[z]
+    proof
+      let y,z;
+      assume
+A4:   y ==> z;
+      assume
+A5:   P[y];
+A6:   x =*=> y by A5,Lem2;
+      thus P[z] by A6,A4,Th4;
+    end;
+    thus P[y] from Star1(A1,A2,A3);
+  end;
+
+theorem
+  (for x,y,z st x ==> y & y ==> z holds x ==> z)
+  implies
+  for x,y st x =+=> y holds x ==> y
+  proof
+    assume
+A1: for x,y,z st x ==> y & y ==> z holds x ==> z;
+    let x,y;
+    assume
+A2: x =+=> y;
+    consider z such that
+A3: x ==> z and
+A4: z =*=> y by A2;
+    defpred P[Element of X] means x ==> $1;
+A5: P[z] by A3;
+A6: for u,v st u ==> v & P[u] holds P[v] by A1;
+    thus P[y] from Star1(A4,A5,A6);
+  end;
+
+begin :: Examples of ARS
+
+scheme ARSex{A() -> non empty set, R[object,object]}:
+  ex X being strict non empty ARS st the carrier of X = A() &
+  for x,y being Element of X holds x ==> y iff R[x,y]
+  proof
+    consider r being Relation of A() such that
+A1: for x,y being Element of A() holds [x,y] in r iff R[x,y]
+    from RELSET_1:sch 2;
+    take X = ARS(#A(), r#);
+    thus the carrier of X = A();
+    thus thesis by A1;
+  end;
+
+definition
+  func ARS_01 -> strict ARS means:
+Def18:
+  the carrier of it = {0,1} &
+  the reduction of it = [:{0},{0,1}:];
+  existence
+  proof
+    {0} c= {0,1} by ZFMISC_1:7; then
+    reconsider r = [:{0},{0,1}:] as Relation of {0,1} by ZFMISC_1:96;
+    take X = ARS(#{0,1}, r#);
+    thus thesis;
+  end;
+  uniqueness;
+  func ARS_02 -> strict ARS means:
+Def19:
+  the carrier of it = {0,1,2} &
+  the reduction of it = [:{0},{0,1,2}:];
+  existence
+  proof
+    {0} c= {0,1,2} by SETWISEO:1; then
+    reconsider r = [:{0},{0,1,2}:] as Relation of {0,1,2} by ZFMISC_1:96;
+    take X = ARS(#{0,1,2}, r#);
+    thus thesis;
+  end;
+  uniqueness;
+end;
+
+registration
+  cluster ARS_01 -> non empty;
+  coherence by Def18;
+  cluster ARS_02 -> non empty;
+  coherence by Def19;
+end;
+
+reserve i,j,k for Element of ARS_01;
+
+theorem ThA1:
+  for s being set holds s is Element of ARS_01 iff s = 0 or s = 1
+  proof
+    let s be set;
+    the carrier of ARS_01 = {0,1} by Def18;
+    hence thesis by TARSKI:def 2;
+  end;
+
+theorem
+  i ==> j iff i = 0
+  proof
+    the reduction of ARS_01 = [:{0},{0,1}:] by Def18; then
+    i ==> j iff i in {0} & j in {0,1} by ZFMISC_1:87; then
+    i ==> j iff i = 0 & (j = 0 or j = 1) by TARSKI:def 1,def 2;
+    hence thesis by ThA1;
+  end;
+
+reserve l,m,n for Element of ARS_02;
+
+theorem ThB1:
+  for s being set holds s is Element of ARS_02 iff s = 0 or s = 1 or s = 2
+  proof
+    let s be set;
+    the carrier of ARS_02 = {0,1,2} by Def19;
+    hence thesis by ENUMSET1:def 1;
+  end;
+
+theorem
+  m ==> n iff m = 0
+  proof
+    the reduction of ARS_02 = [:{0},{0,1,2}:] by Def19; then
+    m ==> n iff m in {0} & n in {0,1,2} by ZFMISC_1:87; then
+    m ==> n iff m = 0 & (n = 0 or n = 1 or n = 2)
+    by TARSKI:def 1,ENUMSET1:def 1;
+    hence thesis by ThB1;
+  end;
+
+begin :: Normal Forms
+
+definition
+  let X,x;
+  attr x is normform means not ex y st x ==> y;
+end;
+
+theorem Ch1:
+  x is normform iff x is_a_normal_form_wrt the reduction of X
+  proof set R = the reduction of X;
+    thus x is normform implies x is_a_normal_form_wrt the reduction of X
+    proof assume
+Z0:   not ex y st x ==> y;
+      let a be object;
+      assume
+Z1:   [x,a] in the reduction of X; then
+      reconsider y = a as Element of X by ZFMISC_1:87;
+      x ==> y by Z1;
+      hence thesis by Z0;
+    end;
+    assume
+Z1: not ex b being object st [x,b] in R;
+    let y;
+    assume [x,y] in the reduction of X;
+    hence thesis by Z1;
+  end;
+
+definition
+  let X,x,y;
+  pred x is_normform_of y means x is normform & y =*=> x;
+end;
+
+theorem Ch2:
+  x is_normform_of y iff x is_a_normal_form_of y, the reduction of X
+  proof set R = the reduction of X;
+    thus x is_normform_of y implies x is_a_normal_form_of y, R
+    proof assume
+      x is normform & R reduces y,x;
+      hence x is_a_normal_form_wrt R & R reduces y,x by Ch1;
+    end;
+    assume x is_a_normal_form_wrt R & R reduces y,x;
+    hence x is normform & R reduces y,x by Ch1;
+  end;
+
+definition
+  let X,x;
+  attr x is normalizable means ex y st y is_normform_of x;
+end;
+
+theorem Ch3:
+  x is normalizable iff x has_a_normal_form_wrt the reduction of X
+  proof
+    set R = the reduction of X;
+A0: field R c= (the carrier of X)\/the carrier of X by RELSET_1:8;
+    thus x is normalizable implies x has_a_normal_form_wrt R
+    proof
+      given y such that
+A1:   y is_normform_of x;
+      take y; thus thesis by A1,Ch2;
+    end;
+    given a being object such that
+A2: a is_a_normal_form_of x, R;
+    R reduces x,a by A2,REWRITE1:def 6; then
+    x = a or a in field R by REWRITE1:18; then
+    reconsider a as Element of X by A0;
+    take a; thus thesis by A2,Ch2;
+  end;
+
+definition
+  let X;
+  attr X is WN means for x holds x is normalizable;
+  attr X is SN means
+  for f being Function of NAT, the carrier of X
+  ex i being Nat st not f.i ==> f.(i+1);
+  attr X is UN* means
+  for x,y,z st y is_normform_of x & z is_normform_of x holds y = z;
+  attr X is UN means
+  for x,y st x is normform & y is normform & x <=*=> y holds x = y;
+  attr X is N.F. means
+  for x,y st x is normform & x <=*=> y holds y =*=> x;
+end;
+
+theorem
+  X is WN iff the reduction of X is weakly-normalizing
+  proof set R = the reduction of X;
+A0: field R c= (the carrier of X)\/the carrier of X by RELSET_1:8;
+    thus X is WN implies R is weakly-normalizing
+    proof assume
+A1:   for x holds x is normalizable;
+      let a be object; assume a in field R; then
+      reconsider a as Element of X by A0;
+      a is normalizable by A1;
+      hence thesis by Ch3;
+    end;
+    assume
+A2: for a being object st a in field R
+    holds a has_a_normal_form_wrt R;
+    let x;
+    per cases;
+    suppose
+      x in field R;
+      hence thesis by A2,Ch3;
+    end;
+    suppose
+A3:   not x in field R;
+      take x;
+      thus x is normform
+      proof
+        let y;
+        thus not [x,y] in R by A3,RELAT_1:15;
+      end;
+      thus thesis;
+    end;
+  end;
+
+theorem Ch7:
+  X is SN implies the reduction of X is strongly-normalizing
+  proof set R = the reduction of X;
+    set A = the carrier of X;
+A0: field R c= A \/ A by RELSET_1:8;
+    assume
+A1: for f being Function of NAT, A
+    ex i being Nat st not f.i ==> f.(i+1);
+    let f be ManySortedSet of NAT;
+    per cases;
+    suppose f is A-valued; then
+      rng f c= A & dom f = NAT by RELAT_1:def 19,PARTFUN1:def 2; then
+      reconsider g = f as Function of NAT, A by FUNCT_2:2;
+      consider i being Nat such that
+A2:   not g.i ==> g.(i+1) by A1;
+      take i;
+      thus not [f.i,f.(i+1)] in R by A2;
+    end;
+    suppose
+      f is not A-valued; then
+      consider a being object such that
+A3:   a in rng f & not a in A by TARSKI:def 3,RELAT_1:def 19;
+      consider i being object such that
+A4:   i in dom f & a = f.i by A3,FUNCT_1:def 3;
+      reconsider i as Element of NAT by A4;
+      take i;
+      assume [f.i,f.(i+1)] in R; then
+      a in field R by A4,RELAT_1:15;
+      hence thesis by A0,A3;
+    end;
+  end;
+
+theorem Ch8:
+  X is non empty & the reduction of X is strongly-normalizing implies X is SN
+  proof set R = the reduction of X;
+    set A = the carrier of X;
+    assume
+A1: X is non empty;
+    assume
+A5: for f being ManySortedSet of NAT
+    ex i being Nat st not [f.i,f.(i+1)] in R;
+    let f be Function of NAT, A;
+    consider i being Nat such that
+A6: not [f.i,f.(i+1)] in R by A1,A5;
+    take i;
+    thus not [f.i,f.(i+1)] in R by A6;
+  end;
+
+reserve A for set;
+
+theorem ThSN:
+  for X holds X is SN iff
+  not ex A,z st z in A & for x st x in A ex y st y in A & x ==> y
+  proof
+    let X;
+    thus X is SN implies not ex A,z st z in A &
+    for x st x in A ex y st y in A & x ==> y
+    proof assume
+00:   for f being Function of NAT, the carrier of X
+      ex i being Nat st not f.i ==> f.(i+1);
+      given A,z such that
+01:   z in A & for x st x in A ex y st y in A & x ==> y;
+      ex y st y in A & z ==> y by 01; then
+      reconsider X0 = X as non empty ARS;
+      reconsider z0 = z as Element of X0;
+      defpred P[Nat,Element of X0,Element of X0] means
+      $2 in A implies $3 in A & $2 ==> $3;
+02:   for i being Nat, x being Element of X0
+      ex y being Element of X0 st P[i,x,y] by 01;
+      consider f being Function of NAT, the carrier of X0 such that
+03:   f.0 = z0 and
+04:   for i being Nat holds P[i,f.i,f.(i+1)]
+      from RECDEF_1:sch 2(02);
+      defpred Q[Nat] means f.$1 ==> f.($1+1) & f.$1 in A;
+05:   Q[0] by 01,03,04;
+06:   now let i be Nat; assume Q[i]; then
+        f.(i+1) in A by 04;
+        hence Q[i+1] by 04;
+      end;
+      for i being Nat holds Q[i] from NAT_1:sch 2(05,06);
+      hence contradiction by 00;
+    end;
+    assume
+00: not ex A,z st z in A &
+    for x st x in A ex y st y in A & x ==> y;
+    given f being Function of NAT, the carrier of X such that
+01: for i being Nat holds f.i ==> f.(i+1);
+    f.0 ==> f.(0+1) by 01; then
+04: X is non empty & 0 in NAT by ORDINAL1:def 12; then
+02: f.0 in rng f by FUNCT_2:4;
+    now let x; assume x in rng f; then
+      consider i being object such that
+03:   i in dom f & x = f.i by FUNCT_1:def 3;
+      reconsider i as Element of NAT by 03;
+      take y = f.(i+1);
+      thus y in rng f by 04,FUNCT_2:4;
+      thus x ==> y by 01,03;
+    end;
+    hence contradiction by 00,02;
+  end;
+
+scheme notSN{X() -> ARS, P[object]}:
+  X() is not SN
+provided
+A1: ex x being Element of X() st P[x]
+ and
+A2: for x being Element of X() st P[x]
+    ex y being Element of X() st P[y] & x ==> y
+  proof
+    set A = {x where x is Element of X(): P[x]};
+    consider z being Element of X() such that
+A3: P[z] by A1;
+A4: z in A by A3;
+    now let x be Element of X(); assume x in A; then
+      ex a being Element of X() st x = a & P[a]; then
+      consider y being Element of X() such that
+A6:   P[y] & x ==> y by A2;
+      take y; thus y in A by A6;
+      thus x ==> y by A6;
+    end;
+    hence thesis by A4,ThSN;
+  end;
+
+theorem
+  X is UN iff the reduction of X is with_UN_property
+  proof
+    set R = the reduction of X;
+    set A = the carrier of X;
+A0: field R c= A \/ A by RELSET_1:8;
+    thus X is UN implies R is with_UN_property
+    proof
+      assume
+A1:   for x,y st x is normform & y is normform & x <=*=> y holds x = y;
+      let a,b be object;
+      assume
+A2:   a is_a_normal_form_wrt R & b is_a_normal_form_wrt R &
+      a,b are_convertible_wrt R;
+      per cases;
+      suppose a in A & b in A; then
+        reconsider x = a, y = b as Element of X;
+        x is normform & y is normform & x <=*=> y by A2,Ch1;
+        hence a = b by A1;
+      end;
+      suppose not a in A or not b in A; then
+        not a in field R or not b in field R by A0;
+        hence a = b by A2,REWRITE1:28,31;
+      end;
+    end;
+    assume
+A4: for a,b being object
+    st a is_a_normal_form_wrt R & b is_a_normal_form_wrt R &
+    a,b are_convertible_wrt R holds a = b;
+    let x,y; assume
+    x is normform & y is normform & x <=*=> y; then
+    x is_a_normal_form_wrt R & y is_a_normal_form_wrt R &
+    x,y are_convertible_wrt R by Ch1;
+    hence x = y by A4;
+  end;
+
+theorem
+  X is N.F. iff the reduction of X is with_NF_property
+  proof
+    set R = the reduction of X;
+    set A = the carrier of X;
+A0: field R c= A \/ A by RELSET_1:8;
+    thus X is N.F. implies R is with_NF_property
+    proof
+      assume
+A1:   for x,y st x is normform & x <=*=> y holds y =*=> x;
+      let a,b be object; assume
+A2:   a is_a_normal_form_wrt R & a,b are_convertible_wrt R;
+      per cases;
+      suppose a in A & b in A; then
+        reconsider x = a, y = b as Element of X;
+        x is normform & x <=*=> y by A2,Ch1; then
+        y =*=> x by A1;
+        hence R reduces b,a;
+      end;
+      suppose not a in A or not b in A; then
+        not a in field R or not b in field R by A0; then
+        a = b by A2,REWRITE1:28,31;
+        hence R reduces b,a by REWRITE1:12;
+      end;
+    end;
+    assume
+B1: for a,b being object st
+      a is_a_normal_form_wrt R & a,b are_convertible_wrt R
+    holds R reduces b,a;
+    let x,y; assume
+    x is normform & x <=*=> y;
+    hence R reduces y,x by B1,Ch1;
+  end;
+
+definition
+  let X;
+  let x such that
+A: ex y st y is_normform_of x and
+B: for y,z st y is_normform_of x & z is_normform_of x holds y = z;
+  func nf x -> Element of X means:
+Def17:
+  it is_normform_of x;
+  existence by A;
+  uniqueness by B;
+end;
+
+theorem
+  (ex y st y is_normform_of x) &
+  (for y,z st y is_normform_of x & z is_normform_of x holds y = z)
+  implies nf x = nf(x, the reduction of X)
+  proof set R = the reduction of X;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    given y such that
+A0: y is_normform_of x;
+B0: x has_a_normal_form_wrt R by A0,Ch2,REWRITE1:def 11;
+    assume
+A1: for y,z st y is_normform_of x & z is_normform_of x holds y = z; then
+    nf x is_normform_of x by A0,Def17; then
+A2: nf x is_a_normal_form_of x,R by Ch2;
+    now
+      let b,c be object; assume
+A3:   b is_a_normal_form_of x,R & c is_a_normal_form_of x,R; then
+A4:   R reduces x,b & R reduces x,c by REWRITE1:def 6;
+      per cases;
+      suppose x in field R; then
+        b in field R & c in field R by A4,REWRITE1:19; then
+        reconsider y = b, z = c as Element of X by F0;
+        y is_normform_of x & z is_normform_of x by A3,Ch2;
+        hence b = c by A1;
+      end;
+      suppose not x in field R; then
+        x = b & x = c by A4,REWRITE1:18;
+        hence b = c;
+      end;
+    end;
+    hence nf x = nf(x, the reduction of X) by B0,A2,REWRITE1:def 12;
+ end;
+
+theorem LemN1:
+  x is normform & x =*=> y implies x = y
+  proof
+    assume
+A1: x is normform;
+    assume
+A2: x =*=> y;
+A4: not x =+=> y by A1;
+    thus x = y by A2,A4,LemN;
+  end;
+
+theorem LemN2:
+  x is normform implies x is_normform_of x;
+
+theorem
+  x is normform & y ==> x implies x is_normform_of y by Th2;
+
+theorem
+  x is normform & y =01=> x implies x is_normform_of y by Lem1;
+
+theorem
+  x is normform & y =+=> x implies x is_normform_of y by Lem2;
+
+theorem
+  x is_normform_of y & y is_normform_of x implies x = y by LemN1;
+
+theorem LemN6:
+  x is_normform_of y & z ==> y implies x is_normform_of z by Lem5;
+
+theorem LemN7:
+  x is_normform_of y & z =*=> y implies x is_normform_of z by Th3;
+
+theorem
+  x is_normform_of y & z =*=> x implies x is_normform_of z;
+
+registration
+  let X;
+  cluster normform -> normalizable for Element of X;
+  coherence
+  proof let x;
+    assume
+A1: x is normform;
+    take x;
+    thus x is_normform_of x by A1;
+  end;
+end;
+
+theorem LemN5:
+  x is normalizable & y ==> x implies y is normalizable by LemN6;
+
+theorem ThWN1:
+  X is WN iff for x ex y st y is_normform_of x
+  proof
+    thus X is WN implies for x ex y st y is_normform_of x
+    proof
+      assume
+A1:   for x holds x is normalizable;
+      let x;
+A2:   x is normalizable by A1;
+      thus ex y st y is_normform_of x by A2;
+    end;
+    assume
+A3: for x ex y st y is_normform_of x;
+    let x; thus ex y st y is_normform_of x by A3;
+  end;
+
+theorem
+  (for x holds x is normform) implies X is WN
+  proof
+    assume
+A1: for x holds x is normform;
+    let x;
+A2: x is normform by A1;
+    thus ex y st y is_normform_of x by A2,LemN2;
+  end;
+
+registration
+  cluster SN -> WN for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is SN;
+    assume
+A2: X is not WN;
+    consider z such that
+A3: z is not normalizable by A2;
+    set A = {x: x is not normalizable};
+A4: z in A by A3;
+A5: for x st x in A ex y st y in A & x ==> y
+    proof
+      let x;
+      assume x in A; then
+A6:   ex y st x = y & y is not normalizable; then
+      x is not normform; then
+      consider y such that
+A7:   x ==> y;
+      take y;
+      y is not normalizable by A6,A7,LemN5;
+      hence y in A;
+      thus x ==> y by A7;
+    end;
+    thus contradiction by A1,A4,A5,ThSN;
+  end;
+end;
+
+theorem LmA:
+  x <> y & (for a,b holds a ==> b iff a = x)
+  implies y is normform & x is normalizable
+  proof
+    assume
+Z0: x <> y;
+    assume
+Z2: for a,b holds a ==> b iff a = x;
+    thus y is normform by Z0,Z2;
+    take y; thus y is normform by Z0,Z2;
+    thus thesis by Z2,Th2;
+  end;
+
+theorem
+  ex X st X is WN & X is not SN
+  proof
+    defpred R[set,set] means $1 = 0;
+    consider X being strict non empty ARS such that
+A1: the carrier of X = {0,1} and
+A2: for x,y being Element of X holds x ==> y iff R[x,y] from ARSex;
+    reconsider z = 0, o = 1 as Element of X by A1,TARSKI:def 2;
+A3: z <> o;
+    take X;
+    thus X is WN
+    proof
+      let x be Element of X;
+      x = 0 or x = 1 by A1,TARSKI:def 2; then
+      x is normform or x is normalizable by A2,A3,LmA;
+      hence thesis;
+    end;
+    set A = {z};
+A4: z in A by TARSKI:def 1;
+    now
+      let x be Element of X;
+      assume x in A; then
+A5:   x = z by TARSKI:def 1;
+      take y = z;
+      thus y in A & x ==> y by A2,A5,TARSKI:def 1;
+    end;
+    hence X is not SN by A4,ThSN;
+  end;
+
+registration
+  cluster N.F. -> UN* for ARS;
+  coherence
+  proof let X;
+    assume
+A1: for x,y st x is normform & x <=*=> y holds y =*=> x;
+    let x,y,z;
+    assume
+A2: y is normform & x =*=> y;
+    assume
+A3: z is normform & x =*=> z;
+A4: x <=*=> y & x <=*=> z by A2,A3,LemZ;
+A5: y <=*=> z by A4,Th7;
+    thus y = z by A2,A1,A3,A5,LemN1;
+  end;
+
+  cluster N.F. -> UN for ARS;
+  coherence by LemN1;
+
+  cluster UN -> UN* for ARS;
+  coherence
+  proof let X;
+    assume
+A1: for x,y st x is normform & y is normform & x <=*=> y holds x = y;
+    let x,y,z;
+    assume
+A2: y is normform & x =*=> y;
+    assume
+A3: z is normform & x =*=> z;
+A4: x <=*=> y & x <=*=> z by A2,A3,LemZ;
+    thus y = z by A1,A2,A3,A4,Th7;
+  end;
+end;
+
+theorem LemN12:
+  X is WN UN* & x is normform & x <=*=> y implies y =*=> x
+  proof
+    assume
+A1: X is WN UN*;
+    assume
+A2: x is normform;
+    assume
+A3: x <=*=> y;
+    defpred P[Element of X] means $1 =*=> x;
+A4: for y,z st y <==> z & P[y] holds P[z]
+    proof
+      let y,z;
+      assume
+B1:   y <==> z;
+      assume
+B2:   P[y];
+      per cases by B1;
+      suppose
+C1:     y ==> z;
+B3:     z is normalizable by A1;
+        consider u such that
+B4:     u is_normform_of z by B3;
+B5:     u is_normform_of y by C1,B4,LemN6;
+B6:     x is_normform_of y by A2,B2;
+        thus P[z] by B4,B6,B5,A1;
+      end;
+      suppose
+C2:     y <== z;
+        thus P[z] by B2,C2,Lem5;
+      end;
+    end;
+A5: for y,z st y <=*=> z & P[y] holds P[z] from Star2(A4);
+    thus y =*=> x by A3,A5;
+  end;
+
+registration
+  cluster WN UN* -> N.F. for ARS;
+  coherence by LemN12;
+
+  cluster WN UN* -> UN for ARS;
+  coherence;
+end;
+
+theorem Lem21:
+  y is_normform_of x & z is_normform_of x & y <> z implies x =+=> y
+  proof
+    assume
+A1: y is_normform_of x;
+    assume
+A2: z is_normform_of x;
+    assume
+A3: y <> z;
+A6: x = y or x =+=> y by A1,LemN;
+    thus x =+=> y by A3,A1,A2,A6,LemN1;
+  end;
+
+theorem Lem22:
+  X is WN UN* implies nf x is_normform_of x
+  proof
+    assume
+A1: X is WN UN*;
+A4: x is normalizable by A1;
+A3: y is_normform_of x & z is_normform_of x implies y = z by A1;
+    thus nf x is_normform_of x by A4,A3,Def17;
+  end;
+
+theorem Lem23:
+  X is WN UN* & y is_normform_of x implies y = nf x
+  proof
+    assume
+A1: X is WN UN*;
+    assume
+A2: y is_normform_of x;
+A4: for z,u holds z is_normform_of x & u is_normform_of x implies z = u
+    by A1;
+    thus y = nf x by A2,A4,Def17;
+  end;
+
+theorem Lem24:
+  X is WN UN* implies nf x is normform
+  proof
+    assume
+A1: X is WN UN*;
+A2: nf x is_normform_of x by A1,Lem22;
+    thus nf x is normform by A2;
+  end;
+
+theorem
+  X is WN UN* implies nf nf x = nf x
+  proof
+    assume
+A1: X is WN UN*;
+A2: nf x is normform by A1,Lem24;
+    thus nf nf x = nf x by A1,A2,LemN2,Lem23;
+  end;
+
+theorem Lem26:
+  X is WN UN* & x =*=> y implies nf x = nf y
+  proof
+    assume
+A1: X is WN UN*;
+    assume
+A2: x =*=> y;
+A4: nf y is_normform_of x by A2,A1,Lem22,LemN7;
+    thus nf x = nf y by A1,A4,Lem23;
+  end;
+
+theorem Lem27:
+  X is WN UN* & x <=*=> y implies nf x = nf y
+  proof
+    assume
+A1: X is WN UN*;
+    assume
+A2: x <=*=> y;
+    defpred P[Element of X] means nf x = nf $1;
+A3: P[x];
+A4: for z,u st z <==> u & P[z] holds P[u] by A1,Th2,Lem26;
+    P[y] from Star2A(A2,A3,A4);
+    hence thesis;
+  end;
+
+theorem
+  X is WN UN* & nf x = nf y implies x <=*=> y
+  proof
+    assume
+A1: X is WN UN*;
+    assume
+A2: nf x = nf y;
+    nf x is_normform_of x & nf x is_normform_of y by A1,A2,Lem22; then
+    x <=*=> nf x & nf x <=*=> y by LemZ;
+    hence thesis by Th7;
+  end;
+
+begin :: Divergence and Convergence
+
+definition
+  let X,x,y;
+  pred x <<>> y means
+  ex z st x <=*= z & z =*=> y;
+  symmetry;
+  reflexivity;
+  pred x >><< y means:DEF2:
+  ex z st x =*=> z & z <=*= y;
+  symmetry;
+  reflexivity;
+  pred x <<01>> y means
+  ex z st x <=01= z & z =01=> y;
+  symmetry;
+  reflexivity;
+  pred x >>01<< y means
+  ex z st x =01=> z & z <=01= y;
+  symmetry;
+  reflexivity;
+end;
+
+theorem Ch11:
+  x <<>> y iff x,y are_divergent_wrt the reduction of X
+  proof set R = the reduction of X;
+    thus x <<>> y implies x,y are_divergent_wrt R
+    proof
+      given z such that
+A1:   x <=*= z & z =*=> y;
+      take z;
+      thus R reduces z,x & R reduces z,y by A1;
+    end;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    given a being object such that
+A2: R reduces a,x & R reduces a,y;
+    per cases;
+    suppose
+      a in field R; then
+      reconsider z = a as Element of X by F0;
+      take z;
+      thus R reduces z,x & R reduces z,y by A2;
+    end;
+    suppose
+      not a in field R; then
+      a = x & a = y by A2,REWRITE1:18;
+      hence thesis;
+    end;
+  end;
+
+theorem Ch12:
+  x >><< y iff x,y are_convergent_wrt the reduction of X
+  proof set R = the reduction of X;
+    thus x >><< y implies x,y are_convergent_wrt R
+    proof
+      given z such that
+A1:   z <=*= x & y =*=> z;
+      take z;
+      thus R reduces x,z & R reduces y,z by A1;
+    end;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    given a being object such that
+A2: R reduces x,a & R reduces y,a;
+    per cases;
+    suppose
+      a in field R; then
+      reconsider z = a as Element of X by F0;
+      take z;
+      thus R reduces x,z & R reduces y,z by A2;
+    end;
+    suppose
+      not a in field R; then
+      a = x & a = y by A2,REWRITE1:18;
+      hence thesis;
+    end;
+  end;
+
+theorem
+  x <<01>> y iff x,y are_divergent<=1_wrt the reduction of X
+  proof set R = the reduction of X;
+    thus x <<01>> y implies x,y are_divergent<=1_wrt R
+    proof
+      given z such that
+A1:   x <=01= z & z =01=> y;
+      take z;
+      (z ==> x or z = x) & (z ==> y or z = y) by A1;
+      hence ([z,x] in R or z = x) & ([z,y] in R or z = y);
+    end;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    given a being object such that
+A2: ([a,x] in R or a = x) & ([a,y] in R or a = y);
+    a in field R or a = x or a = y by A2,RELAT_1:15; then
+    reconsider z = a as Element of X by F0;
+    take z;
+    thus z = x or z ==> x by A2;
+    thus z = y or z ==> y by A2;
+  end;
+
+theorem Ch14:
+  x >>01<< y iff x,y are_convergent<=1_wrt the reduction of X
+  proof set R = the reduction of X;
+    thus x >>01<< y implies x,y are_convergent<=1_wrt R
+    proof
+      given z such that
+A1:   z <=01= x & y =01=> z;
+      take z;
+      (x ==> z or z = x) & (y ==> z or z = y) by A1;
+      hence ([x,z] in R or x = z) & ([y,z] in R or y = z);
+    end;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    given a being object such that
+A2: ([x,a] in R or x = a) & ([y,a] in R or y = a);
+    a in field R or a = x or a = y by A2,RELAT_1:15; then
+    reconsider z = a as Element of X by F0;
+    take z;
+    thus x = z or x ==> z by A2;
+    thus y = z or y ==> z by A2;
+  end;
+
+definition
+  let X;
+  attr X is DIAMOND means
+  x <<01>> y implies x >>01<< y;
+  attr X is CONF means
+  x <<>> y implies x >><< y;
+  attr X is CR means
+  x <=*=> y implies x >><< y;
+  attr X is WCR means
+  x <<01>> y implies x >><< y;
+end;
+
+definition
+  let X;
+  attr X is COMP means
+  X is SN CONF;
+end;
+
+scheme isCR{X() -> non empty ARS, F(Element of X()) -> Element of X()}:
+  X() is CR
+provided
+A1: for x being Element of X() holds x =*=> F(x)
+and
+A2: for x,y being Element of X() st x <=*=> y holds F(x) = F(y)
+  proof
+    let x,y be Element of X(); assume x <=*=> y; then
+A3: F(x) = F(y) by A2;
+    take z = F(x);
+    thus thesis by A3,A1;
+  end;
+
+Lm3:
+  x =*=> y implies x <=*=> y
+  proof
+    assume
+A1: x =*=> y;
+    defpred P[Element of X] means x <=*=> $1;
+A2: P[x];
+A3: for y,z st y ==> z & P[y] holds P[z]
+    proof
+      let y,z;
+      assume
+A4:   y ==> z;
+      assume
+A5:   P[y];
+A6:   y <==> z by A4;
+A7:   y <=*=> z by A6,Th6;
+      thus P[z] by A5,A7,Th7;
+    end;
+    P[y] from Star1(A1,A2,A3);
+    hence thesis;
+  end;
+
+Lm2: x <<>> y implies x <=*=> y
+  proof
+    assume
+A1: x <<>> y;
+    consider u such that
+A2: x <=*= u & u =*=> y by A1;
+A3: x <=*=> u & u <=*=> y by A2,Lm3;
+    thus x <=*=> y by A3,Th7;
+  end;
+
+Lm1: X is CR implies X is CONF by Lm2;
+
+scheme isCOMP{X() -> non empty ARS, F(Element of X()) -> Element of X()}:
+  X() is COMP
+provided
+A1: X() is SN
+and
+A2: for x being Element of X() holds x =*=> F(x)
+and
+A3: for x,y being Element of X() st x <=*=> y holds F(x) = F(y)
+  proof
+    X() is CR from isCR(A2,A3);
+    hence X() is SN CONF by A1,Lm1;
+  end;
+
+theorem Lem18:
+  x <<01>> y implies x <<>> y
+  proof
+    given z such that
+A2: x <=01= z & z =01=> y;
+    take z;
+    thus x <=*= z & z =*=> y by A2,Lem1;
+  end;
+
+theorem Lem18a:
+  x >>01<< y implies x >><< y
+  proof
+    given z such that
+A2: x =01=> z & z <=01= y;
+    take z;
+    thus x =*=> z & z <=*= y by A2,Lem1;
+  end;
+
+theorem
+  x ==> y implies x <<01>> y
+  proof
+    assume
+A1: x ==> y;
+    take x;
+    thus x <=01= x & x =01=> y by A1;
+  end;
+
+theorem Th17:
+  x ==> y implies x >>01<< y
+  proof
+    assume
+A1: x ==> y;
+    take y;
+    thus x =01=> y & y =01=> y by A1;
+  end;
+
+theorem
+  x =01=> y implies x <<01>> y;
+
+theorem
+  x =01=> y implies x >>01<< y;
+
+theorem
+  x <==> y implies x <<01>> y
+  proof
+    assume
+A1: x <==> y;
+    per cases by A1;
+    suppose
+A2:   x ==> y;
+      take x;
+      thus x <=01= x & x =01=> y by A2;
+    end;
+    suppose
+A3:   x <== y;
+      take y;
+      thus x <=01= y & y =01=> y by A3;
+    end;
+  end;
+
+theorem
+  x <==> y implies x >>01<< y
+  proof
+    assume
+A1: x <==> y;
+    per cases by A1;
+    suppose
+A2:   x ==> y;
+      take y;
+      thus x =01=> y & y <=01= y by A2;
+    end;
+    suppose
+A3:   x <== y;
+      take x;
+      thus x =01=> x & x <=01= y by A3;
+    end;
+  end;
+
+theorem
+  x <=01=> y implies x <<01>> y
+  proof
+    assume
+A1: x <=01=> y;
+    per cases by A1,Lem31;
+    suppose x = y;
+      hence thesis;
+    end;
+    suppose
+A2:   x ==> y;
+      take x;
+      thus x <=01= x & x =01=> y by A2;
+    end;
+    suppose
+A3:   x <== y;
+      take y;
+      thus x <=01= y & y =01=> y by A3;
+    end;
+  end;
+
+theorem
+  x <=01=> y implies x >>01<< y
+  proof
+    assume
+A1: x <=01=> y;
+    per cases by A1,Lem31;
+    suppose x = y;
+      hence thesis;
+    end;
+    suppose
+A2:   x ==> y;
+      take y;
+      thus x =01=> y & y <=01= y by A2;
+    end;
+    suppose
+A3:   x <== y;
+      take x;
+      thus x =01=> x & x <=01= y by A3;
+    end;
+  end;
+
+theorem Th17a:
+  x ==> y implies x >><< y by Th17,Lem18a;
+
+theorem Lem17:
+  x =*=> y implies x >><< y;
+
+theorem
+  x =*=> y implies x <<>> y;
+
+theorem
+  x =+=> y implies x >><< y
+  proof
+    assume
+A1: x =+=> y;
+    take y; thus thesis by A1,Lem2;
+  end;
+
+theorem
+  x =+=> y implies x <<>> y
+  proof
+    assume
+A1: x =+=> y;
+    take x; thus thesis by A1,Lem2;
+  end;
+
+theorem Lm11:
+  x ==> y & x ==> z implies y <<01>> z
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: x ==> z;
+    take x;
+    thus y <=01= x by A1;
+    thus x =01=> z by A2;
+  end;
+
+theorem
+  x ==> y & z ==> y implies x >>01<< z
+  proof
+    assume
+A1: x ==> y;
+    assume
+A2: z ==> y;
+    take y;
+    thus y <=01= x by A1;
+    thus z =01=> y by A2;
+  end;
+
+theorem
+  x >><< z & z <== y implies x >><< y
+  proof
+    given u such that
+A3: x =*=> u & u <=*= z;
+    assume
+A2: z <== y;
+    take u;
+    thus x =*=> u by A3;
+    thus y =*=> u by A2,A3,Lem5;
+  end;
+
+theorem
+  x >><< z & z <=01= y implies x >><< y
+  proof
+    given u such that
+A3: x =*=> u & u <=*= z;
+    assume
+A2: z <=01= y;
+    take u;
+    thus x =*=> u by A3;
+    thus y =*=> u by A2,A3,Lem8;
+  end;
+
+theorem Lm5:
+  x >><< z & z <=*= y implies x >><< y
+  proof
+    given u such that
+A3: x =*=> u & u <=*= z;
+    assume
+A2: z <=*= y;
+    take u;
+    thus x =*=> u by A3;
+    thus y =*=> u by A2,A3,Th3;
+  end;
+
+theorem Lem19:
+  x <<>> y implies x <=*=> y
+  proof
+    given u such that
+A2: x <=*= u & u =*=> y;
+A3: x <=*=> u & u <=*=> y by A2,LemZ;
+    thus x <=*=> y by A3,Th7;
+  end;
+
+theorem
+  x >><< y implies x <=*=> y
+  proof
+    given u such that
+A2: x =*=> u & u <=*= y;
+A3: x <=*=> u & u <=*=> y by A2,LemZ;
+    thus x <=*=> y by A3,Th7;
+  end;
+
+begin :: Church-Rosser Property
+
+theorem
+  X is DIAMOND iff the reduction of X is subcommutative
+  proof
+    set R = the reduction of X;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    thus X is DIAMOND implies R is subcommutative
+    proof assume
+A1:   x <<01>> y implies x >>01<< y;
+      let a,b,c be object;
+      assume
+A2:   [a,b] in R & [a,c] in R; then
+      a in field R & b in field R & c in field R by RELAT_1:15; then
+      reconsider x = a, y = b, z = c as Element of X by F0;
+      x ==> y & x ==> z by A2; then
+      x =01=> y & x =01=> z; then
+      y <<01>> z;
+      hence b,c are_convergent<=1_wrt R by A1,Ch14;
+    end;
+    assume
+A3: for a,b,c being object st [a,b] in R & [a,c] in R
+    holds b,c are_convergent<=1_wrt R;
+    let x,y; given z such that
+A4: x <=01= z & z =01=> y;
+    per cases by A4;
+    suppose
+      x <== z & z ==> y;
+      hence thesis by A3,Ch14;
+    end;
+    suppose
+      x = z & z = y;
+      hence thesis;
+    end;
+    suppose
+      x <== z & z = y;
+      hence thesis by Th17;
+    end;
+    suppose
+      x = z & z ==> y;
+      hence thesis by Th17;
+    end;
+  end;
+
+theorem Ch17:
+  X is CONF iff the reduction of X is confluent
+  proof
+    set R = the reduction of X;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    thus X is CONF implies R is confluent
+    proof assume
+A1:   x <<>> y implies x >><< y;
+      let a,b be object; assume
+A2:   a,b are_divergent_wrt R; then
+A3:   a,b are_convertible_wrt R by REWRITE1:37;
+      per cases by A3,REWRITE1:32;
+      suppose
+        a in field R & b in field R; then
+        reconsider x = a, y = b as Element of X by F0;
+        x <<>> y by A2,Ch11;
+        hence a,b are_convergent_wrt R by A1,Ch12;
+      end;
+      suppose
+        a = b;
+        hence a,b are_convergent_wrt R by REWRITE1:38;
+      end;
+    end;
+    assume
+A5: for a,b being object st a,b are_divergent_wrt R
+    holds a,b are_convergent_wrt R;
+    let x,y; assume x <<>> y; then
+    x,y are_divergent_wrt R by Ch11;
+    hence thesis by A5,Ch12;
+  end;
+
+theorem
+  X is CR iff the reduction of X is with_Church-Rosser_property
+  proof
+    set R = the reduction of X;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    thus X is CR implies R is with_Church-Rosser_property
+    proof assume
+A1:   x <=*=> y implies x >><< y;
+      let a,b be object; assume
+A2:   a,b are_convertible_wrt R;
+      per cases by A2,REWRITE1:32;
+      suppose
+        a in field R & b in field R; then
+        reconsider x = a, y = b as Element of X by F0;
+        x <=*=> y by A2;
+        hence a,b are_convergent_wrt R by A1,Ch12;
+      end;
+      suppose
+        a = b;
+        hence a,b are_convergent_wrt R by REWRITE1:38;
+      end;
+    end;
+    assume
+A5: for a,b being object st a,b are_convertible_wrt R
+    holds a,b are_convergent_wrt R;
+    let x,y; assume x <=*=> y;
+    hence thesis by A5,Ch12;
+  end;
+
+theorem
+  X is WCR iff the reduction of X is locally-confluent
+  proof
+    set R = the reduction of X;
+    set A = the carrier of X;
+F0: field R c= A \/ A by RELSET_1:8;
+    thus X is WCR implies R is locally-confluent
+    proof assume
+A1:   x <<01>> y implies x >><< y;
+      let a,b,c be object; assume
+A2:   [a,b] in R & [a,c] in R; then
+      a in field R & b in field R & c in field R by RELAT_1:15; then
+      reconsider x = a, y = b, z = c as Element of X by F0;
+      x ==> y & x ==> z by A2; then
+      x =01=> y & x =01=> z; then
+      y <<01>> z;
+      hence b,c are_convergent_wrt R by A1,Ch12;
+    end;
+    assume
+A3: for a,b,c being object st [a,b] in R & [a,c] in R
+    holds b,c are_convergent_wrt R;
+    let x,y; given z such that
+A4: x <=01= z & z =01=> y;
+    per cases by A4;
+    suppose
+      x <== z & z ==> y;
+      hence thesis by A3,Ch12;
+    end;
+    suppose
+      x = z & z = y;
+      hence thesis;
+    end;
+    suppose
+      x <== z & z = y;
+      hence thesis by Th17a;
+    end;
+    suppose
+      x = z & z ==> y;
+      hence thesis by Th17a;
+    end;
+  end;
+
+theorem
+  for X being non empty ARS holds X is COMP iff the reduction of X is complete
+  proof let X be non empty ARS;
+    set R = the reduction of X;
+A2: X is CONF iff R is confluent by Ch17;
+    X is SN iff R is strongly-normalizing by Ch7,Ch8;
+    hence thesis by A2;
+  end;
+
+theorem LemA:
+  X is DIAMOND & x <=*= z & z =01=> y implies
+  ex u st x =01=> u & u <=*= y
+  proof
+    assume
+A1: for x,y st x <<01>> y holds x >>01<< y;
+    assume
+A2: x <=*= z;
+    assume
+A3: z =01=> y;
+    defpred P[Element of X] means ex u st $1 =01=> u & u <=*= y;
+A4: for u,v st u ==> v & P[u] holds P[v]
+    proof
+      let u,v;
+      assume u ==> v; then
+B1:   u =01=> v;
+      given w such that
+B2:   u =01=> w & w <=*= y;
+      v <<01>> w by B1,B2; then
+      v >>01<< w by A1; then
+      consider u such that
+B3:   v =01=> u & u <=01= w;
+      thus P[v] by B2,B3,Lem11;
+    end;
+A5: for u,v st u =*=> v & P[u] holds P[v] from Star(A4);
+    thus thesis by A5,A2,A3;
+  end;
+
+theorem
+  X is DIAMOND & x <=01= y & y =*=> z implies
+  ex u st x =*=> u & u <=01= z
+  proof
+    assume X is DIAMOND & x <=01= y & y =*=> z; then
+    ex u st z =01=> u & u <=*= x by LemA;
+    hence thesis;
+  end;
+
+registration
+  cluster DIAMOND -> CONF for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is DIAMOND;
+    let x,y;
+    given z such that
+A2: x <=*= z and
+A3: z =*=> y;
+    defpred P[Element of X] means x >><< $1;
+A4: P[z] by A2,Lem17;
+A5: for u,v st u ==> v & P[u] holds P[v]
+    proof
+      let u,v;
+      assume
+A6:   u ==> v;
+      given w such that
+A7:   x =*=> w & w <=*= u;
+A8:   u =01=> v by A6;
+      consider a such that
+A9:   w =01=> a & a <=*= v by A1,A7,A8,LemA;
+A10:  x =*=> a by A7,A9,Lem11;
+      thus P[v] by A9,A10,DEF2;
+    end;
+    P[y] from Star1(A3,A4,A5);
+    hence x >><< y;
+  end;
+end;
+
+registration
+  cluster DIAMOND -> CR for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is DIAMOND;
+    let x,y;
+    assume
+A2: x <=*=> y;
+    defpred P[Element of X] means x >><< $1;
+A4: P[x];
+A5: for u,v st u <==> v & P[u] holds P[v]
+    proof
+      let u,v;
+      assume
+A6:   u <==> v;
+      given w such that
+A7:   x =*=> w & w <=*= u;
+      per cases by A6;
+      suppose u ==> v; then
+A8:     u =01=> v;
+        consider a such that
+A9:     w =01=> a & a <=*= v by A1,A7,A8,LemA;
+A10:    x =*=> a by A7,A9,Lem11;
+        thus P[v] by A9,A10,DEF2;
+      end;
+      suppose u <== v; then
+A11:    v =*=> w by A7,Lem5;
+        thus P[v] by A7,A11,DEF2;
+      end;
+    end;
+    P[y] from Star2A(A2,A4,A5);
+    hence x >><< y;
+  end;
+end;
+
+registration
+  cluster CR -> WCR for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is CR;
+    let x,y;
+    assume
+A2: x <<01>> y;
+A4: x <=*=> y by A2,Lem18,Lem19;
+    thus x >><< y by A1,A4;
+  end;
+end;
+
+registration
+  cluster CR -> CONF for ARS;
+  coherence by Lm1;
+end;
+
+registration
+  cluster CONF -> CR for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is CONF;
+    let x;
+    defpred P[Element of X] means x >><< $1;
+A3: for y,z st y <==> z & P[y] holds P[z]
+    proof
+      let y,z;
+      assume
+B1:   y <==> z & P[y];
+      consider u such that
+B2:   x =*=> u & u <=*= y by B1,DEF2;
+      per cases by B1;
+      suppose
+B3:     y ==> z;
+        y =*=> z by B3,Th2; then
+        u <<>> z by B2;
+        hence P[z] by A1,B2,Lm5;
+      end;
+      suppose
+B5:     y <== z;
+        thus P[z] by B1,B5,Th2,Lm5;
+      end;
+    end;
+    for y,z st y <=*=> z & P[y] holds P[z] from Star2(A3);
+    hence thesis;
+  end;
+end;
+
+theorem
+  X is non CONF WN implies
+  ex x,y,z st y is_normform_of x & z is_normform_of x & y <> z
+  proof
+    given a,b such that
+A1: a <<>> b  & not a >><< b;
+    consider x such that
+A0: a <=*= x & x =*=> b by A1;
+    assume
+A2: c is normalizable; then
+    a is normalizable; then
+    consider y such that
+A3: y is_normform_of a;
+    b is normalizable by A2; then
+    consider z such that
+A4: z is_normform_of b;
+    take x,y,z;
+    thus y is_normform_of x & z is_normform_of x by A0,A3,A4,LemN7;
+    thus thesis by A1,A3,A4;
+  end;
+
+registration
+::$N Newman's lemma
+  cluster SN WCR -> CR for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is SN WCR;
+    assume
+A2: X is not CR;
+A3: X is not CONF by A2;
+    consider x1,x2 being Element of X such that
+A4: x1 <<>> x2 & not x1 >><< x2 by A3;
+    defpred P[Element of X] means
+    ex x,y st x is_normform_of $1 & y is_normform_of $1 & x <> y;
+A5: ex x st P[x]
+    proof
+      consider x such that
+B1:   x1 <=*= x & x =*=> x2 by A4;
+      take x;
+      consider y1 being Element of X such that
+B2:   y1 is_normform_of x1 by A1,ThWN1;
+      consider y2 being Element of X such that
+B3:   y2 is_normform_of x2 by A1,ThWN1;
+      take y1,y2;
+      thus y1 is_normform_of x by B1,B2,LemN7;
+      thus y2 is_normform_of x by B1,B3,LemN7;
+      assume
+B4:   y1 = y2;
+      thus contradiction by A4,B2,B3,B4;
+    end;
+A6: for x st P[x] ex y st P[y] & x ==> y
+    proof
+      let x;
+      assume P[x]; then
+      consider x1,x2 being Element of X such that
+C1:   x1 is_normform_of x & x2 is_normform_of x & x1 <> x2;
+      x =+=> x1 by C1,Lem21; then
+      consider y1 being Element of X such that
+C2:   x ==> y1 & y1 =*=> x1;
+      x =+=> x2 by C1,Lem21; then
+      consider y2 being Element of X such that
+C3:   x ==> y2 & y2 =*=> x2;
+      y1 >><< y2 by A1,C2,C3,Lm11; then
+      consider y such that
+C4:   y1 =*=> y & y <=*= y2;
+      consider y0 being Element of X such that
+C5:   y0 is_normform_of y by A1,ThWN1;
+      per cases;
+      suppose
+D1:     y0 = x1;
+        take y2;
+D2:     y0 is_normform_of y2 by C4,C5,LemN7;
+        x2 is_normform_of y2 by C1,C3;
+        hence P[y2] by C1,D1,D2;
+        thus x ==> y2 by C3;
+      end;
+      suppose
+D3:     y0 <> x1;
+        take y1;
+D4:     y0 is_normform_of y1 by C4,C5,LemN7;
+        x1 is_normform_of y1 by C1,C2;
+        hence thesis by C2,D3,D4;
+      end;
+    end;
+A7: X is not SN from notSN(A5,A6);
+    thus contradiction by A1,A7;
+  end;
+end;
+
+registration
+  cluster CR -> N.F. for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is CR;
+    let x,y;
+    assume
+A2: x is normform;
+    assume
+A3: x <=*=> y;
+A4: x >><< y by A1,A3;
+    consider z such that
+A5: x =*=> z & z <=*= y by A4;
+    thus y =*=> x by A2,A5,LemN1;
+  end;
+end;
+
+registration
+  cluster WN UN -> CR for ARS;
+  coherence
+  proof let X;
+    assume
+A1: X is WN;
+    assume
+A2: X is UN;
+    let x,y;
+    assume
+A3: x <=*=> y;
+A4: x is normalizable & y is normalizable by A1;
+    consider u such that
+A5: u is_normform_of x by A4;
+    consider v such that
+A6: v is_normform_of y by A4;
+A7: u is normform & x =*=> u by A5;
+    take u;
+    thus x =*=> u by A5;
+    u <=*=> x by A5,LemZ; then
+    u <=*=> y & y <=*=> v by A3,A6,Th7,LemZ;
+    hence y =*=> u by A2,A7,A6,Th7;
+  end;
+end;
+
+registration
+  cluster SN CR -> COMP for ARS;
+  coherence;
+
+  cluster COMP -> CR WCR N.F. UN UN* WN for ARS;
+  coherence;
+end;
+
+theorem
+  X is COMP implies
+  for x,y st x <=*=> y holds nf x = nf y by Lem27;
+
+registration
+  cluster WN UN* -> CR for ARS;
+  coherence;
+
+  cluster SN UN* -> COMP for ARS;
+  coherence;
+end;
+
+begin :: Term Rewriting Systems
+
+definition
+  struct(ARS,UAStr) TRSStr (#
+    carrier -> set,
+    charact -> PFuncFinSequence of the carrier,
+    reduction -> Relation of the carrier
+  #);
+end;
+
+registration
+  cluster non empty non-empty strict for TRSStr;
+  existence
+  proof
+    set S = the non empty set;
+    set o = the non-empty non empty PFuncFinSequence of S;
+    set r = the Relation of S;
+    take X = TRSStr(#S, o, r#);
+    thus the carrier of X is non empty;
+    thus the charact of X <> {};
+    thus thesis;
+  end;
+end;
+
+definition
+  let S be non empty UAStr;
+  attr S is Group-like means
+  Seg 3 c= dom the charact of S &
+  for f being non empty homogeneous
+    PartFunc of (the carrier of S)*, the carrier of S holds
+  (f = (the charact of S).1 implies arity f = 0) &
+  (f = (the charact of S).2 implies arity f = 1) &
+  (f = (the charact of S).3 implies arity f = 2);
+end;
+
+theorem Th01:
+  for X being non empty set
+  for f1,f2,f3 being non empty homogeneous PartFunc of X*, X
+   st arity f1 = 0 & arity f2 = 1 & arity f3 = 2
+  for S being non empty UAStr
+   st the carrier of S = X & <*f1,f2,f3*> c= the charact of S
+  holds S is Group-like
+  proof
+    let X be non empty set;
+    let f1,f2,f3 be non empty homogeneous PartFunc of X*, X;
+    assume
+01: arity f1 = 0;
+    assume
+02: arity f2 = 1;
+    assume
+03: arity f3 = 2;
+    let S be non empty UAStr;
+    assume
+04: the carrier of S = X & <*f1,f2,f3*> c= the charact of S;
+05: dom <*f1,f2,f3*> = Seg 3 by FINSEQ_2:124;
+    hence Seg 3 c= dom the charact of S by 04,RELAT_1:11;
+    let f be non empty homogeneous
+    PartFunc of (the carrier of S)*, the carrier of S;
+    1 in Seg 3 & 2 in Seg 3 & 3 in Seg 3 by FINSEQ_3:1,ENUMSET1:def 1; then
+    (the charact of S).1 = <*f1,f2,f3*>.1 &
+    (the charact of S).2 = <*f1,f2,f3*>.2 &
+    (the charact of S).3 = <*f1,f2,f3*>.3 by 04,05,GRFUNC_1:2;
+    hence (f = (the charact of S).1 implies arity f = 0) &
+    (f = (the charact of S).2 implies arity f = 1) &
+    (f = (the charact of S).3 implies arity f = 2) by 01,02,03,FINSEQ_1:45;
+  end;
+
+theorem Th02:
+  for X being non empty set
+  for f1,f2,f3 being non empty quasi_total homogeneous PartFunc of X*, X
+  for S being non empty UAStr
+   st the carrier of S = X & <*f1,f2,f3*> = the charact of S
+  holds S is quasi_total partial
+  proof
+    let X be non empty set;
+    let f1,f2,f3 be non empty quasi_total homogeneous PartFunc of X*, X;
+    let S be non empty UAStr;
+    assume
+04: the carrier of S = X & <*f1,f2,f3*> = the charact of S;
+    set A = the carrier of S;
+    thus S is quasi_total
+    proof
+      let i be Nat, h being PartFunc of A*,A;
+      assume i in dom the charact of S; then
+      i in Seg 3 by 04,FINSEQ_1:89; then
+      i = 1 or i = 2 or i = 3 by FINSEQ_3:1,ENUMSET1:def 1;
+      hence thesis by 04,FINSEQ_1:45;
+    end;
+    let i be Nat, h being PartFunc of A*,A;
+    assume i in dom the charact of S; then
+    i in Seg 3 by 04,FINSEQ_1:89; then
+    i = 1 or i = 2 or i = 3 by FINSEQ_3:1,ENUMSET1:def 1;
+    hence thesis by 04,FINSEQ_1:45;
+  end;
+
+definition
+  let S be non empty non-empty UAStr;
+  let o be operation of S;
+  let a be Element of dom o;
+  redefine func o.a -> Element of S;
+  coherence
+  proof
+    o in rng the charact of S; then
+    o <> {} & o in PFuncs((the carrier of S)*, the carrier of S)
+    by RELAT_1:def 9; then
+    o.a in rng o & rng o c= the carrier of S by RELAT_1:def 19,FUNCT_1:3;
+    hence thesis;
+  end;
+end;
+
+registration
+  let S be non empty non-empty UAStr;
+  cluster -> non empty for operation of S;
+  coherence by RELAT_1:def 9;
+  let o be operation of S;
+  cluster -> Relation-like Function-like for Element of dom o;
+  coherence
+  proof
+    let a be Element of dom o;
+    a in dom o & dom o c= (the carrier of S)*; then
+    a is Element of (the carrier of S)*;
+    hence thesis;
+  end;
+end;
+
+registration
+  let S be partial non empty non-empty UAStr;
+  cluster -> homogeneous for operation of S;
+  coherence
+  proof
+    let o be operation of S;
+    consider i being object such that
+A1: i in dom the charact of S & o = (the charact of S).i by FUNCT_1:def 3;
+    thus thesis by A1;
+  end;
+end;
+
+registration
+  let S be quasi_total non empty non-empty UAStr;
+  cluster -> quasi_total for operation of S;
+  coherence
+  proof
+    let o be operation of S;
+    consider i being object such that
+A1: i in dom the charact of S & o = (the charact of S).i by FUNCT_1:def 3;
+    thus thesis by A1,MARGREL1:def 24;
+  end;
+end;
+
+theorem ThA:
+  for S being non empty non-empty UAStr st S is Group-like
+  holds
+    1 is OperSymbol of S & 2 is OperSymbol of S & 3 is OperSymbol of S
+    proof
+      let S be non empty non-empty UAStr;
+      assume
+A0:   Seg 3 c= dom the charact of S;
+      1 in Seg 3 & 2 in Seg 3 & 3 in Seg 3 by FINSEQ_3:1,ENUMSET1:def 1;
+      hence thesis by A0;
+    end;
+
+theorem ThB:
+  for S being partial non empty non-empty UAStr st S is Group-like
+  holds
+    arity Den(In(1, dom the charact of S), S) = 0 &
+    arity Den(In(2, dom the charact of S), S) = 1 &
+    arity Den(In(3, dom the charact of S), S) = 2
+  proof
+    let S be partial non empty non-empty UAStr;
+    assume
+A1: S is Group-like; then
+    1 is OperSymbol of S & 2 is OperSymbol of S & 3 is OperSymbol of S
+    by ThA; then
+    In(1, dom the charact of S) = 1 &
+    In(2, dom the charact of S) = 2 &
+    In(3, dom the charact of S) = 3;
+    hence thesis by A1,PUA2MSS1:def 1;
+  end;
+
+definition
+  let S be non empty non-empty TRSStr;
+  attr S is invariant means:
+DEF2:
+  for o being OperSymbol of S
+  for a,b being Element of dom Den(o,S)
+  for i being Nat st i in dom a
+  for x,y being Element of S
+  st x = a.i & b = a+*(i,y) & x ==> y
+  holds Den(o,S).a ==> Den(o,S).b;
+end;
+
+definition
+  let S be non empty non-empty TRSStr;
+  attr S is compatible means
+  for o being OperSymbol of S
+  for a,b being Element of dom Den(o,S)
+  st for i being Nat st i in dom a holds
+     for x,y being Element of S st x = a.i & y = b.i holds x ==> y
+  holds Den(o,S).a =*=> Den(o,S).b;
+end;
+
+theorem Th0:
+  for n being natural number, X being non empty set, x being Element of X
+  ex f being non empty homogeneous quasi_total PartFunc of X*, X st
+  arity f = n & f = (n-tuples_on X) --> x
+  proof
+    let n be natural number, X be non empty set;
+    let x be Element of X;
+    set f = (n-tuples_on X) --> x;
+A1: dom f = n-tuples_on X & rng f = {x} & n in omega
+    by FUNCOP_1:8,ORDINAL1:def 12; then
+    dom f c= X* & rng f c= X by ZFMISC_1:31,FINSEQ_2:134; then
+    reconsider f as non empty PartFunc of X*, X by RELSET_1:4;
+A2: f is quasi_total
+    proof
+      let x,y be FinSequence of X; assume
+      len x = len y & x in dom f; then
+      len x = n & len y = n by A1,FINSEQ_2:132;
+      hence thesis by FINSEQ_2:133;
+    end;
+    f is homogeneous
+    proof
+      let x,y be FinSequence; assume
+      x in dom f & y in dom f; then
+      reconsider x,y as Element of n-tuples_on X;
+      len x = n & len y = n by A1,FINSEQ_2:132;
+      hence thesis;
+    end; then
+    reconsider f as non empty homogeneous quasi_total PartFunc of X*, X by A2;
+    take f;
+    set y = the Element of n-tuples_on X;
+A3: for x being FinSequence st x in dom f holds n = len x by A1,FINSEQ_2:132;
+    y in dom f;
+    hence arity f = n by A3,MARGREL1:def 25;
+    thus thesis;
+  end;
+
+registration
+  let X be non empty set;
+  let O be PFuncFinSequence of X;
+  let r be Relation of X;
+  cluster TRSStr(#X, O, r#) -> non empty;
+  coherence;
+end;
+
+registration
+  let X be non empty set;
+  let O be non empty non-empty PFuncFinSequence of X;
+  let r be Relation of X;
+  cluster TRSStr(#X, O, r#) -> non-empty;
+  coherence
+  proof
+    thus the charact of TRSStr(#X, O, r#) <> {};
+    thus the charact of TRSStr(#X, O, r#) is non-empty;
+  end;
+end;
+
+definition
+  let X be non empty set;
+  let x be Element of X;
+  func TotalTRS(X,x) -> non empty non-empty strict TRSStr means:
+DEF3:
+  the carrier of it = X &
+  the charact of it =
+  <*(0-tuples_on X)-->x, (1-tuples_on X)-->x, (2-tuples_on X)-->x*> &
+  the reduction of it = nabla X;
+  uniqueness;
+  existence
+  proof
+    consider f0 being non empty homogeneous quasi_total PartFunc of X*, X
+    such that
+A0: arity f0 = 0 & f0 = (0-tuples_on X) --> x by Th0;
+    consider f1 being non empty homogeneous quasi_total PartFunc of X*, X
+    such that
+A1: arity f1 = 1 & f1 = (1-tuples_on X) --> x by Th0;
+    consider f2 being non empty homogeneous quasi_total PartFunc of X*, X
+    such that
+A2: arity f2 = 2 & f2 = (2-tuples_on X) --> x by Th0;
+    set r = nabla X;
+    reconsider a = f0, b = f1, c = f2 as Element of PFuncs(X*, X)
+    by PARTFUN1:45;
+    reconsider O = <*a,b,c*> as non empty non-empty PFuncFinSequence of X;
+    take S = TRSStr(#X, O, r#);
+    thus thesis by A0,A1,A2;
+  end;
+end;
+
+registration
+  let X be non empty set;
+  let x be Element of X;
+  cluster TotalTRS(X,x) -> quasi_total partial Group-like invariant;
+  coherence
+  proof set S = TotalTRS(X,x);
+A3: the carrier of S = X & the charact of S =
+    <*(0-tuples_on X)-->x, (1-tuples_on X)-->x, (2-tuples_on X)-->x*> &
+    the reduction of S = nabla X by DEF3;
+    consider f0 being non empty homogeneous quasi_total PartFunc of X*, X
+    such that
+A0: arity f0 = 0 & f0 = (0-tuples_on X) --> x by Th0;
+    consider f1 being non empty homogeneous quasi_total PartFunc of X*, X
+    such that
+A1: arity f1 = 1 & f1 = (1-tuples_on X) --> x by Th0;
+    consider f2 being non empty homogeneous quasi_total PartFunc of X*, X
+    such that
+A2: arity f2 = 2 & f2 = (2-tuples_on X) --> x by Th0;
+    [:X,X:] c= [:X,X:]; then
+    reconsider r = [:X,X:] as Relation of X;
+    reconsider a = f0, b = f1, c = f2 as Element of PFuncs(X*, X)
+    by PARTFUN1:45;
+    thus S is quasi_total partial Group-like by A0,A1,A2,A3,Th01,Th02;
+    let o be OperSymbol of S;
+    let a,b be Element of dom Den(o,S);
+    let i be Nat such that i in dom a;
+    let x,y be Element of S such that x = a.i & b = a+*(i,y) & x ==> y;
+    thus [Den(o,S).a,Den(o,S).b] in the reduction of S by A3,ZFMISC_1:87;
+  end;
+end;
+
+registration
+  cluster strict quasi_total partial Group-like invariant for
+  non empty non-empty TRSStr;
+  existence
+  proof
+    take TotalTRS(NAT,In(0,NAT));
+    thus thesis;
+  end;
+end;
+
+definition
+  let S be Group-like quasi_total partial non empty non-empty TRSStr;
+  func 1.S -> Element of S equals
+     Den(In(1,dom the charact of S), S).{};
+  coherence
+  proof
+    arity Den(In(1,dom the charact of S), S) = 0 by ThB; then
+    dom Den(In(1,dom the charact of S), S) = 0-tuples_on the carrier of S
+    by COMPUT_1:22 .= {{}} by COMPUT_1:5; then
+    {} in dom Den(In(1,dom the charact of S), S) by TARSKI:def 1;
+    hence thesis by FUNCT_1:102;
+  end;
+  let a be Element of S;
+  func a " -> Element of S equals
+     Den(In(2,dom the charact of S), S).<*a*>;
+  coherence
+  proof
+    arity Den(In(2,dom the charact of S), S) = 1 by ThB; then
+    dom Den(In(2,dom the charact of S), S) = 1-tuples_on the carrier of S &
+    <*a*> is Element of 1-tuples_on the carrier of S
+    by FINSEQ_2:98,MARGREL1:22;
+    hence thesis by FUNCT_1:102;
+  end;
+  let b be Element of S;
+  func a * b -> Element of S equals
+     Den(In(3,dom the charact of S), S).<*a,b*>;
+  coherence
+  proof
+    arity Den(In(3,dom the charact of S), S) = 2 by ThB; then
+    dom Den(In(3,dom the charact of S), S) = 2-tuples_on the carrier of S &
+    <*a,b*> is Element of 2-tuples_on the carrier of S
+    by FINSEQ_2:101,MARGREL1:22;
+    hence thesis by FUNCT_1:102;
+  end;
+end;
+
+reserve
+  S for Group-like quasi_total partial invariant non empty non-empty TRSStr;
+reserve a,b,c for Element of S;
+
+theorem
+  a ==> b implies a" ==> b"
+  proof
+    assume
+A0: a ==> b;
+    set o = In(2, dom the charact of S);
+    arity Den(o, S) = 1 by ThB; then
+    dom Den(o, S) = 1-tuples_on the carrier of S by MARGREL1:22; then
+    reconsider aa = <*a*>, bb = <*b*> as Element of dom Den(o, S)
+    by FINSEQ_2:98;
+A2: dom <*a*> = Seg 1 & 1 in Seg 1 by FINSEQ_1:1,38;
+A3: <*a*>.1 = a by FINSEQ_1:40;
+    <*a*>+*(1,b) = <*b*> by FUNCT_7:95; then
+    Den(o,S).aa ==> Den(o,S).bb by A0,A2,A3,DEF2;
+    hence a" ==> b";
+  end;
+
+theorem ThI2:
+  a ==> b implies a*c ==> b*c
+  proof
+    assume
+A0: a ==> b;
+    set o = In(3, dom the charact of S);
+    arity Den(o, S) = 2 by ThB; then
+    dom Den(o, S) = 2-tuples_on the carrier of S by MARGREL1:22; then
+    reconsider ac = <*a,c*>, bc = <*b,c*> as Element of dom Den(o, S)
+    by FINSEQ_2:101;
+A2: dom <*a,c*> = Seg 2 & 1 in Seg 2 by FINSEQ_1:1,89;
+A3: <*a,c*>.1 = a by FINSEQ_1:44;
+    <*a,c*>+*(1,b) = <*b,c*> by COMPUT_1:1; then
+    Den(o,S).ac ==> Den(o,S).bc by A0,A2,A3,DEF2;
+    hence a*c ==> b*c;
+  end;
+
+theorem ThI3:
+  a ==> b implies c*a ==> c*b
+  proof
+    assume
+A0: a ==> b;
+    set o = In(3, dom the charact of S);
+    arity Den(o, S) = 2 by ThB; then
+    dom Den(o, S) = 2-tuples_on the carrier of S by MARGREL1:22; then
+    reconsider ac = <*c,a*>, bc = <*c,b*> as Element of dom Den(o, S)
+    by FINSEQ_2:101;
+A2: dom <*c,a*> = Seg 2 & 2 in Seg 2 by FINSEQ_1:1,89;
+A3: <*c,a*>.2 = a by FINSEQ_1:44;
+    <*c,a*>+*(2,b) = <*c,b*> by COMPUT_1:1; then
+    Den(o,S).ac ==> Den(o,S).bc by A0,A2,A3,DEF2;
+    hence c*a ==> c*b;
+  end;
+
+begin :: An Execution of Knuth-Bendix Algorithm
+
+reserve S for Group-like quasi_total partial non empty non-empty TRSStr;
+reserve a,b,c for Element of S;
+
+definition
+  let S;
+  attr S is (R1) means
+   1.S * a ==> a;
+  attr S is (R2) means
+   a" * a ==> 1.S;
+  attr S is (R3) means
+   (a * b) * c ==> a * (b * c);
+  attr S is (R4) means
+   a" * (a * b) ==> b;
+  attr S is (R5) means
+   (1.S)" * a ==> a;
+  attr S is (R6) means
+   (a")" * 1.S ==> a;
+  attr S is (R7) means
+   (a")" * b ==> a * b;
+  attr S is (R8) means
+   a * 1.S ==> a;
+  attr S is (R9) means
+   (a")" ==> a;
+  attr S is (R10) means
+   (1.S)" ==> 1.S;
+  attr S is (R11) means
+   a * (a") ==> 1.S;
+  attr S is (R12) means
+   a * (a" * b) ==> b;
+  attr S is (R13) means
+   a * (b * (a * b)") ==> 1.S;
+  attr S is (R14) means
+   a * (b * a)" ==> b";
+  attr S is (R15) means
+   (a * b)" ==> b" * a";
+end;
+
+reserve
+  S for Group-like quasi_total partial invariant non empty non-empty TRSStr,
+  a,b,c for Element of S;
+
+theorem
+  S is (R1) (R2) (R3) implies a" * (a * b) <<>> b
+  proof
+    assume
+A1: S is (R1) (R2) (R3);
+    take (a"*a)*b;
+    thus (a"*a)*b =*=> a"*(a*b) by A1,Th2;
+    (a"*a)*b ==> 1.S * b & 1.S * b ==> b by A1,ThI2; then
+    (a"*a)*b =*=> 1.S * b & 1.S * b =*=> b by Th2;
+    hence (a"*a)*b =*=> b by Th3;
+  end;
+
+theorem
+  S is (R1) (R4) implies (1.S)" * a <<>> a
+  proof
+    assume
+A1: S is (R1) (R4);
+    take (1.S)"*(1.S*a);
+    1.S*a ==> a by A1;
+    hence (1.S)"*(1.S*a) =*=> (1.S)" * a by Th2,ThI3;
+    thus thesis by A1,Th2;
+  end;
+
+theorem
+  S is (R2) (R4) implies (a")" * 1.S <<>> a
+  proof
+    assume
+A1: S is (R2) (R4);
+    take (a")" * (a" * a);
+    a" * a ==> 1.S by A1;
+    hence (a")" * (a" * a) =*=> (a")" * 1.S by Th2,ThI3;
+    thus (a")" * (a" * a) =*=> a by A1,Th2;
+  end;
+
+theorem
+  S is (R1) (R3) (R6) implies (a")" * b <<>> a * b
+  proof
+    assume
+A1: S is (R1) (R3) (R6);
+    take (a""*1.S)*b;
+A2: (a""*1.S)*b =*=> a""*(1.S*b) by A1,Th2;
+    1.S*b ==> b by A1; then
+    a""*(1.S*b) =*=> a""*b by Th2,ThI3;
+    hence (a""*1.S)*b =*=> a""*b by A2,Th3;
+    a"" * 1.S ==> a by A1;
+    hence (a"" * 1.S) * b =*=> a * b by Th2,ThI2;
+  end;
+
+theorem
+  S is (R6) (R7) implies a * 1.S <<>> a
+  proof
+    assume
+A1: S is (R6) (R7);
+    take a""*1.S;
+    thus a""*1.S =*=> a*1.S by A1,Th2;
+    thus a"" * 1.S =*=> a by A1,Th2;
+  end;
+
+theorem
+  S is (R6) (R8) implies (a")" <<>> a
+  proof
+    assume
+A1: S is (R6) (R8);
+    take a""*1.S;
+    thus a""*1.S =*=> a"" by A1,Th2;
+    thus a"" * 1.S =*=> a by A1,Th2;
+  end;
+
+theorem
+  S is (R5) (R8) implies (1.S)" <<>> 1.S
+  proof
+    assume
+A1: S is (R5) (R8);
+    take (1.S)"*1.S;
+    thus (1.S)"*1.S =*=> (1.S)" by A1,Th2;
+    thus (1.S)" * 1.S =*=> 1.S by A1,Th2;
+  end;
+
+theorem
+  S is (R2) (R9) implies a * (a") <<>> 1.S
+  proof
+    assume
+A1: S is (R2) (R9);
+    take a""*a";
+    a"" ==> a by A1;
+    hence a""*a" =*=> a*a" by Th2,ThI2;
+    thus a""*a" =*=> 1.S by A1,Th2;
+  end;
+
+theorem
+  S is (R1) (R3) (R11) implies a * (a" * b) <<>> b
+  proof
+    assume
+A1: S is (R1) (R3) (R11);
+    take (a * a") * b;
+    thus (a * a") * b =*=> a * (a" * b) by A1,Th2;
+    (a * a") * b ==> 1.S * b & 1.S * b ==> b by A1,ThI2;
+    hence (a * a") * b =*=> b by Lem3;
+  end;
+
+theorem
+  S is (R3) (R11) implies a * (b * (a * b)") <<>> 1.S
+  proof
+    assume
+A1: S is (R3) (R11);
+    take (a * b) * (a * b)";
+    thus (a * b) * (a * b)" =*=> a * (b * (a * b)") by A1,Th2;
+    thus (a * b) * (a * b)" =*=> 1.S by A1,Th2;
+  end;
+
+theorem
+  S is (R4) (R8) (R13) implies a * (b * a)" <<>> b"
+  proof
+    assume
+A1: S is (R4) (R8) (R13);
+    take b"*(b*(a*(b*a)"));
+    thus b"*(b*(a*(b*a)")) =*=> a*(b*a)" by A1,Th2;
+    b"*(b*(a*(b*a)")) ==> b"*1.S & b"*1.S ==> b" by A1,ThI3;
+    hence b"*(b*(a*(b*a)")) =*=> b" by Lem3;
+  end;
+
+theorem
+  S is (R4) (R14) implies (a * b)" <<>> b" * a"
+  proof
+    assume
+A1: S is (R4) (R14);
+    take b"*(b*(a*b)");
+    thus b"*(b*(a*b)") =*=> (a * b)" by A1,Th2;
+    (b*(a*b)") ==> a" by A1;
+    hence b"*(b*(a*b)") =*=> b" * a" by Th2,ThI3;
+  end;
+
+theorem
+  S is (R1) (R10) implies (1.S)" * a =*=> a
+  proof
+    assume
+A1: S is (R1) (R10);
+    (1.S)"*a ==> 1.S*a & 1.S*a ==> a by A1,ThI2;
+    hence (1.S)" * a =*=> a by Lem3;
+  end;
+
+theorem
+  S is (R8) (R9) implies (a")" * 1.S =*=> a
+  proof
+    assume S is (R8) (R9); then
+    (a")" * 1.S ==> a"" & a"" ==> a;
+    hence (a")" * 1.S =*=> a by Lem3;
+  end;
+
+theorem
+  S is (R9) implies (a")" * b =*=> a * b
+  proof
+    assume S is (R9); then
+    a"" ==> a;
+    hence (a")" * b =*=> a * b by Th2,ThI2;
+  end;
+
+theorem
+  S is (R11) (R14) implies a * (b * (a * b)") =*=> 1.S
+  proof
+    assume
+A1: S is (R11) (R14);
+    a * (b * (a * b)") ==> a*a" & a*a" ==> 1.S by A1,ThI3;
+    hence a * (b * (a * b)") =*=> 1.S by Lem3;
+  end;
+
+theorem
+  S is (R12) (R15) implies a * (b * a)" =*=> b"
+  proof
+    assume
+A1: S is (R12) (R15);
+    a * (b * a)" ==> a*(a"*b") & a*(a"*b") ==> b" by A1,ThI3;
+    hence a * (b * a)" =*=> b" by Lem3;
+  end;
+

@@ -1,0 +1,2616 @@
+:: $\sigma$-ring and $\sigma$-algebra of Sets
+::  by Noboru Endou , Kazuhisa Nakasho and Yasunari Shidama
+:: 
+:: Received February 18, 2015
+:: Copyright (c) 2015-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies CARD_1, CARD_3, EQREL_1, FINSET_1, FINSUB_1, FUNCT_1, NUMBERS,
+      PROB_1, RELAT_1, SETFAM_1, SIMPLEX0, SRINGS_1, SUBSET_1, TARSKI,
+      XBOOLE_0, ZFMISC_1, ARYTM_1, ARYTM_3, XXREAL_0, PROB_2, FINSEQ_1, NAT_1,
+      ORDINAL4, INT_1, UPROOTS, SETLIM_2, SRINGS_3, MEASURE5, REAL_1, SUPINF_1,
+      XXREAL_1;
+ notations TARSKI, XBOOLE_0, SUBSET_1, PROB_1, EQREL_1, SETFAM_1, FINSET_1,
+      CARD_3, FINSUB_1, FUNCT_1, SIMPLEX0, SRINGS_1, ORDINAL1, NUMBERS,
+      XXREAL_0, RELSET_1, KURATO_0, XREAL_0, XXREAL_1, XCMPLX_0, NAT_D, PROB_2,
+      SETLIM_2, SUPINF_1, FINSEQ_1, RCOMP_1, MEASURE5;
+ constructors SRINGS_1, RELSET_1, PARTIT1, PROB_2, NAT_D, MESFUNC5, SETLIM_2,
+      KURATO_0, COHSP_1, SUPINF_1, RCOMP_1, MEASURE5;
+ registrations EQREL_1, FINSET_1, FINSUB_1, MEASURE1, PROB_1, SRINGS_1,
+      SUBSET_1, XBOOLE_0, XTUPLE_0, ZFMISC_1, MEMBERED, NAT_1, RELSET_1,
+      XREAL_0, XXREAL_0, FUNCT_1, FINSEQ_1, ROUGHS_1, ORDINAL1, MEASURE5,
+      XXREAL_1;
+ requirements BOOLE, SUBSET, ARITHM, NUMERALS, REAL;
+ equalities CARD_3, FINSEQ_1, RCOMP_1;
+ expansions TARSKI, XBOOLE_0, FINSUB_1, FINSEQ_1, MEASURE5;
+ theorems EQREL_1, FINSUB_1, PARTIT1, PROB_1, SETFAM_1, SRINGS_1, SUBSET_1,
+      TARSKI, XBOOLE_0, XBOOLE_1, ZFMISC_1, FUNCT_1, FUNCT_2, XREAL_0, XREAL_1,
+      XXREAL_0, NAT_1, FINSEQ_1, FINSEQ_3, NAT_D, NAT_2, PROB_2, FINSEQ_2,
+      DIST_2, MEASURE1, RELAT_1, SETLIM_2, SETLIM_1, PROB_4, SRINGS_2, NUMBERS,
+      MEASURE5, XXREAL_1;
+ schemes NAT_1, FINSEQ_1;
+
+begin :: Preliminaries
+
+theorem Lem10:
+for f1,f2 be FinSequence, k be Nat st k in Seg (len f1 * len f2) holds
+  (k-'1) mod (len f2) + 1 in dom f2 &
+  (k-'1) div (len f2) + 1 in dom f1
+proof
+   let f1,f2 be FinSequence;
+   let k be Nat;
+   reconsider i1 = (k-'1) div (len f2) + 1 as Nat;
+   reconsider i2 = (k-'1) mod (len f2) + 1 as Nat;
+   assume B1: k in Seg (len f1 * len f2); then
+B2:1 <= k & k <= len f1 * len f2 by FINSEQ_1:1; then
+B3:1 <= len f1 * len f2 by XXREAL_0:2;
+B4:len f1 <> 0 & len f2 <> 0 by B1; then
+   (k-'1) mod (len f2) +1 <= len f2 by NAT_1:13,NAT_D:1;
+   hence (k-'1) mod (len f2) + 1 in dom f2 by NAT_1:11,FINSEQ_3:25;
+   1 <= len f1 & 1 <= len f2 by B4,NAT_1:14; then
+B6:((len f1)*(len f2)-'1) div (len f2)
+    = (len f1)*(len f2) div (len f2) -1 by B3,NAT_2:15,NAT_D:def 3
+   .= len f1 - 1 by B4,NAT_D:18;
+   k-'1 <= len f1 * len f2 -'1 by B2,NAT_D:42; then
+   (k-'1) div (len f2) <= ((len f1)*(len f2)-'1) div (len f2)
+        by NAT_2:24; then
+   i1 <= len f1 -1+1 by B6,XREAL_1:6;
+   hence (k-'1) div (len f2) + 1 in dom f1 by NAT_1:11,FINSEQ_3:25;
+end;
+
+theorem CANFS:
+  for S be non empty finite set holds Union canFS S = union S
+proof
+   let S be non empty finite set;
+   now let x be object;
+    assume x in union S; then
+    consider A be set such that
+A2:  x in A & A in S by TARSKI:def 4;
+    A in rng canFS S by A2,DIST_2:3;
+    hence x in union rng canFS S by A2,TARSKI:def 4;
+   end; then
+   union S c= union rng canFS S;
+   hence thesis by ZFMISC_1:77;
+end;
+
+theorem TTT1:
+  for x be object holds <*x*> is disjoint_valued FinSequence
+proof
+   let x be object;
+   now let i,j be object;
+    assume A1: i <> j;
+A2: dom <*x*> = {1} by FINSEQ_1:2,def 8;
+    per cases;
+    suppose i in dom <*x*>; then
+     i = 1 by A2,TARSKI:def 1; then
+     not j in {1} by A1,TARSKI:def 1; then
+     <*x*>.j = {} by A2,FUNCT_1:def 2;
+     hence <*x*>.i misses <*x*>.j;
+    end;
+    suppose not i in dom <*x*>; then
+     <*x*>.i = {} by FUNCT_1:def 2;
+     hence <*x*>.i misses <*x*>.j;
+    end;
+   end;
+   hence thesis by PROB_2:def 2;
+end;
+
+theorem Disjoint2:
+  for x,y be set, F be FinSequence st F = <*x,y*> & x misses y holds
+    F is disjoint_valued
+proof
+   let x,y be set, F be FinSequence;
+   assume A1: F = <*x,y*> & x misses y;
+   now let i,j be object;
+    assume A6: i <> j;
+    per cases;
+    suppose not i in dom F or not j in dom F; then
+     F.i = {} or F.j = {} by FUNCT_1:def 2;
+     hence F.i misses F.j;
+    end;
+    suppose A7: i in dom F & j in dom F;
+A8:  len F = 2 & F.1 = x & F.2 = y by  A1,FINSEQ_1:44; then
+     i in {1,2} & j in {1,2} by A7,FINSEQ_1:def 3,2; then
+     (i = 1 or i = 2) & (j = 1 or j = 2) by TARSKI:def 2;
+     hence F.i misses F.j by A1,A6,A8;
+    end;
+   end;
+   hence F is disjoint_valued by PROB_2:def 2;
+end;
+
+theorem TT1:
+for f1,f2 be FinSequence
+ ex f be FinSequence st
+   Union f1 /\ Union f2 = Union f &
+   dom f = Seg (len f1 * len f2) &
+   for i be Nat st i in dom f holds
+     f.i = f1.((i-'1) div (len f2) + 1) /\ f2.((i-'1) mod (len f2) + 1)
+proof
+   let f1,f2 be FinSequence;
+A0:for k be Nat st k in Seg (len f1 * len f2) holds
+    (k-'1) mod (len f2) + 1 in dom f2 &
+    (k-'1) div (len f2) + 1 in dom f1 by Lem10;
+   defpred P[Nat,object] means
+     $2 = f1.(($1-'1) div (len f2) + 1) /\ f2.(($1-'1) mod (len f2) + 1);
+A1:for k be Nat st k in Seg (len f1 * len f2) ex x be object st P[k,x];
+   consider f be FinSequence such that
+A8: dom f = Seg (len f1 * len f2) &
+    for k be Nat st k in Seg (len f1 * len f2) holds P[k,f.k]
+      from FINSEQ_1:sch 1(A1);
+   take f;
+   now let x be object;
+    assume x in Union f1 /\ Union f2; then
+A9: x in union rng f1 & x in union rng f2 by XBOOLE_0:def 4; then
+    consider F1 be set such that
+A10: x in F1 & F1 in rng f1 by TARSKI:def 4;
+    consider F2 be set such that
+A11: x in F2 & F2 in rng f2 by A9,TARSKI:def 4;
+    consider i be object such that
+A12: i in dom f1 & F1 = f1.i by A10,FUNCT_1:def 3;
+    reconsider i as Nat by A12;
+    consider j be object such that
+A13: j in dom f2 & F2 = f2.j by A11,FUNCT_1:def 3;
+    reconsider j as Nat by A13;
+    set k = (len f2)*(i-'1)+j;
+E4: 1 <= i & i <= len f1 & 1 <= j & j <= len f2 by A12,A13,FINSEQ_3:25; then
+F5: 1 <= k by NAT_1:12;
+    k-'1 = (len f2)*(i-'1) + j - 1 by E4,NAT_D:37; then
+E5: k-'1 = (len f2)*(i-'1) + (j-1);
+E7: i-1 = i-'1 & j-1 = j-'1 by E4,XREAL_1:48,XREAL_0:def 2; then
+E8: (k-'1) div (len f2) = (j-'1) div (len f2) + (i-'1) by E4,E5,NAT_D:61;
+    j-'1 < j by E7,XREAL_1:44; then
+F0: j-'1 < len f2 by E4,XXREAL_0:2; then
+    (j-'1) div (len f2) = 0 by NAT_D:27; then
+F1: F1 = f1.((k-'1) div (len f2) + 1) by A12,E7,E8;
+    (k-'1) mod (len f2) = (j-'1) mod (len f2) by E5,E7,NAT_D:61; then
+    (k-'1) mod (len f2) = j-'1 by F0,NAT_D:24; then
+F3: F2 = f2.((k-'1) mod (len f2) + 1) by A13,E7;
+    i-'1 <= len f1 -1 by E4,E7,XREAL_1:9; then
+    (i-'1)*(len f2) <= (len f1 -1)*(len f2) by XREAL_1:66; then
+    k <= (len f1 - 1)*(len f2) + len f2 by E4,XREAL_1:7; then
+F4: k in Seg(len f1 * len f2) by F5; then
+    f.k = F1 /\ F2 by A8,F1,F3; then
+    x in f.k & f.k in rng f by A10,A11,F4,A8,FUNCT_1:3,XBOOLE_0:def 4;
+    hence x in Union f by TARSKI:def 4;
+   end; then
+P1:Union f1 /\ Union f2 c= Union f;
+   now let x be object;
+    assume x in Union f; then
+    consider F be set such that
+G1:  x in F & F in rng f by TARSKI:def 4;
+    consider i be object such that
+G2:  i in dom f & F = f.i by G1,FUNCT_1:def 3;
+    reconsider i as Nat by G2;
+    F = f1.((i-'1) div (len f2) + 1) /\ f2.((i-'1) mod (len f2)+1)
+      by A8,G2; then
+G3: x in f1.((i-'1) div (len f2) + 1) & x in f2.((i-'1) mod (len f2)+1)
+      by G1,XBOOLE_0:def 4;
+    f1.((i-'1) div (len f2) + 1) in rng f1 &
+    f2.((i-'1) mod (len f2)+1) in rng f2 by G2,A8,A0,FUNCT_1:3; then
+    x in union rng f1 & x in union rng f2 by G3,TARSKI:def 4;
+    hence x in Union f1 /\ Union f2 by XBOOLE_0:def 4;
+   end; then
+   Union f c= Union f1 /\ Union f2;
+   hence thesis by A8,P1;
+end;
+
+theorem TT2:
+for f1,f2 be disjoint_valued FinSequence
+ ex f be disjoint_valued FinSequence st
+   Union f1 /\ Union f2 = Union f &
+   dom f = Seg (len f1 * len f2) &
+   for i be Nat st i in dom f holds
+     f.i = f1.((i-'1) div (len f2) + 1) /\ f2.((i-'1) mod (len f2) + 1)
+proof
+   let f1,f2 be disjoint_valued FinSequence;
+   consider f be FinSequence such that
+A1: Union f1 /\ Union f2 = Union f &
+    dom f = Seg (len f1 * len f2) &
+    for i be Nat st i in dom f holds
+      f.i = f1.((i-'1) div (len f2) + 1) /\ f2.((i-'1) mod (len f2) + 1)
+        by TT1;
+   now let i,j be object;
+    assume A2: i <> j;
+    per cases;
+    suppose A3: i in dom f & j in dom f; then
+     reconsider i1=i, j1=j as Nat;
+     f.i = f1.((i1-'1) div (len f2) + 1) /\ f2.((i1-'1) mod (len f2) + 1) &
+     f.j = f1.((j1-'1) div (len f2) + 1) /\ f2.((j1-'1) mod (len f2) + 1)
+        by A1,A3; then
+B1:  f.i c= f1.((i1-'1) div (len f2) + 1) &
+     f.j c= f1.((j1-'1) div (len f2) + 1) &
+     f.i c= f2.((i1-'1) mod (len f2) + 1) &
+     f.j c= f2.((j1-'1) mod (len f2) + 1) by XBOOLE_1:17;
+A5:  0 < len f1 & 0 < len f2 or 0 > len f1 & 0 > len f2 by A1,A3;
+A6:  now assume
+A7:   (i1-'1) div (len f2) + 1 = (j1-'1) div (len f2) + 1 &
+      (i1-'1) mod (len f2) + 1 = (j1-'1) mod (len f2) + 1;
+      i1-'1 = (len f2) * ((j1-'1) div (len f2)) + ((i1-'1) mod (len f2))
+         by A7,A5,NAT_D:2
+      .= j1-'1 by A5,A7,NAT_D:2; then
+      (1 > i1 or i1 >= j1) & (1 > j1 or j1 >= i1) by NAT_D:56;
+      hence contradiction by A2,A1,A3,FINSEQ_1:1,XXREAL_0:1;
+     end;
+     per cases by A6;
+     suppose (i1-'1) div (len f2) + 1 <> (j1-'1) div (len f2) + 1;
+      hence f.i misses f.j by B1,XBOOLE_1:64,PROB_2:def 2;
+     end;
+     suppose (i1-'1) mod (len f2) + 1 <> (j1-'1) mod (len f2) + 1;
+      hence f.i misses f.j by B1,XBOOLE_1:64,PROB_2:def 2;
+     end;
+    end;
+    suppose not (i in dom f & j in dom f); then
+     f.i = {} or f.j = {} by FUNCT_1:def 2;
+     hence f.i misses f.j;
+    end;
+   end; then
+   reconsider f as disjoint_valued FinSequence by PROB_2:def 2;
+   take f;
+   thus thesis by A1;
+end;
+
+theorem NE:
+  for X be set, S be non empty diff-closed Subset-Family of X holds
+    {} in S
+proof
+   let X be set, S be non empty diff-closed Subset-Family of X;
+   consider A be object such that
+A1: A in S by XBOOLE_0:def 1;
+   reconsider A as set by TARSKI:1;
+   A \ A in S by A1,FINSUB_1:def 3;
+   hence {} in S by XBOOLE_1:37;
+end;
+
+registration let X be set;
+  cluster non empty diff-closed -> with_empty_element for Subset-Family of X;
+  coherence
+  proof
+    let S be Subset-Family of X;
+    assume A0: S is non empty diff-closed; then
+    consider A be object such that
+A1: A in S;
+    reconsider A as set by TARSKI:1;
+    A \ A in S by A0,A1;
+    hence thesis by XBOOLE_1:37;
+  end;
+end;
+
+begin :: Classical Semi-ring, Ring and Sigma-ring of Sets
+
+definition
+  let IT be set;
+  attr IT is semi-diff-closed means :DefSD:
+  for X,Y being set st X in IT & Y in IT holds
+   ex F be disjoint_valued FinSequence of IT st X \ Y = Union F;
+end;
+
+TV1:
+  for X be set holds bool X is semi-diff-closed
+proof
+   let X be set;
+   set S = bool X;
+   thus S is semi-diff-closed
+   proof
+    let A,B be set;
+    assume A in S & B in S; then
+    A \ B c= X by XBOOLE_1:1; then
+    { A \ B } c= S by ZFMISC_1:31; then
+    rng <* A \ B *> c= S by FINSEQ_1:38; then
+    reconsider F = <* A \ B *> as FinSequence of S by FINSEQ_1:def 4;
+    now let i,j be object;
+     assume A1: i <> j;
+A2:  now assume i in dom F & j in dom F; then
+      i in {1} & j in {1} by FINSEQ_1:2,38; then
+      i = 1 & j = 1 by TARSKI:def 1;
+      hence contradiction by A1;
+     end;
+     per cases by A2;
+     suppose not i in dom F; then
+      F.i = {} by FUNCT_1:def 2;
+      hence F.i misses F.j;
+     end;
+     suppose not j in dom F; then
+      F.j = {} by FUNCT_1:def 2;
+      hence F.i misses F.j;
+     end;
+    end; then
+    reconsider F as disjoint_valued FinSequence of S by PROB_2:def 2;
+    take F;
+    union rng F = union { A \ B } by FINSEQ_1:38;
+    hence A \ B = Union F;
+   end;
+end;
+
+registration let X be set;
+  cluster bool X -> semi-diff-closed;
+  coherence by TV1;
+end;
+
+registration
+  let X be set;
+  cluster non empty semi-diff-closed cap-closed for Subset-Family of X;
+existence
+proof
+   reconsider S = bool X as Subset-Family of X;
+   take S;
+   thus thesis;
+end;
+end;
+
+:: Following cluster gives classical definition of a semiring of sets
+registration let X be set;
+  cluster with_empty_element semi-diff-closed cap-closed
+    for Subset-Family of X;
+existence
+proof
+   bool X is non empty semi-diff-closed cap-closed Subset-Family of X;
+   hence thesis;
+end;
+end;
+
+definition let X be set;
+  mode Semiring of X is with_empty_element semi-diff-closed cap-closed
+    Subset-Family of X;
+end;
+
+theorem Lm1:
+for X be set, S be Subset-Family of X, S1,S2 be set st
+  S1 in S & S2 in S & S is semi-diff-closed holds
+  ex x be finite Subset of S st x is a_partition of S1 \ S2
+proof
+   let X be set, S be Subset-Family of X, S1,S2 be set;
+   assume S1 in S & S2 in S & S is semi-diff-closed; then
+   consider F be disjoint_valued FinSequence of S such that
+Y2: S1 \ S2 = Union F;
+   reconsider x = rng F \ {{}} as finite Subset of S;
+   take x;
+   now let p be object;
+    assume U1: p in x; then
+    p in S; then
+    reconsider p1 = p as Subset of X;
+    p in rng F & not p in {{}} by U1,XBOOLE_0:def 5; then
+    p1 c= S1 \ S2 by Y2,TARSKI:def 4;
+    hence p in bool (S1 \ S2);
+   end; then
+Y5:x c= bool (S1 \ S2);
+Y3:union x = S1 \ S2 by Y2,PARTIT1:2;
+   now let A be Subset of S1 \ S2;
+    assume A in x; then
+Y6: A in rng F & not A in {{}} by XBOOLE_0:def 5;
+    hence A <> {} by TARSKI:def 1;
+    now let B be Subset of S1 \ S2;
+     assume B in x; then
+     B in rng F & not B in {{}} by XBOOLE_0:def 5; then
+     (ex i be Nat st i in dom F & F.i = A)
+   & (ex j be Nat st j in dom F & F.j = B) by Y6,FINSEQ_2:10;
+     hence A=B or A misses B by PROB_2:def 2;
+    end;
+    hence for B be Subset of S1 \ S2 st B in x holds A = B or A misses B;
+   end;
+   hence x is a_partition of S1 \ S2 by Y3,Y5,EQREL_1:def 4;
+end;
+
+theorem
+for X be set, S be non empty Subset-Family of X st
+  S is semi-diff-closed holds S is diff-c=-finite-partition-closed
+proof
+   let X be set, S be non empty Subset-Family of X;
+   assume S is semi-diff-closed; then
+   for S1,S2 be Element of S st S2 c= S1 holds
+    ex x be finite Subset of S st x is a_partition of S1 \ S2 by Lm1;
+   hence S is diff-c=-finite-partition-closed by SRINGS_1:def 3;
+end;
+
+theorem th10:
+for X be set, S be Subset-Family of X st
+  S is with_empty_element & S is cap-finite-partition-closed
+& S is diff-c=-finite-partition-closed
+ holds S is semi-diff-closed
+proof
+   let X be set, S be Subset-Family of X;
+   assume that
+A0: S is with_empty_element and
+A1: S is cap-finite-partition-closed and
+A2: S is diff-c=-finite-partition-closed;
+   now let S1,S2 be set;
+    assume A3: S1 in S & S2 in S;
+    per cases;
+    suppose X1: S1 \ S2 <> {}; then
+     consider x be finite Subset of S such that
+L4:   x is a_partition of S1 \ S2 by A1,A2,A3,SRINGS_1:def 2;
+L8:  union x = S1 \ S2
+   & for A be Subset of S1 \ S2 st A in x holds A <> {}
+       & for B be Subset of S1 \ S2 st B in x holds
+             A = B or A misses B by L4,EQREL_1:def 4;
+L5:  rng (canFS x) c= x;
+     rng (canFS x) c= S by XBOOLE_1:1; then
+     reconsider F = canFS x as FinSequence of S by FINSEQ_1:def 4;
+     now let i,j be object;
+      assume L6: i <> j;
+      per cases;
+      suppose L10: i in dom F & j in dom F; then
+       F.i in x & F.j in x by L5,FUNCT_1:3; then
+       F.i = F.j or F.i misses F.j by L4,EQREL_1:def 4;
+       hence F.i misses F.j by L6,L10,FUNCT_1:def 4;
+      end;
+      suppose not i in dom F or not j in dom F; then
+       F.i = {} or F.j = {} by FUNCT_1:def 2;
+       hence F.i misses F.j;
+      end;
+     end; then
+     reconsider F as disjoint_valued FinSequence of S by PROB_2:def 2;
+     take F;
+     thus Union F = S1 \ S2 by L4,X1,L8,CANFS;
+    end;
+    suppose T0: S1 \ S2 = {};
+     set F = canFS {{}};
+     {{}} c= S by A0,SETFAM_1:def 8,ZFMISC_1:31; then
+     rng F c= S; then
+     reconsider F as FinSequence of S by FINSEQ_1:def 4;
+T3:  F = <*{}*> by FINSEQ_1:94;
+     now let i,j be object;
+      assume i <> j;
+      i in dom F implies i=1 by T3,FINSEQ_1:90; then
+      F.i = {} by T3,FINSEQ_1:40,FUNCT_1:def 2;
+      hence F.i misses F.j;
+     end; then
+     reconsider F as disjoint_valued FinSequence of S by PROB_2:def 2;
+     take F;
+     Union F = union {{}} by CANFS;
+     hence S1 \ S2 = Union F by T0;
+    end;
+   end;
+   hence S is semi-diff-closed;
+end;
+
+registration
+  cluster diff-closed -> semi-diff-closed cap-closed for set;
+correctness
+proof
+   let R be set;
+   assume A1: R is diff-closed;
+   now let A,B be set;
+    assume A in R & B in R; then
+    A \ B in R by A1; then
+    reconsider F = <* A \ B *> as FinSequence of R by FINSEQ_1:74;
+    now let x,y be object;
+     assume A3: x <> y;
+A4:  dom F = {1} by FINSEQ_1:2,38;
+     per cases;
+     suppose x in dom F; then
+      x = 1 by A4,TARSKI:def 1; then
+      not y in dom F by A3,A4,TARSKI:def 1; then
+      F.y = {} by FUNCT_1:def 2;
+      hence F.x misses F.y;
+     end;
+     suppose not x in dom F; then
+      F.x = {} by FUNCT_1:def 2;
+      hence F.x misses F.y;
+     end;
+    end; then
+A5: F is disjoint_valued by PROB_2:def 2;
+    rng F = { A \ B } by FINSEQ_1:38; then
+    Union F = A \ B;
+    hence ex F being disjoint_valued FinSequence of R st A \ B = Union F by A5;
+   end;
+   hence R is semi-diff-closed;
+   now let A,B be set;
+    assume A6: A in R & B in R; then
+    A \ B in R by A1; then
+    A \ (A \ B) in R by A1,A6;
+    hence A /\ B in R by XBOOLE_1:48;
+   end;
+   hence R is cap-closed;
+end;
+end;
+
+registration
+  let X be set;
+  cluster non empty preBoolean for Subset-Family of X;
+  existence
+  proof
+    bool X is non empty preBoolean;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster non empty preBoolean -> with_empty_element for set;
+  correctness
+  proof
+   let X be set;
+   assume A1: X is non empty preBoolean; then
+   consider x be object such that
+A2: x in X;
+   reconsider x1=x as set by A2;
+   {} = x1 \ x1 by XBOOLE_1:37; then
+   {} in X by A1,A2,FINSUB_1:def 3;
+   hence X is with_empty_element;
+  end;
+end;
+
+ExistRing:
+for X being set, S being with_empty_element semi-diff-closed
+  cap-closed Subset-Family of X
+ ex Y being non empty preBoolean Subset-Family of X st
+  Y = meet {Z where Z is non empty preBoolean Subset-Family of X : S c= Z}
+proof
+   let X be set,
+       S be with_empty_element semi-diff-closed cap-closed Subset-Family of X;
+   set V = {Z where Z is non empty preBoolean Subset-Family of X : S c= Z};
+A1:bool X in V; then
+   reconsider Y = meet V as Subset-Family of X by SETFAM_1:3;
+   now let Z be set;
+    assume Z in V; then
+    ex S1 being non empty preBoolean Subset-Family of X st
+       Z = S1 & S c= S1;
+    hence {} in Z by SETFAM_1:def 8;
+   end; then
+A2:Y is non empty by A1,SETFAM_1:def 1;
+   now let A,B be set;
+    assume B1: A in Y & B in Y;
+    for Z being set st Z in V holds A \/ B in Z
+    proof
+     let Z be set;
+     assume B2: Z in V; then
+     consider Z1 be non empty preBoolean Subset-Family of X such that
+B3:   Z = Z1 & S c= Z1;
+     A in Z1 & B in Z1 by B1,B2,B3,SETFAM_1:def 1;
+     hence A \/ B in Z by B3,FINSUB_1:def 1;
+    end;
+    hence A \/ B in Y by A1,SETFAM_1:def 1;
+   end; then
+B4:Y is cup-closed;
+   now let A,B be set;
+    assume C1: A in Y & B in Y;
+    for Z being set st Z in V holds A \ B in Z
+    proof
+     let Z be set;
+     assume C2: Z in V; then
+     consider Z1 be non empty preBoolean Subset-Family of X such that
+C3:   Z = Z1 & S c= Z1;
+     A in Z1 & B in Z1 by C1,C2,C3,SETFAM_1:def 1;
+     hence A \ B in Z by C3,FINSUB_1:def 3;
+    end;
+    hence A \ B in Y by A1,SETFAM_1:def 1;
+   end; then
+   Y is diff-closed;
+   hence thesis by A2,B4;
+end;
+
+definition
+  let X be set, S be with_empty_element semi-diff-closed
+    cap-closed Subset-Family of X;
+  func Ring_generated_by S -> non empty preBoolean Subset-Family of X equals
+    meet {Z where Z is non empty preBoolean Subset-Family of X : S c= Z};
+correctness
+proof
+   consider Y be non empty preBoolean Subset-Family of X such that
+A1: Y = meet {Z where Z is non empty preBoolean Subset-Family of X : S c= Z}
+        by ExistRing;
+   thus thesis by A1;
+end;
+end;
+
+theorem RingGen1:
+  for X being set, P being with_empty_element semi-diff-closed
+    cap-closed Subset-Family of X
+  holds P c= Ring_generated_by P
+proof
+   let X be set, P be with_empty_element semi-diff-closed
+     cap-closed Subset-Family of X;
+   set Y = {Z where Z is non empty preBoolean Subset-Family of X : P c= Z};
+A1:bool X in Y;
+   for A being set st A in Y holds P c= A
+   proof
+    let A be set;
+    assume A in Y; then
+    ex Z being non empty preBoolean Subset-Family of X st A = Z & P c= Z;
+    hence P c= A;
+   end;
+   hence thesis by A1,SETFAM_1:5;
+end;
+
+lemma100:
+for X being set, S being with_empty_element semi-diff-closed cap-closed
+  Subset-Family of X, P being set
+  st P = { A where A is Subset of X :
+            ex F be disjoint_valued FinSequence of S st A = Union F }
+holds P is non empty Subset-Family of X & S c= P
+proof
+   let X be set, S be with_empty_element semi-diff-closed cap-closed
+     Subset-Family of X, P be set;
+   assume A1: P = { A where A is Subset of X :
+               ex F be disjoint_valued FinSequence of S st A = Union F };
+   reconsider E0 = {} as Subset of X by XBOOLE_1:2;
+   reconsider g0 = <*E0*> as disjoint_valued FinSequence by TTT1;
+   now let i be Nat;
+    assume i in dom g0; then
+    i in Seg 1 by FINSEQ_1:38; then
+    i = 1 by TARSKI:def 1,FINSEQ_1:2; then
+    g0.i = E0 by FINSEQ_1:40;
+    hence g0.i in S by SETFAM_1:def 8;
+   end; then
+   reconsider g0 as disjoint_valued FinSequence of S by FINSEQ_2:12;
+   Union g0 = union {E0} by FINSEQ_1:38; then
+A5:{} in P by A1;
+   now let x be object;
+    assume x in P; then
+    ex A be Subset of X st x = A &
+     ex F be disjoint_valued FinSequence of S st A = Union F by A1;
+    hence x in bool X;
+   end;
+   hence P is non empty Subset-Family of X by A5,TARSKI:def 3;
+   now let x be object;
+    assume A5: x in S; then
+    reconsider x1 = x as Subset of X;
+    set g = <*x1*>;
+A3: rng <*x1*> = {x1} by FINSEQ_1:38;
+    reconsider g as disjoint_valued FinSequence by TTT1;
+    now let y be object;
+     assume y in rng g; then
+     consider i be object such that
+B1:   i in dom g & y = g.i by FUNCT_1:def 3;
+     reconsider i as Element of NAT by B1;
+     i in Seg 1 by B1,FINSEQ_1:38; then
+     i = 1 by TARSKI:def 1,FINSEQ_1:2;
+     hence y in S by B1,A5,FINSEQ_1:40;
+    end; then
+    rng g c= S; then
+    reconsider g as disjoint_valued FinSequence of S by FINSEQ_1:def 4;
+    Union g = x by A3;
+    hence x in P by A1;
+   end;
+   hence S c= P;
+end;
+
+definition
+  let X be set,
+      S be with_empty_element semi-diff-closed cap-closed Subset-Family of X;
+  func DisUnion S -> non empty Subset-Family of X equals
+    { A where A is Subset of X :
+        ex F be disjoint_valued FinSequence of S st A = Union F };
+  coherence by lemma100;
+end;
+
+theorem
+  for X being set,
+      S be with_empty_element semi-diff-closed cap-closed Subset-Family of X
+      holds
+    S c= DisUnion S by lemma100;
+
+theorem lemma101:
+for X being set, S being with_empty_element semi-diff-closed cap-closed
+  Subset-Family of X holds DisUnion S is cap-closed
+proof
+   let X be set, S be with_empty_element semi-diff-closed cap-closed
+     Subset-Family of X;
+   set P = DisUnion S;
+   now let x,y be set;
+    assume C1: x in P & y in P; then
+    consider x1 be Subset of X such that
+C2:  x = x1 &
+     ex g be disjoint_valued FinSequence of S st x1 = Union g;
+    consider g1 be disjoint_valued FinSequence of S such that
+C3:  x1 = Union g1 by C2;
+    consider y1 be Subset of X such that
+C4:  y = y1 &
+     ex g be disjoint_valued FinSequence of S st y1 = Union g by C1;
+    consider g2 be disjoint_valued FinSequence of S such that
+C5:  y1 = Union g2 by C4;
+    consider h be disjoint_valued FinSequence such that
+C6:  Union g1 /\ Union g2 = Union h &
+     dom h = Seg (len g1 * len g2) &
+     for i be Nat st i in dom h holds
+      h.i = g1.((i-'1) div (len g2) + 1) /\ g2.((i-'1) mod (len g2)+1)
+        by TT2;
+    x1 /\ y1 c= X; then
+    reconsider xy = x /\ y as Subset of X by C2,C4;
+    now let i be Nat;
+     assume C9: i in dom h; then
+     (i-'1) mod (len g2) + 1 in dom g2 &
+     (i-'1) div (len g2) + 1 in dom g1 by C6,Lem10; then
+     g1.((i-'1) div (len g2) + 1) in S &
+     g2.((i-'1) mod (len g2) + 1) in S by FINSEQ_2:11; then
+     g1.((i-'1) div (len g2) + 1) /\ g2.((i-'1) mod (len g2) + 1) in S
+       by FINSUB_1:def 2;
+     hence h.i in S by C9,C6;
+    end; then
+    reconsider h as disjoint_valued FinSequence of S by FINSEQ_2:12;
+    xy = Union h by C2,C4,C3,C5,C6;
+    hence x /\ y in P;
+   end;
+   hence P is cap-closed;
+end;
+
+theorem lemma102:
+for X being set, S being with_empty_element semi-diff-closed cap-closed
+   Subset-Family of X, A,B,P being set
+  st P = DisUnion S & A in P & B in P & A misses B
+holds A \/ B in P
+proof
+   let X be set, S be with_empty_element semi-diff-closed cap-closed
+     Subset-Family of X, A,B,P be set;
+   assume that
+A1: P = DisUnion S and
+A2: A in P & B in P & A misses B;
+   consider A1 be Subset of X such that
+A3: A = A1 &
+    ex g be disjoint_valued FinSequence of S st A1 = Union g by A1,A2;
+   consider g1 be disjoint_valued FinSequence of S such that
+A4: A1 = Union g1 by A3;
+   consider B1 be Subset of X such that
+A5: B = B1 &
+    ex g be disjoint_valued FinSequence of S st B1 = Union g by A1,A2;
+   consider g2 be disjoint_valued FinSequence of S such that
+A6: B1 = Union g2 by A5;
+   set F = g1^g2;
+   now let n,m be object;
+    assume A7: n <> m;
+    per cases;
+    suppose A8: n in dom F & m in dom F; then
+    reconsider n1=n,m1=m as Nat;
+A9:  n1 in dom g1
+  or ex k being Nat st k in dom g2 & n1 = len g1 + k by A8,FINSEQ_1:25;
+A10: m1 in dom g1
+  or ex k being Nat st k in dom g2 & m1 = len g1 + k by A8,FINSEQ_1:25;
+     per cases by A9,A10;
+     suppose n1 in dom g1 & m1 in dom g1; then
+      F.n = g1.n1 & F.m = g1.m1 by FINSEQ_1:def 7;
+      hence F.n misses F.m by A7,PROB_2:def 2;
+     end;
+     suppose A11: n1 in dom g1
+           & ex k being Nat st k in dom g2 & m1 = len g1 + k; then
+      consider k be Nat such that
+A12:   k in dom g2 & m1 = len g1 + k;
+      F.n = g1.n1 & F.m = g2.k by A11,A12,FINSEQ_1:def 7; then
+A13:  F.n in rng g1 & F.m in rng g2 by A11,A12,FUNCT_1:3;
+      now assume F.n meets F.m; then
+       consider x be object such that
+A14:    x in F.n & x in F.m by XBOOLE_0:3;
+       x in union rng g1 & x in union rng g2 by A13,A14,TARSKI:def 4;
+       hence contradiction by A2,A3,A5,A4,A6,XBOOLE_0:def 4;
+      end;
+      hence F.n misses F.m;
+     end;
+     suppose A15: m1 in dom g1
+           & ex k being Nat st k in dom g2 & n1 = len g1 + k; then
+      consider k be Nat such that
+A16:   k in dom g2 & n1 = len g1 + k;
+      F.n = g2.k & F.m = g1.m by A15,A16,FINSEQ_1:def 7; then
+A17:  F.n in rng g2 & F.m in rng g1 by A15,A16,FUNCT_1:3;
+      now assume F.n meets F.m; then
+       consider x be object such that
+A18:    x in F.n & x in F.m by XBOOLE_0:3;
+       x in union rng g1 & x in union rng g2 by A17,A18,TARSKI:def 4;
+       hence contradiction by A2,A3,A5,A4,A6,XBOOLE_0:def 4;
+      end;
+      hence F.n misses F.m;
+     end;
+     suppose A19: ex k being Nat st k in dom g2 & n1 = len g1 + k
+                & ex k being Nat st k in dom g2 & m1 = len g1 + k; then
+      consider k1 be Nat such that
+A20:   k1 in dom g2 & n1 = len g1 + k1;
+      consider k2 be Nat such that
+A21:   k2 in dom g2 & m1 = len g1 + k2 by A19;
+      F.n = g2.k1 & F.m = g2.k2 by A20,A21,FINSEQ_1:def 7;
+      hence F.n misses F.m by A7,A20,A21,PROB_2:def 2;
+     end;
+    end;
+    suppose not n in dom F or not m in dom F; then
+     F.n = {} or F.m = {} by FUNCT_1:def 2;
+     hence F.n misses F.m;
+    end;
+   end; then
+   reconsider F as disjoint_valued FinSequence of S by PROB_2:def 2;
+   rng F = rng g1 \/ rng g2 by FINSEQ_1:31; then
+   Union F = A1 \/ B1 by A4,A6,ZFMISC_1:78;
+   hence A \/ B in P by A1,A3,A5;
+end;
+
+theorem lemma103:
+for X being set, S being with_empty_element semi-diff-closed cap-closed
+  Subset-Family of X, A,B being set st A in S & B in S
+holds B \ A in DisUnion S
+proof
+   let X be set, S be with_empty_element semi-diff-closed cap-closed
+   Subset-Family of X, A,B be set;
+   assume
+A2: A in S & B in S;
+   reconsider A1=A,B1=B as Subset of X by A2;
+   ex F be disjoint_valued FinSequence of S st B\A = Union F by A2,DefSD; then
+   B1 \ A1 in DisUnion S;
+   hence thesis;
+end;
+
+theorem lemma104:
+for X being set, S being with_empty_element semi-diff-closed cap-closed
+  Subset-Family of X, A,B being set
+  st A in S & B in DisUnion S
+holds B \ A in DisUnion S
+proof
+   let X be set, S be with_empty_element semi-diff-closed cap-closed
+      Subset-Family of X, A,B be set;
+   assume that
+A2: A in S & B in DisUnion S;
+   reconsider A1=A as Subset of X by A2;
+   consider B1 be Subset of X such that
+A5: B = B1 &
+    ex F be disjoint_valued FinSequence of S st B1 = Union F by A2;
+   consider g1 be disjoint_valued FinSequence of S such that
+A6: B1 = Union g1 by A5;
+   reconsider R1=DisUnion S as non empty set;
+   defpred P[Nat,object] means $2 = g1.$1 \ A1;
+A7:for k being Nat st k in Seg len g1
+    ex x being Element of R1 st P[k,x]
+   proof
+    let k be Nat;
+    assume k in Seg len g1; then
+    k in dom g1 by FINSEQ_1:def 3; then
+    g1.k in rng g1 & rng g1 c= S by FUNCT_1:3; then
+    g1.k \ A1 in DisUnion S by A2,lemma103;
+    hence ex x being Element of R1 st P[k,x];
+   end;
+   consider g2 be FinSequence of R1 such that
+A8: dom g2 = Seg len g1 &
+    for k being Nat st k in Seg len g1 holds P[k,g2.k] from FINSEQ_1:sch 5(A7);
+A11:for n,m being Nat st
+     n in dom g2 & m in dom g2 & n <> m holds g2.n misses g2.m
+   proof
+    let n,m be Nat;
+    assume A9: n in dom g2 & m in dom g2 & n <> m; then
+A10:g2.n = g1.n \ A1 & g2.m = g1.m \ A1 by A8;
+    g1.n misses g2.m by A10,A9,PROB_2:def 2,XBOOLE_1:80;
+    hence g2.n misses g2.m by A10,XBOOLE_1:80;
+   end;
+   set R = DisUnion S;
+   defpred P2[Nat] means union rng (g2|$1) in R;
+   union rng(g2|0) in S & S c= R by lemma100,SETFAM_1:def 8,ZFMISC_1:2; then
+A12: P2[0];
+A13:for k being Nat st P2[k] holds P2[k+1]
+   proof
+    let k be Nat;
+    assume A14: P2[k];
+    per cases;
+    suppose A15: k+1 <= len g2; then
+A20: k <= len g2 & k <= k+1 by NAT_1:13; then
+     len(g2|(k+1)) = k+1 & g2|k = (g2|(k+1))|k by A15,FINSEQ_1:59,82; then
+     g2|(k+1) = g2|k ^ <*(g2|(k+1)).(k+1) *> by FINSEQ_3:55; then
+     rng(g2|(k+1)) = rng(g2|k) \/ rng <*(g2|(k+1)).(k+1)*> by FINSEQ_1:31
+      .= rng(g2|k) \/ { (g2|(k+1)).(k+1) } by FINSEQ_1:38
+      .= rng(g2|k) \/ { g2.(k+1) } by FINSEQ_3:112; then
+A16: union rng(g2|(k+1)) = union rng(g2|k) \/ union { g2.(k+1) } by ZFMISC_1:78
+      .= union rng(g2|k) \/ g2.(k+1);
+A24: k+1 in dom g2 by A15,FINSEQ_3:25,NAT_1:11;
+A25: now assume union rng(g2|k) meets g2.(k+1); then
+      consider x be object such that
+A17:   x in union rng(g2|k) & x in g2.(k+1) by XBOOLE_0:3;
+      consider Z be set such that
+A18:   x in Z & Z in rng(g2|k) by A17,TARSKI:def 4;
+      consider i be object such that
+A19:   i in dom(g2|k) & Z = (g2|k).i by A18,FUNCT_1:def 3;
+      reconsider i as Nat by A19;
+      i <= len (g2|k) by A19,FINSEQ_3:25; then
+A21:  i <= k by A20,FINSEQ_1:59; then
+A22:  Z = g2.i by A19,FINSEQ_3:112;
+A23:  dom(g2|k) c= dom g2 by RELAT_1:60;
+      i <> k+1 by A21,NAT_1:13; then
+      Z misses g2.(k+1) by A11,A22,A23,A19,A24;
+      hence contradiction by A17,A18,XBOOLE_0:def 4;
+     end;
+     g2.(k+1) in rng g2 & rng g2 c= R by A24,FUNCT_1:3;
+     hence union rng(g2|(k+1)) in R by A14,A16,A25,lemma102;
+    end;
+    suppose k+1 > len g2; then
+     g2|(k+1) = g2 & g2|k = g2 by FINSEQ_1:58,NAT_1:13;
+     hence union rng(g2|(k+1)) in R by A14;
+    end;
+   end;
+   for k being Nat holds P2[k] from NAT_1:sch 2(A12,A13); then
+C1:P2[len g2];
+   now let x be object;
+    assume x in union rng g2; then
+    consider y be set such that
+B1:  x in y & y in rng g2 by TARSKI:def 4;
+    consider k be object such that
+B2:  k in dom g2 & y = g2.k by B1,FUNCT_1:def 3;
+    reconsider k as Nat by B2;
+C3: g2.k = g1.k \ A1 by B2,A8; then
+B3: x in g1.k & not x in A1 by B1,B2,XBOOLE_0:def 5;
+    k in dom g1 by B2,A8,FINSEQ_1:def 3; then
+    g1.k in rng g1 by FUNCT_1:3; then
+    x in union rng g1 by C3,B1,B2,TARSKI:def 4;
+    hence x in union rng g1 \ A1 by B3,XBOOLE_0:def 5;
+   end; then
+B4:union rng g2 c= union rng g1 \ A1;
+   now let x be object;
+    assume C5: x in union rng g1 \ A1; then
+B5: x in union rng g1 & not x in A1 by XBOOLE_0:def 5;
+    consider y be set such that
+B6:  x in y & y in rng g1 by C5,TARSKI:def 4;
+    consider k be object such that
+B7:  k in dom g1 & y = g1.k by B6,FUNCT_1:def 3;
+    reconsider k as Nat by B7;
+B8: k in dom g2 by B7,A8,FINSEQ_1:def 3; then
+    g2.k = g1.k \ A1 by A8; then
+    x in g2.k & g2.k in rng g2 by B5,B6,B7,B8,XBOOLE_0:def 5,FUNCT_1:3;
+    hence x in union rng g2 by TARSKI:def 4;
+   end; then
+   union rng g1 \ A1 c= union rng g2; then
+   union rng g1 \ A1 = union rng g2 by B4;
+   hence B \ A in R by A5,A6,C1,FINSEQ_1:58;
+end;
+
+theorem lemma105:
+for X being set, S being with_empty_element semi-diff-closed cap-closed
+  Subset-Family of X, A,B,R being set
+  st R = DisUnion S & A in R & B in R & A <> {}
+holds B \ A in R
+proof
+   let X be set, S be with_empty_element semi-diff-closed cap-closed
+     Subset-Family of X, A,B,R be set;
+   assume that
+A1: R = DisUnion S and
+A2: A in R & B in R & A <> {};
+   consider A1 be Subset of X such that
+A3: A = A1 &
+    ex F be disjoint_valued FinSequence of S st A1 = Union F by A1,A2;
+   consider f1 be disjoint_valued FinSequence of S such that
+A4: A1 = Union f1 by A3;
+   consider B1 be Subset of X such that
+A5: B = B1 &
+    ex F be disjoint_valued FinSequence of S st B1 = Union F by A1,A2;
+   reconsider R1=R as non empty set by A2;
+   defpred P[Nat,object] means $2 = B1 \ f1.$1;
+A7:for k being Nat st k in Seg len f1
+    ex x being Element of R1 st P[k,x]
+   proof
+    let k be Nat;
+    assume k in Seg len f1; then
+    k in dom f1 by FINSEQ_1:def 3; then
+    f1.k in rng f1 & rng f1 c= S by FUNCT_1:3; then
+    B1 \ f1.k in R1 by A1,A2,A5,lemma104;
+    hence thesis;
+   end;
+   consider F be FinSequence of R1 such that
+A8: dom F = Seg len f1 &
+    for k being Nat st k in Seg len f1 holds P[k,F.k] from FINSEQ_1:sch 5(A7);
+   now let x be object;
+    assume C9: x in B \ A; then
+    x in B & not x in A by XBOOLE_0:def 5; then
+A10:for Y being set holds not x in Y or not Y in rng f1 by A3,A4,TARSKI:def 4;
+B1: for k being Nat st k in Seg len f1 holds x in F.k
+    proof
+     let k be Nat;
+     assume B2: k in Seg len f1; then
+B3:  F.k = B1 \ f1.k by A8;
+     k in dom f1 by B2,FINSEQ_1:def 3; then
+     not x in f1.k by A10,FUNCT_1:3;
+     hence thesis by A5,C9,B3,XBOOLE_0:def 5;
+    end;
+    dom f1 <> {} by A2,A3,A4,ZFMISC_1:2,RELAT_1:42; then
+    consider k be object such that
+B4:  k in dom f1 by XBOOLE_0:def 1;
+    reconsider k as Nat by B4;
+    k in Seg len f1 by B4,FINSEQ_1:def 3; then
+B5: rng F <> {} by A8,FUNCT_1:3;
+    now let Y be set;
+     assume Y in rng F; then
+     consider k be object such that
+B6:   k in dom F & Y = F.k by FUNCT_1:def 3;
+     reconsider k as Nat by B6;
+     thus x in Y by A8,B6,B1;
+    end;
+    hence x in meet rng F by B5,SETFAM_1:def 1;
+   end; then
+B7:B \ A c= meet rng F;
+   now let x be object;
+    assume B8: x in meet rng F; then
+    consider Y be object such that
+B10: Y in rng F by SETFAM_1:1,XBOOLE_0:def 1;
+    consider k be object such that
+B11: k in dom F & Y = F.k by B10,FUNCT_1:def 3;
+    reconsider k as Nat by B11;
+    x in F.k by B8,B10,B11,SETFAM_1:def 1; then
+    x in B1 \ f1.k by A8,B11; then
+B12:x in B1 & not x in f1.k by XBOOLE_0:def 5;
+    now assume x in union rng f1; then
+     consider Y be set such that
+B13:  x in Y & Y in rng f1 by TARSKI:def 4;
+     consider k be object such that
+B14:  k in dom f1 & Y = f1.k by B13,FUNCT_1:def 3;
+     reconsider k as Nat by B14;
+B15: k in dom F by B14,A8,FINSEQ_1:def 3; then
+     F.k in rng F by FUNCT_1:3; then
+     x in F.k by B8,SETFAM_1:def 1; then
+     x in B1 \ f1.k by B15,A8;
+     hence contradiction by B13,B14,XBOOLE_0:def 5;
+    end;
+    hence x in B \ A by A3,A4,A5,B12,XBOOLE_0:def 5;
+   end; then
+   meet rng F c= B \ A; then
+B16:B \ A = meet rng F by B7;
+   defpred P[Nat] means meet rng(F|$1) in R;
+   meet rng(F|0) in S & S c= R by A1,lemma100,SETFAM_1:def 8,1; then
+C1:P[0];
+C2:for k being Nat st P[k] holds P[k+1]
+   proof
+    let k be Nat;
+    assume C3: P[k];
+    per cases;
+    suppose C4: k+1 <= len F;
+     F|k = (F|(k+1))|k by FINSEQ_1:82,NAT_1:11; then
+     F|(k+1) = F|k ^ <*(F|(k+1)).(k+1)*> by C4,FINSEQ_1:59,FINSEQ_3:55; then
+C6:  rng (F|(k+1)) = rng (F|k) \/ rng <*(F|(k+1)).(k+1)*> by FINSEQ_1:31
+      .= rng (F|k) \/ { (F|(k+1)).(k+1) } by FINSEQ_1:38
+      .= rng (F|k) \/ { F.(k+1) } by FINSEQ_3:112;
+     k+1 in dom F by C4,FINSEQ_3:25,NAT_1:11; then
+C9:  F.(k+1) in rng F & rng F c= R1 by FUNCT_1:3; then
+C7:  F.(k+1) in R;
+     per cases;
+     suppose rng(F|k) <> {}; then
+C8:   meet rng(F|(k+1)) = meet rng (F|k) /\ meet { F.(k+1) } by C6,SETFAM_1:9
+       .= meet rng (F|k) /\ F.(k+1) by SETFAM_1:10;
+      R is cap-closed by A1,lemma101;
+      hence meet rng (F|(k+1)) in R by C3,C9,C8;
+     end;
+     suppose rng(F|k) = {};
+      hence meet rng (F|(k+1)) in R by C6,C7,SETFAM_1:10;
+     end;
+    end;
+    suppose k+1 > len F; then
+     F|k = F & F|(k+1) = F by FINSEQ_1:58,NAT_1:13;
+     hence meet rng (F|(k+1)) in R by C3;
+    end;
+   end;
+   for k being Nat holds P[k] from NAT_1:sch 2(C1,C2); then
+   P[len F];
+   hence B \ A in R by B16,FINSEQ_1:58;
+end;
+
+theorem
+for X being set, S being with_empty_element semi-diff-closed
+  cap-closed Subset-Family of X holds
+ Ring_generated_by S = DisUnion S
+proof
+   let X be set, S be with_empty_element semi-diff-closed
+     cap-closed Subset-Family of X;
+   set R = DisUnion S;
+   reconsider R as non empty Subset-Family of X;
+A0:S c= R by lemma100;
+A1:R is cap-closed by lemma101;
+A2:now let A,B be set;
+    assume A3: A in R & B in R; then
+    A <> {} implies B \ A in R by lemma105;
+    hence B \ A in R by A3;
+   end; then
+A4:R is diff-closed;
+   now let A,B be set;
+    assume A in R & B in R; then
+A5: A \ B in R & B \ A in R & A /\ B in R by A2,A1;
+    (A \ B) \/ (B \ A) in R by A5,lemma102,XBOOLE_1:82; then
+A6: A \+\ B in R by XBOOLE_0:def 6;
+    (A \+\ B) \/ (A /\ B) in R by A5,A6,lemma102,XBOOLE_1:103;
+    hence A \/ B in R by XBOOLE_1:93;
+   end; then
+   R is cup-closed; then
+   reconsider R as non empty preBoolean Subset-Family of X by A4;
+A10:R in {Z where Z is non empty preBoolean Subset-Family of X : S c= Z}
+         by A0;
+   now let x be object;
+    assume x in R; then
+    consider A be Subset of X such that
+A8:  x = A &
+     ex F being disjoint_valued FinSequence of S st A = Union F;
+    consider F be disjoint_valued FinSequence of S such that
+A9:  A = Union F by A8;
+    for Y being set st
+      Y in {Z where Z is non empty preBoolean Subset-Family of X : S c= Z}
+     holds x in Y
+    proof
+     let Y be set;
+     assume
+      Y in {Z where Z is non empty preBoolean Subset-Family of X: S c= Z}; then
+     consider Z be non empty preBoolean Subset-Family of X such that
+A11:  Y = Z & S c= Z;
+     defpred P[Nat] means union rng (F|$1) in Z;
+X1:  P[0] by SETFAM_1:def 8,ZFMISC_1:2;
+X2:  for k be Nat st P[k] holds P[k+1]
+     proof
+      let k be Nat;
+      assume X3: P[k];
+      per cases;
+      suppose C4: k+1 <= len F;
+       F|k = (F|(k+1))|k by NAT_1:11,FINSEQ_1:82; then
+       F|(k+1) = F|k ^ <*(F|(k+1)).(k+1)*> by C4,FINSEQ_1:59,FINSEQ_3:55; then
+       rng (F|(k+1)) = rng (F|k) \/ rng <*(F|(k+1)).(k+1)*> by FINSEQ_1:31
+        .= rng (F|k) \/ { (F|(k+1)).(k+1) } by FINSEQ_1:38
+        .= rng (F|k) \/ { F.(k+1) } by FINSEQ_3:112; then
+C6:    union rng (F|(k+1)) = union rng (F|k) \/ union {F.(k+1)} by ZFMISC_1:78
+        .= union rng (F|k) \/ F.(k+1);
+       k+1 in dom F by C4,NAT_1:11,FINSEQ_3:25; then
+       F.(k+1) in rng F & rng F c= S by FUNCT_1:3; then
+       F.(k+1) in Z by A11;
+       hence P[k+1] by X3,C6,FINSUB_1:def 1;
+      end;
+      suppose k+1 > len F; then
+       F|k = F & F|(k+1) = F by FINSEQ_1:58,NAT_1:13;
+       hence P[k+1] by X3;
+      end;
+     end;
+     for k be Nat holds P[k] from NAT_1:sch 2(X1,X2); then
+     P[len F];
+     hence x in Y by A8,A9,A11,FINSEQ_1:58;
+    end;
+    hence x in Ring_generated_by S by A10,SETFAM_1:def 1;
+   end; then
+   R c= Ring_generated_by S;
+   hence thesis by A10,SETFAM_1:7;
+end;
+
+definition
+  let X be set;
+  mode SigmaRing of X -> non empty preBoolean Subset-Family of X means
+     :DefSigmaRing:
+   for F be SetSequence of X st rng F c= it holds Union F in it;
+existence
+proof
+   take bool X;
+   thus thesis;
+end;
+end;
+
+LemX:
+  for X be set, S be SigmaRing of X holds S is sigma-multiplicative
+proof
+   let X be set, S be SigmaRing of X;
+   now let F be SetSequence of X;
+    assume A1: rng F c= S; then
+A2: Union F in S by DefSigmaRing;
+    reconsider UF = Union F as Subset of X;
+    now let x be object;
+     assume BB: x in Intersection F;
+B0:  Intersection F c= UF by SETLIM_1:9;
+     now assume x in Union(UF (\) F); then
+      consider m be Nat such that
+B1:    x in (UF (\) F).m by PROB_1:12;
+      x in (UF \ F.m) by B1,SETLIM_2:def 7; then
+      not x in F.m by XBOOLE_0:def 5;
+      hence contradiction by BB,PROB_1:13;
+     end;
+     hence x in UF \ Union(UF (\) F) by BB,B0,XBOOLE_0:def 5;
+    end; then
+B3: Intersection F c= UF \ Union(UF (\) F);
+    now let x be object;
+     assume x in UF \ Union(UF (\) F); then
+C3:  x in UF & not x in Union(UF (\) F) by XBOOLE_0:def 5;
+     hereby assume not x in Intersection F; then
+      consider n be Nat such that
+C2:    not x in F.n by PROB_1:13;
+      x in UF \ F.n by C3,C2,XBOOLE_0:def 5; then
+      x in (UF (\) F).n by SETLIM_2:def 7;
+      hence contradiction by C3,PROB_1:12;
+     end;
+    end; then
+    UF \ Union(UF (\) F) c= Intersection F; then
+B5: Intersection F = Union F \ Union (UF (\) F) by B3;
+    now let x be object;
+     assume x in rng(UF (\) F); then
+     consider n be Element of NAT such that
+D1:   x = (UF (\) F).n by FUNCT_2:113;
+D2:  x = UF \ F.n by D1,SETLIM_2:def 7;
+     F.n in rng F by FUNCT_2:112;
+     hence x in S by A1,D2,A2,FINSUB_1:def 3;
+    end; then
+    rng (UF (\) F) c= S; then
+    Union (UF (\) F) in S by DefSigmaRing;
+    hence Intersection F in S by A2,B5,FINSUB_1:def 3;
+   end;
+   hence S is sigma-multiplicative by PROB_1:def 6;
+end;
+
+registration let X be set;
+  cluster -> sigma-multiplicative for SigmaRing of X;
+  coherence by LemX;
+end;
+
+definition let X be set, S be Subset-Family of X;
+  func sigmaring S -> SigmaRing of X means :Defsigmaring:
+    S c= it & for Z be set st S c= Z & Z is SigmaRing of X holds it c= Z;
+existence
+proof
+   set V = { Z where Z is Subset-Family of X : S c= Z & Z is SigmaRing of X };
+   set Y = meet V;
+A1:now let A be set;
+    assume A in V;
+    then ex Z be Subset-Family of X st A = Z & S c= Z & Z is SigmaRing of X;
+    hence S c= A;
+   end;
+   for F be SetSequence of X st rng F c= bool X holds Union F in bool X; then
+   reconsider BX = bool X as SigmaRing of X by DefSigmaRing;
+B1:BX in V;
+A3:Y c= bool X by B1,SETFAM_1:def 1;
+   now let x,y be set;
+    assume C1: x in Y & y in Y;
+    now let A be set;
+     assume C3: A in V; then
+     consider Z be Subset-Family of X such that
+C2:   A = Z & S c= Z & Z is SigmaRing of X;
+     x in A & y in A by C1,C3,SETFAM_1:def 1;
+     hence x\y in A by C2,FINSUB_1:def 3;
+    end;
+    hence x \ y in Y by B1,SETFAM_1:def 1;
+   end; then
+A4:Y is diff-closed;
+   now let x,y be set;
+    assume F1: x in Y & y in Y;
+    now let A be set;
+     assume F2: A in V; then
+     consider Z be Subset-Family of X such that
+F3:   A = Z & S c= Z & Z is SigmaRing of X;
+     x in A & y in A by F1,F2,SETFAM_1:def 1;
+     hence x \/ y in A by F3,FINSUB_1:def 1;
+    end;
+    hence x \/ y in Y by B1,SETFAM_1:def 1;
+   end; then
+E1:Y is cup-closed;
+A5:now let F be SetSequence of X;
+    assume D1: rng F c= Y;
+    now let A be set;
+     assume D2: A in V; then
+     consider Z be Subset-Family of X such that
+D3:   A = Z & S c= Z & Z is SigmaRing of X;
+     Y c= A by D2,SETFAM_1:3; then
+     rng F c= A by D1;
+     hence Union F in A by D3,DefSigmaRing;
+    end;
+    hence Union F in Y by B1,SETFAM_1:def 1;
+   end;
+   now let A be set;
+    assume A in V; then
+    ex Z be Subset-Family of X st A = Z & S c= Z & Z is SigmaRing of X;
+    hence {} in A by NE;
+   end; then
+   {} in Y by B1,SETFAM_1:def 1; then
+   reconsider Y as SigmaRing of X by E1,A3,A4,A5,DefSigmaRing;
+   take Y;
+   for F be SetSequence of X st rng F c= bool X holds Union F in bool X; then
+   reconsider BX = bool X as SigmaRing of X by DefSigmaRing;
+   BX in V;
+   hence S c= Y by A1,SETFAM_1:5;
+   hereby let Z be set;
+    assume S c= Z & Z is SigmaRing of X; then
+    Z in V;
+    hence Y c= Z by SETFAM_1:3;
+   end;
+end;
+correctness;
+end;
+
+theorem
+for X be set, S be with_empty_element semi-diff-closed
+     cap-closed Subset-Family of X holds
+  sigmaring(Ring_generated_by S) = sigmaring S
+proof
+   let X be set, S be with_empty_element semi-diff-closed
+      cap-closed Subset-Family of X;
+A1:S c= Ring_generated_by S by RingGen1;
+   Ring_generated_by S c= sigmaring(Ring_generated_by S) by Defsigmaring; then
+A2:S c= sigmaring(Ring_generated_by S) by A1;
+   now let x be object;
+    assume A3: x in Ring_generated_by S;
+    S c= sigmaring S by Defsigmaring; then
+    sigmaring S in {Z where Z is non empty preBoolean Subset-Family of X
+                     : S c= Z};
+    hence x in sigmaring S by A3,SETFAM_1:def 1;
+   end; then
+   Ring_generated_by S c= sigmaring S;
+   hence thesis by A2,Defsigmaring;
+end;
+
+begin :: Semi-algebra, Algebra and Sigma-algebra of Sets
+
+definition let X be set;
+  mode semialgebra_of_sets of X ->
+   with_empty_element semi-diff-closed cap-closed Subset-Family of X means
+    :Def1:
+   X in it;
+existence
+proof
+   bool X is with_empty_element semi-diff-closed cap-closed
+             Subset-Family of X & X c= X;
+   hence thesis;
+end;
+end;
+
+theorem
+  for X being set, F being Field_Subset of X holds
+    F is semialgebra_of_sets of X by Def1,PROB_1:5;
+
+ExistAlgebra:
+for X being set, S being semialgebra_of_sets of X
+ ex Y being non empty Field_Subset of X st
+  Y = meet {Z where Z is Field_Subset of X : S c= Z}
+proof
+   let X be set, S be semialgebra_of_sets of X;
+   set V = {Z where Z is Field_Subset of X : S c= Z};
+A1:bool X in V; then
+   reconsider Y = meet V as Subset-Family of X by SETFAM_1:3;
+   now let Z be set;
+    assume Z in V; then
+    ex S1 being Field_Subset of X st
+       Z = S1 & S c= S1;
+    hence {} in Z by SETFAM_1:def 8;
+   end; then
+A2:Y is non empty by A1,SETFAM_1:def 1;
+   now let A,B be set;
+    assume B1: A in Y & B in Y;
+    for Z being set st Z in V holds A \/ B in Z
+    proof
+     let Z be set;
+     assume B2: Z in V; then
+     consider Z1 be Field_Subset of X such that
+B3:   Z = Z1 & S c= Z1;
+     A in Z1 & B in Z1 by B1,B2,B3,SETFAM_1:def 1;
+     hence A \/ B in Z by B3,FINSUB_1:def 1;
+    end;
+    hence A \/ B in Y by A1,SETFAM_1:def 1;
+   end; then
+B4:Y is cup-closed;
+   now let A be set;
+    assume C1: A in Y;
+    for Z being set st Z in V holds X \ A in Z
+    proof
+     let Z be set;
+     assume C2: Z in V; then
+     consider Z1 be Field_Subset of X such that
+C3:   Z = Z1 & S c= Z1;
+     A in Z1 & X in Z1 by Def1,C1,C2,C3,SETFAM_1:def 1;
+     hence X \ A in Z by C3,FINSUB_1:def 3;
+    end;
+    hence X \ A in Y by A1,SETFAM_1:def 1;
+   end; then
+   Y is compl-closed by MEASURE1:def 1;
+   hence thesis by A2,B4;
+end;
+
+definition
+  let X be set, S be semialgebra_of_sets of X;
+  func Field_generated_by S -> non empty Field_Subset of X equals
+    meet {Z where Z is Field_Subset of X : S c= Z};
+correctness
+proof
+   consider Y be non empty Field_Subset of X such that
+A1: Y = meet {Z where Z is Field_Subset of X : S c= Z}
+        by ExistAlgebra;
+   thus thesis by A1;
+end;
+end;
+
+theorem FieldGen1:
+  for X being set, P being semialgebra_of_sets of X holds
+    P c= Field_generated_by P
+proof
+   let X be set, P be semialgebra_of_sets of X;
+   set Y = {Z where Z is Field_Subset of X : P c= Z};
+A1:bool X in Y;
+   for A being set st A in Y holds P c= A
+   proof
+    let A be set;
+    assume A in Y; then
+    ex Z being Field_Subset of X st A = Z & P c= Z;
+    hence P c= A;
+   end;
+   hence thesis by A1,SETFAM_1:5;
+end;
+
+theorem
+  for X being set, S being semialgebra_of_sets of X holds
+    Field_generated_by S = DisUnion S
+proof
+   let X be set, S be semialgebra_of_sets of X;
+   set R = DisUnion S;
+   reconsider R as non empty Subset-Family of X;
+A0:S c= R by lemma100;
+A1:R is cap-closed by lemma101;
+A2:now let A,B be set;
+    assume A3: A in R & B in R; then
+    A <> {} implies B \ A in R by lemma105;
+    hence B \ A in R by A3;
+   end; then
+A4:R is diff-closed;
+   now let A,B be set;
+    assume A in R & B in R; then
+A5: A \ B in R & B \ A in R & A /\ B in R by A2,A1;
+    (A \ B) \/ (B \ A) in R by A5,lemma102,XBOOLE_1:82; then
+A6: A \+\ B in R by XBOOLE_0:def 6;
+    (A \+\ B) \/ (A /\ B) in R by A5,A6,lemma102,XBOOLE_1:103;
+    hence A \/ B in R by XBOOLE_1:93;
+   end; then
+   R is cup-closed; then
+   reconsider R as non empty preBoolean Subset-Family of X
+     by A4;
+   now let A be set;
+    assume C1: A in R;
+    X in R by A0,Def1;
+    hence X \ A in R by C1,FINSUB_1:def 3;
+   end; then
+K2:R is compl-closed by MEASURE1:def 1;
+A10:R in {Z where Z is non empty Field_Subset of X : S c= Z} by A0,K2;
+   now let x be object;
+    assume x in R; then
+    consider A be Subset of X such that
+A8:  x = A &
+     ex F being disjoint_valued FinSequence of S st A = Union F;
+    consider F be disjoint_valued FinSequence of S such that
+A9:  A = Union F by A8;
+    for Y being set st
+      Y in {Z where Z is Field_Subset of X : S c= Z} holds x in Y
+    proof
+     let Y be set;
+     assume Y in {Z where Z is Field_Subset of X: S c= Z}; then
+     consider Z be Field_Subset of X such that
+A11:  Y = Z & S c= Z;
+     defpred P[Nat] means union rng (F|$1) in Z;
+X1:  P[0] by SETFAM_1:def 8,ZFMISC_1:2;
+X2:  for k be Nat st P[k] holds P[k+1]
+     proof
+      let k be Nat;
+      assume X3: P[k];
+      per cases;
+      suppose C4: k+1 <= len F;
+       F|k = (F|(k+1))|k by NAT_1:11,FINSEQ_1:82; then
+       F|(k+1) = F|k ^ <*(F|(k+1)).(k+1)*> by C4,FINSEQ_1:59,FINSEQ_3:55; then
+       rng (F|(k+1)) = rng (F|k) \/ rng <*(F|(k+1)).(k+1)*> by FINSEQ_1:31
+        .= rng (F|k) \/ { (F|(k+1)).(k+1) } by FINSEQ_1:38
+        .= rng (F|k) \/ { F.(k+1) } by FINSEQ_3:112; then
+C6:    union rng (F|(k+1)) = union rng (F|k) \/ union {F.(k+1)} by ZFMISC_1:78
+        .= union rng (F|k) \/ F.(k+1);
+       k+1 in dom F by C4,NAT_1:11,FINSEQ_3:25; then
+       F.(k+1) in rng F & rng F c= S by FUNCT_1:3; then
+       F.(k+1) in Z by A11;
+       hence P[k+1] by X3,C6,FINSUB_1:def 1;
+      end;
+      suppose k+1 > len F; then
+       F|k = F & F|(k+1) = F by FINSEQ_1:58,NAT_1:13;
+       hence P[k+1] by X3;
+      end;
+     end;
+     for k be Nat holds P[k] from NAT_1:sch 2(X1,X2); then
+     P[len F];
+     hence x in Y by A8,A9,A11,FINSEQ_1:58;
+    end;
+    hence x in Field_generated_by S by A10,SETFAM_1:def 1;
+   end; then
+   R c= Field_generated_by S;
+   hence thesis by A10,SETFAM_1:7;
+end;
+
+theorem
+  for X being non empty set, S being semialgebra_of_sets of X holds
+    sigma (Field_generated_by S) = sigma S
+proof
+   let X be non empty set, S be semialgebra_of_sets of X;
+A1:S c= Field_generated_by S by FieldGen1;
+   Field_generated_by S c= sigma(Field_generated_by S) by PROB_1:def 9; then
+A2:S c= sigma(Field_generated_by S) by A1;
+   now let x be object;
+    assume A3: x in Field_generated_by S;
+    S c= sigma S by PROB_1:def 9; then
+    sigma S in {Z where Z is Field_Subset of X : S c= Z};
+    hence x in sigma S by A3,SETFAM_1:def 1;
+   end; then
+   Field_generated_by S c= sigma S;
+   hence thesis by A2,PROB_1:def 9;
+end;
+
+begin :: Mutual Relationship of between Sigma-ring and Sigma-algebra of Sets
+
+theorem
+  for X be set, S be set st S is SigmaField of X holds S is SigmaRing of X
+proof
+   let X be set, S be set;
+   assume A1: S is SigmaField of X; then
+   for F be SetSequence of X st rng F c= S holds Union F in S by PROB_4:4;
+   hence S is SigmaRing of X by A1,DefSigmaRing;
+end;
+
+theorem
+  for X be set, S be set st S is SigmaRing of X & X in S holds
+    S is SigmaField of X
+proof
+   let X be set, S be set;
+   assume that
+A1: S is SigmaRing of X and
+A2: X in S;
+   reconsider S1 = S as non empty Subset-Family of X by A1;
+A3:S1 is diff-closed by A1;
+P1:now let A be Subset of X;
+    assume A in S1; then
+    X \ A in S1 by A2,A3;
+    hence A` in S1 by SUBSET_1:def 4;
+   end;
+   X c= X; then
+   reconsider X1 = X as Subset of X;
+   now let A be SetSequence of X;
+    assume P2: rng A c= S1;
+    now let a be object;
+     assume a in rng Complement A; then
+     consider n be Element of NAT such that
+P3:   a = (Complement A).n by FUNCT_2:113;
+     a = (A.n)` by P3,PROB_1:def 2; then
+P4:  a = X \ A.n by SUBSET_1:def 4;
+     A.n in rng A by FUNCT_2:4;
+     hence a in S1 by P4,P2,A1,A2,FINSUB_1:def 3;
+    end; then
+    rng Complement A c= S1; then
+    Union Complement A in S1 by A1,DefSigmaRing; then
+    X1 \ (Union Complement A) in S1 by A1,A2,FINSUB_1:def 3; then
+    (Union Complement A)` in S1 by SUBSET_1:def 4;
+    hence Intersection A in S1 by PROB_1:def 3;
+   end;
+   hence S is SigmaField of X by P1,PROB_1:def 1,def 6;
+end;
+
+theorem
+  for S be Subset-Family of REAL
+   st S = { I where I is Subset of REAL : I is left_open_interval }
+  holds S is with_empty_element semi-diff-closed cap-closed
+proof
+   let S be Subset-Family of REAL;
+   assume S = { I where I is Subset of REAL : I is left_open_interval }; then
+S is cap-closed & S is diff-finite-partition-closed with_empty_element &
+   S is with_countable_Cover by SRINGS_2:10;
+   hence thesis by th10;
+end;
+
+INTERVAL01:
+for I be Subset of REAL st I = {} holds I is right_open_interval
+proof
+   let I be Subset of REAL;
+   assume A1: I = {};
+   0 in REAL by NUMBERS:19; then
+   [.0,0.[ is right_open_interval by NUMBERS:31;
+   hence I is right_open_interval by A1;
+end;
+
+INTERVAL02:
+for I,J be Subset of REAL
+ st I is right_open_interval & J is right_open_interval & I meets J holds
+        ex K,L be Subset of REAL st
+          K is right_open_interval & L is right_open_interval
+        & K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is right_open_interval & J is right_open_interval; then
+   consider p be Real, q be R_eal such that
+A2: I = [.p,q.[;
+   consider r be Real, s be R_eal such that
+A3: J = [.r,s.[ by A1;
+   assume A9: I meets J; then
+A5: I \ J = [.p,r.[ \/ [.s,q.[  by A2,A3,XXREAL_1:198;
+A10:q > r & s > p by A2,A3,A9,XXREAL_1:96;
+A7:now assume s = -infty; then
+    s < r by XREAL_0:def 1,XXREAL_0:12; then
+    J = {} by A3,XXREAL_1:27;
+    hence contradiction by A9;
+   end;
+   per cases by A7,XXREAL_0:14;
+   suppose A8: s = +infty;
+    reconsider K = [.p,r.[ as Subset of REAL;
+    reconsider L = {} as Subset of REAL by XBOOLE_1:2;
+    take K,L;
+    p in REAL & r in REAL by XREAL_0:def 1;
+    hence K is right_open_interval by NUMBERS:31;
+    thus L is right_open_interval by INTERVAL01;
+    thus K misses L;
+    thus I \ J = K \/ L by A8,A5,XXREAL_1:215;
+   end;
+   suppose B1: s in REAL & r <= s; then
+    reconsider s1=s as Real;
+    reconsider K = [.p,r.[ as Subset of REAL;
+    reconsider L = [.s1,q.[ as Subset of REAL;
+    take K,L;
+    r in REAL by XREAL_0:def 1;
+    hence K is right_open_interval & L is right_open_interval
+             by NUMBERS:31;
+    thus K misses L by B1,XXREAL_1:96;
+    thus I \ J = K \/ L by A9,A2,A3,XXREAL_1:198;
+   end;
+   suppose C1: s in REAL & r > s;
+C2: min(p,s) = p & max(r,q) = q by A2,A3,A9,XXREAL_1:96,XXREAL_0:def 9,def 10;
+    reconsider s1=s as Real by C1;
+    s1 < q by A2,A3,A9,XXREAL_1:96,C1,XXREAL_0:2; then
+    s1 in [.p,r.[ & s1 in [.s1,q.[ by A10,C1; then
+C3: [.p,r.[ meets [.s,q.[ by XBOOLE_0:def 4;
+    reconsider K = [.p,q.[ as Subset of REAL;
+    reconsider L = {} as Subset of REAL by XBOOLE_1:2;
+    take K,L;
+    thus K is right_open_interval;
+    thus L is right_open_interval by INTERVAL01;
+    thus K misses L;
+    thus I \ J = K \/ L by C3,C2,A5,XXREAL_1:162;
+   end;
+end;
+
+OOdif:
+for I,J be Subset of REAL
+ st I is open_interval & J is open_interval & I meets J
+   ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is open_interval & J is open_interval & I meets J; then
+   consider p,q being R_eal such that
+A2: I = ].p,q.[;
+   consider r,s being R_eal such that
+A3: J = ].r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r < s & p < s & r < q by A1,A2,A3,XXREAL_1:28,275;
+A7:r <> +infty & s <> -infty by A1,A3,XXREAL_1:275,XXREAL_0:3,5;
+   per cases by A7,XXREAL_0:14;
+   suppose r in REAL & s in REAL; then
+    reconsider r1=r, s1=s as Real;
+    reconsider K = ].p,r1.], L = [.s1,q.[ as Subset of REAL;
+    K is left_open_interval & L is right_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:279,297;
+   end;
+   suppose A8: r = -infty & s in REAL; then
+A9: ].p,r.] = {} & ].p,r.[ = {} by XXREAL_0:5,XXREAL_1:26,28;
+    reconsider s1=s as Real by A8;
+    reconsider K = ].p,r.[, L = [.s1,q.[ as Subset of REAL;
+    K is open_interval & L is right_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:297,A9;
+   end;
+   suppose A10: r in REAL & s = +infty; then
+A11: [.s,q.[ = {} & ].s,q.[ = {} by XXREAL_0:3,XXREAL_1:27,28;
+    reconsider r1=r as Real by A10;
+    reconsider K = ].p,r1.], L = ].s,q.[ as Subset of REAL;
+    K is left_open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:297,A11;
+   end;
+   suppose r = -infty & s = +infty; then
+A12: ].p,r.] = {} & ].p,r.[ = {} & [.s,q.[ = {} & ].s,q.[ = {}
+      by XXREAL_0:5,3,XXREAL_1:26,27,28;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:297,A12;
+   end;
+end;
+
+COdif:
+for I,J be Subset of REAL
+ st I is closed_interval & J is open_interval & I meets J
+   ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is closed_interval & J is open_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r,s being R_eal such that
+A3: J = ].r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p <= q & r < s & r < q & p < s by A1,A2,A3,XXREAL_1:29,28,89,93;
+A7:r <> +infty & s <> -infty by A1,A3,XXREAL_1:89,93,XXREAL_0:3,5;
+   per cases by A7,XXREAL_0:14;
+   suppose r in REAL & s in REAL; then
+    reconsider r1=r, s1=s as Real;
+    reconsider K = [.p,r1.], L = [.s1,q.] as Subset of REAL;
+    K is closed_interval & L is closed_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:300,278;
+   end;
+   suppose A8: r = -infty & s in REAL;
+    r < p by A8,XREAL_0:def 1,XXREAL_0:12; then
+A9: [.p,r.] = {} & ].p,r.[ = {} by XXREAL_1:28,29;
+    reconsider s1=s as Real by A8;
+    reconsider K = ].p,r.[, L = [.s1,q.] as Subset of REAL;
+    p is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is closed_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:300,A9;
+   end;
+   suppose A10:r in REAL & s = +infty; then
+    q < s by XREAL_0:def 1,XXREAL_0:9; then
+A11: [.s,q.] = {} & ].s,q.[ = {} by XXREAL_1:28,29;
+    reconsider r1=r as Real by A10;
+    reconsider K = [.p,r1.], L = ].s,q.[ as Subset of REAL;
+    q is R_eal by XXREAL_0:def 1; then
+    K is closed_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:300,A11;
+   end;
+   suppose A13:r = -infty & s = +infty;
+    r < p & q < s by A13,XREAL_0:def 1,XXREAL_0:9,12; then
+A12: [.p,r.] = {} & ].p,r.[ = {} & [.s,q.] = {} & ].s,q.[ = {}
+      by XXREAL_1:28,29;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    p is R_eal & q is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:300,A12;
+   end;
+end;
+
+ROdif:
+for I,J be Subset of REAL
+ st I is right_open_interval & J is open_interval & I meets J
+   ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is right_open_interval & J is open_interval & I meets J; then
+   consider p being Real, q being R_eal such that
+A2: I = [.p,q.[;
+   consider r,s being R_eal such that
+A3: J = ].r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r < s & r < q & p <= s by A1,A2,A3,XXREAL_1:27,28,94,273;
+A7:r <> +infty & s <> -infty by A1,A3,XXREAL_1:94,273,XXREAL_0:3,5;
+   per cases by A7,XXREAL_0:14;
+   suppose r in REAL & s in REAL; then
+    reconsider r1=r, s1=s as Real;
+    reconsider K = [.p,r1.], L = [.s1,q.[ as Subset of REAL;
+    K is closed_interval & L is right_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:298,277;
+   end;
+   suppose A8: r = -infty & s in REAL; then
+    r < p by XREAL_0:def 1,XXREAL_0:12; then
+A9: [.p,r.] = {} & ].p,r.[ = {} by XXREAL_1:28,29;
+    reconsider s1=s as Real by A8;
+    reconsider K = ].p,r.[, L = [.s1,q.[ as Subset of REAL;
+    p is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is right_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:298,A9;
+   end;
+   suppose A10:r in REAL & s = +infty; then
+A11: [.s,q.[ = {} & ].s,q.[ = {} by XXREAL_0:3,XXREAL_1:27,28;
+    reconsider r1=r as Real by A10;
+    reconsider K = [.p,r1.], L = ].s,q.[ as Subset of REAL;
+    K is closed_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:298,A11;
+   end;
+   suppose r = -infty & s = +infty; then
+    r < p & q <= s by XREAL_0:def 1,XXREAL_0:3,12; then
+A12: [.p,r.] = {} & ].p,r.[ = {} & [.s,q.[ = {} & ].s,q.[ = {}
+      by XXREAL_1:27,28,29;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    p is R_eal & q is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:298,A12;
+   end;
+end;
+
+LOdif:
+for I,J be Subset of REAL
+ st I is left_open_interval & J is open_interval & I meets J
+   ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is left_open_interval & J is open_interval & I meets J; then
+   consider p being R_eal, q being Real such that
+A2: I = ].p,q.];
+   consider r,s being R_eal such that
+A3: J = ].r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r < s & r < q & p < s by A1,A2,A3,XXREAL_1:26,28,276,91;
+A7:r <> +infty & s <> -infty by A1,A3,XXREAL_1:276,91,XXREAL_0:3,5;
+   per cases by A7,XXREAL_0:14;
+   suppose r in REAL & s in REAL; then
+    reconsider r1=r, s1=s as Real;
+    reconsider K = ].p,r1.], L = [.s1,q.] as Subset of REAL;
+    K is left_open_interval & L is closed_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:299,280;
+   end;
+   suppose A8: r = -infty & s in REAL; then
+A9: ].p,r.] = {} & ].p,r.[ = {} by XXREAL_0:5,XXREAL_1:26,28;
+    reconsider s1=s as Real by A8;
+    reconsider K = ].p,r.[, L = [.s1,q.] as Subset of REAL;
+    K is open_interval & L is closed_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:299,A9;
+   end;
+   suppose A10:r in REAL & s = +infty;
+    q < s by A10,XREAL_0:def 1,XXREAL_0:9; then
+A11: [.s,q.] = {} & ].s,q.[ = {} by XXREAL_1:28,29;
+    reconsider r1=r as Real by A10;
+    reconsider K = ].p,r1.], L = ].s,q.[ as Subset of REAL;
+    q is R_eal by XXREAL_0:def 1; then
+    K is left_open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:299,A11;
+   end;
+   suppose A13:r = -infty & s = +infty;
+    r <= p & q < s by A13,XREAL_0:def 1,XXREAL_0:5,9; then
+A12: ].p,r.] = {} & ].p,r.[ = {} & [.s,q.] = {} & ].s,q.[ = {}
+      by XXREAL_1:26,28,29;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    p is R_eal & q is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:299,A12;
+   end;
+end;
+
+OCdif:
+for I,J be Subset of REAL
+ st I is open_interval & J is closed_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is open_interval & J is closed_interval & I meets J; then
+   consider p,q being R_eal such that
+A2: I = ].p,q.[;
+   consider r,s being Real such that
+A3: J = [.r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r <= s & p < s & r < q by A1,A2,A3,XXREAL_1:28,29,89,93;
+   reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+   r is R_eal & s is R_eal by XXREAL_0:def 1; then
+   K is open_interval & L is open_interval; then
+   reconsider K,L as Interval;
+   take K,L;
+   thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:309,275;
+end;
+
+CCdif:
+for I,J be Subset of REAL
+ st I is closed_interval & J is closed_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is closed_interval & J is closed_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r,s being Real such that
+A3: J = [.r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p <= q & r <= s & p <= s & r <= q by A1,A2,A3,XXREAL_1:29,278;
+   reconsider K = [.p,r.[, L = ].s,q.] as Subset of REAL;
+   r is R_eal & s is R_eal by XXREAL_0:def 1; then
+   K is right_open_interval & L is left_open_interval; then
+   reconsider K,L as Interval;
+   take K,L;
+   thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:312,274;
+end;
+
+RCdif:
+for I,J be Subset of REAL
+ st I is right_open_interval & J is closed_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is right_open_interval & J is closed_interval & I meets J; then
+   consider p be Real, q being R_eal such that
+A2: I = [.p,q.[;
+   consider r,s being Real such that
+A3: J = [.r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r <= s & p <= s & r < q by A1,A2,A3,XXREAL_1:27,29,95,277;
+   reconsider K = [.p,r.[, L = ].s,q.[ as Subset of REAL;
+   r is R_eal & s is R_eal by XXREAL_0:def 1; then
+   K is right_open_interval & L is open_interval; then
+   reconsider K,L as Interval;
+   take K,L;
+   thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:310,273;
+end;
+
+LCdif:
+for I,J be Subset of REAL
+ st I is left_open_interval & J is closed_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is left_open_interval & J is closed_interval & I meets J; then
+   consider p be R_eal, q being Real such that
+A2: I = ].p,q.];
+   consider r,s being Real such that
+A3: J = [.r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r <= s & p < s & r <= q by A1,A2,A3,XXREAL_1:26,29,90,280;
+   reconsider K = ].p,r.[, L = ].s,q.] as Subset of REAL;
+   r is R_eal & s is R_eal by XXREAL_0:def 1; then
+   K is open_interval & L is left_open_interval; then
+   reconsider K,L as Interval;
+   take K,L;
+   thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:311,276;
+end;
+
+ORdif:
+for I,J be Subset of REAL
+ st I is open_interval & J is right_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is open_interval & J is right_open_interval & I meets J; then
+   consider p,q being R_eal such that
+A2: I = ].p,q.[;
+   consider r be Real, s being R_eal such that
+A3: J = [.r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r <= s & p < s & r <= q by A1,A2,A3,XXREAL_1:27,28,94,273;
+A7:s <> -infty by A1,A3,XXREAL_1:273,XXREAL_0:5;
+   per cases by A7,XXREAL_0:14;
+   suppose s = +infty; then
+A8: [.s,q.[ = {} & ].s,q.[ = {} by XXREAL_0:3,XXREAL_1:27,28;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    r is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:301,A8;
+   end;
+   suppose s in REAL; then
+    reconsider s1 = s as Real;
+    reconsider K = ].p,r.[, L = [.s1,q.[ as Subset of REAL;
+    r is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is right_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,XXREAL_1:94,301,A2,A3;
+   end;
+end;
+
+CRdif:
+for I,J be Subset of REAL
+ st I is closed_interval & J is right_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is closed_interval & J is right_open_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r be Real, s being R_eal such that
+A3: J = [.r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p <= q & r < s & p < s & r <= q by A1,A2,A3,XXREAL_1:29,27,95,277;
+A7:s <> -infty by A1,A3,XXREAL_1:95,XXREAL_0:5;
+   per cases by A7,XXREAL_0:14;
+   suppose B1: s = +infty;
+    q < s by B1,XREAL_0:def 1,XXREAL_0:9; then
+A8: [.s,q.] = {} & ].s,q.[ = {} by XXREAL_1:29,28;
+    reconsider K = [.p,r.[, L = ].s,q.[ as Subset of REAL;
+    r is R_eal & q is R_eal by XXREAL_0:def 1; then
+    K is right_open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:304,A8;
+   end;
+   suppose s in REAL; then
+    reconsider s1 = s as Real;
+    reconsider K = [.p,r.[, L = [.s1,q.] as Subset of REAL;
+    r is R_eal by XXREAL_0:def 1; then
+    K is right_open_interval & L is closed_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:304,95;
+   end;
+end;
+
+RRdif:
+for I,J be Subset of REAL
+ st I is right_open_interval & J is right_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume I is right_open_interval & J is right_open_interval
+     & I meets J; then
+   consider K,L be Subset of REAL such that
+A2: K is right_open_interval & L is right_open_interval &
+    K misses L & I \ J = K \/ L by INTERVAL02;
+   reconsider K,L as Interval by A2;
+   thus thesis by A2;
+end;
+
+LRdif:
+for I,J be Subset of REAL
+ st I is left_open_interval & J is right_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is left_open_interval & J is right_open_interval
+     & I meets J; then
+   consider p be R_eal,q being Real such that
+A2: I = ].p,q.];
+   consider r be Real, s being R_eal such that
+A3: J = [.r,s.[ by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r <= s & p < s & r <= q by A1,A2,A3,XXREAL_1:26,27,274,279;
+A7:s <> -infty by A1,A3,XXREAL_1:274,XXREAL_0:5;
+   per cases by A7,XXREAL_0:14;
+   suppose B1: s = +infty;
+    q < s by B1,XREAL_0:def 1,XXREAL_0:9; then
+A8: [.s,q.] = {} & ].s,q.[ = {} by XXREAL_1:29,28;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    r is R_eal & q is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:303,A8;
+   end;
+   suppose s in REAL; then
+    reconsider s1 = s as Real;
+    reconsider K = ].p,r.[, L = [.s1,q.] as Subset of REAL;
+    r is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is closed_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:303,93;
+   end;
+end;
+
+OLdif:
+for I,J be Subset of REAL
+ st I is open_interval & J is left_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is open_interval & J is left_open_interval & I meets J; then
+   consider p,q being R_eal such that
+A2: I = ].p,q.[;
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r < s & q > r & s > p by A1,A2,A3,XXREAL_1:28,26,276,91;
+A7:r <> +infty by A1,A3,XXREAL_1:276,XXREAL_0:3;
+   per cases by A7,XXREAL_0:14;
+   suppose r = -infty; then
+A8: ].p,r.] = {} & ].p,r.[ = {} by XXREAL_0:5,XXREAL_1:26,28;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    s is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:305,A8;
+   end;
+   suppose r in REAL; then
+    reconsider r1 = r as Real;
+    reconsider K = ].p,r1.], L = ].s,q.[ as Subset of REAL;
+    s is R_eal by XXREAL_0:def 1; then
+    K is left_open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:305,91;
+   end;
+end;
+
+CLdif:
+for I,J be Subset of REAL
+ st I is closed_interval & J is left_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is closed_interval & J is left_open_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p <= q & r < s & q > r & s >= p by A1,A2,A3,XXREAL_1:29,26,90,280;
+A7:r <> +infty by A1,A3,XXREAL_1:90,XXREAL_0:3;
+   per cases by A7,XXREAL_0:14;
+   suppose B1: r = -infty;
+    r < p by B1,XREAL_0:def 1,XXREAL_0:12; then
+A8: [.p,r.] = {} & ].p,r.[ = {} by XXREAL_1:29,28;
+    reconsider K = ].p,r.[, L = ].s,q.] as Subset of REAL;
+    p is R_eal & s is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is left_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:308,A8;
+   end;
+   suppose r in REAL; then
+    reconsider r1 = r as Real;
+    reconsider K = [.p,r1.], L = ].s,q.] as Subset of REAL;
+    s is R_eal by XXREAL_0:def 1; then
+    K is closed_interval & L is left_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:308,90;
+   end;
+end;
+
+RLdif:
+for I,J be Subset of REAL
+ st I is right_open_interval & J is left_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is right_open_interval & J is left_open_interval
+     & I meets J; then
+   consider p be Real, q being R_eal such that
+A2: I = [.p,q.[;
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p <= q & r < s & q > r & s >= p by A1,A2,A3,XXREAL_1:27,26,274,279;
+A7:r <> +infty by A1,A3,XXREAL_1:274,XXREAL_0:3;
+   per cases by A7,XXREAL_0:14;
+   suppose B1: r = -infty;
+    r < p by B1,XREAL_0:def 1,XXREAL_0:12; then
+A8: [.p,r.] = {} & ].p,r.[ = {} by XXREAL_1:29,28;
+    reconsider K = ].p,r.[, L = ].s,q.[ as Subset of REAL;
+    p is R_eal & s is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:306,A8;
+   end;
+   suppose r in REAL; then
+    reconsider r1 = r as Real;
+    reconsider K = [.p,r1.], L = ].s,q.[as Subset of REAL;
+    s is R_eal by XXREAL_0:def 1; then
+    K is closed_interval & L is open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A2,A3,XXREAL_1:306,89;
+   end;
+end;
+
+LLdif:
+for I,J be Subset of REAL
+ st I is left_open_interval & J is left_open_interval & I meets J
+  ex K,L be Interval st K misses L & I \ J = K \/ L
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is left_open_interval & J is left_open_interval
+     & I meets J; then
+   consider p be R_eal, q being Real such that
+A2: I = ].p,q.];
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   I <> {} & J <> {} by A1; then
+A4:p < q & r < s & q > r & s > p by A1,A2,A3,XXREAL_1:26,92;
+A7:r <> +infty by A1,A3,XXREAL_1:92,XXREAL_0:3;
+   per cases by A7,XXREAL_0:14;
+   suppose r = -infty; then
+A8: ].p,r.] = {} & ].p,r.[ = {} by XXREAL_0:5,XXREAL_1:26,28;
+    reconsider K = ].p,r.[, L = ].s,q.] as Subset of REAL;
+    p is R_eal & s is R_eal by XXREAL_0:def 1; then
+    K is open_interval & L is left_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A8,A1,A2,A3,XXREAL_1:199;
+   end;
+   suppose r in REAL; then
+    reconsider r1 = r as Real;
+    reconsider K = ].p,r1.], L = ].s,q.]as Subset of REAL;
+    s is R_eal by XXREAL_0:def 1; then
+    K is left_open_interval & L is left_open_interval; then
+    reconsider K,L as Interval;
+    take K,L;
+    thus K misses L & I \ J = K \/ L by A4,A1,A2,A3,XXREAL_1:199,92;
+   end;
+end;
+
+INTERVAL03:
+for I,J be Subset of REAL
+ st I is right_open_interval & J is right_open_interval
+  holds I /\ J is right_open_interval
+proof
+   let I,J be Subset of REAL;
+   assume A1: I is right_open_interval & J is right_open_interval; then
+   consider p be Real, q be R_eal such that
+A2: I = [.p,q.[;
+   consider r be Real, s be R_eal such that
+A3: J = [.r,s.[ by A1;
+A4:min(s,q) is R_eal by XXREAL_0:def 1;
+   I /\ J = [.max(r,p),min(s,q).[ by A2,A3,XXREAL_1:139;
+   hence I /\ J is right_open_interval by A4;
+end;
+
+OOmeet:
+for I,J be Interval st I is open_interval & J is open_interval & I meets J
+ holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is open_interval & J is open_interval & I meets J; then
+   consider p,q be R_eal such that
+A2: I = ].p,q.[;
+   consider r,s be R_eal such that
+A3: J = ].r,s.[ by A1;
+A4:I /\ J = ].max(p,r),min(q,s).[ by A2,A3,XXREAL_1:142;
+   max(p,r) is R_eal & min(q,s) is R_eal by XXREAL_0:def 1; then
+   I /\ J is open_interval by A4;
+   hence I /\ J is Interval;
+end;
+
+OCmeet:
+for I,J be Interval st I is open_interval & J is closed_interval & I meets J
+ holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is open_interval & J is closed_interval & I meets J; then
+   consider p,q be R_eal such that
+A2: I = ].p,q.[;
+   consider r,s be Real such that
+A3: J = [.r,s.] by A1;
+   per cases;
+   suppose p < r & s < q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:47,XBOOLE_1:28;
+   end;
+   suppose p < r & q <= s; then
+    I /\ J = [.r,q.[ by A2,A3,XXREAL_1:148; then
+    I /\ J is right_open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p >= r & q > s; then
+    I /\ J = ].p,s.] by A2,A3,XXREAL_1:149; then
+    I /\ J is left_open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p >= r & q <= s;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:37,XBOOLE_1:28;
+   end;
+end;
+
+ORmeet:
+for I,J be Interval st I is open_interval & J is right_open_interval
+  & I meets J
+ holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is open_interval & J is right_open_interval & I meets J; then
+   consider p,q being R_eal such that
+A2: I = ].p,q.[;
+   consider r be Real, s being R_eal such that
+A3: J = [.r,s.[ by A1;
+   per cases;
+   suppose p < r & q <= s; then
+    I /\ J = [.r,q.[ by A2,A3,XXREAL_1:154; then
+    I /\ J is right_open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p < r & s <= q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:48,XBOOLE_1:28;
+   end;
+   suppose p >= r & q >= s; then
+    I /\ J = ].p,s.[ by A2,A3,XXREAL_1:155; then
+    I /\ J is open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose r <= p & q < s;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:45,XBOOLE_1:28;
+   end;
+end;
+
+OLmeet:
+for I,J be Interval
+ st I is open_interval & J is left_open_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is open_interval & J is left_open_interval & I meets J; then
+   consider p,q being R_eal such that
+A2: I = ].p,q.[;
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   per cases;
+   suppose p <= r & q <= s; then
+    I /\ J = ].r,q.[ by A2,A3,XXREAL_1:158; then
+    I /\ J is open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p <= r & s < q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:49,XBOOLE_1:28;
+   end;
+   suppose p >= r & q > s; then
+    I /\ J = ].p,s.] by A2,A3,XXREAL_1:159; then
+    I /\ J is left_open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p >= r & q <= s;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:41,XBOOLE_1:28;
+   end;
+end;
+
+CCmeet:
+for I,J be Interval
+ st I is closed_interval & J is closed_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is closed_interval & J is closed_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r,s being Real such that
+A3: J = [.r,s.] by A1;
+A4:I /\ J = [.max(r,p),min(s,q).] by A2,A3,XXREAL_1:140;
+   I /\ J is closed_interval by A4;
+   hence I /\ J is Interval;
+end;
+
+CRmeet:
+for I,J be Interval
+ st I is closed_interval & J is right_open_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is closed_interval & J is right_open_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r be Real, s being R_eal such that
+A3: J = [.r,s.[ by A1;
+   per cases;
+   suppose r <= p & s <= q; then
+    I /\ J = [.p,s.[ by A2,A3,XXREAL_1:144; then
+    I /\ J is right_open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose r <= p & s > q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:43,XBOOLE_1:28;
+   end;
+   suppose r > p & s <= q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:35,XBOOLE_1:28;
+   end;
+   suppose r > p & s > q; then
+    I /\ J = [.r,q.] by A2,A3,XXREAL_1:145; then
+    I /\ J is closed_interval;
+    hence I /\ J is Interval;
+   end;
+end;
+
+CLmeet:
+for I,J be Interval
+ st I is closed_interval & J is left_open_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is closed_interval & J is left_open_interval & I meets J; then
+   consider p,q being Real such that
+A2: I = [.p,q.];
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   per cases;
+   suppose r < p & s <= q; then
+    I /\ J = [.p,s.] by A2,A3,XXREAL_1:146; then
+    I /\ J is closed_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose r < p & q < s;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:39,XBOOLE_1:28;
+   end;
+   suppose p <= r & q <= s; then
+    I /\ J = ].r,q.] by A2,A3,XXREAL_1:147; then
+    I /\ J is left_open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p <= r & s < q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:36,XBOOLE_1:28;
+   end;
+end;
+
+RRmeet:
+for I,J be Interval
+ st I is right_open_interval & J is right_open_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is right_open_interval & J is right_open_interval
+     & I meets J; then
+   consider p be Real, q being R_eal such that
+A2: I = [.p,q.[;
+   consider r be Real, s being R_eal such that
+A3: J = [.r,s.[ by A1;
+A4:I /\ J = [.max(r,p),min(s,q).[ by A2,A3,XXREAL_1:139;
+   max(p,r) is Real & min(q,s) is R_eal by XXREAL_0:def 1; then
+   I /\ J is right_open_interval by A4;
+   hence I /\ J is Interval;
+end;
+
+RLmeet:
+for I,J be Interval
+ st I is right_open_interval & J is left_open_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is right_open_interval & J is left_open_interval
+     & I meets J; then
+   consider p be Real, q being R_eal such that
+A2: I = [.p,q.[;
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+   per cases;
+   suppose r < p & s < q; then
+    I /\ J = [.p,s.] by A2,A3,XXREAL_1:152; then
+    I /\ J is closed_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose r < p & q <= s;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:40,XBOOLE_1:28;
+   end;
+   suppose p <= r & q <= s; then
+    I /\ J = ].r,q.[ by A2,A3,XXREAL_1:153; then
+    I /\ J is open_interval;
+    hence I /\ J is Interval;
+   end;
+   suppose p <= r & s < q;
+    hence I /\ J is Interval by A2,A3,XXREAL_1:44,XBOOLE_1:28;
+   end;
+end;
+
+LLmeet:
+for I,J be Interval
+ st I is left_open_interval & J is left_open_interval & I meets J
+  holds I /\ J is Interval
+proof
+   let I,J be Interval;
+   assume A1: I is left_open_interval & J is left_open_interval
+     & I meets J; then
+   consider p be R_eal, q being Real such that
+A2: I = ].p,q.];
+   consider r be R_eal, s being Real such that
+A3: J = ].r,s.] by A1;
+A4:I /\ J = ].max(p,r),min(q,s).] by A2,A3,XXREAL_1:141;
+   max(p,r) is R_eal & min(q,s) is Real by XXREAL_0:def 1; then
+   I /\ J is left_open_interval by A4;
+   hence I /\ J is Interval;
+end;
+
+theorem
+for S be Subset-Family of REAL
+ st S = { I where I is Subset of REAL : I is right_open_interval }
+ holds S is with_empty_element semi-diff-closed cap-closed
+proof
+   let S be Subset-Family of REAL;
+   assume A1: S = { I where I is Subset of REAL : I is right_open_interval };
+   0 in REAL by NUMBERS:19; then
+   [. 0,0 .[ is right_open_interval by NUMBERS:31; then
+   {} in S by A1;
+   hence S is with_empty_element;
+   now let A,B be set;
+    assume A2: A in S & B in S; then
+    consider I be Subset of REAL such that
+A3:  A = I & I is right_open_interval by A1;
+    consider J be Subset of REAL such that
+A4:  B = J & J is right_open_interval by A1,A2;
+    per cases;
+    suppose I meets J; then
+     consider K,L be Subset of REAL such that
+A5:   K is right_open_interval & L is right_open_interval
+    & K misses L & I \ J = K \/ L by A3,A4,INTERVAL02;
+     set F = <*K,L*>;
+     K in S & L in S by A1,A5; then
+     {K,L} c= S by ZFMISC_1:32; then
+     rng F c= S by FINSEQ_2:127; then
+     reconsider F as FinSequence of S by FINSEQ_1:def 4;
+     reconsider F as disjoint_valued FinSequence of S by A5,Disjoint2;
+     take F;
+     rng F = {K,L} by FINSEQ_2:127;
+     hence Union F = A \ B by A3,A4,A5,ZFMISC_1:75;
+    end;
+    suppose A13: I misses J;
+     set F = <*I*>;
+     {I} c= S by A2,A3,ZFMISC_1:31; then
+     dom F = Seg 1 & rng F c= S by FINSEQ_1:38; then
+     reconsider F as FinSequence of S by FINSEQ_1:def 4;
+     reconsider F as disjoint_valued FinSequence of S by TTT1;
+     take F;
+     rng F = {I} by FINSEQ_1:38;
+     hence Union F = A \ B by A13,A3,A4,XBOOLE_1:83;
+    end;
+   end;
+   hence S is semi-diff-closed;
+   now let A,B be set;
+    assume B2: A in S & B in S; then
+    consider I be Subset of REAL such that
+B3:  A = I & I is right_open_interval by A1;
+    consider J be Subset of REAL such that
+B4:  B = J & J is right_open_interval by A1,B2;
+    I /\ J is right_open_interval by B3,B4,INTERVAL03;
+    hence A /\ B in S by A1,B3,B4;
+   end;
+   hence S is cap-closed;
+end;
+
+theorem
+  the set of all I where I is Interval
+    is semialgebra_of_sets of REAL
+proof
+   set S = the set of all I where I is Interval;
+   now let A be object;
+    assume A in S; then
+    consider I be Interval such that
+A2:  A = I;
+    thus A in bool REAL by A2;
+   end; then
+   S c= bool REAL; then
+   reconsider S as Subset-Family of REAL;
+   {} c= REAL; then
+   reconsider E = {} as Subset of REAL;
+A3:E in S; then
+A4:S is with_empty_element;
+   now let A,B be set;
+    assume A5: A in S & B in S; then
+    consider I be Interval such that
+A6:  A = I;
+    consider J be Interval such that
+A7:  B = J by A5;
+    per cases;
+    suppose A8: I misses J;
+     set F = <*A*>;
+A9:  rng F = {A} by FINSEQ_1:38; then
+     reconsider F as FinSequence of S by A5,ZFMISC_1:31,FINSEQ_1:def 4;
+     reconsider F as disjoint_valued FinSequence of S by TTT1;
+     take F;
+     thus Union F = A \ B by A6,A8,A7,XBOOLE_1:83,A9;
+    end;
+    suppose A10: I meets J;
+     (I is open_interval or I is closed_interval or
+     I is right_open_interval or I is left_open_interval) &
+     (J is open_interval or J is closed_interval or
+     J is right_open_interval or J is left_open_interval) by MEASURE5:1; then
+     consider K,L be Interval such that
+A11:  K misses L & I \ J = K \/ L by A10,OOdif,OCdif,ORdif,OLdif,
+          COdif,CCdif,CRdif,CLdif,ROdif,RCdif,RRdif,RLdif,
+          LOdif,LCdif,LRdif,LLdif;
+     set F = <*K,L*>;
+     K in S & L in S; then
+     {K,L} c= S by ZFMISC_1:32; then
+     rng F c= S by FINSEQ_2:127; then
+     reconsider F as FinSequence of S by FINSEQ_1:def 4;
+     reconsider F as disjoint_valued FinSequence of S by A11,Disjoint2;
+     take F;
+     rng F = {K,L} by FINSEQ_2:127;
+     hence Union F = A \ B by A6,A7,A11,ZFMISC_1:75;
+    end;
+   end; then
+P2:S is semi-diff-closed;
+   now let A,B be set;
+    assume A12: A in S & B in S; then
+    consider I be Interval such that
+A13: A = I;
+    consider J be Interval such that
+A14: B = J by A12;
+    per cases;
+    suppose I misses J;
+     hence A /\ B in S by A3,A13,A14;
+    end;
+    suppose A15: I meets J;
+     (I is open_interval or I is closed_interval or
+     I is right_open_interval or I is left_open_interval) &
+     (J is open_interval or J is closed_interval or
+     J is right_open_interval or J is left_open_interval) by MEASURE5:1; then
+     I /\ J is Interval by A15,OOmeet,OCmeet,ORmeet,OLmeet,CCmeet,
+       CRmeet,CLmeet,RRmeet,RLmeet,LLmeet;
+     hence A /\ B in S by A13,A14;
+    end;
+   end; then
+P3:S is cap-closed;
+   reconsider R = ].-infty,+infty.[ as Subset of REAL;
+   R is open_interval; then
+   REAL in S by XXREAL_1:224;
+   hence thesis by A4,P2,P3,Def1;
+end;

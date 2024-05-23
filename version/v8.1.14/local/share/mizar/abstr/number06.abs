@@ -1,0 +1,586 @@
+:: Elementary Number Theory Problems. {P}art {VI}
+::  by Adam Grabowski
+:: 
+:: Received September 30, 2022
+:: Copyright (c) 2022-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, NAT_1, RELAT_1, FUNCT_1, XXREAL_0, ARYTM_3, XCMPLX_0,
+      CARD_1, INT_1, NEWTON, INT_2, ARYTM_1, SUBSET_1, XBOOLE_0, TARSKI,
+      FINSET_1, ABIAN, SQUARE_1, ZFMISC_1, ORDINAL1, POWER, REAL_1, VALUED_0,
+      REALSET1, NUMBER06, PYTHTRIP, NUMPOLY1, EUCLID_3, FUNCT_7, ORDINAL2,
+      FINSEQ_1, ASYMPT_1, AFINSQ_1, PRE_FF;
+ notations TARSKI, XBOOLE_0, ZFMISC_1, SUBSET_1, ORDINAL1, CARD_1, NUMBERS,
+      XCMPLX_0, RELAT_1, FUNCT_1, FINSET_1, FUNCT_2, PARTFUN1, FINSEQ_1,
+      VALUED_0, XREAL_0, INT_1, INT_2, NAT_1, XXREAL_0, POWER, SQUARE_1,
+      NEWTON, ABIAN, SEQ_1, AFINSQ_1, PRE_FF, PYTHTRIP, NUMPOLY1;
+ constructors NAT_D, RELSET_1, NEWTON, ABIAN, PEPIN, PYTHTRIP, SERIES_1,
+      NUMPOLY1, SEQ_1, PRE_FF, NEWTON03;
+ registrations ORDINAL1, RELSET_1, FINSET_1, NUMBERS, XCMPLX_0, XXREAL_0,
+      XREAL_0, NAT_1, INT_1, MEMBERED, VALUED_0, CARD_1, SQUARE_1, NEWTON,
+      NEWTON03, FOMODEL0, ABIAN, NAT_6, POWER, LIOUVIL1, FUNCT_2, XBOOLE_0,
+      FUNCT_1, NUMPOLY1, RVSUM_1, SEQ_1;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+
+
+begin :: Preliminaries
+
+theorem :: NUMBER06:1
+  for p being Prime st 3 divides p holds
+    p = 3;
+
+registration
+  cluster even for Prime;
+end;
+
+theorem :: NUMBER06:2
+  for p being even Prime holds
+    p = 2;
+
+theorem :: NUMBER06:3
+  for p,q being Prime st p <> q holds
+    p,q are_coprime;
+
+definition let f be integer-valued Function;
+  attr f is with_all_coprime_terms means
+:: NUMBER06:def 1
+    for i,j being Nat st i in dom f & j in dom f & i <> j holds
+      f.i, f.j are_coprime;
+end;
+
+theorem :: NUMBER06:4
+  for f being sequence of REAL,
+      n being Nat holds
+    f | n is XFinSequence;
+
+begin :: Arithmetic Progressions
+
+definition let f be real-valued Function;
+  attr f is AP-like means
+:: NUMBER06:def 2
+    for i,k being Nat st
+      i in dom f & i+1 in dom f & k in dom f & k+1 in dom f holds
+      f.(i+1) - f.i = f.(k+1) - f.k;
+end;
+
+definition let f be real-valued FinSequence;
+  attr f is fAP-like means
+:: NUMBER06:def 3
+    for i being Nat st i in dom f & i+1 in dom f & i+2 in dom f holds
+      f.(i+2) - f.(i+1) = f.(i+1) - f.i;
+end;
+
+registration
+  cluster constant -> fAP-like for real-valued FinSequence;
+end;
+
+registration
+  cluster constant -> AP-like for sequence of REAL;
+end;
+
+registration
+  cluster id NAT -> AP-like;
+end;
+
+registration
+  cluster id REAL -> AP-like;
+end;
+
+registration
+  cluster AP-like for sequence of REAL;
+end;
+
+:: if not constant, it should be either increasing or decreasing
+
+registration :: increasing
+  cluster AP-like for real-valued Function;
+end;
+
+registration
+  cluster AP-like for integer-valued
+    real-valued XFinSequence;
+end;
+
+registration let f be AP-like real-valued Function;
+  let n be Nat;
+  cluster f | n -> AP-like;
+end;
+
+definition
+  mode Arithmetic_Progression is AP-like sequence of REAL;
+end;
+
+:: Constructor for arithmetic progressions
+
+definition let a, r be Real;
+  func ArProg (a,r) -> sequence of REAL means
+:: NUMBER06:def 4
+    it.0 = a &
+    for i being Nat holds it.(i+1) = it.i + r;
+end;
+
+registration let a,r be Real;
+  cluster ArProg (a,r) -> AP-like;
+end;
+
+theorem :: NUMBER06:5
+  for f being Arithmetic_Progression,
+      i being Nat holds
+    f.(i+1) - f.i = f.1 - f.0;
+
+definition let f be Arithmetic_Progression;
+  func difference f -> Real equals
+:: NUMBER06:def 5
+  f.1 - f.0;
+end;
+
+theorem :: NUMBER06:6
+  for f being Arithmetic_Progression holds
+    f = ArProg (f.0,difference f);
+
+:: Lemma stating that for every AP-like you can get ArProg
+
+theorem :: NUMBER06:7
+  for a,r being Real,
+      i being Nat holds
+    ArProg (a,r).i = a + i * r;
+
+registration let a,r be Integer;
+  cluster ArProg (a,r) -> integer-valued;
+end;
+
+registration
+  cluster integer-valued for Arithmetic_Progression;
+end;
+
+registration let a be Integer;
+  let r be non zero Integer;
+  cluster ArProg (a,r) -> non constant;
+end;
+
+registration let a be Real;
+  let r be positive Real;
+  cluster ArProg (a,r) -> increasing;
+end;
+
+registration let a be Real;
+  let r be non positive Real;
+  cluster ArProg (a,r) -> non-increasing;
+end;
+
+registration let a be Real;
+  let r be negative Real;
+  cluster ArProg (a,r) -> decreasing;
+end;
+
+registration let a be Real;
+  let r be non negative Real;
+  cluster ArProg (a,r) -> non-decreasing;
+end;
+
+registration let a be Real;
+  cluster ArProg (a,0) -> constant;
+end;
+
+registration
+  cluster constant for Arithmetic_Progression;
+end;
+
+registration
+  cluster increasing non-decreasing for Arithmetic_Progression;
+  cluster decreasing non-increasing for Arithmetic_Progression;
+end;
+
+registration let f be increasing Arithmetic_Progression;
+  cluster difference f -> positive;
+end;
+
+registration let f be decreasing Arithmetic_Progression;
+  cluster difference f -> negative;
+end;
+
+registration let f be non-increasing Arithmetic_Progression;
+  cluster difference f -> non positive;
+end;
+
+registration let f be non-decreasing Arithmetic_Progression;
+  cluster difference f -> non negative;
+end;
+
+registration let f be constant Arithmetic_Progression;
+  cluster difference f -> zero;
+end;
+
+theorem :: NUMBER06:8
+  for f being Arithmetic_Progression st
+    ex i being Nat st f.i is Integer &
+    difference f is Integer holds
+      f is integer-valued;
+
+begin :: Problem 50
+:: Prove that Fibonacci's sequence (defined by conditions u_1 = u_2 = 1,
+:: u_{n+2} = u_n + u_{n+1}, n = 1,2,...) contains an infinite increasing
+:: sequence such that every two terms of this sequence are relatively prime.
+
+definition let n be Nat;
+  attr n is Fibonacci means
+:: NUMBER06:def 6
+    ex k being Nat st n = Fib (k);
+end;
+
+registration
+  cluster Fibonacci for Nat;
+end;
+
+::: restated for non zero Fibonacci
+
+theorem :: NUMBER06:9
+  for n being Nat st Fib n > 1 holds
+    n > 2;
+
+theorem :: NUMBER06:10
+  for k being Nat st k > 0 holds
+    Fib k > 0;
+
+theorem :: NUMBER06:11
+  for k,m being Nat st
+    Fib k < Fib (m + 1) & 1 < k holds
+      Fib k <= Fib m;
+
+theorem :: NUMBER06:12  ::: FIB_NUM2:48 revised
+  for k,n being Nat st k <> 1 & n <> 1 holds
+    Fib k = Fib n implies k = n;
+
+theorem :: NUMBER06:13
+  for n being Nat st n > 2 holds
+    Fib n >= 2;
+
+theorem :: NUMBER06:14
+  for n being Nat st n > 3 holds
+    Fib n >= 3;
+
+theorem :: NUMBER06:15
+  for m,n being Nat st m < n & m > 3 holds
+    Fib n - Fib m > 1;
+
+theorem :: NUMBER06:16
+  for m,n being Nat st m < n & m > 4 holds
+    Fib n - Fib m > 2;
+
+definition let f be sequence of REAL;
+  attr f is Fibonacci-valued means
+:: NUMBER06:def 7
+    for n being Nat holds
+      ex fn being Nat st fn = f.n & fn is Fibonacci;
+end;
+
+registration
+  cluster Fibonacci-valued -> integer-valued for sequence of REAL;
+end;
+
+registration
+  cluster Fibonacci-valued for sequence of REAL;
+end;
+
+registration let n be Nat;
+  cluster Fib n -> Fibonacci;
+end;
+
+theorem :: NUMBER06:17  :: Problem 50
+  ex f being Fibonacci-valued sequence of REAL st
+     f is increasing with_all_coprime_terms;
+
+registration
+  cluster Fibonacci-valued increasing with_all_coprime_terms
+    for integer-valued sequence of REAL;
+end;
+
+begin :: Triangular Numbers
+
+theorem :: NUMBER06:18  ::: similar to NEWTON02:188
+  for n being Nat holds
+    3 divides n or 3 divides n+1 or 3 divides n+2;
+
+theorem :: NUMBER06:19 ::: see NUMBER02:24
+  for n being Nat holds
+    4 divides n or 4 divides n+1 or 4 divides n+2 or 4 divides n+3;
+
+theorem :: NUMBER06:20
+  for n,k,l being Nat holds
+    3 divides n + l iff 3 divides n + l + 3 * k;
+
+definition let f be Function;
+  attr f is triangular-valued means
+:: NUMBER06:def 8
+    for n being object holds
+      f.n is triangular;
+end;
+
+registration
+  cluster triangular -> integer for number;
+end;
+
+registration
+  cluster triangular-valued -> integer-valued for sequence of REAL;
+end;
+
+registration
+  cluster triangular-valued for integer-valued sequence of REAL;
+end;
+
+registration
+  cluster <*0*> -> triangular-valued for FinSequence;
+end;
+
+begin :: Problem 52
+:: Prove that there exist arbitrarily long arithmetic progressions formed
+:: of different positive integers such that every two terms of these
+:: progressions are relatively prime.
+
+theorem :: NUMBER06:21
+  for m,k,l being Nat st k <> l & 1 <= k <= m & 1 <= l <= m holds
+    m! * k + 1, m! * l + 1 are_coprime;
+
+theorem :: NUMBER06:22 :: Problem 52
+  for n being Nat holds
+   ex f being AP-like integer-valued XFinSequence st
+     dom f >= n &
+     f is with_all_coprime_terms;
+
+begin :: Problem 54
+:: Prove that there exist infinitely many triplets of
+:: positive integers x,y,z st x(x+1), y(y+1), z(z+1) form
+:: an increasing arithmetic progression.
+
+definition let x,y,z be Real;
+  pred x,y,z form_an_AP means
+:: NUMBER06:def 9
+    y - x = z - y;
+end;
+
+theorem :: NUMBER06:23 :: Problem 54
+  for x,y,z being Nat st
+    y = 5 * x + 2 & z = 7 * x + 3 holds
+      x * (x + 1), y * (y + 1), z * (z + 1) form_an_AP &
+        x < y < z;
+
+theorem :: NUMBER06:24 :: Problem 54
+  {<*x,y,z*> where x is Real, y is Real, z is Real :
+     x*(x+1), y*(y+1), z*(z+1) form_an_AP } is infinite;
+
+begin :: Problem 55
+:: Find all rectangular triangles with integer sides forming
+:: an arithmetic progression.
+
+theorem :: NUMBER06:25
+  for a,b,c being Nat st
+    a ^2 + b ^2 = c ^2 &
+    a,b,c form_an_AP holds
+   ex i being Integer st
+    a = 3 * i & b = 4 * i & c = 5 * i;
+
+begin :: Problem 56
+:: Find an increasing arithmetic progression with the least possible
+:: difference, formed of positive integers and containing no triangular number.
+
+registration let k be Nat;
+  cluster Triangle (4 * k + 1) -> odd;
+end;
+
+registration let k be Nat;
+  cluster Triangle (4 * k) -> even;
+end;
+
+theorem :: NUMBER06:26
+  for n being Nat holds
+    3 divides Triangle (3 * n + 2);
+
+theorem :: NUMBER06:27
+  for n being Nat holds
+    3 divides Triangle (3 * n);
+
+theorem :: NUMBER06:28
+  for n being Nat holds
+    3 divides Triangle (3 * n + 1) - 1;
+
+theorem :: NUMBER06:29
+  for i being Nat holds not 3 divides ArProg (2,3).i;
+
+theorem :: NUMBER06:30
+  {i where i is Nat : ArProg (0,1).i is triangular} is infinite;
+
+theorem :: NUMBER06:31
+  {i where i is Nat : ArProg (0,2).i is triangular} is infinite;
+
+theorem :: NUMBER06:32
+  {i where i is Nat : ArProg (1,2).i is triangular} is infinite;
+
+theorem :: NUMBER06:33
+  for i being Nat holds
+    not 3 divides ArProg (2,3).i - 1;
+
+theorem :: NUMBER06:34 :: Problem 56
+  for i being Nat holds ArProg (2,3).i is non triangular;
+
+begin :: Problem 60
+:: Prove that there are no four consecutive positive integers such that
+:: each of them is a power of a positive integer with an integer exponent > 1.
+
+definition let n be Nat;
+  attr n is perfect_power means
+:: NUMBER06:def 10
+    ex x being Nat, k being Nat st
+      k > 1 &
+      n = x |^ k;
+end;
+
+theorem :: NUMBER06:35
+  ex n being Nat st
+    n is perfect_power & n+1 is perfect_power;
+
+registration
+  cluster even perfect_power for Nat;
+end;
+
+theorem :: NUMBER06:36  :: NEWTON05:84 for squares
+  for n being even Nat, k being Nat st k > 1 holds
+    4 divides n |^ k;
+
+theorem :: NUMBER06:37
+  for n being even perfect_power Nat holds
+    4 divides n;
+
+theorem :: NUMBER06:38
+  for k being Nat holds
+    4 * k + 2 is not perfect_power;
+
+theorem :: NUMBER06:39
+  for p being Prime holds
+    p is not perfect_power;
+
+registration
+  cluster prime -> non perfect_power for Nat;
+end;
+
+registration
+  cluster square -> perfect_power for Nat;
+end;
+
+theorem :: NUMBER06:40 :: Problem 60
+  not ex n being Nat st
+    n is perfect_power & n+1 is perfect_power &
+      n+2 is perfect_power & n+3 is perfect_power;
+
+begin :: Problem 64
+:: Find all increasing arithmetic progressions formed of three terms
+:: of the Fibonacci sequence (see Problem 50), and prove that there are no
+:: increasing arithmetic progressions formed of four terms of this sequence.
+
+theorem :: NUMBER06:41  :: Problem 64 with zeros excluded
+  for k,l,m being Nat st 0 < k < l < m &
+    :::: two exceptions implicitly stated
+       not (k = 2 & l = 3 & m = 4) &
+       not (k = 1 & l = 4 & m = 5) &
+    Fib (m) - Fib (l) = Fib (l) - Fib (k) & Fib l - Fib k > 0 holds
+       l > 2 & k = l - 2 & m = l + 1;
+
+theorem :: NUMBER06:42
+  Fib 1 - Fib 0 <> Fib 2 - Fib 1;
+
+theorem :: NUMBER06:43
+  Fib 1 - Fib 0 = Fib 3 - Fib 1;
+
+theorem :: NUMBER06:44
+  Fib 2 - Fib 0 = Fib 3 - Fib 2;
+
+theorem :: NUMBER06:45 :: Solution of Problem 64 not included in Sierpinski 250
+  Fib 3 - Fib 2 = Fib 4 - Fib 3;
+
+theorem :: NUMBER06:46
+  Fib 5 = 5;
+
+theorem :: NUMBER06:47 :: Solution of Problem 64 not included in Sierpinski 250
+  Fib 5 - Fib 4 = Fib 4 - Fib 1;
+
+theorem :: NUMBER06:48 :: Problem 64 for four terms
+  not ex k,l,m,n being Nat st 0 < k < l < m < n &
+    Fib (m) - Fib (l) = Fib (l) - Fib (k) = Fib n - Fib m &
+      Fib l - Fib k > 0;
+
+begin :: Problem 70, for 10
+:: Find all arithmetic progressions with difference 10 formed of more
+:: than two primes.
+
+theorem :: NUMBER06:49 :: Problem 70, for 10
+  for f being Arithmetic_Progression,
+      p1,p2,p3 being Prime st
+    difference f = 10 &
+      ex i being Nat st
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) holds
+    p1 = 3;
+
+theorem :: NUMBER06:50 :: Problem 70 a, for 10
+  not ex f being Arithmetic_Progression st
+    difference f = 10 &
+      ex p1,p2,p3,p4 being Prime, i being Nat st
+      p1,p2,p3,p4 are_mutually_distinct & ::: implied by difference = 10
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2) & p4 = f.(i+3);
+
+begin :: Problem 71
+:: Find all arithmetic progressions with difference 100 formed of more
+:: than two primes.
+
+theorem :: NUMBER06:51 :: Problem 71 a, for 100
+  not ex f being Arithmetic_Progression st
+    difference f = 100 &
+      ex p1,p2,p3 being Prime, i being Nat st
+      p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2);
+
+theorem :: NUMBER06:52 :: As above, similarly for difference = 1000
+  not ex f being Arithmetic_Progression st
+    difference f = 1000 &
+      ex p1,p2,p3 being Prime, i being Nat st
+      p1,p2,p3 are_mutually_distinct &
+        p1 = f.i & p2 = f.(i+1) & p3 = f.(i+2);
+
+begin :: Problem 73
+:: Give an example of an infinite increasing arithmetic progression formed
+:: of positive integers such that no term of this progression can be
+:: represented as a sum or a difference of two primes.
+
+definition let k be Integer;
+  attr k is not_representable_by_sum_or_difference_of_two_primes means
+:: NUMBER06:def 11
+    not ex p1,p2 being Prime st
+      k = p1 + p2 or k = p1 - p2;
+end;
+
+definition let f be integer-valued sequence of REAL;
+  attr f is with_terms_not_representable_by_sum_or_diff_of_two_primes means
+:: NUMBER06:def 12
+    for i being Nat holds
+      f.i is not_representable_by_sum_or_difference_of_two_primes;
+end;
+
+theorem :: NUMBER06:53
+  for k being Integer holds
+    30 * k + 7 is odd;
+
+theorem :: NUMBER06:54
+  for k being Nat st k >= 1 holds
+    30 * k + 7 is not_representable_by_sum_or_difference_of_two_primes;
+
+registration :: Problem 73
+  cluster ArProg (37,30) ->
+    with_terms_not_representable_by_sum_or_diff_of_two_primes;
+end;

@@ -1,0 +1,2273 @@
+:: Introduction to Stochastic Finance: Random-Variables and Arbitrage Theory
+::  by Peter Jaeger
+::
+:: Received March 27, 2018
+:: Copyright (c) 2018-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies VALUED_1, SERIES_1, NUMBERS, XBOOLE_0, PROB_1, SUBSET_1, RELAT_1,
+      FUNCT_1, TARSKI, ARYTM_3, XXREAL_0, ARYTM_1, CARD_1, RPR_1, FINANCE3,
+      FUNCOP_1, FUNCT_7, RANDOM_3, FINANCE1, FUNCT_3, COMPLEX1, REAL_1, SEQ_1,
+      FINANCE6, MESFUNC1, NAT_1, XXREAL_1, RANDOM_1, INTEGRA5, FINANCE2,
+      MESFUNC5, SUPINF_2, MEASURE6, PROB_4, MESFUNC2, RFUNCT_3, VALUED_0;
+ notations TARSKI, SUBSET_1, XBOOLE_0, ENUMSET1, RELAT_1, FUNCT_1, ORDINAL1,
+      RELSET_1,
+      SUPINF_2, FUNCT_2,
+      MESFUNC1, MESFUNC2, FUNCT_3, RANDOM_3, NUMBERS, XXREAL_0,
+      XCMPLX_0, XXREAL_3, XREAL_0, VALUED_0, VALUED_1, NAT_1, SEQ_1, FUNCOP_1,
+      FINANCE1, PROB_1, FINANCE2, FINANCE3, COMPLEX1, RCOMP_1, SERIES_1,
+      PROB_4, MESFUNC5, MESFUNC6, RANDOM_1;
+ constructors SERIES_1, RELSET_1, FINANCE3, COMPLEX1, MESFUNC2, MESFUNC1,
+      MESFUNC6, MESFUNC5, RCOMP_1, SEQ_4, REAL_1, FINANCE2, SUPINF_1, EXTREAL1,
+      PROB_4, RANDOM_1;
+ registrations PROB_1, XREAL_0, MEMBERED, ORDINAL1, FUNCT_2, NUMBERS, VALUED_0,
+      VALUED_1, RELSET_1, XBOOLE_0, XXREAL_0, FINANCE1, SUBSET_1, XXREAL_3,
+      NAT_1, FUNCOP_1;
+ requirements NUMERALS, REAL, BOOLE, SUBSET, ARITHM;
+ definitions FUNCT_2;
+ equalities MESFUNC5, PROB_1, FINANCE1, XCMPLX_0, PROB_4, VALUED_1;
+ expansions FUNCT_2, TARSKI, FINANCE1, MESFUNC6, MESFUNC5;
+ theorems TARSKI, XBOOLE_0, PROB_1, ORDINAL1, FUNCT_2, FUNCT_1, FUNCOP_1,
+      XXREAL_0, FINANCE1, RANDOM_3, FINANCE3, FINANCE2, FUNCT_3, VALUED_0,
+      COMPLEX1, MESFUNC2, SERIES_1, NUMBERS, XXREAL_1, RANDOM_1, VALUED_1,
+      XREAL_0, MESFUNC1, MESFUNC6, NAT_1, XREAL_1, MESFUNC5, SUPINF_2,
+      XCMPLX_1, SUBSET_1;
+ schemes FUNCT_2, NAT_1;
+
+begin :: Put-Option, Call-Option and Straddle are Random-variables
+
+ reserve Omega for non empty set;
+ reserve F for SigmaField of Omega;
+
+theorem A1:
+  ].0,+infty.[ is Element of Borel_Sets
+ proof
+  set Bor1=].0,+infty.[;
+  reconsider Bor3 = {0} as Event of Borel_Sets by FINANCE2:5;
+  reconsider Bor2 = [.0,+infty.[ as Event of Borel_Sets by FINANCE1:3;
+  Bor1 = Bor2 \ Bor3
+  proof
+   for x being object holds x in Bor1 iff (x in Bor2 \ Bor3)
+   proof
+    let x be object;
+    thus x in Bor1 implies x in Bor2\Bor3
+    proof
+     assume ASS0: x in Bor1;
+     then reconsider x as Real;
+d1:  0<x & x<+infty by ASS0,XXREAL_1:4;
+     then D2: x in [.0,+infty.[ by XXREAL_1:3;
+     not x in {0} by d1,TARSKI:def 1;
+    hence thesis by XBOOLE_0:def 5,D2;
+    end;
+     assume ASS0: x in Bor2\Bor3;
+     then reconsider x as Real;
+     x in Bor2 & not x in Bor3 by ASS0,XBOOLE_0:def 5;
+     then 0<=x & x<+infty & x<>0 by TARSKI:def 1,XXREAL_1:3;
+    hence thesis by XXREAL_1:4;
+   end;
+  hence thesis by TARSKI:2;
+  end;
+  hence thesis;
+ end;
+
+theorem
+  for RV being random_variable of F,Borel_Sets,
+      K being Element of REAL,
+      g2 being Function of Omega,REAL
+     st g2=chi((RV-(Omega-->K))"[.0,+infty.[,Omega) holds
+   Call-Option(RV,K) = g2(#)(RV-(Omega-->K))
+proof
+ let RV be random_variable of F,Borel_Sets;
+ let K be Element of REAL;
+ let g2 be Function of Omega,REAL;
+ assume A2: g2=chi((RV-(Omega-->K))"[.0,+infty.[,Omega);
+ set RVO=RV-(Omega-->K);
+ set CO=Call-Option(RV,K);
+QQ: dom g2=Omega & dom RVO=Omega & dom CO = Omega by FUNCT_2:def 1;
+q1: for c being object st c in dom CO holds CO.c = g2.c * RVO.c
+   proof
+     let c be object;
+     assume c in dom CO;
+     then reconsider c as Element of Omega;
+      per cases;
+      suppose ASSJJ0: c in RVO"[.0,+infty.[; then
+       ZW0: g2. c =1 by A2,FUNCT_3:def 3;
+       RVO.c in [.0,+infty.[ by ASSJJ0,FUNCT_1:def 7;
+       then 0<=RVO.c & RVO. c <+infty by XXREAL_1:3;
+       hence thesis by ZW0,FINANCE3:def 5;
+      end;
+      suppose ASSJJ00: not c in RVO"[.0,+infty.[;
+      ASSJJ0: c in RVO"].-infty,0 .[
+      proof
+        not (c in dom RVO & RVO.c in [.0,+infty.[) by FUNCT_1:def 7,ASSJJ00;
+        then not c in Omega or not RVO.c in [.0,+infty.[ by FUNCT_2:def 1;
+        then T: RV.c in ].-infty,+infty.[ & -infty<RVO.c & RVO.c <0
+          by XXREAL_1:224,XXREAL_0:12,XXREAL_0:9,XXREAL_1:3;
+        RVO.c in ].-infty,0 .[ by XXREAL_1:4,T;
+        hence thesis by FUNCT_1:def 7,QQ;
+      end;
+ZW0:  g2. c =0 by A2,ASSJJ00,FUNCT_3:def 3;
+      c in dom RVO & RVO.c in ].-infty,0 .[ by ASSJJ0,FUNCT_1:def 7;
+      then -infty<RVO.c & RVO. c <0 by XXREAL_1:4;
+      hence thesis by ZW0,FINANCE3:def 5;
+      end;
+   end;
+   for x being object st x in dom CO holds CO.x = (g2(#)RVO).x
+   proof
+     let x be object;
+     assume x in dom CO; then
+     CO.x=g2.x*RVO.x by q1;
+     hence thesis by VALUED_1:5;
+   end;
+   hence thesis by QQ;
+end;
+
+theorem TH1:
+  for RV being random_variable of F,Borel_Sets,
+      K being Real holds
+    (Omega-->K)-RV is random_variable of F,Borel_Sets
+proof
+  let RV be random_variable of F,Borel_Sets, K be Real;
+  reconsider K as Element of REAL by XREAL_0:def 1;
+  Omega-->K is random_variable of F,Borel_Sets by FINANCE3:10;
+  hence thesis by FINANCE2:24;
+end;
+
+theorem ZZZ:
+  for A being Element of F holds
+    chi(A,Omega) is random_variable of F,Borel_Sets
+proof
+ let A be Element of F;
+ set chij=chi(A,Omega);
+ chij is Function & rng chij c= REAL & dom chij=Omega
+  by FUNCT_3:def 3,VALUED_0:def 3;
+ then reconsider chij2 = chij as Function of Omega,REAL by FUNCT_2:2;
+ reconsider MyOmega = Omega as Element of F by PROB_1:5;
+   chij2 is ([#]F)-measurable by MESFUNC2:29; then
+ chij2 is Real-Valued-Random-Variable of F;
+ hence thesis by RANDOM_3:7;
+end;
+
+registration let Omega;
+  let F;
+  cluster (F,Borel_Sets)-random_variable-like for Function of Omega, REAL;
+  existence
+  proof
+    set A = the Element of F;
+    reconsider c = chi(A,Omega) as Function of Omega, REAL by ZZZ;
+    take c;
+    thus thesis by ZZZ;
+  end;
+end;
+
+theorem ChiRandom:
+  chi(Omega,Omega) is (F,Borel_Sets)-random_variable-like
+    Function of Omega,REAL
+  proof
+    set g2=chi(Omega,Omega);
+    reconsider O = Omega as Element of F by PROB_1:5;
+    chi(O,Omega) is random_variable of F,Borel_Sets by ZZZ;
+    hence thesis;
+  end;
+
+theorem Lemma00:
+  for f,RV being random_variable of F,Borel_Sets,
+      K being Real holds
+    (f-RV)"[.0,+infty.[ is Element of F
+  proof
+    let f,RV be random_variable of F,Borel_Sets,
+        K be Real;
+A1: [.0,+infty.[ is Element of Borel_Sets by FINANCE1:3;
+    f-RV is (F,Borel_Sets)-random_variable-like by FINANCE2:24;
+    hence thesis by A1;
+  end;
+
+LemmaRandom:
+  for RV being random_variable of F,Borel_Sets,
+      K being Real holds
+  chi((RV-(Omega-->K))"[.0,+infty.[,Omega) is random_variable of F,Borel_Sets
+  proof
+   let RV be random_variable of F,Borel_Sets,
+       K be Real;
+   reconsider K as Element of REAL by XREAL_0:def 1;
+   Omega-->K is random_variable of F,Borel_Sets by FINANCE3:10; then
+   (RV-(Omega-->K))"[.0,+infty.[ is Element of F by Lemma00;
+   hence thesis by ZZZ;
+  end;
+
+definition
+  let Omega, F;
+  let RV be random_variable of F,Borel_Sets;
+  let K be Real;
+  redefine func Call-Option(RV,K) -> random_variable of F,Borel_Sets;
+  correctness
+proof
+  set RVO=RV-(Omega-->K);
+  set g2=chi(RVO"[.0,+infty.[,Omega);
+  reconsider g2 as random_variable of F,Borel_Sets by LemmaRandom;
+  set RVO=RV-(Omega-->K);
+  reconsider RVO as random_variable of F,Borel_Sets by FINANCE3:11;
+  set CO=Call-Option(RV,K);
+  CO=g2(#)RVO
+  proof
+q1: for c being object st c in dom CO holds CO.c = g2.c * RVO.c
+    proof
+     let c be object;
+     assume c in dom CO;
+     then reconsider c as Element of Omega;
+     CO.c = g2.c * RVO.c
+     proof
+      per cases;
+      suppose ASSJJ0: c in RVO"[.0,+infty.[; then
+  ZW0: g2.c =1 by FUNCT_3:def 3;
+       c in dom RVO & RVO.c in [.0,+infty.[ by ASSJJ0,FUNCT_1:def 7;
+       then 0<=RVO.c & RVO. c <+infty by XXREAL_1:3;
+       hence thesis by ZW0,FINANCE3:def 5;
+      end;
+      suppose ASSJJ00: not c in RVO"[.0,+infty.[;
+  K1: c in Omega & not c in RVO"[.0,+infty.[ by ASSJJ00;
+      ASSJJ0: c in RVO"].-infty,0 .[
+      proof
+        not (c in dom RVO & RVO.c in [.0,+infty.[) by ASSJJ00,FUNCT_1:def 7;
+        then not c in Omega or not RVO.c in [.0,+infty.[ by FUNCT_2:def 1;
+        then RV.c in ].-infty,+infty.[ & -infty<RVO.c & RVO.c <0
+          by XXREAL_1:224,XXREAL_0:12,XXREAL_0:9,XXREAL_1:3;
+        then c in dom(RVO) & RVO.c in ].-infty,0 .[
+          by K1,FUNCT_2:def 1,XXREAL_1:4;
+        hence thesis by FUNCT_1:def 7;
+      end;
+ZW0:  g2. c =0 by ASSJJ00,FUNCT_3:def 3;
+      c in dom RVO & RVO.c in ].-infty,0 .[ by ASSJJ0,FUNCT_1:def 7;
+      then -infty<RVO.c & RVO. c <0 by XXREAL_1:4;
+      hence thesis by ZW0,FINANCE3:def 5;
+      end;
+    end;
+    hence thesis;
+   end;
+W1: dom CO=Omega & dom g2 = Omega & dom RVO=Omega by FUNCT_2:def 1;
+     for x being object st x in dom CO holds CO.x = (g2(#)RVO).x
+     proof
+      let x be object;
+      assume x in dom CO; then
+      CO.x=g2.x*RVO.x by q1;
+      hence thesis by VALUED_1:5;
+     end;
+     hence thesis by W1;
+   end;
+   hence thesis by FINANCE2:25;
+  end;
+end;
+
+definition
+  let Omega, F;
+  let RV be random_variable of F,Borel_Sets;
+  let K be Real;
+  func Put-Option(RV,K) -> Function of Omega,REAL means  :Def30:
+  for w being Element of Omega holds
+    (((Omega-->K)-RV).w>=0 implies it.w=((Omega-->K)-RV).w) &
+    (((Omega-->K)-RV).w<0 implies it.w=0);
+existence
+proof
+  reconsider MyFunc = (Omega-->K)-RV as Function of Omega,REAL;
+  deffunc U(Element of Omega) = SetForCall-Option(MyFunc,$1);
+     consider f being Function of Omega,REAL such that
+ A1: for d be Element of Omega holds f.d = U(d) from FUNCT_2:sch 4;
+  for w being Element of Omega holds
+     (MyFunc.w >= 0 implies f.w=((Omega-->K)-RV).w) &
+     (MyFunc.w < 0 implies f.w = 0)
+ proof
+  let w be Element of Omega;
+  f.w = SetForCall-Option(MyFunc,w) by A1;
+  hence thesis by FINANCE3:def 4;
+ end;
+hence thesis;
+end;
+uniqueness
+proof
+  let f1,f2 be Function of Omega,REAL;
+     assume that
+ A2: for w being Element of Omega holds
+     (((Omega-->K)-RV).w>=0 implies f1.w=((Omega-->K)-RV).w) &
+     (((Omega-->K)-RV).w<0 implies f1.w=0) and
+ A3: for w being Element of Omega holds
+     (((Omega-->K)-RV).w>=0 implies f2.w=((Omega-->K)-RV).w) &
+     (((Omega-->K)-RV).w<0 implies f2.w=0);
+  let w be Element of Omega;
+  per cases;
+  suppose A0: ((Omega-->K)-RV).w>=0;
+    then f1.w=((Omega-->K)-RV).w by A2;
+    hence thesis by A0,A3;
+  end;
+  suppose A0: ((Omega-->K)-RV).w<0;
+    then f1.w=0 by A2;
+    hence thesis by A0,A3;
+  end;
+end;
+end;
+
+theorem JA3:
+  for RV being random_variable of F,Borel_Sets,
+      K being Real,
+      g2 being Function of Omega,REAL
+     st g2=chi(((Omega-->K)-RV)"[.0,+infty.[,Omega) holds
+    Put-Option(RV,K) = g2(#)((Omega-->K)-RV)
+proof
+ let RV be random_variable of F,Borel_Sets;
+ let K be Real;
+ let g2 be Function of Omega,REAL;
+ assume K1: g2=chi(((Omega-->K)-RV)"[.0,+infty.[,Omega);
+ set PO=Put-Option(RV,K);
+ set RVO=(Omega-->K)-RV;
+h1: dom g2=Omega & dom RVO=Omega & dom PO = Omega by FUNCT_2:def 1;
+q1: dom PO = dom g2 /\ dom RVO & for c
+     being object st c in dom PO holds PO.c = g2.c * RVO.c
+   proof
+    for c being object st c in dom PO holds PO.c = g2.c * RVO.c
+    proof
+     let c be object;
+     assume c in dom PO;
+     then reconsider c as Element of Omega;
+     PO.c = g2.c * RVO.c
+     proof
+      per cases;
+      suppose ASSJJ0: c in RVO"[.0,+infty.[;
+  ZW0: g2. c =1 by K1,ASSJJ0,FUNCT_3:def 3;
+       c in dom RVO & RVO.c in [.0,+infty.[ by ASSJJ0,FUNCT_1:def 7;
+       then 0<=RVO.c & RVO. c <+infty by XXREAL_1:3;
+       hence thesis by ZW0,Def30;
+      end;
+      suppose ASSJJ00: not c in RVO"[.0,+infty.[; then
+      k1: c in Omega & not c in RVO"[.0,+infty.[;
+      ASSJJ0: c in RVO"].-infty,0 .[
+      proof
+        not (c in dom RVO & RVO.c in [.0,+infty.[) by ASSJJ00,FUNCT_1:def 7;
+        then not c in Omega or not RVO.c in [.0,+infty.[ by FUNCT_2:def 1;
+        then RV.c in ].-infty,+infty.[ & -infty<RVO.c & RVO.c <0
+          by XXREAL_1:224,XXREAL_0:12,XXREAL_0:9,XXREAL_1:3;
+        then c in dom(RVO) & RVO.c in ].-infty,0 .[
+          by k1,FUNCT_2:def 1,XXREAL_1:4;
+        hence thesis by FUNCT_1:def 7;
+      end;
+ZW0:  g2. c =0 by K1,ASSJJ00,FUNCT_3:def 3;
+      c in dom RVO & RVO.c in ].-infty,0 .[ by ASSJJ0,FUNCT_1:def 7;
+      then -infty<RVO.c & RVO. c <0 by XXREAL_1:4;
+      hence thesis by ZW0,Def30;
+      end;
+     end;
+    hence thesis;
+    end;
+   hence thesis by h1;
+   end;
+   for x being object st x in dom PO holds PO.x = (g2(#)RVO).x
+   proof
+    let x be object;
+    assume x in dom PO; then
+    PO.x=g2.x*RVO.x by q1;
+    hence thesis by VALUED_1:5;
+   end;
+  hence thesis by h1;
+end;
+
+definition
+  let Omega, F;
+  let RV be random_variable of F,Borel_Sets;
+  let K be Real;
+  redefine func Put-Option(RV,K) -> random_variable of F,Borel_Sets;
+correctness
+proof
+  set RVO=(Omega-->K)-RV;
+  set g2 = chi(RVO"[.0,+infty.[,Omega);
+  set PO=Put-Option(RV,K);
+  reconsider K as Element of REAL by XREAL_0:def 1;
+  Omega-->K is random_variable of F,Borel_Sets by FINANCE3:10; then
+  ((Omega-->K)-RV)"[.0,+infty.[ is Element of F by Lemma00; then
+  reconsider g2 as random_variable of F,Borel_Sets by ZZZ;
+  reconsider RVO as random_variable of F,Borel_Sets by TH1;
+  PO=g2(#)RVO by JA3;
+  hence thesis by FINANCE2:25;
+end;
+end;
+
+begin
+
+definition
+  let Omega, F;
+  let RV be random_variable of F,Borel_Sets;
+  let K be Real;
+  func Straddle(RV,K) -> random_variable of F,Borel_Sets equals
+    Put-Option(RV,K) + Call-Option(RV,K);
+  coherence by FINANCE2:23;
+end;
+
+theorem
+  for RV be random_variable of F,Borel_Sets,
+      K be Real
+  for w being Element of Omega holds
+    Straddle(RV,K).w=|.(RV-(Omega-->K)).w.|
+proof
+  let RV be random_variable of F,Borel_Sets;
+  let K be Real;
+  let w be Element of Omega;
+  set f1=RV;
+  set f2=(-1)(#)(Omega-->K);
+SS: dom RV=Omega & dom f2=Omega by FUNCT_2:def 1; then
+   w in dom f1/\dom f2; then
+C1: w in dom (f1+f2) by VALUED_1:def 1;
+  dom Put-Option(RV,K) = Omega &
+      dom Call-Option(RV,K) = Omega by FUNCT_2:def 1; then
+  w in dom Put-Option(RV,K) /\ dom Call-Option(RV,K); then
+ B100: w in dom (Put-Option(RV,K)+Call-Option(RV,K)) by VALUED_1:def 1;
+c2: dom(Omega-->K)=Omega & dom f2 = dom(Omega-->K)
+     by VALUED_1:def 5;
+c4: w in dom(RV) by SS; then
+C6: w in dom ((-1)(#)RV) by VALUED_1:def 5;
+ per cases;
+ suppose S1: (RV-(Omega-->K)).w>0; then
+B0: |.(RV-(Omega-->K)).w.|=(RV-(Omega-->K)).w by COMPLEX1:43;
+   dom(-RV)=Omega by FUNCT_2:def 1;
+   then w in dom(Omega-->K)/\dom(-RV); then
+  C7: w in dom((Omega-->K)+ -RV) by VALUED_1:def 1;
+ ((Omega-->K)-RV).w<0
+ proof
+  (RV-(Omega-->K)).w=f1.w + f2.w by C1,VALUED_1:def 1
+  .=RV.w + ((-1)*((Omega-->K).w)) by c2,VALUED_1:def 5;
+  then -(RV.w-K)<0 by S1;
+  then K-RV.w<0;
+  then (Omega-->K).w + (-1)*RV.w<0;
+  then (Omega-->K).w + ((-1)(#)RV).w<0 by C6,VALUED_1:def 5;
+  hence thesis by C7,VALUED_1:def 1;
+ end; then
+ B2: Put-Option(RV,K).w=0 by Def30;
+ (Put-Option(RV,K)+Call-Option(RV,K)).w=Put-Option(RV,K).w+Call-Option(RV,K).w
+  by B100,VALUED_1:def 1;
+ hence thesis by B0,B2,FINANCE3:def 5,S1;
+ end;
+ suppose S1: (RV-(Omega-->K)).w<0;
+  dom Put-Option(RV,K) = Omega &
+    dom Call-Option(RV,K) = Omega by FUNCT_2:def 1; then
+  w in dom Put-Option(RV,K) /\ dom Call-Option(RV,K); then
+ B100: w in dom (Put-Option(RV,K)+Call-Option(RV,K)) by VALUED_1:def 1;
+c2: dom(Omega-->K)=Omega & dom f2 = dom(Omega-->K)
+     by VALUED_1:def 5;
+C6: w in dom ((-1)(#)RV) by VALUED_1:def 5,c4;
+   dom(Omega-->K)=Omega & dom(-RV)=Omega by FUNCT_2:def 1;
+   then w in dom(Omega-->K)/\dom(-RV); then
+  C7: w in dom((Omega-->K)+ -RV) by VALUED_1:def 1;
+ ((Omega-->K)-RV).w>0
+ proof
+  (RV-(Omega-->K)).w=f1.w + f2.w by C1,VALUED_1:def 1
+  .=RV.w + ((-1)*((Omega-->K).w)) by c2,VALUED_1:def 5;
+  then -(RV.w-K)>0 by S1;
+  then K-RV.w>0;
+  then (Omega-->K).w + (-1)*RV.w>0;
+  then (Omega-->K).w + ((-1)(#)RV).w>0 by C6,VALUED_1:def 5;
+ hence thesis by C7,VALUED_1:def 1;
+ end; then
+ B2: Put-Option(RV,K).w=((Omega-->K)-RV).w by Def30;
+ Call-Option(RV,K).w = 0 by FINANCE3:def 5,S1;
+ then B40: Straddle(RV,K).w=0+((Omega-->K)-RV).w by B2,B100,VALUED_1:def 1;
+   dom(Omega-->K)=Omega & dom((-1)(#)RV)=Omega by FUNCT_2:def 1;
+   then w in dom(Omega-->K) /\ dom((-1)(#)RV); then
+  w in dom ((Omega-->K)+ ((-1)(#)RV)) by VALUED_1:def 1; then
+U2: ((Omega-->K)-RV).w = (Omega-->K).w + ((-1)(#)RV).w by VALUED_1:def 1;
+    dom ((-1)(#)RV)=Omega by FUNCT_2:def 1; then
+u3: ((Omega-->K)-RV).w = (Omega-->K).w + ((-1)*RV.w) by U2,VALUED_1:def 5;
+L1: RV.w + - (Omega-->K).w = RV.w + (-1)*(Omega-->K).w;
+   dom ((-1)(#)(Omega-->K)) = Omega by FUNCT_2:def 1;
+   then
+L2: RV.w + - (Omega-->K).w = RV.w+((-1)(#)(Omega-->K)).w
+    by L1,VALUED_1:def 5;
+    w in dom RV /\ dom (-(Omega-->K)) by SS; then
+   w in dom(RV+ (-(Omega-->K))) by VALUED_1:def 1;
+   then RV.w + - (Omega-->K).w = (RV + (-(Omega-->K))).w by L2,VALUED_1:def 1;
+ then -(RV-(Omega-->K)).w =((Omega-->K)-RV).w by u3;
+ hence thesis by B40,S1,COMPLEX1:70;
+ end;
+ suppose S1: (RV-(Omega-->K)).w=0;
+   0 = Straddle(RV,K).w
+   proof
+H2: RV.w + ((-1)(#)(Omega-->K)).w=0 by VALUED_1:1,S1;
+    dom(Omega-->K)=Omega & dom ((-1)(#)(Omega-->K)) = Omega
+      by FUNCT_2:def 1; then
+h1: RV.w + (-1)*(Omega-->K).w=0 by H2,VALUED_1:def 5;
+    dom ( (-1)(#)RV ) = Omega by FUNCT_2:def 1; then
+G2: (Omega-->K).w + ((-1)(#)RV).w=0 by h1,VALUED_1:def 5;
+    dom (Omega-->K)=Omega & dom (-RV)=Omega by FUNCT_2:def 1;
+    then w in dom(Omega-->K)/\dom(-RV); then
+    w in dom ((Omega-->K) + (-RV)) by VALUED_1:def 1; then
+    ((Omega-->K)-RV).w=0 by G2,VALUED_1:def 1; then
+    Put-Option(RV,K).w=-(RV-(Omega-->K)).w by S1,Def30; then
+F3: Call-Option(RV,K).w + Put-Option(RV,K).w = 0 by S1,FINANCE3:def 5;
+    dom Call-Option(RV,K) = Omega & dom Put-Option(RV,K) = Omega
+     by FUNCT_2:def 1;
+    then w in dom Call-Option(RV,K) /\ dom Put-Option(RV,K); then
+    w in dom (Call-Option(RV,K) + Put-Option(RV,K)) by VALUED_1:def 1;
+    hence thesis by F3,VALUED_1:def 1;
+   end;
+  hence thesis by COMPLEX1:43,S1;
+ end;
+end;
+
+definition let Omega, F;
+  func set_of_constant_RV(F) -> set equals
+    { f where f is Function of Omega,REAL:
+       f is random_variable of F, Borel_Sets & f is constant };
+  coherence;
+  func set_of_chi_RV(F) -> set equals
+    { chi(A,Omega) where A is Element of F :
+        chi(A,Omega) is random_variable of F, Borel_Sets };
+  coherence;
+end;
+
+definition let Omega, F; let X be set;
+  attr X is F-random-membered means :RanDef:
+    for x being object st x in X holds
+      x is random_variable of F, Borel_Sets;
+end;
+
+registration let Omega, F;
+  cluster set_of_constant_RV(F) -> non empty;
+  coherence
+  proof
+    set myRV=Omega-->0;
+A2: 0 in REAL by NUMBERS:19;
+    reconsider myRV as Function of Omega, REAL by FUNCOP_1:45,NUMBERS:19;
+    myRV is (F,Borel_Sets)-random_variable-like by FINANCE3:10,A2; then
+    myRV in set_of_constant_RV(F);
+    hence thesis;
+  end;
+  cluster set_of_chi_RV(F) -> non empty;
+  coherence
+  proof
+    reconsider MyOmega = Omega as Element of F by PROB_1:5;
+    set g2=chi(Omega,Omega);
+    chi(Omega,Omega) is random_variable of F,Borel_Sets by ChiRandom;
+    then chi(MyOmega,MyOmega) in set_of_chi_RV(F);
+    hence thesis;
+  end;
+end;
+
+registration let Omega, F;
+  cluster set_of_constant_RV(F) -> F-random-membered;
+  coherence
+  proof
+    for x being object st x in set_of_constant_RV(F) holds
+      x is random_variable of F, Borel_Sets
+    proof
+      let x be object;
+      assume x in set_of_constant_RV(F); then
+      consider f being Function of Omega, REAL such that
+A1:   x = f & f is random_variable of F,Borel_Sets & f is constant;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+  cluster set_of_chi_RV(F) -> F-random-membered;
+  coherence
+  proof
+    for x being object st x in set_of_chi_RV(F) holds
+      x is random_variable of F, Borel_Sets
+    proof
+      let x be object;
+      assume x in set_of_chi_RV(F); then
+      consider A being Element of F such that
+A1:   x = chi(A,Omega) & chi(A,Omega) is random_variable of F, Borel_Sets;
+      thus thesis by A1;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration let Omega, F;
+  cluster F-random-membered non empty for set;
+  existence
+  proof
+    take set_of_constant_RV F;
+    thus thesis;
+  end;
+end;
+
+definition
+  let Omega, F;
+  let D be F-random-membered non empty set;
+  let ChiFuncs be sequence of D;
+  let n be Nat;
+  func Conv_RV(ChiFuncs,n) -> random_variable of F,Borel_Sets equals
+  ChiFuncs.n;
+  coherence by RanDef;
+end;
+
+definition
+  let Omega, F;
+  let D be F-random-membered non empty set;
+  let ConstFuncs be sequence of D;
+  let w be Element of Omega;
+  func Conv2_RV(ConstFuncs,w) -> Function of NAT,REAL means  :Def770:
+    for n being Nat holds it.n=Conv_RV(ConstFuncs,n).w;
+existence
+proof
+  deffunc U(Element of NAT) = Conv_RV(ConstFuncs,$1).w;
+   consider f being Function of NAT,REAL such that
+ A1:for d being Element of NAT holds f.d = U(d) from FUNCT_2:sch 4;
+ take f;
+ let n be Nat;
+ n in NAT by ORDINAL1:def 12;
+ hence thesis by A1;
+end;
+uniqueness
+proof
+ let f1,f2 be Function of NAT,REAL;
+  assume that
+A1: for d being Nat holds f1.d = Conv_RV(ConstFuncs,d).w and
+A2: for d being Nat holds f2.d = Conv_RV(ConstFuncs,d).w;
+  let d be Element of NAT;
+  f2.d=Conv_RV(ConstFuncs,d).w by A2;
+  hence thesis by A1;
+end;
+end;
+
+definition
+  let Omega, F;
+  let D1, D2 be F-random-membered non empty set;
+  let ChiFuncs be sequence of D1;
+  let ConstFuncs be sequence of D2;
+  let n be Nat;
+  func simple_RV_help(ChiFuncs,ConstFuncs,n)
+       -> Function of Omega,REAL means  :Def777:
+    for w being Element of Omega holds
+    it.w = Partial_Sums((Conv2_RV(ConstFuncs,w)(#)Conv2_RV(ChiFuncs,w))).n;
+existence
+proof
+ deffunc U(Element of Omega) =
+  In(Partial_Sums((Conv2_RV(ConstFuncs,$1)(#)
+                   Conv2_RV(ChiFuncs,$1))).n,REAL);
+ consider f being Function of Omega,REAL such that
+ A1:for d be Element of Omega holds f.d = U(d) from FUNCT_2:sch 4;
+ take f;
+ let w be Element of Omega;
+ In(Partial_Sums((Conv2_RV(ConstFuncs,w)(#)
+                   Conv2_RV(ChiFuncs,w))).n,REAL) =
+ Partial_Sums((Conv2_RV(ConstFuncs,w)(#)Conv2_RV(ChiFuncs,w))).n;
+ hence thesis by A1;
+end;
+uniqueness
+proof
+ let f1,f2 be Function of Omega,REAL;
+ assume that A1: for w being Element of Omega holds f1.w=
+ Partial_Sums((Conv2_RV(ConstFuncs,w)(#)Conv2_RV(ChiFuncs,w))).n and
+ A2: for w being Element of Omega holds f2.w=
+   Partial_Sums((Conv2_RV(ConstFuncs,w)(#)Conv2_RV(ChiFuncs,w))).n;
+  let w be Element of Omega;
+  f2.w=Partial_Sums((Conv2_RV(ConstFuncs,w)(#)
+                   Conv2_RV(ChiFuncs,w))).n by A2;
+  hence thesis by A1;
+end;
+end;
+
+definition
+  let Omega, F;
+  let D1, D2 be F-random-membered non empty set;
+  let ChiFuncs be sequence of D1;
+  let ConstFuncs be sequence of D2;
+  let n be Nat;
+  redefine func simple_RV_help(ChiFuncs,ConstFuncs,n)
+     -> random_variable of F,Borel_Sets;
+  correctness
+proof
+  consider f being Function of Omega,REAL such that
+  B10: f=simple_RV_help(ChiFuncs,ConstFuncs,n);
+ f is random_variable of F,Borel_Sets
+ proof
+  defpred J[Nat] means simple_RV_help(ChiFuncs,ConstFuncs,$1)
+   is random_variable of F,Borel_Sets;
+  set RVs0=simple_RV_help(ChiFuncs,ConstFuncs,0);
+  J0: J[0]
+  proof
+     for w being Element of Omega holds
+     RVs0.w=(Conv_RV(ConstFuncs,0)(#)Conv_RV(ChiFuncs,0)).w
+     proof
+      let w be Element of Omega;
+      RVs0.w=Partial_Sums((Conv2_RV(ConstFuncs,w)(#)
+                              Conv2_RV(ChiFuncs,w))).0 by Def777; then
+      RVs0.w=(Conv2_RV(ConstFuncs,w)(#)
+              Conv2_RV(ChiFuncs,w)).0 by SERIES_1:def 1; then
+  C2: RVs0.w=Conv2_RV(ConstFuncs,w).0 *
+             Conv2_RV(ChiFuncs,w).0 by VALUED_1:5;
+  C3: Conv2_RV(ConstFuncs,w).0 =
+          Conv_RV(ConstFuncs,0).w by Def770;
+      Conv2_RV(ChiFuncs,w).0 = Conv_RV(ChiFuncs,0).w by Def770;
+      hence thesis by VALUED_1:5,C2,C3;
+    end; then
+    RVs0=(Conv_RV(ConstFuncs,0)(#)Conv_RV(ChiFuncs,0));
+    hence thesis by FINANCE2:25;
+  end;
+  J1: for n being Nat st J[n] holds J[n+1]
+  proof
+   let n be Nat;
+   assume ASS0: J[n];
+   set RVsn=simple_RV_help(ChiFuncs,ConstFuncs,n);
+   set RVsn1=simple_RV_help(ChiFuncs,ConstFuncs,n+1);
+   set RVa=Conv_RV(ConstFuncs,n+1)(#)Conv_RV(ChiFuncs,n+1);
+     for w being Element of Omega holds RVsn1.w = (RVsn + RVa).w
+     proof
+      let w be Element of Omega;
+      RVsn1.w=Partial_Sums((Conv2_RV(ConstFuncs,w)(#)
+         Conv2_RV(ChiFuncs,w))).(n+1) by Def777; then
+      RVsn1.w=In(Partial_Sums((Conv2_RV(ConstFuncs,w)(#)
+                 Conv2_RV(ChiFuncs,w))).n,REAL) +
+                 (Conv2_RV(ConstFuncs,w)(#)
+                 Conv2_RV(ChiFuncs,w)).(n+1) by SERIES_1:def 1; then
+      RVsn1.w=RVsn.w + (Conv2_RV(ConstFuncs,w)(#)
+                            Conv2_RV(ChiFuncs,w)).(n+1) by Def777; then
+      D1: RVsn1.w=RVsn.w + (Conv2_RV(ConstFuncs,w).(n+1)*
+                            Conv2_RV(ChiFuncs,w).(n+1)) by VALUED_1:5;
+      D2: Conv2_RV(ConstFuncs,w).(n+1)=
+          Conv_RV(ConstFuncs,n+1).w by Def770;
+      Conv2_RV(ChiFuncs,w).(n+1)=
+          Conv_RV(ChiFuncs,n+1).w by Def770; then
+      RVsn1.w=RVsn.w + (Conv_RV(ConstFuncs,n+1)(#)
+            Conv_RV(ChiFuncs,n+1)).w by VALUED_1:5,D1,D2;
+     hence thesis by VALUED_1:1;
+     end; then
+   M1: RVsn1 = RVsn + RVa;
+   RVsn is random_variable of F,Borel_Sets &
+   RVa is random_variable of F,Borel_Sets by ASS0,FINANCE2:25;
+   hence thesis by M1,FINANCE2:23;
+  end;
+  for k being Nat holds J[k] from NAT_1:sch 2(J0,J1);
+  hence thesis by B10;
+ end;
+ hence thesis by B10;
+end;
+end;
+
+begin :: Arbitrage theory: Definition and alternative representation
+
+ reserve phi for Real_Sequence;
+ reserve jpi for pricefunction;
+
+Lemacik:
+  for x being object holds x in set_of_random_variables_on(F,Borel_Sets)
+    iff x is random_variable of F,Borel_Sets
+  proof
+    let x be object;
+    thus x in set_of_random_variables_on(F,Borel_Sets)
+      implies x is random_variable of F,Borel_Sets
+    proof
+      assume x in set_of_random_variables_on(F,Borel_Sets); then
+      consider M being Function of Omega, REAL such that
+AA:   x = M & M is (F,Borel_Sets)-random_variable-like;
+      thus x is random_variable of F,Borel_Sets by AA;
+    end;
+    thus thesis;
+  end;
+
+definition
+  let Omega, F;
+  let q be Nat;
+  let G be sequence of set_of_random_variables_on(F,Borel_Sets);
+  func Change_Element_to_Func(G,q) -> Real-Valued-Random-Variable of F equals
+  G.q;
+  coherence
+  proof
+    G.q is random_variable of F,Borel_Sets by Lemacik;
+    hence thesis by RANDOM_3:7;
+  end;
+end;
+
+definition
+  let phi, Omega, F;
+  let G be sequence of set_of_random_variables_on(F,Borel_Sets);
+  let n be Nat;
+  func ArbitrageElSigma1(phi,Omega,F,G,n) -> Element of F equals
+    RVPortfolioValueFutExt(phi,F,G,n)"[.0,+infty.[;
+  correctness
+proof
+ set RV=RVPortfolioValueFutExt(phi,F,G,n);
+ A1: [.0,+infty.[ is Element of Borel_Sets by FINANCE1:3;
+ RV is (F,Borel_Sets)-random_variable-like by FINANCE3:6;
+ hence thesis by A1;
+end;
+  func ArbitrageElSigma2(phi,Omega,F,G,n) -> Element of F equals
+    RVPortfolioValueFutExt(phi,F,G,n)"].0,+infty.[;
+  correctness
+proof
+  RVPortfolioValueFutExt(phi,F,G,n) is (F,Borel_Sets)-random_variable-like
+    by FINANCE3:6;
+  hence thesis by A1;
+end;
+end;
+
+definition
+  let Omega, F;
+  let Prob be Probability of F;
+  let G be sequence of set_of_random_variables_on(F,Borel_Sets);
+  let jpi be pricefunction;
+  let n be Nat;
+  pred Arbitrage_Opportunity_exists_wrt Prob,G,jpi,n means
+    ex phi being Real_Sequence st
+     (BuyPortfolioExt(phi,jpi,n)<=0 &
+     (Prob.ArbitrageElSigma1(phi,Omega,F,G,n)=1 &
+     Prob.ArbitrageElSigma2(phi,Omega,F,G,n)>0));
+end;
+
+definition let r be Real;
+  func RVfirst(r) -> Element of
+    set_of_random_variables_on(Special_SigmaField1,Borel_Sets) equals
+  {1,2,3,4} --> r;
+correctness
+proof
+   set g = {1,2,3,4}-->In(r,REAL);
+   g is random_variable of Special_SigmaField1,Borel_Sets by FINANCE3:10;
+   hence thesis by Lemacik;
+end;
+end;
+
+definition
+  let jpi be pricefunction;
+  let r be Real;
+  let d be Nat;
+  func RVfourth(jpi,r,d) -> Element of
+    set_of_random_variables_on(Special_SigmaField2,Borel_Sets) equals
+  RVfirst (jpi.d*(1+r));
+  correctness
+proof
+ set g = {1,2,3,4}-->In((jpi.d*(1+r)),REAL);
+ g is random_variable of Special_SigmaField2,Borel_Sets by FINANCE3:10; then
+ g in {f where f is Function of {1,2,3,4},REAL :
+       f is (Special_SigmaField2,Borel_Sets)-random_variable-like};
+ hence thesis;
+end;
+end;
+
+theorem
+  ex G being sequence of
+     set_of_random_variables_on(Special_SigmaField1,Borel_Sets) st
+  (G.0={1,2,3,4}-->1 & G.1={1,2,3,4}-->5 &
+  for k being Nat st k>1 holds G.k={1,2,3,4}-->0)
+proof
+ deffunc U(Nat)=IFEQ ($1,0,RVfirst (1),IFEQ ($1,1,RVfirst(5),RVfirst(0)));
+ consider f being sequence of
+  set_of_random_variables_on(Special_SigmaField1,Borel_Sets) such that
+  A1: for d being Element of NAT holds f.d=U(d) from FUNCT_2:sch 4;
+ take f;
+b1:f.0=IFEQ (0,0,RVfirst (1),IFEQ (0,1,RVfirst(5),RVfirst(0))) by A1;
+  f.1=IFEQ (1,0,RVfirst (1),IFEQ (1,1,RVfirst(5),RVfirst(0))) by A1;
+  then b2: f.1 = IFEQ (1,1,RVfirst(5),RVfirst(0)) by FUNCOP_1:def 8;
+  for k being Nat st k>1 holds f.k={1,2,3,4}-->0
+  proof
+   let k be Nat;
+   assume C1: k>1;
+   k in NAT by ORDINAL1:def 12;
+   then f.k=IFEQ (k,0,RVfirst (1),IFEQ (k,1,RVfirst(5),RVfirst(0))) by A1;
+   then f.k=IFEQ (k,1,RVfirst(5),RVfirst(0)) by C1,FUNCOP_1:def 8;
+  hence thesis by C1,FUNCOP_1:def 8;
+  end;
+ hence thesis by b1,b2,FUNCOP_1:def 8;
+end;
+
+theorem
+  for Prob being Probability of Special_SigmaField1 holds
+  for G being sequence of
+    set_of_random_variables_on(Special_SigmaField1,Borel_Sets) st
+  (G.0={1,2,3,4}-->1 & G.1={1,2,3,4}-->5 & for k being Nat st k>1
+   holds G.k={1,2,3,4}-->0) holds
+   ex jpi being pricefunction st
+     Arbitrage_Opportunity_exists_wrt Prob,G,jpi,1
+proof
+let Prob be Probability of Special_SigmaField1;
+set Omega={1,2,3,4};
+set F=Special_SigmaField1;
+let G be sequence of
+ set_of_random_variables_on(Special_SigmaField1,Borel_Sets);
+assume A3: G.0=Omega-->1 & G.1=Omega-->5 & for k being Nat st k>1
+    holds G.k=Omega-->0;
+ZW: Prob.Omega = 1 & Prob.{}=0
+proof
+ Prob.Omega=Prob.([#]F);
+ then B2: Prob.Omega=1 by PROB_1:30;
+ reconsider A = {} as Event of F by PROB_1:4;
+ Prob.(([#]F) \ A) = Prob.([#]F);
+ then Prob.([#]F) + Prob.A = 1 by PROB_1:31;
+hence thesis by B2;
+end;
+deffunc U(Element of NAT) = In(IFEQ($1,0,1,IFEQ($1,1,1,0)),REAL);
+consider f being Function of NAT,REAL such that
+C1: for d being Element of NAT holds f.d=U(d) from FUNCT_2:sch 4;
+f is pricefunction
+proof
+d0: f.0=U(0) by C1;
+  for n being Element of NAT holds f.n >= 0
+  proof
+   let n be Element of NAT;
+   f.n=U(n) by C1;
+   hence thesis;
+  end;
+ hence thesis by d0,FINANCE1:def 2,FUNCOP_1:def 8;
+end;
+ then reconsider jpi = f as pricefunction;
+deffunc U(Element of NAT)=In(IFEQ($1,0,-1,IFEQ($1,1,1,0)),REAL);
+a0: U(0) = In(-1,REAL) by FUNCOP_1:def 8
+    .= -1;
+a1: U(1) = In(IFEQ(1,1,1,0),REAL) by FUNCOP_1:def 8
+    .= 1 by FUNCOP_1:def 8;
+consider phi being Real_Sequence such that
+ A4: for k being Element of NAT holds phi.k=U(k) from FUNCT_2:sch 4;
+FinJ: (Prob.ArbitrageElSigma1(phi,Omega,F,G,1)=1 &
+ Prob.ArbitrageElSigma2(phi,Omega,F,G,1)>0) &
+ BuyPortfolioExt(phi,jpi,1)<=0
+proof
+ G1: BuyPortfolioExt(phi,jpi,1)<=0
+ proof
+  Partial_Sums(phi(#)jpi).1 = Partial_Sums(phi(#)jpi).0 + (phi(#)jpi).(0+1)
+   by SERIES_1:def 1;
+  then H1: Partial_Sums(phi(#)jpi).1 = (phi(#)jpi).0 + (phi(#)jpi).1
+   by SERIES_1:def 1;
+  H2: (phi(#)jpi).0 =-1
+  proof
+aa: IFEQ(0,0,-1,IFEQ(0,1,1,0)) = -1 by FUNCOP_1:def 8;
+   (phi(#)jpi).0 = phi.0*jpi.0 by VALUED_1:5;
+   then (phi(#)jpi).0 = U(0)*f.0 by A4;
+   then (phi(#)jpi).0 = (-1)*In(IFEQ(0,0,1,IFEQ(0,1,1,0)),REAL) by C1,aa;
+   then (phi(#)jpi).0 = (-1)*1 by FUNCOP_1:def 8;
+  hence thesis;
+  end;
+  (phi(#)jpi).1 = 1
+  proof
+aa: IFEQ(1,0,-1,IFEQ(1,1,1,0)) = IFEQ(1,1,1,0) by FUNCOP_1:def 8;
+   (phi(#)jpi).1 = phi.1*jpi.1 by VALUED_1:5;
+   then (phi(#)jpi).1 = U(1)*f.1 by A4
+   .= 1*f.1 by aa,FUNCOP_1:def 8
+   .= 1*In(IFEQ(1,0,1,IFEQ(1,1,1,0)),REAL) by C1
+   .= 1*IFEQ(1,1,1,0) by FUNCOP_1:def 8;
+  hence thesis by FUNCOP_1:def 8;
+  end;
+ hence thesis by H2,H1;
+ end;
+  set RV=RVPortfolioValueFutExt(phi,F,G,1);
+   Prob.ArbitrageElSigma1(phi,Omega,F,G,1)=1 &
+    Prob.ArbitrageElSigma2(phi,Omega,F,G,1)>0
+ proof
+fin1: Omega=RV"[.0,+infty.[
+     proof
+      for x being object holds x in Omega iff x in RV"[.0,+infty.[
+      proof
+       let x be object;
+       x in Omega implies x in RV"[.0,+infty.[
+       proof
+        assume x in Omega;
+        then reconsider x as Element of Omega;
+q1:     dom RV=Omega by FUNCT_2:def 1;
+        x in dom RV & RV.x in [.0,+infty.[
+        proof
+          set RVh1=RVElementsOfPortfolioValue_fut(phi,F,G,0);
+          RV.x = RVPortfolioValueFutExt(phi,F,G,0+1).x;
+          then RV.x = (RVPortfolioValueFut(phi,F,G,0) +
+           RVElementsOfPortfolioValue_fut(phi,F,G,0)).x by FINANCE3:9;
+          then S0: RV.x = RVPortfolioValueFut(phi,F,G,0).x + RVh1.x
+           by VALUED_1:1;
+         0<=RV.x & RV.x<+infty
+         proof
+          S1: RVh1.x=-1
+          proof
+           RVh1.x=ElementsOfPortfolioValueProb_fut(F,G.0).x * phi.0
+            by FINANCE2:def 5; then
+           K1: RVh1.x=Change_Element_to_Func(F,Borel_Sets,G.0).x * phi.0
+            by FINANCE1:def 8;
+           set G0=G.0;
+           K2: G0=Change_Element_to_Func(F,Borel_Sets,G.0) by FINANCE1:def 7;
+           reconsider G0 as Function of Omega,REAL by K1,FINANCE1:def 7;
+           RVh1.x=1*phi.0 by A3,K1,K2;
+           then RVh1.x=1*U(0) by A4
+           .= In(-1,REAL) by FUNCOP_1:def 8;
+          hence thesis;
+          end;
+          set RV0=RVPortfolioValueFut(phi,F,G,0);
+          RV0.x=5
+          proof
+           RV0.x=PortfolioValueFut(0+1,phi,F,G,x) by FINANCE3:def 3;
+           then RV0.x=(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0
+            by SERIES_1:def 1;
+           then RV0.x=ElementsOfPortfolioValue_fut(phi,F,x,G).(0+1)
+            by NAT_1:def 3;
+           then RV0.x=ElementsOfPortfolioValueProb_fut(F,G.1).x * phi.1
+            by FINANCE1:def 10;
+           then RV0.x=ElementsOfPortfolioValueProb_fut(F,G.1).x * U(1) by A4;
+           then R1: RV0.x=Change_Element_to_Func(F,Borel_Sets,G.1).x * 1
+            by a1,FINANCE1:def 8;
+           G.1=Change_Element_to_Func(F,Borel_Sets,G.1) by FINANCE1:def 7;
+           then reconsider G1 = G.1 as Function of Omega,REAL;
+           RV0.x=G1.x * 1 by R1,FINANCE1:def 7;
+          hence thesis by A3;
+          end;
+         hence thesis by XXREAL_0:9,S0,S1;
+         end;
+        hence thesis by q1,XXREAL_1:3;
+        end;
+       hence thesis by FUNCT_1:def 7;
+       end;
+      hence thesis;
+      end;
+     hence thesis by TARSKI:2;
+     end;
+     Omega=RV"].0,+infty.[
+     proof
+      for x being object holds x in Omega iff x in RV"].0,+infty.[
+      proof
+       let x be object;
+       thus x in Omega implies x in RV"].0,+infty.[
+       proof
+        assume x in Omega;
+        then reconsider x as Element of Omega;
+q1:     dom RV=Omega by FUNCT_2:def 1;
+        x in dom RV & RV.x in ].0,+infty.[
+        proof
+          set RVh1=RVElementsOfPortfolioValue_fut(phi,F,G,0);
+          RV.x = RVPortfolioValueFutExt(phi,F,G,0+1).x;
+          then RV.x = (RVPortfolioValueFut(phi,F,G,0) +
+           RVElementsOfPortfolioValue_fut(phi,F,G,0)).x by FINANCE3:9;
+          then S0: RV.x = RVPortfolioValueFut(phi,F,G,0).x + RVh1.x
+           by VALUED_1:1;
+         0<RV.x & RV.x<+infty
+         proof
+           RVh1.x=ElementsOfPortfolioValueProb_fut(F,G.0).x * phi.0
+            by FINANCE2:def 5; then
+           K1: RVh1.x=Change_Element_to_Func(F,Borel_Sets,G.0).x * phi.0
+            by FINANCE1:def 8;
+           set G0=G.0;
+           K2: G0=Change_Element_to_Func(F,Borel_Sets,G.0) by FINANCE1:def 7;
+           reconsider G0 as Function of Omega,REAL by K1,FINANCE1:def 7;
+           RVh1.x=1*phi.0 by A3,K1,K2;
+           then
+          S1: RVh1.x=-1 by a0,A4;
+          set RV0=RVPortfolioValueFut(phi,F,G,0);
+           RV0.x=PortfolioValueFut(0+1,phi,F,G,x) by FINANCE3:def 3;
+           then RV0.x=(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0
+            by SERIES_1:def 1;
+           then RV0.x=ElementsOfPortfolioValue_fut(phi,F,x,G).(0+1)
+            by NAT_1:def 3;
+           then RV0.x=ElementsOfPortfolioValueProb_fut(F,G.1).x * phi.1
+            by FINANCE1:def 10;
+           then RV0.x=ElementsOfPortfolioValueProb_fut(F,G.1).x * U(1) by A4;
+           then R1: RV0.x=Change_Element_to_Func(F,Borel_Sets,G.1).x * 1
+            by a1,FINANCE1:def 8;
+           G.1=Change_Element_to_Func(F,Borel_Sets,G.1) by FINANCE1:def 7;
+           then reconsider G1 = G.1 as Function of Omega,REAL;
+           RV0.x=G1.x * 1 by R1,FINANCE1:def 7; then
+          RV0.x=5 by A3;
+         hence thesis by XXREAL_0:9,S0,S1;
+         end;
+         hence thesis by q1,XXREAL_1:4;
+        end;
+       hence thesis by FUNCT_1:def 7;
+       end;
+      thus thesis;
+      end;
+     hence thesis by TARSKI:2;
+     end;
+ hence thesis by fin1,ZW;
+ end;
+hence thesis by G1;
+end;
+take jpi;
+thus thesis by FinJ;
+end;
+
+theorem JB1:
+  for n being Nat
+  for r being Real
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) holds
+  {w where w is Element of Omega: PortfolioValueFutExt(n,phi,F,G,w) >= 0} =
+      RVPortfolioValueFutExt(phi,F,G,n)"[.0,+infty.[
+proof
+ let d be Nat;
+ let r be Real;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ set Set1={w where w is Element of Omega:
+           PortfolioValueFutExt(d,phi,F,G,w) >= 0};
+ set Set2=RVPortfolioValueFutExt(phi,F,G,d)"[.0,+infty.[;
+ for x being object holds x in Set1 iff x in Set2
+ proof
+  let x be object;
+  thus x in Set1 implies x in Set2
+  proof
+   assume x in Set1;
+   then consider w being Element of Omega such that
+    A1: w=x & PortfolioValueFutExt(d,phi,F,G,w) >= 0;
+   PortfolioValueFutExt(d,phi,F,G,w)=RVPortfolioValueFutExt(phi,F,G,d).w
+    by FINANCE3:def 1;
+   then A2: RVPortfolioValueFutExt(phi,F,G,d).w in [.0,+infty.[
+     by XXREAL_1:3,A1,XXREAL_0:9;
+   dom RVPortfolioValueFutExt(phi,F,G,d)=Omega by FUNCT_2:def 1;
+  hence thesis by A1,A2,FUNCT_1:def 7;
+  end;
+   assume a1: x in Set2;
+   then A1: x in dom RVPortfolioValueFutExt(phi,F,G,d) &
+        RVPortfolioValueFutExt(phi,F,G,d).x in [.0,+infty.[ by FUNCT_1:def 7;
+   reconsider x as Element of Omega by a1;
+   0<=RVPortfolioValueFutExt(phi,F,G,d).x &
+      RVPortfolioValueFutExt(phi,F,G,d).x < +infty by A1,XXREAL_1:3;
+   then 0<=PortfolioValueFutExt(d,phi,F,G,x) by FINANCE3:def 1;
+  hence thesis;
+ end;
+hence thesis by TARSKI:2;
+end;
+
+theorem JB2:
+  for d,d2 being Nat st d2=d-1 holds
+  for r being Real
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) holds
+  {w where w is Element of Omega: PortfolioValueFut(d,phi,F,G,w)
+                               >= (1+r)*BuyPortfolio(phi,jpi,d)} =
+      (RVPortfolioValueFut(phi,F,G,d2)-
+       (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"[.0,+infty.[
+proof
+ let d,d2 be Nat;
+ assume a10: d2=d-1;
+ let r be Real;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ set Set1={w where w is Element of Omega: PortfolioValueFut(d,phi,F,G,w)
+                               >= (1+r)*BuyPortfolio(phi,jpi,d)};
+ set Set2=(RVPortfolioValueFut(phi,F,G,d2)-
+          (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"[.0,+infty.[;
+ for x being object holds x in Set1 iff x in Set2
+ proof
+  let x be object;
+  thus x in Set1 implies x in Set2
+  proof
+   assume x in Set1;
+   then consider w being Element of Omega such that
+    A1: w=x & PortfolioValueFut(d,phi,F,G,w)
+              >= (1+r)*BuyPortfolio(phi,jpi,d);
+   reconsider x as Element of Omega by A1;
+   set myel=(1+r)*BuyPortfolio(phi,jpi,d);
+a2: PortfolioValueFut(d2+1,phi,F,G,w)=RVPortfolioValueFut(phi,F,G,d2).w
+    by FINANCE3:def 3;
+    RVPortfolioValueFut(phi,F,G,d2).x-(Omega-->myel).x >=0
+      by XREAL_1:48,A1,a2,a10;
+    then Q1: RVPortfolioValueFut(phi,F,G,d2).x+ (-1)*(Omega-->(myel)).x>=0;
+     x in dom(Omega-->myel);
+     then x in dom ((-1)(#)(Omega-->myel)) by VALUED_1:def 5;
+    then RVPortfolioValueFut(phi,F,G,d2).x+ ((-1)(#)(Omega-->(myel))).x>=0
+     by Q1,VALUED_1:def 5;
+    then (RVPortfolioValueFut(phi,F,G,d2) + (- (Omega-->myel))).x >=0
+     by VALUED_1:1;
+    then T1: (RVPortfolioValueFut(phi,F,G,d2) - (Omega-->myel)).x
+     in [.0,+infty.[ by XXREAL_1:3,XXREAL_0:9;
+     dom (RVPortfolioValueFut(phi,F,G,d2) +(- (Omega-->myel)))=
+      Omega/\Omega by FUNCT_2:def 1;
+   hence thesis by T1,FUNCT_1:def 7;
+  end;
+   assume a1: x in Set2;
+   then A1:x in dom (RVPortfolioValueFut(phi,F,G,d2)-
+          (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))) &
+          (RVPortfolioValueFut(phi,F,G,d2)-
+          (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))).x in [.0,+infty.[
+           by FUNCT_1:def 7;
+   set my1= ((1+r)*BuyPortfolio(phi,jpi,d));
+   set my2=RVPortfolioValueFut(phi,F,G,d2).x;
+   reconsider x as Element of Omega by a1;
+   set RVmyx=(RVPortfolioValueFut(phi,F,G,d2)-
+            (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))).x;
+   RVmyx=RVPortfolioValueFut(phi,F,G,d2).x + ((-1)(#)
+    (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))).x by VALUED_1:1;
+   then RVmyx=RVPortfolioValueFut(phi,F,G,d2).x + ((-1)*
+    (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)).x) by VALUED_1:6;
+   then 0<=RVPortfolioValueFut(phi,F,G,d2).x -
+           (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)).x by A1,XXREAL_1:3;
+   then 0<=my2-my1;
+   then 0+my1<=my2 by XREAL_1:19;
+   then ((1+r)*BuyPortfolio(phi,jpi,d))<=PortfolioValueFut(d2+1,phi,F,G,x)
+    by FINANCE3:def 3;
+  hence thesis by a10;
+ end;
+hence thesis by TARSKI:2;
+end;
+
+theorem JB3:
+  for d,d2 being Nat
+  for r being Real
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) holds
+   (RVPortfolioValueFut(phi,F,G,d2)-
+    (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"[.0,+infty.[ is Event of F
+proof
+ let d,d2 be Nat;
+ let r be Real;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ set RV= RVPortfolioValueFut(phi,F,G,d2);
+ reconsider RV as random_variable of F,Borel_Sets by FINANCE3:7;
+ set myr=(1+r)*BuyPortfolio(phi,jpi,d);
+ reconsider myr as Element of REAL by XREAL_0:def 1;
+ reconsider constRV = Omega-->myr as random_variable of F,Borel_Sets
+   by FINANCE3:10;
+B5: [.0,+infty.[ is Element of Borel_Sets by FINANCE1:3;
+ RV-constRV is (F,Borel_Sets)-random_variable-like by FINANCE2:24;
+ hence thesis by B5;
+end;
+
+theorem JC1:
+  for d being Nat
+  for r being Real
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) holds
+  {w where w is Element of Omega: PortfolioValueFutExt(d,phi,F,G,w) > 0} =
+        RVPortfolioValueFutExt(phi,F,G,d)"].0,+infty.[
+proof
+ let d be Nat;
+ let r be Real;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ set Set1={w where w is Element of Omega:
+           PortfolioValueFutExt(d,phi,F,G,w) > 0};
+ set Set2=RVPortfolioValueFutExt(phi,F,G,d)"].0,+infty.[;
+ for x being object holds x in Set1 iff x in Set2
+ proof
+  let x be object;
+  thus x in Set1 implies x in Set2
+  proof
+   assume x in Set1;
+   then consider w being Element of Omega such that
+A1: w=x & PortfolioValueFutExt(d,phi,F,G,w) > 0;
+   reconsider x as Element of Omega by A1;
+   0<RVPortfolioValueFutExt(phi,F,G,d).w &
+      RVPortfolioValueFutExt(phi,F,G,d).w < +infty
+        by A1,XXREAL_0:9,FINANCE3:def 1;
+   then A2: RVPortfolioValueFutExt(phi,F,G,d).w in ].0,+infty.[ by XXREAL_1:4;
+   dom RVPortfolioValueFutExt(phi,F,G,d)=Omega by FUNCT_2:def 1;
+  hence thesis by A1,A2,FUNCT_1:def 7;
+  end;
+   assume a1: x in Set2;
+   then A1: x in dom RVPortfolioValueFutExt(phi,F,G,d) &
+        RVPortfolioValueFutExt(phi,F,G,d).x in ].0,+infty.[ by FUNCT_1:def 7;
+   reconsider x as Element of Omega by a1;
+   0< RVPortfolioValueFutExt(phi,F,G,d).x &
+      RVPortfolioValueFutExt(phi,F,G,d).x < +infty by A1,XXREAL_1:4;
+   then 0<PortfolioValueFutExt(d,phi,F,G,x) by FINANCE3:def 1;
+  hence thesis;
+ end;
+hence thesis by TARSKI:2;
+end;
+
+theorem JC2:
+  for d,d2 being Nat st d2=d-1 holds
+  for r being Real
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) holds
+  {w where w is Element of Omega: PortfolioValueFut(d,phi,F,G,w)
+                                 > (1+r)*BuyPortfolio(phi,jpi,d)} =
+        (RVPortfolioValueFut(phi,F,G,d2)-
+         (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"].0,+infty.[
+proof
+ let d,d2 be Nat;
+ assume a10: d2=d-1;
+ let r be Real;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ set Set1={w where w is Element of Omega: PortfolioValueFut(d,phi,F,G,w)
+                               > (1+r)*BuyPortfolio(phi,jpi,d)};
+ set Set2=(RVPortfolioValueFut(phi,F,G,d2)-
+          (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"].0,+infty.[;
+ for x being object holds x in Set1 iff x in Set2
+ proof
+  let x be object;
+  thus x in Set1 implies x in Set2
+  proof
+   assume x in Set1;
+   then consider w being Element of Omega such that
+A1: w=x & PortfolioValueFut(d,phi,F,G,w) > (1+r)*BuyPortfolio(phi,jpi,d);
+   reconsider x as Element of Omega by A1;
+   set myel=(1+r)*BuyPortfolio(phi,jpi,d);
+a2:  PortfolioValueFut(d2+1,phi,F,G,w)=RVPortfolioValueFut(phi,F,G,d2).w
+    by FINANCE3:def 3;
+    RVPortfolioValueFut(phi,F,G,d2).x -(Omega-->myel).x>0
+      by XREAL_1:50,A1,a2,a10;
+    then Q1: RVPortfolioValueFut(phi,F,G,d2).x+ (-1)*(Omega-->(myel)).x>0;
+     x in dom(Omega-->myel);
+     then x in dom ((-1)(#)(Omega-->myel)) by VALUED_1:def 5;
+    then RVPortfolioValueFut(phi,F,G,d2).x+ ((-1)(#)(Omega-->(myel))).x>0
+     by Q1,VALUED_1:def 5;
+    then 0<(RVPortfolioValueFut(phi,F,G,d2) - (Omega-->myel)).x &
+      (RVPortfolioValueFut(phi,F,G,d2) - (Omega-->myel)).x < +infty
+       by XXREAL_0:9,VALUED_1:1;
+    then T1: (RVPortfolioValueFut(phi,F,G,d2) - (Omega-->myel)).x
+     in ].0,+infty.[ by XXREAL_1:4;
+     dom (RVPortfolioValueFut(phi,F,G,d2) +(- (Omega-->myel)))=
+      Omega/\Omega by FUNCT_2:def 1;
+    hence thesis by T1,FUNCT_1:def 7;
+  end;
+   assume a1: x in Set2;
+   then A1:x in dom (RVPortfolioValueFut(phi,F,G,d2)-
+          (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))) &
+          (RVPortfolioValueFut(phi,F,G,d2)-
+          (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))).x in ].0,+infty.[
+           by FUNCT_1:def 7;
+   set my1= ((1+r)*BuyPortfolio(phi,jpi,d));
+   set my2=RVPortfolioValueFut(phi,F,G,d2).x;
+   reconsider x as Element of Omega by a1;
+   set RVmyx=(RVPortfolioValueFut(phi,F,G,d2)-
+            (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))).x;
+   RVmyx=RVPortfolioValueFut(phi,F,G,d2).x + ((-1)(#)
+    (Omega-->(1+r)*BuyPortfolio(phi,jpi,d))).x by VALUED_1:1;
+   then RVmyx=RVPortfolioValueFut(phi,F,G,d2).x + ((-1)*
+    (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)).x) by VALUED_1:6;
+   then 0<RVPortfolioValueFut(phi,F,G,d2).x -
+           (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)).x by A1,XXREAL_1:4;
+   then 0<my2-my1;
+   then 0+my1<(my2-my1)+my1 by XREAL_1:6;
+   then ((1+r)*BuyPortfolio(phi,jpi,d))<PortfolioValueFut(d2+1,phi,F,G,x)
+    by FINANCE3:def 3;
+  hence thesis by a10;
+ end;
+hence thesis by TARSKI:2;
+end;
+
+ZZ:
+  [.0,+infty.[ \ {0} = ].0,+infty.[ by XXREAL_1:136;
+
+theorem JC3:
+  for d,d2 being Nat
+  for r being Real
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) holds
+    (RVPortfolioValueFut(phi,F,G,d2)-
+    (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"].0,+infty.[ is Event of F
+proof
+ let d,d2 be Nat;
+ let r be Real;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ {0} is Element of Borel_Sets &
+     [.0,+infty.[ is Element of Borel_Sets by FINANCE1:3,FINANCE2:5; then
+ B1: ].0,+infty.[ is Element of Borel_Sets by PROB_1:6,ZZ;
+ set RV= RVPortfolioValueFut(phi,F,G,d2);
+ reconsider RV as random_variable of F,Borel_Sets by FINANCE3:7;
+ set myr=(1+r)*BuyPortfolio(phi,jpi,d);
+ reconsider myr as Element of REAL by XREAL_0:def 1;
+ set constRV=Omega-->myr;
+ reconsider constRV as random_variable of F,Borel_Sets by FINANCE3:10;
+ RV-constRV is (F,Borel_Sets)-random_variable-like by FINANCE2:24;
+ hence thesis by B1;
+end;
+
+theorem
+  for jpi being pricefunction
+  for d,d2 being Nat st d>0 & d2=d-1 holds
+  for Prob being Probability of F
+  for r being Real st r>-1 holds
+  for G being sequence of set_of_random_variables_on (F,Borel_Sets) st
+   Element_Of(F,Borel_Sets,G,0) = Omega-->1+r holds
+   (Arbitrage_Opportunity_exists_wrt Prob,G,jpi,d iff
+   (ex myphi being Real_Sequence st
+    (Prob.((RVPortfolioValueFut(myphi,F,G,d2)-
+     (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"[.0,+infty.[)=1) &
+     Prob.((RVPortfolioValueFut(myphi,F,G,d2)-
+     (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"].0,+infty.[)>0))
+proof
+ let jpi be pricefunction;
+ let d,d2 be Nat;
+ assume A1: d>0 & d2=d-1;
+ let Prob be Probability of F;
+ let r be Real;
+ assume A2: r>-1;
+ let G be sequence of set_of_random_variables_on (F,Borel_Sets);
+ assume A3: Element_Of(F,Borel_Sets,G,0) = Omega-->1+r;
+ thus (Arbitrage_Opportunity_exists_wrt Prob,G,jpi,d) implies
+  (ex myphi being Real_Sequence st
+   ((Prob.((RVPortfolioValueFut(myphi,F,G,d2)-
+   (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"[.0,+infty.[)=1) &
+   Prob.((RVPortfolioValueFut(myphi,F,G,d2)-
+   (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"].0,+infty.[)>0))
+ proof
+  assume Arbitrage_Opportunity_exists_wrt Prob,G,jpi,d;
+  then consider phi being Real_Sequence such that
+  C1:  BuyPortfolioExt(phi,jpi,d)<=0 &
+       Prob.ArbitrageElSigma1(phi,Omega,F,G,d)=1 &
+       Prob.ArbitrageElSigma2(phi,Omega,F,G,d)>0;
+  ArbitrageElSigma1(phi,Omega,F,G,d) = {w where w is Element of Omega:
+   PortfolioValueFutExt(d,phi,F,G,w) >= 0} by JB1;
+  then ArbitrageElSigma1(phi,Omega,F,G,d) c=
+   {w where w is Element of Omega: PortfolioValueFut(d,phi,F,G,w)
+               >= (1+r)*BuyPortfolio(phi,jpi,d)} by C1,A1,A2,A3,FINANCE1:14;
+  then C3: ArbitrageElSigma1(phi,Omega,F,G,d) c=
+   (RVPortfolioValueFut(phi,F,G,d2)-
+       (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"[.0,+infty.[ by A1,JB2;
+  set RVspec=(RVPortfolioValueFut(phi,F,G,d2)-
+       (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"[.0,+infty.[;
+  reconsider RVspec as Event of F by JB3;
+  1<=Prob.RVspec & Prob.RVspec<=1 by PROB_1:35,C1,C3,PROB_1:34;
+  then Fin1: 1=Prob.RVspec by XXREAL_0:1;
+  ArbitrageElSigma2(phi,Omega,F,G,d) = {w where w is Element of Omega:
+   PortfolioValueFutExt(d,phi,F,G,w) > 0} by JC1;
+  then ArbitrageElSigma2(phi,Omega,F,G,d) c=
+   {w where w is Element of Omega: PortfolioValueFut(d,phi,F,G,w)
+               > (1+r)*BuyPortfolio(phi,jpi,d)} by C1,A1,A2,A3,FINANCE1:14;
+  then C3: ArbitrageElSigma2(phi,Omega,F,G,d) c=
+   (RVPortfolioValueFut(phi,F,G,d2)-
+       (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"].0,+infty.[ by A1,JC2;
+  set RVspec2=(RVPortfolioValueFut(phi,F,G,d2)-
+       (Omega-->(1+r)*BuyPortfolio(phi,jpi,d)))"].0,+infty.[;
+  reconsider RVspec2 as Event of F by JC3;
+  Prob.ArbitrageElSigma2(phi,Omega,F,G,d) <= Prob.RVspec2 by C3,PROB_1:34;
+hence thesis by Fin1,C1;
+end;
+ given myphi being Real_Sequence such that
+ ASS0: (Prob.((RVPortfolioValueFut(myphi,F,G,d2)-
+  (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"[.0,+infty.[)=1) &
+  Prob.((RVPortfolioValueFut(myphi,F,G,d2)-
+  (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"].0,+infty.[)>0;
+   deffunc U(Nat)=In(IFEQ($1,0,-BuyPortfolio(myphi,jpi,d),myphi.$1),REAL);
+   consider phi being Real_Sequence such that
+    AA1: for n being Element of NAT holds phi.n=U(n) from FUNCT_2:sch 4;
+   AA10: for n being Nat holds
+         (n=0 implies phi.n=-BuyPortfolio(myphi,jpi,d)) &
+         (n>0 implies phi.n=myphi.n)
+   proof
+    let n be Nat;
+SS: n in NAT by ORDINAL1:def 12;
+SU: myphi.n in REAL;
+SW: IFEQ(n,0,-BuyPortfolio(myphi,jpi,d),myphi.n) in REAL
+    proof
+      per cases;
+      suppose n = 0; then
+        IFEQ(n,0,-BuyPortfolio(myphi,jpi,d),myphi.n) =
+          -BuyPortfolio(myphi,jpi,d) by FUNCOP_1:def 8;
+        hence thesis by XREAL_0:def 1;
+      end;
+      suppose n <> 0;
+        hence thesis by FUNCOP_1:def 8,SU;
+      end;
+    end;
+    hereby assume SQ: n = 0; then
+      phi.n = U(n) by AA1 .= IFEQ(n,0,-BuyPortfolio(myphi,jpi,d),myphi.n)
+        by SUBSET_1:def 8,SW;
+      hence phi.n=-BuyPortfolio(myphi,jpi,d) by FUNCOP_1:def 8,SQ;
+    end;
+    assume SQ: n > 0;
+    phi.n=In(IFEQ(n,0,-BuyPortfolio(myphi,jpi,d),myphi.n),REAL) by AA1,SS
+      .= IFEQ(n,0,-BuyPortfolio(myphi,jpi,d),myphi.n) by SUBSET_1:def 8,SW;
+    hence thesis by FUNCOP_1:def 8,SQ;
+   end;
+       set B0=-BuyPortfolio(myphi,jpi,d);
+Z1:    BuyPortfolioExt(phi,jpi,d)=0
+       proof
+        BuyPortfolioExt(phi,jpi,d)=B0+BuyPortfolio(myphi,jpi,d)
+        proof
+zw:      BuyPortfolioExt(phi,jpi,d) = phi.0 + BuyPortfolio(phi,jpi,d)
+          by A1,FINANCE1:11;
+         -BuyPortfolio(phi,jpi,d)+BuyPortfolio(myphi,jpi,d)=0
+         proof
+          Partial_Sums(ElementsOfBuyPortfolio(phi,jpi)^\1).(d-1) =
+           Partial_Sums(ElementsOfBuyPortfolio(myphi,jpi)^\1).(d-1)
+          proof
+           set P1=Partial_Sums(ElementsOfBuyPortfolio(phi,jpi)^\1);
+           set P2=Partial_Sums(ElementsOfBuyPortfolio(myphi,jpi)^\1);
+           defpred Pr[Nat] means P1.$1=P2.$1;
+           J0: Pr[0]
+           proof
+            P1.0= (ElementsOfBuyPortfolio(phi,jpi)^\1).0 by SERIES_1:def 1;
+            then P1.0=ElementsOfBuyPortfolio(phi,jpi).(0+1) by NAT_1:def 3;
+            then Erg1: P1.0=phi.1*jpi.1 by VALUED_1:5;
+            P2.0= (ElementsOfBuyPortfolio(myphi,jpi)^\1).0 by SERIES_1:def 1;
+            then P2.0=ElementsOfBuyPortfolio(myphi,jpi).(0+1) by NAT_1:def 3;
+            then P2.0=myphi.1*jpi.1 by VALUED_1:5;
+           hence thesis by Erg1,AA10;
+           end;
+           J1: for n being Nat st Pr[n] holds Pr[n+1]
+           proof
+            let n be Nat;
+            assume f1: Pr[n];
+            P1.(n+1)=P1.n+(ElementsOfBuyPortfolio(phi,jpi)^\1).(n+1)
+             by SERIES_1:def 1;
+            then P1.(n+1)=P1.n+ElementsOfBuyPortfolio(phi,jpi).((n+1)+1)
+             by NAT_1:def 3;
+            then Erg1: P1.(n+1)=P1.n+phi.(n+2)*jpi.(n+2) by VALUED_1:5;
+            set n2=n+2;
+            P2.(n+1)=P2.n+(ElementsOfBuyPortfolio(myphi,jpi)^\1).(n+1)
+             by SERIES_1:def 1;
+            then P2.(n+1)=P2.n+ElementsOfBuyPortfolio(myphi,jpi).((n+1)+1)
+             by NAT_1:def 3;
+            then P2.(n+1)=P2.n+myphi.(n2)*jpi.(n2) by VALUED_1:5;
+           hence thesis by Erg1,f1,AA10;
+           end;
+           for n being Nat holds Pr[n] from NAT_1:sch 2(J0,J1);
+          hence thesis by A1;
+          end;
+         hence thesis;
+         end;
+        hence thesis by zw,AA10;
+        end;
+       hence thesis;
+       end;
+      Z2: Prob.ArbitrageElSigma1(phi,Omega,F,G,d)=1
+      proof
+       set Set1=RVPortfolioValueFutExt(phi,F,G,d);
+       set Set2=(RVPortfolioValueFut(myphi,F,G,d2)-
+                (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)));
+       Set1"[.0,+infty.[ = Set2"[.0,+infty.[
+       proof
+        for x being object holds
+         x in Set1"[.0,+infty.[ iff x in Set2"[.0,+infty.[
+        proof
+         let x be object;
+         thus x in Set1"[.0,+infty.[ implies x in Set2"[.0,+infty.[
+         proof
+          assume sc: x in Set1"[.0,+infty.[;
+          then reconsider x as Element of Omega;
+           Set1.x in [.0,+infty.[ by sc,FUNCT_1:def 7;
+           then PortfolioValueFutExt(d,phi,F,G,x) in [.0,+infty.[
+            by FINANCE3:def 1;
+           then e: (1+r) * phi.0 + PortfolioValueFut(d2+1,phi,F,G,x)
+            in [.0,+infty.[ by A1,A3,FINANCE1:12;
+          x in dom Set2 & Set2.x in [.0,+infty.[
+          proof
+            -(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x =
+             (1+r)*(-BuyPortfolio(myphi,jpi,d)); then
+uuu0:      (1+r) * phi.0=-(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x by AA10;
+         RVPortfolioValueFut(myphi,F,G,d2).x=RVPortfolioValueFut(phi,F,G,d2).x
+           proof
+iii:        RVPortfolioValueFut(myphi,F,G,d2).x=
+             PortfolioValueFut(d2+1,myphi,F,G,x) by FINANCE3:def 3;
+         defpred J[Nat] means
+          Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).$1 =
+           Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).$1;
+            K1: J[0]
+            proof
+             Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0 =
+           (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0 by SERIES_1:def 1;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValue_fut(myphi,F,x,G).(0+1) by NAT_1:def 3;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValueProb_fut(F,G.1).x * myphi.1
+               by FINANCE1:def 10;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValueProb_fut(F,G.1).x * phi.1 by AA10;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValue_fut(phi,F,x,G).(0+1)
+              by FINANCE1:def 10;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0
+               by NAT_1:def 3;
+             hence thesis by SERIES_1:def 1;
+            end;
+            K2: for n being Nat st J[n] holds J[n+1]
+            proof
+             let n be Nat;
+             assume AK2: J[n];
+             set n1=n+1;
+             set n2=n1+1;
+             R:Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1=
+               Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n +
+                (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1)
+                  by AK2,SERIES_1:def 1;
+               (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1) =
+                ElementsOfPortfolioValue_fut(myphi,F,x,G).((n+1)+1)
+                 by NAT_1:def 3; then
+          R1: (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1) =
+                ElementsOfPortfolioValueProb_fut(F,G.n2).x * myphi.n2
+                 by FINANCE1:def 10;
+              (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1) =
+               (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).(n+1)
+              proof
+               (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1=
+                 ElementsOfPortfolioValueProb_fut(F,G.n2).x * phi.n2
+                  by R1,AA10;
+               then (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1=
+                ElementsOfPortfolioValue_fut(phi,F,x,G).(n1+1)
+                 by FINANCE1:def 10;
+              hence thesis by NAT_1:def 3;
+              end;
+             hence thesis by SERIES_1:def 1,R;
+            end;
+            for n being Nat holds J[n] from NAT_1:sch 2(K1,K2);
+            then RVPortfolioValueFut(myphi,F,G,d2).x =
+             PortfolioValueFut(d2+1,phi,F,G,x) by iii;
+            hence thesis by FINANCE3:def 3;
+           end;
+           then UUU: RVPortfolioValueFut(myphi,F,G,d2).x -
+            (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x in [.0,+infty.[
+             by uuu0,e,FINANCE3:def 3;
+            x in dom (RVPortfolioValueFut(myphi,F,G,d2) + -
+                (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))
+            proof
+             dom (RVPortfolioValueFut(myphi,F,G,d2))=Omega &
+              dom (- (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))= Omega
+               by FUNCT_2:def 1;
+             then dom (RVPortfolioValueFut(myphi,F,G,d2)) /\
+              dom (- (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))= Omega;
+             then dom (RVPortfolioValueFut(myphi,F,G,d2) + (-
+                (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))) = Omega
+                 by VALUED_1:def 1;
+            hence thesis;
+            end;
+          hence thesis by UUU,VALUED_1:13;
+          end;
+         hence thesis by FUNCT_1:def 7;
+         end;
+          assume ab: x in Set2"[.0,+infty.[;
+          then ABC1: x in dom Set2 & Set2.x in [.0,+infty.[ by FUNCT_1:def 7;
+          reconsider x as Element of Omega by ab;
+           ABC3: RVPortfolioValueFut(myphi,F,G,d2).x -
+             (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x in [.0,+infty.[
+              by ABC1,VALUED_1:13;
+           -(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x =(1+r)*phi.0
+           proof
+            -(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x =
+             (1+r)*(-BuyPortfolio(myphi,jpi,d));
+            hence thesis by AA10;
+           end;
+           then ABC4: PortfolioValueFut(d2+1,myphi,F,G,x) + (1+r)*phi.0
+            in [.0,+infty.[ by FINANCE3:def 3,ABC3;
+          ABC2: Set1.x in [.0,+infty.[
+          proof
+           PortfolioValueFut(d2+1,phi,F,G,x)=
+            PortfolioValueFut(d2+1,myphi,F,G,x)
+           proof
+            Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).d2=
+             Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).d2
+            proof
+             defpred J[Nat] means
+              Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).$1=
+               Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).$1;
+             K1: J[0]
+             proof
+              Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0
+                by SERIES_1:def 1;
+              then Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               ElementsOfPortfolioValue_fut(phi,F,x,G).(0+1) by NAT_1:def 3;
+             then R:Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               ElementsOfPortfolioValueProb_fut(F,G.1).x * phi.1
+                by FINANCE1:def 10;
+              Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               ElementsOfPortfolioValueProb_fut(F,G.1).x * myphi.1 by R,AA10;
+              then Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+                ElementsOfPortfolioValue_fut(myphi,F,x,G).(0+1)
+                by FINANCE1:def 10;
+              then Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+              (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0 by NAT_1:def 3;
+             hence thesis by SERIES_1:def 1;
+             end;
+             K2: for n being Nat st J[n] holds J[n+1]
+             proof
+              let n be Nat;
+              set n1=n+1;
+              set n2=n1+1;
+              assume J[n];
+            then R:Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1
+               =Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n +
+                 (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).(n+1)
+                   by SERIES_1:def 1;
+               (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1
+               proof
+                (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                 (ElementsOfPortfolioValue_fut(phi,F,x,G)).(n1+1)
+                  by NAT_1:def 3;
+                then QA: (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                 ElementsOfPortfolioValueProb_fut(F,G.n2).x * phi.n2
+                  by FINANCE1:def 10;
+                phi.n2=myphi.n2 by AA10;
+               then (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                 (ElementsOfPortfolioValue_fut(myphi,F,x,G)).n2
+                  by FINANCE1:def 10,QA;
+               hence thesis by NAT_1:def 3;
+               end;
+              hence thesis by SERIES_1:def 1,R;
+             end;
+             for n being Nat holds J[n] from NAT_1:sch 2(K1,K2);
+            hence thesis;
+            end;
+           hence thesis;
+           end;
+           then PortfolioValueFutExt(d2+1,phi,F,G,x) in [.0,+infty.[
+            by A3,FINANCE1:12,ABC4;
+          hence thesis by A1,FINANCE3:def 1;
+          end;
+          dom Set1=Omega by FUNCT_2:def 1;
+         hence thesis by FUNCT_1:def 7,ABC2;
+        end;
+       hence thesis by TARSKI:2;
+       end;
+      hence thesis by ASS0;
+      end;
+      Prob.ArbitrageElSigma2(phi,Omega,F,G,d)>0
+      proof
+       RVPortfolioValueFutExt(phi,F,G,d)"].0,+infty.[ =
+        (RVPortfolioValueFut(myphi,F,G,d2)-
+         (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))"].0,+infty.[
+       proof
+       set Set1=RVPortfolioValueFutExt(phi,F,G,d);
+       set Set2=(RVPortfolioValueFut(myphi,F,G,d2)-
+                (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)));
+        for x being object holds
+         x in Set1"].0,+infty.[ iff x in Set2"].0,+infty.[
+        proof
+         let x be object;
+         thus x in Set1"].0,+infty.[ implies x in Set2"].0,+infty.[
+         proof
+          assume ss: x in Set1"].0,+infty.[;
+          then s: x in dom RVPortfolioValueFutExt(phi,F,G,d) &
+               RVPortfolioValueFutExt(phi,F,G,d).x in ].0,+infty.[
+                by FUNCT_1:def 7;
+          reconsider x as Element of Omega by ss;
+           PortfolioValueFutExt(d,phi,F,G,x) in ].0,+infty.[
+            by FINANCE3:def 1,s;
+           then e: (1+r) * phi.0 + PortfolioValueFut(d2+1,phi,F,G,x)
+            in ].0,+infty.[ by A1,A3,FINANCE1:12;
+            -(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x =
+             (1+r)*(-BuyPortfolio(myphi,jpi,d)); then
+uuu0:      (1+r) * phi.0=-(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x
+             by AA10;
+iii:        RVPortfolioValueFut(myphi,F,G,d2).x=
+             PortfolioValueFut(d2+1,myphi,F,G,x) by FINANCE3:def 3;
+          x in dom Set2 & Set2.x in ].0,+infty.[
+          proof
+         RVPortfolioValueFut(myphi,F,G,d2).x=RVPortfolioValueFut(phi,F,G,d2).x
+           proof
+         defpred J[Nat] means
+          Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).$1 =
+           Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).$1;
+            K1: J[0]
+            proof
+             Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0 =
+           (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0 by SERIES_1:def 1;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValue_fut(myphi,F,x,G).(0+1) by NAT_1:def 3;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValueProb_fut(F,G.1).x * myphi.1
+               by FINANCE1:def 10;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValueProb_fut(F,G.1).x * phi.1 by AA10;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = ElementsOfPortfolioValue_fut(phi,F,x,G).(0+1)
+              by FINANCE1:def 10;
+             then Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0
+              = (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0
+               by NAT_1:def 3;
+            hence thesis by SERIES_1:def 1;
+            end;
+            K2: for n being Nat st J[n] holds J[n+1]
+            proof
+             let n be Nat;
+             assume AK2: J[n];
+             set n1=n+1;
+             set n2=n1+1;
+             R:Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1=
+               Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n +
+                (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1)
+                  by AK2,SERIES_1:def 1;
+              (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1) =
+               (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).(n+1)
+              proof
+               (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1) =
+                ElementsOfPortfolioValue_fut(myphi,F,x,G).((n+1)+1)
+                 by NAT_1:def 3;
+               then R1: (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).(n+1) =
+                ElementsOfPortfolioValueProb_fut(F,G.n2).x * myphi.n2
+                 by FINANCE1:def 10;
+               (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1=
+                 ElementsOfPortfolioValueProb_fut(F,G.n2).x * phi.n2
+                  by R1,AA10;
+               then (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1=
+                ElementsOfPortfolioValue_fut(phi,F,x,G).(n1+1)
+                 by FINANCE1:def 10;
+              hence thesis by NAT_1:def 3;
+              end;
+            hence thesis by SERIES_1:def 1,R;
+            end;
+            for n being Nat holds J[n] from NAT_1:sch 2(K1,K2);
+            then RVPortfolioValueFut(myphi,F,G,d2).x =
+             PortfolioValueFut(d2+1,phi,F,G,x) by iii;
+           hence thesis by FINANCE3:def 3;
+           end;
+           then UUU: RVPortfolioValueFut(myphi,F,G,d2).x -
+            (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x in ].0,+infty.[
+             by uuu0,e,FINANCE3:def 3;
+            x in dom (RVPortfolioValueFut(myphi,F,G,d2) + -
+                (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))
+            proof
+             dom (RVPortfolioValueFut(myphi,F,G,d2))=Omega &
+              dom (- (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))= Omega
+               by FUNCT_2:def 1;
+             then dom (RVPortfolioValueFut(myphi,F,G,d2)) /\
+              dom (- (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))= Omega;
+             then dom (RVPortfolioValueFut(myphi,F,G,d2) + (-
+                (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)))) = Omega
+                 by VALUED_1:def 1;
+             hence thesis;
+            end;
+          hence thesis by UUU,VALUED_1:13;
+          end;
+         hence thesis by FUNCT_1:def 7;
+         end;
+          assume ab: x in Set2"].0,+infty.[;
+          then ABC1: x in dom Set2 & Set2.x in ].0,+infty.[ by FUNCT_1:def 7;
+          reconsider x as Element of Omega by ab;
+           ABC3: RVPortfolioValueFut(myphi,F,G,d2).x -
+             (Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x in ].0,+infty.[
+              by ABC1,VALUED_1:13;
+            -(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x =
+             (1+r)*(-BuyPortfolio(myphi,jpi,d)); then
+           -(Omega-->(1+r)*BuyPortfolio(myphi,jpi,d)).x =(1+r)*phi.0 by AA10;
+           then ABC4: PortfolioValueFut(d2+1,myphi,F,G,x) + (1+r)*phi.0
+            in ].0,+infty.[ by FINANCE3:def 3,ABC3;
+          ABC2: Set1.x in ].0,+infty.[
+          proof
+           PortfolioValueFut(d2+1,phi,F,G,x)=
+            PortfolioValueFut(d2+1,myphi,F,G,x)
+           proof
+            Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).d2=
+             Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).d2
+            proof
+             defpred J[Nat] means
+              Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).$1=
+               Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).$1;
+              Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+              (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0
+                by SERIES_1:def 1;
+              then Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               ElementsOfPortfolioValue_fut(phi,F,x,G).(0+1) by NAT_1:def 3;
+             then R:Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               ElementsOfPortfolioValueProb_fut(F,G.1).x * phi.1
+                by FINANCE1:def 10;
+             K1: J[0]
+             proof
+              Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+               ElementsOfPortfolioValueProb_fut(F,G.1).x * myphi.1 by R,AA10;
+              then Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+                ElementsOfPortfolioValue_fut(myphi,F,x,G).(0+1)
+                by FINANCE1:def 10;
+              then Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).0=
+              (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).0 by NAT_1:def 3;
+             hence thesis by SERIES_1:def 1;
+             end;
+             K2: for n being Nat st J[n] holds J[n+1]
+             proof
+              let n be Nat;
+              set n1=n+1;
+              set n2=n1+1;
+              assume J[n]; then
+              R:Partial_Sums(ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1
+               =Partial_Sums(ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n +
+                 (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).(n+1)
+                   by SERIES_1:def 1;
+               (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                (ElementsOfPortfolioValue_fut(myphi,F,x,G)^\1).n1
+               proof
+                (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                 (ElementsOfPortfolioValue_fut(phi,F,x,G)).(n1+1)
+                  by NAT_1:def 3;
+                then QA: (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                 ElementsOfPortfolioValueProb_fut(F,G.n2).x * phi.n2
+                  by FINANCE1:def 10;
+                phi.n2=myphi.n2 by AA10;
+               then (ElementsOfPortfolioValue_fut(phi,F,x,G)^\1).n1=
+                 (ElementsOfPortfolioValue_fut(myphi,F,x,G)).(n1+1)
+                 by FINANCE1:def 10,QA;
+               hence thesis by NAT_1:def 3;
+               end;
+              hence thesis by SERIES_1:def 1,R;
+             end;
+             for n being Nat holds J[n] from NAT_1:sch 2(K1,K2);
+            hence thesis;
+            end;
+           hence thesis;
+           end;
+           then PortfolioValueFutExt(d2+1,phi,F,G,x) in ].0,+infty.[
+            by A3,FINANCE1:12,ABC4;
+          hence thesis by A1,FINANCE3:def 1;
+          end;
+          dom Set1=Omega by FUNCT_2:def 1;
+         hence thesis by FUNCT_1:def 7,ABC2;
+        end;
+        hence thesis by TARSKI:2;
+       end;
+       hence thesis by ASS0;
+      end;
+  hence thesis by Z1,Z2;
+end;
+
+begin :: Risk-neutral Probability measure
+
+definition
+  let Omega, F;
+  let RV be Real-Valued-Random-Variable of F;
+  let r be Real;
+  func Real_RV(r,RV) -> Real-Valued-Random-Variable of F equals
+    RV(#)(1/(1+r));
+  correctness
+  proof
+    (1/(1+r))(#)RV is random_variable of F,Borel_Sets by RANDOM_3:7;
+    hence thesis;
+  end;
+end;
+
+definition
+  let Omega, F;
+  let jpi be pricefunction;
+  let G be sequence of set_of_random_variables_on(F,Borel_Sets);
+  let r be Real;
+  pred Risk_neutral_measure_exists_wrt G,jpi,r means
+  ex Prob being Probability of F st
+    for d being Nat holds
+      jpi.d=expect(Real_RV(r,Change_Element_to_Func(G,d)),Prob);
+end;
+
+ reserve Prob for Probability of Special_SigmaField2;
+
+theorem ThArbPrel:
+  for r being Real st r>0 holds
+  for jpi being pricefunction
+  for d being Nat holds
+    ex f being Real-Valued-Random-Variable of Special_SigmaField2 st
+    f = {1,2,3,4} --> (jpi.d*(1+r)) &
+    f is_integrable_on P2M(Prob) &
+    f is_simple_func_in Special_SigmaField2
+proof
+ set F2=Special_SigmaField2;
+ set Omega2={1,2,3,4};
+ let r be Real;
+ assume ASSJ: r>0;
+ let jpi be pricefunction;
+ let d be Nat;
+ deffunc U(Element of Omega2)=In((jpi.d*(1+r)),REAL);
+ consider f being Function of Omega2,REAL such that
+  A1: for d being Element of Omega2 holds f.d=U(d) from FUNCT_2:sch 4;
+ set g=(Omega2-->In((jpi.d*(1+r)),REAL));
+b1: dom f=Omega2 & dom g=Omega2 by FUNCT_2:def 1;
+AA: d in NAT by ORDINAL1:def 12;
+   for x being object st x in dom f holds f.x=g.x
+   proof
+    let x be object; assume x in dom f; then
+    reconsider x as Element of Omega2;
+    f.x=In(jpi.d*(1+r),REAL) by A1;
+    hence thesis;
+   end; then
+ff: f=g by b1; then
+ reconsider f as Real-Valued-Random-Variable of F2 by FINANCE3:10,RANDOM_3:7;
+zz:Omega2 in F2 & dom R_EAL f =Omega2 by PROB_1:5,FUNCT_2:def 1;
+   for x be object st x in dom f holds (R_EAL f).x = In((jpi.d*(1+r)),REAL)
+     by ff,FUNCOP_1:7; then
+ Fin3: f is_simple_func_in F2 by MESFUNC6:2,zz,MESFUNC6:49;
+    reconsider g = f as random_variable of F2,Borel_Sets
+      by ff,FINANCE3:10;
+    reconsider fREAL = R_EAL f as random_variable of F2,Borel_Sets
+      by ff,FINANCE3:10;
+   reconsider FOmega = {1,2,3,4} as Element of F2 by PROB_1:5;
+Q1: FOmega = dom R_EAL f by FUNCT_2:def 1;
+ f is_integrable_on P2M(Prob)
+ proof
+  R_EAL f is_integrable_on P2M(Prob)
+  proof
+   R_EAL f is FOmega-measurable &
+   integral+ (P2M(Prob),(max+ (R_EAL f))) < +infty &
+   integral+ (P2M(Prob),(max- (R_EAL f))) < +infty
+   proof
+    Q2: (R_EAL f) is FOmega-measurable
+    proof
+     for r being Real holds FOmega /\ (less_dom ((R_EAL f),r)) in F2
+     proof
+      let r be Real;
+      set WX = {w where w is Element of Omega2: fREAL.w <r};
+      W1: FOmega /\ (less_dom (fREAL,r)) = WX
+      proof
+        for x being object holds x in FOmega /\ (less_dom (fREAL,r)) iff
+         x in WX
+        proof
+         let x be object;
+         thus x in FOmega /\ (less_dom (fREAL,r)) implies x in WX
+         proof
+          assume x in FOmega /\ (less_dom (fREAL,r));
+          then x in FOmega & x in less_dom(fREAL,r) by XBOOLE_0:def 4;
+          then x in FOmega & (x in dom fREAL & fREAL.x < r) by MESFUNC1:def 11;
+         hence thesis;
+         end;
+          assume x in WX;
+          then x in less_dom(fREAL,r) by FINANCE1:9;
+          then x in dom fREAL & fREAL.x<r by MESFUNC1:def 11;
+          then x in FOmega & x in less_dom (fREAL,r) by MESFUNC1:def 11;
+         hence thesis by XBOOLE_0:def 4;
+        end;
+       hence thesis by TARSKI:2;
+      end;
+      WX = g"].-infty,r.[ in F2
+      proof
+qq1:   for x being object holds x in WX iff x in g"].-infty,r.[
+       proof
+        let x be object;
+        thus x in WX implies x in g"].-infty,r.[
+        proof
+         assume x in WX;
+         then consider w being Element of Omega2 such that
+          YA1: w=x & fREAL.w<r;
+         reconsider x as Element of Omega2 by YA1;
+         -infty<fREAL.x & fREAL.x<r by XXREAL_0:12,YA1;
+         then g.x in ].-infty,r.[ & dom g=Omega2 by FUNCT_2:def 1,XXREAL_1:4;
+        hence thesis by FUNCT_1:def 7;
+        end;
+         assume c0: x in g"].-infty,r.[;
+         then C0: x in dom g & g.x in ].-infty,r.[ by FUNCT_1:def 7;
+         reconsider x as Element of Omega2 by c0;
+         -infty<g.x & g.x<r & g.x=fREAL.x by C0,XXREAL_1:4;
+        hence thesis;
+       end;
+ZZ:    ].-infty,r.[ is Element of Borel_Sets &
+        g is random_variable of F2,Borel_Sets by FINANCE1:3;
+        g is (F2,Borel_Sets)-random_variable-like;
+      hence thesis by qq1,TARSKI:2,ZZ;
+      end;
+     hence thesis by W1;
+     end;
+    hence thesis by MESFUNC1:def 16;
+    end;
+     set fREAL=R_EAL f;
+     set maxfREAL=max+ fREAL;
+U0:   dom maxfREAL = dom fREAL & dom fREAL=Omega2
+       by MESFUNC2:def 2,FUNCT_2:def 1;
+Fin30: maxfREAL is nonnegative
+     proof
+      for x being ExtReal holds x in rng maxfREAL implies 0. <= x
+      proof
+       let x be ExtReal;
+       assume CASS0: x in rng maxfREAL;
+       consider w being object such that
+   W1: w in dom maxfREAL & maxfREAL.w=x by CASS0,FUNCT_1:def 3;
+       thus thesis by W1,MESFUNC2:12;
+       end;
+      hence thesis by SUPINF_2:def 12,SUPINF_2:def 9;
+     end;
+    integral+ (P2M(Prob),(max+ (R_EAL f))) < +infty &
+     integral+ (P2M(Prob),(max- (R_EAL f))) < +infty
+    proof
+    maxfREAL is_simple_func_in F2
+    proof
+      for x be object st x in dom maxfREAL holds
+        maxfREAL.x = In((jpi.d*(1+r)),REAL)
+      proof
+       let x be object;
+       assume x in dom maxfREAL;
+       then reconsider x as Element of Omega2;
+       per cases;
+       suppose 0<=fREAL.x;
+        then S2: max(fREAL.x,0)=fREAL.x by XXREAL_0:def 10;
+        fREAL.x=In((jpi.d*(1+r)),REAL) by ff;
+        hence thesis by U0,MESFUNC2:def 2,S2;
+       end;
+       suppose S1: 0>fREAL.x;
+        0<1+r & 0<=jpi.d by AA,FINANCE1:def 2,ASSJ;
+        hence thesis by S1,ff;
+       end;
+     end;
+    hence thesis by MESFUNC6:2,U0;
+    end;
+    then Schritt1: integral+ (P2M(Prob),(max+ (fREAL)))=
+     integral' (P2M(Prob),(max+ (fREAL))) by MESFUNC5:77,Fin30;
+    reconsider myr = jpi.d*(1+r) as Element of REAL by XREAL_0:def 1;
+     dom(max+ fREAL)=dom fREAL by MESFUNC2:def 2;
+     then y1: dom(max+ fREAL)=[#]Special_SigmaField2 by FUNCT_2:def 1;
+y2:  0<1+r & 0<=jpi.d by AA,FINANCE1:def 2,ASSJ;
+zz1: for x be object st x in dom (max+ fREAL) holds (max+ fREAL).x = myr
+     proof
+      let x be object;
+      assume S: x in dom(max+ fREAL);
+      then reconsider x as Element of Omega2;
+ YY1: (max+ fREAL).x= max(fREAL.x,0) by MESFUNC2:def 2,S;
+      per cases;
+      suppose fREAL.x>=0;
+        then (max+ fREAL).x=fREAL.x by YY1,XXREAL_0:def 10;
+        hence thesis by A1;
+      end;
+      suppose fREAL.x<0;
+        hence thesis by A1,y2;
+      end;
+     end;
+    (P2M(Prob)).(dom max+ fREAL)=1
+    proof
+     dom (max+ fREAL)= dom fREAL by MESFUNC2:def 2;
+     then dom(max+ fREAL)=([#]Special_SigmaField2) by FUNCT_2:def 1;
+     hence thesis by PROB_1:30;
+    end; then
+fin1: integral+ (P2M(Prob),(max+ fREAL))= myr*1
+      by zz1,Schritt1,MESFUNC5:104,y2,y1;
+     set maxmfREAL=max- fREAL;
+YY:  dom maxmfREAL = dom fREAL & dom fREAL=Omega2
+       by MESFUNC2:def 3,FUNCT_2:def 1;
+JFin1: maxmfREAL is nonnegative
+      proof
+       for x being ExtReal holds x in rng maxmfREAL implies 0. <= x
+       proof
+         let x be ExtReal;
+         assume x in rng maxmfREAL; then
+         ex w being object st
+          w in dom maxmfREAL & maxmfREAL.w=x by FUNCT_1:def 3;
+         hence thesis by MESFUNC2:13;
+         end;
+        hence thesis by SUPINF_2:def 12,SUPINF_2:def 9;
+      end;
+U1:  dom maxmfREAL in F2 by YY;
+    integral+ (P2M(Prob),(max- fREAL)) < +infty
+    proof
+FFF: for x be object st x in dom maxmfREAL holds maxmfREAL.x = 0
+     proof
+     let x be object;
+     assume x in dom maxmfREAL;
+     then reconsider x as Element of Omega2;
+QQQ1: -fREAL.x=-jpi.d*(1+r) by A1;
+     set mfREAL = -fREAL.x;
+     0<(1+r) & 0<=jpi.d by AA,FINANCE1:def 2,ASSJ; then
+QQQ3: max(-(fREAL.x),0)=0 by XXREAL_0:def 10,QQQ1;
+      dom (max- fREAL)=dom fREAL & dom fREAL=Omega2
+        by MESFUNC2:def 3,FUNCT_2:def 1;
+      hence thesis by QQQ3,MESFUNC2:def 3;
+     end; then
+     Schritt1: integral+ (P2M(Prob),(max- (fREAL)))=
+     integral' (P2M(Prob),(max- (fREAL))) by MESFUNC5:77,JFin1,MESFUNC6:2,U1;
+aq2: dom maxmfREAL = dom fREAL & dom fREAL=Omega2
+       by MESFUNC2:def 3,FUNCT_2:def 1;
+     integral+ (P2M(Prob),(max- fREAL))=
+     0 * (P2M(Prob)). (dom (max- fREAL))
+       by Schritt1,MESFUNC5:104,aq2,FFF;
+    hence thesis;
+    end;
+    hence thesis by fin1,XXREAL_0:9;
+    end;
+   hence thesis by Q2;
+   end;
+  hence thesis by Q1;
+  end;
+ hence thesis;
+ end;
+hence thesis by ff,Fin3;
+end;
+
+theorem ThArb:
+  for n being Nat
+  for r being Real st r>0 holds
+  for jpi being pricefunction
+  for d being Nat
+  for RV being Real-Valued-Random-Variable of Special_SigmaField2 st
+     RV={1,2,3,4}-->(jpi.d*(1+r)) &
+     RV is_integrable_on P2M(Prob) &
+     RV is_simple_func_in Special_SigmaField2 holds
+       jpi.d=expect(Real_RV(r,RV),Prob)
+proof
+let n be Nat;
+set Omega2={1,2,3,4};
+set F2=Special_SigmaField2;
+let r be Real;
+assume A00: r>0;
+let jpi be pricefunction;
+let d be Nat;
+let RV be Real-Valued-Random-Variable of F2;
+assume ASS0: RV=Omega2-->jpi.d*(1+r) &
+             RV is_integrable_on P2M(Prob) &
+             RV is_simple_func_in F2;
+set myconst=1/(1+r);
+Z1: expect(Real_RV(r,RV),Prob) = myconst*expect(RV,Prob)
+ by ASS0,RANDOM_1:def 2,RANDOM_1:27;
+B1: expect(RV,Prob)=Integral (P2M(Prob),RV)
+  by ASS0,RANDOM_1:def 2,def 3;
+reconsider FOmega = Omega2 as Element of F2 by PROB_1:5;
+ D1: FOmega=dom RV by FUNCT_2:def 1;
+SS: R_EAL RV=RV & RV is nonnegative
+ proof
+  for x being ExtReal holds x in rng RV implies 0. <= x
+  proof
+   let x be ExtReal;
+   assume CASS0: x in rng RV;
+   consider w being object such that
+    W1: w in dom RV & RV.w=x by CASS0,FUNCT_1:def 3;
+   reconsider w as Element of Omega2 by W1;
+   0<=RV.w
+   proof
+    d in NAT by ORDINAL1:def 12; then
+    0<=jpi.d by FINANCE1:def 2;
+    hence thesis by ASS0,A00;
+   end;
+  hence thesis by W1;
+  end;
+ hence thesis by SUPINF_2:def 12,SUPINF_2:def 9;
+ end; then
+  expect(RV,Prob)= integral+ (P2M(Prob),(R_EAL RV))
+    by D1,B1,MESFUNC6:82;
+then Q3: expect(RV,Prob)= integral' (P2M(Prob),(R_EAL RV)) by
+ MESFUNC5:77,MESFUNC6:49,ASS0,SS;
+set myr=jpi.d*(1+r);
+d in NAT by ORDINAL1:def 12; then
+TT: 0<=jpi.d by FINANCE1:def 2;
+(for x being object st x in dom (R_EAL RV) holds (R_EAL RV).x=myr) &
+dom (R_EAL RV) in F2 & 0<=myr by ASS0,FUNCOP_1:7,TT,A00;
+then Q4: expect(RV,Prob)=myr*(P2M(Prob)).(dom (R_EAL RV)) by Q3,MESFUNC5:104;
+ dom (R_EALRV)=Omega2 & Omega2=[#]F2 by FUNCT_2:def 1; then
+expect(RV,Prob)=myr*1 by Q4,PROB_1:30;
+then Spec: expect(Real_RV(r,RV),Prob)=jpi.d*((1/(1+r))*(1+r)) by Z1;
+1=1*(1+r)*(1+r)" by XCMPLX_1:203,A00;
+hence thesis by Spec;
+end;
+
+theorem
+  for r being Real st r>0 holds
+  for jpi being pricefunction holds
+  ex G being sequence of
+      set_of_random_variables_on(Special_SigmaField2,Borel_Sets) st
+  (for d being Nat holds
+  G.d = ({1,2,3,4}-->(jpi.d*(1+r))) &
+      Change_Element_to_Func(G,d) is_integrable_on P2M(Prob) &
+      Change_Element_to_Func(G,d) is_simple_func_in Special_SigmaField2)
+proof
+ let r be Real;
+ assume A1: r>0;
+ let jpi be pricefunction;
+ deffunc U(Nat) = RVfourth(jpi,r,$1);
+ consider g being sequence of
+  set_of_random_variables_on(Special_SigmaField2,Borel_Sets) such that
+   A2: for d being Element of NAT holds g.d=U(d) from FUNCT_2:sch 4;
+   take g;
+ let d be Nat;
+ d in NAT by ORDINAL1:def 12; then
+b1: Change_Element_to_Func(g,d)=RVfourth(jpi,r,d) by A2;
+ ex RV being Real-Valued-Random-Variable of Special_SigmaField2 st
+ RV=({1,2,3,4}-->In((jpi.d*(1+r)),REAL)) &
+     RV is_integrable_on P2M(Prob) &
+     RV is_simple_func_in Special_SigmaField2 by A1,ThArbPrel;
+ hence thesis by b1;
+end;
+
+theorem
+  for r being Real st r>0 holds
+  for jpi being pricefunction
+  for G being sequence of
+      set_of_random_variables_on(Special_SigmaField2,Borel_Sets) st
+  for d being Nat holds
+      G.d = ({1,2,3,4} --> (jpi.d*(1+r))) &
+      Change_Element_to_Func(G,d) is_integrable_on P2M(Prob) &
+      Change_Element_to_Func(G,d) is_simple_func_in Special_SigmaField2 holds
+  (Risk_neutral_measure_exists_wrt G,jpi,r &
+  for s being Nat holds
+    jpi.s = expect(Real_RV(r,Change_Element_to_Func(G,s)),Prob))
+proof
+ let r be Real;
+ assume A0: r>0;
+ let jpi be pricefunction;
+ let G be sequence of
+    set_of_random_variables_on(Special_SigmaField2,Borel_Sets);
+ assume A01: for d being Nat holds
+      G.d = ({1,2,3,4}-->(jpi.d*(1+r))) &
+      Change_Element_to_Func(G,d) is_integrable_on P2M(Prob) &
+      Change_Element_to_Func(G,d) is_simple_func_in Special_SigmaField2;
+ for s being Nat holds jpi.s=
+  expect(Real_RV(r,Change_Element_to_Func(G,s)),Prob)
+ proof
+  let s be Nat;
+  set RV=Change_Element_to_Func(G,s);
+  RV=(({1,2,3,4}-->In((jpi.s*(1+r)),REAL))) &
+  RV is_integrable_on P2M(Prob) &
+  RV is_simple_func_in Special_SigmaField2 by A01;
+  hence thesis by A0,ThArb;
+ end;
+ hence thesis;
+end;
+

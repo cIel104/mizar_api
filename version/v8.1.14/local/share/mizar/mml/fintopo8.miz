@@ -1,0 +1,2248 @@
+:: A Case Study of Transport Urysohn's Lemma from TopSpace Defined with 
+:: Open Sets to TopSpace Defined with Neighborhoods
+::  by Roland Coghetto
+:: 
+:: Received October 25, 2020
+:: Copyright (c) 2020-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies XBOOLE_0, SUBSET_1, FUNCT_1, RELAT_1, CARD_FIL, STRUCT_0,
+      PRE_TOPC, RCOMP_1, ORDINAL2, ZFMISC_1, PCOMPS_1, FINTOPO7, FUNCOP_1,
+      FINTOPO2, TARSKI, CARDFIL2, TOPS_1, TMAP_1, SETFAM_1, CONNSP_2, NATTRA_1,
+      TOPMETR, REAL_1, XXREAL_0, CARD_1, MEMBERED, XREAL_0, XXREAL_1, ARYTM_1,
+      ARYTM_3, RLVECT_3, CANTOR_1, NUMBERS, METRIC_1, FRECHET, FILTER_0, NAT_1,
+      FINTOPO8;
+ notations FUNCT_2, NUMBERS, SUBSET_1, TARSKI, FUNCT_1, RELSET_1, XBOOLE_0,
+      STRUCT_0, CARD_FIL, FINTOPO2, ZFMISC_1, PRE_TOPC, CARDFIL2, CONNSP_2,
+      TOPS_1, TDLAT_3, XREAL_0, TOPMETR, XXREAL_0, XCMPLX_0, RCOMP_1, TOPS_2,
+      CANTOR_1, FINTOPO7, METRIC_1, PCOMPS_1, ORDINAL1, FRECHET;
+ constructors CARDFIL2, FINTOPO7, TOPS_1, TDLAT_3, SUPINF_2, TOPMETR, FUNCOP_1,
+      RCOMP_1, TOPS_2, CANTOR_1, FRECHET, YELLOW_8;
+ registrations MEMBERED, TOPMETR, VALUED_0, YELLOW13, STRUCT_0, PRE_TOPC,
+      TOPS_1, FINTOPO7, SUBSET_1, RELSET_1, FUNCT_2, TEX_1, XREAL_0, CANTOR_1,
+      METRIC_1, PCOMPS_1, ORDINAL1, FRECHET, ZFMISC_1;
+ requirements ARITHM, NUMERALS, SUBSET, BOOLE, REAL;
+ definitions TARSKI;
+ equalities STRUCT_0, XBOOLE_0;
+ expansions TARSKI, SUBSET_1, XBOOLE_0;
+ theorems XREAL_0, URYSOHN1, PRE_TOPC, FINTOPO7, FUNCOP_1, CARDFIL2, XBOOLE_0,
+      CARD_FIL, FUNCT_2, RELAT_1, FUNCT_1, TARSKI, XBOOLE_1, CONNSP_2, TOPS_1,
+      URYSOHN3, TOPMETR, MEMBERED, FRECHET, TOPGEN_5, JORDAN6, CANTOR_1,
+      TOPREAL6, XREAL_1, XXREAL_0, METRIC_1, NAT_1, INTEGRA6, FINTOPO2;
+ schemes FUNCT_2;
+
+begin :: Some trivial results in TopSpace
+
+reserve T   for TopSpace,
+        A,B for Subset of T;
+
+theorem Th1:
+  A misses B implies Int A misses Int B
+  proof
+    assume
+A1: A misses B;
+    Int A c= A & Int B c= B by TOPS_1:16;
+    then Int A /\ Int B c= {} by A1,XBOOLE_1:27;
+    hence thesis;
+  end;
+
+begin :: Some redefinitions: NTopSpace
+
+definition
+  mode NTopSpace is FMT_TopSpace;
+end;
+
+notation
+  let X be non empty TopSpace;
+  synonym Top2NTop X for TopSpace2FMT X;
+end;
+
+notation
+  let X be FMT_TopSpace;
+  synonym NTop2Top X for FMT2TopSpace X;
+end;
+
+begin :: Alignment of concepts between TopSpace and NTopSpace
+
+Lm1:
+  for TX being non empty TopSpace for O being open Subset of TX holds
+  O is open Subset of Top2NTop TX
+  proof
+    let TX be non empty TopSpace;
+    let O be open Subset of TX;
+    O in the topology of TX by PRE_TOPC:def 2;
+    then O in Family_open_set(Top2NTop TX) by FINTOPO7:def 15;
+    then O in the set of all OO where OO is open Subset of Top2NTop TX
+      by FINTOPO7:def 11;
+    then ex OO be open Subset of Top2NTop TX st O = OO;
+    hence thesis;
+  end;
+
+Lm2:
+  for NTX being non empty NTopSpace holds
+  [#]NTX is open & {} NTX is open
+  proof
+    let NTX be NTopSpace;
+    reconsider X = NTop2Top NTX as non empty TopSpace;
+    now
+      thus [#] NTX = the carrier of NTop2Top NTX by FINTOPO7:def 16;
+      thus {} NTX = {} NTop2Top NTX;
+      the carrier of NTop2Top NTX in the topology of NTop2Top NTX
+        by PRE_TOPC:def 1;
+      hence the carrier of NTop2Top NTX is open Subset of NTop2Top NTX
+        by PRE_TOPC:def 2;
+    end;
+    then reconsider S1 = [#] NTX, S2 = {} NTX as open Subset of X;
+    Top2NTop X = NTX by FINTOPO7:25;
+    then S1 is open Subset of NTX & S2 is open Subset of NTX by Lm1;
+    hence thesis;
+  end;
+
+registration
+  let NTX be non empty NTopSpace;
+  cluster [#] NTX -> open;
+  coherence by Lm2;
+  cluster {} NTX -> open;
+  coherence by Lm2;
+end;
+
+definition
+  let NTX be U_FMT_filter non empty strict FMT_Space_Str;
+  let x   be Element of NTX;
+  redefine func U_FMT x -> Filter of the carrier of NTX;
+  coherence by FINTOPO7:def 2;
+end;
+
+definition
+  let NTX be U_FMT_filter non empty strict FMT_Space_Str;
+  let F   be Filter of the carrier of NTX;
+  func lim_filter F -> Subset of NTX equals
+  {x where x is Point of NTX: F is_filter-finer_than U_FMT x};
+  correctness
+  proof
+    set S = {x where x is Point of NTX: F is_filter-finer_than U_FMT x};
+    now
+      let x be object;
+      assume x in S;
+      then ex y be Point of NTX st x = y & F is_filter-finer_than U_FMT y;
+      hence x in the carrier of NTX;
+    end;
+    then S c= the carrier of NTX;
+    hence thesis;
+  end;
+end;
+
+definition
+  let NTX,NTY be U_FMT_filter non empty strict FMT_Space_Str,
+      f       be Function of NTX,NTY,
+      F       be Filter of the carrier of NTX;
+  func lim_filter(f,F) -> Subset of NTY equals
+   lim_filter filter_image(f,F);
+  coherence;
+ end;
+
+definition
+  let NT be NTopSpace;
+  let A  be Subset of NT;
+  let x  be Point of NT;
+  pred x is_interior_point_of A means
+  A is a_neighborhood of x;
+end;
+
+definition
+  let NT be NTopSpace;
+  let A  be Subset of NT;
+  let x  be Point of NT;
+  pred x is_adherent_point_of A means
+  for V be Element of U_FMT x holds V meets A;
+end;
+
+definition
+  let NT be NTopSpace;
+  let A  be Subset of NT;
+  func Int A -> Subset of NT equals
+  {x where x is Point of NT: x is_interior_point_of A};
+  coherence
+  proof
+    set S = {x where x is Point of NT: x is_interior_point_of A};
+    S c= the carrier of NT
+    proof
+      let o be object;
+      assume o in S;
+      then ex x be Point of NT st o = x & x is_interior_point_of A;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let NTX,NTY be NTopSpace,
+      f       be Function of NTX,NTY,
+      x       be Point of NTX;
+  pred f is_continuous_at x means
+  for F being Filter of the carrier of NTX st x in lim_filter F holds
+  f.x in lim_filter(f,F);
+end;
+
+definition
+  let NTX,NTY be NTopSpace,
+      f       be Function of NTX,NTY;
+  attr f is continuous means
+  for x being Point of NTX holds f is_continuous_at x;
+end;
+
+Lm3:
+  for NTX,NTY being NTopSpace, a being Point of NTY holds
+  NTX --> a is continuous
+  proof
+    let NTX,NTY be NTopSpace;
+    let a be Point of NTY;
+    set f = NTX --> a;
+    now
+      thus dom f = the carrier of NTX by FUNCOP_1:13;
+      hereby
+        let x be Point of NTX;
+        now
+          let F be Filter of the carrier of NTX;
+          assume x in lim_filter F;
+          {M where M is Subset of NTY: f"M in F}
+            = {M where M is Subset of NTY: a in M}
+          proof
+            set S1 = {M where M is Subset of NTY: f"M in F},
+                S2 = {M where M is Subset of NTY: a in M};
+            now
+              now
+                let x be object;
+                assume x in S1;
+                then consider M be Subset of NTY such that
+ A1:            x = M and
+ A2:            f"M in F;
+                (a in M implies f"M = the carrier of NTX) &
+                  (not a in M implies f"M = {}) & not {} in F
+                  by FUNCOP_1:14,16,CARD_FIL:def 1;
+                hence x in S2 by A1,A2;
+              end;
+              hence S1 c= S2;
+              now
+                let x be object;
+                assume x in S2;
+                then consider M be Subset of NTY such that
+A3:             x = M and
+A4:             a in M;
+                (a in M implies f"M = the carrier of NTX) &
+                  the carrier of NTX in F by FUNCOP_1:14,CARD_FIL:5;
+                hence x in S1 by A3,A4;
+              end;
+              hence S2 c= S1;
+            end;
+            hence thesis;
+          end;
+          then
+A5:       filter_image(f,F) = {M where M is Subset of NTY: a in M}
+            by CARDFIL2:def 13;
+          reconsider S3 = {M where M is Subset of NTY: a in M}
+            as Filter of the carrier of NTY by A5;
+          set S4 = {y where y is Point of NTY:
+                     S3 is_filter-finer_than U_FMT y};
+          U_FMT a c= S3
+          proof
+            now
+              let x be object;
+              assume
+A6:           x in U_FMT a;
+              then reconsider y = x as Subset of NTY;
+              a in y by A6,FINTOPO7:def 3;
+              hence x in S3;
+            end;
+            hence thesis;
+          end;
+          then S3 is_filter-finer_than U_FMT a by CARDFIL2:def 6;
+          then a in S4;
+          hence f.x in lim_filter(f,F) by FUNCOP_1:7,A5;
+        end;
+        hence f is_continuous_at x;
+      end;
+    end;
+    hence NTX --> a is continuous;
+  end;
+
+registration
+  let NTX,NTY be NTopSpace;
+  cluster continuous for Function of NTX,NTY;
+  existence
+  proof
+    set a = the Point of NTY;
+    NTX --> a is continuous by Lm3;
+    hence thesis;
+  end;
+end;
+
+Lm4:
+  for NT being NTopSpace
+  for A being Subset of NT
+  for x being Point of NT holds
+  (x is_interior_point_of A iff
+  ex O be open Subset of NT st x in O & O c= A)
+  proof
+    let NT be NTopSpace;
+    let A be Subset of NT;
+    let x be Point of NT;
+    now
+      assume ex O be open Subset of NT st x in O & O c= A;
+      then consider O be open Subset of NT such that
+A1:   x in O and
+A2:   O c= A;
+      O in U_FMT x & U_FMT x is Filter of the carrier of NT
+        by A1,FINTOPO7:def 1;
+      then A in U_FMT x by A2,CARD_FIL:def 1;
+      hence x is_interior_point_of A by FINTOPO7:def 5;
+    end;
+    hence thesis by FINTOPO7:15;
+  end;
+
+Lm5:
+  for NT being NTopSpace
+  for A being Subset of NT holds
+  Int A = union {O where O is open Subset of NT: O c= A}
+  proof
+    let NT be NTopSpace;
+    let A be Subset of NT;
+    set B = union {O where O is open Subset of NT: O c= A};
+    now
+      now
+        let o be object;
+        assume o in Int A;
+        then consider x be Point of NT such that
+A1:     o = x and
+A2:     x is_interior_point_of A;
+        consider O be open Subset of NT such that
+A3:     x in O and
+A4:     O c= A by A2,Lm4;
+        O in {O where O is open Subset of NT: O c= A} by A4;
+        hence o in B by A1,A3,TARSKI:def 4;
+      end;
+      hence Int A c= B;
+      now
+        let o be object;
+        assume o in B;
+        then consider X be set such that
+A5:     o in X and
+A6:     X in {O where O is open Subset of NT: O c= A} by TARSKI:def 4;
+        consider O be open Subset of NT such that
+A7:     X = O and
+A8:     O c= A by A6;
+        reconsider x = o as Point of NT by A5,A7;
+        x is_interior_point_of A by A5,A7,A8,Lm4;
+        hence o in Int A;
+      end;
+      hence B c= Int A;
+    end;
+    hence thesis;
+  end;
+
+registration
+  let NT be NTopSpace;
+  let A  be Subset of NT;
+  cluster Int A -> open;
+  coherence
+  proof
+    set a = {O where O is open Subset of NT: O c= A};
+    now
+      let o be object;
+      assume o in a;
+      then ex O be open Subset of NT st o = O & O c= A;
+      hence o in bool the carrier of NT;
+    end;
+    then a c= bool the carrier of NT;
+    then reconsider a as Subset-Family of NT;
+    now
+      let o be object;
+      assume o in a;
+      then consider O be open Subset of NT such that
+A1:   o = O and O c= A;
+      O in the set of all O where O is open Subset of NT;
+      hence o in Family_open_set(NT) by A1,FINTOPO7:def 11;
+    end;
+    then a c= Family_open_set(NT);
+    then union a in Family_open_set(NT) by FINTOPO7:14;
+    then union a in the set of all O where O is open Subset of NT
+      by FINTOPO7:def 11;
+    then ex O be open Subset of NT st union a = O;
+    hence thesis by Lm5;
+  end;
+end;
+
+definition
+  let NT be NTopSpace;
+  let A  be Subset of NT;
+  func Cl A -> Subset of NT equals
+  {x where x is Point of NT: x is_adherent_point_of A};
+  coherence
+  proof
+    set S = {x where x is Point of NT: x is_adherent_point_of A};
+    S c= the carrier of NT
+    proof
+      let o be object;
+      assume o in S;
+      then ex x be Point of NT st o = x & x is_adherent_point_of A;
+      hence thesis;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let NTX be NTopSpace;
+  let A   be Subset of NTX;
+  attr A is closed means
+:Def9:
+  ([#] NTX) \ A is open Subset of NTX;
+end;
+
+registration
+  let NTX be NTopSpace;
+  cluster closed for Subset of NTX;
+  existence
+  proof
+    [#] NTX = [#] NTX \ {} NTX;
+    hence thesis by Def9;
+  end;
+end;
+
+registration
+  let NTX be NTopSpace;
+  cluster [#] NTX -> closed for Subset of NTX;
+  coherence
+  proof
+    [#] NTX \ [#] NTX = {} NTX by XBOOLE_1:37;
+    hence thesis;
+  end;
+  cluster {} NTX -> closed for Subset of NTX;
+  coherence;
+end;
+
+registration
+  let NTX be NTopSpace;
+  cluster non empty closed for Subset of NTX;
+  existence
+  proof
+    [#] NTX is non empty & [#] NTX is closed;
+    hence thesis;
+  end;
+end;
+
+definition
+  let S,T be non empty TopSpace;
+  let f   be Function of S,T;
+  func Top2NTop f -> Function of Top2NTop S,Top2NTop T equals f;
+  coherence
+  proof
+    the carrier of S = the carrier of Top2NTop S &
+    the carrier of T = the carrier of Top2NTop T by FINTOPO7:def 15;
+    hence thesis;
+  end;
+end;
+
+Lm6:
+  for NT being NTopSpace
+  for A, B being Subset of NT st B = [#]NT \ A holds
+  A is open iff B is closed
+  proof
+    let NT be NTopSpace;
+    let A, B be Subset of NT;
+    assume
+A1: B = [#] NT \ A;
+    now
+      hereby
+        assume
+A2:     A is open;
+        [#] NT \ B = [#] NT /\ A by A1,XBOOLE_1:48
+                  .= A by XBOOLE_1:28;
+        hence B is closed by A2;
+      end;
+      hereby
+        assume
+A3:     B is closed;
+        then reconsider NB = [#]NT \ B as Subset of NT;
+        NB = [#] NT /\ A by A1,XBOOLE_1:48
+          .= A by XBOOLE_1:28;
+        hence A is open by A3;
+      end;
+    end;
+    hence thesis;
+  end;
+
+Lm7:
+  for TX being non empty TopSpace for F being closed Subset of TX holds
+  F is closed Subset of Top2NTop TX
+  proof
+    let TX be non empty TopSpace;
+    let F be closed Subset of TX;
+    set NTX = Top2NTop TX;
+A1: [#]NTX = [#] TX by FINTOPO7:def 15;
+    reconsider O = [#]TX \ F as open Subset of TX by PRE_TOPC:def 3;
+    reconsider NO = O as open Subset of NTX by Lm1;
+    [#]NTX \ NO = [#]NTX /\ F by A1,XBOOLE_1:48
+               .= F by A1,XBOOLE_1:28;
+    hence thesis by Lm6,FINTOPO7:def 15;
+  end;
+
+Lm8:
+  for NT being NTopSpace
+  for A, B being Subset of NT st A = [#]NT \ B holds
+  A is open iff B is closed;
+
+Lm9:
+  for NTX being NTopSpace for O being open Subset of NTX holds
+  O is open Subset of NTop2Top NTX
+  proof
+    let NTX be NTopSpace;
+    let O be open Subset of NTX;
+    O in the set of all OO where OO is open Subset of NTX;
+    then O in Family_open_set(NTX) by FINTOPO7:def 11;
+    then O in the topology of NTop2Top NTX by FINTOPO7:def 16;
+    hence thesis by PRE_TOPC:def 2;
+  end;
+
+
+Lm10:
+  for NTX being NTopSpace for F being closed Subset of NTX holds
+  F is closed Subset of NTop2Top NTX
+  proof
+    let NTX be NTopSpace;
+    let F be closed Subset of NTX;
+    reconsider TX = NTop2Top NTX as non empty TopSpace;
+A1: [#]NTX = [#] TX by FINTOPO7:def 16;
+    reconsider O = [#] NTX \ F as Subset of NTX by XBOOLE_1:36;
+    reconsider O as open Subset of NTX by Lm8;
+    reconsider NO = O as open Subset of TX by Lm9;
+    reconsider NF = [#] TX \ NO as Subset of TX by XBOOLE_1:36;
+A2: [#] TX \ NF = [#]TX /\ NO by XBOOLE_1:48
+               .= NO by XBOOLE_1:28;
+    [#]TX \ NO = [#]TX /\ F by A1,XBOOLE_1:48
+              .= F by A1,XBOOLE_1:28;
+    hence thesis by A2,PRE_TOPC:def 3;
+  end;
+
+Lm11:
+  for NTX,NTY being NTopSpace
+  for x being Point of NTX
+  for y being Point of NTY
+  for f being Function of NTX,NTY st f is_continuous_at x & y = f.x holds
+  (for V being Element of U_FMT y ex W being Element of U_FMT x st f.:W c= V)
+  proof
+    let NTX,NTY be NTopSpace;
+    let x be Point of NTX;
+    let y be Point of NTY;
+    let f be Function of NTX,NTY;
+    assume that
+A1: f is_continuous_at x and
+A2: y = f.x;
+    U_FMT x is Filter of the carrier of NTX & x in lim_filter(U_FMT x);
+    then f.x in lim_filter(f,U_FMT x) by A1;
+    then consider z be Point of NTY such that
+A3: f.x = z and
+A4: filter_image(f,U_FMT x) is_filter-finer_than U_FMT z;
+A5: U_FMT y c= filter_image(f,U_FMT x) by A3,A4,A2,CARDFIL2:def 6;
+    for V be Element of U_FMT y holds ex W be Element of U_FMT x st f.:W c= V
+    proof
+      let V be Element of U_FMT y;
+      V in filter_image(f,U_FMT x) by A5;
+      then V in {M where M is Subset of NTY: f"(M) in U_FMT x}
+        by CARDFIL2:def 13;
+      then consider M be Subset of NTY such that
+A6:   V = M and
+A7:   f"M in U_FMT x;
+      set W = f"M;
+      f.:W c= M by FUNCT_1:75;
+      hence thesis by A6,A7;
+    end;
+    hence thesis;
+  end;
+
+Lm12:
+  for NTX,NTY being NTopSpace
+  for A being Subset of NTX
+  for B being Subset of NTY
+  for x being Point of NTX
+  for y being Point of NTY
+  for f being Function of NTX,NTY st f is_continuous_at x &
+  x is_adherent_point_of A & y = f.x & B = f.:A holds y is_adherent_point_of B
+  proof
+    let NTX,NTY be NTopSpace;
+    let A be Subset of NTX;
+    let B be Subset of NTY;
+    let x be Point of NTX;
+    let y be Point of NTY;
+    let f be Function of NTX,NTY;
+    assume that
+A1: f is_continuous_at x and
+A2: x is_adherent_point_of A and
+A3: y = f.x and
+A4: B = f.:A;
+    now
+      let V be Element of U_FMT y;
+      consider W be Element of U_FMT x such that
+A5:   f.:W c= V by A1,A3,Lm11;
+A6:   f.:f"V c= V by FUNCT_1:75;
+      now
+        now
+          dom f = the carrier of NTX by FUNCT_2:def 1;
+          hence W c= f"(f.:W) by FUNCT_1:76;
+          thus W in U_FMT x;
+          thus U_FMT x is Filter of the carrier of NTX;
+        end;
+        hence f"(f.:W) in U_FMT x by CARD_FIL:def 1;
+        thus f"(f.:W) c= f"V by A5,RELAT_1:143;
+      end;
+      then f"V in U_FMT x by CARD_FIL:def 1;
+      then f"V meets A by A2;
+      then f"V /\ A is non empty;
+      then consider a be object such that A7: a in f"V /\ A;
+      now
+        dom f = the carrier of NTX & a in A
+          by A7,XBOOLE_0:def 4,FUNCT_2:def 1;
+        hence a in dom f;
+        thus a in f"V by A7,XBOOLE_0:def 4;
+      end;
+      then
+A8:   f.a in f.:f"V by FUNCT_1:def 6;
+      dom f = the carrier of NTX & a in A by A7,XBOOLE_0:def 4,FUNCT_2:def 1;
+      then f.a in f.:A by FUNCT_1:def 6;
+      hence V meets B by A4,A8,A6,XBOOLE_0:def 4;
+    end;
+    hence thesis;
+  end;
+
+Lm13:
+  for NTX,NTY being NTopSpace
+  for A being Subset of NTX
+  for f being continuous Function of NTX,NTY
+  holds f.:(Cl A) c= Cl(f.:A)
+  proof
+    let NTX,NTY be NTopSpace;
+    let A be Subset of NTX;
+    let f be continuous Function of NTX,NTY;
+    now
+      let o be object;
+      assume o in f.:(Cl A);
+      then consider x be object such that
+A1:   x in dom f and
+A2:   x in Cl A and
+A3:   o = f.x by FUNCT_1:def 6;
+      consider x9 be Point of NTX such that
+A4:   x = x9 and
+A5:   x9 is_adherent_point_of A by A2;
+      f.x in rng f by A1,FUNCT_1:3;
+      then reconsider y = f.x as Point of NTY;
+      f is continuous;
+      then y is_adherent_point_of f.:A by A4,A5,Lm12;
+      hence o in Cl(f.:A) by A3;
+    end;
+    hence thesis;
+  end;
+
+Lm14:
+  for NT being NTopSpace
+  for A, B being Subset of NT st B = [#] NT \ A holds
+  [#] NT \ Cl A = Int B
+  proof
+    let NT be NTopSpace;
+    let A,B be Subset of NT;
+    assume
+A1: B = [#] NT \ A;
+    now
+      now
+        let o be object;
+        assume
+A2:     o in [#] NT \ Cl A;
+        then
+A3:     o in [#] NT & not o in Cl A by XBOOLE_0:def 5;
+        reconsider x = o as Point of NT by A2,XBOOLE_0:def 5;
+        not x is_adherent_point_of A by A3;
+        then consider V be Element of U_FMT x such that
+A4:     not V meets A;
+        reconsider V as Subset of NT;
+        now
+          let x be object;
+          assume
+A5:       x in V;
+          not x in A by A4,A5,XBOOLE_0:def 4;
+          hence x in [#] NT \ A by A5,XBOOLE_0:def 5;
+        end;
+        then
+A6:     V c= [#] NT \ A;
+        reconsider NA = [#] NT \ A as Subset of NT by XBOOLE_1:36;
+        NA in U_FMT x by A6,CARD_FIL:def 1;
+        then x is_interior_point_of NA by FINTOPO7:def 5;
+        hence o in Int B by A1;
+      end;
+      hence [#]NT \ Cl A c= Int B;
+      now
+        let o be object;
+        assume o in Int B;
+        then consider x be Point of NT such that
+A7:     o = x and
+A8:     x is_interior_point_of B;
+A9:     B in U_FMT x by A8,FINTOPO7:def 5;
+        not x in {x where x is Point of NT: x is_adherent_point_of A}
+        proof
+          assume x in {x where x is Point of NT: x is_adherent_point_of A};
+          then consider y be Point of NT such that
+A10:      x = y and
+A11:      y is_adherent_point_of A;
+          ex z be object st z in B & z in A by A9,A10,A11,XBOOLE_0:3;
+          hence contradiction by A1,XBOOLE_0:def 5;
+        end;
+        hence o in [#] NT \ Cl A by A7,XBOOLE_0:def 5;
+      end;
+      hence Int B c=[#]NT \ Cl A;
+    end;
+    hence [#] NT \ Cl A = Int B;
+  end;
+
+Lm15:
+  for NT being NTopSpace
+  for A being Subset of NT holds
+  Int A c= A
+  proof
+    let NT be NTopSpace;
+    let A be Subset of NT;
+A1: Int A = union {O where O is open Subset of NT: O c= A} by Lm5;
+    now
+      let o be object;
+      assume o in Int A;
+      then consider X be set such that
+A2:   o in X and
+A3:   X in {O where O is open Subset of NT: O c= A} by A1,TARSKI:def 4;
+      consider O be open Subset of NT such that
+A4:   X = O and
+A5:   O c= A by A3;
+      thus o in A by A2,A4,A5;
+    end;
+    hence thesis;
+  end;
+
+Lm16:
+  for NT being NTopSpace
+  for A being Subset of NT
+  for B being open Subset of NT st B c= A holds B c= Int A
+  proof
+    let NT be NTopSpace;
+    let A be Subset of NT;
+    let B be open Subset of NT;
+    set C = {O where O is open Subset of NT: O c= A};
+    assume B c= A;
+    then
+A1: B in C;
+    Int A = union C by Lm5;
+    hence thesis by A1,TARSKI:def 4;
+  end;
+
+Lm17:
+  for NT being NTopSpace
+  for A, B being Subset of NT st A c= B holds Int A c= Int B
+  proof
+    let NT be NTopSpace;
+    let A, B be Subset of NT;
+    assume
+A1: A c= B;
+    Int A c= A by Lm15;
+    then Int A c= B by A1;
+    hence thesis by Lm16;
+  end;
+
+Lm18:
+  for NT being NTopSpace
+  for A,B being Subset of NT st A c= B holds Cl A c= Cl B
+  proof
+    let NT be NTopSpace;
+    let A,B be Subset of NT;
+    assume
+A1: A c= B;
+    reconsider NCA = [#] NT \ Cl A as Subset of NT by XBOOLE_1:36;
+    reconsider NCB = [#] NT \ Cl B as Subset of NT by XBOOLE_1:36;
+    reconsider NA = [#] NT \ A as Subset of NT by XBOOLE_1:36;
+    reconsider NB = [#] NT \ B as Subset of NT by XBOOLE_1:36;
+    NB c= NA & NCA = Int NA & NCB = Int NB by Lm14,A1,XBOOLE_1:34;
+    then
+A2: NCB c= NCA by Lm17;
+    now
+      thus Cl A = [#] NT /\ Cl A by XBOOLE_1:28
+               .= [#] NT \ NCA by XBOOLE_1:48;
+      thus Cl B = [#] NT /\ Cl B by XBOOLE_1:28
+               .= [#] NT \ NCB by XBOOLE_1:48;
+    end;
+    hence thesis by A2,XBOOLE_1:34;
+  end;
+
+Lm19:
+  for NT being NTopSpace
+  for A being Subset of NT holds
+  (A is open iff Int A = A)
+  proof
+    let NT be NTopSpace;
+    let A be Subset of NT;
+    hereby
+      assume
+A1:   A is open;
+A2:   Int A = union {O where O is open Subset of NT: O c= A} by Lm5;
+      now
+        let o be object;
+        assume
+A3:     o in A;
+        A in {O where O is open Subset of NT: O c= A} by A1;
+        hence o in Int A by A2,A3,TARSKI:def 4;
+      end;
+      then A c= Int A;
+      hence Int A = A by Lm15;
+    end;
+    assume Int A = A;
+    hence A is open;
+  end;
+
+Lm20:
+  for NTX being NTopSpace
+  for A being closed Subset of NTX holds Cl A = A
+  proof
+    let NTX be NTopSpace;
+    let A be closed Subset of NTX;
+    reconsider NA = ([#] NTX \ A) as open Subset of NTX by Def9;
+    Cl A = [#] NTX /\ Cl A by XBOOLE_1:28
+        .= [#] NTX \ ([#] NTX \ Cl A) by XBOOLE_1:48
+        .= [#] NTX \ Int NA by Lm14
+        .= [#] NTX \ NA by Lm19
+        .= [#] NTX /\ A by XBOOLE_1:48
+        .= A by XBOOLE_1:28;
+    hence thesis;
+  end;
+
+Lm21:
+  for NT being NTopSpace
+  for A being Subset of NT holds
+  A c= Cl A
+  proof
+    let NT be NTopSpace;
+    let A be Subset of NT;
+    reconsider NCA = [#]NT \ Cl A as Subset of NT by XBOOLE_1:36;
+    reconsider NA = [#]NT \ A as Subset of NT by XBOOLE_1:36;
+    Int NA c= NA by Lm15;
+    then NCA c= NA by Lm14;
+    then [#]NT \ NA c= [#]NT \ NCA by XBOOLE_1:34;
+    then [#]NT /\ A c= [#]NT \ NCA by XBOOLE_1:48;
+    then A c= [#]NT \ NCA by XBOOLE_1:28;
+    then A c= [#]NT /\ Cl A by XBOOLE_1:48;
+    hence thesis by XBOOLE_1:28;
+  end;
+
+Lm22:
+  for NTX being NTopSpace
+  for A being Subset of NTX st Cl A = A holds A is closed Subset of NTX
+  proof
+    let NTX be NTopSpace;
+    let A be Subset of NTX;
+    assume
+A1: Cl A = A;
+    reconsider NA = ([#] NTX \ A) as Subset of NTX by XBOOLE_1:36;
+A2: Cl A = [#] NTX /\ Cl A by XBOOLE_1:28
+        .= [#] NTX \ ([#] NTX \ Cl A) by XBOOLE_1:48
+        .= [#] NTX \ Int NA by Lm14;
+    Int NA = Int NA /\ [#] NTX by XBOOLE_1:28
+          .= NA by A1,A2,XBOOLE_1:48;
+    then A is closed;
+    hence thesis;
+  end;
+
+Lm23:
+  for NTX,NTY being NTopSpace
+  for f being Function of NTX,NTY st
+  (for A being Subset of NTX holds f.:(Cl A) c= Cl(f.:A)) holds
+  (for S being closed Subset of NTY holds f"S is closed Subset of NTX)
+  proof
+    let NTX,NTY be NTopSpace;
+    let f be Function of NTX,NTY;
+    assume
+A1: for A be Subset of NTX holds f.:(Cl A) c= Cl(f.:A);
+    let S9 be closed Subset of NTY;
+    reconsider S = f"(S9) as Subset of NTX;
+    f.:(Cl S) c= Cl (f.:S) & Cl (f.:S) c= Cl S9 by A1,Lm18,FUNCT_1:75;
+    then f.:(Cl S) c= Cl S9;
+    then f.:(Cl S) c= S9 by Lm20;
+    then
+A2: f"(f.:Cl S) c= f" S9 by RELAT_1:143;
+    dom f = [#] NTX by FUNCT_2:def 1;
+    then Cl S c= f"(f.:Cl S) by FUNCT_1:76;
+    then Cl S c= S & S c= Cl S by A2,Lm21;
+    then S = Cl S;
+    hence thesis by Lm22;
+  end;
+
+Lm24:
+  for NTX,NTY being NTopSpace
+  for f being Function of NTX,NTY st
+  (for S being closed Subset of NTY holds f"S is closed Subset of NTX)
+  holds
+  (for S being open Subset of NTY holds f"S is open Subset of NTX)
+  proof
+    let NTX,NTY be NTopSpace;
+    let f be Function of NTX,NTY;
+    assume
+A1: for S being closed Subset of NTY holds f"S is closed Subset of NTX;
+    now
+      let S be open Subset of NTY;
+      reconsider NS = [#] NTY \ S as closed Subset of NTY
+        by XBOOLE_1:36,Lm6;
+      reconsider fNS = f"NS as closed Subset of NTX by A1;
+      fNS = f"([#] NTY) \ f"(S) by FUNCT_1:69
+         .= [#] NTX \ f"(S) by FUNCT_2:40;
+      then [#] NTX \ fNS = [#] NTX /\ f"(S) by XBOOLE_1:48;
+      then f"S = [#] NTX \ fNS by XBOOLE_1:28;
+      hence f"S is open Subset of NTX by Lm8;
+    end;
+    hence thesis;
+  end;
+
+Lm25:
+  for NTX,NTY being NTopSpace
+  for x being Point of NTX
+  for y being Point of NTY
+  for f being Function of NTX,NTY st y = f.x &
+  (for V being Element of U_FMT y ex W being Element of U_FMT x st f.:W c= V)
+  holds f is_continuous_at x
+  proof
+    let NTX,NTY be NTopSpace;
+    let x be Point of NTX;
+    let y be Point of NTY;
+    let f be Function of NTX,NTY;
+    assume that
+A1: y = f.x and
+A2: for V be Element of U_FMT y ex W being Element of U_FMT x st f.:W c= V;
+    now
+      let F be Filter of the carrier of NTX;
+      assume x in lim_filter F;
+      then consider x9 be Point of NTX such that
+A3:   x = x9 and
+A4:   F is_filter-finer_than U_FMT x9;
+A5:   U_FMT x c= F by A3,A4,CARDFIL2:def 6;
+      now
+        let o be object;
+        assume o in U_FMT y;
+        then reconsider V = o as Element of U_FMT y;
+        consider W be Element of U_FMT x such that
+A6:     f.:W c= V by A2;
+A7:     W in F by A5;
+        reconsider M = f.:W as Subset of NTY;
+A8:     W c= f"(M) by FUNCT_2:42;
+        f"(M) c= f"(V) by A6,RELAT_1:143;
+        then W c= f"(V) by A8;
+        then f"(V) in F by A7,CARD_FIL:def 1;
+        then V in {M where M is Subset of NTY: f"M in F};
+        hence o in filter_image(f,F) by CARDFIL2:def 13;
+      end;
+      then U_FMT y c= filter_image(f,F);
+      then filter_image(f,F) is_filter-finer_than U_FMT y by CARDFIL2:def 6;
+      hence y in lim_filter(f,F);
+    end;
+    hence thesis by A1;
+  end;
+
+Lm26:
+  for NTX,NTY being NTopSpace
+  for f being Function of NTX,NTY st
+  (for S being open Subset of NTY holds f"S is open Subset of NTX)
+  holds f is continuous
+  proof
+    let NTX,NTY be NTopSpace;
+    let f be Function of NTX,NTY;
+    assume
+A1: for S being open Subset of NTY holds f"S is open Subset of NTX;
+    now
+      let x be Point of NTX;
+      dom f = the carrier of NTX by FUNCT_2:def 1;
+      then f.x in rng f by FUNCT_1:3;
+      then reconsider y = f.x as Point of NTY;
+      now
+        let V be Element of U_FMT y;
+        consider W9 be Element of U_FMT y such that
+A2:     for z be Element of NTY st z is Element of W9 holds
+          V is Element of U_FMT z by FINTOPO7:def 4;
+        reconsider V9 = V as Subset of NTY;
+        now
+          thus W9 is non empty by FINTOPO7:def 3;
+          now
+            let x be Element of NTY;
+            assume x in W9;
+            then V is Element of U_FMT x by A2;
+            hence V9 in U_FMT x;
+          end;
+          hence V9 is a_neighborhood of W9 by FINTOPO7:def 6;
+        end;
+        then consider O be open Subset of NTY such that
+A3:     W9 c= O and
+A4:     O c= V9 by FINTOPO7:16;
+        now
+          now
+            thus y in O by A3,FINTOPO7:def 3;
+            dom f = the carrier of NTX by FUNCT_2:def 1;
+            hence x in dom f;
+          end;
+          then x in f"O by FUNCT_1:def 7;
+          hence f"O in U_FMT x by A1,FINTOPO7:def 1;
+          f.:f"O c= O by FUNCT_1:75;
+          hence f.:f"O c= V by A4;
+        end;
+        hence ex W being Element of U_FMT x st f.:W c= V;
+      end;
+      hence f is_continuous_at x by Lm25;
+    end;
+    hence thesis;
+  end;
+
+Lm27:
+  for NTX,NTY being NTopSpace
+  for f being Function of NTX,NTY holds
+  (f is continuous iff for O being closed Subset of NTY holds
+  f"O is closed Subset of NTX)
+  proof
+    let NTX,NTY be NTopSpace;
+    let f be Function of NTX,NTY;
+    hereby
+      assume f is continuous;
+      then for A being Subset of NTX holds f.:(Cl A) c= Cl(f.:A)
+        by Lm13;
+      hence for S being closed Subset of NTY holds f"S is closed Subset of NTX
+        by Lm23;
+    end;
+    assume for O being closed Subset of NTY holds f"O is closed Subset of NTX;
+    then for O being open Subset of NTY holds f"O is open Subset of NTX
+      by Lm24;
+    hence f is continuous by Lm26;
+  end;
+
+definition
+  let TX being non empty TopSpace,
+      TY being non empty strict TopSpace;
+  let f  be continuous Function of TX,TY;
+  redefine func Top2NTop f ->
+    continuous Function of Top2NTop TX,Top2NTop TY equals f;
+  correctness
+  proof
+    set NTX = Top2NTop TX,
+        NTY = Top2NTop TY;
+    reconsider f9 = Top2NTop f as Function of NTX,NTY;
+    now
+      let F be closed Subset of NTY;
+      reconsider F9 = F as closed Subset of NTop2Top NTY by Lm10;
+      reconsider TY9 = TY as non empty TopSpace;
+      NTop2Top NTY = TY9 by FINTOPO7:24;
+      then reconsider F9 as closed Subset of TY;
+      f"F9 is closed Subset of TX by PRE_TOPC:def 6;
+      hence f9"F is closed Subset of NTX by Lm7;
+    end;
+    hence thesis by Lm27;
+  end;
+end;
+
+definition
+  let NT be NTopSpace;
+  attr NT is T_2 means
+  :Def12:
+  for F being Filter of the carrier of NT holds
+  lim_filter F is trivial;
+end;
+
+registration
+  cluster T_2 for NTopSpace;
+  existence
+  proof
+    set T2 = the non empty T_2 TopSpace;
+    reconsider NTX = Top2NTop T2 as NTopSpace;
+    take NTX;
+    now
+      let F be Filter of the carrier of NTX;
+      set S = {x where x is Point of NTX: F is_filter-finer_than U_FMT x};
+      not ex x,y be object st x in lim_filter F & y in lim_filter F & x <> y
+      proof
+        let x,y be object;
+        assume that
+A1:     x in lim_filter F and
+A2:     y in lim_filter F and
+A3:     x <> y;
+        consider x9 be Point of NTX such that
+A4:     x = x9 and
+A5:     F is_filter-finer_than U_FMT x9 by A1;
+        consider y9 be Point of NTX such that
+A6:     y = y9 and
+A7:     F is_filter-finer_than U_FMT y9 by A2;
+        reconsider x99 = x9,y99 = y9 as Point of T2 by FINTOPO7:def 15;
+        consider G1,G2 be Subset of T2 such that
+A8:     G1 is open and
+A9:     G2 is open and
+A10:    x99 in G1 and
+A11:    y99 in G2 and
+A12:    G1 misses G2 by A3,A4,A6,PRE_TOPC:def 10;
+        reconsider G19 = G1, G29 = G2 as open Subset of NTX
+          by A8,A9,Lm1;
+A13:    G19 in U_FMT x9 & G29 in U_FMT y9 by A10,A11,FINTOPO7:def 1;
+        U_FMT x9 c= F & U_FMT y9 c= F by A5,A7,CARDFIL2:def 6;
+        then {} in F by A13,A12,CARD_FIL:def 1;
+        hence contradiction by CARD_FIL:def 1;
+      end;
+      hence lim_filter F is trivial;
+    end;
+    hence thesis;
+  end;
+end;
+
+definition
+  let NT be NTopSpace;
+  attr NT is normal means
+  :Def13:
+  for A,B being closed Subset of NT st A misses B holds
+  ex V being a_neighborhood of A,
+     W being a_neighborhood of B st V misses W;
+end;
+
+Lm28:
+  for T being T_2 non empty TopSpace holds Top2NTop T is T_2 NTopSpace
+  proof
+    let T be T_2 non empty TopSpace;
+    reconsider NT = Top2NTop T as NTopSpace;
+    now
+      let F be Filter of the carrier of NT;
+      set S = {x where x is Point of NT: F is_filter-finer_than U_FMT x};
+      not ex x,y be object st x in lim_filter F & y in lim_filter F & x <> y
+      proof
+        let x,y be object;
+        assume that
+A1:     x in lim_filter F and
+A2:     y in lim_filter F and
+A3:     x <> y;
+        consider x9 be Point of NT such that
+A4:     x = x9 and
+A5:     F is_filter-finer_than U_FMT x9 by A1;
+        consider y9 be Point of NT such that
+A6:     y = y9 and
+A7:     F is_filter-finer_than U_FMT y9 by A2;
+        reconsider x99 = x9,y99 = y9 as Point of T by FINTOPO7:def 15;
+        consider G1,G2 be Subset of T such that
+A8:     G1 is open and
+A9:     G2 is open and
+A10:     x99 in G1 and
+A11:    y99 in G2 and
+A12:    G1 misses G2 by A4,A6,A3,PRE_TOPC:def 10;
+        reconsider G19 = G1, G29 = G2 as open Subset of NT by A8,A9,Lm1;
+A13:     G19 in U_FMT x9 & G29 in U_FMT y9 by A10,A11,FINTOPO7:def 1;
+        U_FMT x9 c= F & U_FMT y9 c= F by A5,A7,CARDFIL2:def 6;
+        then G19 /\ G29 in F by A13,CARD_FIL:def 1;
+        hence contradiction by A12,CARD_FIL:def 1;
+      end;
+      hence lim_filter F is trivial;
+    end;
+    then NT is T_2;
+    hence thesis;
+  end;
+
+Lm29:
+  for NTX being NTopSpace
+  for A being closed Subset of NTX holds A is closed Subset of NTop2Top NTX
+  proof
+    let NTX be NTopSpace;
+    let A be closed Subset of NTX;
+    reconsider T = NTop2Top NTX as TopSpace;
+    [#] NTX \ A is open Subset of NTX by Def9;
+    then [#] NTX \ A is open Subset of NTop2Top NTX by Lm9;
+    then reconsider A9 = ([#] T) \ A as open Subset of T by FINTOPO7:def 16;
+    ([#] T) \ A9 = [#] T /\ A & A is Subset of T
+      by XBOOLE_1:48,FINTOPO7:def 16;
+    hence thesis by PRE_TOPC:def 3;
+  end;
+
+definition
+  let NT be NTopSpace;
+  let x  be Point of NT;
+  func NTop2Top x -> Point of NTop2Top NT equals x;
+  coherence by FINTOPO7:def 16;
+end;
+
+definition
+  let T be non empty TopSpace;
+  let x be Point of T;
+  func Top2NTop x -> Point of Top2NTop T equals x;
+  coherence by FINTOPO7:def 15;
+end;
+
+definition
+  let NT be NTopSpace;
+  let S  be Subset of NT;
+  func NTop2Top S -> Subset of NTop2Top NT equals S;
+  coherence by FINTOPO7:def 16;
+end;
+
+definition
+  let T be non empty TopSpace;
+  let S be Subset of T;
+  func Top2NTop S -> Subset of Top2NTop T equals S;
+  coherence by FINTOPO7:def 15;
+end;
+
+Lm30:
+  for T being non empty strict TopSpace
+  for A being Subset of T holds Int A = Int Top2NTop A
+  proof
+    let T be non empty strict TopSpace;
+    let A be Subset of T;
+    reconsider NT = Top2NTop T as NTopSpace;
+    reconsider NA = Top2NTop A as Subset of NT;
+    now
+      now
+        let o be object;
+        assume
+A1:     o in Int NA;
+        then reconsider x = o as Point of NT;
+        consider y be Point of NT such that
+A2:     x = y and
+A3:     y is_interior_point_of NA by A1;
+        consider NO be open Subset of NT such that
+A4:     y in NO and
+A5:     NO c= NA by A3,Lm4;
+        reconsider y9 = NTop2Top y as Point of T
+          by FINTOPO7:24;
+        reconsider O = NO as open Subset of NTop2Top NT
+          by Lm9;
+        NTop2Top NT = T by FINTOPO7:24;
+        then reconsider O as open Subset of T;
+        y9 in O & O c= A by A4,A5;
+        then A is a_neighborhood of y9 by URYSOHN1:def 6;
+        hence o in Int A by CONNSP_2:def 1,A2;
+      end;
+      hence Int NA c= Int A;
+      now
+        let o be object;
+        assume
+A6:     o in Int A;
+        then reconsider x = o as Point of T;
+        consider O be Subset of T such that
+A7:     O is open and
+A8:     x in O and
+A9:     O c= A by A6,CONNSP_2:def 1,URYSOHN1:def 6;
+        reconsider y = Top2NTop x as Point of NT;
+        reconsider NO = O as open Subset of NT by A7,Lm1;
+        y in NO & NO c= NA by A8,A9;
+        then y is_interior_point_of NA by Lm4;
+        hence o in Int NA;
+      end;
+      hence Int A c= Int NA;
+    end;
+    hence thesis;
+  end;
+
+Lm31:
+  for T being non empty strict TopSpace
+  for A,B being Subset of T st A is a_neighborhood of B holds
+  Top2NTop A is a_neighborhood of Top2NTop B
+  proof
+    let T be non empty strict TopSpace;
+    let A,B be Subset of T;
+    reconsider NT = Top2NTop T as NTopSpace;
+    reconsider TA = Top2NTop A,
+               TB = Top2NTop B as Subset of NT;
+    assume A is a_neighborhood of B;
+    then
+A1: B c= Int A by CONNSP_2:def 2;
+    now
+      let x be Element of NT;
+      assume x in TB;
+      then x in Int A by A1;
+      then x in Int TA by Lm30;
+      then ex x9 be Point of NT st x = x9 & x9 is_interior_point_of TA;
+      hence TA in U_FMT x by FINTOPO7:def 5;
+    end;
+    hence thesis by FINTOPO7:def 6;
+  end;
+
+registration
+  cluster non empty normal for NTopSpace;
+  existence
+  proof
+    set T = the discrete non empty strict TopSpace;
+    reconsider NT = Top2NTop T as NTopSpace;
+    reconsider NT as T_2 NTopSpace by Lm28;
+A1: NTop2Top NT = T by FINTOPO7:24;
+    now
+      let A,B be closed Subset of NT;
+      assume
+A2:   A misses B;
+      reconsider TA = A, TB = B as closed Subset of T by A1,Lm29;
+      consider G1,G2 be Subset of T such that
+A3:   G1 is open and
+A4:   G2 is open and
+A5:   TA c= G1 and
+A6:   TB c= G2 and
+A7:   G1 misses G2 by A2,PRE_TOPC:def 12;
+      reconsider G1 as open Subset of T by A3;
+      reconsider G2 as open Subset of T by A4;
+A8:   TA c= Int G1 & TB c= Int G2 by A5,A6,TOPS_1:23;
+      reconsider V = G1,
+                 W = G2 as open Subset of NT by Lm1;
+      Top2NTop G1 is a_neighborhood of Top2NTop TA &
+        Top2NTop G2 is a_neighborhood of Top2NTop TB
+        by A8,CONNSP_2:def 2,Lm31;
+      hence ex V be a_neighborhood of A, W be a_neighborhood of B st
+      V misses W by A7;
+    end;
+    then NT is normal;
+    hence thesis;
+  end;
+end;
+
+definition
+  let TX,TY be NTopSpace;
+  let f     be Function of TX,TY;
+  func NTop2Top f -> Function of NTop2Top TX,NTop2Top TY equals f;
+  coherence
+  proof
+    the carrier of TX = the carrier of NTop2Top TX &
+    the carrier of TY = the carrier of NTop2Top TY
+      by FINTOPO7:def 16;
+    hence thesis;
+  end;
+end;
+
+definition
+  func FMT_R^1 -> NTopSpace equals Top2NTop R^1;
+  coherence;
+end;
+
+theorem
+  the carrier of FMT_R^1 = REAL by TOPMETR:17,FINTOPO7:def 15;
+
+registration
+  cluster FMT_R^1 -> real-membered;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in the carrier of FMT_R^1;
+      then reconsider x9 = x as Element of FMT_R^1;
+      x9 in the carrier of Top2NTop R^1;
+      then x in the carrier of R^1 by FINTOPO7:def 15;
+      hence x is real;
+    end;
+    hence thesis by TOPMETR:def 8,MEMBERED:def 3;
+  end;
+end;
+
+begin :: Some properties of NTopSpace
+
+reserve NT,NTX,NTY for NTopSpace,
+        A,B        for Subset of NT,
+        O          for open Subset of NT,
+        a          for Point of NT,
+        XA         for Subset of NTX,
+        YB         for Subset of NTY,
+        x          for Point of NTX,
+        y          for Point of NTY,
+        f          for Function of NTX,NTY,
+        fc         for continuous Function of NTX,NTY;
+
+theorem
+  O is open Subset of NTop2Top NT by Lm9;
+
+theorem
+  A is Subset of NTop2Top NT by FINTOPO7:def 16;
+
+theorem
+  [#]NT is open & {} NT is open;
+
+theorem
+  NT --> y is continuous by Lm3;
+
+theorem
+  (a is_interior_point_of A iff
+  ex O be open Subset of NT st a in O & O c= A) by Lm4;
+
+theorem
+  a in O implies a is_interior_point_of O by Lm4;
+
+theorem
+  Int A = union {O where O is open Subset of NT: O c= A} by Lm5;
+
+theorem
+  Int A c= A by Lm15;
+
+theorem
+  A c= B implies Int A c= Int B by Lm17;
+
+theorem Th12:
+  A is open iff Int A = A
+  proof
+    hereby
+      assume
+A1:   A is open;
+A2:   Int A = union {O where O is open Subset of NT: O c= A} by Lm5;
+      now
+        let o be object;
+        assume
+A3:     o in A;
+        A in {O where O is open Subset of NT: O c= A} by A1;
+        hence o in Int A by A2,A3,TARSKI:def 4;
+      end;
+      then A c= Int A;
+      hence Int A = A by Lm15;
+    end;
+    assume Int A = A;
+    hence A is open;
+  end;
+
+theorem
+  Int A = Int Int A by Th12;
+
+theorem Th14:
+  for NT be non empty strict NTopSpace
+  for A be Subset of NT
+  for x be Point of NT st
+  A is a_neighborhood of x holds Int A is open a_neighborhood of x
+  proof
+    let NT be non empty strict NTopSpace;
+    let A be Subset of NT;
+    let x be Point of NT;
+    assume A is a_neighborhood of x;
+    then x is_interior_point_of A;
+    then x in Int A;
+    then x in Int Int A by Th12;
+    then ex y be Point of NT st x = y & y is_interior_point_of Int A;
+    then reconsider IA = Int A as a_neighborhood of x;
+    IA is open a_neighborhood of x;
+    hence thesis;
+  end;
+
+theorem
+  filter_image(f,U_FMT x) =
+    {M where M is Subset of NTY: f"(M) in U_FMT x} by CARDFIL2:def 13;
+
+theorem
+  (f is_continuous_at x & y = f.x) implies
+  (for V being Element of U_FMT y ex W being Element of U_FMT x st f.:W c= V)
+  by Lm11;
+
+theorem
+  y = f.x &
+  (for V being Element of U_FMT y ex W being Element of U_FMT x st f.:W c= V)
+  implies f is_continuous_at x by Lm25;
+
+theorem
+  y = f.x implies
+  (f is_continuous_at x iff
+  (for V being Element of U_FMT y ex W being Element of U_FMT x st f.:W c= V))
+    by Lm11,Lm25;
+
+theorem
+  (f is_continuous_at x &
+  x is_adherent_point_of XA & y = f.x & YB = f.:XA) implies
+  y is_adherent_point_of YB by Lm12;
+
+theorem
+  fc.:(Cl XA) c= Cl(fc.:XA) by Lm13;
+
+theorem
+  for A being closed Subset of NT holds A is closed Subset of NTop2Top NT
+    by Lm29;
+
+theorem
+  B = [#] NT \ A implies [#] NT \ Cl A = Int B by Lm14;
+
+theorem
+  B = [#] NT \ A implies [#] NT \ Int A = Cl B
+  proof
+    assume
+A1: B = [#] NT \ A;
+    reconsider C = [#] NT \ B as Subset of NT by XBOOLE_1:36;
+A2: [#] NT \ B = [#] NT /\ A by A1,XBOOLE_1:48
+              .= A by XBOOLE_1:28;
+    Cl B = [#] NT /\ Cl B by XBOOLE_1:28
+        .= [#] NT \ ([#] NT \ Cl B) by XBOOLE_1:48
+        .= [#] NT \ Int A by A2,Lm14;
+    hence thesis;
+  end;
+
+theorem
+  A c= Cl A by Lm21;
+
+theorem
+  A is closed iff Cl A = A by Lm20,Lm22;
+
+theorem
+  A c= B implies Cl A c= Cl B by Lm18;
+
+theorem
+  (for XA being Subset of NTX holds f.:(Cl XA) c= Cl(f.:XA)) implies
+  (for S being closed Subset of NTY holds f"S is closed Subset of NTX)
+    by Lm23;
+
+theorem
+  B = [#]NT \ A implies (A is open iff B is closed) by Lm6;
+
+theorem
+  A = [#]NT \ B implies (A is open iff B is closed);
+
+theorem
+  (for S being closed Subset of NTY holds f"S is closed Subset of NTX)
+  implies
+  (for S being open Subset of NTY holds f"S is open Subset of NTX)
+    by Lm24;
+
+theorem
+  (for S being open Subset of NTY holds f"S is open Subset of NTX)
+  implies f is continuous by Lm26;
+
+theorem
+  f is continuous iff for O being open Subset of NTY holds
+  f"O is open Subset of NTX
+  proof
+    hereby
+      assume f is continuous;
+      then for A being Subset of NTX holds f.:(Cl A) c= Cl(f.:A)
+        by Lm13;
+      then for S being closed Subset of NTY holds f"S is closed Subset of NTX
+        by Lm23;
+      hence for O being open Subset of NTY holds f"O is open Subset of NTX
+        by Lm24;
+    end;
+    assume for O being open Subset of NTY holds f"O is open Subset of NTX;
+    hence f is continuous by Lm26;
+  end;
+
+theorem
+  f is continuous iff for O being closed Subset of NTY holds
+  f"O is closed Subset of NTX by Lm27;
+
+theorem Th34:
+  Int A = Int NTop2Top A
+  proof
+    set NA = A;
+    reconsider T = NTop2Top NT as non empty TopSpace;
+    reconsider A9 = NTop2Top NA as Subset of T;
+    now
+      now
+        let o be object;
+        assume o in Int NA;
+        then consider y be Point of NT such that
+A1:     o = y and
+A2:     y is_interior_point_of NA;
+        consider NO be open Subset of NT such that
+A3:     y in NO and
+A4:     NO c= NA by A2,Lm4;
+        reconsider O = NO as open Subset of T by Lm9;
+        y in O by A3;
+        then reconsider y9 = y as Point of T;
+        y9 in O & O c= A9 by A3,A4;
+        then A is a_neighborhood of y9 by URYSOHN1:def 6;
+        hence o in Int A9 by CONNSP_2:def 1,A1;
+      end;
+      hence Int NA c= Int A9;
+      now
+        let o be object;
+        assume
+A5:     o in Int A9;
+        then reconsider x = o as Point of T;
+        consider O be Subset of T such that
+A6:     O is open and
+A7:     x in O and
+A8:     O c= A9 by A5,CONNSP_2:def 1,URYSOHN1:def 6;
+        Top2NTop T = NT by FINTOPO7:25;
+        then reconsider NO = O as open Subset of NT
+          by A6,Lm1;
+        x in NO by A7;
+        then reconsider y = x as Point of NT;
+        y in NO & NO c= NA by A7,A8;
+        then y is_interior_point_of NA by Lm4;
+        hence o in Int NA;
+      end;
+      hence Int A9 c= Int NA;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  A is a_neighborhood of a implies NTop2Top A is a_neighborhood of NTop2Top a
+  proof
+    reconsider T = NTop2Top NT as non empty TopSpace;
+    reconsider TA = NTop2Top A as Subset of T;
+    reconsider Tx = NTop2Top a as Point of T;
+    assume A is a_neighborhood of a;
+    then a is_interior_point_of A;
+    then a in Int A;
+    then Tx in Int TA by Th34;
+    hence thesis by CONNSP_2:def 1;
+  end;
+
+theorem Th36:
+  A is a_neighborhood of B implies
+  NTop2Top A is a_neighborhood of NTop2Top B
+  proof
+    assume
+A1: A is a_neighborhood of B;
+    reconsider T = NTop2Top NT as TopSpace;
+    reconsider TA = NTop2Top A, TB = NTop2Top B as Subset of T;
+    per cases;
+    suppose B is non empty;
+      then consider O be open Subset of NT such that
+A2:   B c= O and
+A3:   O c= A by A1,FINTOPO7:16;
+      reconsider O9 = O as open Subset of T by Lm9;
+      O9 c= Int TA by A3,TOPS_1:24;
+      then TB c= Int TA by A2;
+      hence thesis by CONNSP_2:def 2;
+    end;
+    suppose B is empty;
+      then TB c= Int TA;
+      hence thesis by CONNSP_2:def 2;
+    end;
+  end;
+
+theorem
+  A misses B implies NTop2Top A misses NTop2Top B;
+
+theorem
+  A misses B implies Int A misses Int B
+  proof
+    assume
+A1: A misses B;
+    Int A c= A & Int B c= B by Lm15;
+    then Int A /\ Int B c= {} by A1,XBOOLE_1:27;
+    hence thesis;
+  end;
+
+reserve NT for T_2 NTopSpace;
+
+theorem Th39:
+  for x,y being Point of NT st x <> y ex Vx being Element of U_FMT x,
+  Vy being Element of U_FMT y st Vx misses Vy
+  proof
+    let x,y be Point of NT;
+    assume
+A1: x <> y;
+    now
+      assume
+A2:   for Vx be Element of U_FMT x, Vy be Element of U_FMT y holds Vx meets Vy;
+A3:  now
+        let Vx be Element of U_FMT x, Vy be Element of U_FMT y;
+        Vx meets Vy by A2;
+        hence Vx /\ Vy is non empty;
+      end;
+      reconsider X = the carrier of NT as non empty set;
+      reconsider Ux = U_FMT x as Filter of X;
+      reconsider Uy = U_FMT y as Filter of X;
+      consider F be Filter of X such that
+A4:   F is_filter-finer_than Ux and
+A5:   F is_filter-finer_than Uy by A3,CARDFIL2:58;
+      reconsider x9 = x, y9 = y as Element of X;
+      reconsider F as Filter of the carrier of NT;
+A6:   x9 in lim_filter F & y9 in lim_filter F by A4,A5;
+      lim_filter F is empty or lim_filter F is trivial by Def12;
+      hence contradiction by A1,A6;
+    end;
+    hence thesis;
+  end;
+
+theorem
+  NTop2Top NT is T_2 non empty strict TopSpace
+  proof
+    reconsider T = NTop2Top NT as non empty TopSpace;
+    now
+      let p, q be Point of T;
+      assume
+A1:   p <> q;
+      reconsider p9 = p, q9 = q as Point of NT by FINTOPO7:def 16;
+      set Sp = lim_filter U_FMT p9,
+          Sq = lim_filter U_FMT q9;
+      consider Vx be Element of U_FMT p9, Vy be Element of U_FMT q9 such that
+A2:   Vx misses Vy by A1,Th39;
+      p9 is_interior_point_of Vx by FINTOPO7:def 5;
+      then consider Ox be open Subset of NT such that
+A3:   p9 in Ox and
+A4:   Ox c= Vx by Lm4;
+      q9 is_interior_point_of Vy by FINTOPO7:def 5;
+      then consider Oy be open Subset of NT such that
+A5:   q9 in Oy and
+A6:   Oy c= Vy by Lm4;
+      reconsider G1 = Ox, G2 = Oy as open Subset of T by Lm9;
+      G1 misses G2 by A4,A6,A2,XBOOLE_1:64;
+      hence ex G1,G2 be Subset of T st G1 is open & G2 is open &
+        p in G1 & q in G2 & G1 misses G2 by A3,A5;
+    end;
+    hence thesis by PRE_TOPC:def 10;
+  end;
+
+theorem Th41:
+  for NT being non empty normal NTopSpace holds NTop2Top NT is normal
+  proof
+    let NT be non empty normal NTopSpace;
+    reconsider T = NTop2Top NT as non empty TopSpace;
+    now
+      let F1,F2 be Subset of T;
+      assume that
+A1:   F1 is closed and
+A2:   F2 is closed and
+A3:   F1 misses F2;
+      Top2NTop T = NT by FINTOPO7:25;
+      then reconsider F19 = F1,F29 = F2 as closed Subset of NT
+        by A1,A2,Lm7;
+      consider V be a_neighborhood of F19,
+               W be a_neighborhood of F29 such that
+A4:   V misses W by A3,Def13;
+A5:   NTop2Top F19 c= Int NTop2Top V & NTop2Top F29 c= Int NTop2Top W
+        by Th36,CONNSP_2:def 2;
+      reconsider G1 = Int NTop2Top V,
+                 G2 = Int NTop2Top W as open Subset of T;
+      thus ex G1,G2 be Subset of T st G1 is open & G2 is open &
+        F1 c= G1 & F2 c= G2 & G1 misses G2 by A4,A5,Th1;
+    end;
+    hence thesis by PRE_TOPC:def 12;
+  end;
+
+registration
+  let NT be non empty normal NTopSpace;
+  cluster NTop2Top NT -> normal;
+  coherence by Th41;
+end;
+
+begin :: Some properties between TopSpace and NTopSpace
+
+reserve T   for non empty TopSpace,
+        A,B for Subset of T,
+        F   for closed Subset of T,
+        O   for open Subset of T;
+
+theorem
+  A is Subset of Top2NTop T by FINTOPO7:def 15;
+
+theorem
+  F is closed Subset of Top2NTop T by Lm7;
+
+theorem
+  O is open Subset of Top2NTop T by Lm1;
+
+theorem
+  A misses B implies Top2NTop A misses Top2NTop B;
+
+theorem
+  for T being T_2 non empty TopSpace holds Top2NTop T is T_2 NTopSpace
+  by Lm28;
+
+reserve T   for non empty strict TopSpace,
+        A,B for Subset of T,
+        x   for Point of T;
+
+theorem
+  Int A = Int Top2NTop A by Lm30;
+
+theorem
+  A is a_neighborhood of B implies Top2NTop A is a_neighborhood of Top2NTop B
+    by Lm31;
+
+theorem
+  A is a_neighborhood of x implies Top2NTop A is a_neighborhood of Top2NTop x
+  proof
+    reconsider NT = Top2NTop T as NTopSpace;
+    reconsider NA = Top2NTop A as Subset of NT;
+    reconsider Nx = Top2NTop x as Point of NT;
+    assume A is a_neighborhood of x;
+    then x in Int A by CONNSP_2:def 1;
+    then Nx in Int NA by Lm30;
+    then ex y be Point of NT st Nx = y & y is_interior_point_of NA;
+    hence thesis;
+  end;
+
+theorem TH:
+  for T being non empty normal strict TopSpace holds Top2NTop T is normal
+  proof
+    let T be non empty normal strict TopSpace;
+    reconsider NT = Top2NTop T as NTopSpace;
+    now
+      let NA,NB be closed Subset of NT;
+      assume
+A1:   NA misses NB;
+      NTop2Top NT = T by FINTOPO7:24;
+      then reconsider A = NTop2Top NA,
+      B = NTop2Top NB as closed Subset of T by Lm29;
+      consider G1,G2 be Subset of T such that
+A2:   G1 is open and
+A3:   G2 is open and
+A4:   A c= G1 and
+A5:   B c= G2 and
+A6:   G1 misses G2 by A1,PRE_TOPC:def 12;
+      reconsider V = Top2NTop G1, W = Top2NTop G2 as open Subset of NT
+        by Lm1,A2,A3;
+A7:   A c= Int G1 & B c= Int G2 by A2,A3,A4,A5,TOPS_1:23;
+      reconsider V = G1,
+                 W = G2 as open Subset of NT by A2,A3,Lm1;
+      Top2NTop G1 is a_neighborhood of Top2NTop A &
+      Top2NTop G2 is a_neighborhood of Top2NTop B
+        by A7,CONNSP_2:def 2,Lm31;
+      hence ex V be a_neighborhood of NA, W be a_neighborhood of NB st
+        V misses W by A6;
+    end;
+    hence thesis;
+  end;
+
+registration
+  let T be non empty normal strict TopSpace;
+  cluster Top2NTop T -> normal;
+  coherence by TH;
+end;
+
+begin :: Transport from R^1 to FMT_R^1
+
+reserve A for Subset of FMT_R^1,
+        x for Point of FMT_R^1,
+        y for Point of RealSpace,
+        z for Point of TopSpaceMetr RealSpace,
+        r for Real;
+
+theorem
+  NTop2Top FMT_R^1 = R^1 by FINTOPO7:24;
+
+theorem Th52:
+  the carrier of FMT_R^1 = REAL by TOPMETR:17,FINTOPO7:def 15;
+
+theorem
+  for NT being NTopSpace for f being Function of NT,FMT_R^1 holds
+  NTop2Top f is Function of NTop2Top NT,R^1
+    by FINTOPO7:24;
+
+theorem
+  for T being non empty TopSpace for f being Function of T,R^1 holds
+  Top2NTop f is Function of Top2NTop T,Top2NTop R^1;
+
+theorem Th55:
+  A is open iff for x being Real st x in A
+  ex r st r > 0 & ].x - r, x + r.[ c= A
+  proof
+    A is Subset of NTop2Top Top2NTop R^1 by FINTOPO7:def 16;
+    then reconsider A9 = A as Subset of R^1 by FINTOPO7:24;
+    hereby
+      assume A is open;
+      then A is open Subset of NTop2Top FMT_R^1 &
+        NTop2Top FMT_R^1 = R^1 by FINTOPO7:24,Lm9;
+      hence for x being Real st x in A
+      ex r being Real st r > 0 & ].x - r, x + r.[ c= A by FRECHET:8;
+    end;
+    assume for x being Real st x in A
+      ex r being Real st r > 0 & ].x - r, x + r.[ c= A;
+    then A9 is open by FRECHET:8;
+    hence A is open by Lm1;
+  end;
+
+theorem
+  {].a,b.[ where a,b is Real: a < b} is Basis of R^1 by TOPGEN_5:72;
+
+theorem Th57:
+  {].a,b.[ where a,b is Real: a < b} is Basis of FMT_R^1
+  proof
+    set BA = {].a,b.[ where a,b is Real: a < b};
+    reconsider BBA = BA as open quasi_basis Subset-Family of R^1
+      by TOPGEN_5:72;
+A1: the topology of R^1 c= UniCl BBA by CANTOR_1:def 2;
+A2: the carrier of FMT_R^1 = REAL by TOPMETR:17,FINTOPO7:def 15;
+    BA c= bool the carrier of FMT_R^1
+    proof
+      let x be object;
+      assume x in BA;
+      then ex a,b be Real st x = ].a,b.[ & a < b;
+      then reconsider x as Subset of REAL;
+      x in bool the carrier of FMT_R^1 by A2;
+      hence thesis;
+    end;
+    then reconsider BA as Subset-Family of FMT_R^1;
+    BA c= Family_open_set(FMT_R^1)
+    proof
+      let x be object;
+      assume
+A3:   x in BA;
+      then reconsider x as Subset of FMT_R^1;
+      consider a,b be Real such that
+A4:   x = ].a,b.[ and a < b by A3;
+      now
+        let y be Real;
+        assume
+A5:     y in x;
+        reconsider z = x as Subset of R^1 by FINTOPO7:def 15;
+        z is open by A4,JORDAN6:35;
+        hence ex r being Real st r > 0 & ].y - r, y + r.[ c= x by A5,FRECHET:8;
+      end;
+      then x is open by Th55;
+      then x in {O where O is open Subset of FMT_R^1: not contradiction};
+      hence thesis by FINTOPO7:def 11;
+    end;
+    then reconsider BA as open Subset-Family of FMT_R^1 by FINTOPO7:def 14;
+    now
+      let x be object;
+      assume x in Family_open_set(FMT_R^1);
+      then x in {O where O is open Subset of FMT_R^1: not contradiction}
+        by FINTOPO7:def 11;
+      then consider O be open Subset of FMT_R^1 such that
+A6:   x = O;
+      NTop2Top FMT_R^1 = R^1 by FINTOPO7:24;
+      then O is open Subset of R^1 by Lm9;
+      then O in the topology of R^1 by PRE_TOPC:def 2;
+      then consider Y be Subset-Family of R^1 such that
+A7:   Y c= BBA and
+A8:   O = union Y by A1,CANTOR_1:def 1;
+      reconsider Y as Subset-Family of FMT_R^1 by FINTOPO7:def 15;
+      Y c= BA by A7;
+      hence x in UniCl BA by A8,A6,CANTOR_1:def 1;
+    end;
+    then Family_open_set(FMT_R^1) c= UniCl BA;
+    hence thesis by FINTOPO7:def 13;
+  end;
+
+theorem Th58:
+  r > 0 implies ].x - r , x + r.[ is a_neighborhood of x
+  proof
+    assume
+A1: r > 0;
+    set S  = ]. x - r, x + r.[,
+        BA = {].a,b.[ where a,b is Real: a < b};
+    now
+      x < x + r & x - r < x by A1,XREAL_1:29,44;
+      then x - r < x + r by XXREAL_0:2;
+      hence S in BA;
+      thus BA c= Family_open_set(FMT_R^1) by Th57,FINTOPO7:def 14;
+    end;
+    then S in Family_open_set(FMT_R^1);
+    then S in the set of all O where O is open Subset of FMT_R^1
+      by FINTOPO7:def 11;
+    then ex O be open Subset of FMT_R^1 st S = O;
+    then S in U_FMT x by A1,TOPREAL6:15,FINTOPO7:def 1;
+    hence thesis by FINTOPO7:def 5;
+  end;
+
+theorem
+  for x being object holds x is Point of FMT_R^1 iff x is Point of RealSpace
+    by METRIC_1:def 13,TOPMETR:17,FINTOPO7:def 15;
+
+theorem
+  x = y implies Ball(y,r) = ]. x - r , x + r .[ by FRECHET:7;
+
+theorem Th61:
+  x = y & r > 0 implies Ball(y,r) is a_neighborhood of x
+  proof
+    assume that
+A1: x = y and
+A2: r > 0;
+    reconsider S = ]. x - r , x + r .[ as Subset of FMT_R^1
+      by TOPMETR:17,FINTOPO7:def 15;
+    S is a_neighborhood of x by A2,Th58;
+    hence thesis by A1,FRECHET:7;
+  end;
+
+theorem
+  x = z implies Balls(z) is Subset-Family of FMT_R^1
+   by FINTOPO7:def 15,TOPMETR:def 6;
+
+theorem
+  for SF being Subset-Family of FMT_R^1
+  st x = z & SF = Balls(z)
+  holds <. SF .] = U_FMT x
+  proof
+    let SF be Subset-Family of FMT_R^1;
+    assume that
+A1: x = z and
+A2: SF = Balls(z);
+    consider zy be Point of RealSpace such that
+A3: z = zy and
+A4: Balls(z) = { Ball(zy,1/n) where n is Nat: n <> 0} by FRECHET:def 1;
+    now
+      now
+        let a be object;
+        assume a in {x where x is Subset of FMT_R^1:
+          ex b be Element of SF st b c= x};
+        then consider y be Subset of FMT_R^1 such that
+A5:     a = y and
+A6:     ex b be Element of SF st b c= y;
+        consider b be Element of SF such that
+A7:     b c= y by A6;
+        b in Balls(z) by A2;
+        then consider n be Nat such that
+A8:     b = Ball(zy,1/n) and
+A9:     n <> 0 by A4;
+        reconsider r = 1 / n as Real;
+        now
+          now
+            0 <= n & n <> 0 by A9,NAT_1:2;
+            hence 0 < n by XXREAL_0:1;
+            thus 0 < 1;
+          end;
+          hence 0 / n < 1 / n by XREAL_1:74;
+          thus 0 / n = 0;
+        end;
+        then b is a_neighborhood of x by A1,A8,A3,Th61;
+        then b in U_FMT x by FINTOPO7:def 5;
+        hence a in U_FMT x by A5,A7,CARD_FIL:def 1;
+      end;
+      hence {x where x is Subset of FMT_R^1:
+        ex b be Element of SF st b c= x} c= U_FMT x;
+      now
+        let o be object;
+        assume
+A10:    o in U_FMT x;
+        then reconsider o9 = o as Subset of FMT_R^1;
+        reconsider Io9 = Int o9 as open a_neighborhood of x
+          by A10,FINTOPO7:def 5,Th14;
+        Io9 in U_FMT x by FINTOPO7:def 5;
+        then consider r be Real such that
+A11:    r > 0 and
+A12:    ]. x - r, x + r .[ c= Io9 by FINTOPO7:def 3,Th55;
+        consider n be Nat such that
+A13:    1 / n < r and
+A14:    n > 0 by A11,FRECHET:36;
+A15:    ]. x - 1/n , x + 1/n .[ c= ]. x - r , x + r .[ by A13,INTEGRA6:2;
+        reconsider n1 = 1 / n as Real;
+        ]. x - 1 / n , x + 1 / n .[ = Ball(zy,1 / n) by A1,A3,FRECHET:7;
+        then ]. x - 1/n , x + 1/n .[ in { Ball(zy,1/n) where
+          n is Nat: n <> 0} by A14;
+        then reconsider b = ]. x - 1/n , x + 1/n .[ as Element of SF by A2,A4;
+        b c= Io9 & Io9 c= o9 by A12,A15,Lm15;
+        then b c= o9;
+        hence o in {x where x is Subset of FMT_R^1:
+          ex b be Element of SF st b c= x};
+      end;
+      hence U_FMT x c= {x where x is Subset of FMT_R^1:
+        ex b be Element of SF st b c= x};
+    end;
+    hence thesis by CARDFIL2:14;
+  end;
+
+definition
+  func gen_NS_R^1 -> Function of the carrier of
+    FMT_R^1,bool bool the carrier of FMT_R^1 means
+  :Def20:
+  for r being Real holds ex x being Point of TopSpaceMetr(RealSpace)
+  st x = r & it.r = Balls(x);
+  existence
+  proof
+    defpred P[object,object] means
+    ex x be Point of TopSpaceMetr(RealSpace) st x = $1 & $2 = Balls(x);
+A1: for x be object st x in the carrier of FMT_R^1 ex y be object st
+    y in bool bool the carrier of FMT_R^1 & P[x,y]
+    proof
+      let x be object;
+      assume
+A2:   x in the carrier of FMT_R^1;
+      reconsider z = x as Element of TopSpaceMetr(RealSpace)
+        by A2,FINTOPO7:def 15,TOPMETR:def 6;
+      reconsider BZ = Balls(z) as Subset-Family of TopSpaceMetr(RealSpace);
+      reconsider y = Balls(z) as
+      Element of bool bool the carrier of FMT_R^1
+        by FINTOPO7:def 15,TOPMETR:def 6;
+      ex y be object st y in bool bool the carrier of FMT_R^1 & P[x,y]
+      proof
+        take y;
+        thus thesis;
+      end;
+      hence thesis;
+    end;
+    ex f be Function of the carrier of
+      FMT_R^1,bool bool the carrier of FMT_R^1 st
+    for x be object st x in the carrier of FMT_R^1 holds
+    P[x,f.x] from FUNCT_2:sch 1(A1);
+    then consider f be Function of the carrier of
+      FMT_R^1,bool bool the carrier of FMT_R^1 such that
+A3: for x being object st x in the carrier of FMT_R^1 holds
+      P[x,f.x];
+    for r be Real ex y be Point of TopSpaceMetr(RealSpace) st r = y &
+      f.r = Balls(y) by A3,Th52,XREAL_0:def 1;
+    hence thesis;
+  end;
+  uniqueness
+  proof
+    let f1,f2 be Function of the carrier of FMT_R^1,
+      bool bool the carrier of FMT_R^1 such that
+A4: for r being Real holds ex x being Point of TopSpaceMetr(RealSpace)
+      st x = r & f1.r = Balls(x) and
+A5: for r being Real holds ex x being Point of TopSpaceMetr(RealSpace)
+      st x = r & f2.r = Balls(x);
+    now
+      dom f1 = the carrier of FMT_R^1 by FUNCT_2:def 1;
+      hence dom f1 = dom f2 by FUNCT_2:def 1;
+      hereby
+        let x be object;
+        assume x in dom f1;
+        then reconsider r = x as Real;
+        consider x1 be Point of TopSpaceMetr(RealSpace) such that
+A6:     r = x1 and
+A7:     f1.r = Balls(x1) by A4;
+        consider x2 be Point of TopSpaceMetr(RealSpace) such that
+A8:     r = x2 and
+A9:     f2.r = Balls(x2) by A5;
+        thus f1.x = f2.x by A6,A7,A8,A9;
+      end;
+    end;
+    hence f1 = f2 by FUNCT_1:2;
+  end;
+end;
+
+definition
+  func gen_R^1 -> non empty strict FMT_Space_Str equals
+  FMT_Space_Str(# the carrier of FMT_R^1, gen_NS_R^1 #);
+  coherence;
+end;
+
+theorem Th64:
+  the carrier of gen_R^1 = REAL by FINTOPO7:def 15,TOPMETR:17;
+
+theorem Th65:
+  for x being Element of gen_R^1 holds
+  ex y being Point of TopSpaceMetr(RealSpace) st x = y &
+  U_FMT x = Balls(y)
+  proof
+    let x be Element of gen_R^1;
+    ex y be Point of TopSpaceMetr(RealSpace) st
+      y = x & (gen_NS_R^1).x = Balls(y) by Def20;
+    hence thesis by FINTOPO2:def 6;
+  end;
+
+theorem
+  dom <. gen_R^1 .] = REAL by Th64,FUNCT_2:def 1;
+
+theorem
+  gen_filter(gen_R^1) = FMT_R^1
+  proof
+    now
+      the carrier of FMT_R^1 = REAL by TOPMETR:17,FINTOPO7:def 15;
+      then dom the BNbd of FMT_R^1 = REAL by FUNCT_2:def 1;
+      hence dom <. gen_R^1 .] = dom the BNbd of FMT_R^1 by Th64,FUNCT_2:def 1;
+      hereby
+        let x be object;
+        assume x in dom <. gen_R^1 .];
+        then reconsider y = x as Element of the carrier of gen_R^1;
+        reconsider z = y as Element of FMT_R^1;
+A1:     (the BNbd of FMT_R^1). z = U_FMT z by FINTOPO2:def 6;
+        now
+          now
+            let o be object;
+            assume
+A2:         o in U_FMT z;
+            then reconsider S = o as Subset of FMT_R^1;
+            S is a_neighborhood of z by A2,FINTOPO7:def 5;
+            then consider O be open Subset of FMT_R^1 such that
+A3:         z in O and
+A4:         O c= S by FINTOPO7:15;
+A5:         NTop2Top FMT_R^1 = R^1 by FINTOPO7:24;
+            O is open Subset of R^1 by A5,Lm9;
+            then consider r be Real such that
+A6:         r > 0 and
+A7:         ]. z - r, z + r .[ c= O by A3,FRECHET:8;
+            consider n be Nat such that
+A8:         1 / n < r and
+A9:         n > 0 by A6,FRECHET:36;
+A10:        ]. z - 1/n , z + 1/n .[ c= ]. z - r , z + r .[
+              by A8,INTEGRA6:2;
+            reconsider z9 = z as Point of TopSpaceMetr(RealSpace)
+              by TOPMETR:def 6,FINTOPO7:def 15;
+            consider zy be Point of RealSpace such that
+A11:        z9 = zy and
+A12:        Balls(z9) = { Ball(zy,1/n) where n is Nat: n <> 0}
+              by FRECHET:def 1;
+A13:        ]. z - 1 / n , z + 1 / n .[ = Ball(zy,1 / n) by A11,FRECHET:7;
+            consider py be Point of TopSpaceMetr(RealSpace) such that
+A14:        py = y and
+A15:        U_FMT y = Balls(py) by Th65;
+            ]. z - 1/n , z + 1/n .[ in Balls(py) by A13,A9,A12,A14;
+            then reconsider b = ]. z - 1/n , z + 1/n .[ as
+              Element of U_FMT y by A15;
+            b c= S by A10,A7,A4;
+            hence o in <. (U_FMT y) .] by CARDFIL2:def 8;
+          end;
+          hence U_FMT z c= <. (U_FMT y) .];
+          now
+            let o be object;
+            assume
+A16:        o in <. (U_FMT y) .];
+            then reconsider O = o as Subset of gen_R^1;
+            consider b be Element of U_FMT y such that
+A17:        b c= O by A16,CARDFIL2:def 8;
+            reconsider z9 = z as Point of TopSpaceMetr(RealSpace)
+              by FINTOPO7:def 15,TOPMETR:def 6;
+            consider zy be Point of RealSpace such that
+A18:        z9 = zy and
+A19:        Balls(z9) = { Ball(zy,1/n) where n is Nat: n <> 0}
+              by FRECHET:def 1;
+            consider py be Point of TopSpaceMetr(RealSpace) such that
+A20:        py = y and
+A21:        U_FMT y = Balls(py) by Th65;
+            b in Balls(z9) by A21,A20;
+            then consider n be Nat such that
+A22:        b = Ball(zy,1/n) and
+A23:        n <> 0 by A19;
+A24:        ]. z - 1 / n , z + 1 / n .[ = Ball(zy,1 / n)
+              by A18,FRECHET:7;
+A25:        n > 0 by NAT_1:3,A23;
+            0 / n < 1 / n by A25,XREAL_1:74;
+            then Ball(zy,1/n) is a_neighborhood of z by A24,Th58;
+            then Ball(zy,1/n) in U_FMT z by FINTOPO7:def 5;
+            hence o in U_FMT z by A22,A17,CARD_FIL:def 1;
+          end;
+          hence <. (U_FMT y) .] c= U_FMT z;
+        end;
+        hence <. gen_R^1 .] . x = (the BNbd of FMT_R^1). x
+          by FINTOPO7:def 9,A1;
+      end;
+    end;
+    then FMT_Space_Str(# the carrier of gen_R^1,<. gen_R^1 .] #) = FMT_R^1
+      by FUNCT_1:2;
+    hence thesis by FINTOPO7:def 10;
+  end;
+
+begin :: Transport Urysohn's lemma (URYSOHN3:20) from TopSpace to NTopSpace
+
+theorem
+  for NT being non empty normal NTopSpace, A,B being closed Subset of NT st
+  A misses B holds ex F being Function of NT,FMT_R^1 st
+  F is continuous & for
+  x being Point of NT holds 0 <= F.x & F.x <= 1 & (x in A implies F.x = 0) &
+  (x in B implies F.x = 1)
+  proof
+    let NT be non empty normal NTopSpace;
+    let NA,NB be closed Subset of NT;
+    assume
+A1: NA misses NB;
+    reconsider T = NTop2Top NT as non empty TopSpace;
+    reconsider T as non empty normal TopSpace;
+    reconsider A = NA, B = NB as closed Subset of T by Lm29;
+    consider F being Function of T,R^1 such that
+A2: F is continuous and
+A3: for x being Point of T holds 0 <= F.x & F.x <= 1 &
+    (x in A implies F.x = 0) & (x in B implies F.x = 1) by A1,URYSOHN3:20;
+    reconsider TTX = T as non empty TopSpace;
+    reconsider TTY = R^1 as non empty strict TopSpace;
+    reconsider G = F as continuous Function of TTX,TTY by A2;
+A4: NT = Top2NTop T & FMT_R^1 = Top2NTop R^1 by FINTOPO7:25;
+    then reconsider F9 = Top2NTop G as Function of NT,FMT_R^1;
+    now
+      thus F9 is continuous by A4;
+      now
+        let x be Point of NT;
+        reconsider x9 = x as Point of T by FINTOPO7:def 16;
+        F9.x = F.x & 0 <= F.x9 by A3;
+        hence 0 <= F9.x;
+        F9.x = F.x & F.x9 <= 1 by A3;
+        hence F9.x <= 1;
+      end;
+      hence for x being Point of NT holds 0 <= F9.x & F9.x <= 1 &
+        (x in NA implies F9.x = 0) & (x in NB implies F9.x = 1) by A3;
+    end;
+    hence thesis;
+  end;

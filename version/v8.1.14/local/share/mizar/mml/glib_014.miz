@@ -1,0 +1,4579 @@
+:: About Graph Unions and Intersections
+::  by Sebastian Koch
+::
+:: Received May 19, 2020
+:: Copyright (c) 2020-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies NUMBERS, FINSET_1, RELAT_1, FUNCT_1, XBOOLE_0, TARSKI, SUBSET_1,
+      FUNCT_4, ZFMISC_1, CARD_1, GLIB_000, GLIB_002, PARTFUN1, CHORD, SCMYCIEL,
+      REWRITE1, GLIB_006, GLIB_007, GLIB_009, GLIB_012, RELAT_2, GLIB_014,
+      SETFAM_1, TREES_1, MSUALG_6;
+ notations TARSKI, XBOOLE_0, SUBSET_1, RELAT_1, FUNCT_1, RELSET_1, PARTFUN1,
+      FUNCT_2, SETFAM_1, FUNCT_4, FINSET_1, CARD_1, NUMBERS, COMPUT_1,
+      GLIB_000, GLIB_002, CHORD, GLIB_006, GLIB_007, GLIB_008, GLIB_009,
+      GLIBPRE0, GLIB_012;
+ constructors FUNCT_4, RELSET_1, CHORD, GLIB_002, GLIB_007, GLIB_008, GLIB_009,
+      GLIB_012, COMPUT_1, GLIBPRE0;
+ registrations XBOOLE_0, RELAT_1, FUNCT_1, FINSET_1, CARD_1, RELSET_1,
+      GLIB_000, GLIB_002, GLIB_009, GLIB_008, GLIB_012, COMPUT_1, GLIBPRE0;
+ requirements BOOLE, SUBSET;
+ equalities XBOOLE_0;
+ theorems GLIB_000, CHORD, GLIB_002, GLIB_006, GLIB_007, GLIB_009, TARSKI,
+      ZFMISC_1, FUNCT_1, XBOOLE_0, XBOOLE_1, FUNCT_2, PARTFUN1, FUNCT_4,
+      RELAT_1, CARD_1, GLIB_008, GLIB_012, SETFAM_1, FINSET_1, COMPUT_1,
+      GLIBPRE0;
+ schemes FUNCT_1;
+
+begin :: Sets of Graphs
+
+definition
+  let X be set;
+  attr X is Graph-membered means
+  :Def1:
+  for x being object st x in X holds x is _Graph;
+end;
+
+registration
+  cluster empty -> Graph-membered for set;
+  coherence;
+end;
+
+registration
+  let F be Graph-yielding Function;
+  cluster rng F -> Graph-membered;
+  coherence
+  proof
+    let y be object;
+    assume y in rng F;
+    then consider x being object such that
+      A1: x in dom F & F.x = y by FUNCT_1:def 3;
+    thus thesis by A1, GLIB_000:def 53;
+  end;
+end;
+
+registration
+  let G1 be _Graph;
+  cluster {G1} -> Graph-membered;
+  coherence by TARSKI:def 1;
+  let G2 be _Graph;
+  cluster {G1, G2} -> Graph-membered;
+  coherence
+  proof
+    let x be object;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+:: there is no functor/mode yet
+:: to construct an infinite number of graphs at once
+registration
+  cluster empty Graph-membered for set;
+  existence
+  proof
+    take the empty set;
+    thus thesis;
+  end;
+  cluster trivial finite non empty Graph-membered for set;
+  existence
+  proof
+    take {the _Graph};
+    thus thesis;
+  end;
+end;
+
+registration
+  let X be Graph-membered set;
+  cluster -> Graph-membered for Subset of X;
+  coherence by Def1;
+end;
+
+:: the usual set operations preserve graph membership
+
+registration
+  let X be Graph-membered set, Y be set;
+  cluster X /\ Y -> Graph-membered;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> Graph-membered;
+  coherence;
+end;
+
+registration
+  let X, Y be Graph-membered set;
+  cluster X \/ Y -> Graph-membered;
+  coherence
+  proof
+    let x be object;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def1;
+    end;
+    suppose x in Y;
+      hence thesis by Def1;
+    end;
+  end;
+  cluster X \+\ Y -> Graph-membered;
+  coherence;
+end;
+
+theorem
+  for X being set
+  st (for Y being object st Y in X holds Y is Graph-membered set)
+  holds union X is Graph-membered
+proof
+  let X be set;
+  assume A1: for Y being object st Y in X holds Y is Graph-membered set;
+  let x be object;
+  assume x in union X;
+  then consider Y being set such that
+    A2: x in Y & Y in X by TARSKI:def 4;
+  thus thesis by A1, A2, Def1;
+end;
+
+theorem
+  for X being set
+  st (ex Y being Graph-membered set st Y in X)
+  holds meet X is Graph-membered
+proof
+  let X be set;
+  assume A1: ex Y being Graph-membered set st Y in X;
+  let x be object;
+  assume x in meet X;
+  then A2: for Y being set holds Y in X implies x in Y by SETFAM_1:def 1;
+  consider Y being Graph-membered set such that
+    A3: Y in X by A1;
+  thus thesis by A2, A3, Def1;
+end;
+
+registration
+  let X be non empty Graph-membered set;
+  cluster -> Function-like Relation-like for Element of X;
+  coherence by Def1;
+end;
+
+registration
+  let X be non empty Graph-membered set;
+  cluster -> NAT-defined finite for Element of X;
+  coherence by Def1;
+end;
+
+registration
+  let X be non empty Graph-membered set;
+  cluster -> [Graph-like] for Element of X;
+  coherence by Def1;
+end;
+
+:: several graphs attributes for sets of graphs
+:: ("finite" and "trivial" are deliberately omitted,
+::  so that the set attributes are not overridden)
+
+definition
+  let S be Graph-membered set;
+  attr S is plain means
+  :Def2:
+  for G being _Graph st G in S holds G is plain;
+  attr S is loopless means
+  :Def3:
+  for G being _Graph st G in S holds G is loopless;
+  attr S is non-multi means
+  :Def4:
+  for G being _Graph st G in S holds G is non-multi;
+  attr S is non-Dmulti means
+  :Def5:
+  for G being _Graph st G in S holds G is non-Dmulti;
+  attr S is simple means
+  for G being _Graph st G in S holds G is simple;
+  attr S is Dsimple means
+  for G being _Graph st G in S holds G is Dsimple;
+  attr S is acyclic means
+  :Def8:
+  for G being _Graph st G in S holds G is acyclic;
+  attr S is connected means
+  :Def9:
+  for G being _Graph st G in S holds G is connected;
+  attr S is Tree-like means
+  for G being _Graph st G in S holds G is Tree-like;
+  attr S is chordal means
+  :Def11:
+  for G being _Graph st G in S holds G is chordal;
+  attr S is edgeless means
+  :Def12:
+  for G being _Graph st G in S holds G is edgeless;
+  attr S is loopfull means
+  :Def13:
+  for G being _Graph st G in S holds G is loopfull;
+  ::attr S is vertex-finite means
+  ::for G being _Graph st G in S holds G is vertex-finite;
+  ::attr S is edge-finite means
+  ::for G being _Graph st G in S holds G is edge-finite;
+end;
+
+:: negative clustering are omitted, because
+:: negative attributes (e.g. "non-loopless") are not defined yet
+registration
+  cluster empty -> plain loopless non-multi non-Dmulti simple Dsimple
+    acyclic connected Tree-like chordal edgeless loopfull
+    :: vertex-finite edge-finite;
+    for Graph-membered set;
+  coherence;
+  cluster non-multi -> non-Dmulti for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A1: S is non-multi;
+    let G be _Graph;
+    assume G in S;
+    then G is non-multi by A1;
+    hence thesis;
+  end;
+  cluster loopless non-multi -> simple for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A2: S is loopless non-multi;
+    let G be _Graph;
+    assume G in S;
+    then G is loopless non-multi by A2;
+    hence thesis;
+  end;
+  cluster loopless non-Dmulti -> Dsimple for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A3: S is loopless non-Dmulti;
+    let G be _Graph;
+    assume G in S;
+    then G is loopless non-Dmulti by A3;
+    hence thesis;
+  end;
+  cluster simple -> loopless non-multi for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A4: S is simple;
+    now
+      let G be _Graph;
+      assume G in S;
+      then G is simple by A4;
+      hence G is loopless non-multi;
+    end;
+    hence thesis;
+  end;
+  cluster Dsimple -> loopless non-Dmulti for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A5: S is Dsimple;
+    now
+      let G be _Graph;
+      assume G in S;
+      then G is Dsimple by A5;
+      hence G is loopless non-Dmulti;
+    end;
+    hence thesis;
+  end;
+  cluster acyclic -> simple for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A6: S is acyclic;
+    let G be _Graph;
+    assume G in S;
+    then G is acyclic by A6;
+    hence thesis;
+  end;
+  cluster acyclic connected -> Tree-like for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A7: S is acyclic connected;
+    let G be _Graph;
+    assume G in S;
+    then G is acyclic connected by A7;
+    hence thesis;
+  end;
+  cluster Tree-like -> acyclic connected for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A8: S is Tree-like;
+    now
+      let G be _Graph;
+      assume G in S;
+      then G is Tree-like by A8;
+      hence G is acyclic connected;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  let G1 be plain _Graph;
+  cluster {G1} -> plain;
+  coherence by TARSKI:def 1;
+  let G2 be plain _Graph;
+  cluster {G1, G2} -> plain;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be loopless _Graph;
+  cluster {G1} -> loopless;
+  coherence by TARSKI:def 1;
+  let G2 be loopless _Graph;
+  cluster {G1, G2} -> loopless;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be non-multi _Graph;
+  cluster {G1} -> non-multi;
+  coherence by TARSKI:def 1;
+  let G2 be non-multi _Graph;
+  cluster {G1, G2} -> non-multi;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be non-Dmulti _Graph;
+  cluster {G1} -> non-Dmulti;
+  coherence by TARSKI:def 1;
+  let G2 be non-Dmulti _Graph;
+  cluster {G1, G2} -> non-Dmulti;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be simple _Graph;
+  cluster {G1} -> simple;
+  coherence;
+  let G2 be simple _Graph;
+  cluster {G1, G2} -> simple;
+  coherence;
+end;
+
+registration
+  let G1 be Dsimple _Graph;
+  cluster {G1} -> Dsimple;
+  coherence;
+  let G2 be Dsimple _Graph;
+  cluster {G1, G2} -> Dsimple;
+  coherence;
+end;
+
+registration
+  let G1 be acyclic _Graph;
+  cluster {G1} -> acyclic;
+  coherence by TARSKI:def 1;
+  let G2 be acyclic _Graph;
+  cluster {G1, G2} -> acyclic;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be connected _Graph;
+  cluster {G1} -> connected;
+  coherence by TARSKI:def 1;
+  let G2 be connected _Graph;
+  cluster {G1, G2} -> connected;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be Tree-like _Graph;
+  cluster {G1} -> Tree-like;
+  coherence;
+  let G2 be Tree-like _Graph;
+  cluster {G1, G2} -> Tree-like;
+  coherence;
+end;
+
+registration
+  let G1 be chordal _Graph;
+  cluster {G1} -> chordal;
+  coherence by TARSKI:def 1;
+  let G2 be chordal _Graph;
+  cluster {G1, G2} -> chordal;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be edgeless _Graph;
+  cluster {G1} -> edgeless;
+  coherence by TARSKI:def 1;
+  let G2 be edgeless _Graph;
+  cluster {G1, G2} -> edgeless;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1 be loopfull _Graph;
+  cluster {G1} -> loopfull;
+  coherence by TARSKI:def 1;
+  let G2 be loopfull _Graph;
+  cluster {G1, G2} -> loopfull;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in {G1, G2};
+    then per cases by TARSKI:def 2;
+    suppose x = G1;
+      hence thesis;
+    end;
+    suppose x = G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+::registration
+  ::let G1 be vertex-finite _Graph;
+  ::cluster {G1} -> vertex-finite;
+  ::coherence;
+  ::let G2 be vertex-finite _Graph;
+  ::cluster {G1, G2} -> vertex-finite;
+  ::coherence;
+::end;
+::
+::registration
+  ::let G1 be edge-finite _Graph;
+  ::cluster {G1} -> edge-finite;
+  ::coherence;
+  ::let G2 be edge-finite _Graph;
+  ::cluster {G1, G2} -> edge-finite;
+  ::coherence;
+::end;
+
+:: attributes given through graph yielding functions
+
+theorem Th3:
+  for F being Graph-yielding Function holds
+    (F is plain iff rng F is plain) &
+    (F is loopless iff rng F is loopless) &
+    (F is non-multi iff rng F is non-multi) &
+    (F is non-Dmulti iff rng F is non-Dmulti) &
+    (F is acyclic iff rng F is acyclic) &
+    (F is connected iff rng F is connected) &
+    (F is chordal iff rng F is chordal) &
+    (F is edgeless iff rng F is edgeless) &
+    (F is loopfull iff rng F is loopfull)
+proof
+  let F be Graph-yielding Function;
+  hereby
+    assume A1: F is plain;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A2: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A3: F.x = G0 & G0 is plain by A1, A2, GLIBPRE0:def 1;
+      thus G is plain by A2, A3;
+    end;
+    hence rng F is plain;
+  end;
+  hereby
+    assume A4: rng F is plain;
+    now
+      let x be object;
+      assume A5: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A5, FUNCT_1:3;
+      hence F.x = G & G is plain by A4;
+    end;
+    hence F is plain by GLIBPRE0:def 1;
+  end;
+  hereby
+    assume A6: F is loopless;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A7: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A8: F.x = G0 & G0 is loopless by A6, A7, GLIB_000:def 59;
+      thus G is loopless by A7, A8;
+    end;
+    hence rng F is loopless;
+  end;
+  hereby
+    assume A9: rng F is loopless;
+    now
+      let x be object;
+      assume A10: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A10, FUNCT_1:3;
+      hence F.x = G & G is loopless by A9;
+    end;
+    hence F is loopless by GLIB_000:def 59;
+  end;
+  hereby
+    assume A11: F is non-multi;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A12: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A13: F.x = G0 & G0 is non-multi by A11, A12, GLIB_000:def 62;
+      thus G is non-multi by A12, A13;
+    end;
+    hence rng F is non-multi;
+  end;
+  hereby
+    assume A14: rng F is non-multi;
+    now
+      let x be object;
+      assume A15: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A15, FUNCT_1:3;
+      hence F.x = G & G is non-multi by A14;
+    end;
+    hence F is non-multi by GLIB_000:def 62;
+  end;
+  hereby
+    assume A16: F is non-Dmulti;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A17: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A18: F.x = G0 & G0 is non-Dmulti by A16, A17, GLIB_000:def 63;
+      thus G is non-Dmulti by A17, A18;
+    end;
+    hence rng F is non-Dmulti;
+  end;
+  hereby
+    assume A19: rng F is non-Dmulti;
+    now
+      let x be object;
+      assume A20: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A20, FUNCT_1:3;
+      hence F.x = G & G is non-Dmulti by A19;
+    end;
+    hence F is non-Dmulti by GLIB_000:def 63;
+  end;
+  hereby
+    assume A21: F is acyclic;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A22: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A23: F.x = G0 & G0 is acyclic by A21, A22, GLIB_002:def 13;
+      thus G is acyclic by A22, A23;
+    end;
+    hence rng F is acyclic;
+  end;
+  hereby
+    assume A24: rng F is acyclic;
+    now
+      let x be object;
+      assume A25: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A25, FUNCT_1:3;
+      hence F.x = G & G is acyclic by A24;
+    end;
+    hence F is acyclic by GLIB_002:def 13;
+  end;
+  hereby
+    assume A26: F is connected;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A27: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A28: F.x = G0 & G0 is connected by A26, A27, GLIB_002:def 12;
+      thus G is connected by A27, A28;
+    end;
+    hence rng F is connected;
+  end;
+  hereby
+    assume A29: rng F is connected;
+    now
+      let x be object;
+      assume A30: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A30, FUNCT_1:3;
+      hence F.x = G & G is connected by A29;
+    end;
+    hence F is connected by GLIB_002:def 12;
+  end;
+  hereby
+    assume A31: F is chordal;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A32: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A33: F.x = G0 & G0 is chordal by A31, A32, GLIBPRE0:def 4;
+      thus G is chordal by A32, A33;
+    end;
+    hence rng F is chordal;
+  end;
+  hereby
+    assume A34: rng F is chordal;
+    now
+      let x be object;
+      assume A35: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A35, FUNCT_1:3;
+      hence F.x = G & G is chordal by A34;
+    end;
+    hence F is chordal by GLIBPRE0:def 4;
+  end;
+  hereby
+    assume A36: F is edgeless;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A37: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A38: F.x = G0 & G0 is edgeless by A36, A37, GLIB_008:def 2;
+      thus G is edgeless by A37, A38;
+    end;
+    hence rng F is edgeless;
+  end;
+  hereby
+    assume A39: rng F is edgeless;
+    now
+      let x be object;
+      assume A40: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A40, FUNCT_1:3;
+      hence F.x = G & G is edgeless by A39;
+    end;
+    hence F is edgeless by GLIB_008:def 2;
+  end;
+  hereby
+    assume A41: F is loopfull;
+    now
+      let G be _Graph;
+      assume G in rng F;
+      then consider x being object such that
+        A42: x in dom F & F.x = G by FUNCT_1:def 3;
+      consider G0 being _Graph such that
+        A43: F.x = G0 & G0 is loopfull by A41, A42, GLIB_012:def 2;
+      thus G is loopfull by A42, A43;
+    end;
+    hence rng F is loopfull;
+  end;
+  hereby
+    assume A44: rng F is loopfull;
+    now
+      let x be object;
+      assume A45: x in dom F;
+      then reconsider G = F.x as _Graph by GLIB_000:def 53;
+      take G;
+      G in rng F by A45, FUNCT_1:3;
+      hence F.x = G & G is loopfull by A44;
+    end;
+    hence F is loopfull by GLIB_012:def 2;
+  end;
+end;
+
+theorem Th4:
+  for F being Graph-yielding Function holds
+    (F is simple iff rng F is simple) &
+    (F is Dsimple iff rng F is Dsimple) &
+    (F is Tree-like iff rng F is Tree-like)
+proof
+  let F be Graph-yielding Function;
+  hereby
+    assume F is simple;
+    then rng F is non-multi loopless by Th3;
+    hence rng F is simple;
+  end;
+  hereby
+    assume rng F is simple;
+    then F is non-multi loopless by Th3;
+    hence F is simple;
+  end;
+  hereby
+    assume F is Dsimple;
+    then rng F is non-Dmulti loopless by Th3;
+    hence rng F is Dsimple;
+  end;
+  hereby
+    assume rng F is Dsimple;
+    then F is non-Dmulti loopless by Th3;
+    hence F is Dsimple;
+  end;
+  hereby
+    assume F is Tree-like;
+    then rng F is acyclic connected by Th3;
+    hence rng F is Tree-like;
+  end;
+  hereby
+    assume rng F is Tree-like;
+    then F is acyclic connected by Th3;
+    hence F is Tree-like;
+  end;
+end;
+
+registration
+  let F be plain Graph-yielding Function;
+  cluster rng F -> plain;
+  coherence by Th3;
+end;
+
+registration
+  let F be loopless Graph-yielding Function;
+  cluster rng F -> loopless;
+  coherence by Th3;
+end;
+
+registration
+  let F be non-multi Graph-yielding Function;
+  cluster rng F -> non-multi;
+  coherence by Th3;
+end;
+
+registration
+  let F be non-Dmulti Graph-yielding Function;
+  cluster rng F -> non-Dmulti;
+  coherence by Th3;
+end;
+
+registration
+  let F be simple Graph-yielding Function;
+  cluster rng F -> simple;
+  coherence;
+end;
+
+registration
+  let F be Dsimple Graph-yielding Function;
+  cluster rng F -> Dsimple;
+  coherence;
+end;
+
+registration
+  let F be acyclic Graph-yielding Function;
+  cluster rng F -> acyclic;
+  coherence by Th3;
+end;
+
+registration
+  let F be connected Graph-yielding Function;
+  cluster rng F -> connected;
+  coherence by Th3;
+end;
+
+registration
+  let F be Tree-like Graph-yielding Function;
+  cluster rng F -> Tree-like;
+  coherence;
+end;
+
+registration
+  let F be chordal Graph-yielding Function;
+  cluster rng F -> chordal;
+  coherence by Th3;
+end;
+
+registration
+  let F be edgeless Graph-yielding Function;
+  cluster rng F -> edgeless;
+  coherence by Th3;
+end;
+
+registration
+  let F be loopfull Graph-yielding Function;
+  cluster rng F -> loopfull;
+  coherence by Th3;
+end;
+
+::registration
+  ::let F be vertex-finite Graph-yielding Function;
+  ::cluster rng F -> vertex-finite;
+  ::coherence
+  ::proof
+    ::let G be _Graph;
+    ::assume G in rng F;
+    ::then consider x being object such that
+      ::A1: x in dom F & F.x = G by FUNCT_1:def 3;
+    ::consider G0 being _Graph such that
+      ::A2: F.x = G0 & G0 is vertex-finite by A1, GLIB_012:def 2;
+    ::thus G is vertex-finite by A1, A2;
+  ::end;
+::end;
+::
+::registration
+  ::let F be edge-finite Graph-yielding Function;
+  ::cluster rng F -> edge-finite;
+  ::coherence
+  ::proof
+    ::let G be _Graph;
+    ::assume G in rng F;
+    ::then consider x being object such that
+      ::A1: x in dom F & F.x = G by FUNCT_1:def 3;
+    ::consider G0 being _Graph such that
+      ::A2: F.x = G0 & G0 is edge-finite by A1, GLIB_012:def 2;
+    ::thus G is edge-finite by A1, A2;
+  ::end;
+::end;
+
+:: attributes of graph subsets
+
+registration
+  let X be plain Graph-membered set;
+  cluster -> plain for Subset of X;
+  coherence by Def2;
+end;
+
+registration
+  let X be loopless Graph-membered set;
+  cluster -> loopless for Subset of X;
+  coherence by Def3;
+end;
+
+registration
+  let X be non-multi Graph-membered set;
+  cluster -> non-multi for Subset of X;
+  coherence by Def4;
+end;
+
+registration
+  let X be non-Dmulti Graph-membered set;
+  cluster -> non-Dmulti for Subset of X;
+  coherence by Def5;
+end;
+
+registration
+  let X be simple Graph-membered set;
+  cluster -> simple for Subset of X;
+  coherence;
+end;
+
+registration
+  let X be Dsimple Graph-membered set;
+  cluster -> Dsimple for Subset of X;
+  coherence;
+end;
+
+registration
+  let X be acyclic Graph-membered set;
+  cluster -> acyclic for Subset of X;
+  coherence by Def8;
+end;
+
+registration
+  let X be connected Graph-membered set;
+  cluster -> connected for Subset of X;
+  coherence by Def9;
+end;
+
+registration
+  let X be Tree-like Graph-membered set;
+  cluster -> Tree-like for Subset of X;
+  coherence;
+end;
+
+registration
+  let X be chordal Graph-membered set;
+  cluster -> chordal for Subset of X;
+  coherence by Def11;
+end;
+
+registration
+  let X be edgeless Graph-membered set;
+  cluster -> edgeless for Subset of X;
+  coherence by Def12;
+end;
+
+registration
+  let X be loopfull Graph-membered set;
+  cluster -> loopfull for Subset of X;
+  coherence by Def13;
+end;
+
+::registration
+  ::let X be vertex-finite Graph-membered set;
+  ::cluster -> vertex-finite for Subset of X;
+  ::coherence by Def16;
+::end;
+::
+::registration
+  ::let X be edge-finite Graph-membered set;
+  ::cluster -> edge-finite for Subset of X;
+  ::coherence by Def16;
+::end;
+
+:: attributes of graph sets and set operations
+
+registration
+  let X be plain Graph-membered set, Y be set;
+  cluster X /\ Y -> plain;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> plain;
+  coherence;
+end;
+
+registration
+  let X, Y be plain Graph-membered set;
+  cluster X \/ Y -> plain;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def2;
+    end;
+    suppose x in Y;
+      hence thesis by Def2;
+    end;
+  end;
+  cluster X \+\ Y -> plain;
+  coherence;
+end;
+
+registration
+  let X be loopless Graph-membered set, Y be set;
+  cluster X /\ Y -> loopless;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> loopless;
+  coherence;
+end;
+
+registration
+  let X, Y be loopless Graph-membered set;
+  cluster X \/ Y -> loopless;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def3;
+    end;
+    suppose x in Y;
+      hence thesis by Def3;
+    end;
+  end;
+  cluster X \+\ Y -> loopless;
+  coherence;
+end;
+
+registration
+  let X be non-multi Graph-membered set, Y be set;
+  cluster X /\ Y -> non-multi;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> non-multi;
+  coherence;
+end;
+
+registration
+  let X, Y be non-multi Graph-membered set;
+  cluster X \/ Y -> non-multi;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def4;
+    end;
+    suppose x in Y;
+      hence thesis by Def4;
+    end;
+  end;
+  cluster X \+\ Y -> non-multi;
+  coherence;
+end;
+
+registration
+  let X be non-Dmulti Graph-membered set, Y be set;
+  cluster X /\ Y -> non-Dmulti;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> non-Dmulti;
+  coherence;
+end;
+
+registration
+  let X, Y be non-Dmulti Graph-membered set;
+  cluster X \/ Y -> non-Dmulti;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def5;
+    end;
+    suppose x in Y;
+      hence thesis by Def5;
+    end;
+  end;
+  cluster X \+\ Y -> non-Dmulti;
+  coherence;
+end;
+
+registration
+  let X be simple Graph-membered set, Y be set;
+  cluster X /\ Y -> simple;
+  coherence;
+  cluster X \ Y -> simple;
+  coherence;
+end;
+
+registration
+  let X, Y be simple Graph-membered set;
+  cluster X \/ Y -> simple;
+  coherence;
+  cluster X \+\ Y -> simple;
+  coherence;
+end;
+
+registration
+  let X be Dsimple Graph-membered set, Y be set;
+  cluster X /\ Y -> Dsimple;
+  coherence;
+  cluster X \ Y -> Dsimple;
+  coherence;
+end;
+
+registration
+  let X, Y be Dsimple Graph-membered set;
+  cluster X \/ Y -> Dsimple;
+  coherence;
+  cluster X \+\ Y -> Dsimple;
+  coherence;
+end;
+
+registration
+  let X be acyclic Graph-membered set, Y be set;
+  cluster X /\ Y -> acyclic;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> acyclic;
+  coherence;
+end;
+
+registration
+  let X, Y be acyclic Graph-membered set;
+  cluster X \/ Y -> acyclic;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def8;
+    end;
+    suppose x in Y;
+      hence thesis by Def8;
+    end;
+  end;
+  cluster X \+\ Y -> acyclic;
+  coherence;
+end;
+
+registration
+  let X be connected Graph-membered set, Y be set;
+  cluster X /\ Y -> connected;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> connected;
+  coherence;
+end;
+
+registration
+  let X, Y be connected Graph-membered set;
+  cluster X \/ Y -> connected;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def9;
+    end;
+    suppose x in Y;
+      hence thesis by Def9;
+    end;
+  end;
+  cluster X \+\ Y -> connected;
+  coherence;
+end;
+
+registration
+  let X be Tree-like Graph-membered set, Y be set;
+  cluster X /\ Y -> Tree-like;
+  coherence;
+  cluster X \ Y -> Tree-like;
+  coherence;
+end;
+
+registration
+  let X, Y be Tree-like Graph-membered set;
+  cluster X \/ Y -> Tree-like;
+  coherence;
+  cluster X \+\ Y -> Tree-like;
+  coherence;
+end;
+
+registration
+  let X be chordal Graph-membered set, Y be set;
+  cluster X /\ Y -> chordal;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> chordal;
+  coherence;
+end;
+
+registration
+  let X, Y be chordal Graph-membered set;
+  cluster X \/ Y -> chordal;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def11;
+    end;
+    suppose x in Y;
+      hence thesis by Def11;
+    end;
+  end;
+  cluster X \+\ Y -> chordal;
+  coherence;
+end;
+
+registration
+  let X be edgeless Graph-membered set, Y be set;
+  cluster X /\ Y -> edgeless;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> edgeless;
+  coherence;
+end;
+
+registration
+  let X, Y be edgeless Graph-membered set;
+  cluster X \/ Y -> edgeless;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def12;
+    end;
+    suppose x in Y;
+      hence thesis by Def12;
+    end;
+  end;
+  cluster X \+\ Y -> edgeless;
+  coherence;
+end;
+
+registration
+  let X be loopfull Graph-membered set, Y be set;
+  cluster X /\ Y -> loopfull;
+  coherence
+  proof
+    X /\ Y c= X by XBOOLE_1:17;
+    hence thesis;
+  end;
+  cluster X \ Y -> loopfull;
+  coherence;
+end;
+
+registration
+  let X, Y be loopfull Graph-membered set;
+  cluster X \/ Y -> loopfull;
+  coherence
+  proof
+    let x be _Graph;
+    assume x in X \/ Y;
+    then per cases by XBOOLE_0:def 3;
+    suppose x in X;
+      hence thesis by Def13;
+    end;
+    suppose x in Y;
+      hence thesis by Def13;
+    end;
+  end;
+  cluster X \+\ Y -> loopfull;
+  coherence;
+end;
+
+::registration
+  ::let X be vertex-finite Graph-membered set, Y be set;
+  ::cluster X /\ Y -> vertex-finite;
+  ::coherence
+  ::proof
+    ::X /\ Y c= X by XBOOLE_1:17;
+    ::hence thesis;
+  ::end;
+  ::cluster X \ Y -> vertex-finite;
+  ::coherence;
+::end;
+::
+::registration
+  ::let X, Y be vertex-finite Graph-membered set;
+  ::cluster X \/ Y -> vertex-finite;
+  ::coherence
+  ::proof
+    ::let x be _Graph;
+    ::assume x in X \/ Y;
+    ::then per cases by XBOOLE_0:def 3;
+    ::suppose x in X;
+      ::hence thesis by Def16;
+    ::end;
+    ::suppose x in Y;
+      ::hence thesis by Def16;
+    ::end;
+  ::end;
+  ::cluster X \+\ Y -> vertex-finite;
+  ::coherence
+  ::proof
+    ::X \+\ Y = (X \ Y) \/ (Y \ X) by XBOOLE_0:def 6;
+    ::hence thesis;
+  ::end;
+::end;
+::
+::registration
+  ::let X be edge-finite Graph-membered set, Y be set;
+  ::cluster X /\ Y -> edge-finite;
+  ::coherence
+  ::proof
+    ::X /\ Y c= X by XBOOLE_1:17;
+    ::hence thesis;
+  ::end;
+  ::cluster X \ Y -> edge-finite;
+  ::coherence;
+::end;
+::
+::registration
+  ::let X, Y be edge-finite Graph-membered set;
+  ::cluster X \/ Y -> edge-finite;
+  ::coherence
+  ::proof
+    ::let x be _Graph;
+    ::assume x in X \/ Y;
+    ::then per cases by XBOOLE_0:def 3;
+    ::suppose x in X;
+      ::hence thesis by Def16;
+    ::end;
+    ::suppose x in Y;
+      ::hence thesis by Def16;
+    ::end;
+  ::end;
+  ::cluster X \+\ Y -> edge-finite;
+  ::coherence
+  ::proof
+    ::X \+\ Y = (X \ Y) \/ (Y \ X) by XBOOLE_0:def 6;
+    ::hence thesis;
+  ::end;
+::end;
+
+:: existence clusters for all attributes
+registration
+  cluster empty plain loopless non-multi non-Dmulti simple Dsimple
+    acyclic connected Tree-like chordal edgeless loopfull
+    for Graph-membered set;
+  existence
+  proof
+    take the empty Graph-membered set;
+    thus thesis;
+  end;
+  cluster non empty Tree-like acyclic connected simple Dsimple loopless
+    non-multi non-Dmulti for Graph-membered set;
+  existence
+  proof
+    take {the Tree-like acyclic connected simple Dsimple loopless
+      non-multi non-Dmulti _Graph};
+    thus thesis;
+  end;
+  cluster non empty edgeless chordal for Graph-membered set;
+  existence
+  proof
+    take {the edgeless chordal _Graph};
+    thus thesis;
+  end;
+  cluster non empty loopfull for Graph-membered set;
+  existence
+  proof
+    take {the loopfull _Graph};
+    thus thesis;
+  end;
+  cluster non empty plain for Graph-membered set;
+  existence
+  proof
+    take {the plain _Graph};
+    thus thesis;
+  end;
+  ::cluster non empty vertex-finite edge-finite for Graph-membered set;
+  ::existence;
+end;
+
+registration
+  let S be non empty plain Graph-membered set;
+  cluster -> plain for Element of S;
+  coherence by Def2;
+end;
+
+registration
+  let S be non empty loopless Graph-membered set;
+  cluster -> loopless for Element of S;
+  coherence by Def3;
+end;
+
+registration
+  let S be non empty non-multi Graph-membered set;
+  cluster -> non-multi for Element of S;
+  coherence by Def4;
+end;
+
+registration
+  let S be non empty non-Dmulti Graph-membered set;
+  cluster -> non-Dmulti for Element of S;
+  coherence by Def5;
+end;
+
+registration
+  let S be non empty simple Graph-membered set;
+  cluster -> simple for Element of S;
+  coherence;
+end;
+
+registration
+  let S be non empty Dsimple Graph-membered set;
+  cluster -> Dsimple for Element of S;
+  coherence;
+end;
+
+registration
+  let S be non empty acyclic Graph-membered set;
+  cluster -> acyclic for Element of S;
+  coherence by Def8;
+end;
+
+registration
+  let S be non empty connected Graph-membered set;
+  cluster -> connected for Element of S;
+  coherence by Def9;
+end;
+
+registration
+  let S be non empty Tree-like Graph-membered set;
+  cluster -> Tree-like for Element of S;
+  coherence;
+end;
+
+registration
+  let S be non empty chordal Graph-membered set;
+  cluster -> chordal for Element of S;
+  coherence by Def11;
+end;
+
+registration
+  let S be non empty edgeless Graph-membered set;
+  cluster -> edgeless for Element of S;
+  coherence by Def12;
+end;
+
+registration
+  let S be non empty loopfull Graph-membered set;
+  cluster -> loopfull for Element of S;
+  coherence by Def13;
+end;
+
+::registration
+  ::let S be non empty vertex-finite Graph-membered set;
+  ::cluster -> vertex-finite for Element of S;
+  ::coherence by Def16;
+::end;
+::
+::registration
+  ::let S be non empty edge-finite Graph-membered set;
+  ::cluster -> edge-finite for Element of S;
+  ::coherence by Def16;
+::end;
+
+:: getting vertices/edges/sources/targets from the Graph-membered set
+
+definition
+  let S be Graph-membered set;
+  func the_Vertices_of S -> set means
+  :Def14:
+  for V being object holds V in it iff
+    ex G being _Graph st G in S & V = the_Vertices_of G;
+  existence
+  proof
+    per cases;
+    suppose A1: S is empty;
+      take the empty set;
+      thus thesis by A1;
+    end;
+    suppose S is non empty;
+      then reconsider S0 = S as non empty Graph-membered set;
+      take X = the set of all the_Vertices_of G where G is Element of S0;
+      let V be object;
+      hereby
+        assume V in X;
+        then consider G being Element of S0 such that
+          A2: V = the_Vertices_of G;
+        reconsider G as _Graph;
+        take G;
+        thus G in S & V = the_Vertices_of G by A2;
+      end;
+      thus (ex G being _Graph st G in S & V = the_Vertices_of G)
+        implies V in X;
+    end;
+  end;
+  uniqueness
+  proof
+    let X1, X2 be set;
+    assume that
+      A3: for V being object holds V in X1 iff
+        ex G being _Graph st G in S & V = the_Vertices_of G and
+      A4: for V being object holds V in X2 iff
+        ex G being _Graph st G in S & V = the_Vertices_of G;
+    now
+      let V be object;
+      hereby
+        assume V in X1;
+        then ex G being _Graph st G in S & V = the_Vertices_of G by A3;
+        hence V in X2 by A4;
+      end;
+      assume V in X2;
+      then ex G being _Graph st G in S & V = the_Vertices_of G by A4;
+      hence V in X1 by A3;
+    end;
+    hence X1 = X2 by TARSKI:2;
+  end;
+  func the_Edges_of S -> set means
+  :Def15:
+  for E being object holds E in it iff
+    ex G being _Graph st G in S & E = the_Edges_of G;
+  existence
+  proof
+    per cases;
+    suppose A5: S is empty;
+      take the empty set;
+      thus thesis by A5;
+    end;
+    suppose S is non empty;
+      then reconsider S0 = S as non empty Graph-membered set;
+      take X = the set of all the_Edges_of G where G is Element of S0;
+      let E be object;
+      hereby
+        assume E in X;
+        then consider G being Element of S0 such that
+          A6: E = the_Edges_of G;
+        reconsider G as _Graph;
+        take G;
+        thus G in S & E = the_Edges_of G by A6;
+      end;
+      thus (ex G being _Graph st G in S & E = the_Edges_of G)
+        implies E in X;
+    end;
+  end;
+  uniqueness
+  proof
+    let X1, X2 be set;
+    assume that
+      A7: for E being object holds E in X1 iff
+        ex G being _Graph st G in S & E = the_Edges_of G and
+      A8: for E being object holds E in X2 iff
+        ex G being _Graph st G in S & E = the_Edges_of G;
+    now
+      let E be object;
+      hereby
+        assume E in X1;
+        then ex G being _Graph st G in S & E = the_Edges_of G by A7;
+        hence E in X2 by A8;
+      end;
+      assume E in X2;
+      then ex G being _Graph st G in S & E = the_Edges_of G by A8;
+      hence E in X1 by A7;
+    end;
+    hence X1 = X2 by TARSKI:2;
+  end;
+  func the_Source_of S -> set means
+  :Def16:
+  for s being object holds s in it iff
+    ex G being _Graph st G in S & s = the_Source_of G;
+  existence
+  proof
+    per cases;
+    suppose A9: S is empty;
+      take the empty set;
+      thus thesis by A9;
+    end;
+    suppose S is non empty;
+      then reconsider S0 = S as non empty Graph-membered set;
+      take X = the set of all the_Source_of G where G is Element of S0;
+      let s be object;
+      hereby
+        assume s in X;
+        then consider G being Element of S0 such that
+          A10: s = the_Source_of G;
+        reconsider G as _Graph;
+        take G;
+        thus G in S & s = the_Source_of G by A10;
+      end;
+      thus (ex G being _Graph st G in S & s = the_Source_of G)
+        implies s in X;
+    end;
+  end;
+  uniqueness
+  proof
+    let X1, X2 be set;
+    assume that
+      A11: for s being object holds s in X1 iff
+        ex G being _Graph st G in S & s = the_Source_of G and
+      A12: for s being object holds s in X2 iff
+        ex G being _Graph st G in S & s = the_Source_of G;
+    now
+      let s be object;
+      hereby
+        assume s in X1;
+        then ex G being _Graph st G in S & s = the_Source_of G by A11;
+        hence s in X2 by A12;
+      end;
+      assume s in X2;
+      then ex G being _Graph st G in S & s = the_Source_of G by A12;
+      hence s in X1 by A11;
+    end;
+    hence X1 = X2 by TARSKI:2;
+  end;
+  func the_Target_of S -> set means
+  :Def17:
+  for t being object holds t in it iff
+    ex G being _Graph st G in S & t = the_Target_of G;
+  existence
+  proof
+    per cases;
+    suppose A13: S is empty;
+      take the empty set;
+      thus thesis by A13;
+    end;
+    suppose S is non empty;
+      then reconsider S0 = S as non empty Graph-membered set;
+      take X = the set of all the_Target_of G where G is Element of S0;
+      let t be object;
+      hereby
+        assume t in X;
+        then consider G being Element of S0 such that
+          A14: t = the_Target_of G;
+        reconsider G as _Graph;
+        take G;
+        thus G in S & t = the_Target_of G by A14;
+      end;
+      thus (ex G being _Graph st G in S & t = the_Target_of G)
+        implies t in X;
+    end;
+  end;
+  uniqueness
+  proof
+    let X1, X2 be set;
+    assume that
+      A15: for t being object holds t in X1 iff
+        ex G being _Graph st G in S & t = the_Target_of G and
+      A16: for t being object holds t in X2 iff
+        ex G being _Graph st G in S & t = the_Target_of G;
+    now
+      let t be object;
+      hereby
+        assume t in X1;
+        then ex G being _Graph st G in S & t = the_Target_of G by A15;
+        hence t in X2 by A16;
+      end;
+      assume t in X2;
+      then ex G being _Graph st G in S & t = the_Target_of G by A16;
+      hence t in X1 by A15;
+    end;
+    hence X1 = X2 by TARSKI:2;
+  end;
+end;
+
+definition
+  let S be non empty Graph-membered set;
+  redefine func the_Vertices_of S equals
+  the set of all the_Vertices_of G where G is Element of S;
+  compatibility
+  proof
+    let X be set;
+    set Y = the set of all the_Vertices_of G where G is Element of S;
+    now
+      let V be object;
+      hereby
+        assume V in the_Vertices_of S;
+        then ex G being _Graph st G in S & V = the_Vertices_of G by Def14;
+        hence V in Y;
+      end;
+      assume V in Y;
+      then consider G being Element of S such that
+        A1: V = the_Vertices_of G;
+      thus V in the_Vertices_of S by A1, Def14;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+  redefine func the_Edges_of S equals
+  the set of all the_Edges_of G where G is Element of S;
+  compatibility
+  proof
+    let X be set;
+    set Y = the set of all the_Edges_of G where G is Element of S;
+    now
+      let E be object;
+      hereby
+        assume E in the_Edges_of S;
+        then ex G being _Graph st G in S & E = the_Edges_of G by Def15;
+        hence E in Y;
+      end;
+      assume E in Y;
+      then consider G being Element of S such that
+        A2: E = the_Edges_of G;
+      thus E in the_Edges_of S by A2, Def15;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+  redefine func the_Source_of S equals
+  the set of all the_Source_of G where G is Element of S;
+  compatibility
+  proof
+    let X be set;
+    set Y = the set of all the_Source_of G where G is Element of S;
+    now
+      let s be object;
+      hereby
+        assume s in the_Source_of S;
+        then ex G being _Graph st G in S & s = the_Source_of G by Def16;
+        hence s in Y;
+      end;
+      assume s in Y;
+      then consider G being Element of S such that
+        A3: s = the_Source_of G;
+      thus s in the_Source_of S by A3, Def16;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+  redefine func the_Target_of S equals
+  the set of all the_Target_of G where G is Element of S;
+  compatibility
+  proof
+    let X be set;
+    set Y = the set of all the_Target_of G where G is Element of S;
+    now
+      let t be object;
+      hereby
+        assume t in the_Target_of S;
+        then ex G being _Graph st G in S & t = the_Target_of G by Def17;
+        hence t in Y;
+      end;
+      assume t in Y;
+      then consider G being Element of S such that
+        A4: t = the_Target_of G;
+      thus t in the_Target_of S by A4, Def17;
+    end;
+    hence thesis by TARSKI:2;
+  end;
+end;
+
+registration
+  let S be non empty Graph-membered set;
+  cluster union the_Vertices_of S -> non empty;
+  coherence
+  proof
+    set G = the Element of S;
+    set v = the Element of the_Vertices_of G;
+    the_Vertices_of G in the_Vertices_of S & v in the_Vertices_of G;
+    hence union the_Vertices_of S is non empty by TARSKI:def 4;
+  end;
+end;
+
+registration
+  let S be Graph-membered set;
+  cluster the_Source_of S -> functional;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in the_Source_of S;
+      then consider G being _Graph such that
+        A1: G in S & x = the_Source_of G by Def16;
+      thus x is Function by A1;
+    end;
+    hence thesis by FUNCT_1:def 13;
+  end;
+  cluster the_Target_of S -> functional;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in the_Target_of S;
+      then consider G being _Graph such that
+        A2: G in S & x = the_Target_of G by Def17;
+      thus x is Function by A2;
+    end;
+    hence thesis by FUNCT_1:def 13;
+  end;
+end;
+
+registration
+  let S be empty Graph-membered set;
+  cluster the_Vertices_of S -> empty;
+  coherence
+  proof
+    assume the_Vertices_of S is non empty;
+    then consider V being object such that
+      A1: V in the_Vertices_of S by XBOOLE_0:def 1;
+    ex G being _Graph st G in S & V = the_Vertices_of G by A1, Def14;
+    hence contradiction;
+  end;
+  cluster the_Edges_of S -> empty;
+  coherence
+  proof
+    assume the_Edges_of S is non empty;
+    then consider E being object such that
+      A2: E in the_Edges_of S by XBOOLE_0:def 1;
+    ex G being _Graph st G in S & E = the_Edges_of G by A2, Def15;
+    hence contradiction;
+  end;
+  cluster the_Source_of S -> empty;
+  coherence
+  proof
+    assume the_Source_of S is non empty;
+    then consider s being object such that
+      A3: s in the_Source_of S by XBOOLE_0:def 1;
+    ex G being _Graph st G in S & s = the_Source_of G by A3, Def16;
+    hence contradiction;
+  end;
+  cluster the_Target_of S -> empty;
+  coherence
+  proof
+    assume the_Target_of S is non empty;
+    then consider t being object such that
+      A4: t in the_Target_of S by XBOOLE_0:def 1;
+    ex G being _Graph st G in S & t = the_Target_of G by A4, Def17;
+    hence contradiction;
+  end;
+end;
+
+registration
+  let S be non empty Graph-membered set;
+  cluster the_Vertices_of S -> non empty;
+  coherence
+  proof
+    set G = the Element of S;
+    the_Vertices_of G in the_Vertices_of S;
+    hence thesis;
+  end;
+  cluster the_Edges_of S -> non empty;
+  coherence
+  proof
+    set G = the Element of S;
+    the_Edges_of G in the_Edges_of S;
+    hence thesis;
+  end;
+  cluster the_Source_of S -> non empty;
+  coherence
+  proof
+    set G = the Element of S;
+    the_Source_of G in the_Source_of S;
+    hence thesis;
+  end;
+  cluster the_Target_of S -> non empty;
+  coherence
+  proof
+    set G = the Element of S;
+    the_Target_of G in the_Target_of S;
+    hence thesis;
+  end;
+end;
+
+registration
+  let S be trivial Graph-membered set;
+  cluster the_Vertices_of S -> trivial;
+  coherence
+  proof
+    now
+      let x,y be object;
+      assume A1: x in the_Vertices_of S & y in the_Vertices_of S;
+      then consider G1 being _Graph such that
+        A2: G1 in S & x = the_Vertices_of G1 by Def14;
+      consider G2 being _Graph such that
+        A3: G2 in S & y = the_Vertices_of G2 by A1, Def14;
+      thus x = y by A2, A3, ZFMISC_1:def 10;
+    end;
+    hence thesis by ZFMISC_1:def 10;
+  end;
+  cluster the_Edges_of S -> trivial;
+  coherence
+  proof
+    now
+      let x,y be object;
+      assume A4: x in the_Edges_of S & y in the_Edges_of S;
+      then consider G1 being _Graph such that
+        A5: G1 in S & x = the_Edges_of G1 by Def15;
+      consider G2 being _Graph such that
+        A6: G2 in S & y = the_Edges_of G2 by A4, Def15;
+      thus x = y by A5, A6, ZFMISC_1:def 10;
+    end;
+    hence thesis by ZFMISC_1:def 10;
+  end;
+  cluster the_Source_of S -> trivial;
+  coherence
+  proof
+    now
+      let x,y be object;
+      assume A7: x in the_Source_of S & y in the_Source_of S;
+      then consider G1 being _Graph such that
+        A8: G1 in S & x = the_Source_of G1 by Def16;
+      consider G2 being _Graph such that
+        A9: G2 in S & y = the_Source_of G2 by A7, Def16;
+      thus x = y by A8, A9, ZFMISC_1:def 10;
+    end;
+    hence thesis by ZFMISC_1:def 10;
+  end;
+  cluster the_Target_of S -> trivial;
+  coherence
+  proof
+    now
+      let x,y be object;
+      assume A10: x in the_Target_of S & y in the_Target_of S;
+      then consider G1 being _Graph such that
+        A11: G1 in S & x = the_Target_of G1 by Def17;
+      consider G2 being _Graph such that
+        A12: G2 in S & y = the_Target_of G2 by A10, Def17;
+      thus x = y by A11, A12, ZFMISC_1:def 10;
+    end;
+    hence thesis by ZFMISC_1:def 10;
+  end;
+end;
+
+theorem Th5:
+  for G being _Graph holds
+    the_Vertices_of {G} = {the_Vertices_of G} &
+    the_Edges_of {G} = {the_Edges_of G} &
+    the_Source_of {G} = {the_Source_of G} &
+    the_Target_of {G} = {the_Target_of G}
+proof
+  let G be _Graph;
+  now
+    let x be object;
+    hereby
+      assume x in the_Vertices_of {G};
+      then consider G0 being Element of {G} such that
+        A1: x = the_Vertices_of G0;
+      thus x = the_Vertices_of G by A1, TARSKI:def 1;
+    end;
+    assume A2: x = the_Vertices_of G;
+    G in {G} by TARSKI:def 1;
+    hence x in the_Vertices_of {G} by A2;
+  end;
+  hence the_Vertices_of {G} = {the_Vertices_of G} by TARSKI:def 1;
+  now
+    let x be object;
+    hereby
+      assume x in the_Edges_of {G};
+      then consider G0 being Element of {G} such that
+        A3: x = the_Edges_of G0;
+      thus x = the_Edges_of G by A3, TARSKI:def 1;
+    end;
+    assume A4: x = the_Edges_of G;
+    G in {G} by TARSKI:def 1;
+    hence x in the_Edges_of {G} by A4;
+  end;
+  hence the_Edges_of {G} = {the_Edges_of G} by TARSKI:def 1;
+  now
+    let x be object;
+    hereby
+      assume x in the_Source_of {G};
+      then consider G0 being Element of {G} such that
+        A5: x = the_Source_of G0;
+      thus x = the_Source_of G by A5, TARSKI:def 1;
+    end;
+    assume A6: x = the_Source_of G;
+    G in {G} by TARSKI:def 1;
+    hence x in the_Source_of {G} by A6;
+  end;
+  hence the_Source_of {G} = {the_Source_of G} by TARSKI:def 1;
+  now
+    let x be object;
+    hereby
+      assume x in the_Target_of {G};
+      then consider G0 being Element of {G} such that
+        A7: x = the_Target_of G0;
+      thus x = the_Target_of G by A7, TARSKI:def 1;
+    end;
+    assume A8: x = the_Target_of G;
+    G in {G} by TARSKI:def 1;
+    hence x in the_Target_of {G} by A8;
+  end;
+  hence the_Target_of {G} = {the_Target_of G} by TARSKI:def 1;
+end;
+
+theorem Th6:
+  for G, H being _Graph holds
+    the_Vertices_of {G,H} = {the_Vertices_of G, the_Vertices_of H} &
+    the_Edges_of {G,H} = {the_Edges_of G, the_Edges_of H} &
+    the_Source_of {G,H} = {the_Source_of G, the_Source_of H} &
+    the_Target_of {G,H} = {the_Target_of G, the_Target_of H}
+proof
+  let G, H be _Graph;
+  now
+    let x be object;
+    hereby
+      assume x in the_Vertices_of {G,H};
+      then consider G0 being Element of {G,H} such that
+        A1: x = the_Vertices_of G0;
+      per cases by TARSKI:def 2;
+      suppose G0 = G;
+        hence x in {the_Vertices_of G, the_Vertices_of H} by A1, TARSKI:def 2;
+      end;
+      suppose G0 = H;
+        hence x in {the_Vertices_of G, the_Vertices_of H} by A1, TARSKI:def 2;
+      end;
+    end;
+    assume x in {the_Vertices_of G, the_Vertices_of H};
+    then A2: x = the_Vertices_of G or x = the_Vertices_of H by TARSKI:def 2;
+    G in {G,H} & H in {G,H} by TARSKI:def 2;
+    hence x in the_Vertices_of {G,H} by A2;
+  end;
+  hence the_Vertices_of {G,H} = {the_Vertices_of G, the_Vertices_of H}
+    by TARSKI:2;
+  now
+    let x be object;
+    hereby
+      assume x in the_Edges_of {G,H};
+      then consider G0 being Element of {G,H} such that
+        A3: x = the_Edges_of G0;
+      per cases by TARSKI:def 2;
+      suppose G0 = G;
+        hence x in {the_Edges_of G, the_Edges_of H} by A3, TARSKI:def 2;
+      end;
+      suppose G0 = H;
+        hence x in {the_Edges_of G, the_Edges_of H} by A3, TARSKI:def 2;
+      end;
+    end;
+    assume x in {the_Edges_of G, the_Edges_of H};
+    then A4: x = the_Edges_of G or x = the_Edges_of H by TARSKI:def 2;
+    G in {G,H} & H in {G,H} by TARSKI:def 2;
+    hence x in the_Edges_of {G,H} by A4;
+  end;
+  hence the_Edges_of {G,H} = {the_Edges_of G, the_Edges_of H}
+    by TARSKI:2;
+  now
+    let x be object;
+    hereby
+      assume x in the_Source_of {G,H};
+      then consider G0 being Element of {G,H} such that
+        A5: x = the_Source_of G0;
+      per cases by TARSKI:def 2;
+      suppose G0 = G;
+        hence x in {the_Source_of G, the_Source_of H} by A5, TARSKI:def 2;
+      end;
+      suppose G0 = H;
+        hence x in {the_Source_of G, the_Source_of H} by A5, TARSKI:def 2;
+      end;
+    end;
+    assume x in {the_Source_of G, the_Source_of H};
+    then A6: x = the_Source_of G or x = the_Source_of H by TARSKI:def 2;
+    G in {G,H} & H in {G,H} by TARSKI:def 2;
+    hence x in the_Source_of {G,H} by A6;
+  end;
+  hence the_Source_of {G,H} = {the_Source_of G, the_Source_of H}
+    by TARSKI:2;
+  now
+    let x be object;
+    hereby
+      assume x in the_Target_of {G,H};
+      then consider G0 being Element of {G,H} such that
+        A7: x = the_Target_of G0;
+      per cases by TARSKI:def 2;
+      suppose G0 = G;
+        hence x in {the_Target_of G, the_Target_of H} by A7, TARSKI:def 2;
+      end;
+      suppose G0 = H;
+        hence x in {the_Target_of G, the_Target_of H} by A7, TARSKI:def 2;
+      end;
+    end;
+    assume x in {the_Target_of G, the_Target_of H};
+    then A8: x = the_Target_of G or x = the_Target_of H by TARSKI:def 2;
+    G in {G,H} & H in {G,H} by TARSKI:def 2;
+    hence x in the_Target_of {G,H} by A8;
+  end;
+  hence the_Target_of {G,H} = {the_Target_of G, the_Target_of H}
+    by TARSKI:2;
+end;
+
+theorem Th7:
+  for S being Graph-membered set holds
+    card the_Vertices_of S c= card S &
+    card the_Edges_of S c= card S &
+    card the_Source_of S c= card S &
+    card the_Target_of S c= card S
+proof
+  let S be Graph-membered set;
+  :: first the vertices
+  defpred P1[object,object] means ex G being _Graph st
+    $1 = G & $2 = the_Vertices_of G;
+  A1: for x,y1,y2 being object st x in S & P1[x,y1] & P1[x,y2] holds y1 = y2;
+  A2: for x being object st x in S ex y being object st P1[x,y]
+  proof
+    let x be object;
+    assume x in S;
+    then reconsider G = x as _Graph;
+    take the_Vertices_of G, G;
+    thus thesis;
+  end;
+  consider f1 being Function such that
+    A3: dom f1 = S & for x being object st x in S holds P1[x,f1.x]
+    from FUNCT_1:sch 2(A1,A2);
+  now
+    let x being object;
+    assume x in the_Vertices_of S;
+    then consider G being _Graph such that
+      A4: G in S & x = the_Vertices_of G by Def14;
+    consider G0 being _Graph such that
+      A5: G = G0 & f1.G = the_Vertices_of G0 by A3, A4;
+    thus x in rng f1 by A3, A4, A5, FUNCT_1:3;
+  end;
+  hence card the_Vertices_of S c= card S by A3, CARD_1:12, TARSKI:def 3;
+  :: the other three cases work analogously
+  defpred P2[object,object] means ex G being _Graph st
+    $1 = G & $2 = the_Edges_of G;
+  A6: for x,y1,y2 being object st x in S & P2[x,y1] & P2[x,y2] holds y1 = y2;
+  A7: for x being object st x in S ex y being object st P2[x,y]
+  proof
+    let x be object;
+    assume x in S;
+    then reconsider G = x as _Graph;
+    take the_Edges_of G, G;
+    thus thesis;
+  end;
+  consider f2 being Function such that
+    A8: dom f2 = S & for x being object st x in S holds P2[x,f2.x]
+    from FUNCT_1:sch 2(A6,A7);
+  now
+    let x being object;
+    assume x in the_Edges_of S;
+    then consider G being _Graph such that
+      A9: G in S & x = the_Edges_of G by Def15;
+    consider G0 being _Graph such that
+      A10: G = G0 & f2.G = the_Edges_of G0 by A8, A9;
+    thus x in rng f2 by A8, A9, A10, FUNCT_1:3;
+  end;
+  hence card the_Edges_of S c= card S by A8, CARD_1:12, TARSKI:def 3;
+  defpred P3[object,object] means ex G being _Graph st
+    $1 = G & $2 = the_Source_of G;
+  A11: for x,y1,y2 being object st x in S & P3[x,y1] & P3[x,y2] holds y1 = y2;
+  A12: for x being object st x in S ex y being object st P3[x,y]
+  proof
+    let x be object;
+    assume x in S;
+    then reconsider G = x as _Graph;
+    take the_Source_of G, G;
+    thus thesis;
+  end;
+  consider f3 being Function such that
+    A13: dom f3 = S & for x being object st x in S holds P3[x,f3.x]
+    from FUNCT_1:sch 2(A11,A12);
+  now
+    let x being object;
+    assume x in the_Source_of S;
+    then consider G being _Graph such that
+      A14: G in S & x = the_Source_of G by Def16;
+    consider G0 being _Graph such that
+      A15: G = G0 & f3.G = the_Source_of G0 by A13, A14;
+    thus x in rng f3 by A13, A14, A15, FUNCT_1:3;
+  end;
+  hence card the_Source_of S c= card S by A13, CARD_1:12, TARSKI:def 3;
+  defpred P4[object,object] means ex G being _Graph st
+    $1 = G & $2 = the_Target_of G;
+  A16: for x,y1,y2 being object st x in S & P4[x,y1] & P4[x,y2] holds y1 = y2;
+  A17: for x being object st x in S ex y being object st P4[x,y]
+  proof
+    let x be object;
+    assume x in S;
+    then reconsider G = x as _Graph;
+    take the_Target_of G, G;
+    thus thesis;
+  end;
+  consider f4 being Function such that
+    A18: dom f4 = S & for x being object st x in S holds P4[x,f4.x]
+    from FUNCT_1:sch 2(A16,A17);
+  now
+    let x being object;
+    assume x in the_Target_of S;
+    then consider G being _Graph such that
+      A19: G in S & x = the_Target_of G by Def17;
+    consider G0 being _Graph such that
+      A20: G = G0 & f4.G = the_Target_of G0 by A18, A19;
+    thus x in rng f4 by A18, A19, A20, FUNCT_1:3;
+  end;
+  hence card the_Target_of S c= card S by A18, CARD_1:12, TARSKI:def 3;
+end;
+
+registration
+  let S be finite Graph-membered set;
+  cluster the_Vertices_of S -> finite;
+  coherence
+  proof
+    card S is finite;
+    then card the_Vertices_of S is finite by Th7, FINSET_1:1;
+    hence thesis;
+  end;
+  cluster the_Edges_of S -> finite;
+  coherence
+  proof
+    card S is finite;
+    then card the_Edges_of S is finite by Th7, FINSET_1:1;
+    hence thesis;
+  end;
+  cluster the_Source_of S -> finite;
+  coherence
+  proof
+    card S is finite;
+    then card the_Source_of S is finite by Th7, FINSET_1:1;
+    hence thesis;
+  end;
+  cluster the_Target_of S -> finite;
+  coherence
+  proof
+    card S is finite;
+    then card the_Target_of S is finite by Th7, FINSET_1:1;
+    hence thesis;
+  end;
+end;
+
+registration
+  let S be edgeless Graph-membered set;
+  cluster union the_Edges_of S -> empty;
+  coherence
+  proof
+    assume union the_Edges_of S is non empty;
+    then consider e being object such that
+      A1: e in union the_Edges_of S by XBOOLE_0:def 1;
+    consider E being set such that
+      A2: e in E & E in the_Edges_of S by A1, TARSKI:def 4;
+    consider G being _Graph such that
+      A3: G in S & E = the_Edges_of G by A2, Def15;
+    e in the_Edges_of G by A2, A3;
+    hence contradiction by A3;
+  end;
+end;
+
+theorem Th8:
+  for S1, S2 being Graph-membered set holds
+    the_Vertices_of(S1 \/ S2) = the_Vertices_of S1 \/ the_Vertices_of S2 &
+    the_Edges_of(S1 \/ S2) = the_Edges_of S1 \/ the_Edges_of S2 &
+    the_Source_of(S1 \/ S2) = the_Source_of S1 \/ the_Source_of S2 &
+    the_Target_of(S1 \/ S2) = the_Target_of S1 \/ the_Target_of S2
+proof
+  let S1, S2 be Graph-membered set;
+  hereby :: vertices
+    now
+      let x be object;
+      hereby
+        assume x in the_Vertices_of(S1 \/ S2);
+        then consider G being _Graph such that
+          A1: G in S1 \/ S2 & x = the_Vertices_of G by Def14;
+        per cases by A1, XBOOLE_0:def 3;
+        suppose G in S1;
+          then x in the_Vertices_of S1 by A1, Def14;
+          hence x in the_Vertices_of S1 \/the_Vertices_of S2 by XBOOLE_0:def 3;
+        end;
+        suppose G in S2;
+          then x in the_Vertices_of S2 by A1, Def14;
+          hence x in the_Vertices_of S1 \/the_Vertices_of S2 by XBOOLE_0:def 3;
+        end;
+      end;
+      assume x in the_Vertices_of S1 \/ the_Vertices_of S2;
+      then per cases by XBOOLE_0:def 3;
+      suppose x in the_Vertices_of S1;
+        then consider G being _Graph such that
+          A2: G in S1 & x = the_Vertices_of G by Def14;
+        G in S1 \/ S2 by A2, XBOOLE_0:def 3;
+        hence x in the_Vertices_of(S1 \/ S2) by A2, Def14;
+      end;
+      suppose x in the_Vertices_of S2;
+        then consider G being _Graph such that
+          A3: G in S2 & x = the_Vertices_of G by Def14;
+        G in S1 \/ S2 by A3, XBOOLE_0:def 3;
+        hence x in the_Vertices_of(S1 \/ S2) by A3, Def14;
+      end;
+    end;
+    hence the_Vertices_of(S1 \/ S2) = the_Vertices_of S1 \/ the_Vertices_of S2
+      by TARSKI:2;
+  end;
+  hereby :: edges
+    now
+      let x be object;
+      hereby
+        assume x in the_Edges_of(S1 \/ S2);
+        then consider G being _Graph such that
+          A4: G in S1 \/ S2 & x = the_Edges_of G by Def15;
+        per cases by A4, XBOOLE_0:def 3;
+        suppose G in S1;
+          then x in the_Edges_of S1 by A4, Def15;
+          hence x in the_Edges_of S1 \/ the_Edges_of S2 by XBOOLE_0:def 3;
+        end;
+        suppose G in S2;
+          then x in the_Edges_of S2 by A4, Def15;
+          hence x in the_Edges_of S1 \/ the_Edges_of S2 by XBOOLE_0:def 3;
+        end;
+      end;
+      assume x in the_Edges_of S1 \/ the_Edges_of S2;
+      then per cases by XBOOLE_0:def 3;
+      suppose x in the_Edges_of S1;
+        then consider G being _Graph such that
+          A5: G in S1 & x = the_Edges_of G by Def15;
+        G in S1 \/ S2 by A5, XBOOLE_0:def 3;
+        hence x in the_Edges_of(S1 \/ S2) by A5, Def15;
+      end;
+      suppose x in the_Edges_of S2;
+        then consider G being _Graph such that
+          A6: G in S2 & x = the_Edges_of G by Def15;
+        G in S1 \/ S2 by A6, XBOOLE_0:def 3;
+        hence x in the_Edges_of(S1 \/ S2) by A6, Def15;
+      end;
+    end;
+    hence the_Edges_of(S1 \/ S2) = the_Edges_of S1 \/ the_Edges_of S2
+      by TARSKI:2;
+  end;
+  hereby :: sources
+    now
+      let x be object;
+      hereby
+        assume x in the_Source_of(S1 \/ S2);
+        then consider G being _Graph such that
+          A7: G in S1 \/ S2 & x = the_Source_of G by Def16;
+        per cases by A7, XBOOLE_0:def 3;
+        suppose G in S1;
+          then x in the_Source_of S1 by A7, Def16;
+          hence x in the_Source_of S1 \/ the_Source_of S2 by XBOOLE_0:def 3;
+        end;
+        suppose G in S2;
+          then x in the_Source_of S2 by A7, Def16;
+          hence x in the_Source_of S1 \/ the_Source_of S2 by XBOOLE_0:def 3;
+        end;
+      end;
+      assume x in the_Source_of S1 \/ the_Source_of S2;
+      then per cases by XBOOLE_0:def 3;
+      suppose x in the_Source_of S1;
+        then consider G being _Graph such that
+          A8: G in S1 & x = the_Source_of G by Def16;
+        G in S1 \/ S2 by A8, XBOOLE_0:def 3;
+        hence x in the_Source_of(S1 \/ S2) by A8, Def16;
+      end;
+      suppose x in the_Source_of S2;
+        then consider G being _Graph such that
+          A9: G in S2 & x = the_Source_of G by Def16;
+        G in S1 \/ S2 by A9, XBOOLE_0:def 3;
+        hence x in the_Source_of(S1 \/ S2) by A9, Def16;
+      end;
+    end;
+    hence the_Source_of(S1 \/ S2) = the_Source_of S1 \/ the_Source_of S2
+      by TARSKI:2;
+  end;
+  hereby :: targets
+    now
+      let x be object;
+      hereby
+        assume x in the_Target_of(S1 \/ S2);
+        then consider G being _Graph such that
+          A10: G in S1 \/ S2 & x = the_Target_of G by Def17;
+        per cases by A10, XBOOLE_0:def 3;
+        suppose G in S1;
+          then x in the_Target_of S1 by A10, Def17;
+          hence x in the_Target_of S1 \/ the_Target_of S2 by XBOOLE_0:def 3;
+        end;
+        suppose G in S2;
+          then x in the_Target_of S2 by A10, Def17;
+          hence x in the_Target_of S1 \/ the_Target_of S2 by XBOOLE_0:def 3;
+        end;
+      end;
+      assume x in the_Target_of S1 \/ the_Target_of S2;
+      then per cases by XBOOLE_0:def 3;
+      suppose x in the_Target_of S1;
+        then consider G being _Graph such that
+          A11: G in S1 & x = the_Target_of G by Def17;
+        G in S1 \/ S2 by A11, XBOOLE_0:def 3;
+        hence x in the_Target_of(S1 \/ S2) by A11, Def17;
+      end;
+      suppose x in the_Target_of S2;
+        then consider G being _Graph such that
+          A12: G in S2 & x = the_Target_of G by Def17;
+        G in S1 \/ S2 by A12, XBOOLE_0:def 3;
+        hence x in the_Target_of(S1 \/ S2) by A12, Def17;
+      end;
+    end;
+    hence the_Target_of(S1 \/ S2) = the_Target_of S1 \/ the_Target_of S2
+      by TARSKI:2;
+  end;
+end;
+
+:: no equality, for example take {G},{H} with G == H but G <> H
+theorem
+  for S1, S2 being Graph-membered set holds
+    the_Vertices_of(S1 /\ S2) c= the_Vertices_of S1 /\ the_Vertices_of S2 &
+    the_Edges_of(S1 /\ S2) c= the_Edges_of S1 /\ the_Edges_of S2 &
+    the_Source_of(S1 /\ S2) c= the_Source_of S1 /\ the_Source_of S2 &
+    the_Target_of(S1 /\ S2) c= the_Target_of S1 /\ the_Target_of S2
+proof
+  let S1, S2 be Graph-membered set;
+  hereby :: vertices
+    now
+      let x be object;
+      assume x in the_Vertices_of(S1 /\ S2);
+      then consider G being _Graph such that
+        A1: G in S1 /\ S2 & x = the_Vertices_of G by Def14;
+      G in S1 & G in S2 by A1, XBOOLE_0:def 4;
+      then x in the_Vertices_of S1 & x in the_Vertices_of S2 by A1, Def14;
+      hence x in the_Vertices_of S1 /\ the_Vertices_of S2 by XBOOLE_0:def 4;
+    end;
+    hence the_Vertices_of(S1 /\ S2) c= the_Vertices_of S1 /\ the_Vertices_of S2
+      by TARSKI:def 3;
+  end;
+  hereby :: edges
+    now
+      let x be object;
+      assume x in the_Edges_of(S1 /\ S2);
+      then consider G being _Graph such that
+        A2: G in S1 /\ S2 & x = the_Edges_of G by Def15;
+      G in S1 & G in S2 by A2, XBOOLE_0:def 4;
+      then x in the_Edges_of S1 & x in the_Edges_of S2 by A2, Def15;
+      hence x in the_Edges_of S1 /\ the_Edges_of S2 by XBOOLE_0:def 4;
+    end;
+    hence the_Edges_of(S1 /\ S2) c= the_Edges_of S1 /\ the_Edges_of S2
+      by TARSKI:def 3;
+  end;
+  hereby :: sources
+    now
+      let x be object;
+      assume x in the_Source_of(S1 /\ S2);
+      then consider G being _Graph such that
+        A3: G in S1 /\ S2 & x = the_Source_of G by Def16;
+      G in S1 & G in S2 by A3, XBOOLE_0:def 4;
+      then x in the_Source_of S1 & x in the_Source_of S2 by A3, Def16;
+      hence x in the_Source_of S1 /\ the_Source_of S2 by XBOOLE_0:def 4;
+    end;
+    hence the_Source_of(S1 /\ S2) c= the_Source_of S1 /\ the_Source_of S2
+      by TARSKI:def 3;
+  end;
+  hereby :: targets
+    now
+      let x be object;
+      assume x in the_Target_of(S1 /\ S2);
+      then consider G being _Graph such that
+        A4: G in S1 /\ S2 & x = the_Target_of G by Def17;
+      G in S1 & G in S2 by A4, XBOOLE_0:def 4;
+      then x in the_Target_of S1 & x in the_Target_of S2 by A4, Def17;
+      hence x in the_Target_of S1 /\ the_Target_of S2 by XBOOLE_0:def 4;
+    end;
+    hence the_Target_of(S1 /\ S2) c= the_Target_of S1 /\ the_Target_of S2
+      by TARSKI:def 3;
+  end;
+end;
+
+theorem Th10:
+  for S1, S2 being Graph-membered set holds
+    the_Vertices_of S1 \ the_Vertices_of S2 c= the_Vertices_of(S1 \ S2) &
+    the_Edges_of S1 \ the_Edges_of S2 c= the_Edges_of(S1 \ S2) &
+    the_Source_of S1 \ the_Source_of S2 c= the_Source_of(S1 \ S2) &
+    the_Target_of S1 \ the_Target_of S2 c= the_Target_of(S1 \ S2)
+proof
+  let S1, S2 be Graph-membered set;
+  hereby :: vertices
+    now
+      let x be object;
+      assume x in the_Vertices_of S1 \ the_Vertices_of S2;
+      then A1: x in the_Vertices_of S1 & not x in the_Vertices_of S2
+        by XBOOLE_0:def 5;
+      then consider G being _Graph such that
+        A2: G in S1 & x = the_Vertices_of G by Def14;
+       not G in S2 by A1, A2, Def14;
+       then G in S1 \ S2 by A2, XBOOLE_0:def 5;
+       hence x in the_Vertices_of(S1\S2) by A2, Def14;
+    end;
+    hence the_Vertices_of S1 \ the_Vertices_of S2 c= the_Vertices_of(S1 \ S2)
+      by TARSKI:def 3;
+  end;
+  hereby :: edges
+    now
+      let x be object;
+      assume x in the_Edges_of S1 \ the_Edges_of S2;
+      then A3: x in the_Edges_of S1 & not x in the_Edges_of S2
+        by XBOOLE_0:def 5;
+      then consider G being _Graph such that
+        A4: G in S1 & x = the_Edges_of G by Def15;
+       not G in S2 by A3, A4, Def15;
+       then G in S1 \ S2 by A4, XBOOLE_0:def 5;
+       hence x in the_Edges_of(S1\S2) by A4, Def15;
+    end;
+    hence the_Edges_of S1 \ the_Edges_of S2 c= the_Edges_of(S1 \ S2)
+      by TARSKI:def 3;
+  end;
+  hereby :: sources
+    now
+      let x be object;
+      assume x in the_Source_of S1 \ the_Source_of S2;
+      then A5: x in the_Source_of S1 & not x in the_Source_of S2
+        by XBOOLE_0:def 5;
+      then consider G being _Graph such that
+        A6: G in S1 & x = the_Source_of G by Def16;
+       not G in S2 by A5, A6, Def16;
+       then G in S1 \ S2 by A6, XBOOLE_0:def 5;
+       hence x in the_Source_of(S1\S2) by A6, Def16;
+    end;
+    hence the_Source_of S1 \ the_Source_of S2 c= the_Source_of(S1 \ S2)
+      by TARSKI:def 3;
+  end;
+  hereby :: targets
+    now
+      let x be object;
+      assume x in the_Target_of S1 \ the_Target_of S2;
+      then A7: x in the_Target_of S1 & not x in the_Target_of S2
+        by XBOOLE_0:def 5;
+      then consider G being _Graph such that
+        A8: G in S1 & x = the_Target_of G by Def17;
+       not G in S2 by A7, A8, Def17;
+       then G in S1 \ S2 by A8, XBOOLE_0:def 5;
+       hence x in the_Target_of(S1\S2) by A8, Def17;
+    end;
+    hence the_Target_of S1 \ the_Target_of S2 c= the_Target_of(S1 \ S2)
+      by TARSKI:def 3;
+  end;
+end;
+
+theorem
+  for S1, S2 being Graph-membered set holds
+    the_Vertices_of S1 \+\ the_Vertices_of S2 c= the_Vertices_of(S1 \+\ S2) &
+    the_Edges_of S1 \+\ the_Edges_of S2 c= the_Edges_of(S1 \+\ S2) &
+    the_Source_of S1 \+\ the_Source_of S2 c= the_Source_of(S1 \+\ S2) &
+    the_Target_of S1 \+\ the_Target_of S2 c= the_Target_of(S1 \+\ S2)
+proof
+  let S1, S2 be Graph-membered set;
+  the_Vertices_of S1 \ the_Vertices_of S2 c= the_Vertices_of(S1\S2) &
+    the_Vertices_of S2 \ the_Vertices_of S1 c= the_Vertices_of(S2\S1) by Th10;
+  then the_Vertices_of S1 \+\ the_Vertices_of S2
+    c= the_Vertices_of(S1\S2) \/ the_Vertices_of(S2\S1) by XBOOLE_1:13;
+  hence the_Vertices_of S1 \+\ the_Vertices_of S2 c= the_Vertices_of(S1 \+\ S2)
+    by Th8;
+  the_Edges_of S1 \ the_Edges_of S2 c= the_Edges_of(S1\S2) &
+    the_Edges_of S2 \ the_Edges_of S1 c= the_Edges_of(S2\S1) by Th10;
+  then the_Edges_of S1 \+\ the_Edges_of S2
+    c= the_Edges_of(S1\S2) \/ the_Edges_of(S2\S1) by XBOOLE_1:13;
+  hence the_Edges_of S1 \+\ the_Edges_of S2 c= the_Edges_of(S1 \+\ S2) by Th8;
+  the_Source_of S1 \ the_Source_of S2 c= the_Source_of(S1\S2) &
+    the_Source_of S2 \ the_Source_of S1 c= the_Source_of(S2\S1) by Th10;
+  then the_Source_of S1 \+\ the_Source_of S2
+    c= the_Source_of(S1\S2) \/ the_Source_of(S2\S1) by XBOOLE_1:13;
+  hence the_Source_of S1 \+\ the_Source_of S2 c= the_Source_of(S1\+\S2) by Th8;
+  the_Target_of S1 \ the_Target_of S2 c= the_Target_of(S1\S2) &
+    the_Target_of S2 \ the_Target_of S1 c= the_Target_of(S2\S1) by Th10;
+  then the_Target_of S1 \+\ the_Target_of S2
+    c= the_Target_of(S1\S2) \/ the_Target_of(S2\S1) by XBOOLE_1:13;
+  hence the_Target_of S1 \+\ the_Target_of S2 c= the_Target_of(S1\+\S2) by Th8;
+end;
+
+begin :: Union of Graphs
+
+definition
+  let G1, G2 be _Graph;
+  pred G1 tolerates G2 means
+  the_Source_of G1 tolerates the_Source_of G2 &
+  the_Target_of G1 tolerates the_Target_of G2;
+  reflexivity;
+  symmetry;
+end;
+
+theorem Th12:
+  for G1, G2 being _Graph st the_Edges_of G1 misses the_Edges_of G2
+  holds G1 tolerates G2
+proof
+  let G1, G2 be _Graph;
+  assume A1: the_Edges_of G1 misses the_Edges_of G2;
+  then dom the_Source_of G1 misses the_Edges_of G2 by FUNCT_2:def 1;
+  then dom the_Source_of G1 misses dom the_Source_of G2 by FUNCT_2:def 1;
+  hence the_Source_of G1 tolerates the_Source_of G2 by PARTFUN1:56;
+  dom the_Target_of G1 misses the_Edges_of G2 by A1, FUNCT_2:def 1;
+  then dom the_Target_of G1 misses dom the_Target_of G2 by FUNCT_2:def 1;
+  hence the_Target_of G1 tolerates the_Target_of G2 by PARTFUN1:56;
+end;
+
+theorem
+  for G1, G2 being _Graph st the_Source_of G1 c= the_Source_of G2 &
+    the_Target_of G1 c= the_Target_of G2
+  holds G1 tolerates G2 by PARTFUN1:54;
+
+theorem Th14:
+  for G1 being _Graph, G2, G3 being Subgraph of G1 holds G2 tolerates G3
+proof
+  let G1 be _Graph, G2, G3 be Subgraph of G1;
+  A1: G1 is Supergraph of G2 & G1 is Supergraph of G3 by GLIB_006:57;
+  the_Source_of G2 c= the_Source_of G1 & the_Source_of G3 c= the_Source_of G1
+    by A1, GLIB_006:64;
+  hence the_Source_of G2 tolerates the_Source_of G3 by PARTFUN1:52;
+  the_Target_of G2 c= the_Target_of G1 & the_Target_of G3 c= the_Target_of G1
+    by A1, GLIB_006:64;
+  hence the_Target_of G2 tolerates the_Target_of G3 by PARTFUN1:52;
+end;
+
+theorem Th15:
+  for G1 being _Graph, G2 being Subgraph of G1 holds G1 tolerates G2
+proof
+  let G1 be _Graph, G2 be Subgraph of G1;
+  G1 is Subgraph of G1 by GLIB_000:40;
+  hence thesis by Th14;
+end;
+
+theorem
+  for G1, G2 being _Graph st G1 == G2 holds G1 tolerates G2
+proof
+  let G1, G2 be _Graph;
+  assume G1 == G2;
+  then G2 is Subgraph of G1 by GLIB_000:87;
+  hence thesis by Th15;
+end;
+
+theorem Th17:
+  for G1, G2 being _Graph holds G1 tolerates G2 iff
+    for e,v1,w1,v2,w2 being object st e DJoins v1,w1,G1 & e DJoins v2,w2,G2
+    holds v1 = v2 & w1 = w2
+proof
+  let G1, G2 be _Graph;
+  hereby
+    assume A1: G1 tolerates G2;
+    let e,v1,w1,v2,w2 be object;
+    assume A2: e DJoins v1,w1,G1 & e DJoins v2,w2,G2;
+    then A3: e in the_Edges_of G1 & e in the_Edges_of G2 by GLIB_000:def 14;
+    then e in dom the_Source_of G1 & e in dom the_Source_of G2
+      by FUNCT_2:def 1;
+    then A4: e in dom the_Source_of G1 /\ dom the_Source_of G2
+      by XBOOLE_0:def 4;
+    thus v1 = (the_Source_of G1).e by A2, GLIB_000:def 14
+      .= (the_Source_of G2).e by A1, A4, PARTFUN1:def 4
+      .= v2 by A2, GLIB_000:def 14;
+    e in dom the_Target_of G1 & e in dom the_Target_of G2
+      by A3, FUNCT_2:def 1;
+    then A5: e in dom the_Target_of G1 /\ dom the_Target_of G2
+      by XBOOLE_0:def 4;
+    thus w1 = (the_Target_of G1).e by A2, GLIB_000:def 14
+      .= (the_Target_of G2).e by A1, A5, PARTFUN1:def 4
+      .= w2 by A2, GLIB_000:def 14;
+  end;
+  assume A6: for e,v1,w1,v2,w2 being object
+    st e DJoins v1,w1,G1 & e DJoins v2,w2,G2 holds v1 = v2 & w1 = w2;
+  now
+    let x be object;
+    set v1 = (the_Source_of G1).x, w1 = (the_Target_of G1).x;
+    set v2 = (the_Source_of G2).x, w2 = (the_Target_of G2).x;
+    assume x in dom the_Source_of G1 /\ dom the_Source_of G2;
+    then x in the_Edges_of G1 /\ dom the_Source_of G2 by FUNCT_2:def 1;
+    then x in the_Edges_of G1 /\ the_Edges_of G2 by FUNCT_2:def 1;
+    then x in the_Edges_of G1 & x in the_Edges_of G2 by XBOOLE_0:def 4;
+    then x DJoins v1,w1,G1 & x DJoins v2,w2,G2 by GLIB_000:def 14;
+    hence (the_Source_of G1).x = (the_Source_of G2).x by A6;
+  end;
+  hence the_Source_of G1 tolerates the_Source_of G2 by PARTFUN1:def 4;
+  now
+    let x be object;
+    set v1 = (the_Source_of G1).x, w1 = (the_Target_of G1).x;
+    set v2 = (the_Source_of G2).x, w2 = (the_Target_of G2).x;
+    assume x in dom the_Target_of G1 /\ dom the_Target_of G2;
+    then x in the_Edges_of G1 /\ dom the_Target_of G2 by FUNCT_2:def 1;
+    then x in the_Edges_of G1 /\ the_Edges_of G2 by FUNCT_2:def 1;
+    then x in the_Edges_of G1 & x in the_Edges_of G2 by XBOOLE_0:def 4;
+    then x DJoins v1,w1,G1 & x DJoins v2,w2,G2 by GLIB_000:def 14;
+    hence (the_Target_of G1).x = (the_Target_of G2).x by A6;
+  end;
+  hence the_Target_of G1 tolerates the_Target_of G2 by PARTFUN1:def 4;
+end;
+
+theorem
+  for G1 being _Graph, E being Subset of the_Edges_of G1
+  for G2 being reverseEdgeDirections of G1, E
+  holds G1 tolerates G2 iff E c= G1.loops()
+proof
+  let G1 be _Graph, E be Subset of the_Edges_of G1;
+  let G2 be reverseEdgeDirections of G1, E;
+  hereby
+    assume A1: G1 tolerates G2;
+    assume not E c= G1.loops();
+    then E \ G1.loops() <> {} by XBOOLE_1:37;
+    then consider e being object such that
+      A2: e in E \ G1.loops() by XBOOLE_0:def 1;
+    set v = (the_Source_of G1).e, w = (the_Target_of G1).e;
+    A3: e in E by A2, XBOOLE_0:def 5;
+    then A4: e DJoins v,w,G1 by GLIB_000:def 14;
+    then e DJoins w,v,G2 by A3, GLIB_007:7;
+    then v = w by A1, A4, Th17;
+    then e in G1.loops() by A4, GLIB_009:45;
+    hence contradiction by A2, XBOOLE_0:def 5;
+  end;
+  assume A5: E c= G1.loops();
+  now
+    let e,v1,w1,v2,w2 be object;
+    assume A6: e DJoins v1,w1,G1 & e DJoins v2,w2,G2;
+    per cases;
+    suppose A7: e in E;
+      then consider u being object such that
+        A8: e DJoins u,u,G1 by A5, GLIB_009:45;
+      A9: v1 = u & w1 = u by A6, A8, GLIB_009:6;
+      e DJoins w1,v1,G2 by A6, A7, GLIB_007:7;
+      hence v1 = v2 & w1 = w2 by A6, A9, GLIB_009:6;
+    end;
+    suppose not e in E;
+      then e DJoins v1,w1,G2 by A6, GLIB_007:8;
+      hence v1 = v2 & w1 = w2 by A6, GLIB_009:6;
+    end;
+  end;
+  hence thesis by Th17;
+end;
+
+definition
+  let S be Graph-membered set;
+  attr S is \/-tolerating means
+  :Def23:
+  for G1, G2 being _Graph st G1 in S & G2 in S holds G1 tolerates G2;
+end;
+
+definition
+  let S be non empty Graph-membered set;
+  redefine attr S is \/-tolerating means
+  for G1, G2 being Element of S holds G1 tolerates G2;
+  compatibility;
+end;
+
+registration
+  cluster empty -> \/-tolerating for Graph-membered set;
+  coherence;
+  let G be _Graph;
+  cluster {G} -> \/-tolerating;
+  coherence
+  proof
+    let G1, G2 be Element of {G};
+    G1 = G & G2 = G by TARSKI:def 1;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster non empty \/-tolerating for Graph-membered set;
+  existence
+  proof
+    take {the _Graph};
+    thus thesis;
+  end;
+end;
+
+definition
+  mode GraphUnionSet is non empty \/-tolerating Graph-membered set;
+end;
+
+theorem Th19:
+  for G1, G2 being _Graph holds G1 tolerates G2 iff {G1,G2} is \/-tolerating
+proof
+  let G1, G2 be _Graph;
+  now
+    assume A1: G1 tolerates G2;
+    let G3, G4 be Element of {G1,G2};
+    per cases by TARSKI:def 2;
+    suppose G3 = G1 & G4 = G1;
+      hence G3 tolerates G4;
+    end;
+    suppose G3 = G1 & G4 = G2;
+      hence G3 tolerates G4 by A1;
+    end;
+    suppose G3 = G2 & G4 = G1;
+      hence G3 tolerates G4 by A1;
+    end;
+    suppose G3 = G2 & G4 = G2;
+      hence G3 tolerates G4;
+    end;
+  end;
+  hence G1 tolerates G2 implies {G1,G2} is \/-tolerating;
+  assume A2: {G1,G2} is \/-tolerating;
+  G1 in {G1,G2} & G2 in {G1,G2} by TARSKI:def 2;
+  hence G1 tolerates G2 by A2;
+end;
+
+registration
+  let S1 be \/-tolerating Graph-membered set, S2 be set;
+  cluster S1 /\ S2 -> \/-tolerating;
+  coherence
+  proof
+    let G1, G2 be _Graph;
+    assume G1 in S1 /\ S2 & G2 in S1 /\ S2;
+    then G1 in S1 & G2 in S1 by XBOOLE_0:def 4;
+    hence thesis by Def23;
+  end;
+  cluster S1 \ S2 -> \/-tolerating;
+  coherence by Def23;
+end;
+
+theorem Th20:
+  for S1, S2 being Graph-membered set st S1 \/ S2 is \/-tolerating
+  holds S1 is \/-tolerating & S2 is \/-tolerating
+proof
+  let S1, S2 being Graph-membered set;
+  assume A1: S1 \/ S2 is \/-tolerating;
+  hereby
+    let G1, G2 be _Graph;
+    assume G1 in S1 & G2 in S1;
+    then G1 in S1 \/ S2 & G2 in S1 \/ S2 by XBOOLE_0:def 3;
+    hence G1 tolerates G2 by A1;
+  end;
+  let G1, G2 be _Graph;
+  assume G1 in S2 & G2 in S2;
+  then G1 in S1 \/ S2 & G2 in S1 \/ S2 by XBOOLE_0:def 3;
+  hence G1 tolerates G2 by A1;
+end;
+
+registration
+  let S be \/-tolerating Graph-membered set;
+  cluster the_Source_of S -> compatible;
+  coherence
+  proof
+    now
+      let f,g be Function;
+      assume A1: f in the_Source_of S & g in the_Source_of S;
+      then consider G1 being _Graph such that
+        A2: G1 in S & f = the_Source_of G1 by Def16;
+      consider G2 being _Graph such that
+        A3: G2 in S & g = the_Source_of G2 by A1, Def16;
+      G1 tolerates G2 by A2, A3, Def23;
+      hence f tolerates g by A2, A3;
+    end;
+    hence thesis by COMPUT_1:def 1;
+  end;
+  cluster the_Target_of S -> compatible;
+  coherence
+  proof
+    now
+      let f,g be Function;
+      assume A4: f in the_Target_of S & g in the_Target_of S;
+      then consider G1 being _Graph such that
+        A5: G1 in S & f = the_Target_of G1 by Def17;
+      consider G2 being _Graph such that
+        A6: G2 in S & g = the_Target_of G2 by A4, Def17;
+      G1 tolerates G2 by A5, A6, Def23;
+      hence f tolerates g by A5, A6;
+    end;
+    hence thesis by COMPUT_1:def 1;
+  end;
+end;
+
+registration
+  let S be \/-tolerating Graph-membered set;
+  cluster union the_Source_of S -> Function-like Relation-like;
+  coherence;
+  cluster union the_Target_of S -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let S be \/-tolerating Graph-membered set;
+  cluster union the_Source_of S -> (union the_Edges_of S)-defined
+    (union the_Vertices_of S)-valued;
+  coherence
+  proof
+    now
+      let x be object;
+      set y = (union the_Source_of S).x;
+      assume x in dom union the_Source_of S;
+      then [x,y] in union the_Source_of S by FUNCT_1:1;
+      then consider s being set such that
+        A1: [x,y] in s & s in the_Source_of S by TARSKI:def 4;
+      consider G being _Graph such that
+        A2: G in S & s = the_Source_of G by A1, Def16;
+      x in dom the_Source_of G by A1, A2, FUNCT_1:1;
+      then A3: x in the_Edges_of G;
+      the_Edges_of G in the_Edges_of S by A2, Def15;
+      hence x in union the_Edges_of S by A3, TARSKI:def 4;
+    end;
+    hence union the_Source_of S is (union the_Edges_of S)-defined
+      by TARSKI:def 3, RELAT_1:def 18;
+    now
+      let y be object;
+      assume y in rng union the_Source_of S;
+      then consider x being object such that
+        A4: x in dom union the_Source_of S & (union the_Source_of S).x = y
+        by FUNCT_1:def 3;
+      [x,y] in union the_Source_of S by A4, FUNCT_1:1;
+      then consider s being set such that
+        A5: [x,y] in s & s in the_Source_of S by TARSKI:def 4;
+      consider G being _Graph such that
+        A6: G in S & s = the_Source_of G by A5, Def16;
+      A7: x in dom the_Source_of G by A5, A6, FUNCT_1:1;
+      then (the_Source_of G).x = y by A4, A5, A6, COMPUT_1:13;
+      then y in rng the_Source_of G by A7, FUNCT_1:3;
+      then A8: y in the_Vertices_of G;
+      the_Vertices_of G in the_Vertices_of S by A6, Def14;
+      hence y in union the_Vertices_of S by A8, TARSKI:def 4;
+    end;
+    hence union the_Source_of S is (union the_Vertices_of S)-valued
+      by TARSKI:def 3, RELAT_1:def 19;
+  end;
+  cluster union the_Target_of S -> (union the_Edges_of S)-defined
+    (union the_Vertices_of S)-valued;
+  coherence
+  proof
+    now
+      let x be object;
+      set y = (union the_Target_of S).x;
+      assume x in dom union the_Target_of S;
+      then [x,y] in union the_Target_of S by FUNCT_1:1;
+      then consider s being set such that
+        A9: [x,y] in s & s in the_Target_of S by TARSKI:def 4;
+      consider G being _Graph such that
+        A10: G in S & s = the_Target_of G by A9, Def17;
+      x in dom the_Target_of G by A9, A10, FUNCT_1:1;
+      then A11: x in the_Edges_of G;
+      the_Edges_of G in the_Edges_of S by A10, Def15;
+      hence x in union the_Edges_of S by A11, TARSKI:def 4;
+    end;
+    hence union the_Target_of S is (union the_Edges_of S)-defined
+      by TARSKI:def 3, RELAT_1:def 18;
+    now
+      let y be object;
+      assume y in rng union the_Target_of S;
+      then consider x being object such that
+        A12: x in dom union the_Target_of S & (union the_Target_of S).x = y
+        by FUNCT_1:def 3;
+      [x,y] in union the_Target_of S by A12, FUNCT_1:1;
+      then consider t being set such that
+        A13: [x,y] in t & t in the_Target_of S by TARSKI:def 4;
+      consider G being _Graph such that
+        A14: G in S & t = the_Target_of G by A13, Def17;
+      A15: x in dom the_Target_of G by A13, A14, FUNCT_1:1;
+      then (the_Target_of G).x = y by A12, A13, A14, COMPUT_1:13;
+      then y in rng the_Target_of G by A15, FUNCT_1:3;
+      then A16: y in the_Vertices_of G;
+      the_Vertices_of G in the_Vertices_of S by A14, Def14;
+      hence y in union the_Vertices_of S by A16, TARSKI:def 4;
+    end;
+    hence union the_Target_of S is (union the_Vertices_of S)-valued
+      by TARSKI:def 3, RELAT_1:def 19;
+  end;
+end;
+
+registration
+  let S be \/-tolerating Graph-membered set;
+  cluster union the_Source_of S -> total;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in union the_Edges_of S;
+      then consider E being set such that
+        A1: x in E & E in the_Edges_of S by TARSKI:def 4;
+      consider G being _Graph such that
+        A2: G in S & E = the_Edges_of G by A1, Def15;
+      A3: x in dom the_Source_of G by A1, A2, FUNCT_2:def 1;
+      the_Source_of G in the_Source_of S by A2, Def16;
+      then dom the_Source_of G c= dom union the_Source_of S by COMPUT_1:13;
+      hence x in dom union the_Source_of S by A3;
+    end;
+    then union the_Edges_of S c= dom union the_Source_of S by TARSKI:def 3;
+    hence thesis by PARTFUN1:def 2, XBOOLE_0:def 10;
+  end;
+  cluster union the_Target_of S -> total;
+  coherence
+  proof
+    now
+      let x be object;
+      assume x in union the_Edges_of S;
+      then consider E being set such that
+        A4: x in E & E in the_Edges_of S by TARSKI:def 4;
+      consider G being _Graph such that
+        A5: G in S & E = the_Edges_of G by A4, Def15;
+      A6: x in dom the_Target_of G by A4, A5, FUNCT_2:def 1;
+      the_Target_of G in the_Target_of S by A5, Def17;
+      then dom the_Target_of G c= dom union the_Target_of S by COMPUT_1:13;
+      hence x in dom union the_Target_of S by A6;
+    end;
+    then union the_Edges_of S c= dom union the_Target_of S by TARSKI:def 3;
+    hence thesis by PARTFUN1:def 2, XBOOLE_0:def 10;
+  end;
+end;
+
+definition
+  let S be GraphUnionSet;
+  mode GraphUnion of S -> _Graph means
+  :Def25:
+  the_Vertices_of it = union the_Vertices_of S &
+  the_Edges_of it = union the_Edges_of S &
+  the_Source_of it = union the_Source_of S &
+  the_Target_of it = union the_Target_of S;
+  existence
+  proof
+    set V = union the_Vertices_of S, E = union the_Edges_of S;
+    reconsider s = union the_Source_of S as Function;
+    dom s = E & rng s c= V by PARTFUN1:def 2, RELAT_1:def 19;
+    then reconsider s as Function of E, V by FUNCT_2:2;
+    reconsider t = union the_Target_of S as Function;
+    dom t = E & rng t c= V by PARTFUN1:def 2, RELAT_1:def 19;
+    then reconsider t as Function of E, V by FUNCT_2:2;
+    take createGraph(V,E,s,t);
+    thus thesis;
+  end;
+end;
+
+:: not really needed
+::definition
+  ::let S be GraphUnionSet;
+  ::func union S equals the plain GraphUnion of S;
+::end;
+
+:: not proven here (DOMS from VALUED_2)
+:: theorem
+::   for S being GraphUnionSet, G being GraphUnion of S
+::   holds DOMS(the_Source_of S) = dom the_Source_of G &
+::     DOMS(the_Target_of S) = dom the_Target_of G;
+
+theorem Th21:
+  for S being GraphUnionSet, G being GraphUnion of S, H being Element of S
+  holds H is Subgraph of G
+proof
+  let S be GraphUnionSet, G be GraphUnion of S, H be Element of S;
+  the_Vertices_of H in the_Vertices_of S;
+  then the_Vertices_of H c= union the_Vertices_of S by ZFMISC_1:74;
+  then A1: the_Vertices_of H c= the_Vertices_of G by Def25;
+  the_Source_of H in the_Source_of S;
+  then the_Source_of H c= union the_Source_of S by ZFMISC_1:74;
+  then A2: the_Source_of H c= the_Source_of G by Def25;
+  the_Target_of H in the_Target_of S;
+  then the_Target_of H c= union the_Target_of S by ZFMISC_1:74;
+  then the_Target_of H c= the_Target_of G by Def25;
+  then G is Supergraph of H by A1, A2, GLIB_006:63;
+  hence thesis by GLIB_006:57;
+end;
+
+theorem Th22:
+  for S being GraphUnionSet, G being GraphUnion of S, G9 being _Graph
+  holds G9 is GraphUnion of S iff G == G9
+proof
+  let S be GraphUnionSet, G be GraphUnion of S, G9 be _Graph;
+  A1: the_Vertices_of G = union the_Vertices_of S &
+    the_Edges_of G = union the_Edges_of S &
+    the_Source_of G = union the_Source_of S &
+    the_Target_of G = union the_Target_of S by Def25;
+  hereby
+    assume G9 is GraphUnion of S;
+    then the_Vertices_of G9 = union the_Vertices_of S &
+      the_Edges_of G9 = union the_Edges_of S &
+      the_Source_of G9 = union the_Source_of S &
+      the_Target_of G9 = union the_Target_of S by Def25;
+    hence G == G9 by A1, GLIB_000:def 34;
+  end;
+  assume G == G9;
+  then the_Vertices_of G = the_Vertices_of G9 &
+    the_Edges_of G = the_Edges_of G9 &
+    the_Source_of G = the_Source_of G9 &
+    the_Target_of G = the_Target_of G9 by GLIB_000:def 34;
+  hence thesis by A1, Def25;
+end;
+
+registration
+  let S be GraphUnionSet;
+  cluster plain for GraphUnion of S;
+  existence
+  proof
+    take G = (the GraphUnion of S) | _GraphSelectors;
+    thus thesis by Th22, GLIB_009:9;
+  end;
+end;
+
+registration
+  cluster loopless for GraphUnionSet;
+  existence
+  proof
+    take {the loopless _Graph};
+    thus thesis;
+  end;
+  cluster edgeless for GraphUnionSet;
+  existence
+  proof
+    take {the edgeless _Graph};
+    thus thesis;
+  end;
+  cluster loopfull for GraphUnionSet;
+  existence
+  proof
+    take {the loopfull _Graph};
+    thus thesis;
+  end;
+end;
+
+theorem Th23:
+  for S being GraphUnionSet, G being GraphUnion of S holds
+    (S is loopless iff G is loopless) &
+    (S is edgeless iff G is edgeless) &
+    (S is loopfull implies G is loopfull)
+proof
+  let S be GraphUnionSet, G be GraphUnion of S;
+  :: loopless
+  hereby
+    assume A1: S is loopless;
+    assume G is non loopless;
+    then consider v being object such that
+      A2: ex e being object st e DJoins v,v,G by GLIB_009:17;
+    reconsider v as set by TARSKI:1;
+    consider e being object such that
+      A3: e DJoins v,v,G by A2;
+    reconsider e as set by TARSKI:1;
+    e in the_Edges_of G by A3, GLIB_000:def 14;
+    then e in union the_Edges_of S by Def25;
+    then consider E being set such that
+      A4: e in E & E in the_Edges_of S by TARSKI:def 4;
+    consider H being _Graph such that
+      A5: H in S & E = the_Edges_of H by A4, Def15;
+    H is Subgraph of G by A5, Th21;
+    then e DJoins v,v,H by A3, A4, A5, GLIB_000:73;
+    hence contradiction by A1, A5, GLIB_009:17;
+  end;
+  hereby
+    assume A6: G is loopless;
+    now
+      let H be _Graph;
+      assume A7: H in S;
+      then H is Subgraph of G by Th21;
+      hence H is loopless by A6;
+    end;
+    hence S is loopless;
+  end;
+  :: edgeless
+  hereby
+    assume A8: S is edgeless;
+    the_Edges_of G = union the_Edges_of S by Def25;
+    hence G is edgeless by A8;
+  end;
+  hereby
+    assume A9: G is edgeless;
+    now
+      let H be _Graph;
+      assume A10: H in S;
+      then H is Subgraph of G by Th21;
+      hence H is edgeless by A9;
+    end;
+    hence S is edgeless;
+  end;
+  :: loopfull
+  hereby
+    assume A11: S is loopfull;
+    now
+      let v be Vertex of G;
+      v in the_Vertices_of G;
+      then v in union the_Vertices_of S by Def25;
+      then consider V being set such that
+        A12: v in V & V in the_Vertices_of S by TARSKI:def 4;
+      consider H being _Graph such that
+        A13: H in S & V = the_Vertices_of H by A12, Def14;
+      consider e being object such that
+        A14: e DJoins v,v,H by A11, A12, A13, GLIB_012:1;
+      take e;
+      H is Subgraph of G by A13, Th21;
+      hence e DJoins v,v,G by A14, GLIB_000:72;
+    end;
+    hence G is loopfull by GLIB_012:1;
+  end;
+end;
+
+registration
+  let S be loopless GraphUnionSet;
+  cluster -> loopless for GraphUnion of S;
+  coherence by Th23;
+end;
+
+registration
+  let S be edgeless GraphUnionSet;
+  cluster -> edgeless for GraphUnion of S;
+  coherence by Th23;
+end;
+
+registration
+  let S be loopfull GraphUnionSet;
+  cluster -> loopfull for GraphUnion of S;
+  coherence by Th23;
+end;
+
+theorem
+  for G, H being _Graph holds G is GraphUnion of {H} iff G == H
+proof
+  let G, H be _Graph;
+  hereby
+    assume G is GraphUnion of {H};
+    then the_Vertices_of G = union the_Vertices_of {H} &
+      the_Edges_of G = union the_Edges_of {H} &
+      the_Source_of G = union the_Source_of {H} &
+      the_Target_of G = union the_Target_of {H} by Def25;
+    then the_Vertices_of G = union {the_Vertices_of H} &
+      the_Edges_of G = union {the_Edges_of H} &
+      the_Source_of G = union {the_Source_of H} &
+      the_Target_of G = union {the_Target_of H} by Th5;
+    then the_Vertices_of G = the_Vertices_of H &
+      the_Edges_of G = the_Edges_of H &
+      the_Source_of G = the_Source_of H &
+      the_Target_of G = the_Target_of H by ZFMISC_1:25;
+    hence G == H by GLIB_000:def 34;
+  end;
+  assume G == H;
+  then the_Vertices_of G = the_Vertices_of H &
+    the_Edges_of G = the_Edges_of H &
+    the_Source_of G = the_Source_of H &
+    the_Target_of G = the_Target_of H by GLIB_000:def 34;
+  then the_Vertices_of G = union {the_Vertices_of H} &
+    the_Edges_of G = union {the_Edges_of H} &
+    the_Source_of G = union {the_Source_of H} &
+    the_Target_of G = union {the_Target_of H} by ZFMISC_1:25;
+  then the_Vertices_of G = union the_Vertices_of {H} &
+    the_Edges_of G = union the_Edges_of {H} &
+    the_Source_of G = union the_Source_of {H} &
+    the_Target_of G = union the_Target_of {H} by Th5;
+  hence G is GraphUnion of {H} by Def25;
+end;
+
+definition
+  let G1, G2 be _Graph;
+  mode GraphUnion of G1, G2 -> Supergraph of G1 means
+  :Def26:
+  ex S being GraphUnionSet st S = {G1,G2} & it is GraphUnion of S
+    if G1 tolerates G2
+  otherwise it == G1;
+  existence
+  proof
+    hereby
+      assume G1 tolerates G2;
+      then reconsider S = {G1,G2} as GraphUnionSet by Th19;
+      set G = the GraphUnion of S;
+      G1 in S by TARSKI:def 2;
+      then G1 is Subgraph of G by Th21;
+      then reconsider G as Supergraph of G1 by GLIB_006:57;
+      take G, S;
+      thus S = {G1,G2} & G is GraphUnion of S;
+    end;
+    assume not G1 tolerates G2;
+    reconsider G = G1 as Supergraph of G1 by GLIB_006:61;
+    take G;
+    thus thesis;
+  end;
+  consistency;
+end;
+
+:: not really needed
+::definition
+  ::let G1, G2 be _Graph;
+  ::func G1 \/ G2 equals the plain GraphUnion of G1, G2;
+::end;
+
+theorem Th25:
+  for G1, G2, G being _Graph st G1 tolerates G2 holds G is GraphUnion of G1, G2
+    iff the_Vertices_of G = the_Vertices_of G1 \/ the_Vertices_of G2 &
+    the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 &
+    the_Source_of G = the_Source_of G1 +* the_Source_of G2 &
+    the_Target_of G = the_Target_of G1 +* the_Target_of G2
+proof
+  let G1, G2, G be _Graph;
+  assume A1: G1 tolerates G2;
+  hereby
+    assume G is GraphUnion of G1, G2;
+    then consider S being GraphUnionSet such that
+      A2: S = {G1,G2} & G is GraphUnion of S by A1, Def26;
+    thus the_Vertices_of G = union the_Vertices_of {G1,G2} by A2, Def25
+      .= union {the_Vertices_of G1, the_Vertices_of G2} by Th6
+      .= the_Vertices_of G1 \/ the_Vertices_of G2 by ZFMISC_1:75;
+    thus the_Edges_of G = union the_Edges_of {G1,G2} by A2, Def25
+      .= union {the_Edges_of G1, the_Edges_of G2} by Th6
+      .= the_Edges_of G1 \/ the_Edges_of G2 by ZFMISC_1:75;
+    thus the_Source_of G = union the_Source_of {G1,G2} by A2, Def25
+      .= union {the_Source_of G1, the_Source_of G2} by Th6
+      .= the_Source_of G1 \/ the_Source_of G2 by ZFMISC_1:75
+      .= the_Source_of G1 +* the_Source_of G2 by A1, FUNCT_4:30;
+    thus the_Target_of G = union the_Target_of {G1,G2} by A2, Def25
+      .= union {the_Target_of G1, the_Target_of G2} by Th6
+      .= the_Target_of G1 \/ the_Target_of G2 by ZFMISC_1:75
+      .= the_Target_of G1 +* the_Target_of G2 by A1, FUNCT_4:30;
+  end;
+  assume A3: the_Vertices_of G = the_Vertices_of G1 \/ the_Vertices_of G2 &
+    the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 &
+    the_Source_of G = the_Source_of G1 +* the_Source_of G2 &
+    the_Target_of G = the_Target_of G1 +* the_Target_of G2;
+  reconsider S = {G1,G2} as GraphUnionSet by A1, Th19;
+  A4: the_Vertices_of G1 c= the_Vertices_of G by A3, XBOOLE_1:7;
+  the_Source_of G = the_Source_of G1 \/ the_Source_of G2
+    by A1, A3, FUNCT_4:30;
+  then A5: the_Source_of G1 c= the_Source_of G by XBOOLE_1:7;
+  the_Target_of G = the_Target_of G1 \/ the_Target_of G2
+    by A1, A3, FUNCT_4:30;
+  then A6: G is Supergraph of G1 by A4, A5, XBOOLE_1:7, GLIB_006:63;
+  A7: the_Vertices_of G
+     = union {the_Vertices_of G1,the_Vertices_of G2} by A3, ZFMISC_1:75
+    .= union the_Vertices_of S by Th6;
+  A8: the_Edges_of G
+     = union {the_Edges_of G1,the_Edges_of G2} by A3, ZFMISC_1:75
+    .= union the_Edges_of S by Th6;
+  A9: the_Source_of G
+     = the_Source_of G1 \/ the_Source_of G2 by A1, A3, FUNCT_4:30
+    .= union {the_Source_of G1,the_Source_of G2} by ZFMISC_1:75
+    .= union the_Source_of S by Th6;
+  the_Target_of G
+     = the_Target_of G1 \/ the_Target_of G2 by A1, A3, FUNCT_4:30
+    .= union {the_Target_of G1,the_Target_of G2} by ZFMISC_1:75
+    .= union the_Target_of S by Th6;
+  then G is GraphUnion of S by A7, A8, A9, Def25;
+  hence G is GraphUnion of G1, G2 by A1, A6, Def26;
+end;
+
+theorem Th26:
+  for G1, G2 being _Graph, G being GraphUnion of G1, G2
+  st G1 tolerates G2 holds G is Supergraph of G2
+proof
+  let G1, G2 be _Graph, G be GraphUnion of G1, G2;
+  assume G1 tolerates G2;
+  then consider S being GraphUnionSet such that
+    A1: S = {G1,G2} & G is GraphUnion of S by Def26;
+  G2 is Element of S by A1, TARSKI:def 2;
+  then G2 is Subgraph of G by A1, Th21;
+  hence thesis by GLIB_006:57;
+end;
+
+theorem
+  for G1, G2 being _Graph, G being GraphUnion of G1, G2
+  st G1 tolerates G2 holds G is GraphUnion of G2, G1
+proof
+  let G1, G2 be _Graph, G be GraphUnion of G1, G2;
+  assume A1: G1 tolerates G2;
+  then consider S being GraphUnionSet such that
+    A2: S = {G1,G2} & G is GraphUnion of S by Def26;
+  A3: G is Supergraph of G2 by A1, Th26;
+  thus thesis by A1, A2, A3, Def26;
+end;
+
+theorem Th28:
+  for G1, G2, G9 being _Graph, G being GraphUnion of G1, G2
+  holds G9 is GraphUnion of G1, G2 iff G == G9
+proof
+  let G1, G2, G9 be _Graph, G be GraphUnion of G1, G2;
+  hereby
+    assume A1: G9 is GraphUnion of G1, G2;
+    per cases;
+    suppose A2: G1 tolerates G2;
+      then consider S being GraphUnionSet such that
+        A3: S = {G1,G2} & G is GraphUnion of S by Def26;
+      consider S9 being GraphUnionSet such that
+        A4: S9 = {G1,G2} & G9 is GraphUnion of S9 by A1, A2, Def26;
+      thus G == G9 by A3, A4, Th22;
+    end;
+    suppose not G1 tolerates G2;
+      then G == G1 & G9 == G1 by A1, Def26;
+      hence G == G9 by GLIB_000:85;
+    end;
+  end;
+  assume A5: G == G9;
+  per cases;
+  suppose A6: G1 tolerates G2;
+    then consider S being GraphUnionSet such that
+      A7: S = {G1,G2} & G is GraphUnion of S by Def26;
+    A8: G9 is Supergraph of G1 by A5, GLIB_009:40;
+    G9 is GraphUnion of S by A5, A7, Th22;
+    hence thesis by A6, A7, A8, Def26;
+  end;
+  suppose A9: not G1 tolerates G2;
+    then G == G1 by Def26;
+    then A10: G9 == G1 by A5, GLIB_000:85;
+    then G9 is Supergraph of G1 by GLIB_006:58;
+    hence thesis by A9, A10, Def26;
+  end;
+end;
+
+registration
+  let G1, G2 be _Graph;
+  cluster plain for GraphUnion of G1, G2;
+  existence
+  proof
+    take G = (the GraphUnion of G1, G2) | _GraphSelectors;
+    thus thesis by Th28, GLIB_009:9;
+  end;
+end;
+
+theorem
+  for G, G1 being _Graph, G2 being Subgraph of G1
+  holds G is GraphUnion of G1, G2 iff G == G1
+proof
+  let G, G1 be _Graph, G2 be Subgraph of G1;
+  A1: G1 tolerates G2 by Th15;
+  G1 is Supergraph of G2 by GLIB_006:57;
+  then A2: the_Source_of G2 c= the_Source_of G1 &
+    the_Target_of G2 c= the_Target_of G1 by GLIB_006:64;
+  hereby
+    assume A3: G is GraphUnion of G1, G2;
+    then A4: the_Vertices_of G
+       = the_Vertices_of G1 \/ the_Vertices_of G2 by A1, Th25
+      .= the_Vertices_of G1 by XBOOLE_1:12;
+    A5: the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 by A1, A3, Th25
+      .= the_Edges_of G1 by XBOOLE_1:12;
+    A6: the_Source_of G = the_Source_of G1 +* the_Source_of G2 by A1, A3, Th25
+      .= the_Source_of G1 \/ the_Source_of G2 by A1, FUNCT_4:30
+      .= the_Source_of G1 by A2, XBOOLE_1:12;
+    the_Target_of G = the_Target_of G1 +* the_Target_of G2 by A1, A3, Th25
+      .= the_Target_of G1 \/ the_Target_of G2 by A1, FUNCT_4:30
+      .= the_Target_of G1 by A2, XBOOLE_1:12;
+    hence G == G1 by A4, A5, A6, GLIB_000:def 34;
+  end;
+  assume A7: G == G1;
+  then A8: the_Vertices_of G = the_Vertices_of G1 by GLIB_000:def 34
+    .= the_Vertices_of G1 \/ the_Vertices_of G2 by XBOOLE_1:12;
+  A9: the_Edges_of G = the_Edges_of G1 by A7, GLIB_000:def 34
+    .= the_Edges_of G1 \/ the_Edges_of G2 by XBOOLE_1:12;
+  A10: the_Source_of G = the_Source_of G1 by A7, GLIB_000:def 34
+    .= the_Source_of G1 \/ the_Source_of G2 by A2, XBOOLE_1:12
+    .= the_Source_of G1 +* the_Source_of G2 by A1, FUNCT_4:30;
+  the_Target_of G = the_Target_of G1 by A7, GLIB_000:def 34
+    .= the_Target_of G1 \/ the_Target_of G2 by A2, XBOOLE_1:12
+    .= the_Target_of G1 +* the_Target_of G2 by A1, FUNCT_4:30;
+  hence thesis by A1, A8, A9, A10, Th25;
+end;
+
+registration
+  let G1, G2 be loopless _Graph;
+  cluster -> loopless for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    per cases;
+    suppose G1 tolerates G2;
+      then consider S being GraphUnionSet such that
+        A1: S = {G1,G2} & G is GraphUnion of S by Def26;
+      thus thesis by A1;
+    end;
+    suppose not G1 tolerates G2;
+      then G1 == G by Def26;
+      hence thesis by GLIB_000:89;
+    end;
+  end;
+end;
+
+registration
+  let G1, G2 be edgeless _Graph;
+  cluster -> edgeless for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    per cases;
+    suppose G1 tolerates G2;
+      then consider S being GraphUnionSet such that
+        A1: S = {G1,G2} & G is GraphUnion of S by Def26;
+      thus thesis by A1;
+    end;
+    suppose not G1 tolerates G2;
+      hence thesis;
+    end;
+  end;
+end;
+
+registration
+  let G1, G2 be loopfull _Graph;
+  cluster -> loopfull for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    per cases;
+    suppose G1 tolerates G2;
+      then consider S being GraphUnionSet such that
+        A1: S = {G1,G2} & G is GraphUnion of S by Def26;
+      thus thesis by A1;
+    end;
+    suppose not G1 tolerates G2;
+      then G1 == G by Def26;
+      hence thesis by GLIB_012:4;
+    end;
+  end;
+end;
+
+theorem Th30:
+  for G1 being _Graph, G2 being DLGraphComplement of G1
+  for G being GraphUnion of G1, G2, v, w being Vertex of G
+  ex e being object st e DJoins v,w,G
+proof
+  let G1 be _Graph, G2 be DLGraphComplement of G1;
+  let G be GraphUnion of G1, G2, v, w be Vertex of G;
+  the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:def 6;
+  then A1: G1 tolerates G2 by Th12;
+  the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:def 6;
+  then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+  then A2: v is Vertex of G1 & w is Vertex of G1 by A1, Th25;
+  per cases;
+  suppose ex e1 being object st e1 DJoins v,w,G1;
+    then consider e1 being object such that
+      A3: e1 DJoins v,w,G1;
+    take e1;
+    thus e1 DJoins v,w,G by A3, GLIB_006:70;
+  end;
+  suppose not ex e1 being object st e1 DJoins v,w,G1;
+    then consider e2 being object such that
+      A4: e2 DJoins v,w,G2 by A2, GLIB_012:def 6;
+    take e2;
+    G is Supergraph of G2 by A1, Th26;
+    hence e2 DJoins v,w,G by A4, GLIB_006:70;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be DLGraphComplement of G1;
+  cluster -> loopfull complete for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    for v being Vertex of G ex e being object st e DJoins v,v,G by Th30;
+    hence G is loopfull by GLIB_012:1;
+    now
+      let v, w be Vertex of G;
+      assume v <> w;
+      consider e being object such that
+        A1: e DJoins v,w,G by Th30;
+      e Joins v,w,G by A1, GLIB_000:16;
+      hence v,w are_adjacent by CHORD:def 3;
+    end;
+    hence thesis by CHORD:def 6;
+  end;
+end;
+
+theorem Th31:
+  for G1 being _Graph, G2 being LGraphComplement of G1
+  for G being GraphUnion of G1, G2, v, w being Vertex of G
+  ex e being object st e Joins v,w,G
+proof
+  let G1 be _Graph, G2 be LGraphComplement of G1;
+  let G be GraphUnion of G1, G2, v, w be Vertex of G;
+  the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:def 7;
+  then A1: G1 tolerates G2 by Th12;
+  the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:def 7;
+  then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+  then A2: v is Vertex of G1 & w is Vertex of G1 by A1, Th25;
+  per cases;
+  suppose ex e1 being object st e1 Joins v,w,G1;
+    then consider e1 being object such that
+      A3: e1 Joins v,w,G1;
+    take e1;
+    thus e1 Joins v,w,G by A3, GLIB_006:70;
+  end;
+  suppose not ex e1 being object st e1 Joins v,w,G1;
+    then consider e2 being object such that
+      A4: e2 Joins v,w,G2 by A2, GLIB_012:def 7;
+    take e2;
+    G is Supergraph of G2 by A1, Th26;
+    hence e2 Joins v,w,G by A4, GLIB_006:70;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be LGraphComplement of G1;
+  cluster -> loopfull complete for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    for v be Vertex of G ex e being object st e Joins v,v,G by Th31;
+    hence G is loopfull by GLIB_012:def 1;
+    now
+      let v, w be Vertex of G;
+      assume v <> w;
+      consider e being object such that
+        A1: e Joins v,w,G by Th31;
+      thus v,w are_adjacent by A1, CHORD:def 3;
+    end;
+    hence thesis by CHORD:def 6;
+  end;
+end;
+
+theorem Th32:
+  for G1 being _Graph, G2 being DGraphComplement of G1
+  for G being GraphUnion of G1, G2, v, w being Vertex of G
+  st v <> w ex e being object st e DJoins v,w,G
+proof
+  let G1 be _Graph, G2 be DGraphComplement of G1;
+  let G be GraphUnion of G1, G2, v, w be Vertex of G;
+  assume A1: v <> w;
+  the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:80;
+  then A2: G1 tolerates G2 by Th12;
+  the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:80;
+  then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+  then A3: v is Vertex of G1 & w is Vertex of G1 by A2, Th25;
+  per cases;
+  suppose ex e1 being object st e1 DJoins v,w,G1;
+    then consider e1 being object such that
+      A4: e1 DJoins v,w,G1;
+    take e1;
+    thus e1 DJoins v,w,G by A4, GLIB_006:70;
+  end;
+  suppose not ex e1 being object st e1 DJoins v,w,G1;
+    then consider e2 being object such that
+      A5: e2 DJoins v,w,G2 by A1, A3, GLIB_012:80;
+    take e2;
+    G is Supergraph of G2 by A2, Th26;
+    hence e2 DJoins v,w,G by A5, GLIB_006:70;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be DGraphComplement of G1;
+  cluster -> complete for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    now
+      let v, w be Vertex of G;
+      assume v <> w;
+      then consider e being object such that
+        A1: e DJoins v,w,G by Th32;
+      e Joins v,w,G by A1, GLIB_000:16;
+      hence v,w are_adjacent by CHORD:def 3;
+    end;
+    hence thesis by CHORD:def 6;
+  end;
+end;
+
+theorem Th33:
+  for G1 being _Graph, G2 being GraphComplement of G1
+  for G being GraphUnion of G1, G2, v, w being Vertex of G
+  st v <> w ex e being object st e Joins v,w,G
+proof
+  let G1 be _Graph, G2 be GraphComplement of G1;
+  let G be GraphUnion of G1, G2, v, w be Vertex of G;
+  assume A1: v <> w;
+  the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:98;
+  then A2: G1 tolerates G2 by Th12;
+  the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:98;
+  then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+  then A3: v is Vertex of G1 & w is Vertex of G1 by A2, Th25;
+  per cases;
+  suppose ex e1 being object st e1 Joins v,w,G1;
+    then consider e1 being object such that
+      A4: e1 Joins v,w,G1;
+    take e1;
+    thus e1 Joins v,w,G by A4, GLIB_006:70;
+  end;
+  suppose not ex e1 being object st e1 Joins v,w,G1;
+    then consider e2 being object such that
+      A5: e2 Joins v,w,G2 by A1, A3, GLIB_012:98;
+    take e2;
+    G is Supergraph of G2 by A2, Th26;
+    hence e2 Joins v,w,G by A5, GLIB_006:70;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be GraphComplement of G1;
+  cluster -> complete for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    now
+      let v, w be Vertex of G;
+      assume v <> w;
+      then consider e being object such that
+        A1: e Joins v,w,G by Th33;
+      thus v,w are_adjacent by A1, CHORD:def 3;
+    end;
+    hence thesis by CHORD:def 6;
+  end;
+end;
+
+registration
+  let G1 be non-Dmulti _Graph, G2 be DLGraphComplement of G1;
+  cluster -> non-Dmulti for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:def 6;
+    then A1: G1 tolerates G2 by Th12;
+    now
+      let e1,e2,v1,v2 be object;
+      assume A2: e1 DJoins v1,v2,G & e2 DJoins v1,v2,G;
+      the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:def 6;
+      then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+      then A3: the_Vertices_of G = the_Vertices_of G1 by A1, Th25;
+      e1 Joins v1,v2,G & e2 Joins v1,v2,G by A2, GLIB_000:16;
+      then A4: v1 in the_Vertices_of G1 & v2 in the_Vertices_of G1
+        by A3, GLIB_000:13;
+      A5: the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 by A1, Th25;
+      per cases;
+      suppose A6: e1 DJoins v1,v2,G1;
+        e2 DJoins v1,v2,G1
+        proof
+          assume not e2 DJoins v1,v2,G1;
+          then A7: not e2 in the_Edges_of G1 by A2, GLIB_006:71;
+          e2 in the_Edges_of G by A2, GLIB_000:def 14;
+          then A8: e2 in the_Edges_of G2 by A5, A7, XBOOLE_0:def 3;
+          G is Supergraph of G2 by A1, Th26;
+          then e2 DJoins v1,v2,G2 by A2, A8, GLIB_006:71;
+          hence contradiction by A6, GLIB_012:46;
+        end;
+        hence e1 = e2 by A6, GLIB_000:def 21;
+      end;
+      suppose not e1 DJoins v1,v2,G1;
+        then A9: not e1 in the_Edges_of G1 by A2, GLIB_006:71;
+        A10: G is Supergraph of G2 by A1, Th26;
+        e1 in the_Edges_of G by A2, GLIB_000:def 14;
+        then e1 in the_Edges_of G2 by A5, A9, XBOOLE_0:def 3;
+        then A11: e1 DJoins v1,v2,G2 by A2, A10, GLIB_006:71;
+        then not e2 DJoins v1,v2,G1 by A4, GLIB_012:def 6;
+        then A12: not e2 in the_Edges_of G1 by A2, GLIB_006:71;
+        e2 in the_Edges_of G by A2, GLIB_000:def 14;
+        then e2 in the_Edges_of G2 by A5, A12, XBOOLE_0:def 3;
+        then e2 DJoins v1,v2,G2 by A2, A10, GLIB_006:71;
+        hence e1 = e2 by A11, GLIB_000:def 21;
+      end;
+    end;
+    hence thesis by GLIB_000:def 21;
+  end;
+end;
+
+registration
+  let G1 be non-multi _Graph, G2 be LGraphComplement of G1;
+  cluster -> non-multi for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:def 7;
+    then A1: G1 tolerates G2 by Th12;
+    now
+      let e1,e2,v1,v2 be object;
+      assume A2: e1 Joins v1,v2,G & e2 Joins v1,v2,G;
+      the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:def 7;
+      then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+      then the_Vertices_of G = the_Vertices_of G1 by A1, Th25;
+      then A3: v1 in the_Vertices_of G1 & v2 in the_Vertices_of G1
+        by A2, GLIB_000:13;
+      A4: the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 by A1, Th25;
+      per cases;
+      suppose A5: e1 Joins v1,v2,G1;
+        e2 Joins v1,v2,G1
+        proof
+          assume not e2 Joins v1,v2,G1;
+          then A6: not e2 in the_Edges_of G1 by A2, GLIB_006:72;
+          e2 in the_Edges_of G by A2, GLIB_000:def 13;
+          then A7: e2 in the_Edges_of G2 by A4, A6, XBOOLE_0:def 3;
+          G is Supergraph of G2 by A1, Th26;
+          then e2 Joins v1,v2,G2 by A2, A7, GLIB_006:72;
+          hence contradiction by A3, A5, GLIB_012:def 7;
+        end;
+        hence e1 = e2 by A5, GLIB_000:def 20;
+      end;
+      suppose not e1 Joins v1,v2,G1;
+        then A8: not e1 in the_Edges_of G1 by A2, GLIB_006:72;
+        A9: G is Supergraph of G2 by A1, Th26;
+        e1 in the_Edges_of G by A2, GLIB_000:def 13;
+        then e1 in the_Edges_of G2 by A4, A8, XBOOLE_0:def 3;
+        then A10: e1 Joins v1,v2,G2 by A2, A9, GLIB_006:72;
+        then not e2 Joins v1,v2,G1 by A3, GLIB_012:def 7;
+        then A11: not e2 in the_Edges_of G1 by A2, GLIB_006:72;
+        e2 in the_Edges_of G by A2, GLIB_000:def 13;
+        then e2 in the_Edges_of G2 by A4, A11, XBOOLE_0:def 3;
+        then e2 Joins v1,v2,G2 by A2, A9, GLIB_006:72;
+        hence e1 = e2 by A10, GLIB_000:def 20;
+      end;
+    end;
+    hence thesis by GLIB_000:def 20;
+  end;
+end;
+
+registration
+  let G1 be non-Dmulti _Graph, G2 be DGraphComplement of G1;
+  cluster -> non-Dmulti for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:80;
+    then A1: G1 tolerates G2 by Th12;
+    now
+      let e1,e2,v1,v2 be object;
+      assume A2: e1 DJoins v1,v2,G & e2 DJoins v1,v2,G;
+      the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:80;
+      then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+      then A3: the_Vertices_of G = the_Vertices_of G1 by A1, Th25;
+      e1 Joins v1,v2,G & e2 Joins v1,v2,G by A2, GLIB_000:16;
+      then A4: v1 in the_Vertices_of G1 & v2 in the_Vertices_of G1
+        by A3, GLIB_000:13;
+      A5: the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 by A1, Th25;
+      per cases;
+      suppose A6: e1 DJoins v1,v2,G1;
+        e2 DJoins v1,v2,G1
+        proof
+          assume not e2 DJoins v1,v2,G1;
+          then A7: not e2 in the_Edges_of G1 by A2, GLIB_006:71;
+          e2 in the_Edges_of G by A2, GLIB_000:def 14;
+          then A8: e2 in the_Edges_of G2 by A5, A7, XBOOLE_0:def 3;
+          G is Supergraph of G2 by A1, Th26;
+          then e2 DJoins v1,v2,G2 by A2, A8, GLIB_006:71;
+          hence contradiction by A6, GLIB_012:81;
+        end;
+        hence e1 = e2 by A6, GLIB_000:def 21;
+      end;
+      suppose not e1 DJoins v1,v2,G1;
+        then A9: not e1 in the_Edges_of G1 by A2, GLIB_006:71;
+        A10: G is Supergraph of G2 by A1, Th26;
+        e1 in the_Edges_of G by A2, GLIB_000:def 14;
+        then e1 in the_Edges_of G2 by A5, A9, XBOOLE_0:def 3;
+        then A11: e1 DJoins v1,v2,G2 by A2, A10, GLIB_006:71;
+        then v1 <> v2 by GLIB_009:17;
+        then not e2 DJoins v1,v2,G1 by A4, A11, GLIB_012:80;
+        then A12: not e2 in the_Edges_of G1 by A2, GLIB_006:71;
+        e2 in the_Edges_of G by A2, GLIB_000:def 14;
+        then e2 in the_Edges_of G2 by A5, A12, XBOOLE_0:def 3;
+        then e2 DJoins v1,v2,G2 by A2, A10, GLIB_006:71;
+        hence e1 = e2 by A11, GLIB_000:def 21;
+      end;
+    end;
+    hence thesis by GLIB_000:def 21;
+  end;
+end;
+
+registration
+  let G1 be non-multi _Graph, G2 be GraphComplement of G1;
+  cluster -> non-multi for GraphUnion of G1, G2;
+  coherence
+  proof
+    let G be GraphUnion of G1, G2;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:98;
+    then A1: G1 tolerates G2 by Th12;
+    now
+      let e1,e2,v1,v2 be object;
+      assume A2: e1 Joins v1,v2,G & e2 Joins v1,v2,G;
+      the_Vertices_of G1 = the_Vertices_of G2 by GLIB_012:98;
+      then the_Vertices_of G1 = the_Vertices_of G1 \/ the_Vertices_of G2;
+      then the_Vertices_of G = the_Vertices_of G1 by A1, Th25;
+      then A3: v1 in the_Vertices_of G1 & v2 in the_Vertices_of G1
+        by A2, GLIB_000:13;
+      A4: the_Edges_of G = the_Edges_of G1 \/ the_Edges_of G2 by A1, Th25;
+      per cases;
+      suppose A5: e1 Joins v1,v2,G1;
+        e2 Joins v1,v2,G1
+        proof
+          assume not e2 Joins v1,v2,G1;
+          then A6: not e2 in the_Edges_of G1 by A2, GLIB_006:72;
+          e2 in the_Edges_of G by A2, GLIB_000:def 13;
+          then A7: e2 in the_Edges_of G2 by A4, A6, XBOOLE_0:def 3;
+          G is Supergraph of G2 by A1, Th26;
+          then e2 Joins v1,v2,G2 by A2, A7, GLIB_006:72;
+          hence contradiction by A5, GLIB_012:100;
+        end;
+        hence e1 = e2 by A5, GLIB_000:def 20;
+      end;
+      suppose not e1 Joins v1,v2,G1;
+        then A8: not e1 in the_Edges_of G1 by A2, GLIB_006:72;
+        A9: G is Supergraph of G2 by A1, Th26;
+        e1 in the_Edges_of G by A2, GLIB_000:def 13;
+        then e1 in the_Edges_of G2 by A4, A8, XBOOLE_0:def 3;
+        then A10: e1 Joins v1,v2,G2 by A2, A9, GLIB_006:72;
+        then v1 <> v2 by GLIB_000:18;
+        then not e2 Joins v1,v2,G1 by A3, A10, GLIB_012:98;
+        then A11: not e2 in the_Edges_of G1 by A2, GLIB_006:72;
+        e2 in the_Edges_of G by A2, GLIB_000:def 13;
+        then e2 in the_Edges_of G2 by A4, A11, XBOOLE_0:def 3;
+        then e2 Joins v1,v2,G2 by A2, A9, GLIB_006:72;
+        hence e1 = e2 by A10, GLIB_000:def 20;
+      end;
+    end;
+    hence thesis by GLIB_000:def 20;
+  end;
+end;
+
+begin :: Meet of Graphs
+
+definition
+  let S be Graph-membered set;
+  attr S is /\-tolerating means
+  :Def27:
+  meet the_Vertices_of S <> {} &
+  for G1, G2 being _Graph st G1 in S & G2 in S holds G1 tolerates G2;
+end;
+
+definition
+  let S be non empty Graph-membered set;
+  redefine attr S is /\-tolerating means
+  meet the_Vertices_of S <> {} &
+  for G1, G2 being Element of S holds G1 tolerates G2;
+  compatibility;
+end;
+
+theorem Th34:
+  for S being Graph-membered set holds
+    S is /\-tolerating iff S is \/-tolerating & meet the_Vertices_of S <> {};
+
+registration
+  let G be _Graph;
+  cluster {G} -> /\-tolerating;
+  coherence
+  proof
+    meet the_Vertices_of {G} = meet {the_Vertices_of G} by Th5
+      .= the_Vertices_of G by SETFAM_1:10;
+    hence thesis by Th34;
+  end;
+end;
+
+registration
+  cluster /\-tolerating -> \/-tolerating non empty for Graph-membered set;
+  coherence
+  proof
+    let S be Graph-membered set;
+    assume A1: S is /\-tolerating;
+    hence S is \/-tolerating;
+    assume S is empty;
+    then the_Vertices_of S = {};
+    hence contradiction by A1, SETFAM_1:def 1;
+  end;
+  cluster /\-tolerating for Graph-membered set;
+  existence
+  proof
+    take {the _Graph};
+    thus thesis;
+  end;
+end;
+
+definition
+  mode GraphMeetSet is /\-tolerating Graph-membered set;
+end;
+
+registration
+  let S be GraphMeetSet;
+  cluster meet the_Vertices_of S -> non empty;
+  coherence by Def27;
+end;
+
+theorem Th35:
+  for G1, G2 being _Graph
+  holds G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2 iff
+    {G1, G2} is /\-tolerating
+proof
+  let G1, G2 be _Graph;
+  hereby
+    assume A1: G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+    then the_Vertices_of G1 /\ the_Vertices_of G2 <> {} by XBOOLE_0:def 7;
+    then meet {the_Vertices_of G1, the_Vertices_of G2} <> {} by SETFAM_1:11;
+    then A2: meet the_Vertices_of {G1, G2} <> {} by Th6;
+    {G1, G2} is \/-tolerating by A1, Th19;
+    hence {G1, G2} is /\-tolerating by A2;
+  end;
+  assume A3: {G1, G2} is /\-tolerating;
+  hence G1 tolerates G2 by Th19;
+  meet {the_Vertices_of G1, the_Vertices_of G2} <> {} by A3, Th6;
+  then the_Vertices_of G1 /\ the_Vertices_of G2 <> {} by SETFAM_1:11;
+  hence the_Vertices_of G1 meets the_Vertices_of G2 by XBOOLE_0:def 7;
+end;
+
+theorem
+  for S1, S2 being non empty Graph-membered set st S1 \/ S2 is /\-tolerating
+  holds S1 is /\-tolerating & S2 is /\-tolerating
+proof
+  let S1, S2 be non empty Graph-membered set;
+  assume A1: S1 \/ S2 is /\-tolerating;
+  meet the_Vertices_of(S1 \/ S2)
+     = meet(the_Vertices_of S1 \/ the_Vertices_of S2) by Th8
+    .= meet the_Vertices_of S1 /\ meet the_Vertices_of S2 by SETFAM_1:9;
+  then A2: meet the_Vertices_of S1 <> {} & meet the_Vertices_of S2 <> {}
+    by A1;
+  S1 is \/-tolerating & S2 is \/-tolerating by A1, Th20;
+  hence thesis by A2;
+end;
+
+registration
+  let S be GraphMeetSet;
+  cluster meet the_Source_of S -> Function-like Relation-like;
+  coherence;
+  cluster meet the_Target_of S -> Function-like Relation-like;
+  coherence;
+end;
+
+registration
+  let S be GraphMeetSet;
+  cluster meet the_Source_of S -> (meet the_Edges_of S)-defined
+    (meet the_Vertices_of S)-valued;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A1: x in dom meet the_Source_of S;
+      now
+        let E be set;
+        assume E in the_Edges_of S;
+        then consider G being _Graph such that
+          A2: G in S & E = the_Edges_of G by Def15;
+        A3: the_Source_of G in the_Source_of S by A2;
+        [x,(meet the_Source_of S).x] in meet the_Source_of S by A1, FUNCT_1:1;
+        then [x,(meet the_Source_of S).x] in the_Source_of G
+          by A3, SETFAM_1:def 1;
+        then x in dom the_Source_of G by FUNCT_1:1;
+        hence x in E by A2;
+      end;
+      hence x in meet the_Edges_of S by SETFAM_1:def 1;
+    end;
+    hence meet the_Source_of S is (meet the_Edges_of S)-defined
+      by TARSKI:def 3, RELAT_1:def 18;
+    now
+      let y be object;
+      assume y in rng meet the_Source_of S;
+      then consider x being object such that
+        A4: x in dom meet the_Source_of S & (meet the_Source_of S).x = y
+        by FUNCT_1:def 3;
+      now
+        let V be set;
+        assume V in the_Vertices_of S;
+        then consider G being _Graph such that
+          A5: G in S & V = the_Vertices_of G by Def14;
+        A6: the_Source_of G in the_Source_of S by A5;
+        [x,y] in meet the_Source_of S by A4, FUNCT_1:1;
+        then [x,y] in the_Source_of G by A6, SETFAM_1:def 1;
+        then x in dom the_Source_of G & (the_Source_of G).x = y by FUNCT_1:1;
+        then y in rng the_Source_of G by FUNCT_1:3;
+        hence y in V by A5;
+      end;
+      hence y in meet the_Vertices_of S by SETFAM_1:def 1;
+    end;
+    hence meet the_Source_of S is (meet the_Vertices_of S)-valued
+      by TARSKI:def 3, RELAT_1:def 19;
+  end;
+  cluster meet the_Target_of S -> (meet the_Edges_of S)-defined
+    (meet the_Vertices_of S)-valued;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A7: x in dom meet the_Target_of S;
+      now
+        let E be set;
+        assume E in the_Edges_of S;
+        then consider G being _Graph such that
+          A8: G in S & E = the_Edges_of G by Def15;
+        A9: the_Target_of G in the_Target_of S by A8;
+        [x,(meet the_Target_of S).x] in meet the_Target_of S by A7, FUNCT_1:1;
+        then [x,(meet the_Target_of S).x] in the_Target_of G
+          by A9, SETFAM_1:def 1;
+        then x in dom the_Target_of G by FUNCT_1:1;
+        hence x in E by A8;
+      end;
+      hence x in meet the_Edges_of S by SETFAM_1:def 1;
+    end;
+    hence meet the_Target_of S is (meet the_Edges_of S)-defined
+      by TARSKI:def 3, RELAT_1:def 18;
+    now
+      let y be object;
+      assume y in rng meet the_Target_of S;
+      then consider x being object such that
+        A10: x in dom meet the_Target_of S & (meet the_Target_of S).x = y
+        by FUNCT_1:def 3;
+      now
+        let V be set;
+        assume V in the_Vertices_of S;
+        then consider G being _Graph such that
+          A11: G in S & V = the_Vertices_of G by Def14;
+        A12: the_Target_of G in the_Target_of S by A11;
+        [x,y] in meet the_Target_of S by A10, FUNCT_1:1;
+        then [x,y] in the_Target_of G by A12, SETFAM_1:def 1;
+        then x in dom the_Target_of G & (the_Target_of G).x = y by FUNCT_1:1;
+        then y in rng the_Target_of G by FUNCT_1:3;
+        hence y in V by A11;
+      end;
+      hence y in meet the_Vertices_of S by SETFAM_1:def 1;
+    end;
+    hence meet the_Target_of S is (meet the_Vertices_of S)-valued
+      by TARSKI:def 3, RELAT_1:def 19;
+  end;
+end;
+
+registration
+  let S be GraphMeetSet;
+  cluster meet the_Source_of S -> total;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A1: x in meet the_Edges_of S;
+      set G0 = the Element of S;
+      set y = (the_Source_of G0).x;
+      now
+        let s be set;
+        assume s in the_Source_of S;
+        then consider G being _Graph such that
+          A2: G in S & s = the_Source_of G by Def16;
+        the_Edges_of G in the_Edges_of S by A2;
+        then x in the_Edges_of G by A1, SETFAM_1:def 1;
+        then A3: x in dom the_Source_of G by FUNCT_2:def 1;
+        then A4: [x,(the_Source_of G).x] in the_Source_of G by FUNCT_1:1;
+        the_Edges_of G0 in the_Edges_of S;
+        then x in the_Edges_of G0 by A1, SETFAM_1:def 1;
+        then x in dom the_Source_of G0 by FUNCT_2:def 1;
+        then A5: x in dom the_Source_of G0 /\ dom the_Source_of G
+          by A3, XBOOLE_0:def 4;
+        G tolerates G0 by A2, Def27;
+        then the_Source_of G tolerates the_Source_of G0;
+        hence [x,y] in s by A2, A4, A5, PARTFUN1:def 4;
+      end;
+      then [x,y] in meet the_Source_of S by SETFAM_1:def 1;
+      hence x in dom meet the_Source_of S by FUNCT_1:1;
+    end;
+    then meet the_Edges_of S c= dom meet the_Source_of S by TARSKI:def 3;
+    hence thesis by PARTFUN1:def 2, XBOOLE_0:def 10;
+  end;
+  cluster meet the_Target_of S -> total;
+  coherence
+  proof
+    now
+      let x be object;
+      assume A6: x in meet the_Edges_of S;
+      set G0 = the Element of S;
+      set y = (the_Target_of G0).x;
+      now
+        let s be set;
+        assume s in the_Target_of S;
+        then consider G being _Graph such that
+          A7: G in S & s = the_Target_of G by Def17;
+        the_Edges_of G in the_Edges_of S by A7;
+        then x in the_Edges_of G by A6, SETFAM_1:def 1;
+        then A8: x in dom the_Target_of G by FUNCT_2:def 1;
+        then A9: [x,(the_Target_of G).x] in the_Target_of G by FUNCT_1:1;
+        the_Edges_of G0 in the_Edges_of S;
+        then x in the_Edges_of G0 by A6, SETFAM_1:def 1;
+        then x in dom the_Target_of G0 by FUNCT_2:def 1;
+        then A10: x in dom the_Target_of G0 /\ dom the_Target_of G
+          by A8, XBOOLE_0:def 4;
+        G tolerates G0 by A7, Def27;
+        then the_Target_of G tolerates the_Target_of G0;
+        hence [x,y] in s by A7, A9, A10, PARTFUN1:def 4;
+      end;
+      then [x,y] in meet the_Target_of S by SETFAM_1:def 1;
+      hence x in dom meet the_Target_of S by FUNCT_1:1;
+    end;
+    then meet the_Edges_of S c= dom meet the_Target_of S by TARSKI:def 3;
+    hence thesis by PARTFUN1:def 2, XBOOLE_0:def 10;
+  end;
+end;
+
+:: a.k.a. Graph Intersection, but not to be confused with Intersection Graph
+definition
+  let S be GraphMeetSet;
+  mode GraphMeet of S -> _Graph means
+  :Def29:
+  the_Vertices_of it = meet the_Vertices_of S &
+  the_Edges_of it = meet the_Edges_of S &
+  the_Source_of it = meet the_Source_of S &
+  the_Target_of it = meet the_Target_of S;
+  existence
+  proof
+    set V = meet the_Vertices_of S, E = meet the_Edges_of S;
+    reconsider s = meet the_Source_of S as Function;
+    dom s = E & rng s c= V by PARTFUN1:def 2, RELAT_1:def 19;
+    then reconsider s as Function of E, V by FUNCT_2:2;
+    reconsider t = meet the_Target_of S as Function;
+    dom t = E & rng t c= V by PARTFUN1:def 2, RELAT_1:def 19;
+    then reconsider t as Function of E, V by FUNCT_2:2;
+    take createGraph(V,E,s,t);
+    thus thesis;
+  end;
+end;
+
+:: not really needed
+::definition
+  ::let S be GraphMeetSet;
+  ::func meet S equals the plain GraphMeet of S;
+::end;
+
+:: not proven here (DOM from CARD_3)
+:: theorem
+::   for S being GraphMeetSet, G being GraphMeet of S
+::   holds DOM(the_Source_of S) = dom the_Source_of G &
+::     DOM(the_Target_of S) = dom the_Target_of G;
+
+theorem Th37:
+  for S being GraphMeetSet, G being GraphMeet of S, H being Element of S
+  holds H is Supergraph of G
+proof
+  let S be GraphMeetSet, G be GraphMeet of S, H be Element of S;
+  the_Vertices_of H in the_Vertices_of S;
+  then meet the_Vertices_of S c= the_Vertices_of H by SETFAM_1:3;
+  then A1: the_Vertices_of G c= the_Vertices_of H by Def29;
+  the_Source_of H in the_Source_of S;
+  then meet the_Source_of S c= the_Source_of H by SETFAM_1:3;
+  then A2: the_Source_of G c= the_Source_of H by Def29;
+  the_Target_of H in the_Target_of S;
+  then meet the_Target_of S c= the_Target_of H by SETFAM_1:3;
+  then the_Target_of G c= the_Target_of H by Def29;
+  hence H is Supergraph of G by A1, A2, GLIB_006:63;
+end;
+
+theorem Th38:
+  for S being GraphMeetSet, G being GraphMeet of S, G9 being _Graph
+  holds G9 is GraphMeet of S iff G == G9
+proof
+  let S be GraphMeetSet, G be GraphMeet of S, G9 be _Graph;
+  A1: the_Vertices_of G = meet the_Vertices_of S &
+    the_Edges_of G = meet the_Edges_of S &
+    the_Source_of G = meet the_Source_of S &
+    the_Target_of G = meet the_Target_of S by Def29;
+  hereby
+    assume G9 is GraphMeet of S;
+    then the_Vertices_of G9 = meet the_Vertices_of S &
+      the_Edges_of G9 = meet the_Edges_of S &
+      the_Source_of G9 = meet the_Source_of S &
+      the_Target_of G9 = meet the_Target_of S by Def29;
+    hence G == G9 by A1, GLIB_000:def 34;
+  end;
+  assume G == G9;
+  then the_Vertices_of G = the_Vertices_of G9 &
+    the_Edges_of G = the_Edges_of G9 &
+    the_Source_of G = the_Source_of G9 &
+    the_Target_of G = the_Target_of G9 by GLIB_000:def 34;
+  hence thesis by A1, Def29;
+end;
+
+registration
+  let S be GraphMeetSet;
+  cluster plain for GraphMeet of S;
+  existence
+  proof
+    take G = (the GraphMeet of S) | _GraphSelectors;
+    thus thesis by Th38, GLIB_009:9;
+  end;
+end;
+
+theorem
+  for G, H being _Graph holds G is GraphMeet of {H} iff G == H
+proof
+  let G, H be _Graph;
+  hereby
+    assume G is GraphMeet of {H};
+    then the_Vertices_of G = meet the_Vertices_of {H} &
+      the_Edges_of G = meet the_Edges_of {H} &
+      the_Source_of G = meet the_Source_of {H} &
+      the_Target_of G = meet the_Target_of {H} by Def29;
+    then the_Vertices_of G = meet {the_Vertices_of H} &
+      the_Edges_of G = meet {the_Edges_of H} &
+      the_Source_of G = meet {the_Source_of H} &
+      the_Target_of G = meet {the_Target_of H} by Th5;
+    then the_Vertices_of G = the_Vertices_of H &
+      the_Edges_of G = the_Edges_of H &
+      the_Source_of G = the_Source_of H &
+      the_Target_of G = the_Target_of H by SETFAM_1:10;
+    hence G == H by GLIB_000:def 34;
+  end;
+  assume G == H;
+  then the_Vertices_of G = the_Vertices_of H &
+    the_Edges_of G = the_Edges_of H &
+    the_Source_of G = the_Source_of H &
+    the_Target_of G = the_Target_of H by GLIB_000:def 34;
+  then the_Vertices_of G = meet {the_Vertices_of H} &
+    the_Edges_of G = meet {the_Edges_of H} &
+    the_Source_of G = meet {the_Source_of H} &
+    the_Target_of G = meet {the_Target_of H} by SETFAM_1:10;
+  then the_Vertices_of G = meet the_Vertices_of {H} &
+    the_Edges_of G = meet the_Edges_of {H} &
+    the_Source_of G = meet the_Source_of {H} &
+    the_Target_of G = meet the_Target_of {H} by Th5;
+  hence G is GraphMeet of {H} by Def29;
+end;
+
+definition
+  let G1, G2 be _Graph;
+  mode GraphMeet of G1, G2 -> Subgraph of G1 means
+  :Def30:
+  ex S being GraphMeetSet st S = {G1,G2} & it is GraphMeet of S
+    if G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2
+  otherwise it == G1;
+  existence
+  proof
+    hereby
+      assume G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+      then reconsider S = {G1,G2} as GraphMeetSet by Th35;
+      set G = the GraphMeet of S;
+      G1 in S by TARSKI:def 2;
+      then G1 is Supergraph of G by Th37;
+      then reconsider G as Subgraph of G1 by GLIB_006:57;
+      take G, S;
+      thus S = {G1,G2} & G is GraphMeet of S;
+    end;
+    assume not (G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2);
+    reconsider G = G1 as Subgraph of G1 by GLIB_000:40;
+    take G;
+    thus thesis;
+  end;
+  consistency;
+end;
+
+:: not really needed
+::definition
+  ::let G1, G2 be _Graph;
+  ::func G1 /\ G2 equals the plain GraphMeet of G1, G2;
+::end;
+
+theorem Th40:
+  for G1, G2, G being _Graph
+  st G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2
+  holds G is GraphMeet of G1, G2 iff
+    the_Vertices_of G = the_Vertices_of G1 /\ the_Vertices_of G2 &
+    the_Edges_of G = the_Edges_of G1 /\ the_Edges_of G2 &
+    the_Source_of G = the_Source_of G1 /\ the_Source_of G2 &
+    the_Target_of G = the_Target_of G1 /\ the_Target_of G2
+proof
+  let G1, G2, G be _Graph;
+  assume A1: G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+  hereby
+    assume G is GraphMeet of G1, G2;
+    then consider S being GraphMeetSet such that
+      A2: S = {G1,G2} & G is GraphMeet of S by A1, Def30;
+    thus the_Vertices_of G = meet the_Vertices_of {G1,G2} by A2, Def29
+      .= meet {the_Vertices_of G1, the_Vertices_of G2} by Th6
+      .= the_Vertices_of G1 /\ the_Vertices_of G2 by SETFAM_1:11;
+    thus the_Edges_of G = meet the_Edges_of {G1,G2} by A2, Def29
+      .= meet {the_Edges_of G1, the_Edges_of G2} by Th6
+      .= the_Edges_of G1 /\ the_Edges_of G2 by SETFAM_1:11;
+    thus the_Source_of G = meet the_Source_of {G1,G2} by A2, Def29
+      .= meet {the_Source_of G1, the_Source_of G2} by Th6
+      .= the_Source_of G1 /\ the_Source_of G2 by SETFAM_1:11;
+    thus the_Target_of G = meet the_Target_of {G1,G2} by A2, Def29
+      .= meet {the_Target_of G1, the_Target_of G2} by Th6
+      .= the_Target_of G1 /\ the_Target_of G2 by SETFAM_1:11;
+  end;
+  assume A3: the_Vertices_of G = the_Vertices_of G1 /\ the_Vertices_of G2 &
+    the_Edges_of G = the_Edges_of G1 /\ the_Edges_of G2 &
+    the_Source_of G = the_Source_of G1 /\ the_Source_of G2 &
+    the_Target_of G = the_Target_of G1 /\ the_Target_of G2;
+  reconsider S = {G1,G2} as GraphMeetSet by A1, Th35;
+  A4: the_Vertices_of G c= the_Vertices_of G1 by A3, XBOOLE_1:17;
+  A5: the_Source_of G c= the_Source_of G1 by A3, XBOOLE_1:17;
+  the_Target_of G c= the_Target_of G1 by A3, XBOOLE_1:17;
+  then G1 is Supergraph of G by A4, A5, GLIB_006:63;
+  then A6: G is Subgraph of G1 by GLIB_006:57;
+  A7: the_Vertices_of G
+     = meet {the_Vertices_of G1,the_Vertices_of G2} by A3, SETFAM_1:11
+    .= meet the_Vertices_of S by Th6;
+  A8: the_Edges_of G
+     = meet {the_Edges_of G1,the_Edges_of G2} by A3, SETFAM_1:11
+    .= meet the_Edges_of S by Th6;
+  A9: the_Source_of G
+     = meet {the_Source_of G1,the_Source_of G2} by A3, SETFAM_1:11
+    .= meet the_Source_of S by Th6;
+  the_Target_of G
+     = meet {the_Target_of G1,the_Target_of G2} by A3, SETFAM_1:11
+    .= meet the_Target_of S by Th6;
+  then G is GraphMeet of S by A7, A8, A9, Def29;
+  hence G is GraphMeet of G1, G2 by A1, A6, Def30;
+end;
+
+theorem Th41:
+  for G1, G2 being _Graph, G being GraphMeet of G1, G2
+  st G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2
+  holds G is Subgraph of G2
+proof
+  let G1, G2 be _Graph, G be GraphMeet of G1, G2;
+  assume G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+  then consider S being GraphMeetSet such that
+    A1: S = {G1,G2} & G is GraphMeet of S by Def30;
+  G2 is Element of S by A1, TARSKI:def 2;
+  then G2 is Supergraph of G by A1, Th37;
+  hence thesis by GLIB_006:57;
+end;
+
+theorem
+  for G1, G2 being _Graph, G being GraphMeet of G1, G2
+  st G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2
+  holds G is GraphMeet of G2, G1
+proof
+  let G1, G2 be _Graph, G be GraphMeet of G1, G2;
+  assume A1: G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+  then consider S being GraphMeetSet such that
+    A2: S = {G1,G2} & G is GraphMeet of S by Def30;
+  A3: G is Subgraph of G2 by A1, Th41;
+  thus thesis by A1, A2, A3, Def30;
+end;
+
+theorem Th43:
+  for G1, G2, G9 being _Graph, G being GraphMeet of G1, G2
+  holds G9 is GraphMeet of G1, G2 iff G == G9
+proof
+  let G1, G2, G9 be _Graph, G be GraphMeet of G1, G2;
+  hereby
+    assume A1: G9 is GraphMeet of G1, G2;
+    per cases;
+    suppose A2: G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+      then consider S being GraphMeetSet such that
+        A3: S = {G1,G2} & G is GraphMeet of S by Def30;
+      consider S9 being GraphMeetSet such that
+        A4: S9 = {G1,G2} & G9 is GraphMeet of S9 by A1, A2, Def30;
+      thus G == G9 by A3, A4, Th38;
+    end;
+    suppose not(G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2);
+      then G == G1 & G9 == G1 by A1, Def30;
+      hence G == G9 by GLIB_000:85;
+    end;
+  end;
+  assume A5: G == G9;
+  per cases;
+  suppose A6: G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2;
+    then consider S being GraphMeetSet such that
+      A7: S = {G1,G2} & G is GraphMeet of S by Def30;
+    A8: G9 is Subgraph of G1 by A5, GLIB_000:92;
+    G9 is GraphMeet of S by A5, A7, Th38;
+    hence thesis by A6, A7, A8, Def30;
+  end;
+  suppose A9: not(G1 tolerates G2
+      & the_Vertices_of G1 meets the_Vertices_of G2);
+    then G == G1 by Def30;
+    then A10: G9 == G1 by A5, GLIB_000:85;
+    then G9 is Subgraph of G1 by GLIB_006:58;
+    hence thesis by A9, A10, Def30;
+  end;
+end;
+
+registration
+  let G1, G2 be _Graph;
+  cluster plain for GraphMeet of G1, G2;
+  existence
+  proof
+    take G = (the GraphMeet of G1, G2) | _GraphSelectors;
+    thus thesis by Th43, GLIB_009:9;
+  end;
+end;
+
+theorem
+  for G, G1 being _Graph, G2 being Subgraph of G1
+  holds G is GraphMeet of G1, G2 iff G == G2
+proof
+  let G, G1 be _Graph, G2 be Subgraph of G1;
+  A1: G1 tolerates G2 & the_Vertices_of G1 meets the_Vertices_of G2
+    by Th15, XBOOLE_1:69;
+  G1 is Supergraph of G2 by GLIB_006:57;
+  then A2: the_Source_of G2 c= the_Source_of G1 &
+    the_Target_of G2 c= the_Target_of G1 by GLIB_006:64;
+  hereby
+    assume A3: G is GraphMeet of G1, G2;
+    then A4: the_Vertices_of G
+       = the_Vertices_of G1 /\ the_Vertices_of G2 by A1, Th40
+      .= the_Vertices_of G2 by XBOOLE_1:28;
+    A5: the_Edges_of G = the_Edges_of G1 /\ the_Edges_of G2 by A1, A3, Th40
+      .= the_Edges_of G2 by XBOOLE_1:28;
+    A6: the_Source_of G = the_Source_of G1 /\ the_Source_of G2 by A1, A3, Th40
+      .= the_Source_of G2 by A2, XBOOLE_1:28;
+    the_Target_of G = the_Target_of G1 /\ the_Target_of G2 by A1, A3, Th40
+      .= the_Target_of G2 by A2, XBOOLE_1:28;
+    hence G == G2 by A4, A5, A6, GLIB_000:def 34;
+  end;
+  assume A7: G == G2;
+  then A8: the_Vertices_of G = the_Vertices_of G2 by GLIB_000:def 34
+    .= the_Vertices_of G1 /\ the_Vertices_of G2 by XBOOLE_1:28;
+  A9: the_Edges_of G = the_Edges_of G2 by A7, GLIB_000:def 34
+    .= the_Edges_of G1 /\ the_Edges_of G2 by XBOOLE_1:28;
+  A10: the_Source_of G = the_Source_of G2 by A7, GLIB_000:def 34
+    .= the_Source_of G1 /\ the_Source_of G2 by A2, XBOOLE_1:28;
+  the_Target_of G = the_Target_of G2 by A7, GLIB_000:def 34
+    .= the_Target_of G1 /\ the_Target_of G2 by A2, XBOOLE_1:28;
+  hence thesis by A1, A8, A9, A10, Th40;
+end;
+
+theorem Th45:
+  for G1, G2 being _Graph, G being GraphMeet of G1, G2
+  st the_Vertices_of G1 meets the_Vertices_of G2 &
+    the_Edges_of G1 misses the_Edges_of G2 holds G is edgeless
+proof
+  let G1, G2 be _Graph, G be GraphMeet of G1, G2;
+  assume that
+    A1: the_Vertices_of G1 meets the_Vertices_of G2 and
+    A2: the_Edges_of G1 misses the_Edges_of G2;
+  G1 tolerates G2 by A2, Th12;
+  then the_Edges_of G = the_Edges_of G1 /\ the_Edges_of G2 by A1, Th40
+    .= {} by A2, XBOOLE_0:def 7;
+  hence thesis;
+end;
+
+registration
+  let G1 be _Graph, G2 be DLGraphComplement of G1;
+  cluster -> edgeless for GraphMeet of G1, G2;
+  coherence
+  proof
+    A1: the_Vertices_of G1 meets the_Vertices_of G2 by GLIB_012:def 6;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:def 6;
+    hence thesis by A1, Th45;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be LGraphComplement of G1;
+  cluster -> edgeless for GraphMeet of G1, G2;
+  coherence
+  proof
+    A1: the_Vertices_of G1 meets the_Vertices_of G2 by GLIB_012:def 7;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:def 7;
+    hence thesis by A1, Th45;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be DGraphComplement of G1;
+  cluster -> edgeless for GraphMeet of G1, G2;
+  coherence
+  proof
+    A1: the_Vertices_of G1 meets the_Vertices_of G2 by GLIB_012:80;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:80;
+    hence thesis by A1, Th45;
+  end;
+end;
+
+registration
+  let G1 be _Graph, G2 be GraphComplement of G1;
+  cluster -> edgeless for GraphMeet of G1, G2;
+  coherence
+  proof
+    A1: the_Vertices_of G1 meets the_Vertices_of G2 by GLIB_012:98;
+    the_Edges_of G1 misses the_Edges_of G2 by GLIB_012:98;
+    hence thesis by A1, Th45;
+  end;
+end;

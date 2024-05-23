@@ -1,0 +1,1522 @@
+:: Tarski Geometry Axioms
+::  by William Richter , Adam Grabowski and Jesse Alama
+::
+:: Received June 16, 2014
+:: Copyright (c) 2014-2023 Association of Mizar Users
+::           (Stowarzyszenie Uzytkownikow Mizara, Bialystok, Poland).
+:: This code can be distributed under the GNU General Public Licence
+:: version 3.0 or later, or the Creative Commons Attribution-ShareAlike
+:: License version 3.0 or later, subject to the binding interpretation
+:: detailed in file COPYING.interpretation.
+:: See COPYING.GPL and COPYING.CC-BY-SA for the full text of these
+:: licenses, or see http://www.gnu.org/licenses/gpl.html and
+:: http://creativecommons.org/licenses/by-sa/3.0/.
+
+environ
+
+ vocabularies GTARSKI1, RELAT_1, XBOOLE_0, INCSP_1, SUBSET_1, ZFMISC_1,
+      STRUCT_0, METRIC_1, FUNCT_1, NUMBERS, RELAT_2, CARD_1, ARYTM_3, XREAL_0,
+      COMPLEX1, ARYTM_1, XXREAL_0, XXREAL_1, ROUGHS_4;
+ notations TARSKI, XBOOLE_0, ENUMSET1, ZFMISC_1, NUMBERS, XXREAL_0, XXREAL_1,
+      XXREAL_2, XCMPLX_0, XREAL_0, COMPLEX1, SUBSET_1, DOMAIN_1, RELAT_1,
+      RELSET_1, FUNCT_1, FUNCT_2, BINOP_1, STRUCT_0, METRIC_1, ORDINAL1,
+      FUNCT_4, ARYTM_2, ARYTM_0;
+ constructors RELSET_1, DOMAIN_1, ZFMISC_1, STRUCT_0, NUMBERS, XREAL_0,
+      FUNCT_1, FUNCT_2, METRIC_1, XXREAL_0, XCMPLX_0, SUBSET_1, BINOP_1,
+      SQUARE_1, COMPLEX1, XXREAL_1, XXREAL_2, FUNCT_4, ARYTM_1, ARYTM_0;
+ registrations XBOOLE_0, SUBSET_1, XXREAL_0, XREAL_0, METRIC_1, ORDINAL1,
+      STRUCT_0, ZFMISC_1;
+ requirements REAL, NUMERALS, SUBSET, ARITHM;
+ equalities METRIC_1;
+ theorems METRIC_1, COMPLEX1, ABSVALUE, XREAL_1, XREAL_0, TOPMETR, XXREAL_1,
+      XXREAL_0, XTUPLE_0, STRUCT_0;
+ schemes RELSET_1;
+
+begin :: Tarski Axioms
+
+:: Here are readable Mizar proofs of some axiomatic geometry theorems due
+:: to the great Polish mathematician Alfred Tarski (born Teitelbaum), and
+:: we hope to continue this work. The first author ported the code to
+:: HOL Light (http://www.cl.cam.ac.uk/~jrh13/hol-light/), which can be
+:: found in any recent subversion of HOL Light as
+:: hol_light/RichterHilbertAxiomGeometry/TarskiAxiomGeometry_read.ml
+
+:: This is largely a Mizar port of Julien Narboux's Coq pseudo-code
+:: http://dpt-info.u-strasbg.fr/~narboux/tarski.html.  We partially
+:: prove the theorem of the 1983 book Metamathematische Methoden in
+:: der Geometrie by Schwabh\"auser, Szmielew, and Tarski, that Tarski's
+:: (extremely weak!) plane geometry axioms imply Hilbert's axioms.  We
+:: get about as far as Narboux, with Gupta's amazing proof which
+:: implies Hilbert's axiom I1 that two points determine a line.
+
+:: Tarski's axioms are easy to find, but the first Tarski proofs we
+:: ever learned were on wikiproofs's port of Narboux's results
+:: http://www.wikiproofs.de/w/index.php?title=Interface:Tarski%27s_geometry_axioms
+:: Our Mizar proofs are much more readable than either Narboux's Coq
+:: pseudo-code or wikiproof's JHilbert code.
+
+:: Our Mizar coding was heavily influenced by Wojciech A. Trybulec's
+:: incsp_1.miz in the MML library on axioms of incidence geometry.
+
+:: S will be a Tarski plane, a set of points which is a model of the
+:: first 7 of Tarski's Geometry axioms A1--A7.  There are two binary
+:: relations (predicates) defined on S, between and ≡, for
+:: betweenness of points and equidistance of segments.
+
+:: We carry the axioms A1--A7 around as part of the statements of the
+:: theorems. To avoid this minor clutter one has to define a Mizar type of
+:: planes satisfying axioms A1--A7, as Trybulec does with by
+:: `mode IncSpace is IncSpace-like IncStruct;'
+:: In Mizar it isn't possible to define such a type (or model) without
+:: proving that some model exists.  Trybulec's existence proofs runs
+:: over 450 lines.  So we define a predicate `S Tarski-model' which
+:: means that the plane S satisfies the axioms A1--A7, and then prove
+:: trivial theorems A1--A7 which say that if S Tarski-model, then S
+:: satisfies an axiom A1--A7.  The extra clutter involving the
+:: predicate Tarski-model, and the label TarskiModel which stands for
+:: the statement `S Tarski-model' could be avoided by loading all our
+:: results into one gigantic theorem.  Our approach seems preferable.
+
+:: Our axioms have descriptive names, largely the names Narboux used,
+:: CongruenceSymmetry (A1), CongruenceEquivalenceRelation (A2),
+:: CongruenceIdentity (A3), SegmentConstruction (A4), SAS (A5),
+:: BetweennessIdentity (A6), and Pasch (A7).
+
+:: Our theorems are EquivReflexive, EquivSymmetric, EquivTransitive,
+:: Baaa, Bqaa, C1 (for Hilbert's axiom C1), Bsymmetry, Baaq,
+:: BEquality, B124and234then123, BTransitivity, BTransitivityOrdered,
+:: B124and234Ordered, B124and234Ordered, SegmentAddition,
+:: CongruenceDoubleSymmetry, C1prime, SegmentSubtraction,
+:: EasyAngleTransport, B123and134Ordered, BextendToLine, GuptaEasy,
+:: Inner5Segments, RhombusDiagBisect, FlatNormal,
+:: EqDist2PointsBetween, EqDist2PointsInnerBetween, Gupta, I1part1,
+:: I1part2, LineEqRefl, LineEqA1, LineEqSymmetric, LineEqTrans,
+:: onlineEq, I1part2Reverse, and I1.
+
+definition
+  struct (1-sorted) TarskiGeometryStruct (# carrier -> set,
+    Betweenness -> Relation of [:the carrier, the carrier:], the carrier,
+    Equidistance -> Relation of
+      [:the carrier, the carrier:], [:the carrier, the carrier:] #);
+end;
+
+definition
+  let S be TarskiGeometryStruct;
+  mode POINT of S is Element of S;
+end;
+
+definition
+  let S be TarskiGeometryStruct;
+  let a, b, c be POINT of S;
+  pred between a,b,c means
+  [[a,b],c] in the Betweenness of S;
+end;
+
+definition
+  let S be TarskiGeometryStruct;
+  let a, b, c, d be POINT of S;
+  pred a,b equiv c,d means
+  [[a,b],[c,d]] in the Equidistance of S;
+end;
+
+:: Two triangles are congruent if they satisfy the SSS criterion
+
+definition
+  let S be TarskiGeometryStruct;
+  let a, b, c, x, y, z be POINT of S;
+  pred a,b,c cong x,y,z means ::: :Def4:
+  a,b equiv x,y & a,c equiv x,z & b,c equiv y,z;
+end;
+
+definition
+  let S be TarskiGeometryStruct;
+  let a, b, c, d be POINT of S;
+  pred a,b,c,d are_ordered means ::: :Def5:
+  between a,b,c & between a,b,d & between a,c,d & between b,c,d;
+end;
+
+definition let S be TarskiGeometryStruct;
+  attr S is satisfying_CongruenceSymmetry means  ::: :Axiom1:
+     for a, b being POINT of S holds a,b equiv b,a;
+  attr S is satisfying_CongruenceEquivalenceRelation means  ::: :Axiom2:
+     for a, b, p, q, r, s being POINT of S holds
+        a,b equiv p,q & a,b equiv r,s implies p,q equiv r,s;
+  attr S is satisfying_CongruenceIdentity means  :::  :Axiom3:
+     for a, b, c being POINT of S holds
+        a,b equiv c,c implies a = b;
+  attr S is satisfying_SegmentConstruction means  ::: :Axiom4:
+     for a, q, b, c being POINT of S holds
+        ex x being POINT of S st between q,a,x & a,x equiv b,c;
+  attr S is satisfying_SAS means  ::: :Axiom5:
+     for a, b, c, x, a1, b1, c1, x1 being POINT of S holds
+        a <> b & a,b,c cong a1,b1,c1 &
+        between a,b,x & between a1,b1,x1 & b,x equiv b1,x1
+        implies c,x equiv c1,x1;
+  attr S is satisfying_BetweennessIdentity means ::: :Axiom6:
+     for a, b being POINT of S holds between a,b,a implies a = b;
+  attr S is satisfying_Pasch means  ::: :Axiom7:
+     for a, b, p, q, z being POINT of S holds
+        between a,p,z & between b,q,z implies
+        ex x being POINT of S st between p,x,b & between q,x,a;
+end;
+
+definition
+  let S be TarskiGeometryStruct;
+  attr S is satisfying_Tarski-model means ::: :TarskiAxioms:
+    S is satisfying_CongruenceSymmetry
+       satisfying_CongruenceEquivalenceRelation
+       satisfying_CongruenceIdentity
+       satisfying_SegmentConstruction
+       satisfying_SAS
+       satisfying_BetweennessIdentity
+       satisfying_Pasch;
+end;
+
+begin :: Existence Proofs for Tarski Plane
+
+definition
+  struct (MetrStruct,TarskiGeometryStruct) MetrTarskiStr
+   (# carrier -> set,
+     distance -> Function of [:the carrier,the carrier:], REAL,
+     Betweenness -> Relation of [:the carrier, the carrier:], the carrier,
+     Equidistance -> Relation of
+      [:the carrier, the carrier:], [:the carrier, the carrier:]
+     #);
+end;
+
+definition let M be MetrStruct;
+  mode TarskiExtension of M -> MetrTarskiStr means :TADef:
+    the MetrStruct of it = the MetrStruct of M;
+  existence
+  proof
+    set C = the carrier of M;
+    set R = the Relation of [:C, C:], C;
+    set E = the Relation of [:C, C:], [:C, C:];
+    take X = MetrTarskiStr (#C,the distance of M,R,E#);
+    thus thesis;
+  end;
+end;
+
+registration let M be non empty MetrStruct;
+  cluster -> non empty for TarskiExtension of M;
+  coherence
+  proof
+    let T be TarskiExtension of M;
+    the MetrStruct of T = the MetrStruct of M by TADef;
+    hence thesis;
+  end;
+end;
+
+registration let M be non empty Reflexive MetrStruct;
+  cluster -> Reflexive for TarskiExtension of M;
+  coherence
+  proof
+    let T be TarskiExtension of M;
+aa: the MetrStruct of T = the MetrStruct of M by TADef;
+    the distance of T is Reflexive by METRIC_1:def 6,aa;
+    hence thesis by METRIC_1:def 6;
+  end;
+end;
+
+registration let M be non empty discerning MetrStruct;
+  cluster -> discerning for TarskiExtension of M;
+  coherence
+  proof
+    let T be TarskiExtension of M;
+aa: the MetrStruct of T = the MetrStruct of M by TADef;
+    the distance of M is discerning by METRIC_1:def 7;
+    hence thesis by METRIC_1:def 7,aa;
+  end;
+end;
+
+registration let M be non empty symmetric MetrStruct;
+  cluster -> symmetric for TarskiExtension of M;
+  coherence
+  proof
+    let T be TarskiExtension of M;
+aa: the MetrStruct of T = the MetrStruct of M by TADef;
+    the distance of M is symmetric by METRIC_1:def 8;
+    hence thesis by METRIC_1:def 8,aa;
+  end;
+end;
+
+registration let M be non empty triangle MetrStruct;
+  cluster -> triangle for TarskiExtension of M;
+  coherence
+  proof
+    let T be TarskiExtension of M;
+aa: the MetrStruct of T = the MetrStruct of M by TADef;
+    the distance of M is triangle by METRIC_1:def 9;
+    hence thesis by METRIC_1:def 9,aa;
+  end;
+end;
+
+definition ::: is_between taken from METRIC_1
+  let S be MetrStruct, p,q,r be Element of S;
+  pred q is_Between p,r means
+    dist(p,r) = dist(p,q) + dist(q,r);
+end;
+
+definition let M be MetrTarskiStr;
+  attr M is naturally_generated means :NGDef:
+    (for a, b, c being POINT of M holds
+      between a,b,c iff b is_Between a,c) &
+    (for a, b, c, d being POINT of M holds
+      a,b equiv c,d iff dist (a,b) = dist (c,d));
+end;
+
+theorem
+  for M, N being MetrStruct,
+      x, y being Element of M,
+      a, b being Element of N st
+    the MetrStruct of M = the MetrStruct of N & x = a & y = b holds
+      dist (x,y) = dist (a,b);
+
+registration let N be non empty MetrStruct;
+  cluster naturally_generated for TarskiExtension of N;
+  existence
+  proof
+    set C = the carrier of N;
+    set X = C;
+    set F = the distance of N;
+    set A = [:X,X:];
+    defpred Q[object,object] means
+    ex x1, x2, y1, y2 being Element of N st
+    [x1,x2] = $1 & [y1,y2] = $2 & dist (x1,x2) = dist (y1,y2);
+    consider E being Relation of A, A such that
+t2: for xx,yy being Element of A holds
+      [xx,yy] in E iff Q[xx,yy] from RELSET_1:sch 2;
+T2: for x1,x2,y1,y2 being Element of X holds
+      [[x1,x2],[y1,y2]] in E iff dist (x1,x2) = dist(y1,y2)
+    proof
+      let x1,x2,y1,y2 be Element of X;
+      reconsider xx = [x1,x2], yy = [y1,y2] as Element of A;
+      thus [[x1,x2],[y1,y2]] in E implies dist (x1,x2) = dist(y1,y2)
+      proof
+        assume [[x1,x2],[y1,y2]] in E; then
+        consider w1, w2, v1, v2 being Element of N such that
+k1:     [w1,w2] = xx & [v1,v2] = yy & dist (w1,w2) = dist (v1,v2) by t2;
+        x1 = w1 & x2 = w2 & v1 = y1 & v2 = y2 by k1,XTUPLE_0:1;
+        hence thesis by k1;
+      end;
+      thus thesis by t2;
+    end;
+    defpred R[object,object] means
+    ex x1, x2, x3 being Element of N st
+    [x1,x2] = $1 & x3 = $2 & dist (x1,x3) = dist (x1,x2) + dist (x2,x3);
+    consider B being Relation of A, X such that
+t0: for xx being Element of A, x3 being Element of X holds
+      [xx,x3] in B iff R[xx,x3] from RELSET_1:sch 2;
+T0: for x1,x2,x3 being Element of X holds
+      [[x1,x2],x3] in B iff dist (x1,x3) = dist(x1,x2) + dist(x2,x3)
+    proof
+      let x1,x2,x3 be Element of X;
+      thus [[x1,x2],x3] in B implies dist (x1,x3) = dist(x1,x2) + dist(x2,x3)
+      proof
+        assume [[x1,x2],x3] in B; then
+        consider y1, y2, y3 being Element of N such that
+H1:     [y1,y2] = [x1,x2] & y3 = x3 &
+           dist (y1,y3) = dist (y1,y2) + dist (y2,y3) by t0;
+        y1 = x1 & y2 = x2 by H1,XTUPLE_0:1;
+        hence thesis by H1;
+      end;
+      thus thesis by t0;
+    end;
+    set M = MetrTarskiStr(#X,F,B,E#);
+Z1: the MetrStruct of M = the MetrStruct of N;
+    reconsider T = M as TarskiExtension of N by Z1,TADef;
+    take T;
+T1: for a, b, c being POINT of M holds
+      between a,b,c iff b is_Between a,c
+    proof
+      let a, b, c be POINT of M;
+      reconsider aa = a, bb = b, cc = c as Element of N;
+      thus between a,b,c implies b is_Between a,c
+      proof
+        assume between a,b,c; then
+        dist (aa,cc) = dist(aa,bb) + dist(bb,cc) by T0;
+        hence thesis;
+      end;
+      assume b is_Between a,c; then
+      dist (aa,cc) = dist(aa,bb) + dist(bb,cc);
+      hence thesis by T0;
+    end;
+    for a, b, c, d being POINT of M holds
+      a,b equiv c,d iff dist (a,b) = dist (c,d)
+    proof
+      let a, b, c, d be POINT of M;
+      reconsider aa = a, bb = b, cc = c, dd = d as Element of X;
+      hereby
+        assume
+s1:     a,b equiv c,d;
+S2:     [[aa,bb],[cc,dd]] in E iff dist (aa,bb) = dist(cc,dd) by T2;
+        thus dist (a,b) = dist (c,d) by s1,S2;
+      end;
+      assume dist (a,b) = dist (c,d); then
+      dist (aa,bb) = dist(cc,dd);
+      hence thesis by T2;
+    end;
+    hence thesis by T1;
+  end;
+end;
+
+registration
+  cluster trivial non empty for MetrSpace;
+  existence
+  proof
+    take M = DiscreteSpace {{}};
+    thus thesis;
+  end;
+end;
+
+definition
+  func TrivialTarskiSpace -> MetrTarskiStr equals
+    the naturally_generated TarskiExtension of
+      the trivial non empty MetrSpace;
+  coherence;
+end;
+
+registration
+  cluster TrivialTarskiSpace -> trivial non empty;
+  coherence
+  proof
+    the MetrStruct of the naturally_generated TarskiExtension
+      of the trivial non empty MetrSpace =
+    the MetrStruct of the trivial non empty MetrSpace by TADef;
+    hence thesis;
+  end;
+end;
+
+theorem TrivialBetween:
+  for M being trivial non empty MetrSpace,
+      a, b, c being Element of M holds
+    a is_Between b,c
+  proof
+    let M be trivial non empty MetrSpace,
+        a, b, c be Element of M;
+    a = b & b = c by STRUCT_0:def 10; then
+    dist (b,a) = 0 & dist (a,c) = 0 &
+      dist (b,c) = 0 by METRIC_1:1; then
+    a is_Between b,c;
+    hence thesis;
+  end;
+
+registration
+  cluster TrivialTarskiSpace -> satisfying_CongruenceSymmetry
+       satisfying_CongruenceEquivalenceRelation
+       satisfying_CongruenceIdentity
+       satisfying_SegmentConstruction
+       satisfying_SAS
+       satisfying_BetweennessIdentity
+       satisfying_Pasch;
+  coherence
+  proof
+    set T = TrivialTarskiSpace;
+a1: for a, b being POINT of T holds a,b equiv b,a
+    proof
+      let a, b be POINT of T;
+      a = b by STRUCT_0:def 10; then
+      dist (a,b) = dist (b,a);
+      hence thesis by NGDef;
+    end;
+a2: for a, b, p, q, r, s being POINT of T st
+      a,b equiv p,q & a,b equiv r,s holds p,q equiv r,s
+    proof
+      let a, b, p, q, r, s be POINT of T;
+      assume a,b equiv p,q & a,b equiv r,s; then
+      dist (a,b) = dist (p,q) & dist (a,b) = dist (r,s) by NGDef;
+      hence thesis by NGDef;
+    end;
+a3: for a, b, c being POINT of T st
+      a,b equiv c,c holds a = b
+    proof
+      let a, b, c be POINT of T;
+      assume a,b equiv c,c; then
+      dist (a,b) = dist (c,c) by NGDef;
+      hence thesis by METRIC_1:2,1;
+    end;
+a4: for a, q, b, c being POINT of T holds
+      ex x being POINT of T st between q,a,x & a,x equiv b,c
+    proof
+      let a, q, b, c be POINT of T;
+      take x = a;
+      b = c by STRUCT_0:def 10; then
+      dist (b,c) = 0 by METRIC_1:1; then
+      dist (a,x) = dist (b,c) by METRIC_1:1; then
+T1:   a,x equiv b,c by NGDef;
+      a is_Between q,x by TrivialBetween;
+      hence thesis by NGDef,T1;
+    end;
+W:  for a, b being POINT of T holds between a,b,a implies a = b
+      by STRUCT_0:def 10;
+Z:  T is satisfying_SAS by STRUCT_0:def 10;
+    T is satisfying_Pasch
+    proof
+      let a, b, p, q, z be POINT of T;
+      assume between a,p,z & between b,q,z;
+      take x = the POINT of T;
+S1:   x is_Between p,b by TrivialBetween;
+      x is_Between q,a by TrivialBetween;
+      hence thesis by NGDef,S1;
+    end;
+    hence thesis by a1,a2,a3,a4,W,Z;
+  end;
+end;
+
+registration
+  cluster TrivialTarskiSpace -> satisfying_Tarski-model;
+  coherence;
+end;
+
+registration
+  cluster satisfying_Tarski-model non empty for TarskiGeometryStruct;
+  existence
+  proof
+    take TrivialTarskiSpace;
+    thus thesis;
+  end;
+end;
+
+registration
+  cluster satisfying_CongruenceSymmetry
+       satisfying_CongruenceEquivalenceRelation
+       satisfying_CongruenceIdentity
+       satisfying_SegmentConstruction
+       satisfying_SAS
+       satisfying_BetweennessIdentity
+       satisfying_Pasch -> satisfying_Tarski-model for TarskiGeometryStruct;
+  coherence;
+  cluster satisfying_Tarski-model -> satisfying_CongruenceSymmetry
+       satisfying_CongruenceEquivalenceRelation
+       satisfying_CongruenceIdentity
+       satisfying_SegmentConstruction
+       satisfying_SAS
+       satisfying_BetweennessIdentity
+       satisfying_Pasch for TarskiGeometryStruct;
+  coherence;
+end;
+
+begin :: Proving Properties
+
+ reserve S for satisfying_Tarski-model TarskiGeometryStruct;
+ reserve a, b, c, d, e, f, o, p, q, r, s,
+    v, w, u, x, y, z, a9, b9, c9, d9, x9, y9, z for POINT of S;
+
+theorem A1:
+  a,b equiv b,a
+  proof
+    S is satisfying_CongruenceSymmetry;
+    hence thesis;
+  end;
+
+theorem A2:
+  a,b equiv p,q & a,b equiv r,s implies p,q equiv r,s
+  proof
+    S is satisfying_CongruenceEquivalenceRelation;
+    hence thesis;
+  end;
+
+theorem A3:
+  a,b equiv c,c implies a = b
+  proof
+    S is satisfying_CongruenceIdentity;
+    hence thesis;
+  end;
+
+theorem A4:
+  ex x st between q,a,x & a,x equiv b,c
+  proof
+    S is satisfying_SegmentConstruction;
+    hence thesis;
+  end;
+
+theorem A5:
+  a <> b & a,b,c cong a9,b9,c9 &
+  between a,b,x & between a9,b9,x9 & b,x equiv b9,x9
+  implies c,x equiv c9,x9
+
+:: We shall say we apply SAS to a+cbx and a'+c'b'x'.  Normally one
+:: applies SAS by showing cb = c'b', bx = b'x' (which we assume) and
+:: angle cbx cong angle c'b'x'.  One might prove the angle congruence
+:: by showing that the triangles abc & a'b'c' were congruent by SSS
+:: (which we also assume) and then apply the theorem that complements
+:: of congruent angles are congruent.  Hence Tarski's axiom.
+
+  proof
+    S is satisfying_SAS;
+    hence thesis;
+  end;
+
+theorem A6:
+  between a,b,a implies a = b
+  proof
+    S is satisfying_BetweennessIdentity;
+    hence thesis;
+  end;
+
+theorem A7:
+  between a,p,z & between b,q,z implies
+    ex x st between p,x,b & between q,x,a
+  proof
+    S is satisfying_Pasch;
+    hence thesis;
+  end;
+
+:: Now we can prove results referring to the axioms as A1--A7.
+
+theorem EquivReflexive:
+  a,b equiv a,b
+  proof
+    b,a equiv a,b by A1;
+    hence thesis by A2;
+  end;
+
+theorem EquivSymmetric:
+  a,b equiv c,d implies c,d equiv a,b
+  proof
+    assume
+H1: a,b equiv c,d;
+    a,b equiv a,b by EquivReflexive;
+    hence thesis by H1, A2;
+  end;
+
+theorem EquivTransitive:
+  a,b equiv p,q & p,q equiv r,s implies a,b equiv r,s
+  proof
+    assume that
+X1: a,b equiv p,q and
+X2: p,q equiv r,s;
+    p,q equiv a,b by X1, EquivSymmetric;
+    hence thesis by X2, A2;
+  end;
+
+theorem Baaa:
+  between a,a,a & a,a equiv b,b
+  proof
+    consider x such that
+Z1: between a,a,x & a,x equiv b,b by A4;
+    thus between a,a,a & a,a equiv b,b by Z1, A3;
+  end;
+
+theorem Bqaa:
+  between q,a,a
+  proof
+    consider x such that
+X1: between q,a,x & a,x equiv a,a by A4;
+    thus thesis by X1, A3;
+  end;
+
+theorem C1:
+  a <> b & between a,b,x & between a,b,y & b,x equiv b,y
+    implies x = y
+  proof
+    assume that
+H1: a <> b and
+H2: between a,b,x & between a,b,y and
+H3: b,x equiv b,y;
+    a,b,y cong a,b,y by EquivReflexive;
+    hence y = x by A3, H1, H2, H3, A5;
+  end;
+
+theorem Bsymmetry:
+  between a,p,z implies between z,p,a
+  proof
+    assume
+H1: between a,p,z;
+    between p,z,z by Bqaa; then
+    consider x such that
+X1: between p,x,p & between z,x,a by H1, A7;
+    thus thesis by X1, A6;
+  end;
+
+theorem Baaq:
+  between a,a,q by Bsymmetry, Bqaa;
+
+theorem BEquality:
+  between a,b,c & between b,a,c implies a = b
+  proof
+    assume
+H1: between a,b,c;
+    assume between b,a,c; then
+    consider x such that
+X1: between b,x,b & between a,x,a by H1, A7;
+    b = x by X1, A6;
+    hence a = b by A6, X1;
+  end;
+
+theorem B124and234then123:
+  between a,b,d & between b,c,d implies between a,b,c
+  proof
+     assume
+H1:  between a,b,d;
+     assume between b,c,d; then
+     consider x such that
+X1:  between b,x,b & between c,x,a by H1, A7;
+     b = x by X1, A6;
+     hence thesis by Bsymmetry, X1;
+  end;
+
+theorem BTransitivity:
+  b <> c & between a,b,c & between b,c,d implies between a,c,d
+  proof
+     assume that
+H1:  b <> c and
+H2:  between a,b,c and
+H3:  between b,c,d;
+     consider x such that
+X1:  between a,c,x & c,x equiv c,d by A4;
+X2:  between x,c,a by X1, Bsymmetry;
+     between c,b,a by H2, Bsymmetry; then
+     between x,c,b by X2, B124and234then123; then
+     between b,c,x by Bsymmetry;
+     hence thesis by X1, H1, H3, C1;
+  end;
+
+theorem BTransitivityOrdered:
+  b <> c & between a,b,c & between b,c,d implies a,b,c,d are_ordered
+   proof
+     assume that
+H1:  b <> c and
+H2:  between a,b,c;
+     assume
+H3:  between b,c,d; then
+X1:  between a,c,d by H1, H2, BTransitivity;
+X2:  between d,c,b by H3, Bsymmetry;
+     between c,b,a by H2, Bsymmetry; then
+     between d,b,a by H1, X2, BTransitivity;
+     hence thesis by H2, X1, H3, Bsymmetry;
+   end;
+
+theorem ::: B124and234Ordered:
+  between a,b,d & between b,c,d implies a,b,c,d are_ordered
+   proof
+     assume that
+H1:  between a,b,d and
+H2:  between b,c,d;
+     per cases;
+     suppose b = c;
+       hence a,b,c,d are_ordered by H1, H2, Bqaa;
+     end;
+     suppose
+Q1:    b <> c;
+       between a,b,c by H1, H2, B124and234then123;
+       hence a,b,c,d are_ordered by Q1, H2, BTransitivityOrdered;
+     end;
+   end;
+
+theorem B124and234Ordered:
+  between a,b,d & between b,c,d implies a,b,c,d are_ordered
+   proof
+     assume that
+H1:  between a,b,d and
+H2:  between b,c,d;
+X1:  between a,b,c by H1, H2, B124and234then123;
+     per cases;
+     suppose b = c;
+       hence thesis by H1, Bqaa, Baaq;
+     end;
+     suppose b <> c;
+       hence thesis by X1, H2, BTransitivityOrdered;
+     end;
+   end;
+
+theorem SegmentAddition:
+  between a,b,c & between a9,b9,c9 & a,b equiv a9,b9 & b,c equiv b9,c9
+    implies a,c equiv a9,c9
+   proof
+     assume that
+H1:  between a,b,c and
+H2:  between a9,b9,c9 and
+H3:  a,b equiv a9,b9 and
+H4:  b,c equiv b9,c9;
+     b,a equiv a,b by A1; then
+Z2:  b,a equiv a9,b9 by H3, EquivTransitive;
+     per cases;
+     suppose a = b;
+       hence thesis by H3, H4, A3, EquivSymmetric;
+     end;
+     suppose
+Z1:    a <> b;
+       a9,b9 equiv b9,a9 by A1; then
+       b,a equiv b9,a9 by Z2, EquivTransitive; then
+       a,b,a cong a9,b9,a9 by H3, Baaa;
+       hence thesis by Z1, H1, H2, H4, A5;
+     end;
+   end;
+
+theorem CongruenceDoubleSymmetry:
+  a,b equiv c,d implies b,a equiv d,c
+  proof
+X1: b,a equiv a,b & c,d equiv d,c by A1;
+    assume a,b equiv c,d; then
+    a,b equiv d,c by X1, EquivTransitive;
+    hence thesis by X1, EquivTransitive;
+  end;
+
+theorem C1prime:
+  a <> b & between a,b,x & between a,b,y & a,x equiv a,y
+    implies x = y
+  proof
+    assume that
+H1: a <> b and
+H2: between a,b,x and
+H3: between a,b,y and
+H4: a,x equiv a,y;
+    consider m being POINT of S such that
+X1: between b,a,m & a,m equiv a,b by A4;
+X3: m <> a by X1, EquivSymmetric, A3, H1;
+X2: between m,a,b by X1, Bsymmetry; then
+x4: m,a,b,x are_ordered by H1, H2, BTransitivityOrdered;
+    m,a,b,y are_ordered by H1, X2, H3, BTransitivityOrdered;
+    hence x = y by X3, x4, H4, C1;
+  end;
+
+theorem ::: SegmentSubtraction:
+  between a,b,c & between a9,b9,c9 & a,b equiv a9,b9 & a,c equiv a9,c9
+    implies b,c equiv b9,c9
+   proof
+     assume that
+H1:  between a,b,c and
+H2:  between a9,b9,c9 and
+H3:  a,b equiv a9,b9 and
+H4:  a,c equiv a9,c9;
+     per cases;
+     suppose a = b;
+       hence b,c equiv b9,c9 by H4, A3, EquivSymmetric, H3;
+     end;
+     suppose
+Z1:    a <> b;
+       consider x such that
+Z2:    between a,b,x & b,x equiv b9,c9 by A4;
+Z3:    a,x equiv a9,c9 by Z2, H2, H3, SegmentAddition;
+       a9,c9 equiv a,c by H4, EquivSymmetric; then
+       a,x equiv a,c by Z3, EquivTransitive;
+       hence b,c equiv b9,c9 by Z1, Z2, H1, C1prime;
+     end;
+   end;
+
+theorem EasyAngleTransport:
+  o <> a implies
+    ex x,y st between b,o,x & between a,o,y & x,y,o cong a,b,o
+   proof
+     assume
+X1:  o <> a;
+     consider x such that
+X2:  between b,o,x & o,x equiv o,a by A4;
+     x,o equiv a,o by X2, CongruenceDoubleSymmetry; then
+X5:  a,o,x cong x,o,a by X2, A1, EquivSymmetric;
+     consider y such that
+X6:  between a,o,y & o,y equiv o,b by A4;
+     between x,o,b by X2, Bsymmetry; then
+     x,y,o cong a,b,o by X6, CongruenceDoubleSymmetry, X1, X5, A5;
+     hence thesis by X2, X6;
+   end;
+
+theorem B123and134Ordered:
+  between a,b,c & between a,c,d implies a,b,c,d are_ordered
+  proof
+    assume between a,b,c & between a,c,d; then
+    between d,c,a & between c,b,a by Bsymmetry; then
+    d,c,b,a are_ordered by B124and234Ordered;
+    hence thesis by Bsymmetry;
+  end;
+
+:: We now port Narboux's Coq proof of Gupta's result
+:: a <> b & Babc & Babd -> Bacd or Badc.
+:: with this one simplification: we isolate some lemmas.  We begin
+:: with two results that are not actually needed, but shed some light.
+
+theorem BextendToLine:
+  a <> b & between a,b,c & between a,b,d
+    implies ex x st a,b,c,x are_ordered & a,b,d,x are_ordered
+   proof
+     assume that
+H1:  a <> b and
+H2:  between a,b,c and
+H3:  between a,b,d;
+     consider u such that
+X1:  between a,c,u & c,u equiv b,d by A4;
+X2:  a,b,c,u are_ordered by H2, X1, B123and134Ordered; then
+X3:  between u,c,b by Bsymmetry;
+     u,c equiv c,u by A1; then
+X4:  u,c equiv b,d by X1, EquivTransitive;
+     consider x such that
+Y1:  between a,d,x & d,x equiv b,c by A4;
+Y2:  a,b,d,x are_ordered by H3, Y1, B123and134Ordered;
+Y4:  b,c equiv d,x by Y1, EquivSymmetric;
+     c,b equiv b,c by A1; then
+     c,b equiv d,x by Y4, EquivTransitive; then
+X6:  u,b equiv b,x by X3, Y2, X4, SegmentAddition;
+     b,u equiv u,b by A1; then
+     u = x by H1, X2, Y2, C1, X6, EquivTransitive;
+     hence thesis by X2, Y2;
+   end;
+
+:: We don't use this result, but there ought to be an easy proof of
+:: it, and there is.  The proof is largely due to Benjamin Kordesh.
+
+theorem ::: GuptaEasy:
+  a <> b & between a,b,c & between a,b,d &
+    b <> c & b <> d implies not between c,b,d
+   proof
+     assume that
+H1:  a <> b and
+H2:  between a,b,c and
+H3:  between a,b,d and
+H4:  b <> c and
+H5:  b <> d and
+H6:  between c,b,d;
+     consider x such that
+X2:  a,b,c,x are_ordered & a,b,d,x are_ordered
+       by H1, H2, H3, BextendToLine;
+     c,b,d,x are_ordered by H5, H6, BTransitivityOrdered, X2;
+     hence contradiction by H4, BEquality, X2;
+   end;
+
+:: The next result is like SAS: there are 5 pairs of segments, 4
+:: equivalent.  We say we apply Inner5Segments to abc-x and a9b9c9-x9
+
+theorem Inner5Segments:
+  a,b,c cong a9,b9,c9 &
+    between a,x,c & between a9,x9,c9 & c,x equiv c9,x9
+      implies b,x equiv b9,x9
+   proof
+     assume that
+H1:  a,b,c cong a9,b9,c9 and
+H2:  between a,x,c and
+H3:  between a9,x9,c9 and
+H4:  c,x equiv c9,x9;
+X1:  a,b equiv a9,b9 & a,c equiv a9,c9 & b,c equiv b9,c9 by H1;
+     per cases;
+     suppose
+       x = c;
+       hence thesis by H1, A3, H4, EquivSymmetric;
+     end;
+     suppose x <> c; then
+X2:    a <> c by H2, A6;
+       consider y such that
+X3:    between a,c,y & c,y equiv a,c by A4;
+       consider y9 such that
+X4:    between a9,c9,y9 & c9,y9 equiv a,c by A4;
+       a,c equiv c9,y9 by X4, EquivSymmetric; then
+X5:    c,y equiv c9,y9 by X3, EquivTransitive;
+X6:    c,b equiv c9,b9 by H1, CongruenceDoubleSymmetry; then
+       a,c,b cong a9,c9,b9 by X1; then
+X7:    b,y equiv b9,y9 by X2, X3, X4, X5, A5;
+X8:    y <> c by X3, EquivSymmetric, A3, X2;
+       between y,c,a & between c,x,a by X3, H2, Bsymmetry; then
+X9:    between y,c,x by B124and234then123;
+       between y9,c9,a9 & between c9,x9,a9 by X4, H3, Bsymmetry;
+       then
+X10:   between y9,c9,x9 by B124and234then123;
+       y,c,b cong y9,c9,b9 by X6, X5, X7, CongruenceDoubleSymmetry;
+       hence thesis by X8, X9, X10, H4, A5;
+     end;
+   end;
+
+theorem RhombusDiagBisect:
+  between b,c,d9 & between b,d,c9 &
+    c,d9 equiv c,d & d,c9 equiv c,d & d9,c9 equiv c,d implies
+      ex e st between c,e,c9 & between d,e,d9 &
+    c,e equiv c9,e & d,e equiv d9,e
+   proof
+     assume that
+H1:  between b,c,d9 and
+H2:  between b,d,c9 and
+H3:  c,d9 equiv c,d and
+H4:  d,c9 equiv c,d and
+H5:  d9,c9 equiv c,d;
+     between d9,c,b & between c9,d,b by H1, H2, Bsymmetry;
+     then consider e such that
+X2:  between c,e,c9 & between d,e,d9 by A7;
+X3:  c,d equiv c,d9 by H3, EquivSymmetric;
+X4:  c,c9 equiv c,c9 by EquivReflexive;
+     c,d equiv d9,c9 by H5, EquivSymmetric; then
+     c,d,c9 cong c,d9,c9 by X3, X4, H4, EquivTransitive; then
+X5:  d,e equiv d9,e by X2, EquivReflexive, Inner5Segments;
+X6:  d,c equiv c,d by A1;
+     c,d equiv d,c9 by H4, EquivSymmetric; then
+X7:  d,c equiv d,c9 by X6, EquivTransitive;
+X9:  c,d equiv d9,c9 by H5, EquivSymmetric;
+     d9,c9 equiv c9,d9 by A1; then
+     c,d equiv c9,d9 by X9, EquivTransitive; then
+     c,d9 equiv c9,d9 by H3, EquivTransitive; then
+     d,c,d9 cong d,c9,d9 by X7, EquivReflexive; then
+     c,e equiv c9,e by X2, EquivReflexive, Inner5Segments;
+     hence thesis by X2, X5;
+   end;
+
+theorem FlatNormal:
+  between d,e,d9 & c,d9 equiv c,d & d,e equiv d9,e &
+    c <> d & e <> d implies
+    ex p,r,q st between p,r,q & between r,c,d9 & between e,c,p &
+      r,c,p cong r,c,q & r,c equiv e,c & p,r equiv d,e
+   proof
+     assume that
+H2:  between d,e,d9 and
+H3:  c,d9 equiv c,d and
+H4:  d,e equiv d9,e and
+H5:  c <> d and
+H6:  e <> d;
+     c <> d9 by H5, H3, EquivSymmetric, A3; then
+     consider p,r such that
+X1:  between e,c,p & between d9,c,r & p,r,c cong d9,e,c
+       by EasyAngleTransport;
+     d9,e equiv d,e by H4, EquivSymmetric; then
+X3:  p,r equiv d,e by X1, EquivTransitive; then
+X4:  p <> r by EquivSymmetric, H6, A3;
+     consider q such that
+X5:  between p,r,q & r,q equiv e,d by A4;
+X6:  between d9,e,d by H2, Bsymmetry;
+     c,p equiv c,d9 by X1, CongruenceDoubleSymmetry; then
+X7:  c,p equiv c,d by H3, EquivTransitive;
+::   Apply SAS to p+crq & d9+ced
+     c,q equiv c,d by X4, X1, X5, X6, A5; then
+     c,d equiv c,q by EquivSymmetric; then
+X8:  c,p equiv c,q by X7, EquivTransitive;
+X10:  r,p equiv e,d by X3, CongruenceDoubleSymmetry;
+     e,d equiv r,q by X5, EquivSymmetric; then
+X11: r,c,p cong r,c,q by EquivReflexive, X8, X10, EquivTransitive;
+     between r,c,d9 by X1, Bsymmetry;
+     hence thesis by X5, X11, X1, X3;
+   end;
+
+theorem EqDist2PointsBetween:
+  a <> b & between a,b,c & a,p equiv a,q & b,p equiv b,q
+    implies c,p equiv c,q
+   proof
+     assume
+H1:  a <> b;
+     assume
+H2:  between a,b,c;
+     assume
+H3:  a,p equiv a,q & b,p equiv b,q;
+::   a & b are equidistant from p & q.  Apply SAS to a+pbc & a+qbc.
+     a,b,p cong a,b,q by H3, EquivReflexive; then
+     p,c equiv q,c by H1, H2, EquivReflexive, A5;
+     hence thesis by CongruenceDoubleSymmetry;
+   end;
+
+theorem EqDist2PointsInnerBetween:
+  between a,x,c & a,p equiv a,q & c,p equiv c,q
+    implies x,p equiv x,q
+   proof
+     assume
+H1:  between a,x,c;
+     assume
+H2:  a,p equiv a,q & c,p equiv c,q;
+::   a and c are equidistant from p and q.  Apply Inner5Segments to apb-x & aqb-x.
+X1:  a,c equiv a,c & c,x equiv c,x by EquivReflexive; then
+     a,p,c cong a,q,c by H2, CongruenceDoubleSymmetry; then
+     p,x equiv q,x by H1, X1, Inner5Segments;
+     hence thesis by CongruenceDoubleSymmetry;
+   end;
+
+theorem Gupta:
+  a <> b & between a,b,c & between a,b,d
+    implies between b,d,c or between b,c,d
+   proof
+     assume
+H1:  a <> b;
+     assume that
+H2:  between a,b,c and
+H3:  between a,b,d;
+     per cases;
+     suppose
+       b = c or b = d or c = d;
+       hence thesis by Baaq, Bqaa;
+     end;
+     suppose
+H4:  b <> c & b <> d & c <> d;
+     assume
+H5:  not between b,d,c;
+     consider d9 such that
+X1:  between a,c,d9 & c,d9 equiv c,d by A4;
+     consider c9 such that
+X2:  between a,d,c9 & d,c9 equiv c,d by A4;
+x3:  a,b,c,d9 are_ordered by H2, X1, B123and134Ordered; then
+X3:  between a,b,d9 & between b,c,d9;
+x4:  a,b,d,c9 are_ordered by H3, X2, B123and134Ordered;
+X5:  c <> d9 by X1, H4, A3, EquivSymmetric;
+X6:  d <> c9 by X2, H4, A3, EquivSymmetric;
+X7:  b <> d9 by x3, H4, A6;
+X8:  b <> c9 by x4, H4, A6;
+::   now prove a stronger result than BextendToLine with much the same proof.
+::   We find u & b9 with, essentially, a,b,c,d9,u and a, b,d,c9,b9
+::   ordered 5-tuples with d9u equiv db & cb9 equiv bc.
+     consider u such that
+Y1:  between c,d9,u & d9,u equiv b,d by A4;
+y2:  b,c,d9,u are_ordered by X5, x3, Y1, BTransitivityOrdered;
+     consider b9 such that
+Y3:  between d,c9,b9 & c9,b9 equiv b,c by A4;
+y4:  b,d,c9,b9 are_ordered by X6, x4, Y3, BTransitivityOrdered;
+Y5:  between c9,d,b by x4, Bsymmetry;
+Y6:  d,c9 equiv c9,d & b,d equiv d,b by A1;
+     c,d equiv d,c9 by X2, EquivSymmetric; then
+     c,d9 equiv d,c9 by X1, EquivTransitive; then
+Y7:  c,d9 equiv c9,d by Y6, EquivTransitive;
+     d9,u equiv d,b by Y1, Y6, EquivTransitive; then
+Y8:  c,u equiv c9,b by Y1, Y5, Y7, SegmentAddition;
+Y9:  c9,b9 equiv b9,c9 & b9,b equiv b,b9 by A1;
+     b,c equiv c9,b9 by Y3, EquivSymmetric; then
+Y10: b,c equiv b9,c9 by Y9, EquivTransitive;
+     between b9,c9,b by y4, Bsymmetry; then
+     b,u equiv b9,b by y2, Y10, Y8, SegmentAddition; then
+Y11: b,u equiv b,b9 by Y9, EquivTransitive;
+Y12: a,b,d9,u are_ordered by X7, x3, y2, BTransitivityOrdered;
+     a,b,c9,b9 are_ordered by X8, x4, y4, BTransitivityOrdered; then
+Y13: u = b9 by H1, Y11, C1, Y12;
+::   Show c9d9 equiv cd by applying SAS to b+c9cd & b9+cc9d.
+     c9,b equiv c,b9 by Y13, Y8, EquivSymmetric; then
+     b,c9 equiv b9,c by CongruenceDoubleSymmetry; then
+Z2:  b,c,c9 cong b9,c9,c by Y10, A1;
+     between b9,c9,d by Y3, Bsymmetry; then
+Z3:  c9,d9 equiv c,d by H4, Z2, X3, Y7, A5;
+     d9,c9 equiv c9,d9 by A1; then
+     d9,c9 equiv c,d by Z3, EquivTransitive; then
+::   c,d9,c9,d is a ``flat'' rhombus.  The diagonals bisect each other:
+     consider e such that
+Z4:  between c,e,c9 & between d,e,d9 & c,e equiv c9,e & d,e equiv d9,e
+       by X1, X2, RhombusDiagBisect;
+
+U1:  e <> c by H5, x4, Z4, EquivSymmetric, A3;
+     e = d
+     proof
+       assume
+V2:    e <> d; then
+       consider p,r,q such that
+W1:    between p,r,q & between r,c,d9 & between e,c,p &
+       r,c,p cong r,c,q & r,c equiv e,c & p,r equiv d,e
+         by Z4, X1, H4, FlatNormal;
+::     r and c are equidistant from p and q, r <> c, B rcd9, hence also d9
+       c <> r by W1, U1, EquivSymmetric, A3; then
+W3:    d9,p equiv d9,q by W1, EqDist2PointsBetween; then
+
+::     c and d9 are equidistant from p and q, c <> d9, B c,d9,b9, hence also b9.
+W4:    b9,p equiv b9,q by X5, W1, Y1, Y13, EqDist2PointsBetween;
+
+::     d9 and c are equidistant from p and q, d9 <> c, B d9,c,b, hence also b.
+       between d9,c,b by X3, Bsymmetry; then
+W5:    b,p equiv b,q by X5, W3, W1, EqDist2PointsBetween;
+
+::     b and b9 are equidistant from p and q, B b,c9,b, hence also c9.
+W7:    c9,p equiv c9,q by y4, W4, W5, EqDist2PointsInnerBetween;
+
+::     c9 and c are equidistant from p and q, c9 <> c, B c9,c,p, hence also p.
+       between c9,e,c by Z4, Bsymmetry; then
+w8:    c9,e,c,p are_ordered by U1, W1, BTransitivityOrdered;
+       c9 <> c by Z4, U1, A6; then
+       p,p equiv p,q by w8, W7, W1, EqDist2PointsBetween; then
+
+::     Now we deduce a contradiction from p = q.
+       q = p by EquivSymmetric, A3; then
+       p = r by W1, A6;
+       hence contradiction by V2, W1, EquivSymmetric, A3;
+     end;
+     hence thesis by X3, Z4, EquivSymmetric, A3;
+   end;
+ end;
+
+definition
+  let S be TarskiGeometryStruct;
+  let a,b,c be POINT of S;
+  pred Collinear a,b,c means  :::  :DefCollinear:
+  between a,b,c or between b,c,a or between c,a,b;
+end;
+
+definition
+  let S, a, b, x;
+  pred x on_line a,b means   ::: :DefLine:
+  a <> b & (between a,b,x or between b,x,a or between x,a,b);
+end;
+
+definition
+  let S, a, b, x, y;
+  pred a,b equal_line x,y means   ::: :DefLineEq:
+    a <> b & x <> y & for c holds c on_line a,b  iff  c on_line x,y;
+end;
+
+:: Using Gupta's theorem, we prove Hilbert's axiom I3, a line is
+:: determined by two points.
+
+theorem I1part1:
+  a <> b & a <> x & x on_line a,b &
+    c on_line a,b implies c on_line a,x
+   proof
+     assume that
+H1:  a <> b and
+H2:  a <> x;
+     assume x on_line a,b; then
+X1:  between a,b,x or between a,x,b or between x,a,b by Bsymmetry;
+     assume
+H4:  c on_line a,b;
+     between a,x,c or between a,c,x or between x,a,c
+     proof
+       consider m being POINT of S such that
+X5:    between b,a,m & a,m equiv a,b by A4;
+X6:    a <> m by H1, X5, EquivSymmetric, A3;
+       per cases by X1, Bsymmetry, H4;
+       suppose
+X3:      between a,b,x & between a,b,c; then
+         between b,x,c or between b,c,x by H1, Gupta; then
+         a,b,x,c are_ordered or a,b,c,x are_ordered
+           by X3, BTransitivityOrdered;
+         hence thesis;
+       end;
+       suppose
+         between a,b,x & between a,c,b; then
+         a,c,b,x are_ordered by B123and134Ordered;
+         hence thesis;
+       end;
+       suppose
+         between a,b,x & between c,a,b; then
+         c,a,b,x are_ordered by H1, BTransitivityOrdered;
+         hence thesis by Bsymmetry;
+       end;
+       suppose
+         between a,x,b & between a,b,c; then
+         a,x,b,c are_ordered by B123and134Ordered;
+         hence thesis;
+       end;
+       suppose
+X4:      between a,x,b & between a,c,b;
+         between m,a,b by X5, Bsymmetry; then  :: m,a,c,b
+         between m,a,c & between m,a,x by X4, B124and234then123;
+         hence thesis by X6, Gupta;
+       end;
+       suppose
+         between a,x,b & between c,a,b; then  :: c,a,x,b
+         between c,a,x by B124and234then123;
+         hence thesis by Bsymmetry;
+       end;
+       suppose
+         between x,a,b & between a,b,c; then
+         x,a,b,c are_ordered by H1, BTransitivityOrdered;
+         hence thesis;
+       end;
+       suppose
+         between x,a,b & between a,c,b; :: x,a,c,b
+         hence thesis by B124and234then123;
+       end;
+       suppose
+         between x,a,b & between c,a,b; then
+         between b,a,x & between b,a,c by Bsymmetry;
+         hence thesis by H1, Gupta;
+       end;
+     end;
+     hence thesis by H2, Bsymmetry;
+   end;
+
+theorem I1part2:
+  a <> b & a <> x & x on_line a,b implies
+    a,b equal_line a,x
+   proof
+     assume
+H1:  a <> b & a <> x & x on_line a,b;
+     c on_line a,b iff c on_line a,x
+     proof
+       thus c on_line a,b implies c on_line a,x by H1, I1part1;
+       assume
+H2:    c on_line a,x;
+       b on_line a,x by H1, Bsymmetry;
+       hence c on_line a,b by H1, H2, I1part1;
+     end;
+     hence thesis by H1;
+   end;
+
+theorem :::LineEqRefl:
+  a <> b implies a,b equal_line a,b; :::NS
+
+theorem LineEqA1:
+  a <> b implies a,b equal_line b,a
+   proof
+     assume
+H1:  a <> b;
+     for c holds c on_line a,b iff c on_line b,a by Bsymmetry;
+     hence thesis by H1;
+   end;
+
+theorem ::: LineEqSymmetric:
+  a <> b & c <> d & a,b equal_line c,d implies c,d equal_line a,b; :::NS
+
+theorem ::: LineEqTrans:
+  a <> b & c <> d & e <> f & a,b equal_line c,d & c,d equal_line e,f
+    implies a,b equal_line e,f; :::NS
+
+theorem ::: onlineEq:
+  x on_line a,b & a,b equal_line c,d implies x on_line c,d; :::NS
+
+theorem I1part2Reverse:
+  a <> b & b <> y & y on_line a,b
+    implies a,b equal_line y,b
+  proof
+     assume
+H1:  a <> b & b <> y & y on_line a,b; then
+Y1:  a,b equal_line b,a & b,y equal_line y,b by LineEqA1; then
+     b,a equal_line b,y by H1, I1part2; then
+     a,b equal_line b,y by Y1;
+     hence thesis by Y1;
+   end;
+
+theorem ::: I1:
+  a <> b & x <> y & a on_line x,y & b on_line x,y
+    implies x,y equal_line a,b
+   proof
+     assume
+H1:  a <> b & x <> y; then
+P2:  b,a equal_line a,b by LineEqA1;
+     assume
+H2:  a on_line x,y & b on_line x,y;
+     per cases;
+     suppose x = b; then
+       x,y equal_line b,a by H1, H2, I1part2;
+       hence thesis by P2;
+     end;
+     suppose
+       x <> b; then
+P4:    x,y equal_line x,b by H2, I1part2; then
+       x,b equal_line a,b by H1, I1part2Reverse, H2;
+       hence thesis by P4;
+     end;
+  end;
+
+begin :: Construction of the Euclidean Example
+
+definition
+  func Tarski0Space -> MetrTarskiStr equals
+    the naturally_generated TarskiExtension of ZeroSpace;
+  coherence;
+end;
+
+registration
+  cluster Tarski0Space -> Reflexive symmetric non empty;
+  coherence;
+end;
+
+definition let M be non empty MetrStruct;
+  attr M is close-everywhere means :Lem1:
+    for a,b being Element of M holds
+      dist (a,b) = 0;
+end;
+
+registration
+  cluster Tarski0Space -> close-everywhere;
+  coherence
+  proof
+    set M = Tarski0Space;
+    for a,b being Element of M holds
+      dist (a,b) = 0
+    proof
+      let a,b be Element of M;
+aa:   the MetrStruct of M = the MetrStruct of ZeroSpace by TADef;
+      reconsider a1 = a, b1 = b as Element of 2 by aa;
+      thus thesis by METRIC_1:27,aa;
+    end;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster Tarski0Space -> satisfying_CongruenceSymmetry
+                          satisfying_CongruenceEquivalenceRelation
+                          satisfying_SegmentConstruction
+                          satisfying_SAS
+                          satisfying_Pasch;
+  coherence
+  proof
+    set T = Tarski0Space;
+a1: for a, b being POINT of T holds a,b equiv b,a
+    proof
+      let a, b be POINT of T;
+      dist (a,b) = dist (b,a);
+      hence thesis by NGDef;
+    end;
+a2: for a, b, p, q, r, s being POINT of T holds
+      a,b equiv p,q & a,b equiv r,s implies p,q equiv r,s
+    proof
+      let a, b, p, q, r, s be POINT of T;
+      assume a,b equiv p,q & a,b equiv r,s; then
+      dist (a,b) = dist (p,q) & dist (a,b) = dist (r,s) by NGDef;
+      hence thesis by NGDef;
+    end;
+a4: for a, q, b, c being POINT of T holds
+      ex x being POINT of T st between q,a,x & a,x equiv b,c
+    proof
+      let a, q, b, c be POINT of T;
+      take x = the POINT of T;
+      dist(q,a) = 0 & dist(a,x) = 0 by Lem1; then
+T1:   a is_Between q,x by Lem1;
+      dist (a,x) = 0 & dist (b,c) = 0 by Lem1;
+      hence thesis by NGDef,T1;
+    end;
+a5: for a, b, c, x, a9, b9, c9, x9 being POINT of T st
+      a <> b & a,b,c cong a9,b9,c9 &
+      between a,b,x & between a9,b9,x9 & b,x equiv b9,x9
+      holds c,x equiv c9,x9
+    proof
+      let a, b, c, x, a9, b9, c9, x9 be POINT of T;
+      assume a <> b & a,b,c cong a9,b9,c9 &
+      between a,b,x & between a9,b9,x9 & b,x equiv b9,x9;
+      dist (c,x) = 0 & dist (c9,x9) = 0 by Lem1;
+      hence thesis by NGDef;
+    end;
+    for a, b, p, q, z being POINT of T st
+      between a,p,z & between b,q,z holds
+      ex x being POINT of T st between p,x,b & between q,x,a
+    proof
+      let a, b, p, q, z be POINT of T;
+      assume between a,p,z & between b,q,z;
+      take x = the POINT of T;
+s2:   dist(p,b) = 0 & dist(p,x) = 0 & dist(x,b) = 0 by Lem1;
+      dist(q,a) = 0 & dist(q,x) = 0 & dist(x,a) = 0 by Lem1; then
+      x is_Between p,b & x is_Between q,a by s2;
+      hence thesis by NGDef;
+    end;
+    hence thesis by a1,a2,a4,a5;
+  end;
+end;
+
+definition
+  func TarskiSpace -> MetrTarskiStr equals
+    the naturally_generated TarskiExtension of RealSpace;
+  coherence;
+end;
+
+registration
+  cluster TarskiSpace -> non empty;
+  coherence;
+end;
+
+registration
+  cluster TarskiSpace -> Reflexive symmetric discerning;
+  coherence;
+end;
+
+registration
+  cluster -> real for Element of TarskiSpace;
+  coherence
+  proof
+    let x be Element of TarskiSpace;
+    the MetrStruct of RealSpace = the MetrStruct of TarskiSpace by TADef;
+    hence thesis;
+  end;
+end;
+
+registration
+  cluster -> real for Element of RealSpace;
+  coherence;
+end;
+
+theorem
+  for a, b, c being Element of RealSpace st
+    b in [.a,c.] holds b is_Between a,c
+  proof
+    let a, b, c be Element of RealSpace;
+    assume b in [.a,c.]; then
+B1: b >= a + 0 & c >= b + 0 by XXREAL_1:1; then
+b2: c >= a + 0 by XXREAL_0:2;
+A0: |.a-c.| = |.c - a.| by COMPLEX1:60
+           .= (c - b) + (b - a) by b2,COMPLEX1:43,XREAL_1:19
+           .= |.c-b.| + (b - a) by B1,XREAL_1:19,COMPLEX1:43
+           .= |.c-b.| + |.b-a.| by B1,XREAL_1:19,COMPLEX1:43
+           .= |.b-c.| + |.b-a.| by COMPLEX1:60
+           .= |.a-b.| + |.b-c.| by COMPLEX1:60;
+A1: dist (a,c) = |.a-c.| by TOPMETR:11;
+    dist (a,b) = |.a-b.| by TOPMETR:11;
+    hence thesis by A1,A0,TOPMETR:11;
+  end;
+
+registration
+  cluster TarskiSpace -> satisfying_CongruenceSymmetry
+                         satisfying_CongruenceEquivalenceRelation
+                         satisfying_CongruenceIdentity
+                         satisfying_SegmentConstruction
+                         satisfying_BetweennessIdentity;
+  coherence
+  proof
+    set T = TarskiSpace;
+a1: for a, b being POINT of T holds a,b equiv b,a
+    proof
+      let a, b be POINT of T;
+      dist (a,b) = dist (b,a);
+      hence thesis by NGDef;
+    end;
+a2: for a, b, p, q, r, s being POINT of T st
+      a,b equiv p,q & a,b equiv r,s holds p,q equiv r,s
+    proof
+      let a, b, p, q, r, s be POINT of T;
+      assume a,b equiv p,q & a,b equiv r,s; then
+      dist (a,b) = dist (p,q) & dist (a,b) = dist (r,s) by NGDef;
+      hence thesis by NGDef;
+    end;
+a3: for a, b, c being POINT of T st
+      a,b equiv c,c holds a = b
+    proof
+      let a, b, c be POINT of T;
+      assume a,b equiv c,c; then
+      dist (a,b) = dist (c,c) by NGDef;
+      hence thesis by METRIC_1:2,1;
+    end;
+xx: the MetrStruct of T = the MetrStruct of RealSpace by TADef;
+a4: for a, q, b, c being POINT of T holds
+      ex x being POINT of T st between q,a,x & a,x equiv b,c
+    proof
+      let a, q, b, c be POINT of T;
+      set bc = dist (b,c), qa = dist (q,a);
+      per cases;
+      suppose q >= a; then
+z0:     q - a >= a - a by XREAL_1:9;
+Z2:     q - a = |. q - a .| by COMPLEX1:43,z0
+             .= qa by xx,METRIC_1:def 12;
+        set x = a - bc;
+X1:     bc >= 0 by METRIC_1:5;
+        reconsider x as POINT of T by xx,XREAL_0:def 1;
+        take x;
+X2:     dist (a,x) = |. a - x .| by METRIC_1:def 12,xx
+                  .= bc by METRIC_1:5,COMPLEX1:43;
+        qa >= 0 by METRIC_1:5; then
+X4:     0 <= qa * bc by X1;
+X3:     |. q - a .| = dist (q,a) by xx,METRIC_1:def 12;
+        dist (q,x) = |. q - x .| by xx,METRIC_1:def 12
+                  .= |. q - a + bc .|
+                  .= |. q - a .| + |. bc .| by ABSVALUE:11,X4,Z2
+                  .= dist (q,a) + bc by X3,COMPLEX1:43,METRIC_1:5; then
+        a is_Between q,x by X2;
+        hence thesis by NGDef,X2;
+      end;
+      suppose q <= a; then
+Z2:     a - q = |. a - q .| by COMPLEX1:43,XREAL_1:48
+             .= |. q - a .| by COMPLEX1:60
+             .= qa by xx,METRIC_1:def 12;
+        set x = a + bc;
+X1:     bc >= 0 by METRIC_1:5;
+        reconsider x as POINT of T by xx,XREAL_0:def 1;
+        take x;
+X2:     dist (a,x) = |. a - x .| by xx,METRIC_1:def 12
+                  .= |. - bc .|
+                  .= |. bc .| by COMPLEX1:52
+                  .= bc by METRIC_1:5,COMPLEX1:43;
+        qa >= 0 by METRIC_1:5; then
+X4:     0 <= qa * bc by X1;
+XX:     |. a - q + bc .| = |. a - q .| + |. bc .| by ABSVALUE:11,X4,Z2;
+X3:     |. a - q .| = |. q - a .| by COMPLEX1:60
+                   .= dist (q,a) by xx,METRIC_1:def 12;
+        dist (q,x) = |. q - x .| by METRIC_1:def 12,xx
+                  .= |. x - q .| by COMPLEX1:60
+                  .= dist (q,a) + bc by X3,XX,COMPLEX1:43,METRIC_1:5; then
+        a is_Between q,x by X2;
+        hence thesis by NGDef,X2;
+      end;
+    end;
+    for a, b being POINT of T holds between a,b,a implies a = b
+    proof
+      let a, b be POINT of T;
+      assume between a,b,a; then
+      b is_Between a,a by NGDef; then
+      0 = dist(a,b) + dist(b,a) by METRIC_1:1;
+      hence thesis by METRIC_1:2;
+    end;
+    hence thesis by a1,a2,a3,a4;
+  end;
+end;
+
