@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 import express from 'express';
 import fs from "node:fs"
-import * as rfs from 'rotating-file-stream';
 const verifierRouter = require('./routes/api')
 const formatterRouter = require('./routes/formatter')
 const linterRouter = require('./routes/linter')
@@ -21,14 +20,9 @@ app.set('view engine', 'jade');
 
 // Httpリクエストログの出力とファイル保存
 app.use(logger('dev'));
-const logDirectory = path.join(__dirname, './log');
+const logDirectory = path.join(__dirname, './logs');
 fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
-const requestLogStream = rfs.createStream('requestLog', {
-  size: '10MB',
-  interval: '10d', // 期間(s:秒、m:分、h:時間、d:日)
-  compress: 'gzip', // 期間を過ぎたログの圧縮方法
-  path: logDirectory
-})
+const requestLogStream = fs.createWriteStream(path.join(logDirectory, 'request.log'), { flags: 'a' })
 const logFormat = ':date[clf] - :method :status :url - :response-time ms'
 app.use(logger(logFormat, {
   stream: requestLogStream

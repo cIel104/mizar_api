@@ -5,6 +5,7 @@ import os from 'os';
 import { makeErrorList } from './makeErrorList';
 import { checkQueue } from "../routes/api";
 import { discriminateVersion } from "./discriminatieVersion";
+import { logger } from "../logger";
 const redis = require("ioredis")
 const carrier = require("carrier")
 
@@ -116,6 +117,7 @@ export async function verifier(ID: string): Promise<void> {
         verifierProcess.on('close', async () => {
             runningCommand.process = undefined
             console.log('finish verifier : uuid = %s', ID)
+            logger.info('finish verifier : uuid = %s', ID)
             //isVerifierFinishをtrueにprogressPercentを100にする
             try {
                 await makeErrorList(client, ID, filePath);
