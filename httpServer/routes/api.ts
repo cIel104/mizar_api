@@ -5,6 +5,7 @@ import { runGitCommand } from '../verifierKicker/runGitCommand';
 import { verifier, killProcess } from '../verifierKicker/verifierKicker';
 import { Queue } from '../verifierKicker/queue';
 import path from 'node:path';
+import { logger } from "../logger";
 const redis = require('ioredis')
 const router = express.Router();
 
@@ -26,10 +27,16 @@ const commandArray = [
     'inacc',
     'chklab',
 ]
+
 //verifierを実行させるapi(POST形式)
 router.post('/', async function (req: { body: { fileName: string; repositoryUrl: string; command: string; }; }, res: any) {
     //UUID作成(DBのkeyとして利用)
     const uuid = crypto.randomUUID()
+    const logObject = {
+        uuid: uuid,
+        requestParameter: req.body,
+    }
+    logger.info(`verifierを実行させるapi呼び出し`, logObject)
 
     if (!('fileName' in req.body && 'repositoryUrl' in req.body && 'command' in req.body)) {
         res.status(400).json({
@@ -48,7 +55,7 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
         return
     }
 
-    //git clone(git pull)実行
+    logger.info(`git コマンド実行`)
     const gitCommandResult: { result: boolean; directoryName: string } = await runGitCommand(req.body.repositoryUrl)
     console.log(gitCommandResult)
     process.chdir(__dirname)
@@ -60,14 +67,11 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
     }
 
     const fileName = req.body.fileName.split('.', 1);
-    // const githubName = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
     const trimmedUrl = req.body.repositoryUrl.replace("https://github.com/", "").replace(".git", "").split('/')
     const accountName = trimmedUrl[0]
     const repositoryName = trimmedUrl[1]
-    console.log('api filepath %s', __dirname)
     const filePath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', accountName, repositoryName, 'text', req.body.fileName))
     const iniPath = path.relative(__dirname, path.join(path.dirname(path.dirname(__dirname)), 'mizarDirectory', accountName, repositoryName, 'mml.ini'))
-    console.log('filepath %s', filePath)
     if (!(fs.existsSync(filePath))) {
         res.status(400).json({
             'message': 'The mizar file described in the fileName parameter cannot be found.'
@@ -79,7 +83,6 @@ router.post('/', async function (req: { body: { fileName: string; repositoryUrl:
     initializeDB(uuid, fileName, filePath, iniPath, req.body.command);
 
     queue.enqueue(uuid)
-    checkQueue()
 
     res.json({
         'ID': uuid,
@@ -144,32 +147,32 @@ async function initializeDB(ID: string, fileName: any, filePath: string, iniPath
     client.hset(ID, 'isVerifierSuccess', 'true'); //失敗した際にfalseに変更し処理を止めるため
     client.hset(ID, 'errorList', JSON.stringify([]));
     client.hset(ID, 'command', command);
-    client.hset(ID, 'isMakeenvStart', 'false');
     client.hset(ID, 'iniPath', iniPath);
+    await client.hset(ID, 'isMakeenvStart', 'false');
+    checkQueue()
 }
 
 export async function checkQueue() {
     //同じIDを複数回確認する必要があるのでqueueの先頭を検証し、検証完了後dequeueするようにしている
-    console.log(queue.getItems())
+    logger.info(`in checkQueue ${queue.getItems()}`)
     const client = new redis(config);
     const isMakeenvStart = await client.hget(queue.peek(), 'isMakeenvStart')
+    logger.info(`isMakeenvStart : ${isMakeenvStart}`)
+    const isMakeenvSuccess = await client.hget(queue.peek(), 'isMakeenvSuccess')
+    const isMakeenvFinish = await client.hget(queue.peek(), 'isMakeenvFinish')
+    const isVerifierFinish = await client.hget(queue.peek(), 'isVerifierFinish')
     if (isMakeenvStart === 'false') {
-        const ID: string | undefined = queue.peek()
+        const ID: string = queue.peek()
+        client.hset(String(ID), 'isMakeenvStart', String('true'))
+        logger.info(`isMakeenvStart change true`)
+        verifier(ID)
+    } else if ((isMakeenvSuccess === 'false' && isMakeenvFinish === 'true') || isVerifierFinish === 'true') {
+        queue.dequeue()
+        logger.info(`dequeue`)
+        const ID: string = queue.peek()
         if (ID) {
             client.hset(String(ID), 'isMakeenvStart', String('true'))
             verifier(ID)
-        }
-    } else {
-        const isMakeenvSuccess = await client.hget(queue.peek(), 'isMakeenvSuccess')
-        const isMakeenvFinish = await client.hget(queue.peek(), 'isMakeenvFinish')
-        const isVerifierFinish = await client.hget(queue.peek(), 'isVerifierFinish')
-        if ((isMakeenvSuccess === 'false' && isMakeenvFinish === 'true') || isVerifierFinish === 'true') {
-            queue.dequeue()
-            console.log('dequeue')
-            const ID: string | undefined = queue.peek()
-            if (ID) {
-                verifier(ID)
-            }
         }
     }
 }

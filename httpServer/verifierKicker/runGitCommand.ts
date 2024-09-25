@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import makeDir from "make-dir";
 import path from "node:path";
+import { logger } from "../logger";
 
 export function runGitCommand(repositoryUrl: string) {
     return new Promise<{ result: boolean, directoryName: string }>((resolve) => {
@@ -11,15 +12,14 @@ export function runGitCommand(repositoryUrl: string) {
         const rootDirectory = path.resolve(__dirname, '../../');
         const directoryPath = path.join(rootDirectory, 'mizarDirectory');
         const directoryName = path.join(directoryPath, accountName, repositoryName)
-        console.log('directoryName ', directoryName)
-        console.log('__dirname', __dirname)
         let command: string
 
         //ディレクトリの有無でコマンド選択
-        if (fs.existsSync(path.join(directoryName,'text'))) {
+        if (fs.existsSync(path.join(directoryName, 'text'))) {
             command = 'git -C ' + directoryName + ' checkout -- .';
             executeGitCommand(command)
             command = 'git -C ' + directoryName + ' pull'
+            logger.info(`git pull 実行`, { repositoryUrl: repositoryUrl })
             const gitCommandResult = executeGitCommand(command)
             resolve({ 'result': gitCommandResult, 'directoryName': directoryName })
         } else {
@@ -27,6 +27,7 @@ export function runGitCommand(repositoryUrl: string) {
             makeDir(directoryName).then(path => {
                 console.log('git clone', String(path))
                 command = 'git clone -b verifier --depth=1 ' + repositoryUrl + ' ' + path
+                logger.info(`git clone 実行`, { repositoryUrl: repositoryUrl })
                 const gitCommandResult = executeGitCommand(command)
                 resolve({ 'result': gitCommandResult, 'directoryName': directoryName })
             })

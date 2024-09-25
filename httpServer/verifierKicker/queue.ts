@@ -5,7 +5,7 @@ export class Queue {
         this.items.push(item);
     }
 
-    public dequeue(): string | undefined{
+    public dequeue(): string | undefined {
         return this.items.shift();
     }
 
@@ -25,8 +25,13 @@ export class Queue {
         return this.items.indexOf(item)
     }
 
-    public peek(): string | undefined {
-        return this.items[0]
+    public peek(): string {
+        if (this.items[0]) {
+            return this.items[0]
+        } else {
+            return ''
+        }
+
     }
 
     public removeItem(item: string): void {

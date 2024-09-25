@@ -1,6 +1,7 @@
 import fs from 'fs';
 import readline from 'readline';
 import path from 'node:path';
+import { logger } from "../logger";
 import { discriminateVersion } from "./discriminatieVersion";
 
 interface ErrorObj {
@@ -11,6 +12,7 @@ interface ErrorObj {
 }
 
 //エラーファイルに記入するMizarエラーメッセージを取得
+//利用者のバージョンの.msgファイルを取得
 async function getMizarMsg(ID: string) {
     const mizVersion = await discriminateVersion(ID)
     const rootDirectory = path.resolve(__dirname, '../../');
@@ -23,17 +25,15 @@ async function getMizarMsg(ID: string) {
 
 //現在はそれぞれのエラーに対してmizarMessageListを探索しているため、2重ループでの実装
 //エラー番号をリストなどに保存しておけば、1重ループで実装できるかも
-//さらに高速化を行うなら2分探索にする方法もある（.msgファイルの数字が抜けていたするので難易度は高そう）
 export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: any, filePath: string) {
     return new Promise<void>(async (resolve) => {
         const mizarMessageList = await getMizarMsg(ID);
-        console.log('mizarMessageList',mizarMessageList)
         const stream = fs.createReadStream(filePath.replace('.miz', '.err'), 'utf-8');
         const reader = readline.createInterface({ input: stream });
         let isReadingErrorMsg = false;
-        const errorList : Array<object> = [];
+        const errorList: Array<object> = [];
         reader.on('line', (line) => {
-            console.log('.err line', line)
+            logger.info(`err line : ${line}`)
             const [errorLine, errorColumn, errorNumber] = line.split(' ').map((str) => parseInt(str, 10));
             let errorMessage = ''
 
@@ -41,7 +41,7 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
                 const match = l.match(/# (\d+)/);
                 if (match) {
                     if (match[1] === errorNumber.toString()) {
-                        // 「# 数字」の次の行はエラーメッセージであるため、isReadingErrorMsgをtrueに設定
+                        // mizar.msgファイルは「# 数字」の次の行にエラーメッセージが書かれているため、isReadingErrorMsgをtrueに設定
                         isReadingErrorMsg = true;
                     }
                 } else if (isReadingErrorMsg) {
@@ -59,10 +59,10 @@ export function makeErrorList(client: { hset: (arg0: string, arg1: string, arg2:
 
         }).on('close', () => {
             try {
-                console.log('errorList ',errorList)
+                console.log('errorList ', errorList)
                 client.hset(String(ID), 'errorList', JSON.stringify(errorList))
             } catch (e) {
-                console.log(e)
+                logger.warn(e)
             }
             resolve()
         })

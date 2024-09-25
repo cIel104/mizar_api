@@ -1,3 +1,4 @@
+//Mizarのバージョンを判定する
 import fs from 'fs';
 const redis = require("ioredis")
 

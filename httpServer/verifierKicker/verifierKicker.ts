@@ -17,7 +17,7 @@ const config = {
 let runningCommand: { process?: cp.ChildProcessWithoutNullStreams } = {}
 export function killProcess() {
     if (runningCommand.process) {
-        console.log('in killProcess')
+        logger.info(`in killProcess`)
         runningCommand.process.kill('SIGINT')
     }
 }
@@ -47,10 +47,10 @@ export async function verifier(ID: string): Promise<void> {
     const makeenvProcess = cp.spawn(makeenvCmd, [filePath], { env: envPath });
     runningCommand.process = makeenvProcess
 
-    console.log('start mekeenv')
+    logger.info(`start makeenv : uuid = ${ID}`)
     //makeenv実行
     carrier.carry(makeenvProcess.stdout, (line: string) => {
-        console.log('in makeenv', line)
+        logger.debug(`in makeenv : ${line}`)
         if (line.indexOf('*') === -1) {
             if (line !== '' && !/^-/.test(line)) {
                 if (makeenvText !== '') {
@@ -75,19 +75,16 @@ export async function verifier(ID: string): Promise<void> {
         isMakeenvFinish = true;
         //makeenvが失敗していた場合はverifierを行わず終了
         //carrier.carry(makeenvProcess.stdout)内で完結させたほうがいいかも
-        console.log('isMakeenvSuccess = %s', isMakeenvSuccess.toString())
         if (isMakeenvSuccess !== true) {
+            logger.warn(`Makeenv Faild : uuid = ${ID}`)
             await makeErrorList(client, ID, filePath);
             await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, 'false');
+            checkQueue()
             return;
         }
 
-        console.log('start verifier : uuid = %s', ID)
-        try {
-            await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
-        } catch (e) {
-            console.log(e)
-        }
+        logger.info(`start verifier : uuid = ${ID}`)
+        await updateDb(client, ID, 'false', progressPhases, 0, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
 
         //verifier実行
         const [numOfEnvironmentalLines, numOfArficleLines] = countLines(filePath)
@@ -107,17 +104,16 @@ export async function verifier(ID: string): Promise<void> {
             numOfErrors = Number(cmdOutput[3]);
             //進捗計算(表記 : %,　小数点切り捨て)
             const progressPercent = Math.floor((numOfParsedLines - numOfEnvironmentalLines) / numOfArficleLines * 100)
-            // console.log(line)//デバッグ用
+            logger.debug(line)
             try {
                 await updateDb(client, ID, 'false', progressPhases, progressPercent, numOfErrors, makeenvText, isMakeenvFinish, isMakeenvSuccess, isVerifierSuccess);
             } catch (e) {
-                console.log(e)
+                logger.error(e)
             }
         }), null, /\r/);
         verifierProcess.on('close', async () => {
             runningCommand.process = undefined
-            console.log('finish verifier : uuid = %s', ID)
-            logger.info('finish verifier : uuid = %s', ID)
+            logger.info(`finish verifier : uuid = ${ID}`)
             //isVerifierFinishをtrueにprogressPercentを100にする
             try {
                 await makeErrorList(client, ID, filePath);
@@ -125,7 +121,7 @@ export async function verifier(ID: string): Promise<void> {
                 checkQueue()
                 resolve()
             } catch (e) {
-                console.log(e)
+                logger.error(e)
             }
             return;
         });
@@ -135,7 +131,6 @@ export async function verifier(ID: string): Promise<void> {
 
 //DBを更新(引数が多いので配列などにしたほうがよいかも)
 async function updateDb(client: { hset: (arg0: string, arg1: string, arg2: string) => void; }, ID: string, isVerifierFinish: string, phases: never[], progressPercent: string | number, numOfErrors: number, makeenvText: string, isMakeenvFinish: boolean, isMakeenvSuccess: boolean, isVerifierSuccess: string | boolean) {
-    // console.log(isVerifierFinish, progressPercent)//デバック
     try {
         client.hset(String(ID), 'isVerifierFinish', String(isVerifierFinish));
         client.hset(String(ID), 'progressPhases', JSON.stringify(phases));
@@ -146,7 +141,7 @@ async function updateDb(client: { hset: (arg0: string, arg1: string, arg2: strin
         client.hset(String(ID), 'isMakeenvSuccess', String(isMakeenvSuccess));
         client.hset(String(ID), 'isVerifierSuccess', String(isVerifierSuccess));
     } catch (e) {
-        console.log(e)
+        logger.error(e)
     }
 
 }
